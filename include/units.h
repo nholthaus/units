@@ -1,7 +1,7 @@
 //--------------------------------------------------------------------------------------------------
 // 
 /// @PROJECT	units
-///	@AUTHORS	Nic Holthaus
+/// @AUTHORS	Nic Holthaus
 /// @DATE		2016/01/29
 // 
 //--------------------------------------------------------------------------------------------------
@@ -165,12 +165,13 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class, class, class> struct derived_unit_impl;
-	template<class Conversion, class BaseUnitConversion, class BaseUnitPiExponent, class PiExponent, class... Exponents>
+	template<class Conversion, class BaseUnitConversion, class BaseUnitPiExponent, class... Exponents, class PiExponent>
 	struct derived_unit_impl<Conversion, unit<BaseUnitConversion, BaseUnitPiExponent, Exponents...>, PiExponent>
 	{
 		static_assert(is_unit<unit<BaseUnitConversion, BaseUnitPiExponent, Exponents...>>::value, "Template parameter `BaseUnit` must be a unit type.");
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
+
 		using type = unit<std::ratio_multiply<Conversion, BaseUnitConversion>, std::ratio_add<PiExponent, BaseUnitPiExponent>, Exponents...>;
 	};
 
@@ -243,10 +244,43 @@ namespace units
 		using nauticalMiles = derived_unit<std::ratio<1852>, meters>;
 		using astronicalUnits = derived_unit<std::ratio<149597870700>, meters>;
 		using lightyears = derived_unit<std::ratio<9460730472580800>, meters>;
-		using parsec = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
+		using parsecs = derived_unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
+
+		using meter = meters;
+		using foot = feet;
+		using inch = inches;
+		using mile = miles;
+		using nauticalMile = nauticalMiles;
+		using astronicalUnit = astronicalUnits;
+		using lightyear = lightyears;
+		using parsec = parsecs;
+
+		using m = meters;
+		using ft = feet;
+		using inc = inches;
+		using mi = miles;
+		using nmi = nauticalMiles;
+		using au = astronicalUnits;
+		using ly = lightyears;
+		using pc = parsecs;
 	}
 	
-};	// end namepspace units
+	//------------------------------
+	//	TIME UNITS
+	//------------------------------
+
+	namespace time
+	{
+		using s
+	}
+
+	//------------------------------
+	//	CONVERSION FUNCTION
+	//------------------------------
+
+
+
+};	// end namespace units
 
 #endif // units_h__
 
