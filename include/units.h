@@ -603,6 +603,40 @@ namespace units
 	}
 
 	//------------------------------
+	//	ANGLE UNITS
+	//------------------------------
+
+	namespace angle
+	{
+		using radians = unit<std::ratio<1>, category::angle_unit>;
+		using milliradians = milli<radians>;
+		using degrees = unit<std::ratio<1,180>, radians, std::ratio<1>>;
+		using minutes = unit<std::ratio<1, 60>, degrees>;
+		using seconds = unit<std::ratio<1, 60>, minutes>;
+		using turns = unit<std::ratio<2>, radians, std::ratio<1>>;
+		using mils = unit<std::ratio<1, 6400>, radians>;	// 1/6400 of a circle
+		using gradians = unit<std::ratio<1, 400>, turns>;
+
+		using radian = radians;
+		using milliradian = milliradians;
+		using degree = degrees;
+		using minute = minutes;
+		using second = seconds;
+		using turn = turns;
+		using mil = mils;
+		using gradian = gradians;
+
+		using rad = radians;
+		using mrad = milliradians;
+		using deg = degrees;
+		using min = minutes;
+		using sec = seconds;
+		using tr = turn;
+		using gon = gradians;
+		using grad = gradians;
+	}
+
+	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
 

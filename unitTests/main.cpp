@@ -123,6 +123,17 @@ TEST_F(UnitTest, timeConversionFactors)
 	EXPECT_NEAR(604800.0,weeks::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(3.154e+7,years::conversionFactor(), 5.0e3);
 }
+TEST_F(UnitTest, angleConversionFactors)
+{
+	EXPECT_NEAR(1.0,angle::radians::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(0.001,angle::milliradians::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(0.0174533,angle::degrees::conversionFactor(), 5.0e-8);
+	EXPECT_NEAR(0.000290888,angle::minutes::conversionFactor(), 5.0e-10);
+	EXPECT_NEAR(4.8481e-6,angle::seconds::conversionFactor(), 5.0e-11);
+	EXPECT_NEAR(6.28319,angle::turns::conversionFactor(), 5.0e-6);
+	EXPECT_NEAR(0.00015625,angle::mils::conversionFactor(), 5.0e-10);
+	EXPECT_NEAR(0.015708,angle::gradians::conversionFactor(), 5.0e-7);
+}
 
 TEST_F(UnitTest, areaConversionFactors)
 {
@@ -192,6 +203,9 @@ TEST_F(UnitTest, conversion)
 
 	test = convert<years, weeks>(2.0);
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
+
+	test = convert<angle::seconds, angle::gradians>(2.1);
+	EXPECT_NEAR(0.000648148, test, 5.0e-10);
 
 	test = convert<hectares, acres>(6.3);
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
