@@ -449,14 +449,31 @@ namespace units
 	//	PREFIXES
 	//------------------------------
 
-// 	template<class U> struct prefix_impl;
-// 	template<class... Exponents>
-// 	struct inverse_impl<unit<Exponents...>> {
-// 		using type = unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
-// 	};
+	template<class Ratio, class Unit>
+	struct prefix
+	{
+		static_assert(is_ratio<Ratio>::value, "Template parameter `Ratio` must be a `std::ratio`.");
+		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+		typedef typename unit<Ratio, Unit> type;
+	};
 
-// 	template<class T>
-// 	struct centi 
+	template<class U> using atto = typename prefix<std::atto, U>::type;
+	template<class U> using femto = typename prefix<std::femto, U>::type;
+	template<class U> using pico = typename prefix<std::pico, U>::type;
+	template<class U> using nano = typename prefix<std::nano, U>::type;
+	template<class U> using micro = typename prefix<std::micro, U>::type;
+	template<class U> using milli = typename prefix<std::milli, U>::type;
+	template<class U> using centi = typename prefix<std::centi, U>::type;
+	template<class U> using deci = typename prefix<std::deci, U>::type;
+	template<class U> using deca = typename prefix<std::deca, U>::type;
+	template<class U> using hecto = typename prefix<std::hecto, U>::type;
+	template<class U> using kilo = typename prefix<std::kilo, U>::type;
+	template<class U> using mega = typename prefix<std::mega, U>::type;
+	template<class U> using giga = typename prefix<std::giga, U>::type;
+	template<class U> using tera = typename prefix<std::tera, U>::type;
+	template<class U> using peta = typename prefix<std::peta, U>::type;
+	template<class U> using exa = typename prefix<std::exa, U>::type;
+
 	//------------------------------
 	//	LENGTH UNITS
 	//------------------------------
@@ -464,7 +481,9 @@ namespace units
 	namespace length
 	{
 		using meters = unit<std::ratio<1>, category::length_unit>;
+		using millimeters = milli<meters>;
 		using feet = unit<std::ratio<381, 1250>, meters>;
+		using mils = unit<std::ratio<1000>, feet>;
 		using inches = unit<std::ratio<1, 12>, feet>;
 		using miles = unit<std::ratio<5280>, feet>;
 		using nauticalMiles = unit<std::ratio<1852>, meters>;
@@ -473,6 +492,7 @@ namespace units
 		using parsecs = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
 
 		using meter = meters;
+		using millimeter = millimeters;
 		using foot = feet;
 		using inch = inches;
 		using mile = miles;
@@ -482,6 +502,7 @@ namespace units
 		using parsec = parsecs;
 
 		using m = meters;
+		using mm = millimeters;
 		using ft = feet;
 		using inc = inches;
 		using mi = miles;
@@ -541,6 +562,29 @@ namespace units
 		using meters_per_hour = compound_unit<length::meters, inverse<time::hour>>;
 		using meters_per_year = compound_unit<length::meters, inverse<time::year>>;
 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
+		using knots = compound_unit<length::nauticalMiles, inverse<time::hour>>;
+		
+		using knot = knots;
+
+		using mps = meters_per_second;
+		using mph = miles_per_hour;
+	}
+
+	//------------------------------
+	//	AREA UNITS
+	//------------------------------
+
+	namespace area
+	{
+		using square_meters = squared<length::meters>;
+		using square_feet = squared<length::feet>;
+		using hectares = unit<std::ratio<10000>, square_meters>;
+		using acres = unit<std::ratio<43560>, square_feet>;
+
+		using hectare = hectares;
+		using acre = acres;
+
+		using ha = hectares;
 	}
 
 	//------------------------------

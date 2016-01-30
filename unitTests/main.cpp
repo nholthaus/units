@@ -5,6 +5,7 @@ using namespace units;
 using namespace units::length;
 using namespace units::time;
 using namespace units::frequency;
+using namespace units::area;
 
 namespace {
 
@@ -67,6 +68,7 @@ TEST_F(UnitTest, areConvertibleUnits)
 
 TEST_F(UnitTest, lengthConversionFactors)
 {
+	EXPECT_NEAR(0.001, millimeters::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(1.0, meters::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(0.3048, feet::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(1609.344, miles::conversionFactor(), 5.0e-20);
@@ -75,6 +77,11 @@ TEST_F(UnitTest, lengthConversionFactors)
 	EXPECT_NEAR(149597870700.0,astronicalUnits::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(9460730472580800.0,lightyears::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(3.08567758e16, parsec::conversionFactor(), 5.0e7);
+}
+
+TEST_F(UnitTest, areaConversionFactors)
+{
+	EXPECT_NEAR(4046.8564224, acre::conversionFactor(), 5.0e-8);
 }
 
 TEST_F(UnitTest, inverseUnits)
@@ -101,10 +108,11 @@ TEST_F(UnitTest, squared)
 
 TEST_F(UnitTest, cubed)
 {
-
+	using feet_squared = units::squared<feet>;
+	EXPECT_NEAR(0.092903, feet_squared::conversionFactor(), 5.0e-7);
 }
 
-TEST_F(UnitTest, differentDefinitionsResultInSameType)
+TEST_F(UnitTest, compoundUnits)
 {
 	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
 	using acceleration2 = compound_unit<meters, inverse<seconds>, inverse<seconds>>;
@@ -123,7 +131,7 @@ TEST_F(UnitTest, differentDefinitionsResultInSameType)
 	EXPECT_TRUE(areSame45);
 }
 
-TEST_F(UnitTest, compoundUnits)
+TEST_F(UnitTest, conversion)
 {
 
 }
