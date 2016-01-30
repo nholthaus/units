@@ -207,6 +207,9 @@ TEST_F(UnitTest, conversion)
 	test = convert<angle::seconds, angle::gradians>(2.1);
 	EXPECT_NEAR(0.000648148, test, 5.0e-10);
 
+	test = convert<current::A, current::mA>(2.1);
+	EXPECT_NEAR(2100.0, test, 5.0e-10);
+
 	test = convert<hectares, acres>(6.3);
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
 

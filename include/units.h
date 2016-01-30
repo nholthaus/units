@@ -637,6 +637,36 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNITS OF CURRENT
+	//------------------------------
+	namespace current
+	{
+		using amperes = unit<std::ratio<1>, category::current_unit>;
+		using milliamps = milli<amperes>;
+		using microamps = micro<amperes>;
+		using nanoamps = nano<amperes>;
+
+		using amps = amperes;
+		using amp = amperes;
+		
+		using A = amperes;
+		using mA = milliamps;
+		using uA = microamps;
+		using nA = nanoamps;
+	}
+
+	//------------------------------
+	//	UNITS OF TEMPERATURE
+	//------------------------------
+
+	namespace temperature
+	{
+		// NOTE: temperature units have special conversion overloads, since they
+		// require translations and aren't a reversible transform.
+		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
+	}
+
+	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
 
