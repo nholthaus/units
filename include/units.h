@@ -528,7 +528,7 @@ namespace units
 
 	namespace mass
 	{
-		using grams = unit<std::ratio<1000>, category::mass_unit>;
+		using grams = unit<std::ratio<1, 1000>, category::mass_unit>;
 		using micrograms = micro<grams>;
 		using milligrams = milli<grams>;
 		using kilograms = kilo<grams>;

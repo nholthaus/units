@@ -3,6 +3,7 @@
 
 using namespace units;
 using namespace units::length;
+using namespace units::mass;
 using namespace units::time;
 using namespace units::frequency;
 using namespace units::area;
@@ -94,6 +95,20 @@ TEST_F(UnitTest, lengthConversionFactors)
 	EXPECT_NEAR(149597870700.0,astronicalUnits::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(9460730472580800.0,lightyears::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(3.08567758e16, parsec::conversionFactor(), 5.0e7);
+}
+
+TEST_F(UnitTest, massConversionFactors)
+{
+	EXPECT_NEAR(1.0e-3, grams::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0e-9,micrograms::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0e-6,milligrams::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0,kilograms::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1000.0,metric_tons::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(0.453592,pounds::conversionFactor(), 5.0e-6);
+	EXPECT_NEAR(1016.05,imperial_tons::conversionFactor(), 5.0e-3);
+	EXPECT_NEAR(907.185,us_tons::conversionFactor(), 5.0e-4);
+	EXPECT_NEAR(0.0283495,ounces::conversionFactor(), 5.0e-7);
+	EXPECT_NEAR(0.0002,carats::conversionFactor(), 5.0e-6);
 }
 
 TEST_F(UnitTest, areaConversionFactors)
