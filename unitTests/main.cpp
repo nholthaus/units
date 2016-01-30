@@ -81,85 +81,183 @@ TEST_F(UnitTest, areConvertibleUnitsTime)
 	EXPECT_FALSE(shouldBeFalse);
 }
 
-TEST_F(UnitTest, lengthConversionFactors)
+TEST_F(UnitTest, lengthConversion)
 {
-	EXPECT_NEAR(0.000000001, nanometers::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.000001, micrometers::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.001, millimeters::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.01, centimeters::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1000.0, kilometers::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0, meters::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.3048, feet::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1609.344, miles::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.0254,inches::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1852.0,nauticalMiles::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(149597870700.0,astronicalUnits::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(9460730472580800.0,lightyears::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(3.08567758e16, parsec::conversionFactor(), 5.0e7);
+	double test;
+	test = convert<meters, nanometers>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, micrometers>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, millimeters>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, centimeters>(0.01);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, kilometers>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, meters>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, feet>(0.3048);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, miles>(1609.344);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, inches>(0.0254);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, nauticalMiles>(1852.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, astronicalUnits>(149597870700.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, lightyears>(9460730472580800.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<meters, parsec>(3.08567758e16);
+	EXPECT_NEAR(1.0, test, 5.0e7);
+
+	test = convert<feet, feet>(6.3);
+	EXPECT_NEAR(6.3, test, 5.0e-5);
+	test = convert<miles, nauticalMiles>(6.3);
+	EXPECT_NEAR(5.47455, test, 5.0e-6);
+
 }
 
-TEST_F(UnitTest, massConversionFactors)
+TEST_F(UnitTest, massConversion)
 {
-	EXPECT_NEAR(1.0e-3, grams::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0e-9,micrograms::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0e-6,milligrams::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0,kilograms::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1000.0,metric_tons::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.453592,pounds::conversionFactor(), 5.0e-6);
-	EXPECT_NEAR(1016.05,imperial_tons::conversionFactor(), 5.0e-3);
-	EXPECT_NEAR(907.185,us_tons::conversionFactor(), 5.0e-4);
-	EXPECT_NEAR(0.0283495,ounces::conversionFactor(), 5.0e-7);
-	EXPECT_NEAR(0.0002,carats::conversionFactor(), 5.0e-6);
+	double test;
+
+	test = convert<kilograms, grams>(1.0e-3);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, micrograms>(1.0e-9);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, milligrams>(1.0e-6);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, kilograms>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, metric_tons>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, pounds>(0.453592);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, imperial_tons>(1016.05);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, us_tons>(907.185);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, ounces>(0.0283495);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<kilograms, carats>(0.0002);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+
+	test = convert<pounds, carats>(6.3);
+	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
-TEST_F(UnitTest, timeConversionFactors)
+TEST_F(UnitTest, timeConversion)
 {
-	EXPECT_NEAR(1.0,seconds::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0e-9,nanoseconds::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0e-6,microseconds::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(1.0e-3,millseconds::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(60.0,minutes::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(3600.0,hours::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(86400.0,days::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(604800.0,weeks::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(3.154e+7,years::conversionFactor(), 5.0e3);
+	double test;
+
+	test = convert<seconds, seconds>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, nanoseconds>(1.0e-9);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, microseconds>(1.0e-6);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, millseconds>(1.0e-3);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, minutes>(60.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, hours>(3600.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, days>(86400.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, weeks>(604800.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<seconds, years>(3.154e7);
+	EXPECT_NEAR(1.0, test, 5.0e3);
+
+	test = convert<years, weeks>(2.0);
+	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 }
+
 TEST_F(UnitTest, angleConversionFactors)
 {
-	EXPECT_NEAR(1.0,angle::radians::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.001,angle::milliradians::conversionFactor(), 5.0e-20);
-	EXPECT_NEAR(0.0174533,angle::degrees::conversionFactor(), 5.0e-8);
-	EXPECT_NEAR(0.000290888,angle::minutes::conversionFactor(), 5.0e-10);
-	EXPECT_NEAR(4.8481e-6,angle::seconds::conversionFactor(), 5.0e-11);
-	EXPECT_NEAR(6.28319,angle::turns::conversionFactor(), 5.0e-6);
-	EXPECT_NEAR(0.00015625,angle::mils::conversionFactor(), 5.0e-10);
-	EXPECT_NEAR(0.015708,angle::gradians::conversionFactor(), 5.0e-7);
+	double test;
+
+	test = convert<angle::radians, angle::radians>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-20);
+	test = convert<angle::radians, angle::milliradians>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-4);
+	test = convert<angle::radians, angle::degrees>(0.0174533);
+	EXPECT_NEAR(1.0, test, 5.0e-7);
+	test = convert<angle::radians, angle::minutes>(0.000290888);
+	EXPECT_NEAR(0.99999928265913, test, 5.0e-8);
+	test = convert<angle::radians, angle::seconds>(4.8481e-6);
+	EXPECT_NEAR(0.999992407, test, 5.0e-10);
+	test = convert<angle::radians, angle::turns>(6.28319);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<angle::radians, angle::mils>(0.00015625);
+	EXPECT_NEAR(1.0, test, 5.0e-9);
+	test = convert<angle::radians, angle::gradians>(0.015708);
+	EXPECT_NEAR(1.0, test, 5.0e-6);
+
+	test = convert<angle::radians, angle::radians>(2.1);
+	EXPECT_NEAR(2.1, test, 5.0e-6);
+	test = convert<angle::seconds, angle::gradians>(2.1);
+	EXPECT_NEAR(0.000648148, test, 5.0e-6);
+	test = convert<angle::radians, angle::degrees>(units::PI);
+	EXPECT_NEAR(180.0, test, 5.0e-6);
+	test = convert<angle::degrees, angle::radians>(90.0);
+	EXPECT_NEAR(PI / 2, test, 5.0e-6);
+	test = convert<angle::degrees, angle::mils>(47.0);
+	EXPECT_NEAR(5249.95039, test, 5.0e-6);
+
+}
+
+TEST_F(UnitTest, currentConversion)
+{
+	double test;
+
+	test = convert<current::A, current::mA>(2.1);
+	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
 TEST_F(UnitTest, temperature)
 {
 	// temp conversion are weird/hard since they involve translations AND scaling.
-	bool test;
+	bool testb;
+	double test;
 
-	test = std::is_same<celsius::translation_ratio, std::ratio<-5463,20>>::value;	// LCF of -27315/100
-	EXPECT_TRUE(test);
+	testb = std::is_same<celsius::translation_ratio, std::ratio<-5463,20>>::value;	// LCF of -27315/100
+	EXPECT_TRUE(testb);
+	testb = std::is_same<celsius::conversion_ratio, std::ratio<1>>::value;
+	EXPECT_TRUE(testb);
+	testb = std::is_same<fahrenheit::translation_ratio, std::ratio<-45967,100>>::value;
+	EXPECT_TRUE(testb);
+	testb = std::is_same<fahrenheit::conversion_ratio, std::ratio<9,5>>::value;
+	EXPECT_TRUE(testb);
 
-	test = std::is_same<celsius::conversion_ratio, std::ratio<1>>::value;
-	EXPECT_TRUE(test);
-	
-	test = std::is_same<fahrenheit::translation_ratio, std::ratio<-45967,100>>::value;
-	EXPECT_TRUE(test);
+	test = convert<fahrenheit, fahrenheit>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
 
-	test = std::is_same<fahrenheit::conversion_ratio, std::ratio<9,5>>::value;
-	EXPECT_TRUE(test);
+	test = convert<kelvin, fahrenheit>(300.0);
+	EXPECT_NEAR(80.33, test, 5.0e-5);
 
-	EXPECT_NEAR(1.0, celsius::conversionFactor(), 5.0e-7);
-	EXPECT_NEAR(1.8, fahrenheit::conversionFactor(), 5.0e-7);
+	test = convert<fahrenheit, kelvin>(451.0);
+	EXPECT_NEAR(505.928, test, 5.0e-5);
+
+	test = convert<kelvin, celsius>(300.0);
+	EXPECT_NEAR(26.85, test, 5.0e-3);
+
+	test = convert<celsius, kelvin>(451.0);
+	EXPECT_NEAR(724.15, test, 5.0e-3);
+
+	test = convert<fahrenheit, celsius>(72.0);
+	EXPECT_NEAR(22.2222, test, 5.0e-5);
+
+	test = convert<celsius, fahrenheit>(100.0);
+	EXPECT_NEAR(212.0, test, 5.0e-5);
+
 }
 
 TEST_F(UnitTest, areaConversionFactors)
 {
-	EXPECT_NEAR(4046.8564224, acre::conversionFactor(), 5.0e-8);
+
+	
 }
 
 TEST_F(UnitTest, inverseUnits)
@@ -181,13 +279,19 @@ TEST_F(UnitTest, baseUnitOf)
 TEST_F(UnitTest, squared)
 {
 	using feet_squared = units::squared<feet>;
-	EXPECT_NEAR(0.092903, feet_squared::conversionFactor(), 5.0e-7);
+	double test;
+
+	test = convert<squared<meters>, feet_squared>(0.092903);
+	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 }
 
 TEST_F(UnitTest, cubed)
 {
-	using feet_squared = units::squared<feet>;
-	EXPECT_NEAR(0.092903, feet_squared::conversionFactor(), 5.0e-7);
+	using feet_cubed = units::cubed<feet>;
+	double test;
+
+	test = convert<cubed<meters>, feet_cubed>(0.0283168);
+	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
 }
 
 TEST_F(UnitTest, compoundUnits)
@@ -214,41 +318,17 @@ TEST_F(UnitTest, conversion)
 	// test of the most obtuse conversion from each category
 	double test;
 
-	test = convert<feet, feet>(6.3);
-	EXPECT_NEAR(6.3, test, 5.0e-5);
 
-	test = convert<miles, nauticalMiles>(6.3);
-	EXPECT_NEAR(5.47455, test, 5.0e-6);
 
-	test = convert<pounds, carats>(6.3);
-	EXPECT_NEAR(14288.2, test, 5.0e-2);
 
-	test = convert<years, weeks>(2.0);
-	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 
-	test = convert<angle::radians, angle::radians>(2.1);
-	EXPECT_NEAR(2.1, test, 5.0e-10);
 
-	test = convert<angle::seconds, angle::gradians>(2.1);
-	EXPECT_NEAR(0.000648148, test, 5.0e-10);
 
-	test = convert<current::A, current::mA>(2.1);
-	EXPECT_NEAR(2100.0, test, 5.0e-10);
 
-	test = convert<fahrenheit, fahrenheit>(72.0);
-	EXPECT_NEAR(72.0, test, 5.0e-5);
 
-	test = convert<fahrenheit, celsius>(72.0);
-	EXPECT_NEAR(22.2222, test, 5.0e-5);
 
-	test = convert<celsius, fahrenheit>(100.0);
-	EXPECT_NEAR(212.0, test, 5.0e-5);
 
-	test = convert<kelvin, fahrenheit>(300.0);
-	EXPECT_NEAR(80.33, test, 5.0e-5);
 
-	test = convert<fahrenheit, kelvin>(451.0);
-	EXPECT_NEAR(505.928, test, 5.0e-5);
 
 	test = convert<hectares, acres>(6.3);
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
