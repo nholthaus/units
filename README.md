@@ -3,6 +3,8 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 
 The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. Use the included CMake project to build the tests.
 
+unitTests/main.cpp provides comprehensive examples of how to use the library.
+
 Complex, recurively-defined conversions are performed in just 5 processor instructions:
 
 		auto test2 = convert<years, weeks>(2.0);

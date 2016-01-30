@@ -44,6 +44,7 @@
 
 #include <ratio>
 #include <type_traits>
+#include <cstdint>
 
 //--------------------
 //	UNITS NAMESPACE
@@ -528,6 +529,39 @@ namespace units
 	namespace mass
 	{
 		using grams = unit<std::ratio<1000>, category::mass_unit>;
+		using micrograms = micro<grams>;
+		using milligrams = milli<grams>;
+		using kilograms = kilo<grams>;
+		using metric_tons = unit<std::ratio<1000>, kilograms>;
+		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
+		using imperial_tons = unit<std::ratio<2240>, pounds>;
+		using us_tons = unit<std::ratio<2000>, pounds>;
+		using stone = unit<std::ratio<14>, pounds>;
+		using ounces = unit<std::ratio<1, 16>, pounds>;
+		using carats = unit<std::ratio<200>, milligrams>;
+
+		using gram = grams;
+		using microgram = micrograms;
+		using milligram = milligrams;
+		using kilogram = kilograms;
+		using metric_ton = metric_tons;
+		using pound = pounds;
+		using imperial_ton = imperial_tons;
+		using us_ton = us_tons;
+		using ounce = ounces;
+		using carat = carats;
+
+		using g = grams;
+		using ug = micrograms;
+		using mg = milligrams;
+		using kg = kilograms;
+		using mt = metric_tons;
+		using t = us_tons;
+		using Ib = pounds;
+		using Ibs = pounds;
+		using st = stone;
+		using oz = ounces;
+		using ct = carats;
 
 	}
 
