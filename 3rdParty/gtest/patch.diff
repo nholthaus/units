@@ -1,0 +1,38 @@
+Common subdirectories: build-aux and build-aux
+Common subdirectories: cmake and cmake
+Common subdirectories: CMakeFiles and CMakeFiles
+diff -c CMakeLists.txt CMakeLists.txt
+*** CMakeLists.txt	2013-09-18 13:48:31.000000000 -0400
+--- CMakeLists.txt	2015-10-08 09:48:32.898389300 -0400
+***************
+*** 14,20 ****
+  option(
+    gtest_force_shared_crt
+    "Use shared (DLL) run-time lib even when Google Test is built as static lib."
+!   OFF)
+  
+  option(gtest_build_tests "Build all of gtest's own tests." OFF)
+  
+--- 14,20 ----
+  option(
+    gtest_force_shared_crt
+    "Use shared (DLL) run-time lib even when Google Test is built as static lib."
+!   ON)
+  
+  option(gtest_build_tests "Build all of gtest's own tests." OFF)
+  
+Common subdirectories: codegear and codegear
+Common subdirectories: Debug and Debug
+Common subdirectories: fused-src and fused-src
+Common subdirectories: gtest.dir and gtest.dir
+Common subdirectories: gtest_main.dir and gtest_main.dir
+Common subdirectories: include and include
+Common subdirectories: m4 and m4
+Common subdirectories: make and make
+Common subdirectories: msvc and msvc
+Common subdirectories: samples and samples
+Common subdirectories: scripts and scripts
+Common subdirectories: src and src
+Common subdirectories: test and test
+Common subdirectories: x64 and x64
+Common subdirectories: xcode and xcode
