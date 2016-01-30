@@ -8,6 +8,7 @@ using namespace units::time;
 using namespace units::frequency;
 using namespace units::area;
 using namespace units::velocity;
+using namespace units::temperature;
 
 namespace {
 
@@ -135,6 +136,27 @@ TEST_F(UnitTest, angleConversionFactors)
 	EXPECT_NEAR(0.015708,angle::gradians::conversionFactor(), 5.0e-7);
 }
 
+TEST_F(UnitTest, temperature)
+{
+	// temp conversion are weird/hard since they involve translations AND scaling.
+	bool test;
+
+	test = std::is_same<celsius::translation_ratio, std::ratio<-5463,20>>::value;	// LCF of -27315/100
+	EXPECT_TRUE(test);
+
+	test = std::is_same<celsius::conversion_ratio, std::ratio<1>>::value;
+	EXPECT_TRUE(test);
+	
+	test = std::is_same<fahrenheit::translation_ratio, std::ratio<-45967,100>>::value;
+	EXPECT_TRUE(test);
+
+	test = std::is_same<fahrenheit::conversion_ratio, std::ratio<9,5>>::value;
+	EXPECT_TRUE(test);
+
+	EXPECT_NEAR(1.0, celsius::conversionFactor(), 5.0e-7);
+	EXPECT_NEAR(1.8, fahrenheit::conversionFactor(), 5.0e-7);
+}
+
 TEST_F(UnitTest, areaConversionFactors)
 {
 	EXPECT_NEAR(4046.8564224, acre::conversionFactor(), 5.0e-8);
@@ -204,15 +226,32 @@ TEST_F(UnitTest, conversion)
 	test = convert<years, weeks>(2.0);
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 
+	test = convert<angle::radians, angle::radians>(2.1);
+	EXPECT_NEAR(2.1, test, 5.0e-10);
+
 	test = convert<angle::seconds, angle::gradians>(2.1);
 	EXPECT_NEAR(0.000648148, test, 5.0e-10);
 
 	test = convert<current::A, current::mA>(2.1);
 	EXPECT_NEAR(2100.0, test, 5.0e-10);
 
+	test = convert<fahrenheit, fahrenheit>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
+
+	test = convert<fahrenheit, celsius>(72.0);
+	EXPECT_NEAR(22.2222, test, 5.0e-5);
+
+	test = convert<celsius, fahrenheit>(100.0);
+	EXPECT_NEAR(212.0, test, 5.0e-5);
+
+	test = convert<kelvin, fahrenheit>(300.0);
+	EXPECT_NEAR(80.33, test, 5.0e-5);
+
+	test = convert<fahrenheit, kelvin>(451.0);
+	EXPECT_NEAR(505.928, test, 5.0e-5);
+
 	test = convert<hectares, acres>(6.3);
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
-
 }
 
 TEST_F(UnitTest, dimensionalAnalysis)

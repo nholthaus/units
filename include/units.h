@@ -219,15 +219,17 @@ namespace units
 	//	UNIT CLASSES
 	//------------------------------
 
-	template <class, class, class> struct unit;
-	template<class Conversion, class... Exponents, class PiExponent>
-	struct unit<Conversion, base_unit<Exponents...>, PiExponent> : _unit_t
+	template <class, class, class, class> struct unit;
+	template<class Conversion, class... Exponents, class PiExponent, class Translation>
+	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : _unit_t
 	{
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
+		static_assert(is_ratio<Translation>::value, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
 		typedef typename base_unit<Exponents...> base_unit_type;
 		typedef typename Conversion conversion_ratio;
+		typedef typename Translation translation_ratio;
 		typedef typename PiExponent pi_exponent_ratio;
 
 		/**
@@ -240,7 +242,7 @@ namespace units
 		}
 	};
 
-	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>>
+	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit : _unit_t
 	{
 		static_assert(is_unit<BaseUnit>::value, "Template parameter `BaseUnit` must be a `unit` type.");
@@ -250,6 +252,7 @@ namespace units
 		typedef typename unit_traits<BaseUnit>::base_unit_type base_unit_type;
 		typedef typename std::ratio_multiply<Conversion, typename BaseUnit::conversion_ratio> conversion_ratio;
 		typedef typename std::ratio_add<PiExponent, typename BaseUnit::pi_exponent_ratio> pi_exponent_ratio;
+		typedef typename std::ratio_add<Translation, std::ratio_multiply<typename BaseUnit::translation_ratio, Conversion>> translation_ratio;
 
 		/**
 		* @brief		Unit conversion factor.
@@ -257,6 +260,8 @@ namespace units
 		*/
 		static inline constexpr double conversionFactor()
 		{
+			std::cout << Conversion::num << "/" << Conversion::den << " * " << BaseUnit::translation_ratio::num << "/" << BaseUnit::translation_ratio::den << " + " << Translation::num << "/" << Translation::den << std::endl;
+
 			return (double(conversion_ratio::num) / conversion_ratio::den) * std::pow(PI, (double(pi_exponent_ratio::num) / pi_exponent_ratio::den));
 		}
 	};
@@ -362,7 +367,8 @@ namespace units
 	template<class, class> struct unit_multiply_impl;
 	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
 	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
-		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>>;
+		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<base_unit_of<BaseUnit1>, 
+			base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>>;
 	};
 
 	template<class U1, class U2>
@@ -663,7 +669,15 @@ namespace units
 	{
 		// NOTE: temperature units have special conversion overloads, since they
 		// require translations and aren't a reversible transform.
-		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
+ 		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
+ 		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<-27315,100>>;
+		using fahrenheit = unit<std::ratio<9, 5>, celsius, std::ratio<0>, std::ratio<32>>;
+
+		using centigrade = celsius;
+
+		using K = kelvin;
+		using F = fahrenheit;
+		using C = celsius;
 	}
 
 	//------------------------------
@@ -726,17 +740,33 @@ namespace units
 	//------------------------------
 
 	/// convert dispatch for units which are both the same
-	template<class, typename T>
-	static inline const T _convert(const T& value, std::true_type)
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::false_type)
 	{
 		return value;
 	}
 
-	/// convert dispatch for units of different types
-	template<class Ratio, typename T>
-	static inline const T _convert(const T& value, std::false_type)
+	/// convert dispatch for units which are both the same
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::true_type)
 	{
+		return value;
+	}
+
+	/// convert dispatch for units of different types w/ no translation
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::false_type)
+	{
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
 		return (double(Ratio::num) * value / Ratio::den);
+	}
+
+	/// convert dispatch for units of different types with a translation
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::true_type)
+	{
+		std::cout << "............" << std::endl;
+		return ((value * (double(UnitTo::conversion_ratio::num) / UnitTo::conversion_ratio::den)) + (double(UnitTo::translation_ratio::num) / UnitTo::translation_ratio::den));
 	}
 
 	/**
@@ -745,16 +775,17 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class UnitFrom, class UnitTo, typename T = double>
-	static inline const T convert(const T& value)
+	static inline T convert(const T& value)
 	{
 		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
 		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
 
-		using conversion_ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
+		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, UnitFrom::translation_ratio>::value &&
+			std::is_same<std::ratio<0>, UnitTo::translation_ratio>::value)>;
 
-		return _convert<conversion_ratio, T>(value, isSame{});
+		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, translationRequired{});
 	}	
 
 };	// end namespace units
