@@ -111,6 +111,19 @@ TEST_F(UnitTest, massConversionFactors)
 	EXPECT_NEAR(0.0002,carats::conversionFactor(), 5.0e-6);
 }
 
+TEST_F(UnitTest, timeConversionFactors)
+{
+	EXPECT_NEAR(1.0,seconds::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0e-9,nanoseconds::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0e-6,microseconds::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1.0e-3,millseconds::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(60.0,minutes::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(3600.0,hours::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(86400.0,days::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(604800.0,weeks::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(3.154e+7,years::conversionFactor(), 5.0e3);
+}
+
 TEST_F(UnitTest, areaConversionFactors)
 {
 	EXPECT_NEAR(4046.8564224, acre::conversionFactor(), 5.0e-8);
@@ -165,16 +178,24 @@ TEST_F(UnitTest, compoundUnits)
 
 TEST_F(UnitTest, conversion)
 {
+	// test of the most obtuse conversion from each category
 	double test;
 
-	test = convert<hectares, acres>(6.3);
-	EXPECT_NEAR(15.5676, test, 5.0e-5);
+	test = convert<feet, feet>(6.3);
+	EXPECT_NEAR(6.3, test, 5.0e-5);
+
+	test = convert<miles, nauticalMiles>(6.3);
+	EXPECT_NEAR(5.47455, test, 5.0e-6);
+
+	test = convert<pounds, carats>(6.3);
+	EXPECT_NEAR(14288.2, test, 5.0e-2);
 
 	test = convert<years, weeks>(2.0);
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 
-	test = convert<feet, feet>(6.3);
-	EXPECT_NEAR(6.3, test, 5.0e-5);
+	test = convert<hectares, acres>(6.3);
+	EXPECT_NEAR(15.5676, test, 5.0e-5);
+
 }
 
 TEST_F(UnitTest, dimensionalAnalysis)

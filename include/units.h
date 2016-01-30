@@ -572,6 +572,9 @@ namespace units
 	namespace time
 	{
 		using seconds = unit<std::ratio<1>, category::time_unit>;
+		using nanoseconds = nano<seconds>;
+		using microseconds = micro<seconds>;
+		using millseconds = milli<seconds>;
 		using minutes = unit<std::ratio<60>, seconds>;
 		using hours = unit<std::ratio<60>, minutes>;
 		using days = unit<std::ratio<24>, hours>;
@@ -579,6 +582,9 @@ namespace units
 		using years = unit<std::ratio<365>, days>;
 
 		using second = seconds;
+		using nanosecond = nanoseconds;
+		using microsecond = microseconds;
+		using millsecond = millseconds;
 		using minute = minutes;
 		using hour = hours;
 		using day = days;
@@ -586,6 +592,9 @@ namespace units
 		using year = years;
 		
 		using s = seconds;
+		using ns = nanoseconds;
+		using us = microseconds;
+		using ms = millseconds;
 		using m = minutes;
 		using hr = hours;
 		using d = days;
