@@ -478,7 +478,11 @@ namespace units
 	namespace length
 	{
 		using meters = unit<std::ratio<1>, category::length_unit>;
+		using nanometers = nano<meters>;
+		using micrometers = micro<meters>;
 		using millimeters = milli<meters>;
+		using centimeters = centi<meters>;
+		using kilometers = kilo<meters>;
 		using feet = unit<std::ratio<381, 1250>, meters>;
 		using mils = unit<std::ratio<1000>, feet>;
 		using inches = unit<std::ratio<1, 12>, feet>;
@@ -489,7 +493,11 @@ namespace units
 		using parsecs = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
 
 		using meter = meters;
+		using nanometer = nanometers;
+		using micrometer = micrometers;
 		using millimeter = millimeters;
+		using centimeter = centimeters;
+		using kilometer = kilometers;
 		using foot = feet;
 		using inch = inches;
 		using mile = miles;
@@ -499,7 +507,11 @@ namespace units
 		using parsec = parsecs;
 
 		using m = meters;
+		using nm = nanometers;
+		using um = micrometers;
 		using mm = millimeters;
+		using cm = centimeters;
+		using km = kilometers;
 		using ft = feet;
 		using inc = inches;
 		using mi = miles;
@@ -509,6 +521,16 @@ namespace units
 		using pc = parsecs;
 	}
 	
+	//------------------------------
+	//	MASS UNITS
+	//------------------------------
+
+	namespace mass
+	{
+		using grams = unit<std::ratio<1000>, category::mass_unit>;
+
+	}
+
 	//------------------------------
 	//	TIME UNITS
 	//------------------------------

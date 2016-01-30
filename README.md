@@ -14,6 +14,8 @@ Complex, recurively-defined conversions are performed in just 5 processor instru
 		EXPECT_NEAR(104.357143, test2, 5.0e-7);
 	00007FF6D6475EE9  ...
 
+An explanation of the instructions can be found at: http://stackoverflow.com/questions/35103741/what-is-the-purpose-of-xorps-on-the-same-register/35103871#35103871
+
 In the library, the year to week conversion is defined in terms of
 years -> days -> hours -> minutes -> seconds -> minutes -> hours -> days -> weeks
 but the total conversion ratio is computed at compile-time and the math is optimized to two floating-point operations.

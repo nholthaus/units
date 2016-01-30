@@ -6,6 +6,7 @@ using namespace units::length;
 using namespace units::time;
 using namespace units::frequency;
 using namespace units::area;
+using namespace units::velocity;
 
 namespace {
 
@@ -80,7 +81,11 @@ TEST_F(UnitTest, areConvertibleUnitsTime)
 
 TEST_F(UnitTest, lengthConversionFactors)
 {
+	EXPECT_NEAR(0.000000001, nanometers::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(0.000001, micrometers::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(0.001, millimeters::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(0.01, centimeters::conversionFactor(), 5.0e-20);
+	EXPECT_NEAR(1000.0, kilometers::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(1.0, meters::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(0.3048, feet::conversionFactor(), 5.0e-20);
 	EXPECT_NEAR(1609.344, miles::conversionFactor(), 5.0e-20);
@@ -145,14 +150,32 @@ TEST_F(UnitTest, compoundUnits)
 
 TEST_F(UnitTest, conversion)
 {
-	auto test1 = convert<hectares, acres>(6.3);
-	EXPECT_NEAR(15.5676, test1, 5.0e-5);
+	double test;
 
-	auto test2 = convert<years, weeks>(2.0);
-	EXPECT_NEAR(104.357143, test2, 5.0e-7);
+	test = convert<hectares, acres>(6.3);
+	EXPECT_NEAR(15.5676, test, 5.0e-5);
 
-	auto test3 = convert<feet, feet>(6.3);
-	EXPECT_NEAR(6.3, test3, 5.0e-5);
+	test = convert<years, weeks>(2.0);
+	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
+
+	test = convert<feet, feet>(6.3);
+	EXPECT_NEAR(6.3, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, dimensionalAnalysis)
+{
+	// these look like 'compound units', but the dimensional analysis can be REALLY handy if the
+	// unit types aren't know (i.e. they themselves are template parameters), as you can get the resulting unit of the
+	// operation.
+
+	using velocity = unit_divide<meters, second>;
+	bool shouldBeTrue = std::is_same<meters_per_second, velocity>::value;
+	EXPECT_TRUE(shouldBeTrue);
+
+	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
+	using acceleration2 = unit_divide<meters, unit_multiply<seconds, seconds>>;
+	shouldBeTrue = std::is_same<acceleration1, acceleration2>::value;
+	EXPECT_TRUE(shouldBeTrue);
 }
 
 int main(int argc, char* argv[])
