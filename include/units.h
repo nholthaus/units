@@ -51,6 +51,12 @@
 namespace units
 {
 	//------------------------------
+	//	PI
+	//------------------------------
+
+	static const double PI = 3.14159265358979323846264338327950288419716939937510;
+
+	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
 
@@ -101,13 +107,33 @@ namespace units
 	//	UNIT TRAITS
 	//------------------------------
 
+	template<class T, typename = void>
+	struct unit_traits
+	{
+		typedef void base_unit_type;
+	};
+
+	template<class T>
+	struct unit_traits<T, std::void_t<typename T::base_unit_type>>
+	{
+		typedef typename T::base_unit_type base_unit_type;
+	};
+
+	struct _base_unit_t {};
+
+	template<class T>
+	struct is_base_unit : std::is_base_of<_base_unit_t, T> {};
+
 	struct _unit_t {};
 
 	template<class T>
-	struct is_unit : std::is_base_of<_unit_t, T> {};
+	struct is_unit : std::is_base_of<_unit_t, T>::type {};
+
+	template<class U1, class U2>
+	struct are_convertible_units : std::is_same<typename unit_traits<U1>::base_unit_type, typename unit_traits<U2>::base_unit_type> {};
 
 	//------------------------------
-	//	UNIT  CLASSES
+	//	BASE UNIT CLASSES
 	//------------------------------
 
 	/**
@@ -115,18 +141,16 @@ namespace units
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class Conversion,
-			 class Pi			= std::ratio<0>,	// Pi isn't a unit, but since it's irrational (i.e. can't be represented with std::ratio), we need to treat it as one.
-			 class Meter		= std::ratio<0>,
+	template<class Meter		= std::ratio<0>,
 			 class Kilogram		= std::ratio<0>,
 			 class Second		= std::ratio<0>,
 			 class Radian		= std::ratio<0>,	 
 			 class Ampere		= std::ratio<0>,
-			 class Kelvin		= std::ratio<0>,
-			 class Candela		= std::ratio<0>,
+			 class Kelvin		= std::ratio<0>,		
 			 class Mole			= std::ratio<0>,
+			 class Candela		= std::ratio<0>,
 			 class Steradian	= std::ratio<0>>
-	struct unit : _unit_t
+	struct base_unit : _base_unit_t
 	{
 		static_assert(is_ratio<Meter>::value,		"Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
 		static_assert(is_ratio<Kilogram>::value,	"Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
@@ -137,8 +161,6 @@ namespace units
 		static_assert(is_ratio<Mole>::value,		"Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
 		static_assert(is_ratio<Radian>::value,		"Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
 		static_assert(is_ratio<Steradian>::value,	"Template parameter `Steradian` must be a `std::ratio` representing the exponent of steradians the unit has");
-		static_assert(is_ratio<Pi>::value,			"Template parameter `Pi` must be a `std::ratio` representing the exponent of pi the unit has");
-		static_assert(is_ratio<Conversion>::value,	"Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to base unit types");
 
 		using meter_exponent_ratio = Meter;
 		using kilogram_exponent_ratio = Kilogram;
@@ -149,34 +171,188 @@ namespace units
 		using mole_exponent_ratio = Mole;
 		using radian_exponent_ratio = Radian;
 		using steradian_exponent_ratio = Steradian;
-		using pi_exponent_ratio = Pi;
-		using conversion_ratio = Conversion;
+	};
+
+	//------------------------------
+	//	UNIT CATEGORIES
+	//------------------------------
+
+	namespace category
+	{
+		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			STERADIAN
+		using length_unit					= base_unit<std::ratio<1>>;
+		using mass_unit						= base_unit<std::ratio<0>,	std::ratio<1>>;
+		using time_unit						= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using angle_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using current_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using temperature_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using concentration_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using luminous_intensity_unit		= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using solid_angle_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+
+		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			STERADIAN
+		using frequency_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+		using force_unit					= base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
+		using pressure_unit					= base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
+		using energy_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
+		using power_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;
+		using charge_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
+		using voltage_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;
+		using capacitance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;
+		using impedance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
+		using conductance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;
+		using magnetic_flux_unit			= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
+		using magnetic_filed_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
+		using inductance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
+		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<1>>;
+		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+
+		// OTHER UNIT TYPES
+		using velocity_unit					= base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
+		using acceleration_unit				= base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
+		using inverse_unit					= base_unit<std::ratio<-1>, std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+
+	}
+
+	//------------------------------
+	//	UNIT CLASSES
+	//------------------------------
+
+	template <class, class, class> struct unit;
+	template<class Conversion, class... Exponents, class PiExponent>
+	struct unit<Conversion, base_unit<Exponents...>, PiExponent> : _unit_t
+	{
+		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
+		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
+
+		typedef typename base_unit<Exponents...> base_unit_type;
+		typedef typename Conversion conversion_ratio;
+		typedef typename PiExponent pi_exponent_ratio;
 
 		/**
 		 * @brief		Unit conversion factor.
 		 * @details		Ratio of units to base units. Example: for feet, returns 0.3048, as in "0.3048 feet per meter".
 		 */
-		 static constexpr double conversionFactor() { return double(conversion_ratio::num) / conversion_ratio::den; }
+		static constexpr double conversionFactor() 
+		{ 
+			return (double(conversion_ratio::num) / conversion_ratio::den) * std::pow(PI, (double(pi_exponent_ratio::num) / pi_exponent_ratio::den));
+		}
 	};
+
+	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>>
+	struct unit : _unit_t
+	{
+		static_assert(is_unit<BaseUnit>::value, "Template parameter `BaseUnit` must be a `unit` type.");
+		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
+		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
+
+		typedef typename unit_traits<BaseUnit>::base_unit_type base_unit_type;
+		typedef typename std::ratio_multiply<Conversion, typename BaseUnit::conversion_ratio> conversion_ratio;
+		typedef typename std::ratio_add<PiExponent, typename BaseUnit::pi_exponent_ratio> pi_exponent_ratio;
+
+		/**
+		* @brief		Unit conversion factor.
+		* @details		Ratio of units to base units. Example: for feet, returns 0.3048, as in "0.3048 feet per meter".
+		*/
+		static constexpr double conversionFactor()
+		{
+			return (double(conversion_ratio::num) / conversion_ratio::den) * std::pow(PI, (double(pi_exponent_ratio::num) / pi_exponent_ratio::den));
+		}
+	};
+
+	//------------------------------
+	//	BASE UNIT MANIPULATORS
+	//------------------------------
 
 	/**
 	 * @brief		
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class, class, class> struct derived_unit_impl;
-	template<class Conversion, class BaseUnitConversion, class BaseUnitPiExponent, class... Exponents, class PiExponent>
-	struct derived_unit_impl<Conversion, unit<BaseUnitConversion, BaseUnitPiExponent, Exponents...>, PiExponent>
+	template<class> struct base_unit_of_impl;
+	template<class Conversion, class BaseUnit, class PiExponent>
+	struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent>> : base_unit_of_impl<BaseUnit> {};
+	template<class... Exponents>
+	struct base_unit_of_impl<base_unit<Exponents...>>
 	{
-		static_assert(is_unit<unit<BaseUnitConversion, BaseUnitPiExponent, Exponents...>>::value, "Template parameter `BaseUnit` must be a unit type.");
-		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
-		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
-
-		using type = unit<std::ratio_multiply<Conversion, BaseUnitConversion>, std::ratio_add<PiExponent, BaseUnitPiExponent>, Exponents...>;
+		typedef base_unit<Exponents...> type;
 	};
 
-	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>>
-	using derived_unit = typename derived_unit_impl<Conversion, BaseUnit, PiExponent>::type;
+	template<class U>
+	using base_unit_of = typename base_unit_of_impl<U>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class, class> struct base_unit_multiply_impl;
+	template<class... Exponents1, class... Exponents2>
+	struct base_unit_multiply_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
+		using type = base_unit<std::ratio_add<Exponents1, Exponents2>...>;
+	};
+
+	template<class U1, class U2>
+	using base_unit_multiply = typename base_unit_multiply_impl<U1, U2>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class, class> struct base_unit_divide_impl;
+	template<class... Exponents1, class... Exponents2>
+	struct base_unit_divide_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
+		using type = base_unit<std::ratio_subtract<Exponents1, Exponents2>...>;
+	};
+
+	template<class U1, class U2>
+	using base_unit_divide = typename base_unit_divide_impl<U1, U2>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class> struct inverse_base_impl;
+
+	template<class... Exponents>
+	struct inverse_base_impl<base_unit<Exponents...>> {
+		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
+	};
+
+	template<class U> using inverse_base = typename inverse_base_impl<U>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class U> struct squared_base_impl;
+	template<class... Exponents>
+	struct squared_base_impl<base_unit<Exponents...>> {
+		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<2>>...>;
+	};
+
+	template<class U> using squared_base = typename squared_base_impl<U>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class U> struct cubed_base_impl;
+	template<class... Exponents>
+	struct cubed_base_impl<base_unit<Exponents...>> {
+		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
+	};
+
+	template<class U> using cubed_base = typename cubed_base_impl<U>::type;
+
+	//------------------------------
+	//	UNIT MANIPULATORS
+	//------------------------------
 
 	/**
 	 * @brief
@@ -184,13 +360,27 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class, class> struct unit_multiply_impl;
-	template<class... Exponents1, class... Exponents2>
-	struct unit_multiply_impl<unit<Exponents1...>, unit<Exponents2...>> {
-		using type = unit<std::ratio_add<Exponents1, Exponents2>...>;
+	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
+	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
+		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<BaseUnit1, BaseUnit2>, std::ratio_add<PiExponent1, PiExponent2>>;
 	};
 
 	template<class U1, class U2>
 	using unit_multiply = typename unit_multiply_impl<U1, U2>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class, class> struct unit_divide_impl;
+	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
+	struct unit_divide_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
+		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<BaseUnit1, BaseUnit2>, std::ratio_subtract<PiExponent1, PiExponent2>>;
+	};
+
+	template<class U1, class U2>
+	using unit_divide = typename unit_divide_impl<U1, U2>::type;
 
 	/**
 	 * @brief		
@@ -198,12 +388,52 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class U> struct inverse_impl;
-	template<class... Exponents>
-	struct inverse_impl<unit<Exponents...>> {
-		using type = unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
+	template <class Conversion, class BaseUnit, class PiExponent>
+	struct inverse_impl<unit<Conversion, BaseUnit, PiExponent>> {
+		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<-1>>>;
 	};
 
 	template<class U> using inverse = typename inverse_impl<U>::type;
+
+	/**
+	 * @brief
+	 * @details
+	 * @TODO		DOCUMENT THIS!
+	 */
+	template<class> struct squared_impl;
+	template<class Conversion, class BaseUnit, class PiExponent>
+	struct squared_impl<unit<Conversion, BaseUnit, PiExponent>>
+	{
+
+		template<class... Exponents>
+		
+		using type = unit<std::ratio_multiply<Conversion, Conversion>, squared_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<2>>>;
+	};
+
+	template<class U>
+	using squared = typename squared_impl<U>::type;
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class> struct cubed_impl;
+	template<class Conversion, class BaseUnit, class PiExponent>
+	struct cubed_impl<unit<Conversion, BaseUnit, PiExponent>>
+	{
+
+		template<class... Exponents>
+
+		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>, cubed_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<3>>>;
+	};
+
+	template<class U>
+	using cubed = typename cubed_impl<U>::type;
+
+	//------------------------------
+	//	COMPOUND UNITS
+	//------------------------------
 
 	/**
 	 * @brief
@@ -237,14 +467,14 @@ namespace units
 
 	namespace length
 	{
-		using meters = unit<std::ratio<1>, std::ratio<0>, std::ratio<1>>;
-		using feet = derived_unit<std::ratio<381, 1250>, meters>;
-		using inches = derived_unit<std::ratio<1, 12>, feet>;
-		using miles = derived_unit<std::ratio<5280>, feet>;
-		using nauticalMiles = derived_unit<std::ratio<1852>, meters>;
-		using astronicalUnits = derived_unit<std::ratio<149597870700>, meters>;
-		using lightyears = derived_unit<std::ratio<9460730472580800>, meters>;
-		using parsecs = derived_unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
+		using meters = unit<std::ratio<1>, category::length_unit>;
+		using feet = unit<std::ratio<381, 1250>, meters>;
+		using inches = unit<std::ratio<1, 12>, feet>;
+		using miles = unit<std::ratio<5280>, feet>;
+		using nauticalMiles = unit<std::ratio<1852>, meters>;
+		using astronicalUnits = unit<std::ratio<149597870700>, meters>;
+		using lightyears = unit<std::ratio<9460730472580800>, meters>;
+		using parsecs = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
 
 		using meter = meters;
 		using foot = feet;
@@ -271,7 +501,50 @@ namespace units
 
 	namespace time
 	{
-		using s
+		using seconds = unit<std::ratio<1>, category::time_unit>;
+		using minutes = unit<std::ratio<60>, seconds>;
+		using hours = unit<std::ratio<60>, minutes>;
+		using days = unit<std::ratio<24>, hours>;
+		using weeks = unit<std::ratio<7>, days>;
+		using years = unit<std::ratio<365>, days>;
+
+		using second = seconds;
+		using minute = minutes;
+		using hour = hours;
+		using day = days;
+		using week = weeks;
+		using year = years;
+		
+		using s = seconds;
+		using m = minutes;
+		using hr = hours;
+		using d = days;
+		using wk = weeks;
+		using yr = years;
+	}
+
+	//------------------------------
+	//	FREQUENCY UNITS
+	//------------------------------
+
+	namespace frequency
+	{
+		using hertz = unit<std::ratio<1>, category::frequency_unit>;
+
+		using hz = hertz;
+	}
+
+	//------------------------------
+	//	VELOCITY UNITS
+	//------------------------------
+
+	namespace velocity
+	{
+// 		using meters_per_second = compound_unit<length::meters, inverse<time::second>>;
+// 		using meters_per_minute = compound_unit<length::meters, inverse<time::minute>>;
+// 		using meters_per_hour = compound_unit<length::meters, inverse<time::hour>>;
+// 		using meters_per_year = compound_unit<length::meters, inverse<time::year>>;
+// 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
 	}
 
 	//------------------------------
