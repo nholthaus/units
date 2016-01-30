@@ -764,11 +764,23 @@ namespace units
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(PI, (double(PiRatio::num) / PiRatio::den)));
 	}
 
-	/// convert dispatch for units of different types with a translation
+	/// convert dispatch for units of different types with a translation, but no PI
 	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, ...)
+	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
 	{
-		return ((value * (double(UnitTo::conversion_ratio::num) / UnitTo::conversion_ratio::den)) + (double(UnitTo::translation_ratio::num) / UnitTo::translation_ratio::den));
+		using Ratio = std::ratio_divide<UnitTo::conversion_ratio, UnitFrom::conversion_ratio>;
+		using Translation = std::ratio_subtract<UnitTo::translation_ratio, std::ratio_multiply<Ratio, UnitFrom::translation_ratio>>;
+		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
+	}
+
+	/// convert dispatch for units of different types with a translation AND PI
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
+	{
+		using Ratio = std::ratio_divide<UnitTo::conversion_ratio, UnitFrom::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
+		using Translation = std::ratio_subtract<UnitTo::translation_ratio, std::ratio_multiply<Ratio, UnitFrom::translation_ratio>>;
+		return ((double(Ratio::num) * value / Ratio::den) * std::pow(PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
 
 	/**

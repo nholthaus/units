@@ -113,6 +113,8 @@ TEST_F(UnitTest, lengthConversion)
 
 	test = convert<feet, feet>(6.3);
 	EXPECT_NEAR(6.3, test, 5.0e-5);
+	test = convert<feet, inches>(6.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
 	test = convert<miles, nauticalMiles>(6.3);
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
 
@@ -233,22 +235,16 @@ TEST_F(UnitTest, temperature)
 
 	test = convert<fahrenheit, fahrenheit>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-
 	test = convert<kelvin, fahrenheit>(300.0);
 	EXPECT_NEAR(80.33, test, 5.0e-5);
-
 	test = convert<fahrenheit, kelvin>(451.0);
-	EXPECT_NEAR(505.928, test, 5.0e-5);
-
+	EXPECT_NEAR(505.928, test, 5.0e-4);
 	test = convert<kelvin, celsius>(300.0);
 	EXPECT_NEAR(26.85, test, 5.0e-3);
-
 	test = convert<celsius, kelvin>(451.0);
 	EXPECT_NEAR(724.15, test, 5.0e-3);
-
 	test = convert<fahrenheit, celsius>(72.0);
 	EXPECT_NEAR(22.2222, test, 5.0e-5);
-
 	test = convert<celsius, fahrenheit>(100.0);
 	EXPECT_NEAR(212.0, test, 5.0e-5);
 
@@ -256,7 +252,10 @@ TEST_F(UnitTest, temperature)
 
 TEST_F(UnitTest, areaConversionFactors)
 {
+	double test;
 
+	test = convert<hectares, acres>(6.3);
+	EXPECT_NEAR(15.5676, test, 5.0e-5);
 	
 }
 
@@ -311,27 +310,6 @@ TEST_F(UnitTest, compoundUnits)
 	EXPECT_TRUE(areSame23);
 	EXPECT_TRUE(areSame34);
 	EXPECT_TRUE(areSame45);
-}
-
-TEST_F(UnitTest, conversion)
-{
-	// test of the most obtuse conversion from each category
-	double test;
-
-
-
-
-
-
-
-
-
-
-
-
-
-	test = convert<hectares, acres>(6.3);
-	EXPECT_NEAR(15.5676, test, 5.0e-5);
 }
 
 TEST_F(UnitTest, dimensionalAnalysis)
