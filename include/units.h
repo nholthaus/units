@@ -209,10 +209,12 @@ namespace units
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
 		// OTHER UNIT TYPES
-		using velocity_unit					= base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
-		using acceleration_unit				= base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
-		using inverse_unit					= base_unit<std::ratio<-1>, std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-
+		using velocity_unit					= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
+		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
+		using area_unit						= base_unit<std::ratio<2>>;
+		using volume_unit					= base_unit<std::ratio<3>>;
+		using density_unit					= base_unit<std::ratio<3>,	std::ratio<1>>;
+		using inverse_unit					= base_unit<std::ratio<-1>,	std::ratio<-1>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 	}
 
 	//------------------------------
@@ -362,7 +364,7 @@ namespace units
 	template<class, class> struct unit_multiply_impl;
 	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
 	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
-		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<BaseUnit1, BaseUnit2>, std::ratio_add<PiExponent1, PiExponent2>>;
+		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>>;
 	};
 
 	template<class U1, class U2>
@@ -376,7 +378,7 @@ namespace units
 	template<class, class> struct unit_divide_impl;
 	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
 	struct unit_divide_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
-		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<BaseUnit1, BaseUnit2>, std::ratio_subtract<PiExponent1, PiExponent2>>;
+		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_subtract<PiExponent1, PiExponent2>>;
 	};
 
 	template<class U1, class U2>
@@ -390,7 +392,7 @@ namespace units
 	template<class U> struct inverse_impl;
 	template <class Conversion, class BaseUnit, class PiExponent>
 	struct inverse_impl<unit<Conversion, BaseUnit, PiExponent>> {
-		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<-1>>>;
+		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<-1>>>;
 	};
 
 	template<class U> using inverse = typename inverse_impl<U>::type;
@@ -403,11 +405,8 @@ namespace units
 	template<class> struct squared_impl;
 	template<class Conversion, class BaseUnit, class PiExponent>
 	struct squared_impl<unit<Conversion, BaseUnit, PiExponent>>
-	{
-
-		template<class... Exponents>
-		
-		using type = unit<std::ratio_multiply<Conversion, Conversion>, squared_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<2>>>;
+	{	
+		using type = unit<std::ratio_multiply<Conversion, Conversion>, squared_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<2>>>;
 	};
 
 	template<class U>
@@ -422,10 +421,7 @@ namespace units
 	template<class Conversion, class BaseUnit, class PiExponent>
 	struct cubed_impl<unit<Conversion, BaseUnit, PiExponent>>
 	{
-
-		template<class... Exponents>
-
-		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>, cubed_base<BaseUnit>, std::ratio_multiply<PiExponent, std::ratio<3>>>;
+		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>, cubed_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<3>>>;
 	};
 
 	template<class U>
@@ -540,11 +536,11 @@ namespace units
 
 	namespace velocity
 	{
-// 		using meters_per_second = compound_unit<length::meters, inverse<time::second>>;
-// 		using meters_per_minute = compound_unit<length::meters, inverse<time::minute>>;
-// 		using meters_per_hour = compound_unit<length::meters, inverse<time::hour>>;
-// 		using meters_per_year = compound_unit<length::meters, inverse<time::year>>;
-// 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
+		using meters_per_second = compound_unit<length::meters, inverse<time::second>>;
+		using meters_per_minute = compound_unit<length::meters, inverse<time::minute>>;
+		using meters_per_hour = compound_unit<length::meters, inverse<time::hour>>;
+		using meters_per_year = compound_unit<length::meters, inverse<time::year>>;
+		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
 	}
 
 	//------------------------------

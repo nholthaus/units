@@ -93,17 +93,34 @@ TEST_F(UnitTest, baseUnitOf)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
+TEST_F(UnitTest, squared)
+{
+	using feet_squared = units::squared<feet>;
+	EXPECT_NEAR(0.092903, feet_squared::conversionFactor(), 5.0e-7);
+}
+
+TEST_F(UnitTest, cubed)
+{
+
+}
+
 TEST_F(UnitTest, differentDefinitionsResultInSameType)
 {
 	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
 	using acceleration2 = compound_unit<meters, inverse<seconds>, inverse<seconds>>;
 	using acceleration3 = unit<std::ratio<1>, base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>>;
+	using acceleration4 = compound_unit<meters, inverse<squared<seconds>>>;
+	using acceleration5 = compound_unit<meters, squared<inverse<seconds>>>;
 
 	bool areSame12 = std::is_same<acceleration1, acceleration2>::value;
 	bool areSame23 = std::is_same<acceleration2, acceleration3>::value;
+	bool areSame34 = std::is_same<acceleration3, acceleration4>::value;
+	bool areSame45 = std::is_same<acceleration4, acceleration5>::value;
 
 	EXPECT_TRUE(areSame12);
 	EXPECT_TRUE(areSame23);
+	EXPECT_TRUE(areSame34);
+	EXPECT_TRUE(areSame45);
 }
 
 TEST_F(UnitTest, compoundUnits)
