@@ -129,9 +129,6 @@ namespace units
 	template<class T>
 	struct is_unit : std::is_base_of<_unit_t, T>::type {};
 
-	template<class U1, class U2>
-	struct are_convertible_units : std::is_same<typename unit_traits<U1>::base_unit_type, typename unit_traits<U2>::base_unit_type> {};
-
 	//------------------------------
 	//	BASE UNIT CLASSES
 	//------------------------------
@@ -236,7 +233,7 @@ namespace units
 		 * @brief		Unit conversion factor.
 		 * @details		Ratio of units to base units. Example: for feet, returns 0.3048, as in "0.3048 feet per meter".
 		 */
-		static constexpr double conversionFactor() 
+		static inline constexpr double conversionFactor() 
 		{ 
 			return (double(conversion_ratio::num) / conversion_ratio::den) * std::pow(PI, (double(pi_exponent_ratio::num) / pi_exponent_ratio::den));
 		}
@@ -257,7 +254,7 @@ namespace units
 		* @brief		Unit conversion factor.
 		* @details		Ratio of units to base units. Example: for feet, returns 0.3048, as in "0.3048 feet per meter".
 		*/
-		static constexpr double conversionFactor()
+		static inline constexpr double conversionFactor()
 		{
 			return (double(conversion_ratio::num) / conversion_ratio::den) * std::pow(PI, (double(pi_exponent_ratio::num) / pi_exponent_ratio::den));
 		}
@@ -588,10 +585,48 @@ namespace units
 	}
 
 	//------------------------------
+	//	CONVERSION TRAITS
+	//------------------------------
+
+	template<class U1, class U2>
+	struct are_convertible_units : std::is_same<typename base_unit_of<typename unit_traits<U1>::base_unit_type>, 
+		typename base_unit_of<typename unit_traits<U2>::base_unit_type>> {};
+
+	//------------------------------
 	//	CONVERSION FUNCTION
 	//------------------------------
 
+	/// convert dispatch for units which are both the same
+	template<class, typename T>
+	static inline const T _convert(const T& value, std::true_type)
+	{
+		return value;
+	}
 
+	/// convert dispatch for units of different types
+	template<class Ratio, typename T>
+	static inline const T _convert(const T& value, std::false_type)
+	{
+		return (double(Ratio::num) * value / Ratio::den);
+	}
+
+	/**
+	 * @brief		
+	 * @details		
+	 * @TODO		DOCUMENT THIS!
+	 */
+	template<class UnitFrom, class UnitTo, typename T = double>
+	static inline const T convert(const T& value)
+	{
+		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
+		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
+		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
+
+		using conversion_ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
+
+		return _convert<conversion_ratio, T>(value, isSame{});
+	}	
 
 };	// end namespace units
 

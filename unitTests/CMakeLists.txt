@@ -1,4 +1,4 @@
-SET(TARGET_NAME unitTests)
+SET(TARGET_NAME unitTest)
 PROJECT(${TARGET_NAME})	# it's a pun, GET IT!?!?
 
 SET(SOURCE_CODE 
@@ -19,3 +19,5 @@ include_directories(${INCLUDE_DIRS})
 ADD_EXECUTABLE(${TARGET_NAME} ${SOURCE_CODE})
 TARGET_LINK_LIBRARIES(${TARGET_NAME} ${LIBRARIES})
 
+enable_testing ()
+add_test(NAME units COMMAND ${TARGET_NAME})

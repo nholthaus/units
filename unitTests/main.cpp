@@ -41,7 +41,7 @@ TEST_F(UnitTest, unitTraits)
 	EXPECT_TRUE(units::is_unit<feet>::value);
 }
 
-TEST_F(UnitTest, areConvertibleUnits)
+TEST_F(UnitTest, areConvertibleUnitsLength)
 {
 	bool test1 = units::are_convertible_units<meters, meters>::value;
 	bool test2 = units::are_convertible_units<meters, astronicalUnits>::value;
@@ -64,6 +64,18 @@ TEST_F(UnitTest, areConvertibleUnits)
 
 	EXPECT_FALSE(test7);
 	EXPECT_FALSE(test8);
+}
+
+TEST_F(UnitTest, areConvertibleUnitsTime)
+{
+	bool shouldBeTrue;
+	bool shouldBeFalse;
+
+	shouldBeTrue = units::are_convertible_units<years, weeks>::value;
+	EXPECT_TRUE(shouldBeTrue);
+
+	shouldBeFalse = units::are_convertible_units<years, meters>::value;
+	EXPECT_FALSE(shouldBeFalse);
 }
 
 TEST_F(UnitTest, lengthConversionFactors)
@@ -133,7 +145,14 @@ TEST_F(UnitTest, compoundUnits)
 
 TEST_F(UnitTest, conversion)
 {
+	auto test1 = convert<hectares, acres>(6.3);
+	EXPECT_NEAR(15.5676, test1, 5.0e-5);
 
+	auto test2 = convert<years, weeks>(2.0);
+	EXPECT_NEAR(104.357143, test2, 5.0e-7);
+
+	auto test3 = convert<feet, feet>(6.3);
+	EXPECT_NEAR(6.3, test3, 5.0e-5);
 }
 
 int main(int argc, char* argv[])
