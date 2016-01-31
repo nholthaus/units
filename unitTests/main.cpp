@@ -12,6 +12,7 @@ using namespace units::temperature;
 using namespace units::luminous_intensity;
 using namespace units::solid_angle;
 using namespace units::frequency;
+using namespace units::acceleration;
 
 namespace {
 
@@ -124,6 +125,8 @@ TEST_F(UnitTest, lengthConversion)
 	EXPECT_NEAR(3.28084, test, 5.0e-5);
 	test = convert<miles, nauticalMiles>(6.3);
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
+	test = convert<miles, meters>(11.0);
+	EXPECT_NEAR(17702.8, test, 5.0e-2);
 
 }
 
@@ -322,6 +325,37 @@ TEST_F(UnitTest, frequencyConversion)
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
+TEST_F(UnitTest, velocityConversion)
+{
+	double test;
+	bool same;
+
+	same = std::is_same<meters_per_second, unit<std::ratio<1>, category::velocity_unit>>::value;
+	EXPECT_TRUE(same);
+	same = units::are_convertible_units<miles_per_hour, meters_per_second>::value;
+	EXPECT_TRUE(same);
+
+	std::cout << miles_per_hour::conversion_ratio::num << "/" << miles_per_hour::conversion_ratio::den << std::endl;
+
+	test = convert<meters_per_second, miles_per_hour>(1250.0);
+	EXPECT_NEAR(2796.17, test, 5.0e-3);
+	test = convert<feet_per_second, kilometers_per_hour>(2796.17);
+	EXPECT_NEAR(3068.181418, test, 5.0e-7);
+	test = convert<knots, miles_per_hour>(600.0);
+	EXPECT_NEAR(690.468, test, 5.0e-4);
+	test = convert<miles_per_hour, feet_per_second>(120.0);
+	EXPECT_NEAR(176.0, test, 5.0e-5);
+	test = convert<feet_per_second, meters_per_second>(10.0);
+	EXPECT_NEAR(3.048, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, accelerationConversion)
+{
+	double test;
+
+	test = convert<standard_gravity, meters_per_second_squared>(1.0);
+	EXPECT_NEAR(9.80665, test, 5.0e-10);
+}
 TEST_F(UnitTest, forceConversion)
 {
 	double test;

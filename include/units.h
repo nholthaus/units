@@ -240,7 +240,7 @@ namespace units
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
 		typedef typename unit_traits<BaseUnit>::base_unit_type base_unit_type;
-		typedef typename std::ratio_multiply< typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
+		typedef typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
 		typedef typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
 		typedef typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio> translation_ratio;
 	};
@@ -343,12 +343,13 @@ namespace units
 	 * @details
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class, class> struct unit_multiply_impl;
-	template<class Conversion1, class BaseUnit1, class PiExponent1, class Translation1, class Conversion2, class BaseUnit2, class PiExponent2, class Translation2>
-	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1, Translation1>, unit<Conversion2, BaseUnit2, PiExponent2, Translation2>> 
+	template<class Unit1, class Unit2>
+	struct unit_multiply_impl
 	{
-		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<base_unit_of<BaseUnit1>, 
-			base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>, std::ratio<0>>;
+		using type = unit<std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
+			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
+			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
+			std::ratio<0>>;
 	};
 
 	template<class U1, class U2>
@@ -359,10 +360,13 @@ namespace units
 	* @details
 	* @TODO		DOCUMENT THIS!
 	*/
-	template<class, class> struct unit_divide_impl;
-	template<class Conversion1, class BaseUnit1, class PiExponent1, class Translation1, class Conversion2, class BaseUnit2, class PiExponent2, class Translation2>
-	struct unit_divide_impl<unit<Conversion1, BaseUnit1, PiExponent1, Translation1>, unit<Conversion2, BaseUnit2, PiExponent2, Translation2>> {
-		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_subtract<PiExponent1, PiExponent2>, std::ratio<0>>;
+	template<class Unit1, class Unit2>
+	struct unit_divide_impl
+	{
+		using type = unit<std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
+			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
+			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
+			std::ratio<0>>;
 	};
 
 	template<class U1, class U2>
@@ -373,10 +377,13 @@ namespace units
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class U> struct inverse_impl;
-	template <class Conversion, class BaseUnit, class PiExponent, class Translation>
-	struct inverse_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> {
-		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<-1>>, std::ratio<0>>;	// inverses are rates or change, the translation factor goes away.
+	template<class Unit>
+	struct inverse_impl
+	{
+		using type = unit<std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>, 
+			inverse_base<base_unit_of<typename Unit::base_unit_type>>, 
+			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<-1>>,
+			std::ratio<0>>;	// inverses are rates or change, the translation factor goes away.
 	};
 
 	template<class U> using inverse = typename inverse_impl<U>::type;
@@ -738,16 +745,17 @@ namespace units
 	namespace velocity
 	{
 		using meters_per_second = compound_unit<length::meters, inverse<time::second>>;
-		using meters_per_minute = compound_unit<length::meters, inverse<time::minute>>;
-		using meters_per_hour = compound_unit<length::meters, inverse<time::hour>>;
-		using meters_per_year = compound_unit<length::meters, inverse<time::year>>;
+		using feet_per_second = compound_unit<length::feet, inverse<time::seconds>>;
 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
+		using kilometers_per_hour = compound_unit<length::kilometers, inverse<time::hour>>;
 		using knots = compound_unit<length::nauticalMiles, inverse<time::hour>>;
 		
 		using knot = knots;
 
 		using mps = meters_per_second;
 		using mph = miles_per_hour;
+		using fps = feet_per_second;
+		using kmph = kilometers_per_hour;
 	}
 
 	//------------------------------
@@ -757,7 +765,8 @@ namespace units
 	namespace acceleration
 	{
 		using meters_per_second_squared = compound_unit<length::meters, inverse<squared<time::seconds>>>;
-		using gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
+		using feet_per_second_squared = compound_unit<length::feet, inverse<squared<time::seconds>>>;
+		using standard_gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
 	}
 
 	//------------------------------
@@ -769,7 +778,7 @@ namespace units
 		using newtons = unit<std::ratio<1>, category::force_unit>;
 		using pounds = compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>;
 		using dynes = unit<std::ratio<1, 100000>, newtons>;
-		using kiloponds = compound_unit<acceleration::gravity, mass::kilograms>;
+		using kiloponds = compound_unit<acceleration::standard_gravity, mass::kilograms>;
 		using poundals = compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>;
 
 		using newton = newtons;
@@ -847,6 +856,7 @@ namespace units
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
 	{
 		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		std::cout << Ratio::num << "/" << Ratio::den << std::endl;
 		return (double(Ratio::num) * value / Ratio::den);
 	}
 
