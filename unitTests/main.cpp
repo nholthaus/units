@@ -544,6 +544,26 @@ TEST_F(UnitTest, energyConversion)
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
+TEST_F(UnitTest, powerConversion)
+{
+	double test;
+
+	test = convert<compound_unit<foot_pounds, inverse<seconds>>, watts>(550.0);
+	EXPECT_NEAR(745.7, test, 5.0e-2);
+	test = convert<watts, gigawatts>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-4);
+	test = convert<microwatts, watts>(200000.0);
+	EXPECT_NEAR(0.2, test, 5.0e-4);
+	test = convert<horsepower, watts>(100.0);
+	EXPECT_NEAR(74570.0, test, 5.0e-1);
+	test = convert<horsepower, megawatts>(5.0);
+	EXPECT_NEAR(0.0037284994, test, 5.0e-7);
+	test = convert<kilowatts, horsepower>(232.0);
+	EXPECT_NEAR(311.117, test, 5.0e-4);
+	test = convert<milliwatts, horsepower>(1001.0);
+	EXPECT_NEAR(0.001342363, test, 5.0e-9);
+}
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

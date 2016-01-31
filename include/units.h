@@ -897,7 +897,31 @@ namespace units
 
 	namespace power
 	{
+		using watts = unit<std::ratio<1>, category::power_unit>;
+		using nanowatts = nano<watts>;
+		using microwatts = micro<watts>;
+		using milliwatts = milli<watts>;
+		using kilowatts = kilo<watts>;
+		using megawatts = mega<watts>;
+		using gigawatts = giga<watts>;
+		using horsepower = unit<std::ratio<7457,10>, watts>;
 
+		using watt = watts;
+		using nanowatt = nanowatts;
+		using microwatt = microwatts;
+		using milliwatt = milliwatts;
+		using kilwatt = kilowatts;
+		using megawatt = megawatts;
+		using gigawatt = gigawatts;
+
+		using W = watts;
+		using nW = nanowatts;
+		using uW = microwatts;
+		using mW = milliwatts;
+		using kW = kilowatts;
+		using MW = megawatts;
+		using GW = gigawatts;
+		using hp = horsepower;
 	}
 
 
