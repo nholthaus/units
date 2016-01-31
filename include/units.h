@@ -855,21 +855,40 @@ namespace units
 
 	namespace energy
 	{
-// 		using joules = unit<std::ratio<1>, category::energy_unit>;
-// 		using kilojoules = kilo<joules>;
-// 		using calories = ;
-// 		using kilocalories = kilo<calories>;
-// 		using watt_hours = ;
-// 		using kilowatt_hours = kilo<watt_hour>;
-// 		using electronvolts = unit<std::ratio<160;
-// 		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
-// 		using therms = ;
-// 		using foot_pound = ;
-// 
-// 
-// 		using joule = joules;
-// 
-// 		using J = joules;
+		using joules = unit<std::ratio<1>, category::energy_unit>;
+		using megajoules = mega<joules>;
+		using kilojoules = kilo<joules>;
+		using calories = unit<std::ratio<4184,1000>, joules>;
+		using kilocalories = kilo<calories>;
+		using kilowatt_hours = unit<std::ratio<36, 10>, megajoules>;
+		using watt_hours = unit<std::ratio<1,1000>, kilowatt_hours>;
+		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
+		using british_thermal_units_iso = unit<std::ratio<1055056, 1000>, joules>;
+		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
+		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
+		using foot_pounds = unit<std::ratio<13558179483314004,10000000000000000>, joules>;
+
+		using joule = joules;
+		using megajoule = megajoules;
+		using kilojoule = kilojoules;
+		using calorie = calories;
+		using kilocalorie = kilocalories;
+		using watt_hour = watt_hours;
+		using kilowatt_hour = kilowatt_hours;
+		using british_thermal_unit = british_thermal_units;
+		using therm = therms;
+		using foot_pound = foot_pounds;
+
+		using J = joules;
+		using MJ = megajoules;
+		using kJ = kilojoules;
+		using cal = calories;
+		using kcal = kilocalories;
+		using Wh = watt_hours;
+		using kWh = kilowatt_hours;
+		using BTU = british_thermal_units;
+		using thm = therms;
+		using ftlbf = foot_pounds;
 	}
 
 	//------------------------------

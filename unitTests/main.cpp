@@ -512,6 +512,38 @@ TEST_F(UnitTest, chargeConversion)
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
+TEST_F(UnitTest, energyConversion)
+{
+	double test;
+
+	test = convert<joules, calories>(8000.000464);
+	EXPECT_NEAR(1912.046, test, 5.0e-4);
+	test = convert<therms, joules>(12.0);
+	EXPECT_NEAR(1.266e+9, test, 5.0e5);
+	test = convert<megajoules, watt_hours>(100.0);
+	EXPECT_NEAR(27777.778, test, 5.0e-4);
+	test = convert<kilocalories, megajoules>(56.0);
+	EXPECT_NEAR(0.234304, test, 5.0e-7);
+	test = convert<kilojoules, therms>(56.0);
+	EXPECT_NEAR(0.000530904, test, 5.0e-5);
+	test = convert<british_thermal_units, kilojoules>(18.56399995447);
+	EXPECT_NEAR(19.5860568, test, 5.0e-5);
+	test = convert<calories, foot_pounds>(18.56399995447);
+	EXPECT_NEAR(57.28776190423856, test, 5.0e-5);
+	test = convert<megajoules, calories>(1.0);
+	EXPECT_NEAR(239006.0, test, 5.0e-1);
+	test = convert<kilocalories, kilowatt_hours>(2.0);
+	EXPECT_NEAR(0.00232444, test, 5.0e-9);
+	test = convert<therms, kilocalories>(0.1);
+	EXPECT_NEAR(2521.04, test, 5.0e-3);
+	test = convert<watt_hours, megajoules>(67.0);
+	EXPECT_NEAR(0.2412, test, 5.0e-5);
+	test = convert<british_thermal_units, watt_hours>(100.0);
+	EXPECT_NEAR(29.3071, test, 5.0e-5);
+	test = convert<calories, BTU>(100.0);
+	EXPECT_NEAR(0.396567, test, 5.0e-5);
+}
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
