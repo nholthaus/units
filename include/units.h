@@ -393,11 +393,15 @@ namespace units
 	 * @details
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class> struct squared_impl;
-	template<class Conversion, class BaseUnit, class PiExponent>
-	struct squared_impl<unit<Conversion, BaseUnit, PiExponent>>
+	template<class Unit>
+	struct squared_impl
 	{	
-		using type = unit<std::ratio_multiply<Conversion, Conversion>, squared_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<2>>>;
+		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+		using Conversion = typename Unit::conversion_ratio;
+		using type = unit <std::ratio_multiply<Conversion, Conversion>,
+			squared_base<base_unit_of<typename Unit::base_unit_type>>,
+			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
+			std::ratio<0>>;
 	};
 
 	template<class U>
@@ -408,11 +412,15 @@ namespace units
 	* @details
 	* @TODO		DOCUMENT THIS!
 	*/
-	template<class> struct cubed_impl;
-	template<class Conversion, class BaseUnit, class PiExponent>
-	struct cubed_impl<unit<Conversion, BaseUnit, PiExponent>>
+	template<class Unit>
+	struct cubed_impl
 	{
-		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>, cubed_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<3>>>;
+		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+		using Conversion = typename Unit::conversion_ratio;
+		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
+			cubed_base<base_unit_of<typename Unit::base_unit_type>>, 
+			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
+			std::ratio<0>>;
 	};
 
 	template<class U>
@@ -856,7 +864,6 @@ namespace units
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
 	{
 		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
-		std::cout << Ratio::num << "/" << Ratio::den << std::endl;
 		return (double(Ratio::num) * value / Ratio::den);
 	}
 

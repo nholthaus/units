@@ -290,6 +290,10 @@ TEST_F(UnitTest, luminousIntensityConversion)
 TEST_F(UnitTest, solidAngleConversion)
 {
 	double test;
+	bool same;
+
+	same = std::is_same<base_unit_of<steradians>, base_unit_of<degrees_squared>>::value;
+	EXPECT_TRUE(same);
 
 	test = convert<steradians, steradians>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
@@ -334,8 +338,6 @@ TEST_F(UnitTest, velocityConversion)
 	EXPECT_TRUE(same);
 	same = units::are_convertible_units<miles_per_hour, meters_per_second>::value;
 	EXPECT_TRUE(same);
-
-	std::cout << miles_per_hour::conversion_ratio::num << "/" << miles_per_hour::conversion_ratio::den << std::endl;
 
 	test = convert<meters_per_second, miles_per_hour>(1250.0);
 	EXPECT_NEAR(2796.17, test, 5.0e-3);
