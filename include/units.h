@@ -158,7 +158,6 @@ namespace units
 		static_assert(is_ratio<Candela>::value,		"Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
 		static_assert(is_ratio<Mole>::value,		"Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
 		static_assert(is_ratio<Radian>::value,		"Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
-		static_assert(is_ratio<Steradian>::value,	"Template parameter `Steradian` must be a `std::ratio` representing the exponent of steradians the unit has");
 
 		using meter_exponent_ratio = Meter;
 		using kilogram_exponent_ratio = Kilogram;
@@ -168,7 +167,6 @@ namespace units
 		using candela_exponent_ratio = Candela;
 		using mole_exponent_ratio = Mole;
 		using radian_exponent_ratio = Radian;
-		using steradian_exponent_ratio = Steradian;
 	};
 
 	//------------------------------
@@ -177,18 +175,18 @@ namespace units
 
 	namespace category
 	{
-		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			STERADIAN
+		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
 		using length_unit					= base_unit<std::ratio<1>>;
 		using mass_unit						= base_unit<std::ratio<0>,	std::ratio<1>>;
 		using time_unit						= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using angle_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using current_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using temperature_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using concentration_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using substance_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using luminous_intensity_unit		= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using solid_angle_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 
-		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			STERADIAN
+		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using solid_angle_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
 		using frequency_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 		using force_unit					= base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
 		using pressure_unit					= base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
@@ -202,7 +200,7 @@ namespace units
 		using magnetic_flux_unit			= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
 		using magnetic_filed_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
 		using inductance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
-		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<1>>;
+		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
@@ -211,8 +209,8 @@ namespace units
 		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
-		using density_unit					= base_unit<std::ratio<3>,	std::ratio<1>>;
-		using inverse_unit					= base_unit<std::ratio<-1>,	std::ratio<-1>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using density_unit					= base_unit<std::ratio<-3>,	std::ratio<1>>;
+		using concentration_unit			= base_unit<std::ratio<-3>>;
 	}
 
 	//------------------------------
@@ -663,6 +661,54 @@ namespace units
 		using C = celsius;
 		using Ra = rankine;
 		using Re = reaumur;
+	}
+
+	//------------------------------
+	//	UNITS OF AMOUNT OF SUBSTANCE
+	//------------------------------
+
+	namespace substance
+	{
+		using moles = unit<std::ratio<1>, category::substance_unit>;
+
+		using mole = moles;
+
+		using mol = mole;
+	}
+
+	//------------------------------
+	//	UNITS OF LUMINOUS INTENSITY
+	//------------------------------
+
+	namespace luminous_intensity
+	{
+		using candelas = unit<std::ratio<1>, category::luminous_intensity_unit>;
+		using millicandelas = milli<candelas>;
+
+		using candela = candelas;
+		using millicandela = millicandelas;
+
+		using cd = candela;
+		using mcd = millicandela;
+	}
+
+	//------------------------------
+	//	UNITS OF SOLID ANGLE
+	//------------------------------
+
+	namespace solid_angle
+	{
+		using steradians = unit<std::ratio<1>, category::solid_angle_unit>;
+		using degrees_squared = squared<angle::degrees>;
+		using spats = unit<std::ratio<4>, steradians, std::ratio<1>>;
+
+		using steradian = steradians;
+		using degree_squared = degrees_squared;
+		using spat = spats;
+
+		using sr = steradians;
+		using sq_deg = degrees_squared;
+		using sp = spat;
 	}
 
 	//------------------------------

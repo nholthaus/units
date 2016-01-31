@@ -9,6 +9,8 @@ using namespace units::frequency;
 using namespace units::area;
 using namespace units::velocity;
 using namespace units::temperature;
+using namespace units::luminous_intensity;
+using namespace units::solid_angle;
 
 namespace {
 
@@ -267,6 +269,40 @@ TEST_F(UnitTest, temperature)
 	EXPECT_NEAR(212.0, test, 5.0e-5);
 	test = convert<fahrenheit, reaumur>(37.0);
 	EXPECT_NEAR(2.222, test, 5.0e-3);
+}
+
+TEST_F(UnitTest, luminousIntensityConversion)
+{
+	double test;
+
+	test = convert<candela, millicandela>(72.0);
+	EXPECT_NEAR(72000.0, test, 5.0e-5);
+	test = convert<millicandela, candela>(376.0);
+	EXPECT_NEAR(0.376, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, solidAngleConversion)
+{
+	double test;
+
+	test = convert<steradians, steradians>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
+	test = convert<steradians, degrees_squared>(1.0);
+	EXPECT_NEAR(3282.8, test, 5.0e-2);
+	test = convert<steradians, spats>(8.0);
+	EXPECT_NEAR(0.636619772367582, test, 5.0e-14);
+	test = convert<degrees_squared, steradians>(3282.8);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<degrees_squared, degrees_squared>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
+	test = convert<degrees_squared, spats>(3282.8);
+	EXPECT_NEAR(1.0 / (4 * PI), test, 5.0e-5);
+	test = convert<spats, steradians>(1.0 / (4 * PI));
+	EXPECT_NEAR(1.0, test, 5.0e-14);
+	test = convert<spats, degrees_squared>(1.0 / (4 * PI));
+	EXPECT_NEAR(3282.8, test, 5.0e-2);
+	test = convert<spats, spats>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
 TEST_F(UnitTest, areaConversionFactors)
