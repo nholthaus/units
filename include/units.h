@@ -540,7 +540,7 @@ namespace units
 		using stone = unit<std::ratio<14>, pounds>;
 		using ounces = unit<std::ratio<1, 16>, pounds>;
 		using carats = unit<std::ratio<200>, milligrams>;
-		using slugs = unit<std::ratio<14593903,1000000>, kilograms>;
+		using slugs = unit<std::ratio<145939029,10000000>, kilograms>;
 
 		using gram = grams;
 		using microgram = micrograms;
@@ -802,7 +802,28 @@ namespace units
 		using pdl = poundals;
 	}
 
+	//------------------------------
+	//	UNITS OF PRESSURE
+	//------------------------------
 
+	namespace pressure
+	{
+		using pascals = unit<std::ratio<1>, category::pressure_unit>;
+		using bars = unit<std::ratio<100>, kilo<pascals>>;
+		using atmospheres = unit<std::ratio<101325>, pascals>;
+		using pounds_per_square_inch = compound_unit<force::pounds, inverse<squared<length::inch>>>;
+		using torrs = unit<std::ratio<1,760>, atmospheres>;
+
+		using pascal = pascals;
+		using bar = bars;
+		using atmosphere = atmospheres;
+		using pound_per_square_inch = pounds_per_square_inch;
+		using torr = torrs;
+
+		using Pa = pascals;
+		using atm = atmospheres;
+		using psi = pound_per_square_inch;
+	}
 
 
 
