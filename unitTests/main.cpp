@@ -11,6 +11,7 @@ using namespace units::velocity;
 using namespace units::temperature;
 using namespace units::luminous_intensity;
 using namespace units::solid_angle;
+using namespace units::frequency;
 
 namespace {
 
@@ -150,6 +151,8 @@ TEST_F(UnitTest, massConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, carats>(0.0002);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
+	test = convert<slugs, kilograms>(8.1);
+	EXPECT_NEAR(118.211, test, 5.0e-4);
 
 	test = convert<pounds, carats>(6.3);
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
@@ -303,6 +306,38 @@ TEST_F(UnitTest, solidAngleConversion)
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
 	test = convert<spats, spats>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, frequencyConversion)
+{
+	double test;
+
+	test = convert<hertz, kilohertz>(63000.0);
+	EXPECT_NEAR(63.0, test, 5.0e-5);
+	test = convert<hertz, hertz>(6.3);
+	EXPECT_NEAR(6.3, test, 5.0e-5);
+	test = convert<kilohertz, hertz>(5.0);
+	EXPECT_NEAR(5000.0, test, 5.0e-5);
+	test = convert<megahertz, hertz>(1.0);
+	EXPECT_NEAR(1.0e6, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, forceConversion)
+{
+	double test;
+
+	test = convert<force::newton, force::newton>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<force::newton, force::pounds>(6.3);
+	EXPECT_NEAR(1.4163, test, 5.0e-5);
+	test = convert<force::newton, force::dynes>(5.0);
+	EXPECT_NEAR(500000.0, test, 5.0e-5);
+	test = convert<force::newtons, force::poundals>(2.1);
+	EXPECT_NEAR(15.1893, test, 5.0e-5);
+	test = convert<force::newtons, force::kiloponds>(173.0);
+	EXPECT_NEAR(17.6411, test, 5.0e-5);
+	test = convert<force::poundals, force::kiloponds>(21.879);
+	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
 TEST_F(UnitTest, areaConversionFactors)

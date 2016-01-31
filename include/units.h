@@ -207,6 +207,7 @@ namespace units
 		// OTHER UNIT TYPES
 		using velocity_unit					= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
 		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
+		using torque_units					= base_unit<std::ratio<1>,	std::ratio<1>>;
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
 		using density_unit					= base_unit<std::ratio<-3>,	std::ratio<1>>;
@@ -513,10 +514,10 @@ namespace units
 
 	namespace mass
 	{
-		using grams = unit<std::ratio<1, 1000>, category::mass_unit>;
+		using kilograms = unit<std::ratio<1>, category::mass_unit>;
+		using grams = unit<std::ratio<1, 1000>, kilograms>;
 		using micrograms = micro<grams>;
-		using milligrams = milli<grams>;
-		using kilograms = kilo<grams>;
+		using milligrams = milli<grams>;		
 		using metric_tons = unit<std::ratio<1000>, kilograms>;
 		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
 		using imperial_tons = unit<std::ratio<2240>, pounds>;
@@ -524,6 +525,7 @@ namespace units
 		using stone = unit<std::ratio<14>, pounds>;
 		using ounces = unit<std::ratio<1, 16>, pounds>;
 		using carats = unit<std::ratio<200>, milligrams>;
+		using slugs = unit<std::ratio<14593903,1000000>, kilograms>;
 
 		using gram = grams;
 		using microgram = micrograms;
@@ -535,6 +537,7 @@ namespace units
 		using us_ton = us_tons;
 		using ounce = ounces;
 		using carat = carats;
+		using slug = slugs;
 
 		using g = grams;
 		using ug = micrograms;
@@ -718,8 +721,14 @@ namespace units
 	namespace frequency
 	{
 		using hertz = unit<std::ratio<1>, category::frequency_unit>;
+		using kilohertz = kilo<hertz>;
+		using megahertz = mega<hertz>;
+		using gigahertz = giga<hertz>;
 
-		using hz = hertz;
+		using Hz = hertz;
+		using kHz = kilohertz;
+		using MHz = megahertz;
+		using GHz = gigahertz;
 	}
 
 	//------------------------------
@@ -739,6 +748,41 @@ namespace units
 
 		using mps = meters_per_second;
 		using mph = miles_per_hour;
+	}
+
+	//------------------------------
+	//	UNITS OF ACCELERATION
+	//------------------------------
+
+	namespace acceleration
+	{
+		using meters_per_second_squared = compound_unit<length::meters, inverse<squared<time::seconds>>>;
+		using gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
+	}
+
+	//------------------------------
+	//	UNITS OF FORCE
+	//------------------------------
+
+	namespace force
+	{
+		using newtons = unit<std::ratio<1>, category::force_unit>;
+		using pounds = compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>;
+		using dynes = unit<std::ratio<1, 100000>, newtons>;
+		using kiloponds = compound_unit<acceleration::gravity, mass::kilograms>;
+		using poundals = compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>;
+
+		using newton = newtons;
+		using pound = pounds;
+		using dyne = dynes;
+		using kilopond = kiloponds;
+		using poundal = poundals;
+
+		using N = newtons;
+		using lbf = pounds;
+		using dyn = dynes;
+		using kp = kiloponds;
+		using pdl = poundals;
 	}
 
 	//------------------------------
