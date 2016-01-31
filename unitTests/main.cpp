@@ -115,6 +115,10 @@ TEST_F(UnitTest, lengthConversion)
 	EXPECT_NEAR(6.3, test, 5.0e-5);
 	test = convert<feet, inches>(6.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
+	test = convert<inches, feet>(6.0);
+	EXPECT_NEAR(0.5, test, 5.0e-5);
+	test = convert<meter, feet>(1.0);
+	EXPECT_NEAR(3.28084, test, 5.0e-5);
 	test = convert<miles, nauticalMiles>(6.3);
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
 
@@ -174,6 +178,8 @@ TEST_F(UnitTest, timeConversion)
 
 	test = convert<years, weeks>(2.0);
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
+	test = convert<hours, minutes>(4.0);
+	EXPECT_NEAR(240.0, test, 5.0e-14);
 }
 
 TEST_F(UnitTest, angleConversionFactors)
@@ -221,18 +227,10 @@ TEST_F(UnitTest, currentConversion)
 TEST_F(UnitTest, temperature)
 {
 	// temp conversion are weird/hard since they involve translations AND scaling.
-	bool testb;
 	double test;
 
-	testb = std::is_same<celsius::translation_ratio, std::ratio<-5463,20>>::value;	// LCF of -27315/100
-	EXPECT_TRUE(testb);
-	testb = std::is_same<celsius::conversion_ratio, std::ratio<1>>::value;
-	EXPECT_TRUE(testb);
-	testb = std::is_same<fahrenheit::translation_ratio, std::ratio<-45967,100>>::value;
-	EXPECT_TRUE(testb);
-	testb = std::is_same<fahrenheit::conversion_ratio, std::ratio<9,5>>::value;
-	EXPECT_TRUE(testb);
-
+	test = convert<kelvin, kelvin>(72.0);
+	EXPECT_NEAR(72.0, test, 5.0e-5);
 	test = convert<fahrenheit, fahrenheit>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 	test = convert<kelvin, fahrenheit>(300.0);
@@ -247,7 +245,28 @@ TEST_F(UnitTest, temperature)
 	EXPECT_NEAR(22.2222, test, 5.0e-5);
 	test = convert<celsius, fahrenheit>(100.0);
 	EXPECT_NEAR(212.0, test, 5.0e-5);
-
+	test = convert<fahrenheit, celsius>(32.0);
+	EXPECT_NEAR(0.0, test, 5.0e-5);
+	test = convert<celsius, fahrenheit>(0.0);
+	EXPECT_NEAR(32.0, test, 5.0e-5);
+	test = convert<rankine, kelvin>(100.0);
+	EXPECT_NEAR(55.5556, test, 5.0e-5);
+	test = convert<kelvin, rankine>(100.0);
+	EXPECT_NEAR(180.0, test, 5.0e-5);
+	test = convert<fahrenheit, rankine>(100.0);
+	EXPECT_NEAR(559.67, test, 5.0e-5);
+	test = convert<rankine, fahrenheit>(72.0);
+	EXPECT_NEAR(-387.67, test, 5.0e-5);
+	test = convert<reaumur, kelvin>(100.0);
+	EXPECT_NEAR(398.0, test, 5.0e-1);
+	test = convert<reaumur, celsius>(80.0);
+	EXPECT_NEAR(100.0, test, 5.0e-5);
+	test = convert<celsius, reaumur>(212.0);
+	EXPECT_NEAR(169.6, test, 5.0e-2);
+	test = convert<reaumur, fahrenheit>(80.0);
+	EXPECT_NEAR(212.0, test, 5.0e-5);
+	test = convert<fahrenheit, reaumur>(37.0);
+	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
 TEST_F(UnitTest, areaConversionFactors)

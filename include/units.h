@@ -241,9 +241,9 @@ namespace units
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
 		typedef typename unit_traits<BaseUnit>::base_unit_type base_unit_type;
-		typedef typename std::ratio_multiply<Conversion, typename BaseUnit::conversion_ratio> conversion_ratio;
-		typedef typename std::ratio_add<PiExponent, typename BaseUnit::pi_exponent_ratio> pi_exponent_ratio;
-		typedef typename std::ratio_add<Translation, std::ratio_multiply<typename BaseUnit::translation_ratio, Conversion>> translation_ratio;
+		typedef typename std::ratio_multiply< typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
+		typedef typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
+		typedef typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio> translation_ratio;
 	};
 
 	//------------------------------
@@ -650,14 +650,18 @@ namespace units
 		// NOTE: temperature units have special conversion overloads, since they
 		// require translations and aren't a reversible transform.
  		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
- 		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<-27315,100>>;
-		using fahrenheit = unit<std::ratio<9, 5>, celsius, std::ratio<0>, std::ratio<32>>;
+ 		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315,100>>;
+		using fahrenheit = unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>;
+		using reaumur = unit<std::ratio<10, 8>, celsius>;
+		using rankine = unit<std::ratio<5, 9>, kelvin>;
 
 		using centigrade = celsius;
 
 		using K = kelvin;
 		using F = fahrenheit;
 		using C = celsius;
+		using Ra = rankine;
+		using Re = reaumur;
 	}
 
 	//------------------------------
@@ -768,8 +772,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<UnitTo::conversion_ratio, UnitFrom::conversion_ratio>;
-		using Translation = std::ratio_subtract<UnitTo::translation_ratio, std::ratio_multiply<Ratio, UnitFrom::translation_ratio>>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
 	}
 
@@ -777,9 +781,9 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<UnitTo::conversion_ratio, UnitFrom::conversion_ratio>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
 		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
-		using Translation = std::ratio_subtract<UnitTo::translation_ratio, std::ratio_multiply<Ratio, UnitFrom::translation_ratio>>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
 
