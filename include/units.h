@@ -256,8 +256,8 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class> struct base_unit_of_impl;
-	template<class Conversion, class BaseUnit, class PiExponent>
-	struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent>> : base_unit_of_impl<BaseUnit> {};
+	template<class Conversion, class BaseUnit, class PiExponent, class Translation>
+	struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> : base_unit_of_impl<BaseUnit> {};
 	template<class... Exponents>
 	struct base_unit_of_impl<base_unit<Exponents...>>
 	{
@@ -345,10 +345,11 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class, class> struct unit_multiply_impl;
-	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
-	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
+	template<class Conversion1, class BaseUnit1, class PiExponent1, class Translation1, class Conversion2, class BaseUnit2, class PiExponent2, class Translation2>
+	struct unit_multiply_impl<unit<Conversion1, BaseUnit1, PiExponent1, Translation1>, unit<Conversion2, BaseUnit2, PiExponent2, Translation2>> 
+	{
 		using type = unit<std::ratio_multiply<Conversion1, Conversion2>, base_unit_multiply<base_unit_of<BaseUnit1>, 
-			base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>>;
+			base_unit_of<BaseUnit2>>, std::ratio_add<PiExponent1, PiExponent2>, std::ratio<0>>;
 	};
 
 	template<class U1, class U2>
@@ -360,9 +361,9 @@ namespace units
 	* @TODO		DOCUMENT THIS!
 	*/
 	template<class, class> struct unit_divide_impl;
-	template<class Conversion1, class BaseUnit1, class PiExponent1, class Conversion2, class BaseUnit2, class PiExponent2>
-	struct unit_divide_impl<unit<Conversion1, BaseUnit1, PiExponent1>, unit<Conversion2, BaseUnit2, PiExponent2>> {
-		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_subtract<PiExponent1, PiExponent2>>;
+	template<class Conversion1, class BaseUnit1, class PiExponent1, class Translation1, class Conversion2, class BaseUnit2, class PiExponent2, class Translation2>
+	struct unit_divide_impl<unit<Conversion1, BaseUnit1, PiExponent1, Translation1>, unit<Conversion2, BaseUnit2, PiExponent2, Translation2>> {
+		using type = unit<std::ratio_divide<Conversion1, Conversion2>, base_unit_divide<base_unit_of<BaseUnit1>, base_unit_of<BaseUnit2>>, std::ratio_subtract<PiExponent1, PiExponent2>, std::ratio<0>>;
 	};
 
 	template<class U1, class U2>
@@ -374,9 +375,9 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class U> struct inverse_impl;
-	template <class Conversion, class BaseUnit, class PiExponent>
-	struct inverse_impl<unit<Conversion, BaseUnit, PiExponent>> {
-		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<-1>>>;
+	template <class Conversion, class BaseUnit, class PiExponent, class Translation>
+	struct inverse_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> {
+		using type = unit<std::ratio<Conversion::den, Conversion::num>, inverse_base<base_unit_of<BaseUnit>>, std::ratio_multiply<PiExponent, std::ratio<-1>>, std::ratio<0>>;	// inverses are rates or change, the translation factor goes away.
 	};
 
 	template<class U> using inverse = typename inverse_impl<U>::type;

@@ -280,10 +280,17 @@ TEST_F(UnitTest, areaConversionFactors)
 
 TEST_F(UnitTest, inverseUnits)
 {
+	double test;
+
 	using htz = units::inverse<seconds>;
 	bool shouldBeTrue = std::is_same<htz, hertz>::value;
-
 	EXPECT_TRUE(shouldBeTrue);
+
+	test = convert<inverse<celsius>, inverse<fahrenheit>>(1.0);
+	EXPECT_NEAR(5.0 / 9.0, test, 5.0e-5);
+
+	test = convert<inverse<kelvin>, inverse<fahrenheit>>(6.0);
+	EXPECT_NEAR(10.0 /3.0, test, 5.0e-5);
 }
 
 TEST_F(UnitTest, baseUnitOf)
@@ -329,6 +336,10 @@ TEST_F(UnitTest, compoundUnits)
 	EXPECT_TRUE(areSame23);
 	EXPECT_TRUE(areSame34);
 	EXPECT_TRUE(areSame45);
+
+	// test that thing with translations still compile
+	using arbitary1 = compound_unit<meters, inverse<celsius>>;
+	using arbitary2 = compound_unit<meters, celsius>;
 }
 
 TEST_F(UnitTest, dimensionalAnalysis)
