@@ -52,10 +52,13 @@
 namespace units
 {
 	//------------------------------
-	//	PI
+	//	CONSTANTS
 	//------------------------------
 
-	static const double PI = 3.14159265358979323846264338327950288419716939937510;
+	namespace constants
+	{
+		static const double PI = 3.14159265358979323846264338327950288419716939937510;
+	}
 
 	//------------------------------
 	//	RATIO TRAITS
@@ -131,7 +134,7 @@ namespace units
 	struct is_unit : std::is_base_of<_unit_t, T>::type {};
 
 	//------------------------------
-	//	BASE UNIT CLASSES
+	//	BASE UNIT CLASS
 	//------------------------------
 
 	/**
@@ -192,9 +195,9 @@ namespace units
 		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
 		using force_unit					= base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
 		using pressure_unit					= base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
+		using charge_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
 		using energy_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
 		using power_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;
-		using charge_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
 		using voltage_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;
 		using capacitance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;
 		using impedance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
@@ -206,7 +209,7 @@ namespace units
 		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
-		// OTHER UNIT TYPES
+		// OTHER UNIT TYPES			---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
 		using torque_units					= base_unit<std::ratio<1>,	std::ratio<1>>;
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
@@ -456,6 +459,7 @@ namespace units
 		typedef typename unit<Ratio, Unit> type;
 	};
 
+	// SI PREFIXES
 	template<class U> using atto = typename prefix<std::atto, U>::type;
 	template<class U> using femto = typename prefix<std::femto, U>::type;
 	template<class U> using pico = typename prefix<std::pico, U>::type;
@@ -472,6 +476,9 @@ namespace units
 	template<class U> using tera = typename prefix<std::tera, U>::type;
 	template<class U> using peta = typename prefix<std::peta, U>::type;
 	template<class U> using exa = typename prefix<std::exa, U>::type;
+
+	// OTHER USEFUL PREFIXES
+	template<class U> using pi = typename unit<std::ratio<1>, U, std::ratio<1>>;
 
 	//------------------------------
 	//	LENGTH UNITS
@@ -649,6 +656,7 @@ namespace units
 		using microamps = micro<amperes>;
 		using nanoamps = nano<amperes>;
 
+		using ampere = amperes;
 		using amps = amperes;
 		using amp = amperes;
 		
@@ -825,6 +833,58 @@ namespace units
 		using psi = pound_per_square_inch;
 	}
 
+	//------------------------------
+	//	UNITS OF CHARGE
+	//------------------------------
+
+	namespace charge
+	{
+		using coulombs = unit<std::ratio<1>, category::charge_unit>;
+		using ampere_hours = compound_unit<current::ampere, time::hours>;
+
+		using coulomb = coulombs;
+		using ampere_hour = ampere_hours;
+
+		using C = coulombs;
+		using Ah = ampere_hours;
+	}
+
+	//------------------------------
+	//	UNITS OF ENERGY
+	//------------------------------
+
+	namespace energy
+	{
+// 		using joules = unit<std::ratio<1>, category::energy_unit>;
+// 		using kilojoules = kilo<joules>;
+// 		using calories = ;
+// 		using kilocalories = kilo<calories>;
+// 		using watt_hours = ;
+// 		using kilowatt_hours = kilo<watt_hour>;
+// 		using electronvolts = unit<std::ratio<160;
+// 		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
+// 		using therms = ;
+// 		using foot_pound = ;
+// 
+// 
+// 		using joule = joules;
+// 
+// 		using J = joules;
+	}
+
+	//------------------------------
+	//	UNITS OF POWER
+	//------------------------------
+
+	namespace power
+	{
+
+	}
+
+
+
+
+
 
 
 	//------------------------------
@@ -906,7 +966,7 @@ namespace units
 	{
 		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
 		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(PI, (double(PiRatio::num) / PiRatio::den)));
+		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
 	}
 
 	/// convert dispatch for units of different types with a translation, but no PI
@@ -925,7 +985,7 @@ namespace units
 		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
 		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
 		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
+		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
 
 	/**

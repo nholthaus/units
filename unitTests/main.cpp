@@ -14,6 +14,9 @@ using namespace units::solid_angle;
 using namespace units::frequency;
 using namespace units::acceleration;
 using namespace units::pressure;
+using namespace units::charge;
+using namespace units::energy;
+using namespace units::power;
 
 namespace {
 
@@ -296,10 +299,10 @@ TEST_F(UnitTest, angleConversionFactors)
 	EXPECT_NEAR(2.1, test, 5.0e-6);
 	test = convert<angle::seconds, angle::gradians>(2.1);
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
-	test = convert<angle::radians, angle::degrees>(units::PI);
+	test = convert<angle::radians, angle::degrees>(units::constants::PI);
 	EXPECT_NEAR(180.0, test, 5.0e-6);
 	test = convert<angle::degrees, angle::radians>(90.0);
-	EXPECT_NEAR(PI / 2, test, 5.0e-6);
+	EXPECT_NEAR(constants::PI / 2, test, 5.0e-6);
 	test = convert<angle::degrees, angle::mils>(47.0);
 	EXPECT_NEAR(5249.95039, test, 5.0e-6);
 
@@ -387,10 +390,10 @@ TEST_F(UnitTest, solidAngleConversion)
 	test = convert<degrees_squared, degrees_squared>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 	test = convert<degrees_squared, spats>(3282.8);
-	EXPECT_NEAR(1.0 / (4 * PI), test, 5.0e-5);
-	test = convert<spats, steradians>(1.0 / (4 * PI));
+	EXPECT_NEAR(1.0 / (4 * constants::PI), test, 5.0e-5);
+	test = convert<spats, steradians>(1.0 / (4 * constants::PI));
 	EXPECT_NEAR(1.0, test, 5.0e-14);
-	test = convert<spats, degrees_squared>(1.0 / (4 * PI));
+	test = convert<spats, degrees_squared>(1.0 / (4 * constants::PI));
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
 	test = convert<spats, spats>(72.0);
 	EXPECT_NEAR(72.0, test, 5.0e-5);
@@ -499,7 +502,15 @@ TEST_F(UnitTest, pressureConversion)
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 }
 	
+TEST_F(UnitTest, chargeConversion)
+{
+	double test;
 
+	test = convert<coulombs, ampere_hours>(4.0);
+	EXPECT_NEAR(0.00111111, test, 5.0e-9);
+	test = convert<ampere_hours, coulombs>(1.0);
+	EXPECT_NEAR(3600.0, test, 5.0e-6);
+}
 
 int main(int argc, char* argv[])
 {
