@@ -382,7 +382,14 @@ TEST_F(UnitTest, areaConversionFactors)
 
 	test = convert<hectares, acres>(6.3);
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
-	
+	test = convert<square_miles, square_kilometers>(10.0);
+	EXPECT_NEAR(25.8999, test, 5.0e-5);
+	test = convert<square_inch, square_meter>(4.0);
+	EXPECT_NEAR(0.00258064, test, 5.0e-9);
+	test = convert<acre, square_foot>(5.0);
+	EXPECT_NEAR(217800.0, test, 5.0e-5);
+	test = convert<square_meter, square_foot>(1.0);
+	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
 TEST_F(UnitTest, inverseUnits)

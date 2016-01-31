@@ -188,6 +188,8 @@ namespace units
 		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
 		using solid_angle_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
 		using frequency_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+		using velocity_unit					= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
+		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
 		using force_unit					= base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
 		using pressure_unit					= base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
 		using energy_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
@@ -205,8 +207,6 @@ namespace units
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
 		// OTHER UNIT TYPES
-		using velocity_unit					= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
-		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
 		using torque_units					= base_unit<std::ratio<1>,	std::ratio<1>>;
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
@@ -802,6 +802,10 @@ namespace units
 		using pdl = poundals;
 	}
 
+
+
+
+
 	//------------------------------
 	//	AREA UNITS
 	//------------------------------
@@ -810,9 +814,17 @@ namespace units
 	{
 		using square_meters = squared<length::meters>;
 		using square_feet = squared<length::feet>;
+		using square_inches = squared<length::inch>;
+		using square_miles = squared<length::miles>;
+		using square_kilometers = squared<length::kilometers>;
 		using hectares = unit<std::ratio<10000>, square_meters>;
 		using acres = unit<std::ratio<43560>, square_feet>;
 
+		using square_meter = square_meters;
+		using square_foot = square_feet;
+		using square_inch = square_inches;
+		using square_mile = square_miles;
+		using square_kilometer = square_kilometers;
 		using hectare = hectares;
 		using acre = acres;
 
