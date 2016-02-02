@@ -8,6 +8,8 @@ set( ENV{CL} /MP )
 
 SET(VERSION_GTEST "1.7.0" CACHE STRING "Google Test framework version")
 
+enable_testing ()
+
 add_subdirectory(3rdParty/gnuWin)
 add_subdirectory(3rdParty/gtest)
 
