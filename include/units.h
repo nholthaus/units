@@ -45,6 +45,7 @@
 #include <ratio>
 #include <type_traits>
 #include <cstdint>
+#include <cmath>
 
 //--------------------
 //	UNITS NAMESPACE
@@ -973,8 +974,8 @@ namespace units
 	//------------------------------
 
 	template<class U1, class U2>
-	struct are_convertible_units : std::is_same<typename base_unit_of<typename unit_traits<U1>::base_unit_type>, 
-		typename base_unit_of<typename unit_traits<U2>::base_unit_type>> {};
+	struct are_convertible_units : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>, 
+		base_unit_of<typename unit_traits<U2>::base_unit_type>> {};
 
 	//------------------------------
 	//	CONVERSION FUNCTION
@@ -1012,7 +1013,7 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
 	{
-		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		return (double(Ratio::num) * value / Ratio::den);
 	}
 
@@ -1020,8 +1021,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::true_type, std::false_type)
 	{
-		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
 	}
 
@@ -1029,8 +1030,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
 	}
 
@@ -1038,9 +1039,9 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
 
@@ -1057,10 +1058,10 @@ namespace units
 		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
 
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
-		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, UnitFrom::pi_exponent_ratio>::value &&
-			std::is_same<std::ratio<0>, UnitTo::pi_exponent_ratio>::value)>;
-		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, UnitFrom::translation_ratio>::value &&
-			std::is_same<std::ratio<0>, UnitTo::translation_ratio>::value)>;
+		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
+			std::is_same<std::ratio<0>, typename UnitTo::pi_exponent_ratio>::value)>;
+		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::translation_ratio>::value &&
+			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
 
 		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
 	}	
