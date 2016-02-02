@@ -111,6 +111,9 @@ namespace units
 	//	UNIT TRAITS
 	//------------------------------
 
+	template<class ...>
+	using void_t = void;
+
 	template<class T, typename = void>
 	struct unit_traits
 	{
@@ -121,7 +124,7 @@ namespace units
 	};
 
 	template<class T>
-	struct unit_traits<T, typename std::void_t<
+	struct unit_traits<T, typename void_t<
 		typename T::base_unit_type,
 		typename T::conversion_ratio,
 		typename T::pi_exponent_ratio,
