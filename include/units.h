@@ -124,7 +124,7 @@ namespace units
 	};
 
 	template<class T>
-	struct unit_traits<T, typename void_t<
+	struct unit_traits<T, void_t<
 		typename T::base_unit_type,
 		typename T::conversion_ratio,
 		typename T::pi_exponent_ratio,
@@ -242,10 +242,10 @@ namespace units
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 		static_assert(is_ratio<Translation>::value, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
-		typedef typename base_unit<Exponents...> base_unit_type;
-		typedef typename Conversion conversion_ratio;
-		typedef typename Translation translation_ratio;
-		typedef typename PiExponent pi_exponent_ratio;
+		typedef typename units::base_unit<Exponents...> base_unit_type;
+		typedef Conversion conversion_ratio;
+		typedef Translation translation_ratio;
+		typedef PiExponent pi_exponent_ratio;
 	};
 
 	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
@@ -469,7 +469,7 @@ namespace units
 	{
 		static_assert(is_ratio<Ratio>::value, "Template parameter `Ratio` must be a `std::ratio`.");
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		typedef typename unit<Ratio, Unit> type;
+		typedef typename units::unit<Ratio, Unit> type;
 	};
 
 	// SI PREFIXES
@@ -491,7 +491,7 @@ namespace units
 	template<class U> using exa = typename prefix<std::exa, U>::type;
 
 	// OTHER USEFUL PREFIXES
-	template<class U> using pi = typename unit<std::ratio<1>, U, std::ratio<1>>;
+	template<class U> using pi = typename units::unit<std::ratio<1>, U, std::ratio<1>>;
 
 	//------------------------------
 	//	LENGTH UNITS
