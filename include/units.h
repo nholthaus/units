@@ -111,15 +111,6 @@ namespace units
 	//	UNIT TRAITS
 	//------------------------------
 
-#if (_MCS_VER < 1900) || (__GNUC__ < 5)
-	// compatibility pre-c++17
-	template<class...>
-	struct void_t { typedef void type; };
-#else
-	template<class... Args>
-	using void_t = std::void_t<Args>
-#endif
-
 	template<class T, typename = void>
 	struct unit_traits
 	{
@@ -130,7 +121,7 @@ namespace units
 	};
 
 	template<class T>
-	struct unit_traits<T, typename void_t<
+	struct unit_traits<T, typename std::void_t<
 		typename T::base_unit_type,
 		typename T::conversion_ratio,
 		typename T::pi_exponent_ratio,
@@ -262,9 +253,9 @@ namespace units
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
 		typedef typename unit_traits<BaseUnit>::base_unit_type base_unit_type;
-		typedef typename std::ratio_multiply<typename unit_traits<BaseUnit>::conversion_ratio, Conversion> conversion_ratio;
-		typedef typename std::ratio_add<typename unit_traits<BaseUnit>::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
-		typedef typename std::ratio_add<std::ratio_multiply<typename unit_traits<BaseUnit>::conversion_ratio, Translation>, typename unit_traits<BaseUnit>::translation_ratio> translation_ratio;
+		typedef typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
+		typedef typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
+		typedef typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio> translation_ratio;
 	};
 
 	//------------------------------
@@ -368,9 +359,9 @@ namespace units
 	template<class Unit1, class Unit2>
 	struct unit_multiply_impl
 	{
-		using type = unit<std::ratio_multiply<typename unit_traits<Unit1>::conversion_ratio, typename unit_traits<Unit2>::conversion_ratio>, 
-			base_unit_multiply <base_unit_of<typename unit_traits<Unit1>::base_unit_type>, base_unit_of<typename unit_traits<Unit2>::base_unit_type>>, 
-			std::ratio_add<typename unit_traits<Unit1>::pi_exponent_ratio, typename unit_traits<Unit1>::pi_exponent_ratio>, 
+		using type = unit<std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
+			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
+			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
 			std::ratio<0>>;
 	};
 
@@ -385,9 +376,9 @@ namespace units
 	template<class Unit1, class Unit2>
 	struct unit_divide_impl
 	{
-		using type = unit<std::ratio_divide<typename unit_traits<Unit1>::conversion_ratio, typename unit_traits<Unit2>::conversion_ratio>, 
-			base_unit_divide<base_unit_of<typename unit_traits<Unit1>::base_unit_type>, base_unit_of<typename unit_traits<Unit2>::base_unit_type>>, 
-			std::ratio_subtract<typename unit_traits<Unit1>::pi_exponent_ratio, typename unit_traits<Unit1>::pi_exponent_ratio>, 
+		using type = unit<std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
+			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
+			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
 			std::ratio<0>>;
 	};
 
@@ -403,7 +394,7 @@ namespace units
 	struct inverse_impl
 	{
 		using type = unit<std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
-			inverse_base<typename base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
+			inverse_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
 			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
 			std::ratio<0>>;	// inverses are rates or change, the translation factor goes away.
 	};
@@ -419,10 +410,10 @@ namespace units
 	struct squared_impl
 	{	
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		using Conversion = typename unit_traits<Unit>::conversion_ratio;
+		using Conversion = typename Unit::conversion_ratio;
 		using type = unit <std::ratio_multiply<Conversion, Conversion>,
-			squared_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
-			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<2>>,
+			squared_base<base_unit_of<typename Unit::base_unit_type>>,
+			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 			std::ratio<0>>;
 	};
 
@@ -438,10 +429,10 @@ namespace units
 	struct cubed_impl
 	{
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		using Conversion = typename unit_traits<Unit>::conversion_ratio;
+		using Conversion = typename Unit::conversion_ratio;
 		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-			cubed_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>, 
-			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<3>>,
+			cubed_base<base_unit_of<typename Unit::base_unit_type>>, 
+			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
 			std::ratio<0>>;
 	};
 
@@ -1018,7 +1009,7 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
 	{
-		using Ratio = std::ratio_divide<unit_traits<UnitFrom>::conversion_ratio, unit_traits<UnitTo>::conversion_ratio>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
 		return (double(Ratio::num) * value / Ratio::den);
 	}
 
@@ -1026,8 +1017,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::true_type, std::false_type)
 	{
-		using Ratio = std::ratio_divide<unit_traits<UnitFrom>::conversion_ratio, unit_traits<UnitTo>::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<unit_traits<UnitFrom>::pi_exponent_ratio, unit_traits<UnitTo>::pi_exponent_ratio>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
 	}
 
@@ -1035,8 +1026,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<unit_traits<UnitFrom>::conversion_ratio, unit_traits<UnitTo>::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<unit_traits<UnitFrom>::translation_ratio, unit_traits<UnitTo>::translation_ratio>, unit_traits<UnitTo>::conversion_ratio>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
 	}
 
@@ -1044,9 +1035,9 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T>
 	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
 	{
-		using Ratio = std::ratio_divide<unit_traits<UnitFrom>::conversion_ratio, unit_traits<UnitTo>::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<unit_traits<UnitFrom>::translation_ratio, unit_traits<UnitTo>::translation_ratio>, unit_traits<UnitTo>::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<unit_traits<UnitFrom>::pi_exponent_ratio, unit_traits<UnitTo>::pi_exponent_ratio>;
+		using Ratio = std::ratio_divide<UnitFrom::conversion_ratio, UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<UnitFrom::translation_ratio, UnitTo::translation_ratio>, UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<UnitFrom::pi_exponent_ratio, UnitTo::pi_exponent_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
 
@@ -1063,10 +1054,10 @@ namespace units
 		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
 
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
-		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, unit_traits<UnitFrom>::pi_exponent_ratio>::value &&
-			std::is_same<std::ratio<0>, unit_traits<UnitTo>::pi_exponent_ratio>::value)>;
-		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, unit_traits<UnitFrom>::translation_ratio>::value &&
-			std::is_same<std::ratio<0>, unit_traits<UnitTo>::translation_ratio>::value)>;
+		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, UnitFrom::pi_exponent_ratio>::value &&
+			std::is_same<std::ratio<0>, UnitTo::pi_exponent_ratio>::value)>;
+		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, UnitFrom::translation_ratio>::value &&
+			std::is_same<std::ratio<0>, UnitTo::translation_ratio>::value)>;
 
 		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
 	}	
