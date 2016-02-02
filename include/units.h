@@ -365,7 +365,7 @@ namespace units
 	{
 		using type = unit<std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
 			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
-			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
+			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, 
 			std::ratio<0>>;
 	};
 
@@ -382,7 +382,7 @@ namespace units
 	{
 		using type = unit<std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
 			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
-			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit1::pi_exponent_ratio>, 
+			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, 
 			std::ratio<0>>;
 	};
 
@@ -493,6 +493,142 @@ namespace units
 
 	// OTHER USEFUL PREFIXES
 	template<class U> using pi = typename units::unit<std::ratio<1>, U, std::ratio<1>>;
+
+
+	//------------------------------
+	//	CONVERSION TRAITS
+	//------------------------------
+
+	template<class U1, class U2>
+	struct are_convertible_units : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>,
+		base_unit_of<typename unit_traits<U2>::base_unit_type >> {};
+
+	//------------------------------
+	//	CONVERSION FUNCTION
+	//------------------------------
+
+	/// convert dispatch for units which are both the same
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::false_type, std::false_type)
+	{
+		return value;
+	}
+
+	/// convert dispatch for units which are both the same
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::false_type, std::true_type)
+	{
+		return value;
+	}
+
+	/// convert dispatch for units which are both the same
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::true_type, std::false_type)
+	{
+		return value;
+	}
+
+	/// convert dispatch for units which are both the same
+	template<class, class, typename T>
+	static inline T _convert(const T& value, std::true_type, std::true_type, std::true_type)
+	{
+		return value;
+	}
+
+	/// convert dispatch for units of different types w/ no translation and no PI
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
+	{
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		return (double(Ratio::num) * value / Ratio::den);
+	}
+
+	/// convert dispatch for units of different types w/ no translation, but has PI
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::true_type, std::false_type)
+	{
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
+		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
+	}
+
+	/// convert dispatch for units of different types with a translation, but no PI
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
+	{
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
+	}
+
+	/// convert dispatch for units of different types with a translation AND PI
+	template<class UnitFrom, class UnitTo, typename T>
+	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
+	{
+		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
+		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
+	}
+
+	/**
+	* @brief
+	* @details
+	* @TODO		DOCUMENT THIS!
+	*/
+	template<class UnitFrom, class UnitTo, typename T = double>
+	static inline T convert(const T& value)
+	{
+		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
+		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
+		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
+
+		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
+		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
+			std::is_same<std::ratio<0>, typename UnitTo::pi_exponent_ratio>::value)>;
+		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::translation_ratio>::value &&
+			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
+
+		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
+	}
+
+	//----------------------------------
+	//	NON-LINEAR UNIT TRANSFORMATIONS
+	//----------------------------------
+
+	// Non-linear transforms are used to pre and post scale units which are defined in terms of non-
+	// linear functions of their current value. A good example of a non-linear scale would be a 
+	// logarithmic or decibel scale
+
+	/**
+	 * @brief		
+	 * @details		
+	 * @TODO		DOCUMENT THIS!
+	 */
+	template<typename T = double>
+	class linear_transform
+	{
+		static inline T transform(T value) { return value; }
+		static inline T inverseTransform(T value) { return value; }
+	};
+
+	//----------------------------------
+	//	UNIT TYPE
+	//----------------------------------
+
+	/**
+	 * @brief		
+	 * @details		
+	 * @TODO		DOCUMENT THIS!
+	 */
+	template<class Unit, class NonLinearTransform = linear_transform, typename T = double>
+	class unit_t
+	{
+		T	m_value;
+	public:
+		explicit unit_t(T value) : m_value(value) {};
+		T operator()() { return m_value; }
+	};
 
 	//------------------------------
 	//	LENGTH UNITS
@@ -969,102 +1105,6 @@ namespace units
 		using ha = hectares;
 	}
 
-	//------------------------------
-	//	CONVERSION TRAITS
-	//------------------------------
-
-	template<class U1, class U2>
-	struct are_convertible_units : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>, 
-		base_unit_of<typename unit_traits<U2>::base_unit_type>> {};
-
-	//------------------------------
-	//	CONVERSION FUNCTION
-	//------------------------------
-
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::false_type, std::false_type)
-	{
-		return value;
-	}
-
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::false_type, std::true_type)
-	{
-		return value;
-	}
-
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::true_type, std::false_type)
-	{
-		return value;
-	}
-
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::true_type, std::true_type)
-	{
-		return value;
-	}
-
-	/// convert dispatch for units of different types w/ no translation and no PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		return (double(Ratio::num) * value / Ratio::den);
-	}
-
-	/// convert dispatch for units of different types w/ no translation, but has PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::true_type, std::false_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
-	}
-
-	/// convert dispatch for units of different types with a translation, but no PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
-	}
-
-	/// convert dispatch for units of different types with a translation AND PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
-	}
-
-	/**
-	 * @brief		
-	 * @details		
-	 * @TODO		DOCUMENT THIS!
-	 */
-	template<class UnitFrom, class UnitTo, typename T = double>
-	static inline T convert(const T& value)
-	{
-		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
-		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
-
-		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
-		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
-			std::is_same<std::ratio<0>, typename UnitTo::pi_exponent_ratio>::value)>;
-		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::translation_ratio>::value &&
-			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
-
-		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
-	}	
 
 };	// end namespace units
 
