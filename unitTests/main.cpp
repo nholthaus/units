@@ -169,6 +169,24 @@ TEST_F(UnitTest, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
+TEST_F(UnitTest, unitTypeAddition)
+{
+	meter_t a_m(1.0), c_m;
+	foot_t b_ft(3.28084);
+
+	double d = units::convert<feet, meters>(b_ft());
+	EXPECT_NEAR(1.0, d, 5.0e-5);
+
+	c_m = a_m + b_ft;
+	EXPECT_NEAR(2.0, c_m(), 5.0e-5);
+
+	c_m = b_ft + meter_t(3);
+	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
+
+	auto e_ft = b_ft + meter_t(3);
+	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
+}
+
 TEST_F(UnitTest, lengthConversion)
 {
 	double test;

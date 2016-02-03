@@ -605,14 +605,43 @@ namespace units
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<typename T = double>
-	class linear_transform
+	template<typename T>
+	class linear_scale
 	{
-		static inline T transform(T value) { return value; }
-		static inline T inverseTransform(T value) { return value; }
+	public:
+		inline linear_scale(const T value) :m_value(value) {}
+		inline const T operator()() { return m_value; }
+		inline const T operator+(const linear_scale& rhs) { return (m_value + rhs.m_value); }
+		inline const T operator-(const linear_scale& rhs) { return (m_value - rhs.m_value); }
+		inline const T operator/(const linear_scale& rhs) { return (m_value / rhs.m_value); }
+		inline const T operator*(const linear_scale& rhs) { return (m_value * rhs.m_value); }
+	protected:
+		T m_value;	///< linearized value		
 	};
 
-	//----------------------------------
+	/**
+	 * @brief
+	 * @details
+	 * @TODO		DOCUMENT THIS!
+	 */
+	template<typename T>
+	class decibel_scale
+	{
+	public:
+		inline T operator()() { return 10*std::log10(m_value); }
+	protected:
+		T m_value;	///< linearized value
+
+		inline decibel_scale(const T value) : { m_value = std::pow(10, value / 10); }
+
+		inline const T operator+(const decibel_scale& rhs) { return (m_value * rhs.m_value); }					///< log addition
+		inline const T operator-(const decibel_scale& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
+		inline const T operator*(const decibel_scale& rhs) { return ((*this)() * rhs()); }
+		inline const T operator/(const decibel_scale& rhs) { return ((*this)() / rhs()); }
+		
+	};
+
+	//---------------------------------- 
 	//	UNIT TYPE
 	//----------------------------------
 
@@ -621,13 +650,42 @@ namespace units
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class Unit, class NonLinearTransform = linear_transform, typename T = double>
-	class unit_t
+	template<class Units, typename T = double, class NonLinearScale = linear_scale<T>>
+	class unit_t : public NonLinearScale
 	{
-		T	m_value;
+	private:
+		using nls = NonLinearScale;
 	public:
-		explicit unit_t(T value) : m_value(value) {};
-		T operator()() { return m_value; }
+		typedef NonLinearScale non_linear_transform_type;
+
+		inline unit_t() : NonLinearScale(0) {};
+		inline explicit unit_t(const T value) : NonLinearScale(value) {};
+		template<class UnitsRhs, class NlsRhs> 
+		inline unit_t(const unit_t<UnitsRhs, NlsRhs>& rhs) 
+		{ 
+			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+		};
+
+		template<class UnitsRhs, class NlsRhs>
+		inline unit_t& operator=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			return *this;
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline /*const*/ unit_t operator+(const unit_t<UnitsRhs, NlsRhs>& rhs) 
+		{ 
+			return unit_t((nls)m_value + (nls)convert<UnitsRhs, Units>(rhs.m_value)); 
+		}
+
+
+
+	public:
+
+		template<class U, typename Ty, class Nlt>
+		friend class unit_t;
+
 	};
 
 	//------------------------------
@@ -678,6 +736,20 @@ namespace units
 		using au = astronicalUnits;
 		using ly = lightyears;
 		using pc = parsecs;
+
+		using meter_t = unit_t<meter>;
+		using nanometer_t = unit_t<nanometer>;
+		using micrometer_t = unit_t<micrometer>;
+		using millimeter_t = unit_t<millimeter>;
+		using centimeter_t = unit_t<centimeter>;
+		using kilometer_t = unit_t<kilometer>;
+		using foot_t = unit_t<foot>;
+		using inch_t = unit_t<inch>;
+		using mile_t = unit_t<mile>;
+		using nauticalMile_t = unit_t<nauticalMile>;
+		using astronicalUnit_t = unit_t<astronicalUnit>;
+		using lightyear_t = unit_t<lightyear>;
+		using parsec_t = unit_t<parsec>;
 	}
 	
 	//------------------------------
