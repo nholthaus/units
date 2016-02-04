@@ -606,12 +606,12 @@ namespace units
 	template<class T, class Rhs, class Ret>
 	struct has_operator_plus_impl
 	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>() + std::declval<Rhs>());
-		template<typename>
+		template<class U, class R>
+		static auto test(U*) -> decltype(std::declval<U>() + std::declval<R>());
+		template<typename, typename>
 		static std::false_type test(...);
 
-		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
+		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
 	};
 
 	template<class T, class Rhs, class Ret>
@@ -623,12 +623,12 @@ namespace units
 	template<class T, class Rhs, class Ret>
 	struct has_operator_minus_impl
 	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>() - std::declval<Rhs>());
-		template<typename>
+		template<class U, class R>
+		static auto test(U*) -> decltype(std::declval<U>() - std::declval<R>());
+		template<typename, typename>
 		static std::false_type test(...);
 
-		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
+		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
 	};
 
 	template<class T, class Rhs, class Ret>
@@ -640,12 +640,12 @@ namespace units
 	template<class T, class Rhs, class Ret>
 	struct has_operator_multiply_impl
 	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>() * std::declval<Rhs>());
-		template<typename>
+		template<class U, class R>
+		static auto test(U*) -> decltype(std::declval<U>() * std::declval<R>());
+		template<typename, typename>
 		static std::false_type test(...);
 
-		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
+		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
 	};
 
 	template<class T, class Rhs, class Ret>
@@ -657,12 +657,12 @@ namespace units
 	template<class T, class Rhs, class Ret>
 	struct has_operator_divide_impl
 	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>() / std::declval<Rhs>());
-		template<typename>
-		static std::false_type test(...);
+		template<class U, class R>
+		static auto test(U*) -> decltype(std::declval<U>() / std::declval<R>());
+		template<typename, typename>
+		static auto test(...) -> std::false_type;
 
-		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
+		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
 	};
 
 	template<class T, class Rhs, class Ret>
@@ -711,7 +711,7 @@ namespace units
 	struct has_value_member_impl
 	{
 		template<class U>
-		static auto test(U* p) -> decltype(p->m_value);
+		static auto test(U* p) -> decltype(U::m_value);
 		template<typename>
 		static auto test(...)->std::false_type;
 
@@ -725,14 +725,14 @@ namespace units
 	 * @brief		
 	 * @details		
 	 */
-	template<class T>
+	template<class T, class Ret>
 	struct is_nonlinear_scale : std::integral_constant<bool, 
-		has_operator_parenthesis<T, double>::value &&
-		has_operator_plus<T, double, double>::value &&
-		has_operator_minus<T, double, double>::value &&
-		has_operator_multiply<T, double, double>::value/* &&
+		has_operator_parenthesis<T, Ret>::value &&
+		has_operator_plus<T, Ret, Ret>::value &&
+		has_operator_minus<T, Ret, Ret>::value &&
+		has_operator_multiply<T, Ret, Ret>::value &&
 		has_operator_divide<T, double, double> &&
-		has_value_member<T>::value*/>
+		has_value_member<T>::value>
 	{};
 
 	//----------------------------------
@@ -793,7 +793,7 @@ namespace units
 	template<class Units, typename T = double, class NonLinearScale = linear_scale<T>>
 	class unit_t : public NonLinearScale
 	{
-		static_assert(units::is_nonlinear_scale<NonLinearScale>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
+		static_assert(units::is_nonlinear_scale<NonLinearScale, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	private:
 		using nls = NonLinearScale;

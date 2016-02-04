@@ -169,15 +169,61 @@ TEST_F(UnitTest, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
+TEST_F(UnitTest, hasValueMember)
+{
+	bool test;
+
+	test = units::has_value_member<meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_value_member<meter>::value;
+	EXPECT_FALSE(test);
+}
+
 TEST_F(UnitTest, hasOperatorPlus)
 {
 	bool test;
-//	std::cout << decltype(meter_t() + meter_t())/*decltype(meter_t())*/;
-	test = std::is_same<decltype(meter_t() + meter_t()), meter_t>::value;
+
+	test = units::has_operator_plus<linear_scale<double>, double, double>::value;
 	EXPECT_TRUE(test);
 	test = units::has_operator_plus<meter_t, meter_t, meter_t>::value;
 	EXPECT_TRUE(test);
 	test = units::has_operator_plus<meter, meter, meter>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, hasOperatorminus)
+{
+	bool test;
+
+	test = units::has_operator_minus<linear_scale<double>, double, double>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_minus<meter_t, meter_t, meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_minus<meter, meter, meter>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, hasOperatormultiply)
+{
+	bool test;
+
+	test = units::has_operator_multiply<linear_scale<double>, double, double>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_multiply<meter_t, meter_t, meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_multiply<meter, meter, meter>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, hasOperatorDivide)
+{
+	bool test;
+
+	test = units::has_operator_divide<linear_scale<double>, double, double>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_divide<meter_t, meter_t, meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_divide<meter, meter, meter>::value;
 	EXPECT_FALSE(test);
 }
 
