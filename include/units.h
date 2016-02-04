@@ -707,7 +707,7 @@ namespace units
 	* @brief
 	* @details
 	*/
-	template<class T>
+	template<class T, class Ret>
 	struct has_value_member_impl
 	{
 		template<class U>
@@ -715,11 +715,11 @@ namespace units
 		template<typename>
 		static auto test(...)->std::false_type;
 
-		using type = typename std::is_floating_point<decltype(test<T>(0))>::type;
+		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
 	};
 
-	template<class T>
-	struct has_value_member : has_value_member_impl<T>::type {};
+	template<class T, class Ret>
+	struct has_value_member : has_value_member_impl<T, Ret>::type {};
 
 	/**
 	 * @brief		
@@ -731,8 +731,8 @@ namespace units
 		has_operator_plus<T, Ret, Ret>::value &&
 		has_operator_minus<T, Ret, Ret>::value &&
 		has_operator_multiply<T, Ret, Ret>::value &&
-		has_operator_divide<T, double, double> &&
-		has_value_member<T>::value>
+		has_operator_divide<T, Ret, Ret>::value /*&&
+		has_value_member<T, Ret>::value*/>
 	{};
 
 	//----------------------------------

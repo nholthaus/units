@@ -173,9 +173,9 @@ TEST_F(UnitTest, hasValueMember)
 {
 	bool test;
 
-	test = units::has_value_member<meter_t>::value;
+	test = units::has_value_member<meter_t, double>::value;
 	EXPECT_TRUE(test);
-	test = units::has_value_member<meter>::value;
+	test = units::has_value_member<meter, double>::value;
 	EXPECT_FALSE(test);
 }
 
