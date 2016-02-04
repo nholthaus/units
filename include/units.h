@@ -749,16 +749,14 @@ namespace units
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<typename T>
-	class linear_scale
+	struct linear_scale
 	{
-	public:
 		inline linear_scale(const T value) : m_value(value) {}
 		inline const T operator()() { return m_value; }
 		inline const T operator+(const T& rhs) { return (m_value + rhs); }
 		inline const T operator-(const T& rhs) { return (m_value - rhs); }
 		inline const T operator/(const T& rhs) { return (m_value / rhs); }
 		inline const T operator*(const T& rhs) { return (m_value * rhs); }
-	protected:
 		T m_value;	///< linearized value		
 	};
 
@@ -768,16 +766,14 @@ namespace units
 	* @TODO		DOCUMENT THIS!
 	*/
 	template<typename T>
-	class decibel_scale
+	struct decibel_scale
 	{
-	public:
 		inline decibel_scale(const T value) { m_value = std::pow(10, value / 10); }
 		inline const T operator()() { return 10 * std::log10(m_value); }
 		inline const T operator+(const T& rhs) { return (m_value * rhs.m_value); }					///< log addition
 		inline const T operator-(const T& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
 		inline const T operator*(const T& rhs) { return ((*this)() * rhs()); }
 		inline const T operator/(const T& rhs) { return ((*this)() / rhs()); }
-	protected:
 		T m_value;	///< linearized value	
 	};
 
