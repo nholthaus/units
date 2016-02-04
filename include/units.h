@@ -72,9 +72,9 @@ namespace units
 	struct has_num_impl
 	{
 		template<class U>
-		static constexpr auto test(U*)->std::is_integral<decltype(U::num)>;
+		static auto test(U*)->std::is_integral<decltype(U::num)>;
 		template<typename>
-		static constexpr std::false_type test(...);
+		static std::false_type test(...);
 
 		using type = decltype(test<T>(0));
 	};
@@ -89,9 +89,9 @@ namespace units
 	struct has_den_impl
 	{
 		template<class U>
-		static constexpr auto test(U*)->std::is_integral<decltype(U::den)>;
+		static auto test(U*)->std::is_integral<decltype(U::den)>;
 		template<typename>
-		static constexpr std::false_type test(...);
+		static std::false_type test(...);
 
 		using type = decltype(test<T>(0));
 	};
@@ -163,8 +163,7 @@ namespace units
 			 class Ampere		= std::ratio<0>,
 			 class Kelvin		= std::ratio<0>,		
 			 class Mole			= std::ratio<0>,
-			 class Candela		= std::ratio<0>,
-			 class Steradian	= std::ratio<0>>
+			 class Candela		= std::ratio<0>>
 	struct base_unit : _base_unit_t
 	{
 		static_assert(is_ratio<Meter>::value,		"Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
@@ -611,10 +610,10 @@ namespace units
 	public:
 		inline linear_scale(const T value) :m_value(value) {}
 		inline const T operator()() { return m_value; }
-		inline const T operator+(const linear_scale& rhs) { return (m_value + rhs.m_value); }
-		inline const T operator-(const linear_scale& rhs) { return (m_value - rhs.m_value); }
-		inline const T operator/(const linear_scale& rhs) { return (m_value / rhs.m_value); }
-		inline const T operator*(const linear_scale& rhs) { return (m_value * rhs.m_value); }
+		inline const T operator+(const T& rhs) { return (m_value + rhs); }
+		inline const T operator-(const T& rhs) { return (m_value - rhs); }
+		inline const T operator/(const T& rhs) { return (m_value / rhs); }
+		inline const T operator*(const T& rhs) { return (m_value * rhs); }
 	protected:
 		T m_value;	///< linearized value		
 	};
@@ -634,10 +633,10 @@ namespace units
 
 		inline decibel_scale(const T value) : { m_value = std::pow(10, value / 10); }
 
-		inline const T operator+(const decibel_scale& rhs) { return (m_value * rhs.m_value); }					///< log addition
-		inline const T operator-(const decibel_scale& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
-		inline const T operator*(const decibel_scale& rhs) { return ((*this)() * rhs()); }
-		inline const T operator/(const decibel_scale& rhs) { return ((*this)() / rhs()); }
+		inline const T operator+(const T& rhs) { return (m_value * rhs.m_value); }					///< log addition
+		inline const T operator-(const T& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
+		inline const T operator*(const T& rhs) { return ((*this)() * rhs()); }
+		inline const T operator/(const T& rhs) { return ((*this)() / rhs()); }
 		
 	};
 
@@ -674,12 +673,92 @@ namespace units
 		}
 
 		template<class UnitsRhs, class NlsRhs>
-		inline /*const*/ unit_t operator+(const unit_t<UnitsRhs, NlsRhs>& rhs) 
+		inline const unit_t operator+(const unit_t<UnitsRhs, NlsRhs>& rhs) 
 		{ 
-			return unit_t((nls)m_value + (nls)convert<UnitsRhs, Units>(rhs.m_value)); 
+			return unit_t((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator-(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
+		}
 
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator*(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator/(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t& operator+=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			m_value = ((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
+			return *this;
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t& operator-=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			m_value = ((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
+			return *this;
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t& operator*=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			m_value = ((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
+			return *this;
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t& operator/=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			m_value = ((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
+			return *this;
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator<(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t(m_value < convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator<=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) <= convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator>(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) > convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator>=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) >= convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator==(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) == convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		template<class UnitsRhs, class NlsRhs>
+		inline const unit_t operator!=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		{
+			return unit_t((nls)(*this) != convert<UnitsRhs, Units>(rhs.m_value));
+		}
 
 	public:
 
