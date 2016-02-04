@@ -192,8 +192,8 @@ namespace units
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar						= base_unit<>;
-		using dimensionless					= base_unit<>;
+		using scalar_unit					= base_unit<>;
+		using dimensionless_unit			= base_unit<>;
 
 		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
 		using length_unit					= base_unit<std::ratio<1>>;
@@ -600,77 +600,96 @@ namespace units
 	//	NON-LINEAR SCALE TRAITS
 	//----------------------------------
 
-	/**
-	* @brief
-	*/
-	template<class T, class Rhs, class Ret>
-	struct has_operator_plus_impl
-	{
-		template<class U, class R>
-		static auto test(U*) -> decltype(std::declval<U>() + std::declval<R>());
-		template<typename, typename>
-		static std::false_type test(...);
+// 	/**
+// 	* @brief
+// 	*/
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_plus_impl
+// 	{
+// 		template<class U, class R>
+// 		static auto test(U*) -> decltype(std::declval<U>() + std::declval<R>());
+// 		template<typename, typename>
+// 		static std::false_type test(...);
+// 
+// 		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
+// 	};
+// 
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_plus : has_operator_plus_impl<T, Rhs, Ret>::type {};
+// 
+// 	/**
+// 	* @brief
+// 	*/
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_minus_impl
+// 	{
+// 		template<class U, class R>
+// 		static auto test(U*) -> decltype(std::declval<U>() - std::declval<R>());
+// 		template<typename, typename>
+// 		static std::false_type test(...);
+// 
+// 		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
+// 	};
+// 
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_minus : has_operator_minus_impl<T, Rhs, Ret>::type {};
+// 
+// 	/**
+// 	* @brief
+// 	*/
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_multiply_impl
+// 	{
+// 		template<class U, class R>
+// 		static auto test(U*) -> decltype(std::declval<U>() * std::declval<R>());
+// 		template<typename, typename>
+// 		static std::false_type test(...);
+// 
+// 		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
+// 	};
+// 
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_multiply : has_operator_multiply_impl<T, Rhs, Ret>::type {};
+// 
+// 	/**
+// 	* @brief
+// 	*/
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_divide_impl
+// 	{
+// 		template<class U, class R>
+// 		static auto test(U*) -> decltype(std::declval<U>() / std::declval<R>());
+// 		template<typename, typename>
+// 		static auto test(...) -> std::false_type;
+// 
+// 		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
+// 	};
+// 
+// 	template<class T, class Rhs, class Ret>
+// 	struct has_operator_divide : has_operator_divide_impl<T, Rhs, Ret>::type {};
+// 
+// 	/**
+// 	* @brief
+// 	*/
+// 
+// 	/**
+// 	* @brief
+// 	* @details
+// 	*/
+// 	template<class T>
+// 	struct has_operator_equal_impl
+// 	{
+// 		template<class U>
+// 		static auto test(U*) -> decltype(std::declval<U>() == std::declval<U>());
+// 		template<typename>
+// 		static auto test(...)->std::false_type;
+// 
+// 		using type = typename std::is_same<bool, decltype(test<T>(0))>::type;
+// 	};
+// 
+// 	template<class T>
+// 	struct has_operator_equal : has_operator_equal_impl<T>::type {};
 
-		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
-	};
-
-	template<class T, class Rhs, class Ret>
-	struct has_operator_plus : has_operator_plus_impl<T, Rhs, Ret>::type {};
-
-	/**
-	* @brief
-	*/
-	template<class T, class Rhs, class Ret>
-	struct has_operator_minus_impl
-	{
-		template<class U, class R>
-		static auto test(U*) -> decltype(std::declval<U>() - std::declval<R>());
-		template<typename, typename>
-		static std::false_type test(...);
-
-		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
-	};
-
-	template<class T, class Rhs, class Ret>
-	struct has_operator_minus : has_operator_minus_impl<T, Rhs, Ret>::type {};
-
-	/**
-	* @brief
-	*/
-	template<class T, class Rhs, class Ret>
-	struct has_operator_multiply_impl
-	{
-		template<class U, class R>
-		static auto test(U*) -> decltype(std::declval<U>() * std::declval<R>());
-		template<typename, typename>
-		static std::false_type test(...);
-
-		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
-	};
-
-	template<class T, class Rhs, class Ret>
-	struct has_operator_multiply : has_operator_multiply_impl<T, Rhs, Ret>::type {};
-
-	/**
-	* @brief
-	*/
-	template<class T, class Rhs, class Ret>
-	struct has_operator_divide_impl
-	{
-		template<class U, class R>
-		static auto test(U*) -> decltype(std::declval<U>() / std::declval<R>());
-		template<typename, typename>
-		static auto test(...) -> std::false_type;
-
-		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T, Rhs>(0))>::type>::type;
-	};
-
-	template<class T, class Rhs, class Ret>
-	struct has_operator_divide : has_operator_divide_impl<T, Rhs, Ret>::type {};
-
-	/**
-	* @brief
-	*/
 	template<class T, class Ret>
 	struct has_operator_parenthesis_impl
 	{
@@ -684,24 +703,6 @@ namespace units
 
 	template<class T, class Ret>
 	struct has_operator_parenthesis : has_operator_parenthesis_impl<T, Ret>::type {};
-
-	/**
-	* @brief
-	* @details
-	*/
-	template<class T>
-	struct has_operator_equal_impl
-	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>() == std::declval<U>());
-		template<typename>
-		static auto test(...)->std::false_type;
-
-		using type = typename std::is_same<bool, decltype(test<T>(0))>::type;
-	};
-
-	template<class T>
-	struct has_operator_equal : has_operator_equal_impl<T>::type {};
 
 	/**
 	* @brief
@@ -725,14 +726,14 @@ namespace units
 	 * @brief		
 	 * @details		
 	 */
-	template<class T, class Ret>
+	template<class T, class Rhs, class Ret>
 	struct is_nonlinear_scale : std::integral_constant<bool, 
 		has_operator_parenthesis<T, Ret>::value &&
-		has_operator_plus<T, Ret, Ret>::value &&
-		has_operator_minus<T, Ret, Ret>::value &&
-		has_operator_multiply<T, Ret, Ret>::value &&
-		has_operator_divide<T, Ret, Ret>::value /*&&
-		has_value_member<T, Ret>::value*/>
+// 		has_operator_plus<T, Rhs, Ret>::value &&
+// 		has_operator_minus<T, Rhs, Ret>::value &&
+// 		has_operator_multiply<T, Rhs, Ret>::value &&
+// 		has_operator_divide<T, Rhs, Ret>::value &&
+		has_value_member<T, Ret>::value>
 	{};
 
 	//----------------------------------
@@ -752,11 +753,11 @@ namespace units
 	struct linear_scale
 	{
 		inline linear_scale(const T value) : m_value(value) {}
-		inline const T operator()() { return m_value; }
-		inline const T operator+(const T& rhs) { return (m_value + rhs); }
-		inline const T operator-(const T& rhs) { return (m_value - rhs); }
-		inline const T operator/(const T& rhs) { return (m_value / rhs); }
-		inline const T operator*(const T& rhs) { return (m_value * rhs); }
+		inline T operator()() const { return m_value; }
+		inline T operator+(const T& rhs) const { return (m_value + rhs); }
+		inline T operator-(const T& rhs) const { return (m_value - rhs); }
+		inline T operator/(const T& rhs) const { return (m_value / rhs); }
+		inline T operator*(const T& rhs) const { return (m_value * rhs); }
 		T m_value;	///< linearized value		
 	};
 
@@ -769,11 +770,9 @@ namespace units
 	struct decibel_scale
 	{
 		inline decibel_scale(const T value) { m_value = std::pow(10, value / 10); }
-		inline const T operator()() { return 10 * std::log10(m_value); }
-		inline const T operator+(const T& rhs) { return (m_value * rhs.m_value); }					///< log addition
-		inline const T operator-(const T& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
-		inline const T operator*(const T& rhs) { return ((*this)() * rhs()); }
-		inline const T operator/(const T& rhs) { return ((*this)() / rhs()); }
+		inline T operator()() const { return 10 * std::log10(m_value); }
+		inline T operator+(const T& rhs) const { return (m_value * rhs.m_value); }					///< log addition
+		inline T operator-(const T& rhs) const { return (m_value / rhs.m_value); }					///< log subtraction
 		T m_value;	///< linearized value	
 	};
 
@@ -786,126 +785,127 @@ namespace units
 	 * @details		
 	 * @TODO		DOCUMENT THIS!
 	 */
-	template<class Units, typename T = double, class NonLinearScale = linear_scale<T>>
-	class unit_t : public NonLinearScale
+	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
+	class unit_t : public NonLinearScale<T>
 	{
-		static_assert(units::is_nonlinear_scale<NonLinearScale, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
+		static_assert(units::is_nonlinear_scale<NonLinearScale<T>, T, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	private:
-		using nls = NonLinearScale;
-	public:
-		typedef NonLinearScale non_linear_transform_type;
 
-		inline unit_t() : NonLinearScale(0) {};
+		using nls = NonLinearScale<T>;
+
+	public:
+
+		typedef NonLinearScale<T> non_linear_scale_type;
+
+		inline unit_t() : NonLinearScale<T>(0) {};
 		template<class... Args>
-		inline explicit unit_t(const Args&... args) : NonLinearScale(args...) {};
-		template<class UnitsRhs, class NlsRhs> 
-		inline unit_t(const unit_t<UnitsRhs, NlsRhs>& rhs) 
+		inline explicit unit_t(const Args&... args) : NonLinearScale<T>(args...) {};
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
 		{ 
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
-		template<class UnitsRhs, class NlsRhs>
-		inline unit_t& operator=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 			return *this;
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t operator+(const unit_t<UnitsRhs, NlsRhs>& rhs) 
+		template<class UnitsRhs>
+		inline unit_t operator+(const unit_t<UnitsRhs, T, NonLinearScale>& rhs)  const
 		{ 
 			return unit_t((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t operator-(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs>
+		inline unit_t operator-(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
 		{
 			return unit_t((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t operator*(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs>
+		inline unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale> operator*(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
 		{
-			return unit_t((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
+			return unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale>(((nls)(*this) * rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t operator/(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs>
+		inline unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale> operator/(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
 		{
-			return unit_t((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
+			return unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale>(((nls)(*this) / rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t& operator+=(const unit_t<UnitsRhs, NlsRhs>& rhs)
-		{
-			nls::m_value = ((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
-			return *this;
-		}
-
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t& operator-=(const unit_t<UnitsRhs, NlsRhs>& rhs)
-		{
-			nls::m_value = ((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
-			return *this;
-		}
-
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t& operator*=(const unit_t<UnitsRhs, NlsRhs>& rhs)
-		{
-			nls::m_value = ((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
-			return *this;
-		}
-
-		template<class UnitsRhs, class NlsRhs>
-		inline const unit_t& operator/=(const unit_t<UnitsRhs, NlsRhs>& rhs)
-		{
-			nls::m_value = ((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
-			return *this;
-		}
-
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator<(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator<(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return unit_t(nls::m_value < convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator<=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator<=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value <= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator>(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator>(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value> convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator>=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator>=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value >= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator==(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value == convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, class NlsRhs>
-		inline bool operator!=(const unit_t<UnitsRhs, NlsRhs>& rhs)
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		inline bool operator!=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value != convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 	public:
 
-		template<class U, typename Ty, class Nlt>
+		template<class U, typename Ty, template<typename> class Nlt>
 		friend class unit_t;
 
 	};
+
+	//----------------------------------
+	//	SCALAR UNITS
+	//----------------------------------
+
+	// Scalar units are the *ONLY* units implicitly convertible to/from built-in types.
+	namespace dimensionless
+	{
+		using scalar = unit<std::ratio<1>, category::scalar_unit>;
+		using dimensionless = unit<std::ratio<1>, category::dimensionless_unit>;
+
+		struct scalar_t : unit_t<scalar>
+		{
+			scalar_t(const double value) : unit_t<scalar>(value) {};	// allow implicit
+			operator double() const { return (*this)(); }
+		};
+
+		using dimensionless_t = scalar_t;
+
+		struct dB_t : unit_t<scalar, double, decibel_scale>
+		{
+			dB_t(const double value) : unit_t(value) {};	// allow implicit
+			operator double() const { return (*this)(); }
+		};
+	}
+
 
 	//------------------------------
 	//	LENGTH UNITS
@@ -1394,6 +1394,14 @@ namespace units
 		using acre = acres;
 
 		using ha = hectares;
+
+		using square_meter_t = unit_t<square_meter>;
+		using square_foot_t = unit_t<square_foot>;
+		using square_inch_t = unit_t<square_inch>;
+		using square_mile_t = unit_t<square_mile>;
+		using square_kilometer_t = unit_t<square_kilometer>;
+		using hectare_t = unit_t<hectare>;
+		using acre_t = unit_t<acre>;
 	}
 
 

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 using namespace units;
+using namespace units::dimensionless;
 using namespace units::length;
 using namespace units::mass;
 using namespace units::time;
@@ -179,63 +180,63 @@ TEST_F(UnitTest, hasValueMember)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, hasOperatorPlus)
-{
-	bool test;
-
-	test = units::has_operator_plus<linear_scale<double>, double, double>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_plus<meter_t, meter_t, meter_t>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_plus<meter, meter, meter>::value;
-	EXPECT_FALSE(test);
-}
-
-TEST_F(UnitTest, hasOperatorminus)
-{
-	bool test;
-
-	test = units::has_operator_minus<linear_scale<double>, double, double>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_minus<meter_t, meter_t, meter_t>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_minus<meter, meter, meter>::value;
-	EXPECT_FALSE(test);
-}
-
-TEST_F(UnitTest, hasOperatormultiply)
-{
-	bool test;
-
-	test = units::has_operator_multiply<linear_scale<double>, double, double>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_multiply<meter_t, meter_t, meter_t>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_multiply<meter, meter, meter>::value;
-	EXPECT_FALSE(test);
-}
-
-TEST_F(UnitTest, hasOperatorDivide)
-{
-	bool test;
-
-	test = units::has_operator_divide<linear_scale<double>, double, double>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_divide<meter_t, meter_t, meter_t>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_divide<meter, meter, meter>::value;
-	EXPECT_FALSE(test);
-}
-
-TEST_F(UnitTest, hasOperatorEqual)
-{
-	bool test;
-
-	test = units::has_operator_equal<meter_t>::value;
-	EXPECT_TRUE(test);
-	test = units::has_operator_equal<meter>::value;
-	EXPECT_FALSE(test);
-}
+// TEST_F(UnitTest, hasOperatorPlus)
+// {
+// 	bool test;
+// 
+// 	test = units::has_operator_plus<linear_scale<double>, double, double>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_plus<meter_t, meter_t, meter_t>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_plus<meter, meter, meter>::value;
+// 	EXPECT_FALSE(test);
+// }
+// 
+// TEST_F(UnitTest, hasOperatorminus)
+// {
+// 	bool test;
+// 
+// 	test = units::has_operator_minus<linear_scale<double>, double, double>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_minus<meter_t, meter_t, meter_t>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_minus<meter, meter, meter>::value;
+// 	EXPECT_FALSE(test);
+// }
+// 
+// TEST_F(UnitTest, hasOperatormultiply)
+// {
+// 	bool test;
+// 
+// 	test = units::has_operator_multiply<linear_scale<double>, double, double>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_multiply<meter_t, meter_t, square_meter_t>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_multiply<meter, meter, meter>::value;
+// 	EXPECT_FALSE(test);
+// }
+// 
+// TEST_F(UnitTest, hasOperatorDivide)
+// {
+// 	bool test;
+// 
+// 	test = units::has_operator_divide<linear_scale<double>, double, double>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_divide<meter_t, meter_t, scalar_t>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_divide<meter, meter, meter>::value;
+// 	EXPECT_FALSE(test);
+// }
+// 
+// TEST_F(UnitTest, hasOperatorEqual)
+// {
+// 	bool test;
+// 
+// 	test = units::has_operator_equal<meter_t>::value;
+// 	EXPECT_TRUE(test);
+// 	test = units::has_operator_equal<meter>::value;
+// 	EXPECT_FALSE(test);
+// }
 
 TEST_F(UnitTest, unitTypeAddition)
 {
@@ -257,7 +258,82 @@ TEST_F(UnitTest, unitTypeAddition)
 
 TEST_F(UnitTest, unitTypeSubtraction)
 {
+	meter_t a_m(1.0), c_m;
+	foot_t b_ft(3.28084);
 
+	c_m = a_m - b_ft;
+	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
+
+	c_m = b_ft - meter_t(1);
+	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
+
+	auto e_ft = b_ft - meter_t(1);
+	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
+}
+
+TEST_F(UnitTest, unitTypeMultiplication)
+{
+	meter_t a_m(1.0), b_m(2.0);
+
+	auto c_m2 = a_m * b_m;
+	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+
+	c_m2 = b_m * meter_t(2);
+	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+}
+
+TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
+{
+	meter_t a_m(1.0);
+	foot_t b_ft(3.28084);
+
+// 	square_meter_t c_m2 = a_m * b_ft;
+// 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
+// 
+// 	c_m2 = b_ft * meter_t(2);
+// 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+// 
+// 	auto e_ft2 = b_ft * meter_t(3);
+// 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
+}
+
+TEST_F(UnitTest, unitTypeScalarMultiplication)
+{
+	meter_t a_m(1.0), c_m;
+	foot_t b_ft(3.28084);
+
+// 	c_m = a_m * b_ft;
+// 	EXPECT_NEAR(1.0, c_m(), 5.0e-5);
+// 
+// 	c_m = b_ft * meter_t(2);
+// 	EXPECT_NEAR(2.0, c_m(), 5.0e-5);
+// 
+// 	auto e_ft = b_ft * meter_t(3);
+// 	EXPECT_NEAR(3.0, e_ft(), 5.0e-6);
+}
+
+TEST_F(UnitTest, unitTypeDivision)
+{
+// 	meter_t a_m(1.0), c_m;
+// 	foot_t b_ft(3.28084);
+// 
+// 	c_m = a_m / b_ft;
+// 	EXPECT_NEAR(1.0, c_m(), 5.0e-5);
+// 
+// 	c_m = b_ft / meter_t(2);
+// 	EXPECT_NEAR(0.5, c_m(), 5.0e-5);
+// 
+// 	auto e_ft = b_ft / meter_t(4);
+// 	EXPECT_NEAR(0.25, e_ft(), 5.0e-6);
+}
+
+TEST_F(UnitTest, scalarTypeImplicitConversion)
+{
+	double test = scalar_t(3.0);
+	EXPECT_DOUBLE_EQ(3.0, test);
+
+	scalar_t testS = 3.0;
+	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
 TEST_F(UnitTest, lengthConversion)
