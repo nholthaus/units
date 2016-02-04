@@ -169,6 +169,28 @@ TEST_F(UnitTest, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
+TEST_F(UnitTest, hasOperatorPlus)
+{
+	bool test;
+//	std::cout << decltype(meter_t() + meter_t())/*decltype(meter_t())*/;
+	test = std::is_same<decltype(meter_t() + meter_t()), meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_plus<meter_t, meter_t, meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_plus<meter, meter, meter>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, hasOperatorEqual)
+{
+	bool test;
+
+	test = units::has_operator_equal<meter_t>::value;
+	EXPECT_TRUE(test);
+	test = units::has_operator_equal<meter>::value;
+	EXPECT_FALSE(test);
+}
+
 TEST_F(UnitTest, unitTypeAddition)
 {
 	meter_t a_m(1.0), c_m;
@@ -185,6 +207,11 @@ TEST_F(UnitTest, unitTypeAddition)
 
 	auto e_ft = b_ft + meter_t(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
+}
+
+TEST_F(UnitTest, unitTypeSubtraction)
+{
+
 }
 
 TEST_F(UnitTest, lengthConversion)
