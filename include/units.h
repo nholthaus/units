@@ -752,7 +752,7 @@ namespace units
 	class linear_scale
 	{
 	public:
-		inline linear_scale(const T value) :m_value(value) {}
+		inline linear_scale(const T value) : m_value(value) {}
 		inline const T operator()() { return m_value; }
 		inline const T operator+(const T& rhs) { return (m_value + rhs); }
 		inline const T operator-(const T& rhs) { return (m_value - rhs); }
@@ -771,7 +771,7 @@ namespace units
 	class decibel_scale
 	{
 	public:
-		inline decibel_scale(const T value) : { m_value = std::pow(10, value / 10); }
+		inline decibel_scale(const T value) { m_value = std::pow(10, value / 10); }
 		inline const T operator()() { return 10 * std::log10(m_value); }
 		inline const T operator+(const T& rhs) { return (m_value * rhs.m_value); }					///< log addition
 		inline const T operator-(const T& rhs) { return (m_value / rhs.m_value); }					///< log subtraction
@@ -806,13 +806,13 @@ namespace units
 		template<class UnitsRhs, class NlsRhs> 
 		inline unit_t(const unit_t<UnitsRhs, NlsRhs>& rhs) 
 		{ 
-			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
 		template<class UnitsRhs, class NlsRhs>
 		inline unit_t& operator=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 			return *this;
 		}
 
@@ -843,65 +843,65 @@ namespace units
 		template<class UnitsRhs, class NlsRhs>
 		inline const unit_t& operator+=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			m_value = ((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
+			nls::m_value = ((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
 			return *this;
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline const unit_t& operator-=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			m_value = ((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
+			nls::m_value = ((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
 			return *this;
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline const unit_t& operator*=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			m_value = ((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
+			nls::m_value = ((nls)(*this) * convert<UnitsRhs, Units>(rhs.m_value));
 			return *this;
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline const unit_t& operator/=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			m_value = ((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
+			nls::m_value = ((nls)(*this) / convert<UnitsRhs, Units>(rhs.m_value));
 			return *this;
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator<(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return unit_t(m_value < convert<UnitsRhs, Units>(rhs.m_value));
+			return unit_t(nls::m_value < convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator<=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return (m_value <= convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value <= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator>(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return (m_value> convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value> convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator>=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return (m_value >= convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value >= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator==(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return (m_value == convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value == convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		template<class UnitsRhs, class NlsRhs>
 		inline bool operator!=(const unit_t<UnitsRhs, NlsRhs>& rhs)
 		{
-			return (m_value != convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value != convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 	public:
