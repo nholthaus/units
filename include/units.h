@@ -728,6 +728,7 @@ namespace units
 	 */
 	template<class T, class Rhs, class Ret>
 	struct is_nonlinear_scale : std::integral_constant<bool, 
+		std::is_default_constructible<T>::value &&
 		has_operator_parenthesis<T, Ret>::value &&
 		has_value_member<T, Ret>::value>
 	{};
@@ -748,6 +749,7 @@ namespace units
 	template<typename T>
 	struct linear_scale
 	{
+		inline linear_scale() : m_value(0) {}
 		inline linear_scale(T value) : m_value(value) {}
 		inline T operator()() const { return m_value; }
 		inline T operator+(const T& rhs) const { return (m_value + rhs); }
@@ -765,10 +767,11 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
+		inline decibel_scale() : m_value(1) {}
 		inline decibel_scale(T value) { m_value = std::pow(10, value / 10); }
 		inline T operator()() const { return 10 * std::log10(m_value); }
-		inline T operator+(const T& rhs) const { return (m_value * rhs.m_value); }					///< log addition
-		inline T operator-(const T& rhs) const { return (m_value / rhs.m_value); }					///< log subtraction
+		inline T operator+(const T& rhs) const { return (m_value * rhs); }							///< log addition
+		inline T operator-(const T& rhs) const { return (m_value / rhs); }							///< log subtraction
 		T m_value;	///< linearized value	
 	};
 
@@ -804,7 +807,10 @@ namespace units
 		inline unit_t(T rhs) : nls(rhs) {};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
-		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) : nls(convert<UnitsRhs, Units, T>(rhs.m_value)) {};
+		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
+		{
+			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+		};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
@@ -821,10 +827,17 @@ namespace units
 			return *this;
 		}
 
-		template<class UnitsRhs, typename Ty>
-		inline unit_t operator+(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs)  const
+		// enable implicit conversion from T types ONLY for scalar units
+		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		inline unit_t operator+(T rhs) const
+		{
+			return unit_t(m_value + rhs);
+		}
+
+		/*template<class UnitsRhs, typename Ty>*/
+		inline unit_t operator+(const unit_t/*<UnitsRhs, Ty, NonLinearScale>*/& rhs)  const
 		{ 
-			return unit_t((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
+			return unit_t((nls)(*this) + /*convert<UnitsRhs, Units>(*/rhs.m_value/*)*/);
 		}
 
 		template<class UnitsRhs, typename Ty>
@@ -833,8 +846,9 @@ namespace units
 			return unit_t((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		// enable implicit conversion from T types ONLY for scalar units
-		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		template<class Units, typename T, template<typename> class NonLinearScale>
+		friend inline unit_t<Units, T, NonLinearScale> operator*(T lhs, unit_t<Units, T, NonLinearScale> Rhs);
+
 		inline unit_t operator*(T rhs) const
 		{
 			return unit_t(m_value * rhs);
@@ -851,10 +865,23 @@ namespace units
 			return unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale>(((nls)(*this) * rhs.m_value));
 		}
 
-		template<class UnitsRhs>
-		inline unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale> operator/(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
+		template<class Units, typename T, template<typename> class NonLinearScale> 
+		friend inline unit_t<inverse<Units>, T, NonLinearScale> operator/(T lhs, unit_t<Units, T, NonLinearScale> Rhs);
+
+		inline unit_t operator/(T rhs) const
 		{
-			return unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale>(((nls)(*this) / rhs.m_value));
+			return unit_t(m_value / rhs);
+		}
+
+		inline unit_t<unit<std::ratio<1>, category::scalar_unit>, T, NonLinearScale> operator/(const unit_t& rhs) const
+		{
+			return unit_t<unit<std::ratio<1>, category::scalar_unit>, T, NonLinearScale>(((nls)(*this) / rhs.m_value));
+		}
+
+		template<class UnitsRhs, typename Ty, class = typename std::enable_if<!is_convertible_unit<Units, UnitsRhs>::value>::type>
+		inline unit_t<compound_unit<Units, inverse<UnitsRhs>>, T, NonLinearScale> operator/(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs) const
+		{
+			return unit_t<compound_unit<Units, inverse<UnitsRhs>>, T, NonLinearScale>(((nls)(*this) / rhs.m_value));
 		}
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
@@ -908,6 +935,21 @@ namespace units
 	};
 
 	//----------------------------------
+	//	UNIT_T FRIENDS
+	//----------------------------------
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator*(T lhs, unit_t<Units, T, NonLinearScale> rhs)
+	{
+		return unit_t<Units, T, NonLinearScale>(lhs * rhs.m_value);
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<inverse<Units>, T, NonLinearScale> operator/(T lhs, unit_t<Units, T, NonLinearScale> rhs)
+	{
+		return unit_t<inverse<Units>, T, NonLinearScale>(lhs / rhs.m_value);
+	}
+
+	//----------------------------------
 	//	SCALAR UNITS
 	//----------------------------------
 
@@ -920,6 +962,7 @@ namespace units
 		using scalar_t = unit_t<scalar>;
 		using dimensionless_t = scalar_t;
 		using dB_t = unit_t<scalar, double, decibel_scale>;
+		using dBi_t = dB_t;
 	}
 
 
@@ -1030,6 +1073,17 @@ namespace units
 		using oz = ounces;
 		using ct = carats;
 
+		using gram_t = unit_t<gram>;
+		using microgram_t = unit_t<microgram>;
+		using milligram_t = unit_t<milligram>;
+		using kilogram_t = unit_t<kilogram>;
+		using metric_ton_t = unit_t<metric_ton>;
+		using pound_t = unit_t<pound>;
+		using imperial_ton_t = unit_t<imperial_ton>;
+		using us_ton_t = unit_t<us_ton>;
+		using ounce_t = unit_t<ounce>;
+		using carat_t = unit_t<carat>;
+		using slug_t = unit_t<slug>;
 	}
 
 	//------------------------------
@@ -1067,6 +1121,16 @@ namespace units
 		using d = days;
 		using wk = weeks;
 		using yr = years;
+
+		using second_t = unit_t<second>;
+		using nanosecond_t = unit_t<nanosecond>;
+		using microsecond_t = unit_t<microsecond>;
+		using millsecond_t = unit_t<millsecond>;
+		using minute_t = unit_t<minute>;
+		using hour_t = unit_t<hour>;
+		using day_t = unit_t<day>;
+		using week_t = unit_t<week>;
+		using year_t = unit_t<year>;
 	}
 
 	//------------------------------
@@ -1101,6 +1165,15 @@ namespace units
 		using tr = turn;
 		using gon = gradians;
 		using grad = gradians;
+
+		using radian_t = unit_t<radian>;
+		using milliradian_t = unit_t<milliradian>;
+		using degree_t = unit_t<degree>;
+		using minute_t = unit_t<minute>;
+		using second_t = unit_t<second>;
+		using turn_t = unit_t<turn>;
+		using mil_t = unit_t<mil>;
+		using gradian_t = unit_t<gradian>;
 	}
 
 	//------------------------------
@@ -1116,11 +1189,21 @@ namespace units
 		using ampere = amperes;
 		using amps = amperes;
 		using amp = amperes;
-		
+		using milliamp = milliamps;
+		using microamp = microamps;
+		using nanoamp = nanoamps;
+
 		using A = amperes;
 		using mA = milliamps;
 		using uA = microamps;
 		using nA = nanoamps;
+
+		using ampere_t = unit_t<ampere>;
+		using amps_t = unit_t<amps>;
+		using amp_t = unit_t<amp>;
+		using milliamp_t = unit_t<milliamp>;
+		using microamp_t = unit_t<microamp>;
+		using nanoamp_t = unit_t<nanoamp>;
 	}
 
 	//------------------------------
@@ -1144,6 +1227,13 @@ namespace units
 		using C = celsius;
 		using Ra = rankine;
 		using Re = reaumur;
+
+		using kelvin_t = unit_t<kelvin>;
+		using celsius_t = unit_t<celsius>;
+		using fahrenheit_t = unit_t<fahrenheit>;
+		using reaumur_t = unit_t<reaumur>;
+		using rankine_t = unit_t<rankine>;
+		using centigrade_t = unit_t<centigrade>;
 	}
 
 	//------------------------------
@@ -1157,6 +1247,8 @@ namespace units
 		using mole = moles;
 
 		using mol = mole;
+
+		using mole_t = unit_t<mole>;
 	}
 
 	//------------------------------
@@ -1173,6 +1265,9 @@ namespace units
 
 		using cd = candela;
 		using mcd = millicandela;
+
+		using candela_t = unit_t<candela>;
+		using millicandela_t = unit_t<millicandela>;
 	}
 
 	//------------------------------
@@ -1192,6 +1287,10 @@ namespace units
 		using sr = steradians;
 		using sq_deg = degrees_squared;
 		using sp = spat;
+
+		using steradian_t = unit_t<steradian>;
+		using degree_squared_t = unit_t<degree_squared>;
+		using spat_t = unit_t<spat>;
 	}
 
 	//------------------------------
@@ -1209,6 +1308,11 @@ namespace units
 		using kHz = kilohertz;
 		using MHz = megahertz;
 		using GHz = gigahertz;
+
+		using hertz_t = unit_t<hertz>;
+		using kilohertz_t = unit_t<kilohertz>;
+		using megahertz_t = unit_t<megahertz>;
+		using gigahertz_t = unit_t<gigahertz>;
 	}
 
 	//------------------------------
@@ -1229,6 +1333,12 @@ namespace units
 		using mph = miles_per_hour;
 		using fps = feet_per_second;
 		using kmph = kilometers_per_hour;
+
+		using meters_per_second_t = unit_t<meters_per_second>;
+		using feet_per_second_t = unit_t<feet_per_second>;
+		using miles_per_hour_t = unit_t<miles_per_hour>;
+		using kilometers_per_hour_t = unit_t<kilometers_per_hour>;
+		using knot_t = unit_t<knot>;
 	}
 
 	//------------------------------
@@ -1240,6 +1350,10 @@ namespace units
 		using meters_per_second_squared = compound_unit<length::meters, inverse<squared<time::seconds>>>;
 		using feet_per_second_squared = compound_unit<length::feet, inverse<squared<time::seconds>>>;
 		using standard_gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
+
+		using meters_per_second_squared_t = unit_t<meters_per_second_squared>;
+		using feet_per_second_squared_t = unit_t<feet_per_second_squared>;
+		using standard_gravity_t = unit_t<standard_gravity>;
 	}
 
 	//------------------------------
@@ -1265,6 +1379,12 @@ namespace units
 		using dyn = dynes;
 		using kp = kiloponds;
 		using pdl = poundals;
+
+		using newton_t = unit_t<newton>;
+		using pound_t = unit_t<pound>;
+		using dyne_t = unit_t<dyne>;
+		using kilopond_t = unit_t<kilopond>;
+		using poundal_t = unit_t<poundal>;
 	}
 
 	//------------------------------
@@ -1288,6 +1408,12 @@ namespace units
 		using Pa = pascals;
 		using atm = atmospheres;
 		using psi = pound_per_square_inch;
+
+		using pascal_t = unit_t<pascal>;
+		using bar_t = unit_t<bar>;
+		using atmosphere_t = unit_t<atmosphere>;
+		using pound_per_square_inch_t = unit_t<pound_per_square_inch>;
+		using torr_t = unit_t<torr>;
 	}
 
 	//------------------------------
@@ -1304,6 +1430,9 @@ namespace units
 
 		using C = coulombs;
 		using Ah = ampere_hours;
+
+		using coulomb_t = unit_t<coulomb>;
+		using ampere_hour_t = unit_t<ampere_hour>;
 	}
 
 	//------------------------------
@@ -1346,6 +1475,17 @@ namespace units
 		using BTU = british_thermal_units;
 		using thm = therms;
 		using ftlbf = foot_pounds;
+
+		using joule_t = unit_t<joule>;
+		using megajoule_t = unit_t<megajoule>;
+		using kilojoule_t = unit_t<kilojoule>;
+		using calorie_t = unit_t<calorie>;
+		using kilocalorie_t = unit_t<kilocalorie>;
+		using watt_hour_t = unit_t<watt_hour>;
+		using kilowatt_hour_t = unit_t<kilowatt_hour>;
+		using british_thermal_unit_t = unit_t<british_thermal_unit>;
+		using therm_t = unit_t<therm>;
+		using foot_pound_t = unit_t<foot_pound>;
 	}
 
 	//------------------------------
@@ -1379,6 +1519,17 @@ namespace units
 		using MW = megawatts;
 		using GW = gigawatts;
 		using hp = horsepower;
+
+		using watt_t = unit_t<watt>;
+		using nanowatt_t = unit_t<nanowatt>;
+		using microwatt_t = unit_t<microwatt>;
+		using milliwatt_t = unit_t<milliwatt>;
+		using kilwatt_t = unit_t<kilwatt>;
+		using megawatt_t = unit_t<megawatt>;
+		using gigawatt_t = unit_t<gigawatt>;
+
+		using dBW_t = unit_t<watt, double, decibel_scale>;
+		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
 	}
 
 
@@ -1410,6 +1561,14 @@ namespace units
 		using acre = acres;
 
 		using ha = hectares;
+
+		using square_meter_t = unit_t<square_meter>;
+		using square_foot_t = unit_t<square_foot>;
+		using square_inch_t = unit_t<square_inch>;
+		using square_mile_t = unit_t<square_mile>;
+		using square_kilometer_t = unit_t<square_kilometer>;
+		using hectare_t = unit_t<hectare>;
+		using acre_t = unit_t<acre>;
 
 		using square_meter_t = unit_t<square_meter>;
 		using square_foot_t = unit_t<square_foot>;

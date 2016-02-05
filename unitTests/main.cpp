@@ -331,23 +331,69 @@ TEST_F(UnitTest, unitTypeScalarMultiplication)
 	result_m = a_m * scalar_t(4.0);
 	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
 
+	result_m = 3.0 * a_m;
+	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
+
+	result_m = a_m * 4.0;
+	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
+
 	bool isSame = std::is_same<decltype(result_m), meter_t>::value;
 	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitTest, unitTypeDivision)
 {
-// 	meter_t a_m(1.0), c_m;
-// 	foot_t b_ft(3.28084);
-// 
-// 	c_m = a_m / b_ft;
-// 	EXPECT_NEAR(1.0, c_m(), 5.0e-5);
-// 
-// 	c_m = b_ft / meter_t(2);
-// 	EXPECT_NEAR(0.5, c_m(), 5.0e-5);
-// 
-// 	auto e_ft = b_ft / meter_t(4);
-// 	EXPECT_NEAR(0.25, e_ft(), 5.0e-6);
+	meter_t a_m(1.0), b_m(2.0);
+	foot_t a_ft(3.28084);
+	second_t a_sec(10.0);
+	bool isSame;
+
+	auto c = a_m / a_ft;
+	EXPECT_NEAR(1.0, c, 5.0e-5);
+	isSame = std::is_same<decltype(c), scalar_t>::value;
+	EXPECT_TRUE(isSame);
+
+	c = a_m / b_m;
+	EXPECT_NEAR(0.5, c, 5.0e-5);
+	isSame = std::is_same<decltype(c), scalar_t>::value;
+	EXPECT_TRUE(isSame);
+
+	c = a_ft / a_m;
+	EXPECT_NEAR(1.0, c, 5.0e-5);
+	isSame = std::is_same<decltype(c), scalar_t>::value;
+	EXPECT_TRUE(isSame);
+
+	c = scalar_t(1.0) / 2.0;
+	EXPECT_NEAR(0.5, c, 5.0e-5);
+	isSame = std::is_same<decltype(c), scalar_t>::value;
+	EXPECT_TRUE(isSame);
+
+	c = 1.0 / scalar_t(2.0);
+	EXPECT_NEAR(0.5, c, 5.0e-5);
+	isSame = std::is_same<decltype(c), scalar_t>::value;
+	EXPECT_TRUE(isSame);
+
+	double d = scalar_t(1.0) / 2.0;
+	EXPECT_NEAR(0.5, d, 5.0e-5);
+
+	auto e = a_m / a_sec;
+	EXPECT_NEAR(0.1, e(), 5.0e-5);
+	isSame = std::is_same<decltype(e), meters_per_second_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto f = a_m / 2.0;
+	EXPECT_NEAR(0.5, f(), 5.0e-5);
+	isSame = std::is_same<decltype(f), meter_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto g = 2.0 / b_m;
+	EXPECT_NEAR(1.0, g(), 5.0e-5);
+	isSame = std::is_same<decltype(g), unit_t<inverse<meters>>>::value;
+	EXPECT_TRUE(isSame);
+
+	auto mph = mile_t(60.0) / hour_t(1.0);
+	meters_per_second_t mps = mph;
+	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 }
 
 TEST_F(UnitTest, scalarTypeImplicitConversion)
@@ -362,12 +408,32 @@ TEST_F(UnitTest, scalarTypeImplicitConversion)
 
 TEST_F(UnitTest, dBConversion)
 {
-	//
+	dBW_t a_dbw(23.1);
+	watt_t a_w = a_dbw;
+	dBm_t a_dbm = a_dbw;
+
+	EXPECT_NEAR(204.173794, a_w(), 5.0e-7);
+	EXPECT_NEAR(53.1, a_dbm(), 5.0e-7);
+
+	milliwatt_t b_mw(100000.0);
+	watt_t b_w = b_mw;
+	dBm_t b_dbm = b_mw;
+	dBW_t b_dbw = b_mw;
+
+	EXPECT_NEAR(100.0, b_w(), 5.0e-7);
+	EXPECT_NEAR(50.0, b_dbm(), 5.0e-7);
+	EXPECT_NEAR(20.0, b_dbw(), 5.0e-7);
 }
 
 TEST_F(UnitTest, dBAddition)
 {
-//
+	auto result = dBW_t(10.0) + dB_t(30.0);
+	EXPECT_NEAR(40.0, result(), 5.0e-5);
+	bool isSame = std::is_same<decltype(result), dBW_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto result = dB_t(30.0) + dBW_t(20.0);
+	EXPECT_NEAR(50.0, result(), 5.0e-5);
 }
 
 TEST_F(UnitTest, dBSubtraction)
