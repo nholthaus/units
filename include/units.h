@@ -729,10 +729,6 @@ namespace units
 	template<class T, class Rhs, class Ret>
 	struct is_nonlinear_scale : std::integral_constant<bool, 
 		has_operator_parenthesis<T, Ret>::value &&
-// 		has_operator_plus<T, Rhs, Ret>::value &&
-// 		has_operator_minus<T, Rhs, Ret>::value &&
-// 		has_operator_multiply<T, Rhs, Ret>::value &&
-// 		has_operator_divide<T, Rhs, Ret>::value &&
 		has_value_member<T, Ret>::value>
 	{};
 
@@ -799,8 +795,14 @@ namespace units
 		typedef NonLinearScale<T> non_linear_scale_type;
 
 		inline unit_t() : NonLinearScale<T>(0) {};
+
 		template<class... Args>
 		inline explicit unit_t(const Args&... args) : NonLinearScale<T>(args...) {};
+
+		// enable implicit conversion from T types ONLY for scalar units
+		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		inline unit_t(T rhs) : nls(rhs) {};
+
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) : nls(convert<UnitsRhs, Units, T>(rhs.m_value)) {};
 
@@ -808,6 +810,14 @@ namespace units
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			return *this;
+		}
+
+		// enable implicit conversion from T types ONLY for scalar units
+		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		inline unit_t& operator=(T rhs)
+		{
+			nls::m_value = rhs;
 			return *this;
 		}
 
@@ -821,6 +831,13 @@ namespace units
 		inline unit_t operator-(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs) const
 		{
 			return unit_t((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
+		}
+
+		// enable implicit conversion from T types ONLY for scalar units
+		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		inline unit_t operator*(T rhs) const
+		{
+			return unit_t(m_value * rhs);
 		}
 
 		inline unit_t<compound_unit<squared<Units>>, T, NonLinearScale> operator*(const unit_t& rhs) const
@@ -876,6 +893,13 @@ namespace units
 			return (nls::m_value != convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		implicit type conversion.
+		 * @details		only enabled for scalar unit types.
+		 */
+		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		operator T() const { return nls::m_value; }
+
 	public:
 
 		template<class U, typename Ty, template<typename> class Nlt>
@@ -893,22 +917,9 @@ namespace units
 		using scalar = unit<std::ratio<1>, category::scalar_unit>;
 		using dimensionless = unit<std::ratio<1>, category::dimensionless_unit>;
 
-		struct scalar_t : public unit_t<scalar>
- 		{
-			inline scalar_t() : unit_t() {};
-			inline scalar_t(double value) : unit_t(value) {}; // allow implicit conversions from double.
-			template<class UnitType> inline scalar_t(const UnitType& rhs) : unit_t(rhs) {};
- 			inline operator double() const { return (*this)(); }
- 		};
-
+		using scalar_t = unit_t<scalar>;
 		using dimensionless_t = scalar_t;
-
-		struct dB_t : unit_t<scalar, double, decibel_scale>
-		{
-			dB_t(double value) : unit_t(value) {};	// allow implicit
-			inline dB_t(const dB_t& rhs) : unit_t(rhs.m_value) {};
-			inline operator double() const { return (*this)(); }
-		};
+		using dB_t = unit_t<scalar, double, decibel_scale>;
 	}
 
 

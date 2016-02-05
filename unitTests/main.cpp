@@ -184,64 +184,6 @@ TEST_F(UnitTest, hasValueMember)
 	EXPECT_FALSE(test);
 }
 
-// TEST_F(UnitTest, hasOperatorPlus)
-// {
-// 	bool test;
-// 
-// 	test = units::has_operator_plus<linear_scale<double>, double, double>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_plus<meter_t, meter_t, meter_t>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_plus<meter, meter, meter>::value;
-// 	EXPECT_FALSE(test);
-// }
-// 
-// TEST_F(UnitTest, hasOperatorminus)
-// {
-// 	bool test;
-// 
-// 	test = units::has_operator_minus<linear_scale<double>, double, double>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_minus<meter_t, meter_t, meter_t>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_minus<meter, meter, meter>::value;
-// 	EXPECT_FALSE(test);
-// }
-// 
-// TEST_F(UnitTest, hasOperatormultiply)
-// {
-// 	bool test;
-// 
-// 	test = units::has_operator_multiply<linear_scale<double>, double, double>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_multiply<meter_t, meter_t, square_meter_t>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_multiply<meter, meter, meter>::value;
-// 	EXPECT_FALSE(test);
-// }
-// 
-// TEST_F(UnitTest, hasOperatorDivide)
-// {
-// 	bool test;
-// 
-// 	test = units::has_operator_divide<linear_scale<double>, double, double>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_divide<meter_t, meter_t, scalar_t>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_divide<meter, meter, meter>::value;
-// 	EXPECT_FALSE(test);
-// }
-// 
-// TEST_F(UnitTest, hasOperatorEqual)
-// {
-// 	bool test;
-// 
-// 	test = units::has_operator_equal<meter_t>::value;
-// 	EXPECT_TRUE(test);
-// 	test = units::has_operator_equal<meter>::value;
-// 	EXPECT_FALSE(test);
-// }
-
 TEST_F(UnitTest, unitTypeAddition)
 {
 	meter_t a_m(1.0), c_m;
@@ -258,6 +200,24 @@ TEST_F(UnitTest, unitTypeAddition)
 
 	auto e_ft = b_ft + meter_t(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
+
+	scalar_t sresult = scalar_t(1.0) + scalar_t(1.0);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+
+	sresult = scalar_t(1.0) + 1.0;
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+
+	sresult = 1.0 + scalar_t(1.0);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+
+	d = scalar_t(1.0) + scalar_t(1.0);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+
+	d = scalar_t(1.0) + 1.0;
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+
+	d = 1.0 + scalar_t(1.0);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
 TEST_F(UnitTest, unitTypeSubtraction)
@@ -273,6 +233,24 @@ TEST_F(UnitTest, unitTypeSubtraction)
 
 	auto e_ft = b_ft - meter_t(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
+
+	scalar_t sresult = scalar_t(1.0) - scalar_t(1.0);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+
+	sresult = scalar_t(1.0) - 1.0;
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+
+	sresult = 1.0 - scalar_t(1.0);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+
+	double d = scalar_t(1.0) - scalar_t(1.0);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+
+	d = scalar_t(1.0) - 1.0;
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+
+	d = 1.0 - scalar_t(1.0);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
 }
 
 TEST_F(UnitTest, unitTypeMultiplication)
@@ -291,8 +269,20 @@ TEST_F(UnitTest, unitTypeMultiplication)
  	scalar_t sresult = scalar_t(5.0) * scalar_t(4.0);
  	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
  
+	sresult = scalar_t(5.0) * 4.0;
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+
+	sresult = 4.0 * scalar_t(5.0);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+
  	double result = scalar_t(5.0) * scalar_t(4.0);
  	EXPECT_NEAR(20.0, result, 5.0e-5);
+
+	result = scalar_t(5.0) * 4.0;
+	EXPECT_NEAR(20.0, result, 5.0e-5);
+
+	result = 4.0 * scalar_t(5.0);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
 }
 
 TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
@@ -320,14 +310,14 @@ TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
 	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
 
 	// unit times its inverse results in a scalar
-//	scalar_t s = a_m * i_m;
-//	EXPECT_NEAR(0.5, s, 5.0e-5);
-// 
-// 	c_m2 = b_ft * meter_t(2);
-// 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
-// 
-// 	auto e_ft2 = b_ft * meter_t(3);
-// 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
+	scalar_t s = a_m * i_m;
+	EXPECT_NEAR(2.0, s, 5.0e-5);
+ 
+ 	c_m2 = b_ft * meter_t(2);
+ 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+ 
+ 	auto e_ft2 = b_ft * meter_t(3);
+ 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 }
 
 TEST_F(UnitTest, unitTypeScalarMultiplication)
@@ -335,14 +325,14 @@ TEST_F(UnitTest, unitTypeScalarMultiplication)
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
 
-// 	c_m = a_m * b_ft;
-// 	EXPECT_NEAR(1.0, c_m(), 5.0e-5);
-// 
-// 	c_m = b_ft * meter_t(2);
-// 	EXPECT_NEAR(2.0, c_m(), 5.0e-5);
-// 
-// 	auto e_ft = b_ft * meter_t(3);
-// 	EXPECT_NEAR(3.0, e_ft(), 5.0e-6);
+	auto result_m = scalar_t(3.0) * a_m;
+	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
+
+	result_m = a_m * scalar_t(4.0);
+	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
+
+	bool isSame = std::is_same<decltype(result_m), meter_t>::value;
+	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitTest, unitTypeDivision)
@@ -362,11 +352,27 @@ TEST_F(UnitTest, unitTypeDivision)
 
 TEST_F(UnitTest, scalarTypeImplicitConversion)
 {
-// 	double test = scalar_t(3.0);
-// 	EXPECT_DOUBLE_EQ(3.0, test);
-// 
-// 	scalar_t testS = 3.0;
-// 	EXPECT_DOUBLE_EQ(3.0, test);
+	double test = scalar_t(3.0);
+	EXPECT_DOUBLE_EQ(3.0, test);
+
+	scalar_t testS = 3.0;
+	EXPECT_DOUBLE_EQ(3.0, test);
+}
+
+
+TEST_F(UnitTest, dBConversion)
+{
+	//
+}
+
+TEST_F(UnitTest, dBAddition)
+{
+//
+}
+
+TEST_F(UnitTest, dBSubtraction)
+{
+	//
 }
 
 TEST_F(UnitTest, lengthConversion)
