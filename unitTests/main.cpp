@@ -55,16 +55,16 @@ TEST_F(UnitTest, unitTraits)
 
 TEST_F(UnitTest, areConvertibleUnitsLength)
 {
-	bool test1 = units::are_convertible_units<meters, meters>::value;
-	bool test2 = units::are_convertible_units<meters, astronicalUnits>::value;
-	bool test3 = units::are_convertible_units<meters, parsecs>::value;
+	bool test1 = units::is_convertible_unit<meters, meters>::value;
+	bool test2 = units::is_convertible_unit<meters, astronicalUnits>::value;
+	bool test3 = units::is_convertible_unit<meters, parsecs>::value;
 	
-	bool test4 = units::are_convertible_units<meters, meters>::value;
-	bool test5 = units::are_convertible_units<astronicalUnits, meters>::value;
-	bool test6 = units::are_convertible_units<parsecs, meters>::value;
+	bool test4 = units::is_convertible_unit<meters, meters>::value;
+	bool test5 = units::is_convertible_unit<astronicalUnits, meters>::value;
+	bool test6 = units::is_convertible_unit<parsecs, meters>::value;
 
-	bool test7 = units::are_convertible_units<meters, seconds>::value;
-	bool test8 = units::are_convertible_units<seconds, meters>::value;
+	bool test7 = units::is_convertible_unit<meters, seconds>::value;
+	bool test8 = units::is_convertible_unit<seconds, meters>::value;
 
 	EXPECT_TRUE(test1);
 	EXPECT_TRUE(test2);
@@ -83,10 +83,10 @@ TEST_F(UnitTest, areConvertibleUnitsTime)
 	bool shouldBeTrue;
 	bool shouldBeFalse;
 
-	shouldBeTrue = units::are_convertible_units<years, weeks>::value;
+	shouldBeTrue = units::is_convertible_unit<years, weeks>::value;
 	EXPECT_TRUE(shouldBeTrue);
 
-	shouldBeFalse = units::are_convertible_units<years, meters>::value;
+	shouldBeFalse = units::is_convertible_unit<years, meters>::value;
 	EXPECT_FALSE(shouldBeFalse);
 }
 
@@ -120,6 +120,10 @@ TEST_F(UnitTest, squared)
 
 	test = convert<squared<meters>, feet_squared>(0.092903);
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
+
+	using scalar_2 = units::squared<scalar>;	// this is actually nonsensical, and should also result in a scalar.
+	bool isSame = std::is_same<typename std::decay<scalar_t>::type, typename std::decay<unit_t<scalar_2>>::type>::value;
+	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitTest, cubed)
@@ -280,15 +284,44 @@ TEST_F(UnitTest, unitTypeMultiplication)
 
 	c_m2 = b_m * meter_t(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+
+	double convert = scalar_t(3.14);
+	EXPECT_NEAR(3.14, convert, 5.0e-5);
+	
+ 	scalar_t sresult = scalar_t(5.0) * scalar_t(4.0);
+ 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+ 
+ 	double result = scalar_t(5.0) * scalar_t(4.0);
+ 	EXPECT_NEAR(20.0, result, 5.0e-5);
 }
 
 TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
 {
 	meter_t a_m(1.0);
 	foot_t b_ft(3.28084);
+	unit_t<inverse<meter>> i_m(2.0);
 
-// 	square_meter_t c_m2 = a_m * b_ft;
-// 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
+	// resultant unit is square of leftmost unit
+	auto c_m2 = a_m * b_ft;
+ 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
+
+	auto c_ft2 = b_ft * a_m;
+	EXPECT_NEAR(10.7639111056, c_ft2(), 5.0e-7);
+
+	// you can get whatever (compatible) type you want if you ask explicitly
+	square_meter_t d_m2 = b_ft * a_m;
+	EXPECT_NEAR(1.0, d_m2(), 5.0e-5);
+
+	// a unit times a sclar ends up with the same units.
+	meter_t e_m = a_m * scalar_t(3.0);
+	EXPECT_NEAR(3.0, e_m(), 5.0e-5);
+
+	e_m = scalar_t(4.0) * a_m;
+	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
+
+	// unit times its inverse results in a scalar
+//	scalar_t s = a_m * i_m;
+//	EXPECT_NEAR(0.5, s, 5.0e-5);
 // 
 // 	c_m2 = b_ft * meter_t(2);
 // 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
@@ -329,11 +362,11 @@ TEST_F(UnitTest, unitTypeDivision)
 
 TEST_F(UnitTest, scalarTypeImplicitConversion)
 {
-	double test = scalar_t(3.0);
-	EXPECT_DOUBLE_EQ(3.0, test);
-
-	scalar_t testS = 3.0;
-	EXPECT_DOUBLE_EQ(3.0, test);
+// 	double test = scalar_t(3.0);
+// 	EXPECT_DOUBLE_EQ(3.0, test);
+// 
+// 	scalar_t testS = 3.0;
+// 	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
 TEST_F(UnitTest, lengthConversion)
@@ -587,7 +620,7 @@ TEST_F(UnitTest, velocityConversion)
 
 	same = std::is_same<meters_per_second, unit<std::ratio<1>, category::velocity_unit>>::value;
 	EXPECT_TRUE(same);
-	same = units::are_convertible_units<miles_per_hour, meters_per_second>::value;
+	same = units::is_convertible_unit<miles_per_hour, meters_per_second>::value;
 	EXPECT_TRUE(same);
 
 	test = convert<meters_per_second, miles_per_hour>(1250.0);

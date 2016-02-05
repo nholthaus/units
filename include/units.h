@@ -503,7 +503,7 @@ namespace units
 	//------------------------------
 
 	template<class U1, class U2>
-	struct are_convertible_units : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>,
+	struct is_convertible_unit : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>,
 		base_unit_of<typename unit_traits<U2>::base_unit_type >> {};
 
 	//------------------------------
@@ -584,7 +584,7 @@ namespace units
 	{
 		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(are_convertible_units<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
+		static_assert(is_convertible_unit<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
 
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
 		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
@@ -752,7 +752,7 @@ namespace units
 	template<typename T>
 	struct linear_scale
 	{
-		inline linear_scale(const T value) : m_value(value) {}
+		inline linear_scale(T value) : m_value(value) {}
 		inline T operator()() const { return m_value; }
 		inline T operator+(const T& rhs) const { return (m_value + rhs); }
 		inline T operator-(const T& rhs) const { return (m_value - rhs); }
@@ -769,7 +769,7 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
-		inline decibel_scale(const T value) { m_value = std::pow(10, value / 10); }
+		inline decibel_scale(T value) { m_value = std::pow(10, value / 10); }
 		inline T operator()() const { return 10 * std::log10(m_value); }
 		inline T operator+(const T& rhs) const { return (m_value * rhs.m_value); }					///< log addition
 		inline T operator-(const T& rhs) const { return (m_value / rhs.m_value); }					///< log subtraction
@@ -790,7 +790,7 @@ namespace units
 	{
 		static_assert(units::is_nonlinear_scale<NonLinearScale<T>, T, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
-	private:
+	protected:
 
 		using nls = NonLinearScale<T>;
 
@@ -802,10 +802,7 @@ namespace units
 		template<class... Args>
 		inline explicit unit_t(const Args&... args) : NonLinearScale<T>(args...) {};
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
-		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
-		{ 
-			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
-		};
+		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) : nls(convert<UnitsRhs, Units, T>(rhs.m_value)) {};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
@@ -814,20 +811,25 @@ namespace units
 			return *this;
 		}
 
-		template<class UnitsRhs>
-		inline unit_t operator+(const unit_t<UnitsRhs, T, NonLinearScale>& rhs)  const
+		template<class UnitsRhs, typename Ty>
+		inline unit_t operator+(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs)  const
 		{ 
 			return unit_t((nls)(*this) + convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs>
-		inline unit_t operator-(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
+		template<class UnitsRhs, typename Ty>
+		inline unit_t operator-(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs) const
 		{
 			return unit_t((nls)(*this) - convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs>
-		inline unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale> operator*(const unit_t<UnitsRhs, T, NonLinearScale>& rhs) const
+		inline unit_t<compound_unit<squared<Units>>, T, NonLinearScale> operator*(const unit_t& rhs) const
+		{
+			return unit_t<compound_unit<squared<Units>>, T, NonLinearScale>(((nls)(*this) * rhs.m_value));
+		}
+
+		template<class UnitsRhs, typename Ty, class = typename std::enable_if<!is_convertible_unit<Units, UnitsRhs>::value>::type>
+		inline unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale> operator*(const unit_t<UnitsRhs, Ty, NonLinearScale>& rhs) const
 		{
 			return unit_t<compound_unit<Units, UnitsRhs>, T, NonLinearScale>(((nls)(*this) * rhs.m_value));
 		}
@@ -891,18 +893,21 @@ namespace units
 		using scalar = unit<std::ratio<1>, category::scalar_unit>;
 		using dimensionless = unit<std::ratio<1>, category::dimensionless_unit>;
 
-		struct scalar_t : unit_t<scalar>
-		{
-			scalar_t(const double value) : unit_t<scalar>(value) {};	// allow implicit
-			operator double() const { return (*this)(); }
-		};
+		struct scalar_t : public unit_t<scalar>
+ 		{
+			inline scalar_t() : unit_t() {};
+			inline scalar_t(double value) : unit_t(value) {}; // allow implicit conversions from double.
+			template<class UnitType> inline scalar_t(const UnitType& rhs) : unit_t(rhs) {};
+ 			inline operator double() const { return (*this)(); }
+ 		};
 
 		using dimensionless_t = scalar_t;
 
 		struct dB_t : unit_t<scalar, double, decibel_scale>
 		{
-			dB_t(const double value) : unit_t(value) {};	// allow implicit
-			operator double() const { return (*this)(); }
+			dB_t(double value) : unit_t(value) {};	// allow implicit
+			inline dB_t(const dB_t& rhs) : unit_t(rhs.m_value) {};
+			inline operator double() const { return (*this)(); }
 		};
 	}
 
