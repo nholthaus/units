@@ -263,6 +263,12 @@ TEST_F(UnitTest, unitTypeMultiplication)
 	c_m2 = b_m * meter_t(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
 
+	auto c_m = b_m * 2.0;
+	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+
+	c_m = 2.0 * b_m;
+	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+
 	double convert = scalar_t(3.14);
 	EXPECT_NEAR(3.14, convert, 5.0e-5);
 	
@@ -318,6 +324,9 @@ TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
  
  	auto e_ft2 = b_ft * meter_t(3);
  	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
+
+	auto mps = meter_t(10.0) * unit_t<inverse<seconds>>(1.0);
+
 }
 
 TEST_F(UnitTest, unitTypeScalarMultiplication)
@@ -432,7 +441,7 @@ TEST_F(UnitTest, dBAddition)
 	bool isSame = std::is_same<decltype(result), dBW_t>::value;
 	EXPECT_TRUE(isSame);
 
-	auto result = dB_t(30.0) + dBW_t(20.0);
+	result = dB_t(30.0) + dBW_t(20.0);
 	EXPECT_NEAR(50.0, result(), 5.0e-5);
 }
 
