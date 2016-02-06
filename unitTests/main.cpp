@@ -18,6 +18,7 @@ using namespace units::pressure;
 using namespace units::charge;
 using namespace units::energy;
 using namespace units::power;
+using namespace units::voltage;
 
 namespace {
 
@@ -953,6 +954,43 @@ TEST_F(UnitTest, powerConversion)
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
+TEST_F(UnitTest, voltageConversion)
+{
+	double test;
+
+	test = convert<volts, millivolts>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picovolts, volts>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanovolts, volts>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microvolts, volts>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millivolts, volts>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilovolts, volts>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megavolts, volts>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigavolts, volts>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<statvolts, volts>(299.792458);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millivolts, statvolts>(1000.0);
+	EXPECT_NEAR(299.792458, test, 5.0e-5);
+	test = convert<abvolts, nanovolts>(0.1);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microvolts, abvolts>(0.01);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, testConstants)
+{
+	EXPECT_NEAR(299792458, meters_per_second_t(constants::c)(), 5.0e-9);
+	EXPECT_NEAR(3.14159, scalar_t(constants::pi)(), 5.0e-6);
+//	EXPECT_NEAR(8.854e-12, unit_t<>(constants::epsilon0()), 5.0e-15);
+}
+
 TEST_F(UnitTest, radarRangeEquation)
 {
 	using Boltzmann = unit_t<compound_unit<watts, inverse<hertz>, inverse<kelvin>>>;
@@ -979,7 +1017,7 @@ TEST_F(UnitTest, radarRangeEquation)
 	scalar_t SNR = (P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
 		(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * k * T_s * B_n * L);
 
-	EXPECT_NEAR(1.5355904, SNR(), 5.0e-4);
+	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
 int main(int argc, char* argv[])
 {

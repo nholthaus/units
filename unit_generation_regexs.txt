@@ -1,0 +1,17 @@
+// pico to nano
+
+// plural to single
+using (.*)s =.*
+using $1 = $1s;
+
+// single to test
+using.*= (.*);
+test = convert<$1, >();\n\tEXPECT_NEAR(, test, 5.0e-5);\n\ttest = convert<, $1>();\n\tEXPECT_NEAR(, test, 5.0e-5);
+
+// single to unit_t
+using (.*) =.*
+using $1_t = unit_t<$1>;
+
+// abreviations
+using (.*) =.*
+using  = $1;

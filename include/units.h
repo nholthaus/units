@@ -1640,11 +1640,66 @@ namespace units
 		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
 	}
 
+	//------------------------------
+	//	UNITS OF VOLTAGE
+	//------------------------------
 
+	namespace voltage
+	{
+		using volts = unit<std::ratio<1>, category::voltage_unit>;
+		using picovolts = pico<volts>;
+		using nanovolts = nano<volts>;
+		using microvolts = micro<volts>;
+		using millivolts = milli<volts>;
+		using kilovolts = kilo<volts>;
+		using megavolts = mega<volts>;
+		using gigavolts = giga<volts>;
+		using statvolts = unit<std::ratio<1000000, 299792458>, volts>;
+		using abvolts = unit<std::ratio<1, 100000000>, volts>;
 
+		using volt = volts;
+		using picovolt = picovolts;
+		using nanovolt = nanovolts;
+		using microvolt = microvolts;
+		using millivolt = millivolts;
+		using kilovolt = kilovolts;
+		using megavolt = megavolts;
+		using gigavolt = gigavolts;
+		using statvolt = statvolts;
+		using abvolt = abvolts;
 
+		using volt_t = unit_t<volt>;
+		using picovolt_t = unit_t<picovolt>;
+		using nanovolt_t = unit_t<nanovolt>;
+		using microvolt_t = unit_t<microvolt>;
+		using millivolt_t = unit_t<millivolt>;
+		using kilovolt_t = unit_t<kilovolt>;
+		using megavolt_t = unit_t<megavolt>;
+		using gigavolt_t = unit_t<gigavolt>;
+		using statvolt_t = unit_t<statvolt>;
+		using abvolt_t = unit_t<abvolt>;
 
+		using V = volts;
+		using pV = picovolts;
+		using nV = nanovolts;
+		using uV = microvolts;
+		using mV = millivolts;
+		using kV = kilovolts;
+		using MV = megavolts;
+		using GV = gigavolts;
+		using statV = statvolts;
+		using abV = abvolts;
+	}
 
+	//------------------------------
+	//	UNITS OF CAPACITANCE
+	//------------------------------
+
+	namespace capacitance
+	{
+		using farads = unit<std::ratio<1>, category::capacitance_unit>;
+
+	}
 
 	//------------------------------
 	//	AREA UNITS
@@ -1695,11 +1750,12 @@ namespace units
 	{
 		static const double PI = 3.14159265358979323846264338327950288419716939937510;
 
-		static const units::dimensionless::scalar_t pi(PI);
-
-		static const units::velocity::meters_per_second_t speed_of_light(299792458);
-		static const units::velocity::meters_per_second_t c(speed_of_light);
-
+		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);									///< Ratio of a circle's circumference to its diameter.
+		static const unit_t<compound_unit<unit<std::ratio<299792458>, length::meters>, inverse<time::seconds>>>								c(1.0);										///< Speed of light in vacuum.
+		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
+		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
+		static const unit_t<unit<std::ratio<4, 10000000>, compound_unit<force::newton, inverse<squared<current::ampere>>>, std::ratio<1>>>	mu0(1.0);									///< vacuum permeability.
+		static const auto																													epsilon0 = 1.0 / (mu0 * units::pow<2>(c));
 
 	}
 
