@@ -220,7 +220,7 @@ namespace units
 		using magnetic_field_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
 		using inductance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
 		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
 		// OTHER UNIT TYPES			---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
@@ -2006,6 +2006,177 @@ namespace units
 		using klm = kilolumens;
 		using Mlm = megalumens;
 		using Glm = gigalumens;
+	}
+
+	//------------------------------
+	//	UNITS OF ILLUMINANCE
+	//------------------------------
+
+	namespace illuminance
+	{
+		using luxes = unit<std::ratio<1>, category::illuminance_unit>;;
+		using picoluxes = pico<luxes>;
+		using nanoluxes = nano<luxes>;
+		using microluxes = micro<luxes>;
+		using milliluxes = milli<luxes>;
+		using kiloluxes = kilo<luxes>;
+		using megaluxes = mega<luxes>;
+		using gigaluxes = giga<luxes>;
+		using footcandles = compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>;
+		using lumens_per_square_inch = compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>;
+		using phots = compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>;
+
+		using lux = luxes;
+		using picolux = picoluxes;
+		using nanolux = nanoluxes;
+		using microlux = microluxes;
+		using millilux = milliluxes;
+		using kilolux = kiloluxes;
+		using megalux = megaluxes;
+		using gigalux = gigaluxes;
+		using footcandle = footcandles;
+		using phot = phots;
+
+		using lux_t = unit_t<lux>;
+		using picolux_t = unit_t<picolux>;
+		using nanolux_t = unit_t<nanolux>;
+		using microlux_t = unit_t<microlux>;
+		using millilux_t = unit_t<millilux>;
+		using kilolux_t = unit_t<kilolux>;
+		using megalux_t = unit_t<megalux>;
+		using gigalux_t = unit_t<gigalux>;
+		using footcandle_t = unit_t<footcandle>;
+		using lumens_per_square_inch_t = unit_t<lumens_per_square_inch>;
+		using phot_t = unit_t<phot>;
+
+		using lx = luxes;
+		using plx = picoluxes;
+		using nlx = nanoluxes;
+		using ulx = microluxes;
+		using mlx = milliluxes;
+		using klx = kiloluxes;
+		using Mlx = megaluxes;
+		using Glx = gigaluxes;
+		using fc = footcandles;
+		using ph = phots;
+	}
+
+	//------------------------------
+	//	UNITS OF RADIATION
+	//------------------------------
+
+	namespace radiation
+	{
+		using becquerels = inverse<time::seconds>;
+		using picobecquerels = pico<becquerels>;
+		using nanobecquerels = nano<becquerels>;
+		using microbecquerels = micro<becquerels>;
+		using millibecquerels = milli<becquerels>;
+		using kilobecquerels = kilo<becquerels>;
+		using megabecquerels = mega<becquerels>;
+		using gigabecquerels = giga<becquerels>;
+		using grays = compound_unit<energy::joules, inverse<mass::kilogram>>;
+		using picograys = pico<grays>;
+		using nanograys = nano<grays>;
+		using micrograys = micro<grays>;
+		using milligrays = milli<grays>;
+		using kilograys = kilo<grays>;
+		using megagrays = mega<grays>;
+		using gigagrays = giga<grays>;
+		using sieverts = compound_unit<energy::joules, inverse<mass::kilogram>>;
+		using picosieverts = pico<sieverts>;
+		using nanosieverts = nano<sieverts>;
+		using microsieverts = micro<sieverts>;
+		using millisieverts = milli<sieverts>;
+		using kilosieverts = kilo<sieverts>;
+		using megasieverts = mega<sieverts>;
+		using gigasieverts = giga<sieverts>;
+		using curies = unit<std::ratio<37>, gigabecquerels>;
+		using rutherfords = megabecquerels;
+		using rads = unit<std::ratio<1, 100>, grays>;
+
+		using becquerel = becquerels;
+		using picobecquerel = picobecquerels;
+		using nanobecquerel = nanobecquerels;
+		using microbecquerel = microbecquerels;
+		using millibecquerel = millibecquerels;
+		using kilobecquerel = kilobecquerels;
+		using megabecquerel = megabecquerels;
+		using gigabecquerel = gigabecquerels;
+		using gray = grays;
+		using picogray = picograys;
+		using nanogray = nanograys;
+		using microgray = micrograys;
+		using milligray = milligrays;
+		using kilogray = kilograys;
+		using megagray = megagrays;
+		using gigagray = gigagrays;
+		using sievert = sieverts;
+		using picosievert = picosieverts;
+		using nanosievert = nanosieverts;
+		using microsievert = microsieverts;
+		using millisievert = millisieverts;
+		using kilosievert = kilosieverts;
+		using megasievert = megasieverts;
+		using gigasievert = gigasieverts;
+		using curie = curies;
+		using rutherford = rutherfords;
+		using rad = rads;
+
+		using becquerel_t = unit_t<becquerel>;
+		using picobecquerel_t = unit_t<picobecquerel>;
+		using nanobecquerel_t = unit_t<nanobecquerel>;
+		using microbecquerel_t = unit_t<microbecquerel>;
+		using millibecquerel_t = unit_t<millibecquerel>;
+		using kilobecquerel_t = unit_t<kilobecquerel>;
+		using megabecquerel_t = unit_t<megabecquerel>;
+		using gigabecquerel_t = unit_t<gigabecquerel>;
+		using gray_t = unit_t<gray>;
+		using picogray_t = unit_t<picogray>;
+		using nanogray_t = unit_t<nanogray>;
+		using microgray_t = unit_t<microgray>;
+		using milligray_t = unit_t<milligray>;
+		using kilogray_t = unit_t<kilogray>;
+		using megagray_t = unit_t<megagray>;
+		using gigagray_t = unit_t<gigagray>;
+		using sievert_t = unit_t<sievert>;
+		using picosievert_t = unit_t<picosievert>;
+		using nanosievert_t = unit_t<nanosievert>;
+		using microsievert_t = unit_t<microsievert>;
+		using millisievert_t = unit_t<millisievert>;
+		using kilosievert_t = unit_t<kilosievert>;
+		using megasievert_t = unit_t<megasievert>;
+		using gigasievert_t = unit_t<gigasievert>;
+		using curie_t = unit_t<curie>;
+		using rutherford_t = unit_t<rutherford>;
+		using rad_t = unit_t<rad>;
+
+		using Bq = becquerels;
+		using pBq = picobecquerels;
+		using nBq = nanobecquerels;
+		using uBq = microbecquerels;
+		using mBq = millibecquerels;
+		using kBq = kilobecquerels;
+		using MBq = megabecquerels;
+		using GBq = gigabecquerels;
+		using Gy = grays;
+		using pGy = picograys;
+		using nGy = nanograys;
+		using uGy = micrograys;
+		using mGy = milligrays;
+		using kGy = kilograys;
+		using MGy = megagrays;
+		using GGy = gigagrays;
+		using Sv = sieverts;
+		using pSv = picosieverts;
+		using nSv = nanosieverts;
+		using uSv = microsieverts;
+		using mSv = millisieverts;
+		using kSv = kilosieverts;
+		using MSv = megasieverts;
+		using GSv = gigasieverts;
+		using Ci = curies;
+		using rd = rutherfords;
 	}
 
 	//------------------------------

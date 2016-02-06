@@ -26,6 +26,8 @@ using namespace units::magnetic_flux;
 using namespace units::magnetic_field_strength;
 using namespace units::inductance;
 using namespace units::luminous_flux;
+using namespace units::illuminance;
+using namespace units::radiation;
 
 namespace {
 
@@ -1153,6 +1155,98 @@ TEST_F(UnitTest, luminousFluxConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
+TEST_F(UnitTest, illuminanceConversion)
+{
+	double test;
+
+	test = convert<luxes, milliluxes>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picoluxes, luxes>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanoluxes, luxes>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microluxes, luxes>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<milliluxes, luxes>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kiloluxes, luxes>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megaluxes, luxes>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigaluxes, luxes>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+
+	test = convert<footcandles, luxes>(0.092903);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<lux, lumens_per_square_inch>(1550.0031000062);
+	EXPECT_NEAR(1.0, test, 5.0e-13);
+	test = convert<phots, luxes>(0.0001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, radiationConversion)
+{
+	double test;
+
+	test = convert<becquerels, millibecquerels>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picobecquerels, becquerels>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanobecquerels, becquerels>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microbecquerels, becquerels>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millibecquerels, becquerels>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilobecquerels, becquerels>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megabecquerels, becquerels>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigabecquerels, becquerels>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+
+	test = convert<grays, milligrays>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picograys, grays>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanograys, grays>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<micrograys, grays>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<milligrays, grays>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilograys, grays>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megagrays, grays>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigagrays, grays>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+
+	test = convert<sieverts, millisieverts>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picosieverts, sieverts>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanosieverts, sieverts>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microsieverts, sieverts>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millisieverts, sieverts>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilosieverts, sieverts>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megasieverts, sieverts>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigasieverts, sieverts>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+
+	test = convert<becquerels, curies>(37.0e9);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<becquerels, rutherfords>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<rads, grays>(100.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
 TEST_F(UnitTest, testConstants)
 {
 	EXPECT_NEAR(299792458, meters_per_second_t(constants::c)(), 5.0e-9);
@@ -1168,7 +1262,7 @@ TEST_F(UnitTest, radarRangeEquation)
 	scalar_t		G;					// gain
 	meter_t			lambda;				// wavelength
 	square_meter_t	sigma;				// radar cross section
-	const Boltzmann	k(1.38e-23);		// boltzmann constant
+	const Boltzmann	k(1.38e-23);		// Boltzmann constant
 	meter_t			R;					// range
 	kelvin_t		T_s;				// system noise temp
 	hertz_t			B_n;				// bandwidth
@@ -1183,8 +1277,8 @@ TEST_F(UnitTest, radarRangeEquation)
 	B_n = megahertz_t(1.67);
 	L = dB_t(8.0);
 
-	scalar_t SNR = (P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
-		(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * k * T_s * B_n * L);
+	scalar_t SNR =	(P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
+					(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * k * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
