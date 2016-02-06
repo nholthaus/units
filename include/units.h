@@ -1966,6 +1966,49 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNITS OF LUMINOUS FLUX
+	//------------------------------
+
+	namespace luminous_flux
+	{
+		using lumens = unit<std::ratio<1>, category::luminous_flux_unit>;;
+		using picolumens = pico<lumens>;
+		using nanolumens = nano<lumens>;
+		using microlumens = micro<lumens>;
+		using millilumens = milli<lumens>;
+		using kilolumens = kilo<lumens>;
+		using megalumens = mega<lumens>;
+		using gigalumens = giga<lumens>;
+
+		using lumen = lumens;
+		using picolumen = picolumens;
+		using nanolumen = nanolumens;
+		using microlumen = microlumens;
+		using millilumen = millilumens;
+		using kilolumen = kilolumens;
+		using megalumen = megalumens;
+		using gigalumen = gigalumens;
+
+		using lumen_t = unit_t<lumen>;
+		using picolumen_t = unit_t<picolumen>;
+		using nanolumen_t = unit_t<nanolumen>;
+		using microlumen_t = unit_t<microlumen>;
+		using millilumen_t = unit_t<millilumen>;
+		using kilolumen_t = unit_t<kilolumen>;
+		using megalumen_t = unit_t<megalumen>;
+		using gigalumen_t = unit_t<gigalumen>;
+
+		using lm = lumens;
+		using plm = picolumens;
+		using nlm = nanolumens;
+		using ulm = microlumens;
+		using mlm = millilumens;
+		using klm = kilolumens;
+		using Mlm = megalumens;
+		using Glm = gigalumens;
+	}
+
+	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 

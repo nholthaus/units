@@ -25,6 +25,7 @@ using namespace units::conductance;
 using namespace units::magnetic_flux;
 using namespace units::magnetic_field_strength;
 using namespace units::inductance;
+using namespace units::luminous_flux;
 
 namespace {
 
@@ -1127,6 +1128,28 @@ TEST_F(UnitTest, inductanceConversion)
 	test = convert<megahenrys, henrys>(0.000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<gigahenrys, henrys>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, luminousFluxConversion)
+{
+	double test;
+
+	test = convert<lumens, millilumens>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picolumens, lumens>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanolumens, lumens>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microlumens, lumens>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millilumens, lumens>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilolumens, lumens>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megalumens, lumens>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigalumens, lumens>(0.000000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
