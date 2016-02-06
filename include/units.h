@@ -1821,6 +1821,53 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNITS OF MAGNETIC FLUX
+	//------------------------------
+
+	namespace magnetic_flux
+	{
+		using webers = unit<std::ratio<1>, category::magnetic_flux_unit>;;
+		using picowebers = pico<webers>;
+		using nanowebers = nano<webers>;
+		using microwebers = micro<webers>;
+		using milliwebers = milli<webers>;
+		using kilowebers = kilo<webers>;
+		using megawebers = mega<webers>;
+		using gigawebers = giga<webers>;
+		using maxwells = unit<std::ratio<1, 100000000>, webers>;
+
+		using weber = webers;
+		using picoweber = picowebers;
+		using nanoweber = nanowebers;
+		using microweber = microwebers;
+		using milliweber = milliwebers;
+		using kiloweber = kilowebers;
+		using megaweber = megawebers;
+		using gigaweber = gigawebers;
+		using maxwell = maxwells;
+
+		using weber_t = unit_t<weber>;
+		using picoweber_t = unit_t<picoweber>;
+		using nanoweber_t = unit_t<nanoweber>;
+		using microweber_t = unit_t<microweber>;
+		using milliweber_t = unit_t<milliweber>;
+		using kiloweber_t = unit_t<kiloweber>;
+		using megaweber_t = unit_t<megaweber>;
+		using gigaweber_t = unit_t<gigaweber>;
+		using maxwell_t = unit_t<maxwell>;
+
+		using Wb = webers;
+		using pWb = picowebers;
+		using nWb = nanowebers;
+		using uWb = microwebers;
+		using mWb = milliwebers;
+		using kWb = kilowebers;
+		using MWb = megawebers;
+		using GWb = gigawebers;
+		using Mx = maxwells;
+	}
+
+	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 

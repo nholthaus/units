@@ -22,6 +22,7 @@ using namespace units::voltage;
 using namespace units::capacitance;
 using namespace units::impedance;
 using namespace units::conductance;
+using namespace units::magnetic_flux;
 
 namespace {
 
@@ -1050,6 +1051,32 @@ TEST_F(UnitTest, conductanceConversion)
 	test = convert<megasiemens, siemens>(0.000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<gigasiemens, siemens>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, magneticFluxConversion)
+{
+	double test;
+
+	test = convert<webers, milliwebers>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picowebers, webers>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanowebers, webers>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microwebers, webers>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<milliwebers, webers>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilowebers, webers>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megawebers, webers>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigawebers, webers>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<maxwells, webers>(100000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanowebers, maxwells>(10.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
