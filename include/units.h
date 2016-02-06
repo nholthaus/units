@@ -54,15 +54,6 @@
 namespace units
 {
 	//------------------------------
-	//	CONSTANTS
-	//------------------------------
-
-	namespace constants
-	{
-		static const double PI = 3.14159265358979323846264338327950288419716939937510;
-	}
-
-	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
 
@@ -504,10 +495,6 @@ namespace units
 	template<class U> using tera = typename prefix<std::tera, U>::type;
 	template<class U> using peta = typename prefix<std::peta, U>::type;
 	template<class U> using exa = typename prefix<std::exa, U>::type;
-
-	// OTHER USEFUL PREFIXES
-	template<class U> using pi = typename units::unit<std::ratio<1>, U, std::ratio<1>>;
-
 
 	//------------------------------
 	//	CONVERSION TRAITS
@@ -968,10 +955,30 @@ namespace units
 
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
-		inline auto operator/(T lhs, const UnitTypeRhs& rhs)
+	inline auto operator/(T lhs, const UnitTypeRhs& rhs)
 	{
 		using RhsUnits = typename unit_t_traits<UnitTypeRhs>::unit_type;
 		return unit_t<inverse<RhsUnits>>(lhs / rhs.m_value);
+	}
+
+	template <int N, class U> struct _power_unit
+	{
+		typedef typename unit_multiply<U, typename _power_unit<N - 1, U>::type> type;
+	};
+
+	template <class U> struct _power_unit<1, U>
+	{
+		typedef typename U type;
+	};
+
+	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
+	inline auto pow(const UnitType& value)
+	{
+		using ValueUnit = unit_t_traits<UnitType>::unit_type;
+		using underlying_type = unit_t_traits<UnitType>::underlying_type;
+		using RetUnit = typename _power_unit<power, ValueUnit>::type;
+
+		return unit_t<RetUnit, underlying_type, linear_scale>(std::pow(value(), power));
 	}
 
 	//------------------------------
@@ -1680,6 +1687,21 @@ namespace units
 		using acre_t = unit_t<acre>;
 	}
 
+	//------------------------------
+	//	CONSTANTS
+	//------------------------------
+
+	namespace constants
+	{
+		static const double PI = 3.14159265358979323846264338327950288419716939937510;
+
+		static const units::dimensionless::scalar_t pi(PI);
+
+		static const units::velocity::meters_per_second_t speed_of_light(299792458);
+		static const units::velocity::meters_per_second_t c(speed_of_light);
+
+
+	}
 
 };	// end namespace units
 

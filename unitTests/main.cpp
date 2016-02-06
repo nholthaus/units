@@ -472,6 +472,26 @@ TEST_F(UnitTest, scalarTypeImplicitConversion)
 	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
+TEST_F(UnitTest, unitPowers)
+{
+	bool isSame;
+	meter_t value(10.0);
+
+	auto sq = units::pow<2>(value);
+	EXPECT_NEAR(100.0, sq(), 5.0e-2);
+	isSame = std::is_same<decltype(sq), square_meter_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto cube = units::pow<3>(value);
+	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
+	isSame = std::is_same<decltype(cube), unit_t<cubed<meter>>>::value;
+	EXPECT_TRUE(isSame);
+
+	auto fourth = units::pow<4>(value);
+	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
+	isSame = std::is_same<decltype(fourth), unit_t<compound_unit<squared<meter>, squared<meter>>>>::value;
+	EXPECT_TRUE(isSame);
+}
 
 TEST_F(UnitTest, dBConversion)
 {
@@ -933,6 +953,34 @@ TEST_F(UnitTest, powerConversion)
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
+TEST_F(UnitTest, radarRangeEquation)
+{
+	using Boltzmann = unit_t<compound_unit<watts, inverse<hertz>, inverse<kelvin>>>;
+
+	watt_t			P_t;				// transmit power
+	scalar_t		G;					// gain
+	meter_t			lambda;				// wavelength
+	square_meter_t	sigma;				// radar cross section
+	const Boltzmann	k(1.38e-23);		// boltzmann constant
+	meter_t			R;					// range
+	kelvin_t		T_s;				// system noise temp
+	hertz_t			B_n;				// bandwidth
+	scalar_t		L;					// loss
+
+	P_t = megawatt_t(1.4);
+	G = dB_t(33.0);
+	lambda = constants::c / megahertz_t(2800);
+	sigma = square_meter_t(1.0);
+	R = meter_t(111000.0);
+	T_s = kelvin_t(950.0);
+	B_n = megahertz_t(1.67);
+	L = dB_t(8.0);
+
+	scalar_t SNR = (P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
+		(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * k * T_s * B_n * L);
+
+	EXPECT_NEAR(1.5355904, SNR(), 5.0e-4);
+}
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
