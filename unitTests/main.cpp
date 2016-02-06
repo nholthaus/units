@@ -23,6 +23,7 @@ using namespace units::capacitance;
 using namespace units::impedance;
 using namespace units::conductance;
 using namespace units::magnetic_flux;
+using namespace units::magnetic_field_strength;
 
 namespace {
 
@@ -1077,6 +1078,32 @@ TEST_F(UnitTest, magneticFluxConversion)
 	test = convert<maxwells, webers>(100000000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<nanowebers, maxwells>(10.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, magneticFieldStrengthConversion)
+{
+	double test;
+
+	test = convert<teslas, milliteslas>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picoteslas, teslas>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanoteslas, teslas>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microteslas, teslas>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<milliteslas, teslas>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kiloteslas, teslas>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megateslas, teslas>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigateslas, teslas>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gauss, teslas>(10000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanoteslas, gauss>(100000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 

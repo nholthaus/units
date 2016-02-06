@@ -217,7 +217,7 @@ namespace units
 		using impedance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
 		using conductance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;
 		using magnetic_flux_unit			= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
-		using magnetic_filed_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
+		using magnetic_field_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
 		using inductance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
 		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
@@ -1865,6 +1865,52 @@ namespace units
 		using MWb = megawebers;
 		using GWb = gigawebers;
 		using Mx = maxwells;
+	}
+
+	//----------------------------------------
+	//	UNITS OF MAGNETIC FIELD STRENGTH
+	//----------------------------------------
+
+	namespace magnetic_field_strength
+	{
+		using teslas = unit<std::ratio<1>, category::magnetic_field_strength_unit>;;
+		using picoteslas = pico<teslas>;
+		using nanoteslas = nano<teslas>;
+		using microteslas = micro<teslas>;
+		using milliteslas = milli<teslas>;
+		using kiloteslas = kilo<teslas>;
+		using megateslas = mega<teslas>;
+		using gigateslas = giga<teslas>;
+		using gauss = compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>;
+
+		using tesla = teslas;
+		using picotesla = picoteslas;
+		using nanotesla = nanoteslas;
+		using microtesla = microteslas;
+		using millitesla = milliteslas;
+		using kilotesla = kiloteslas;
+		using megatesla = megateslas;
+		using gigatesla = gigateslas;
+
+		using tesla_t = unit_t<tesla>;
+		using picotesla_t = unit_t<picotesla>;
+		using nanotesla_t = unit_t<nanotesla>;
+		using microtesla_t = unit_t<microtesla>;
+		using millitesla_t = unit_t<millitesla>;
+		using kilotesla_t = unit_t<kilotesla>;
+		using megatesla_t = unit_t<megatesla>;
+		using gigatesla_t = unit_t<gigatesla>;
+		using gauss_t = unit_t<gauss>;
+
+		using T = teslas;
+		using pT = picoteslas;
+		using nT = nanoteslas;
+		using uT = microteslas;
+		using mT = milliteslas;
+		using kT = kiloteslas;
+		using MT = megateslas;
+		using GT = gigateslas;
+		using G = gauss;
 	}
 
 	//------------------------------
