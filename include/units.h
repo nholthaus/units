@@ -1914,6 +1914,58 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNITS OF INDUCTANCE
+	//------------------------------
+
+	namespace inductance
+	{
+		using henrys = unit<std::ratio<1>, category::inductance_unit>;;
+		using picohenrys = pico<henrys>;
+		using nanohenrys = nano<henrys>;
+		using microhenrys = micro<henrys>;
+		using millihenrys = milli<henrys>;
+		using kilohenrys = kilo<henrys>;
+		using megahenrys = mega<henrys>;
+		using gigahenrys = giga<henrys>;
+
+		using henry = henrys;
+		using picohenry = picohenrys;
+		using nanohenry = nanohenrys;
+		using microhenry = microhenrys;
+		using millihenry = millihenrys;
+		using kilohenry = kilohenrys;
+		using megahenry = megahenrys;
+		using gigahenry = gigahenrys;
+
+		using henries = henrys;
+		using picohenries = picohenrys;
+		using nanohenries = nanohenrys;
+		using microhenries = microhenrys;
+		using millihenries = millihenrys;
+		using kilohenries = kilohenrys;
+		using megahenries = megahenrys;
+		using gigahenries = gigahenrys;
+
+		using henry_t = unit_t<henry>;
+		using picohenry_t = unit_t<picohenry>;
+		using nanohenry_t = unit_t<nanohenry>;
+		using microhenry_t = unit_t<microhenry>;
+		using millihenry_t = unit_t<millihenry>;
+		using kilohenry_t = unit_t<kilohenry>;
+		using megahenry_t = unit_t<megahenry>;
+		using gigahenry_t = unit_t<gigahenry>;
+
+		using H = henrys;
+		using pH = picohenrys;
+		using nH = nanohenrys;
+		using uH = microhenrys;
+		using mH = millihenrys;
+		using kH = kilohenrys;
+		using MH = megahenrys;
+		using GH = gigahenrys;
+	}
+
+	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 

@@ -24,6 +24,7 @@ using namespace units::impedance;
 using namespace units::conductance;
 using namespace units::magnetic_flux;
 using namespace units::magnetic_field_strength;
+using namespace units::inductance;
 
 namespace {
 
@@ -1104,6 +1105,28 @@ TEST_F(UnitTest, magneticFieldStrengthConversion)
 	test = convert<gauss, teslas>(10000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<nanoteslas, gauss>(100000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, inductanceConversion)
+{
+	double test;
+
+	test = convert<henrys, millihenrys>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picohenrys, henrys>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanohenrys, henrys>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microhenrys, henrys>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millihenrys, henrys>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilohenrys, henrys>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megahenrys, henrys>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigahenrys, henrys>(0.000000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
