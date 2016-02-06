@@ -19,6 +19,9 @@ using namespace units::charge;
 using namespace units::energy;
 using namespace units::power;
 using namespace units::voltage;
+using namespace units::capacitance;
+using namespace units::impedance;
+using namespace units::conductance;
 
 namespace {
 
@@ -981,6 +984,72 @@ TEST_F(UnitTest, voltageConversion)
 	test = convert<abvolts, nanovolts>(0.1);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<microvolts, abvolts>(0.01);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, capacitanceConversion)
+{
+	double test;
+
+	test = convert<farads, millifarads>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picofarads, farads>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanofarads, farads>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microfarads, farads>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millifarads, farads>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilofarads, farads>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megafarads, farads>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigafarads, farads>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, impedanceConversion)
+{
+	double test;
+
+	test = convert<ohms, milliohms>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picoohms, ohms>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanoohms, ohms>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microohms, ohms>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<milliohms, ohms>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kiloohms, ohms>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megaohms, ohms>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigaohms, ohms>(0.000000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, conductanceConversion)
+{
+	double test;
+
+	test = convert<siemens, millisiemens>(10.0);
+	EXPECT_NEAR(10000.0, test, 5.0e-5);
+	test = convert<picosiemens, siemens>(1000000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<nanosiemens, siemens>(1000000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<microsiemens, siemens>(1000000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<millisiemens, siemens>(1000.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<kilosiemens, siemens>(0.001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<megasiemens, siemens>(0.000001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gigasiemens, siemens>(0.000000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 

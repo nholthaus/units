@@ -1697,8 +1697,127 @@ namespace units
 
 	namespace capacitance
 	{
-		using farads = unit<std::ratio<1>, category::capacitance_unit>;
+		using farads = unit<std::ratio<1>, category::capacitance_unit>;;
+		using picofarads = pico<farads>;
+		using nanofarads = nano<farads>;
+		using microfarads = micro<farads>;
+		using millifarads = milli<farads>;
+		using kilofarads = kilo<farads>;
+		using megafarads = mega<farads>;
+		using gigafarads = giga<farads>;
 
+		using farad = farads;
+		using picofarad = picofarads;
+		using nanofarad = nanofarads;
+		using microfarad = microfarads;
+		using millifarad = millifarads;
+		using kilofarad = kilofarads;
+		using megafarad = megafarads;
+		using gigafarad = gigafarads;
+
+		using farad_t = unit_t<farad>;
+		using picofarad_t = unit_t<picofarad>;
+		using nanofarad_t = unit_t<nanofarad>;
+		using microfarad_t = unit_t<microfarad>;
+		using millifarad_t = unit_t<millifarad>;
+		using kilofarad_t = unit_t<kilofarad>;
+		using megafarad_t = unit_t<megafarad>;
+		using gigafarad_t = unit_t<gigafarad>;
+
+		using F = farads;
+		using pF = picofarads;
+		using nF = nanofarads;
+		using uF = microfarads;
+		using mF = millifarads;
+		using kF = kilofarads;
+		using MF = megafarads;
+		using GF = gigafarads;
+	}
+
+	//------------------------------
+	//	UNITS OF IMPEDANCE
+	//------------------------------
+
+	namespace impedance
+	{
+		using ohms = unit<std::ratio<1>, category::impedance_unit>;;
+		using picoohms = pico<ohms>;
+		using nanoohms = nano<ohms>;
+		using microohms = micro<ohms>;
+		using milliohms = milli<ohms>;
+		using kiloohms = kilo<ohms>;
+		using megaohms = mega<ohms>;
+		using gigaohms = giga<ohms>;
+
+		using ohm = ohms;
+		using picoohm = picoohms;
+		using nanoohm = nanoohms;
+		using microohm = microohms;
+		using milliohm = milliohms;
+		using kiloohm = kiloohms;
+		using megaohm = megaohms;
+		using gigaohm = gigaohms;
+
+		using ohm_t = unit_t<ohm>;
+		using picoohm_t = unit_t<picoohm>;
+		using nanoohm_t = unit_t<nanoohm>;
+		using microohm_t = unit_t<microohm>;
+		using milliohm_t = unit_t<milliohm>;
+		using kiloohm_t = unit_t<kiloohm>;
+		using megaohm_t = unit_t<megaohm>;
+		using gigaohm_t = unit_t<gigaohm>;
+
+		using Ohm = ohms;
+		using pOhm = picoohms;
+		using nOhm = nanoohms;
+		using uOhm = microohms;
+		using mOhm = milliohms;
+		using kOhm = kiloohms;
+		using MOhm = megaohms;
+		using GOhm = gigaohms;
+	}
+
+	//------------------------------
+	//	UNITS OF CONDUCTANCE
+	//------------------------------
+
+	namespace conductance
+	{
+		using siemens = unit<std::ratio<1>, category::conductance_unit>;;
+		using picosiemens = pico<siemens>;
+		using nanosiemens = nano<siemens>;
+		using microsiemens = micro<siemens>;
+		using millisiemens = milli<siemens>;
+		using kilosiemens = kilo<siemens>;
+		using megasiemens = mega<siemens>;
+		using gigasiemens = giga<siemens>;
+
+		using siemen = siemens;
+		using picosiemen = picosiemens;
+		using nanosiemen = nanosiemens;
+		using microsiemen = microsiemens;
+		using millisiemen = millisiemens;
+		using kilosiemen = kilosiemens;
+		using megasiemen = megasiemens;
+		using gigasiemen = gigasiemens;
+
+		using siemen_t = unit_t<siemen>;
+		using picosiemen_t = unit_t<picosiemen>;
+		using nanosiemen_t = unit_t<nanosiemen>;
+		using microsiemen_t = unit_t<microsiemen>;
+		using millisiemen_t = unit_t<millisiemen>;
+		using kilosiemen_t = unit_t<kilosiemen>;
+		using megasiemen_t = unit_t<megasiemen>;
+		using gigasiemen_t = unit_t<gigasiemen>;
+
+		using S = siemens;
+		using pS = picosiemens;
+		using nS = nanosiemens;
+		using uS = microsiemens;
+		using mS = millisiemens;
+		using kS = kilosiemens;
+		using MS = megasiemens;
+		using GS = gigasiemens;
 	}
 
 	//------------------------------
