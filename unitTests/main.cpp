@@ -31,6 +31,7 @@ using namespace units::radiation;
 using namespace units::torque;
 using namespace units::volume;
 using namespace units::density;
+using namespace units::concentration;
 
 namespace {
 
@@ -1361,6 +1362,20 @@ TEST_F(UnitTest, densityConversion)
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
 	test = convert<slug_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
+}
+
+TEST_F(UnitTest, concentrationConversion)
+{
+	double test;
+
+	test = ppm_t(1.0);
+	EXPECT_NEAR(1.0e-6, test, 5.0e-12);
+	test = ppb_t(1.0);
+	EXPECT_NEAR(1.0e-9, test, 5.0e-12);
+	test = ppt_t(1.0);
+	EXPECT_NEAR(1.0e-12, test, 5.0e-12);
+	test = percent_t(18.0);
+	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
 TEST_F(UnitTest, testConstants)

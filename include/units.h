@@ -228,7 +228,6 @@ namespace units
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
 		using density_unit					= base_unit<std::ratio<-3>,	std::ratio<1>>;
-		using concentration_unit			= base_unit<std::ratio<-3>>;
 	}
 
 	//------------------------------
@@ -772,7 +771,7 @@ namespace units
 		 * @details		only enabled for scalar unit types.
 		 */
 		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
-		operator T() const { return nls::m_value; }
+		operator T() const { return convert<Units, scalar>(nls::m_value); }
 
 	public:
 
@@ -2448,6 +2447,27 @@ namespace units
 		using pound_per_cubic_inch_t = unit_t<pound_per_cubic_inch>;
 		using pound_per_gallon_t = unit_t<pound_per_gallon>;
 		using slug_per_cubic_foot_t = unit_t<slug_per_cubic_foot>;
+	}
+
+	//------------------------------
+	//	UNITS OF CONCENTRATION
+	//------------------------------
+
+	namespace concentration
+	{
+		using parts_per_million = unit<std::ratio<1, 1000000>, category::scalar_unit>;
+		using parts_per_billion = unit<std::ratio<1, 1000>, parts_per_million>;
+		using parts_per_trillion = unit<std::ratio<1,1000>, parts_per_billion>;
+		using percent = unit<std::ratio<1, 100>, category::scalar_unit>;
+		
+		using ppm = parts_per_million;
+		using ppb = parts_per_billion;
+		using ppt = parts_per_trillion;
+
+		using ppm_t = unit_t<ppm>;
+		using ppb_t = unit_t<ppb>;
+		using ppt_t = unit_t<ppt>;
+		using percent_t = unit_t<percent>;
 	}
 
 	//------------------------------
