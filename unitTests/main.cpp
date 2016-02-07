@@ -30,6 +30,7 @@ using namespace units::illuminance;
 using namespace units::radiation;
 using namespace units::torque;
 using namespace units::volume;
+using namespace units::density;
 
 namespace {
 
@@ -639,8 +640,8 @@ TEST_F(UnitTest, massConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, carats>(0.0002);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<slugs, kilograms>(8.1);
-	EXPECT_NEAR(118.211, test, 5.0e-4);
+	test = convert<slugs, kilograms>(1.0);
+	EXPECT_NEAR(14.593903, test, 5.0e-7);
 
 	test = convert<pounds, carats>(6.3);
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
@@ -1332,6 +1333,34 @@ TEST_F(UnitTest, volumeConversion)
 	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
 	test = convert<strikes, cubic_meter>(1.0);
 	EXPECT_NEAR(0.07047814033376 , test, 5.0e-5);
+	test = convert<volume::ounces, milliliters>(1.0);
+	EXPECT_NEAR(29.5735, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, densityConversion)
+{
+	double test;
+
+	test = convert<kilogram_per_cubic_meter, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<gram_per_milliliter, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(1000.0, test, 5.0e-5);
+	test = convert<kilogram_per_liter, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(1000.0, test, 5.0e-5);
+	test = convert<ounce_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(1.001153961, test, 5.0e-10);
+	test = convert<ounce_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(1.729994044e3, test, 5.0e-7);
+	test = convert<ounce_per_gallon, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(7.489151707, test, 5.0e-10);
+	test = convert<pound_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(16.01846337, test, 5.0e-9);
+	test = convert<pound_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(2.767990471e4, test, 5.0e-6);
+	test = convert<pound_per_gallon, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(119.8264273, test, 5.0e-8);
+	test = convert<slug_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
 TEST_F(UnitTest, testConstants)

@@ -2411,6 +2411,46 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNITS OF DENSITY
+	//------------------------------
+
+	namespace density
+	{
+		using kilograms_per_cubic_meter = unit<std::ratio<1>, category::density_unit>;
+		using grams_per_milliliter = compound_unit<mass::grams, inverse<volume::milliliter>>;
+		using kilograms_per_liter = compound_unit<mass::kilograms, inverse<volume::liter>>;
+		using ounces_per_cubic_foot = compound_unit<mass::ounces, inverse<volume::cubic_foot>>;
+		using ounces_per_cubic_inch = compound_unit<mass::ounces, inverse<volume::cubic_inch>>;
+		using ounces_per_gallon = compound_unit<mass::ounces, inverse<volume::gallon>>;
+		using pounds_per_cubic_foot = compound_unit<mass::pounds, inverse<volume::cubic_foot>>;
+		using pounds_per_cubic_inch = compound_unit<mass::pounds, inverse<volume::cubic_inch>>;
+		using pounds_per_gallon = compound_unit<mass::pounds, inverse<volume::gallon>>;
+		using slugs_per_cubic_foot = compound_unit<mass::slugs, inverse<volume::cubic_foot>>;
+
+		using kilogram_per_cubic_meter = kilograms_per_cubic_meter;
+		using gram_per_milliliter = grams_per_milliliter;
+		using kilogram_per_liter = kilograms_per_liter;
+		using ounce_per_cubic_foot = ounces_per_cubic_foot;
+		using ounce_per_cubic_inch = ounces_per_cubic_inch;
+		using ounce_per_gallon = ounces_per_gallon;
+		using pound_per_cubic_foot = pounds_per_cubic_foot;
+		using pound_per_cubic_inch = pounds_per_cubic_inch;
+		using pound_per_gallon = pounds_per_gallon;
+		using slug_per_cubic_foot = slugs_per_cubic_foot;
+
+		using kilogram_per_cubic_meter_t = unit_t<kilogram_per_cubic_meter>;
+		using gram_per_milliliter_t = unit_t<gram_per_milliliter>;
+		using kilogram_per_liter_t = unit_t<kilogram_per_liter>;
+		using ounce_per_cubic_foot_t = unit_t<ounce_per_cubic_foot>;
+		using ounce_per_cubic_inch_t = unit_t<ounce_per_cubic_inch>;
+		using ounce_per_gallon_t = unit_t<ounce_per_gallon>;
+		using pound_per_cubic_foot_t = unit_t<pound_per_cubic_foot>;
+		using pound_per_cubic_inch_t = unit_t<pound_per_cubic_inch>;
+		using pound_per_gallon_t = unit_t<pound_per_gallon>;
+		using slug_per_cubic_foot_t = unit_t<slug_per_cubic_foot>;
+	}
+
+	//------------------------------
 	//	CONSTANTS
 	//------------------------------
 
