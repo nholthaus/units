@@ -1094,6 +1094,15 @@ namespace units
 		using astronicalUnits = unit<std::ratio<149597870700>, meters>;
 		using lightyears = unit<std::ratio<9460730472580800>, meters>;
 		using parsecs = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
+		using angstroms = unit<std::ratio<1, 10>, nanometers>;
+		using cubits = unit<std::ratio<18>, inches>;
+		using fathoms = unit<std::ratio<6>, feet>;
+		using chains = unit<std::ratio<66>, feet>;
+		using furlongs = unit<std::ratio<10>, chains>;
+		using hands = unit<std::ratio<4>, inches>;
+		using leagues = unit<std::ratio<3>, miles>;
+		using nauticalLeagues = unit<std::ratio<3>, nauticalMiles>;
+		using yards = unit<std::ratio<3>, feet>;
 
 		using meter = meters;
 		using nanometer = nanometers;
@@ -1108,6 +1117,15 @@ namespace units
 		using astronicalUnit = astronicalUnits;
 		using lightyear = lightyears;
 		using parsec = parsecs;
+		using angstrom = angstroms;
+		using cubit = cubits;
+		using fathom = fathoms;
+		using chain = chains;
+		using furlong = furlongs;
+		using hand = hands;
+		using league = leagues;
+		using nauticalLeague = nauticalLeagues;
+		using yard = yards;
 
 		using m = meters;
 		using nm = nanometers;
@@ -1122,6 +1140,12 @@ namespace units
 		using au = astronicalUnits;
 		using ly = lightyears;
 		using pc = parsecs;
+		using ftm = fathoms;
+		using ch = chains;
+		using fur = furlongs;
+		using lea = leagues;
+		using nl = nauticalLeagues;
+		using yd = yards;
 
 		using meter_t = unit_t<meter>;
 		using nanometer_t = unit_t<nanometer>;
@@ -1136,6 +1160,15 @@ namespace units
 		using astronicalUnit_t = unit_t<astronicalUnit>;
 		using lightyear_t = unit_t<lightyear>;
 		using parsec_t = unit_t<parsec>;
+		using angstrom_t = unit_t<angstrom>;
+		using cubit_t = unit_t<cubit>;
+		using fathom_t = unit_t<fathom>;
+		using chain_t = unit_t<chain>;
+		using furlong_t = unit_t<furlong>;
+		using hand_t = unit_t<hand>;
+		using league_t = unit_t<league>;
+		using nauticalLeague_t = unit_t<nauticalLeague>;
+		using yard_t = unit_t<yard>;
 	}
 	
 	//------------------------------
@@ -2249,6 +2282,132 @@ namespace units
 		using square_kilometer_t = unit_t<square_kilometer>;
 		using hectare_t = unit_t<hectare>;
 		using acre_t = unit_t<acre>;
+	}
+
+	//------------------------------
+	//	UNITS OF VOLUME
+	//------------------------------
+
+	namespace volume
+	{
+		using cubic_meters = unit<std::ratio<1>, category::volume_unit>;
+		using cubic_millimeters = cubed<length::millimeter>;
+		using cubic_kilometers = cubed<length::kilometer>;
+		using liters = cubed<deci<length::meter>>;
+		using milliliters = milli<liters>;
+		using cubic_inches = cubed<length::inches>;
+		using cubic_feet = cubed<length::feet>;
+		using cubic_yards = cubed<length::yards>;
+		using cubic_miles = cubed<length::miles>;
+		using gallons = unit<std::ratio<231>, cubic_inches>;
+		using quarts = unit<std::ratio<1, 4>, gallons>;
+		using pints = unit<std::ratio<1, 2>, quarts>;
+		using cups = unit<std::ratio<1, 2>, pints>;
+		using ounces = unit<std::ratio<1, 8>, cups>;
+		using barrels = unit<std::ratio<42>, gallons>;
+		using bushels = unit<std::ratio<215042, 100>, cubic_inches>;
+		using cords = unit<std::ratio<128>, cubic_feet>;
+		using cubic_fathoms = cubed<length::fathom>;
+		using tablespoons = unit<std::ratio<1, 2>, ounces>;
+		using teaspoons = unit<std::ratio<1, 6>, ounces>;
+		using pinches = unit<std::ratio<1,8>, teaspoons>;
+		using dashes = unit<std::ratio<1, 2>, pinches>;
+		using drops = unit<std::ratio<1, 360>, ounces>;
+		using fifths = unit<std::ratio<1, 5>, gallons>;
+		using drams = unit<std::ratio<1, 8>, ounces>;
+		using gills = unit<std::ratio<4>, ounces>;
+		using pecks = unit<std::ratio<1, 4>, bushels>;
+		using sacks = unit<std::ratio<3>, bushels>;
+		using shots = unit<std::ratio<3, 2>, ounces>;
+		using strikes = unit<std::ratio<2>, bushels>;
+
+		using fluidOunces = ounces;
+
+		using cubic_meter = cubic_meters;
+		using cubic_millimeter = cubic_millimeters;
+		using cubic_kilometer = cubic_kilometers;
+		using liter = liters;
+		using milliliter = milliliters;
+		using cubic_inch = cubic_inches;
+		using cubic_foot = cubic_feet;
+		using cubic_yard = cubic_yards;
+		using cubic_mile = cubic_miles;
+		using gallon = gallons;
+		using quart = quarts;
+		using pint = pints;
+		using cup = cups;
+		using ounce = ounces;
+		using barrel = barrels;
+		using bushel = bushels;
+		using cord = cords;
+		using cubic_fathom = cubic_fathoms;
+		using tablespoon = tablespoons;
+		using teaspoon = teaspoons;
+		using pinch = pinches;
+		using dash = dashes;
+		using drop = drops;
+		using fifth = fifths;
+		using dram = drams;
+		using gill = gills;
+		using peck = pecks;
+		using sack = sacks;
+		using shot = shots;
+		using strike = strikes;
+		using fluidOunce = fluidOunces;
+
+		using cubic_meter_t = unit_t<cubic_meter>;
+		using cubic_millimeter_t = unit_t<cubic_millimeter>;
+		using cubic_kilometer_t = unit_t<cubic_kilometer>;
+		using liter_t = unit_t<liter>;
+		using milliliter_t = unit_t<milliliter>;
+		using cubic_inch_t = unit_t<cubic_inch>;
+		using cubic_foot_t = unit_t<cubic_foot>;
+		using cubic_yard_t = unit_t<cubic_yard>;
+		using cubic_mile_t = unit_t<cubic_mile>;
+		using gallon_t = unit_t<gallon>;
+		using quart_t = unit_t<quart>;
+		using pint_t = unit_t<pint>;
+		using cup_t = unit_t<cup>;
+		using ounce_t = unit_t<ounce>;
+		using barrel_t = unit_t<barrel>;
+		using bushel_t = unit_t<bushel>;
+		using cord_t = unit_t<cord>;
+		using cubic_fathom_t = unit_t<cubic_fathom>;
+		using tablespoon_t = unit_t<tablespoon>;
+		using teaspoon_t = unit_t<teaspoon>;
+		using pinch_t = unit_t<pinch>;
+		using dash_t = unit_t<dash>;
+		using drop_t = unit_t<drop>;
+		using fifth_t = unit_t<fifth>;
+		using dram_t = unit_t<dram>;
+		using gill_t = unit_t<gill>;
+		using peck_t = unit_t<peck>;
+		using sack_t = unit_t<sack>;
+		using shot_t = unit_t<shot>;
+		using strike_t = unit_t<strike>;
+
+		using m3 = cubic_meters;
+		using mm3 = cubic_millimeters;
+		using km3 = cubic_kilometers;
+		using L = liters;
+		using mL = milliliters;
+		using cu_in = cubic_inches;
+		using cu_ft = cubic_feet;
+		using cu_yd = cubic_yards;
+		using cu_mi = cubic_miles;
+		using gal = gallons;
+		using qt = quarts;
+		using pt = pints;
+		using c = cups;
+		using oz = ounces;
+		using bl = barrels;
+		using bu = bushels;
+		using cu_fm = cubic_fathoms;
+		using tbsp = tablespoons;
+		using tsp = teaspoons;
+		using dr = drams;
+		using gi = gills;
+		using pk = pecks;
 	}
 
 	//------------------------------

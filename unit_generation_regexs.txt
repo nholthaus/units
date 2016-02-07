@@ -1,9 +1,9 @@
 // pico to giga
 using (.*) =(.*)
-using $1 =$2;\n\t\tusing pico$1 = pico<$1>;\n\t\tusing nano$1 = nano<$1>;\n\t\tusing micro$1 = micro<$1>;\n\t\tusing milli$1 = milli<$1>;\n\t\tusing kilo$1 = kilo<$1>;\n\t\tusing mega$1 = mega<$1>;\n\t\tusing giga$1 = giga<$1>;
+using $1 =$2\n\t\tusing pico$1 = pico<$1>;\n\t\tusing nano$1 = nano<$1>;\n\t\tusing micro$1 = micro<$1>;\n\t\tusing milli$1 = milli<$1>;\n\t\tusing kilo$1 = kilo<$1>;\n\t\tusing mega$1 = mega<$1>;\n\t\tusing giga$1 = giga<$1>;
 
 // plural to single
-using (.*)s =.*
+using (.*)e?s =.*
 using $1 = $1s;
 
 // single to test

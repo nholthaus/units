@@ -29,6 +29,7 @@ using namespace units::luminous_flux;
 using namespace units::illuminance;
 using namespace units::radiation;
 using namespace units::torque;
+using namespace units::volume;
 
 namespace {
 
@@ -184,10 +185,9 @@ TEST_F(UnitTest, isScalarUnit)
 
 TEST_F(UnitTest, squared)
 {
-	using feet_squared = units::squared<feet>;
 	double test;
 
-	test = convert<squared<meters>, feet_squared>(0.092903);
+	test = convert<squared<meters>, square_feet>(0.092903);
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using scalar_2 = units::squared<scalar>;	// this is actually nonsensical, and should also result in a scalar.
@@ -197,10 +197,9 @@ TEST_F(UnitTest, squared)
 
 TEST_F(UnitTest, cubed)
 {
-	using feet_cubed = units::cubed<feet>;
 	double test;
 
-	test = convert<cubed<meters>, feet_cubed>(0.0283168);
+	test = convert<cubed<meters>, cubic_feet>(0.0283168);
 	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
 }
 
@@ -611,6 +610,8 @@ TEST_F(UnitTest, lengthConversion)
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
 	test = convert<miles, meters>(11.0);
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
+	test = convert<meters, chains>(1.0);
+	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
 }
 
@@ -634,7 +635,7 @@ TEST_F(UnitTest, massConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, us_tons>(907.185);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<kilograms, ounces>(0.0283495);
+	test = convert<kilograms, mass::ounces>(0.0283495);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, carats>(0.0002);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
@@ -1265,6 +1266,72 @@ TEST_F(UnitTest, torqueConversions)
 	test = convert<foot_poundals, inch_pound>(2.681170713);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
+}
+
+TEST_F(UnitTest, volumeConversion)
+{
+	double test;
+
+	test = convert<cubic_meters, cubic_meter>(1.0);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<cubic_millimeters, cubic_meter>(1.0);
+	EXPECT_NEAR(1.0e-9, test, 5.0e-5);
+	test = convert<cubic_kilometers, cubic_meter>(1.0);
+	EXPECT_NEAR(1.0e9, test, 5.0e-5);
+	test = convert<liters, cubic_meter>(1.0);
+	EXPECT_NEAR(0.001, test, 5.0e-5);
+	test = convert<milliliters, cubic_meter>(1.0);
+	EXPECT_NEAR(1.0e-6, test, 5.0e-5);
+	test = convert<cubic_inches, cubic_meter>(1.0);
+	EXPECT_NEAR(1.6387e-5, test, 5.0e-10);
+	test = convert<cubic_feet, cubic_meter>(1.0);
+	EXPECT_NEAR(0.0283168, test, 5.0e-8);
+	test = convert<cubic_yards, cubic_meter>(1.0);
+	EXPECT_NEAR(0.764555, test, 5.0e-7);
+	test = convert<cubic_miles, cubic_meter>(1.0);
+	EXPECT_NEAR(4.168e+9, test, 5.0e5);
+	test = convert<gallons, cubic_meter>(1.0);
+	EXPECT_NEAR(0.00378541, test, 5.0e-8);
+	test = convert<quarts, cubic_meter>(1.0);
+	EXPECT_NEAR(0.000946353, test, 5.0e-10);
+	test = convert<pints, cubic_meter>(1.0);
+	EXPECT_NEAR(0.000473176, test, 5.0e-10);
+	test = convert<cups, cubic_meter>(1.0);
+	EXPECT_NEAR(0.00024, test, 5.0e-6);
+	test = convert<volume::ounces, cubic_meter>(1.0);
+	EXPECT_NEAR(2.9574e-5, test, 5.0e-5);
+	test = convert<barrels, cubic_meter>(1.0);
+	EXPECT_NEAR(0.158987294928, test, 5.0e-13);
+	test = convert<bushels, cubic_meter>(1.0);
+	EXPECT_NEAR(0.0352391, test, 5.0e-8);
+	test = convert<cords, cubic_meter>(1.0);
+	EXPECT_NEAR(3.62456, test, 5.0e-6);
+	test = convert<cubic_fathoms, cubic_meter>(1.0);
+	EXPECT_NEAR(6.11644, test, 5.0e-6);
+	test = convert<tablespoons, cubic_meter>(1.0);
+	EXPECT_NEAR(1.4787e-5, test, 5.0e-10);
+	test = convert<teaspoons, cubic_meter>(1.0);
+	EXPECT_NEAR(4.9289e-6, test, 5.0e-11);
+	test = convert<pinches, cubic_meter>(1.0);
+	EXPECT_NEAR(616.11519921875e-9, test, 5.0e-20);
+	test = convert<dashes, cubic_meter>(1.0);
+	EXPECT_NEAR(308.057599609375e-9, test, 5.0e-20);
+	test = convert<drops, cubic_meter>(1.0);
+	EXPECT_NEAR(82.14869322916e-9, test, 5.0e-9);
+	test = convert<fifths, cubic_meter>(1.0);
+	EXPECT_NEAR(0.00075708236, test, 5.0e-12);
+	test = convert<drams, cubic_meter>(1.0);
+	EXPECT_NEAR(3.69669e-6, test, 5.0e-12);
+	test = convert<gills, cubic_meter>(1.0);
+	EXPECT_NEAR(0.000118294, test, 5.0e-10);
+	test = convert<pecks, cubic_meter>(1.0);
+	EXPECT_NEAR(0.00880977, test, 5.0e-9);
+	test = convert<sacks, cubic_meter>(9.4591978);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<shots, cubic_meter>(1.0);
+	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
+	test = convert<strikes, cubic_meter>(1.0);
+	EXPECT_NEAR(0.07047814033376 , test, 5.0e-5);
 }
 
 TEST_F(UnitTest, testConstants)
