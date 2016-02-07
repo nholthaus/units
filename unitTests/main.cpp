@@ -1381,7 +1381,9 @@ TEST_F(UnitTest, concentrationConversion)
 TEST_F(UnitTest, testConstants)
 {
 	EXPECT_NEAR(299792458, meters_per_second_t(constants::c)(), 5.0e-9);
-	EXPECT_NEAR(3.14159, scalar_t(constants::pi)(), 5.0e-6);
+	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
+//	EXPECT_NEAR(6.67408e-11, constants::G, 5.0e-17);
+//	EXPECT_NEAR(6.626070040e-34, constants::h, 5.0e-44);
 //	EXPECT_NEAR(8.854e-12, unit_t<>(constants::epsilon0()), 5.0e-15);
 }
 

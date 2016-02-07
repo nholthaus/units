@@ -2483,7 +2483,7 @@ namespace units
 		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
 		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
 		static const unit_t<unit<std::ratio<4, 10000000>, compound_unit<force::newton, inverse<squared<current::ampere>>>, std::ratio<1>>>	mu0(1.0);									///< vacuum permeability.
-		static const auto																													epsilon0 = 1.0 / (mu0 * units::pow<2>(c));
+		static const auto																													epsilon0 = 1.0 / (mu0 * units::pow<2>(c));	///< vacuum permitivity.
 
 	}
 
