@@ -28,6 +28,7 @@ using namespace units::inductance;
 using namespace units::luminous_flux;
 using namespace units::illuminance;
 using namespace units::radiation;
+using namespace units::torque;
 
 namespace {
 
@@ -927,7 +928,7 @@ TEST_F(UnitTest, energyConversion)
 	EXPECT_NEAR(0.000530904, test, 5.0e-5);
 	test = convert<british_thermal_units, kilojoules>(18.56399995447);
 	EXPECT_NEAR(19.5860568, test, 5.0e-5);
-	test = convert<calories, foot_pounds>(18.56399995447);
+	test = convert<calories, energy::foot_pounds>(18.56399995447);
 	EXPECT_NEAR(57.28776190423856, test, 5.0e-5);
 	test = convert<megajoules, calories>(1.0);
 	EXPECT_NEAR(239006.0, test, 5.0e-1);
@@ -947,7 +948,7 @@ TEST_F(UnitTest, powerConversion)
 {
 	double test;
 
-	test = convert<compound_unit<foot_pounds, inverse<seconds>>, watts>(550.0);
+	test = convert<compound_unit<energy::foot_pounds, inverse<seconds>>, watts>(550.0);
 	EXPECT_NEAR(745.7, test, 5.0e-2);
 	test = convert<watts, gigawatts>(1000000000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-4);
@@ -1245,6 +1246,25 @@ TEST_F(UnitTest, radiationConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = convert<rads, grays>(100.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, torqueConversions)
+{
+	double test;
+
+	test = convert<torque::foot_pounds, newton_meter>(1.0);
+	EXPECT_NEAR(1.355817948, test, 5.0e-5);
+	test = convert<inch_pounds, newton_meter>(1.0);
+	EXPECT_NEAR(0.112984829, test, 5.0e-5);
+	test = convert<foot_poundals, newton_meter>(1.0);
+	EXPECT_NEAR(4.214011009e-2, test, 5.0e-5);
+	test = convert<meter_kilograms, newton_meter>(1.0);
+	EXPECT_NEAR(9.80665, test, 5.0e-5);
+	test = convert<inch_pound, meter_kilogram>(86.79616930855788);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<foot_poundals, inch_pound>(2.681170713);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
+
 }
 
 TEST_F(UnitTest, testConstants)

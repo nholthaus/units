@@ -224,7 +224,7 @@ namespace units
 		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
 		// OTHER UNIT TYPES			---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using torque_units					= base_unit<std::ratio<1>,	std::ratio<1>>;
+		using torque_units					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
 		using area_unit						= base_unit<std::ratio<2>>;
 		using volume_unit					= base_unit<std::ratio<3>>;
 		using density_unit					= base_unit<std::ratio<-3>,	std::ratio<1>>;
@@ -582,7 +582,7 @@ namespace units
 	{
 		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(is_convertible_unit<UnitFrom, UnitTo>::value, "`UnitFrom` is not convertible to `UnitTo`.");
+		static_assert(is_convertible_unit<UnitFrom, UnitTo>::value, "Units are not compatible.");
 
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
 		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
@@ -2177,6 +2177,37 @@ namespace units
 		using GSv = gigasieverts;
 		using Ci = curies;
 		using rd = rutherfords;
+	}
+
+	//------------------------------
+	//	UNITS OF TORQUE
+	//------------------------------
+
+	namespace torque
+	{
+		using newton_meters = unit<std::ratio<1>, category::torque_units>;
+		using foot_pounds = compound_unit<length::foot, force::pounds>;
+		using foot_poundals = compound_unit<length::foot, force::poundal>;
+		using inch_pounds = compound_unit<length::inch, force::pounds>;
+		using meter_kilograms = compound_unit<length::meter, force::kiloponds>;
+
+		using newton_meter = newton_meters;
+		using foot_pound = foot_pounds;
+		using foot_poundal = foot_poundals;
+		using inch_pound = inch_pounds;
+		using meter_kilogram = meter_kilograms;
+
+		using newton_meter_t = unit_t<newton_meter>;
+		using foot_pound_t = unit_t<foot_pound>;
+		using foot_poundal_t = unit_t<foot_poundal>;
+		using inch_pound_t = unit_t<inch_pound>;
+		using meter_kilogram_t = unit_t<meter_kilogram>;
+
+		using Nm = newton_meters;
+		using ftlbf = foot_pounds;
+		using ftpdl = foot_poundals;
+		using inlbf = inch_pounds;
+		using mkgf = meter_kilograms;
 	}
 
 	//------------------------------
