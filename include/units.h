@@ -2479,12 +2479,22 @@ namespace units
 		static const double PI = 3.14159265358979323846264338327950288419716939937510;
 
 		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);									///< Ratio of a circle's circumference to its diameter.
-		static const unit_t<compound_unit<unit<std::ratio<299792458>, length::meters>, inverse<time::seconds>>>								c(1.0);										///< Speed of light in vacuum.
+		static const velocity::meters_per_second_t																							c(299792458.0);								///< Speed of light in vacuum.
 		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
 		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
-		static const unit_t<unit<std::ratio<4, 10000000>, compound_unit<force::newton, inverse<squared<current::ampere>>>, std::ratio<1>>>	mu0(1.0);									///< vacuum permeability.
-		static const auto																													epsilon0 = 1.0 / (mu0 * units::pow<2>(c));	///< vacuum permitivity.
-
+		static const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(4.0e-7 * PI);							///< vacuum permeability.
+		static const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>														epsilon0(1.0 / (mu0 * units::pow<2>(c)));	///< vacuum permitivity.
+		static const impedance::ohm_t																										Z0(mu0 * c);								///< characteristic impedance of vacuum.
+		static const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));				///< Coulomb's constant.
+		static const charge::coulomb_t																										e(1.602176565e-19);							///< elementary charge.
+		static const mass::kilogram_t																										m_e(9.10938291e-31);						///< electron mass.
+		static const mass::kilogram_t																										m_p(1.672621777e-27);						///< proton mass.
+		static const unit_t<compound_unit<energy::joules, inverse<magnetic_field_strength::tesla>>>											mu_B(e * h / (4 * pi *m_e));				///< Bohr magneton.
+		static const unit_t<inverse<substance::mol>>																						N_A(6.02214129e23);							///< Avagadro's Number.
+		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>							R(8.3144621);								///< Gas constant.
+		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);								///< Boltzmann constant.
+		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);									///< Faraday constnat.
+		static const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>		sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 	}
 
 };	// end namespace units

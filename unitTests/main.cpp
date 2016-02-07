@@ -1380,22 +1380,35 @@ TEST_F(UnitTest, concentrationConversion)
 
 TEST_F(UnitTest, testConstants)
 {
-	EXPECT_NEAR(299792458, meters_per_second_t(constants::c)(), 5.0e-9);
+	// scalar constants
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
-//	EXPECT_NEAR(6.67408e-11, constants::G, 5.0e-17);
-//	EXPECT_NEAR(6.626070040e-34, constants::h, 5.0e-44);
-//	EXPECT_NEAR(8.854e-12, unit_t<>(constants::epsilon0()), 5.0e-15);
+
+	// constants with units
+	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
+	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
+	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
+	EXPECT_NEAR(1.256637061e-6, constants::mu0(), 5.0e-16);
+	EXPECT_NEAR(8.854187817e-12, constants::epsilon0(), 5.0e-21);
+	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12);
+	EXPECT_NEAR(8.987551787e9, constants::k_e(), 5.0e-1);
+	EXPECT_NEAR(1.602176565e-19, constants::e(), 5.0e-29);
+	EXPECT_NEAR(9.10938291e-31, constants::m_e(), 5.0e-40);
+	EXPECT_NEAR(1.672621777e-27, constants::m_p(), 5.0e-37);
+	EXPECT_NEAR(9.27400968e-24, constants::mu_B(), 5.0e-30);
+	EXPECT_NEAR(6.02214129e23, constants::N_A(), 5.0e14);
+	EXPECT_NEAR(8.3144621, constants::R(), 5.0e-8);
+	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
+	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
+	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
 }
 
 TEST_F(UnitTest, radarRangeEquation)
 {
-	using Boltzmann = unit_t<compound_unit<watts, inverse<hertz>, inverse<kelvin>>>;
 
 	watt_t			P_t;				// transmit power
 	scalar_t		G;					// gain
 	meter_t			lambda;				// wavelength
 	square_meter_t	sigma;				// radar cross section
-	const Boltzmann	k(1.38e-23);		// Boltzmann constant
 	meter_t			R;					// range
 	kelvin_t		T_s;				// system noise temp
 	hertz_t			B_n;				// bandwidth
@@ -1411,7 +1424,7 @@ TEST_F(UnitTest, radarRangeEquation)
 	L = dB_t(8.0);
 
 	scalar_t SNR =	(P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
-					(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * k * T_s * B_n * L);
+					(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
