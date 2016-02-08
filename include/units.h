@@ -56,24 +56,54 @@
 //--------------------
 //	UNITS NAMESPACE
 //--------------------
+
+/** 
+ * @brief Unit Conversion Library namespace
+ */
 namespace units
 {
+	//----------------------------------
+	//	DOXYGEN
+	//----------------------------------
+
+	/**
+	 * @defgroup	TypeTraits Type Traits
+	 * @brief		Defines a series of classes to obtain unit type information at compile - time.
+	 */
+
+	 /**
+	  * @defgroup	UnitTypes Unit Types
+	  * @brief		Defines a series of classes which represent units.
+	  */
+
+	/**
+	 * @brief		UnitContainers Unit Containers
+	 * @details		Defines a series of classes which contain dimensioned values.
+	 */
+
 	//------------------------------
 	//	FORWARD DECLARATIONS
 	//------------------------------
-	
+
+	/** @cond */	// DOXYGEN IGNORE
 	namespace constants
 	{
 		static const double PI = 3.14159265358979323846264338327950288419716939937510;
 	}
-	
+	/** @endcond */	// END DOXYGEN IGNORE
+
 	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
 
 	/**
-	* @brief		trait which checks for the existence of a static numerator
-	*/
+	 * @ingroup TypeTrais
+	 * @{
+	 */
+
+	/** @cond */	// DOXYGEN IGNORE
+
+	/// has_num implementation.
 	template<class T>
 	struct has_num_impl
 	{
@@ -85,12 +115,15 @@ namespace units
 		using type = decltype(test<T>(0));
 	};
 
+	/**
+	 * @brief		Trait which checks for the existence of a static numerator.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_num<T>::value` to test
+	 *				whether `class T` has a numerator static member.
+	 */
 	template<class T>
 	struct has_num : has_num_impl<T>::type {};
 
-	/**
-	* @brief		Trait which checks for the existence of a static denominator
-	*/
+	/// has_den implementation.
 	template<class T>
 	struct has_den_impl
 	{
@@ -102,12 +135,22 @@ namespace units
 		using type = decltype(test<T>(0));
 	};
 
+
+	/**
+	 * @brief		Trait which checks for the existence of a static denominator.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_den<T>::value` to test
+	 *				whether `class T` has a denominator static member.
+	 */
 	template<class T>
 	struct has_den : has_den_impl<T>::type {};
 
+	/** @endcond */	// END DOXYGEN IGNORE
+
 	/**
-	* @brief		Trait that tests whether a type represents a ratio.
-	*/
+	 * @brief		Trait that tests whether a type represents a std::ratio.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio<T>::value` to test
+	 *				whether `class T` implements a std::ratio.
+	 */
 	template<class T>
 	struct is_ratio : std::integral_constant<bool,
 		has_num<T>::value &&
@@ -118,15 +161,28 @@ namespace units
 	//	UNIT TRAITS
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		void type.
+	 * @details		Helper class for creating type traits.
+	 */
 	template<class ...>
-//	using void_t = void;
 	struct void_t { typedef void type; };
 
+	/**
+	 * @brief		parameter pack for boolean arguments.
+	 */
 	template<bool...> struct bool_pack {};
 
+	/**
+	 * @brief		Trait which tests that a set of other traits are all true.
+	 */
 	template<bool... Args>
-	struct all_true : std::is_same<bool_pack<true, Args...>, bool_pack<Args..., true>>{};
+	struct all_true : std::is_same<bool_pack<true, Args...>, bool_pack<Args..., true>> {};
 
+	/**
+	 * @brief		unit traits implementation for classes which are not units.
+	 */
 	template<class T, typename = void>
 	struct unit_traits
 	{
@@ -135,7 +191,12 @@ namespace units
 		typedef void pi_exponent_ratio;
 		typedef void translation_ratio;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Traits class defining the properties of units.
+	 * @details		
+	 */
 	template<class T>
 	struct unit_traits<T, typename void_t<
 		typename T::base_unit_type,
@@ -143,112 +204,145 @@ namespace units
 		typename T::pi_exponent_ratio,
 		typename T::translation_ratio>::type>
 	{
-		typedef typename T::base_unit_type base_unit_type;
-		typedef typename T::conversion_ratio conversion_ratio;
-		typedef typename T::pi_exponent_ratio pi_exponent_ratio;
-		typedef typename T::translation_ratio translation_ratio;
+		typedef typename T::base_unit_type base_unit_type;											///< Unit type that the unit was derived from. May be a `base_unit` or another `unit`. Use the `base_unit_of` trait to find the SI base unit type. 
+		typedef typename T::conversion_ratio conversion_ratio;										///< std::ratio representing the conversion factor to the `base_unit_type`.
+		typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< std::ratio representing the exponent of pi to be used in the conversion.
+		typedef typename T::translation_ratio translation_ratio;									///< std::ratio representing a datum translation to the base unit (i.e. degrees C to degrees F conversion).
 	};
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		helper type to identify base units.
+	 * @details		A non-templated base class for `base_unit` which enables RTTI testing.
+	 */
 	struct _base_unit_t {};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Traits which tests if a class is a `base_unit`
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_base_unit<T>::value` to test
+	 *				whether `class T` implements a `base_unit`.
+	 */
 	template<class T>
 	struct is_base_unit : std::is_base_of<_base_unit_t, T> {};
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		helper type to identify units.
+	 * @details		A non-templated base class for `unit` which enables RTTI testing.
+	 */
 	struct _unit_t {};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Traits which tests if a class is a `unit`
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
+	 *				whether `class T` implements a `unit`.
+	 */
 	template<class T>
 	struct is_unit : std::is_base_of<_unit_t, T>::type {};
+
+	/** @} */ // end of TypeTraits
 
 	//------------------------------
 	//	BASE UNIT CLASS
 	//------------------------------
 
 	/**
-	 * @brief		
-	 * @details		
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		Class representing SI base unit types.
+	 * @details		Base units are represented by a combination of `std::ratio` template parameters, each
+	 *				describing the exponent of the type of unit they represent. Example: meters per second
+	 *				would be described by a +1 exponent for meters, and a -1 exponent for seconds, thus:
+	 *				`base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>`
+	 * @tparam		Meter		`std::ratio` representing the exponent value for meters.
+	 * @tparam		Kilogram	`std::ratio` representing the exponent value for kilograms.
+	 * @tparam		Second		`std::ratio` representing the exponent value for seconds.
+	 * @tparam		Radian		`std::ratio` representing the exponent value for radians. Although radians are not SI base units, they are included because radians are described by the SI as m * m^-1, which would make them indistinguishable from scalars.
+	 * @tparam		Ampere		`std::ratio` representing the exponent value for amperes.
+	 * @tparam		Kelvin		`std::ratio` representing the exponent value for Kelvin.
+	 * @tparam		Mole		`std::ratio` representing the exponent value for moles.
+	 * @tparam		Candela		`std::ratio` representing the exponent value for candelas.
+	 * @ingroup		UnitTypes
 	 */
-	template<class Meter		= std::ratio<0>,
-			 class Kilogram		= std::ratio<0>,
-			 class Second		= std::ratio<0>,
-			 class Radian		= std::ratio<0>,	 
-			 class Ampere		= std::ratio<0>,
-			 class Kelvin		= std::ratio<0>,		
-			 class Mole			= std::ratio<0>,
-			 class Candela		= std::ratio<0>>
+	template<class Meter = std::ratio<0>,
+	class Kilogram = std::ratio<0>,
+	class Second = std::ratio<0>,
+	class Radian = std::ratio<0>,
+	class Ampere = std::ratio<0>,
+	class Kelvin = std::ratio<0>,
+	class Mole = std::ratio<0>,
+	class Candela = std::ratio < 0 >>
 	struct base_unit : _base_unit_t
 	{
-		static_assert(is_ratio<Meter>::value,		"Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
-		static_assert(is_ratio<Kilogram>::value,	"Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
-		static_assert(is_ratio<Second>::value,		"Template parameter `Second` must be a `std::ratio` representing the exponent of seconds the unit has");
-		static_assert(is_ratio<Ampere>::value,		"Template parameter `Ampere` must be a `std::ratio` representing the exponent of amperes the unit has");
-		static_assert(is_ratio<Kelvin>::value,		"Template parameter `Kelvin` must be a `std::ratio` representing the exponent of kelvin the unit has");
-		static_assert(is_ratio<Candela>::value,		"Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
-		static_assert(is_ratio<Mole>::value,		"Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
-		static_assert(is_ratio<Radian>::value,		"Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
-
-		using meter_exponent_ratio = Meter;
-		using kilogram_exponent_ratio = Kilogram;
-		using second_exponent_ratio = Second;
-		using ampere_exponent_ratio = Ampere;
-		using kelvin_exponent_ratio = Kelvin;
-		using candela_exponent_ratio = Candela;
-		using mole_exponent_ratio = Mole;
-		using radian_exponent_ratio = Radian;
+		static_assert(is_ratio<Meter>::value, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
+		static_assert(is_ratio<Kilogram>::value, "Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
+		static_assert(is_ratio<Second>::value, "Template parameter `Second` must be a `std::ratio` representing the exponent of seconds the unit has");
+		static_assert(is_ratio<Ampere>::value, "Template parameter `Ampere` must be a `std::ratio` representing the exponent of amperes the unit has");
+		static_assert(is_ratio<Kelvin>::value, "Template parameter `Kelvin` must be a `std::ratio` representing the exponent of kelvin the unit has");
+		static_assert(is_ratio<Candela>::value, "Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
+		static_assert(is_ratio<Mole>::value, "Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
+		static_assert(is_ratio<Radian>::value, "Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
 	};
 
 	//------------------------------
 	//	UNIT CATEGORIES
 	//------------------------------
 
+	/**
+	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be needed by library users.
+	 */
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar_unit					= base_unit<>;
-		using dimensionless_unit			= base_unit<>;
+		using scalar_unit = base_unit<>;
+		using dimensionless_unit = base_unit<>;
 
 		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using length_unit					= base_unit<std::ratio<1>>;
-		using mass_unit						= base_unit<std::ratio<0>,	std::ratio<1>>;
-		using time_unit						= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using angle_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using current_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using temperature_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using substance_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using luminous_intensity_unit		= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using length_unit = base_unit<std::ratio<1>>;
+		using mass_unit = base_unit<std::ratio<0>, std::ratio<1>>;
+		using time_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using current_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using temperature_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using substance_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using luminous_intensity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
 
 		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using solid_angle_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
-		using frequency_unit				= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
-		using velocity_unit					= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
-		using acceleration_unit				= base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
-		using force_unit					= base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
-		using pressure_unit					= base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
-		using charge_unit					= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
-		using energy_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
-		using power_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;
-		using voltage_unit					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;
-		using capacitance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;
-		using impedance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
-		using conductance_unit				= base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;
-		using magnetic_flux_unit			= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
-		using magnetic_field_strength_unit	= base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
-		using inductance_unit				= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
-		using luminous_flux_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using illuminance_unit				= base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using radioactivity_unit			= base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+		using solid_angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>>;
+		using frequency_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
+		using velocity_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
+		using acceleration_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
+		using force_unit = base_unit<std::ratio<1>, std::ratio<1>, std::ratio<-2>>;
+		using pressure_unit = base_unit<std::ratio<-1>, std::ratio<1>, std::ratio<-2>>;
+		using charge_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<1>>;
+		using energy_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
+		using power_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>>;
+		using voltage_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-1>>;
+		using capacitance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<4>, std::ratio<0>, std::ratio<2>>;
+		using impedance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-2>>;
+		using conductance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<3>, std::ratio<0>, std::ratio<2>>;
+		using magnetic_flux_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
+		using magnetic_field_strength_unit = base_unit<std::ratio<0>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
+		using inductance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-2>>;
+		using luminous_flux_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using illuminance_unit = base_unit<std::ratio<-2>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using radioactivity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
 
 		// OTHER UNIT TYPES			---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using torque_units					= base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
-		using area_unit						= base_unit<std::ratio<2>>;
-		using volume_unit					= base_unit<std::ratio<3>>;
-		using density_unit					= base_unit<std::ratio<-3>,	std::ratio<1>>;
+		using torque_units = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
+		using area_unit = base_unit<std::ratio<2>>;
+		using volume_unit = base_unit<std::ratio<3>>;
+		using density_unit = base_unit<std::ratio<-3>, std::ratio<1>>;
 	}
 
 	//------------------------------
 	//	UNIT CLASSES
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		unit type template specialization for units derived from base units.
+	 */
 	template <class, class, class, class> struct unit;
 	template<class Conversion, class... Exponents, class PiExponent, class Translation>
 	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : _unit_t
@@ -262,7 +356,23 @@ namespace units
 		typedef Translation translation_ratio;
 		typedef PiExponent pi_exponent_ratio;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Type representing a unit.
+	 * @details		`unit` types are used as tags for the `conversion` function. They are *not* containers
+	 *				(see `unit_t` for a  container class). Each unit is defined by: 
+	 *
+	 *				- A `std::ratio` defining the conversion factor to the base unit type. (e.g. `std::ratio<1,12>` for inches to feet)
+	 *				- A base unit that the unit is derived from (or a unit category)
+	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
+	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
+	 *
+	 * @tparam		Conversion	std::ratio representing scalar multiplication factor.
+	 * @tparam		BaseUnit
+	 * @tparam		PiExponent
+	 * @tparam		Translation
+	 */
 	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit : _unit_t
 	{
@@ -281,8 +391,8 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		
-	 * @details		
+	 * @brief
+	 * @details
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class> struct base_unit_of_impl;
@@ -382,10 +492,10 @@ namespace units
 	template<class Unit1, class Unit2>
 	struct unit_multiply_impl
 	{
-		using type = unit<std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
-			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
-			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, 
-			std::ratio<0>>;
+		using type = unit < std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
+			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
+			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
+			std::ratio < 0 >> ;
 	};
 
 	template<class U1, class U2>
@@ -399,27 +509,27 @@ namespace units
 	template<class Unit1, class Unit2>
 	struct unit_divide_impl
 	{
-		using type = unit<std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>, 
-			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>, 
-			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, 
-			std::ratio<0>>;
+		using type = unit < std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
+			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
+			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
+			std::ratio < 0 >> ;
 	};
 
 	template<class U1, class U2>
 	using unit_divide = typename unit_divide_impl<U1, U2>::type;
 
 	/**
-	 * @brief		
-	 * @details		
+	 * @brief
+	 * @details
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class Unit>
 	struct inverse_impl
 	{
-		using type = unit<std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
+		using type = unit < std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
 			inverse_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
 			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
-			std::ratio<0>>;	// inverses are rates or change, the translation factor goes away.
+			std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
 	};
 
 	template<class U> using inverse = typename inverse_impl<U>::type;
@@ -431,13 +541,13 @@ namespace units
 	 */
 	template<class Unit>
 	struct squared_impl
-	{	
+	{
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 		using Conversion = typename Unit::conversion_ratio;
-		using type = unit <std::ratio_multiply<Conversion, Conversion>,
+		using type = unit < std::ratio_multiply<Conversion, Conversion>,
 			squared_base<base_unit_of<typename Unit::base_unit_type>>,
 			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
-			std::ratio<0>>;
+			std::ratio < 0 >> ;
 	};
 
 	template<class U>
@@ -453,10 +563,10 @@ namespace units
 	{
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 		using Conversion = typename Unit::conversion_ratio;
-		using type = unit<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-			cubed_base<base_unit_of<typename Unit::base_unit_type>>, 
+		using type = unit < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
+			cubed_base<base_unit_of<typename Unit::base_unit_type>>,
 			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
-			std::ratio<0>>;
+			std::ratio < 0 >> ;
 	};
 
 	template<class U>
@@ -515,7 +625,7 @@ namespace units
 	//------------------------------
 
 	template<class U1, class U2>
-	struct is_convertible_unit : std::is_same<base_unit_of<typename unit_traits<U1>::base_unit_type>,
+	struct is_convertible_unit : std::is_same < base_unit_of<typename unit_traits<U1>::base_unit_type>,
 		base_unit_of<typename unit_traits<U2>::base_unit_type >> {};
 
 	//------------------------------
@@ -645,11 +755,11 @@ namespace units
 	struct has_value_member : has_value_member_impl<T, Ret>::type {};
 
 	/**
-	 * @brief		
-	 * @details		
+	 * @brief
+	 * @details
 	 */
 	template<class T, class Rhs, class Ret>
-	struct is_nonlinear_scale : std::integral_constant<bool, 
+	struct is_nonlinear_scale : std::integral_constant<bool,
 		std::is_default_constructible<T>::value &&
 		has_operator_parenthesis<T, Ret>::value &&
 		has_value_member<T, Ret>::value>
@@ -691,13 +801,13 @@ namespace units
 	//---------------------------------- 
 	//	UNIT TYPE
 	//----------------------------------
-	
+
 	// forward declaration
 	template<typename T> struct linear_scale;
 
 	/**
-	 * @brief		
-	 * @details		
+	 * @brief
+	 * @details
 	 * @TODO		DOCUMENT THIS!
 	 */
 	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
@@ -724,13 +834,13 @@ namespace units
 		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
 		inline unit_t(Ty rhs) : nls(rhs) {};
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
-		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
@@ -745,37 +855,37 @@ namespace units
 			return *this;
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return unit_t(nls::m_value<convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value <= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value> convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value >= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value == convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator!=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value != convert<UnitsRhs, Units>(rhs.m_value));
@@ -887,8 +997,8 @@ namespace units
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
- 	{
- 		return dimensionless::scalar_t(lhs.m_value + rhs);
+	{
+		return dimensionless::scalar_t(lhs.m_value + rhs);
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
@@ -915,15 +1025,15 @@ namespace units
 		return dimensionless::scalar_t(lhs - rhs.m_value);
 	}
 
-	template<class UnitTypeLhs, class UnitTypeRhs, 
+	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
+		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
 		return  unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 			(lhs.m_value * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
-	template<class UnitTypeLhs, class UnitTypeRhs, 
+	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
@@ -931,45 +1041,45 @@ namespace units
 			(lhs.m_value * rhs.m_value);
 	}
 
-	template<class UnitTypeLhs, typename T, 
+	template<class UnitTypeLhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
-	inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
+		inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
 	{
 		return UnitTypeLhs(lhs.m_value * rhs);
 	}
 
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
-	inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
+		inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeRhs(lhs * rhs.m_value);
 	}
 
-	template<class UnitTypeLhs, class UnitTypeRhs, 
+	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return dimensionless::scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
-	template<class UnitTypeLhs, class UnitTypeRhs, 
+	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
+		inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 			(lhs.m_value / rhs.m_value);
 	}
 
-	template<class UnitTypeLhs, typename T, 
+	template<class UnitTypeLhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
-	inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
+		inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
 	{
 		return UnitTypeLhs(lhs.m_value / rhs);
 	}
 
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
+		inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
 			(lhs / rhs.m_value);
@@ -1025,7 +1135,7 @@ namespace units
 	//	DECIBEL ARITHMETIC
 	//------------------------------
 
-	template<class UnitTypeLhs, class UnitTypeRhs, 
+	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>, typename unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
@@ -1038,7 +1148,7 @@ namespace units
 		return ret;
 	}
 
-	template<class UnitTypeLhs,typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
+	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
 		UnitTypeLhs ret;
@@ -1181,7 +1291,7 @@ namespace units
 		using nauticalLeague_t = unit_t<nauticalLeague>;
 		using yard_t = unit_t<yard>;
 	}
-	
+
 	//------------------------------
 	//	MASS UNITS
 	//------------------------------
@@ -1191,7 +1301,7 @@ namespace units
 		using kilograms = unit<std::ratio<1>, category::mass_unit>;
 		using grams = unit<std::ratio<1, 1000>, kilograms>;
 		using micrograms = micro<grams>;
-		using milligrams = milli<grams>;		
+		using milligrams = milli<grams>;
 		using metric_tons = unit<std::ratio<1000>, kilograms>;
 		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
 		using imperial_tons = unit<std::ratio<2240>, pounds>;
@@ -1199,7 +1309,7 @@ namespace units
 		using stone = unit<std::ratio<14>, pounds>;
 		using ounces = unit<std::ratio<1, 16>, pounds>;
 		using carats = unit<std::ratio<200>, milligrams>;
-		using slugs = unit<std::ratio<145939029,10000000>, kilograms>;
+		using slugs = unit<std::ratio<145939029, 10000000>, kilograms>;
 
 		using gram = grams;
 		using microgram = micrograms;
@@ -1263,7 +1373,7 @@ namespace units
 		using day = days;
 		using week = weeks;
 		using year = years;
-		
+
 		using s = seconds;
 		using ns = nanoseconds;
 		using us = microseconds;
@@ -1293,7 +1403,7 @@ namespace units
 	{
 		using radians = unit<std::ratio<1>, category::angle_unit>;
 		using milliradians = milli<radians>;
-		using degrees = unit<std::ratio<1,180>, radians, std::ratio<1>>;
+		using degrees = unit<std::ratio<1, 180>, radians, std::ratio<1>>;
 		using minutes = unit<std::ratio<1, 60>, degrees>;
 		using seconds = unit<std::ratio<1, 60>, minutes>;
 		using turns = unit<std::ratio<2>, radians, std::ratio<1>>;
@@ -1366,8 +1476,8 @@ namespace units
 	{
 		// NOTE: temperature units have special conversion overloads, since they
 		// require translations and aren't a reversible transform.
- 		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
- 		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315,100>>;
+		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
+		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>;
 		using fahrenheit = unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>;
 		using reaumur = unit<std::ratio<10, 8>, celsius>;
 		using rankine = unit<std::ratio<5, 9>, kelvin>;
@@ -1478,7 +1588,7 @@ namespace units
 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
 		using kilometers_per_hour = compound_unit<length::kilometers, inverse<time::hour>>;
 		using knots = compound_unit<length::nauticalMiles, inverse<time::hour>>;
-		
+
 		using knot = knots;
 
 		using mps = meters_per_second;
@@ -1549,7 +1659,7 @@ namespace units
 		using bars = unit<std::ratio<100>, kilo<pascals>>;
 		using atmospheres = unit<std::ratio<101325>, pascals>;
 		using pounds_per_square_inch = compound_unit<force::pounds, inverse<squared<length::inch>>>;
-		using torrs = unit<std::ratio<1,760>, atmospheres>;
+		using torrs = unit<std::ratio<1, 760>, atmospheres>;
 
 		using pascal = pascals;
 		using bar = bars;
@@ -1596,15 +1706,15 @@ namespace units
 		using joules = unit<std::ratio<1>, category::energy_unit>;
 		using megajoules = mega<joules>;
 		using kilojoules = kilo<joules>;
-		using calories = unit<std::ratio<4184,1000>, joules>;
+		using calories = unit<std::ratio<4184, 1000>, joules>;
 		using kilocalories = kilo<calories>;
 		using kilowatt_hours = unit<std::ratio<36, 10>, megajoules>;
-		using watt_hours = unit<std::ratio<1,1000>, kilowatt_hours>;
+		using watt_hours = unit<std::ratio<1, 1000>, kilowatt_hours>;
 		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
 		using british_thermal_units_iso = unit<std::ratio<1055056, 1000>, joules>;
 		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
 		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
-		using foot_pounds = unit<std::ratio<13558179483314004,10000000000000000>, joules>;
+		using foot_pounds = unit<std::ratio<13558179483314004, 10000000000000000>, joules>;
 
 		using joule = joules;
 		using megajoule = megajoules;
@@ -1653,7 +1763,7 @@ namespace units
 		using kilowatts = kilo<watts>;
 		using megawatts = mega<watts>;
 		using gigawatts = giga<watts>;
-		using horsepower = unit<std::ratio<7457,10>, watts>;
+		using horsepower = unit<std::ratio<7457, 10>, watts>;
 
 		using watt = watts;
 		using nanowatt = nanowatts;
@@ -2321,7 +2431,7 @@ namespace units
 		using cubic_fathoms = cubed<length::fathom>;
 		using tablespoons = unit<std::ratio<1, 2>, ounces>;
 		using teaspoons = unit<std::ratio<1, 6>, ounces>;
-		using pinches = unit<std::ratio<1,8>, teaspoons>;
+		using pinches = unit<std::ratio<1, 8>, teaspoons>;
 		using dashes = unit<std::ratio<1, 2>, pinches>;
 		using drops = unit<std::ratio<1, 360>, ounces>;
 		using fifths = unit<std::ratio<1, 5>, gallons>;
@@ -2469,9 +2579,9 @@ namespace units
 	{
 		using parts_per_million = unit<std::ratio<1, 1000000>, category::scalar_unit>;
 		using parts_per_billion = unit<std::ratio<1, 1000>, parts_per_million>;
-		using parts_per_trillion = unit<std::ratio<1,1000>, parts_per_billion>;
+		using parts_per_trillion = unit<std::ratio<1, 1000>, parts_per_billion>;
 		using percent = unit<std::ratio<1, 100>, category::scalar_unit>;
-		
+
 		using ppm = parts_per_million;
 		using ppb = parts_per_billion;
 		using ppt = parts_per_trillion;
