@@ -54,6 +54,15 @@
 namespace units
 {
 	//------------------------------
+	//	FORWARD DECLARATIONS
+	//------------------------------
+	
+	namespace constants
+	{
+		static const double PI = 3.14159265358979323846264338327950288419716939937510;
+	}
+	
+	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
 
@@ -703,16 +712,16 @@ namespace units
 		inline unit_t() : NonLinearScale<T>(0) {};
 
 		template<class... Args>
-		inline explicit unit_t(const Args&... args) : NonLinearScale<T>(args...) {};
+		inline explicit unit_t(const Args&... args) : nls(args...) {};
 
 		// enable implicit conversion from T types ONLY for linear scalar units
-		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
 		inline unit_t(T rhs) : nls(rhs) {};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
 		{
-			m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
@@ -723,7 +732,7 @@ namespace units
 		}
 
 		// enable implicit conversion from T types ONLY for linear scalar units
-		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
+		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
 		inline unit_t& operator=(T rhs)
 		{
 			nls::m_value = rhs;
@@ -770,8 +779,8 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for scalar unit types.
 		 */
-		template<class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value>::type>
-		operator T() const { return convert<Units, scalar>(nls::m_value); }
+		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
+		operator T() const { return convert<Units, unit<std::ratio<1>, category::scalar_unit>>(nls::m_value); }
 
 	public:
 
@@ -962,19 +971,19 @@ namespace units
 
 	template <int N, class U> struct _power_unit
 	{
-		typedef typename unit_multiply<U, typename _power_unit<N - 1, U>::type> type;
+		typedef typename units::unit_multiply<U, typename _power_unit<N - 1, U>::type> type;
 	};
 
 	template <class U> struct _power_unit<1, U>
 	{
-		typedef typename U type;
+		typedef U type;
 	};
 
 	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
 	inline auto pow(const UnitType& value)
 	{
-		using ValueUnit = unit_t_traits<UnitType>::unit_type;
-		using underlying_type = unit_t_traits<UnitType>::underlying_type;
+		using ValueUnit = typename unit_t_traits<UnitType>::unit_type;
+		using underlying_type = typename unit_t_traits<UnitType>::underlying_type;
 		using RetUnit = typename _power_unit<power, ValueUnit>::type;
 
 		return unit_t<RetUnit, underlying_type, linear_scale>(std::pow(value(), power));
@@ -2476,8 +2485,6 @@ namespace units
 
 	namespace constants
 	{
-		static const double PI = 3.14159265358979323846264338327950288419716939937510;
-
 		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);									///< Ratio of a circle's circumference to its diameter.
 		static const velocity::meters_per_second_t																							c(299792458.0);								///< Speed of light in vacuum.
 		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
