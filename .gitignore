@@ -238,3 +238,6 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+/docs/html
+/docs/latex
+/msvc2013
