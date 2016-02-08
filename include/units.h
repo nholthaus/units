@@ -39,6 +39,11 @@
 #ifndef units_h__
 #define units_h__
 
+#if _MCS_VER < 1800
+#	pragma warning(push)
+#	pragma warning(disable : 4520)
+#endif
+
 //--------------------
 //	INCLUDES
 //--------------------
@@ -868,59 +873,59 @@ namespace units
 	//------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<!is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline int operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		static_assert(is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, "Cannot add units with different linear/non-linear scales.");
 		return 0;
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeLhs(lhs.m_value + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
- 	inline auto operator+(const dimensionless::scalar_t& lhs, T rhs)
+	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
  	{
  		return dimensionless::scalar_t(lhs.m_value + rhs);
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-	inline auto operator+(T lhs, const dimensionless::scalar_t& rhs)
+	inline dimensionless::scalar_t operator+(T lhs, const dimensionless::scalar_t& rhs)
 	{
 		return dimensionless::scalar_t(lhs + rhs.m_value);
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeLhs(lhs.m_value - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-	inline auto operator-(const dimensionless::scalar_t& lhs, T rhs)
+	inline dimensionless::scalar_t operator-(const dimensionless::scalar_t& lhs, T rhs)
 	{
 		return dimensionless::scalar_t(lhs.m_value - rhs);
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-	inline auto operator-(T lhs, const dimensionless::scalar_t& rhs)
+	inline dimensionless::scalar_t operator-(T lhs, const dimensionless::scalar_t& rhs)
 	{
 		return dimensionless::scalar_t(lhs - rhs.m_value);
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
-		return unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
+		return  unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 			(lhs.m_value * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
 			(lhs.m_value * rhs.m_value);
@@ -928,28 +933,28 @@ namespace units
 
 	template<class UnitTypeLhs, typename T, 
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
-	inline auto operator*(const UnitTypeLhs& lhs, T rhs)
+	inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
 	{
 		return UnitTypeLhs(lhs.m_value * rhs);
 	}
 
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator*(T lhs, const UnitTypeRhs& rhs)
+	inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeRhs(lhs * rhs.m_value);
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return dimensionless::scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 			(lhs.m_value / rhs.m_value);
@@ -957,17 +962,17 @@ namespace units
 
 	template<class UnitTypeLhs, typename T, 
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
-	inline auto operator/(const UnitTypeLhs& lhs, T rhs)
+	inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
 	{
 		return UnitTypeLhs(lhs.m_value / rhs);
 	}
 
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator/(T lhs, const UnitTypeRhs& rhs)
+	inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
-		using RhsUnits = typename unit_t_traits<UnitTypeRhs>::unit_type;
-		return unit_t<inverse<RhsUnits>>(lhs / rhs.m_value);
+		return unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
+			(lhs / rhs.m_value);
 	}
 
 	template <int N, class U> struct _power_unit
@@ -981,13 +986,10 @@ namespace units
 	};
 
 	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
-	inline auto pow(const UnitType& value)
+	inline auto pow(const UnitType& value) -> unit_t<typename _power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 	{
-		using ValueUnit = typename unit_t_traits<UnitType>::unit_type;
-		using underlying_type = typename unit_t_traits<UnitType>::underlying_type;
-		using RetUnit = typename _power_unit<power, ValueUnit>::type;
-
-		return unit_t<RetUnit, underlying_type, linear_scale>(std::pow(value(), power));
+		return unit_t<typename _power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+			(std::pow(value(), power));
 	}
 
 	//------------------------------
@@ -1025,7 +1027,7 @@ namespace units
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
 		typename std::enable_if<has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>, typename unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename unit_t_traits<UnitTypeLhs>::unit_type;
 		using RhsUnits = typename unit_t_traits<UnitTypeRhs>::unit_type;
@@ -1037,7 +1039,7 @@ namespace units
 	}
 
 	template<class UnitTypeLhs,typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
-	inline auto operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
+	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
 		UnitTypeLhs ret;
 		ret.m_value = lhs.m_value * rhs.m_value;
@@ -1045,7 +1047,7 @@ namespace units
 	}
 
 	template<class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeRhs>::value && !is_scalar_unit<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs)
+	inline UnitTypeRhs operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs)
 	{
 		UnitTypeRhs ret;
 		ret.m_value = lhs.m_value * rhs.m_value;
@@ -1053,7 +1055,7 @@ namespace units
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>, typename unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename unit_t_traits<UnitTypeLhs>::unit_type;
 		using RhsUnits = typename unit_t_traits<UnitTypeRhs>::unit_type;
@@ -1065,7 +1067,7 @@ namespace units
 	}
 
 	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
-	inline auto operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
+	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
 		UnitTypeLhs ret;
 		ret.m_value = lhs.m_value / rhs.m_value;
@@ -1073,7 +1075,7 @@ namespace units
 	}
 
 	template<class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeRhs>::value && !is_scalar_unit<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator-(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs)
+	inline auto operator-(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>, typename unit_t_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using RhsUnits = typename unit_t_traits<UnitTypeRhs>::unit_type;
 		using underlying_type = typename unit_t_traits<RhsUnits>::underlying_type;
@@ -2507,5 +2509,16 @@ namespace units
 
 };	// end namespace units
 
+#if _MCS_VER < 1800
+#	pragma warning(pop)
+#endif
+
 #endif // units_h__
 
+// For Emacs
+// Local Variables:
+// Mode: C++
+// c-basic-offset: 2
+// fill-column: 116
+// tab-width: 4
+// End:
