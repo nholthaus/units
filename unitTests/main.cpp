@@ -137,6 +137,8 @@ TEST_F(UnitTest, hasLinearScale)
 	EXPECT_TRUE(test);
 	test = has_linear_scale<foot_t>::value;
 	EXPECT_TRUE(test);
+	test = has_linear_scale<meters_per_second_t>::value;
+	EXPECT_TRUE(test);
 	test = has_linear_scale<dB_t>::value;
 	EXPECT_FALSE(test);
 }

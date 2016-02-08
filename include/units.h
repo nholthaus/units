@@ -114,7 +114,8 @@ namespace units
 	//------------------------------
 
 	template<class ...>
-	using void_t = void;
+//	using void_t = void;
+	struct void_t { typedef void type; };
 
 	template<bool...> struct bool_pack {};
 
@@ -131,11 +132,11 @@ namespace units
 	};
 
 	template<class T>
-	struct unit_traits<T, void_t<
+	struct unit_traits<T, typename void_t<
 		typename T::base_unit_type,
 		typename T::conversion_ratio,
 		typename T::pi_exponent_ratio,
-		typename T::translation_ratio>>
+		typename T::translation_ratio>::type>
 	{
 		typedef typename T::base_unit_type base_unit_type;
 		typedef typename T::conversion_ratio conversion_ratio;
@@ -662,10 +663,10 @@ namespace units
 	};
 
 	template<typename T>
-	struct unit_t_traits < T, void_t<
+	struct unit_t_traits < T, typename void_t<
 		typename T::non_linear_scale_type,
 		typename T::underlying_type,
-		typename T::unit_type>>
+		typename T::unit_type>::type>
 	{
 		typedef typename T::non_linear_scale_type non_linear_scale_type;
 		typedef typename T::underlying_type underlying_type;
@@ -876,7 +877,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.m_value + convert<UnitTypeRhs::unit_type, UnitTypeLhs::unit_type>(rhs.m_value));
+		return UnitTypeLhs(lhs.m_value + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
@@ -894,7 +895,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.m_value - convert<UnitTypeRhs::unit_type, UnitTypeLhs::unit_type>(rhs.m_value));
+		return UnitTypeLhs(lhs.m_value - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
@@ -943,7 +944,7 @@ namespace units
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
+		return dimensionless::scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs, 
