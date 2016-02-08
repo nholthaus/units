@@ -294,45 +294,45 @@ namespace units
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar_unit = base_unit<>;
-		using dimensionless_unit = base_unit<>;
+		using scalar_unit					=	base_unit<>;
+		using dimensionless_unit			=	base_unit<>;
 
-		// SI BASE UNIT TYPES	--------------------	METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using length_unit = base_unit<std::ratio<1>>;
-		using mass_unit = base_unit<std::ratio<0>, std::ratio<1>>;
-		using time_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using current_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using temperature_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using substance_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using luminous_intensity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		// SI BASE UNIT TYPES	--------------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using length_unit					=	base_unit<std::ratio<1>>;
+		using mass_unit						=	base_unit<std::ratio<0>,	std::ratio<1>>;
+		using time_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using angle_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using current_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using temperature_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using substance_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using luminous_intensity_unit		=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
 
-		// SI DERIVED UNIT TYPES	---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using solid_angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>>;
-		using frequency_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
-		using velocity_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
-		using acceleration_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
-		using force_unit = base_unit<std::ratio<1>, std::ratio<1>, std::ratio<-2>>;
-		using pressure_unit = base_unit<std::ratio<-1>, std::ratio<1>, std::ratio<-2>>;
-		using charge_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<1>>;
-		using energy_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
-		using power_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>>;
-		using voltage_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-1>>;
-		using capacitance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<4>, std::ratio<0>, std::ratio<2>>;
-		using impedance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-2>>;
-		using conductance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<3>, std::ratio<0>, std::ratio<2>>;
-		using magnetic_flux_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
-		using magnetic_field_strength_unit = base_unit<std::ratio<0>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
-		using inductance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-2>>;
-		using luminous_flux_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using illuminance_unit = base_unit<std::ratio<-2>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using radioactivity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
+		// SI DERIVED UNIT TYPES	---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using solid_angle_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
+		using frequency_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+		using velocity_unit					=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
+		using acceleration_unit				=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
+		using force_unit					=	base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
+		using pressure_unit					=	base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
+		using charge_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
+		using energy_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
+		using power_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;
+		using voltage_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;
+		using capacitance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;
+		using impedance_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
+		using conductance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;
+		using magnetic_flux_unit			=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
+		using magnetic_field_strength_unit	=	base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
+		using inductance_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
+		using luminous_flux_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using illuminance_unit				=	base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using radioactivity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
-		// OTHER UNIT TYPES			---------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using torque_units = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
-		using area_unit = base_unit<std::ratio<2>>;
-		using volume_unit = base_unit<std::ratio<3>>;
-		using density_unit = base_unit<std::ratio<-3>, std::ratio<1>>;
+		// OTHER UNIT TYPES			---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using	torque_units				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
+		using	area_unit					=	base_unit<std::ratio<2>>;
+		using	volume_unit					=	base_unit<std::ratio<3>>;
+		using	density_unit				=	base_unit<std::ratio<-3>,	std::ratio<1>>;
 	}
 
 	//------------------------------

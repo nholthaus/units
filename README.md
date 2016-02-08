@@ -4,6 +4,7 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 Releases
 --------
 v1.0.0 - 02/07/2016    - Initial release, tested with msvc2015
+
 v1.1.0 - TBD (Feb '16) - Adds doxygen, testing with gcc-4.9.2, msvc2013, msvc2015.
 
 Description
@@ -51,10 +52,65 @@ Compound units are defined in a similar manner, with additional helper functions
 Unit containers
 ---------------
 
-In addition to providing unit tags to perform conversion, the library also provides container types. Containers are derived from the `unit_t` class, and have the form [unitname]_t, e.g. `meter_t`. Containers provide additional advanges over template tag conversions, without any increase in overhead, thanks to the c++ type system.
+In addition to providing unit tags to perform conversion, the library also provides container types. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t`. Containers provide additional advanges over template tag conversions, without any increase in overhead, thanks to the c++ type system.
 
-unit containers are defined in terms of the units they represent, the underlying type of the container, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: `using meter_t = unit_t<length::meter, double, linear_scale>`, or simply `using meter_t = unit_t<length::meter>`, since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
+Unit containers are defined in terms of the units they represent, the underlying type of the container, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
+
+`using meter_t = unit_t<length::meter, double, linear_scale>`
+
+or simply 
+
+`using meter_t = unit_t<length::meter>` 
+
+since the underlying type and scale parameters default to `double` and `linear_scale` respectively. Defifining your own units is simple, and the standard SI prefixes, as well as `inverse`, `squared`, and `cubed` templates are provided to make it even easier.
 
 Units of compatible types (e.g length units) can be implicitely converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitely converted to/from built-in types. They can be constructed from built-in types, and operator() can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical. 
 
-Unit containers provide type safety for 
+Unit containers provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
+
+`auto objectVelocity = meter_t(100.0) / second_t(2.0);`
+
+The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system wll verify that the units are compatible. For example, the following will fail to compile:
+
+`velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: cannot convert.`
+
+Namespaces
+----------
+
+Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities. The currently defined namespaces are:
+
+- length
+- mass
+- time
+- angle (plane)
+- current
+- temperature
+- substance (amount of, i.e. moles)
+- luminous intensity
+- solid angle
+- frequency
+- velocity
+- acceleration
+- force
+- pressure
+- charge
+- energy
+- power
+- voltage
+- capacitance
+- impedance
+- magnetic flux
+- magnetic field strength
+- inductance
+- luminous flux
+- illuminance
+- radiation
+- torque
+- area
+- volume
+- density
+- concentration
+- constants (scalar and non-scalar physical constants like Avagadro's number)
+
+
+
