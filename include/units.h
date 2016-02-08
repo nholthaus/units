@@ -653,7 +653,7 @@ namespace units
 	//	UNIT_T TYPE TRAITS
 	//------------------------------
 
-	template<class T, typename = void>
+	template<typename T, typename = void>
 	struct unit_t_traits
 	{
 		typedef void non_linear_scale_type;
@@ -661,7 +661,7 @@ namespace units
 		typedef void unit_type;
 	};
 
-	template<class T>
+	template<typename T>
 	struct unit_t_traits < T, void_t<
 		typename T::non_linear_scale_type,
 		typename T::underlying_type,
@@ -715,8 +715,8 @@ namespace units
 		inline explicit unit_t(const Args&... args) : nls(args...) {};
 
 		// enable implicit conversion from T types ONLY for linear scalar units
-		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
-		inline unit_t(T rhs) : nls(rhs) {};
+		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		inline unit_t(Ty rhs) : nls(rhs) {};
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs> 
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) 
@@ -732,8 +732,8 @@ namespace units
 		}
 
 		// enable implicit conversion from T types ONLY for linear scalar units
-		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
-		inline unit_t& operator=(T rhs)
+		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		inline unit_t& operator=(Ty rhs)
 		{
 			nls::m_value = rhs;
 			return *this;
@@ -779,8 +779,8 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for scalar unit types.
 		 */
-		template<typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value, int>::type = 0>
-		operator T() const { return convert<Units, unit<std::ratio<1>, category::scalar_unit>>(nls::m_value); }
+		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		operator Ty() const { return convert<Units, unit<std::ratio<1>, category::scalar_unit>>(nls::m_value); }
 
 	public:
 
@@ -801,7 +801,7 @@ namespace units
 	* @details
 	* @TODO		DOCUMENT THIS!
 	*/
-	template<class... T>
+	template<typename... T>
 	struct has_linear_scale : std::integral_constant<bool,
 		all_true<std::is_base_of<linear_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value >
 	{};
@@ -811,12 +811,12 @@ namespace units
 	* @details
 	* @TODO		DOCUMENT THIS!
 	*/
-	template<class... T>
+	template<typename... T>
 	struct has_decibel_scale : std::integral_constant<bool,
 		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
 	{};
 
-	template<class T1, class T2>
+	template<typename T1, typename T2>
 	struct is_same_scale : std::integral_constant<bool,
 		std::is_same<typename unit_t_traits<T1>::non_linear_scale_type, typename unit_t_traits<T2>::non_linear_scale_type>::value>
 	{};
