@@ -10,7 +10,7 @@ v1.1.0 - TBD (Feb '16) - Adds doxygen, testing with gcc-4.9.2, msvc2013, msvc201
 Description
 -----------
 
-The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. Use the included CMake project to build the tests.
+The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. Use the included CMake project to build the tests and documentation.
 
 unitTests/main.cpp provides comprehensive examples of how to use the library.
 
@@ -49,6 +49,12 @@ Compound units are defined in a similar manner, with additional helper functions
 
 	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;
 	
+Unit conversion can be accomplished for arithmetic types:
+
+	double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+	
+For type-safe conversion, see the next section.
+
 Unit containers
 ---------------
 
