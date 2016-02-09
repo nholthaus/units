@@ -1,5 +1,6 @@
 #include <units.h>
 #include <gtest/gtest.h>
+#include <chrono>
 
 using namespace units;
 using namespace units::dimensionless;

@@ -1,9 +1,7 @@
 //--------------------------------------------------------------------------------------------------
 // 
-/// @PROJECT	units
-/// @AUTHORS	Nic Holthaus
-/// @DATE		2016/01/29
-// 
+//	Units: A compile-time c++14 unit conversion library with no dependencies
+//
 //--------------------------------------------------------------------------------------------------
 //
 // The MIT License (MIT)
@@ -58,6 +56,7 @@
 //--------------------
 
 /** 
+ * @namespace units
  * @brief Unit Conversion Library namespace
  */
 namespace units
@@ -68,24 +67,27 @@ namespace units
 
 	/**
 	 * @defgroup	TypeTraits Type Traits
-	 * @brief		Defines a series of classes to obtain unit type information at compile - time.
+	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
 	 */
 
 	 /**
 	  * @defgroup	UnitTypes Unit Types
-	  * @brief		Defines a series of classes which represent units.
+	  * @brief		Defines a series of classes which represent units. These types are tags used by
+	  *				the conversion function, to create compound units, or to create `unit_t` types.
+	  *				By themselves, they are not containers and have no stored value.
 	  */
 
 	 /**
 	  * @defgroup	UnitManipulators Unit Manipulators
-	  * @details	Classes used to manipulate unit types, such as `inverse<>` and `squared<>`. Unit
+	  * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>` and `squared<>`. Unit
 	  *				manipulators can be chained together, e.g. `inverse<squared<time::seconds>>` to
 	  *				represent seconds^-2.
 	  */
 
 	/**
 	 * @defgroup	UnitContainers Unit Containers
-	 * @details		Defines a series of classes which contain dimensioned values.
+	 * @brief		Defines a series of classes which contain dimensioned values. Unit containers
+	 *				store a value, and support various arithmetic operations.
 	 */
 	
 
@@ -271,6 +273,7 @@ namespace units
 	 * @tparam		Mole		`std::ratio` representing the exponent value for moles.
 	 * @tparam		Candela		`std::ratio` representing the exponent value for candelas.
 	 * @ingroup		UnitTypes
+	 * @sa			category	Type aliases for SI base_unit types.
 	 */
 	template<class Meter = std::ratio<0>,
 	class Kilogram = std::ratio<0>,
@@ -1270,8 +1273,17 @@ namespace units
 	//	LENGTH UNITS
 	//------------------------------
 
+	/**
+	 * @brief		namespace for unit types and containers representing length values
+	 * @details		The SI unit for length is `meters`, and the corresponding `base_unit` category is
+	 *				`length_unit`.
+	 */
 	namespace length
 	{
+		/**
+		 * @name Units (full names)
+		 * @{		
+		 */
 		using meters = unit<std::ratio<1>, category::length_unit>;
 		using nanometers = nano<meters>;
 		using micrometers = micro<meters>;
@@ -1318,7 +1330,12 @@ namespace units
 		using league = leagues;
 		using nauticalLeague = nauticalLeagues;
 		using yard = yards;
+		/** @} */
 
+		/**
+		* @name Units (abreviated names)
+		* @{
+		*/
 		using m = meters;
 		using nm = nanometers;
 		using um = micrometers;
@@ -1338,7 +1355,12 @@ namespace units
 		using lea = leagues;
 		using nl = nauticalLeagues;
 		using yd = yards;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @{
+		 */
 		using meter_t = unit_t<meter>;
 		using nanometer_t = unit_t<nanometer>;
 		using micrometer_t = unit_t<micrometer>;
@@ -1361,6 +1383,7 @@ namespace units
 		using league_t = unit_t<league>;
 		using nauticalLeague_t = unit_t<nauticalLeague>;
 		using yard_t = unit_t<yard>;
+		/** @} */
 	}
 
 	//------------------------------

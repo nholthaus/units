@@ -85,7 +85,7 @@ Namespaces
 
 Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities. The currently defined namespaces are:
 
-- length
+- \ref length
 - mass
 - time
 - angle (plane)
