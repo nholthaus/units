@@ -49,6 +49,12 @@ Compound units are defined in a similar manner, with additional helper functions
 
 	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;
 	
+Unit conversion can be accomplished for arithmetic types:
+
+	double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+	
+For type-safe conversion, see the next section.
+
 Unit containers
 ---------------
 
