@@ -76,10 +76,18 @@ namespace units
 	  * @brief		Defines a series of classes which represent units.
 	  */
 
+	 /**
+	  * @defgroup	UnitManipulators Unit Manipulators
+	  * @details	Classes used to manipulate unit types, such as `inverse<>` and `squared<>`. Unit
+	  *				manipulators can be chained together, e.g. `inverse<squared<time::seconds>>` to
+	  *				represent seconds^-2.
+	  */
+
 	/**
-	 * @brief		UnitContainers Unit Containers
+	 * @defgroup	UnitContainers Unit Containers
 	 * @details		Defines a series of classes which contain dimensioned values.
 	 */
+	
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -369,9 +377,9 @@ namespace units
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
 	 *
 	 * @tparam		Conversion	std::ratio representing scalar multiplication factor.
-	 * @tparam		BaseUnit
-	 * @tparam		PiExponent
-	 * @tparam		Translation
+	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `base_unit`, or another `unit`.
+	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
+	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
 	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit : _unit_t
@@ -390,10 +398,11 @@ namespace units
 	//	BASE UNIT MANIPULATORS
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		base_unit_of trait implementation
+	 * @details		recursively seeks base_unit type that a unit is derived from. Since units can be
+	 *				derived from other units, the `base_unit_type` typedef may not represent this value.
 	 */
 	template<class> struct base_unit_of_impl;
 	template<class Conversion, class BaseUnit, class PiExponent, class Translation>
@@ -408,43 +417,57 @@ namespace units
 	{
 		typedef void type;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Trait which returns the `base_unit` type that a unit is originally derived from.
+	 * @details		Since units can be derived from other `unit` types in addition to `base_unit` types,
+	 *				the `base_unit_type` typedef will not always be a `base_unit` (or unit category).
+	 *				Since compatible 
+	 */
 	template<class U>
 	using base_unit_of = typename base_unit_of_impl<U>::type;
 
+	/** @cond */	// DOXYGEN IGNORE
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of base_unit_multiply
+	 * @details		'multiples' (adds exponent ratios of) two base unit types. Base units can be found
+	 *				using `base_unit_of`.
+	 */
 	template<class, class> struct base_unit_multiply_impl;
 	template<class... Exponents1, class... Exponents2>
 	struct base_unit_multiply_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
 		using type = base_unit<std::ratio_add<Exponents1, Exponents2>...>;
 	};
 
+	/**
+	 * @brief		represents type of two base units multiplied together
+	 */
 	template<class U1, class U2>
 	using base_unit_multiply = typename base_unit_multiply_impl<U1, U2>::type;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of base_unit_divide
+	 * @details		'dived' (subtracts exponent ratios of) two base unit types. Base units can be found
+	 *				using `base_unit_of`.
+	 */
 	template<class, class> struct base_unit_divide_impl;
 	template<class... Exponents1, class... Exponents2>
 	struct base_unit_divide_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
 		using type = base_unit<std::ratio_subtract<Exponents1, Exponents2>...>;
 	};
 
+	/**
+	 * @brief		represents the resulting type of `base_unit` U1 divided by U2.
+	 */
 	template<class U1, class U2>
 	using base_unit_divide = typename base_unit_divide_impl<U1, U2>::type;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of inverse_base
+	 * @details		multiplies all `base_unit` exponent ratios by -1. The resulting type represents
+	 *				the inverse base unit of the given `base_unit` type.
+	 */
 	template<class> struct inverse_base_impl;
 
 	template<class... Exponents>
@@ -452,42 +475,57 @@ namespace units
 		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
 	};
 
+	/**
+	 * @brief		represent the inverse type of `class U`
+	 * @details		E.g. if `U` is `length_unit`, then `inverse<U>` will represent `length_unit^-1`.
+	 */
 	template<class U> using inverse_base = typename inverse_base_impl<U>::type;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of `squared_base`
+	 * @details		multiplies all the exponent ratios of the given class by 2. The resulting type is
+	 *				equivalent to the given type squared.
+	 */
 	template<class U> struct squared_base_impl;
 	template<class... Exponents>
 	struct squared_base_impl<base_unit<Exponents...>> {
 		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<2>>...>;
 	};
 
+	/**
+	 * @brief		represents the type of a `base_unit` squared.
+	 * @details		E.g. `squared<length_unit>` will represent `length_unit^2`.
+	 */
 	template<class U> using squared_base = typename squared_base_impl<U>::type;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of `cubed_base`
+	 * @details		multiplies all the exponent ratios of the given class by 3. The resulting type is
+	 *				equivalent to the given type cubed.
+	 */
 	template<class U> struct cubed_base_impl;
 	template<class... Exponents>
 	struct cubed_base_impl<base_unit<Exponents...>> {
 		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
 	};
 
+	/**
+	 * @brief		represents the type of a `base_unit` cubed.
+	 * @details		E.g. `cubed<length_unit>` will represent `length_unit^3`.
+	 */
 	template<class U> using cubed_base = typename cubed_base_impl<U>::type;
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	//------------------------------
 	//	UNIT MANIPULATORS
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		implementation of `unit_multiply`.
+	 * @details		multiplies two units. The base unit becomes the base units of each with their exponents
+	 *				added together. The conversion factors of each are multiplied by each other. Pi exponent ratios
+	 *				are added, and datum translations are removed.
 	 */
 	template<class Unit1, class Unit2>
 	struct unit_multiply_impl
@@ -498,14 +536,19 @@ namespace units
 			std::ratio < 0 >> ;
 	};
 
+	/**
+	 * @brief		represents the type of two units multiplied together.
+	 * @details		recalculates conversion and exponent ratios at compile-time.
+	 */
 	template<class U1, class U2>
 	using unit_multiply = typename unit_multiply_impl<U1, U2>::type;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of `unit_divide`.
+	 * @details		divides two units. The base unit becomes the base units of each with their exponents
+	 *				subtracted from each other. The conversion factors of each are divided by each other. Pi exponent ratios
+	 *				are subtracted, and datum translations are removed.
+	 */
 	template<class Unit1, class Unit2>
 	struct unit_divide_impl
 	{
@@ -515,13 +558,18 @@ namespace units
 			std::ratio < 0 >> ;
 	};
 
+	/**
+	 * @brief		represents the type of two units divided by each other.
+	 * @details		recalculates conversion and exponent ratios at compile-time.
+	 */
 	template<class U1, class U2>
 	using unit_divide = typename unit_divide_impl<U1, U2>::type;
 
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		implementation of `inverse`
+	 * @details		inverts a unit (equivalent to 1/unit). The `base_unit` and pi exponents are all multiplied by
+	 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
+	 *				ratios are removed.
 	 */
 	template<class Unit>
 	struct inverse_impl
@@ -531,13 +579,21 @@ namespace units
 			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
 			std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
 	};
-
-	template<class U> using inverse = typename inverse_impl<U>::type;
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		represents the inverse unit type of `class U`.
+	 * @ingroup		UnitManipulators
+	 * @tparam		U	`unit` type to invert.
+	 * @details		E.g. `inverse<meters>` will represent meters^-1 (i.e. 1/meters).
+	 */
+	template<class U> using inverse = typename inverse_impl<U>::type;
+
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		implementation of `squared`
+	 * @details		Squares the conversion ratio, `base_unit` exponents, pi exponents, and removes
+	 *				datum translation ratios.
 	 */
 	template<class Unit>
 	struct squared_impl
@@ -549,15 +605,23 @@ namespace units
 			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 			std::ratio < 0 >> ;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		represents the unit type of `class U` squared
+	 * @ingroup		UnitManipulators
+	 * @tparam		U	`unit` type to square.
+	 * @details		E.g. `square<meters>` will represent meters^2.
+	 */
 	template<class U>
 	using squared = typename squared_impl<U>::type;
 
+	/** @cond */	// DOXYGEN IGNORE
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		implementation of `cubed`
+	 * @details		Cubes the conversion ratio, `base_unit` exponents, pi exponents, and removes
+	 *				datum translation ratios.
+	 */
 	template<class Unit>
 	struct cubed_impl
 	{
@@ -568,7 +632,14 @@ namespace units
 			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
 			std::ratio < 0 >> ;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		represents the type of `class U` cubed.
+	 * @ingroup		UnitManipulators
+	 * @tparam		U	`unit` type to cube.
+	 * @details		E.g. `cubed<meters>` will represent meters^3.
+	 */
 	template<class U>
 	using cubed = typename cubed_impl<U>::type;
 
