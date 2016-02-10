@@ -1418,8 +1418,9 @@ namespace units
 	//------------------------------
 
 	/**
-	* @brief
-	* @details
+	* @brief		unit_t scale for representing decibel values.
+	* @details		internally stores linearized values. `operator()` returns the value in dB.
+	* @tparam		T	underlying storage type
 	* @sa			unit_t
 	*/
 	template<typename T>
@@ -1436,6 +1437,10 @@ namespace units
 	//	SCALAR (DECIBEL) UNITS
 	//------------------------------
 
+	/**
+	 * @brief		namespace for unit types and containers for units that have no dimension (scalar units)
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace dimensionless
 	{
 		using dB_t = unit_t<scalar, double, decibel_scale>;
@@ -1446,6 +1451,7 @@ namespace units
 	//	DECIBEL ARITHMETIC
 	//------------------------------
 
+	/// Addition for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>, typename unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
@@ -1459,6 +1465,7 @@ namespace units
 		return ret;
 	}
 
+	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
@@ -1467,6 +1474,7 @@ namespace units
 		return ret;
 	}
 
+	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeRhs>::value && !is_scalar_unit<UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeRhs operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs)
 	{
@@ -1475,6 +1483,7 @@ namespace units
 		return ret;
 	}
 
+	/// Subtraction for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>, typename unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
@@ -1487,6 +1496,7 @@ namespace units
 		return ret;
 	}
 
+	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
@@ -1495,6 +1505,7 @@ namespace units
 		return ret;
 	}
 
+	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeRhs>::value && !is_scalar_unit<UnitTypeRhs>::value, int>::type = 0>
 	inline auto operator-(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>, typename unit_t_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
