@@ -329,6 +329,7 @@ TEST_F(UnitTest, unitTypeSubtraction)
 TEST_F(UnitTest, unitTypeMultiplication)
 {
 	meter_t a_m(1.0), b_m(2.0);
+	foot_t a_ft(3.28084);
 
 	auto c_m2 = a_m * b_m;
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
@@ -336,11 +337,14 @@ TEST_F(UnitTest, unitTypeMultiplication)
 	c_m2 = b_m * meter_t(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
 
+	c_m2 = b_m *a_ft;
+	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+
 	auto c_m = b_m * 2.0;
-	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 
 	c_m = 2.0 * b_m;
-	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 
 	double convert = scalar_t(3.14);
 	EXPECT_NEAR(3.14, convert, 5.0e-5);

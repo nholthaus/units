@@ -33,7 +33,7 @@ but the total conversion ratio is computed at compile-time and the math is optim
 
 Unit conversions between equivalent types are optimized away completely, and generate no machine code.
 
-Defining new units is simple, as they can be recusively defined as ratio of previously-defined units in a way that mimicks natural language and is highly readable:
+Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
 
 	namespace time
 	{
@@ -49,7 +49,7 @@ Compound units are defined in a similar manner, with additional helper functions
 
 	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;
 	
-Unit conversion can be accomplished for arithmetic types:
+The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using `units::convert` for arithmetic types:
 
 	double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
 	
@@ -80,43 +80,59 @@ The resulting velocity type will be deduced to be `velocity::meters_per_second` 
 
     velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: cannot convert.`
 
+Unit containers can also be used to perform implicit conversions:
+
+	second_t a;
+	minute_t b(1.0);
+	
+	a = b;	// a == 60.0
+
+Exponentials
+------------
+
+Many functions require units to be raised to some power. This can be accomplished using the units::pow function:
+
+		square_meter_t m2 = units::pow<2>(meter_t(5.0));	// m2 == 25.0
+		
+The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type.
+
 Namespaces
 ----------
 
 Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities. The currently defined namespaces are:
 
-- \ref length
-- mass
-- time
-- angle (plane)
-- current
-- temperature
-- substance (amount of, i.e. moles)
-- luminous intensity
-- solid angle
-- frequency
-- velocity
-- acceleration
-- force
-- pressure
-- charge
-- energy
-- power
-- voltage
-- capacitance
-- impedance
-- magnetic flux
-- magnetic field strength
-- inductance
-- luminous flux
-- illuminance
-- radiation
-- torque
-- area
-- volume
-- density
-- concentration
-- constants (scalar and non-scalar physical constants like Avagadro's number)
+- units::length
+- units::mass
+- units::time
+- units::angle (plane)
+- units::current
+- units::temperature
+- units::substance (amount of, i.e. moles)
+- units::luminous intensity
+- units::solid angle
+- units::frequency
+- units::velocity
+- units::acceleration
+- units::force
+- units::pressure
+- units::charge
+- units::energy
+- units::power
+- units::voltage
+- units::capacitance
+- units::impedance
+- units::magnetic flux
+- units::magnetic field strength
+- units::inductance
+- units::luminous flux
+- units::illuminance
+- units::radiation
+- units::torque
+- units::area
+- units::volume
+- units::density
+- units::concentration
+- units::constants (scalar and non-scalar physical constants like Avagadro's number)
 
 Build Instructions
 ------------------

@@ -79,9 +79,9 @@ namespace units
 
 	 /**
 	  * @defgroup	UnitManipulators Unit Manipulators
-	  * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>` and `squared<>`. Unit
-	  *				manipulators can be chained together, e.g. `inverse<squared<time::seconds>>` to
-	  *				represent seconds^-2.
+	  * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>`, `squared<>`, and metric prefixes. Unit
+	  *				manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to
+	  *				represent picoseconds^-2.
 	  */
 
 	/**
@@ -90,6 +90,10 @@ namespace units
 	 *				store a value, and support various arithmetic operations.
 	 */
 	
+	/**
+	 * @defgroup	Conversion Explicit Conversion
+	 * @brief		Functions used to convert values of one logical type to another.
+	 */
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -107,7 +111,7 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @ingroup TypeTrais
+	 * @ingroup TypeTraits
 	 * @{
 	 */
 
@@ -204,11 +208,13 @@ namespace units
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
+	 * @ingroup		TypeTraits
 	 * @brief		Traits class defining the properties of units.
 	 * @details		
 	 */
 	template<class T>
-	struct unit_traits<T, typename void_t<
+	struct unit_traits
+		<T, typename void_t<
 		typename T::base_unit_type,
 		typename T::conversion_ratio,
 		typename T::pi_exponent_ratio,
@@ -229,7 +235,8 @@ namespace units
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief		Traits which tests if a class is a `base_unit`
+	 * @ingroup		TypeTraits
+	 * @brief		Traits which tests if a class is a `base_unit` type.
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_base_unit<T>::value` to test
 	 *				whether `class T` implements a `base_unit`.
 	 */
@@ -245,6 +252,7 @@ namespace units
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
+	 * @ingroup		TypeTraits
 	 * @brief		Traits which tests if a class is a `unit`
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
 	 *				whether `class T` implements a `unit`.
@@ -273,7 +281,7 @@ namespace units
 	 * @tparam		Mole		`std::ratio` representing the exponent value for moles.
 	 * @tparam		Candela		`std::ratio` representing the exponent value for candelas.
 	 * @ingroup		UnitTypes
-	 * @sa			category	Type aliases for SI base_unit types.
+	 * @sa			category	 for type aliases for SI base_unit types.
 	 */
 	template<class Meter = std::ratio<0>,
 	class Kilogram = std::ratio<0>,
@@ -370,15 +378,19 @@ namespace units
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief		Type representing a unit.
+	 * @brief		Type representing an arbitrary unit.
+	 * @ingroup		UnitTypes
 	 * @details		`unit` types are used as tags for the `conversion` function. They are *not* containers
 	 *				(see `unit_t` for a  container class). Each unit is defined by: 
 	 *
 	 *				- A `std::ratio` defining the conversion factor to the base unit type. (e.g. `std::ratio<1,12>` for inches to feet)
-	 *				- A base unit that the unit is derived from (or a unit category)
+	 *				- A base unit that the unit is derived from (or a unit category. Must be of type `unit` or `base_unit`)
 	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
 	 *
+	 *				Typically, a specific unit, like `meters`, would be implemented as a type alias
+	 *				of `unit`, i.e. `using meters = unit<std::ratio<1>, category::length_unit`, or
+	 *				`using inches = unit<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing scalar multiplication factor.
 	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `base_unit`, or another `unit`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
@@ -650,17 +662,29 @@ namespace units
 	//	COMPOUND UNITS
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @brief		implementation of compound_unit
+	 * @details		multiplies a variadic list of units together, and is inherited from the resulting
+	 *				type.
 	 */
 	template<class U, class... Us> struct compound_impl;
 	template<class U> struct compound_impl<U> { using type = U; };
 	template<class U1, class U2, class...Us>
 	struct compound_impl<U1, U2, Us...>
 		: compound_impl<unit_multiply<U1, U2>, Us...> {};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Represents a unit type made up from other units.
+	 * @details		Compound units are formed by multiplying the units of all the types provided in
+	 *				the template argument. Types provided must inherit from `unit`. A compound unit can
+	 *				be formed from any number of other units, and unit manipulators like `inverse` and
+	 *				`squared` are supported. E.g. to specify acceleration, on could create 
+	 *				`using acceleration = compound_unit<length::meters, inverse<squared<seconds>>;`
+	 * @tparam		U...	units which, when multiplied together, form the desired compound unit.
+	 * @ingroup		UnitTypes
+	 */
 	template<class U, class... Us>
 	using compound_unit = typename compound_impl<U, Us...>::type;
 
@@ -668,6 +692,11 @@ namespace units
 	//	PREFIXES
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		prefix applicator.
+	 * @details		creates a unit type from a prefix and a unit
+	 */
 	template<class Ratio, class Unit>
 	struct prefix
 	{
@@ -675,29 +704,48 @@ namespace units
 		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 		typedef typename units::unit<Ratio, Unit> type;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
-	// SI PREFIXES
-	template<class U> using atto = typename prefix<std::atto, U>::type;
-	template<class U> using femto = typename prefix<std::femto, U>::type;
-	template<class U> using pico = typename prefix<std::pico, U>::type;
-	template<class U> using nano = typename prefix<std::nano, U>::type;
-	template<class U> using micro = typename prefix<std::micro, U>::type;
-	template<class U> using milli = typename prefix<std::milli, U>::type;
-	template<class U> using centi = typename prefix<std::centi, U>::type;
-	template<class U> using deci = typename prefix<std::deci, U>::type;
-	template<class U> using deca = typename prefix<std::deca, U>::type;
-	template<class U> using hecto = typename prefix<std::hecto, U>::type;
-	template<class U> using kilo = typename prefix<std::kilo, U>::type;
-	template<class U> using mega = typename prefix<std::mega, U>::type;
-	template<class U> using giga = typename prefix<std::giga, U>::type;
-	template<class U> using tera = typename prefix<std::tera, U>::type;
-	template<class U> using peta = typename prefix<std::peta, U>::type;
-	template<class U> using exa = typename prefix<std::exa, U>::type;
+	/**
+	 * @ingroup UnitManipulators		
+	 * @{		
+	 * @ingroup Prefixes
+	 * @{
+	 */
+	template<class U> using atto	= typename prefix<std::atto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21
+	template<class U> using femto	= typename prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18
+	template<class U> using pico	= typename prefix<std::pico, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15
+	template<class U> using nano = typename prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12
+	template<class U> using micro = typename prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9
+	template<class U> using milli = typename prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6
+	template<class U> using centi = typename prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3
+	template<class U> using deci = typename prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2
+	template<class U> using deca = typename prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1
+	template<class U> using hecto = typename prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1
+	template<class U> using kilo = typename prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2
+	template<class U> using mega = typename prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3
+	template<class U> using giga = typename prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6
+	template<class U> using tera = typename prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9
+	template<class U> using peta = typename prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12
+	template<class U> using exa = typename prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15
+	/** @} @} */
 
 	//------------------------------
 	//	CONVERSION TRAITS
 	//------------------------------
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which checks whether two units can be converted to each other
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit<U1, U2>::value` to test
+	 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic meaning,
+	 *				(i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
+	 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
+	 *				U2 will be convertible to U1.
+	 * @tparam		U1 Unit to convert from.
+	 * @tparam		U2 Unit to convert to.
+	 * @sa			is_convertible_unit_t
+	 */
 	template<class U1, class U2>
 	struct is_convertible_unit : std::is_same < base_unit_of<typename unit_traits<U1>::base_unit_type>,
 		base_unit_of<typename unit_traits<U2>::base_unit_type >> {};
@@ -706,6 +754,7 @@ namespace units
 	//	CONVERSION FUNCTION
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	/// convert dispatch for units which are both the same
 	template<class, class, typename T>
 	static inline T _convert(const T& value, std::true_type, std::false_type, std::false_type)
@@ -769,12 +818,24 @@ namespace units
 		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @ingroup		Conversion
+	 * @brief		converts a <i>value</i> from one type to another.
+	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. This does not change
+	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
+	 * @sa			unit_t	for implicit conversion of unit containers.
+	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
+	 *				and must be convertible to `UnitTo` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
+	 *				and must be convertible from `UnitFrom` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 * @tparam		T type of <i>value</i>. It is infered from <i>value</i>, and is expected to be a built-in arethmetic type.
+	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
+	 *				a quantity in units of `UnitFrom`.
+	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
+	 */
 	template<class UnitFrom, class UnitTo, typename T = double>
 	static inline T convert(const T& value)
 	{
@@ -789,13 +850,17 @@ namespace units
 			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
 
 		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
-	}
-
+	};
 
 	//----------------------------------
 	//	NON-LINEAR SCALE TRAITS
 	//----------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		implementation of has_operator_parenthesis
+	 * @details		checks that operator() returns the same type as `Ret`
+	 */
 	template<class T, class Ret>
 	struct has_operator_parenthesis_impl
 	{
@@ -807,12 +872,16 @@ namespace units
 		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
 	};
 
+	/**
+	 * @brief		checks that `class T` has an `operator()` member which returns `Ret`
+	 * @details		used as part of the linear_scale concept.
+	 */
 	template<class T, class Ret>
 	struct has_operator_parenthesis : has_operator_parenthesis_impl<T, Ret>::type {};
 
 	/**
-	* @brief
-	* @details
+	* @brief		implementation of has_value_member
+	* @details		checks for a member named `m_member` with type `Ret`
 	*/
 	template<class T, class Ret>
 	struct has_value_member_impl
@@ -825,14 +894,26 @@ namespace units
 		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
 	};
 
+	/**
+	 * @brief		checks for a member named `m_member` with type `Ret`
+	 * @details		used as part of the linear_scale concept checker.
+	 */
 	template<class T, class Ret>
 	struct has_value_member : has_value_member_impl<T, Ret>::type {};
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief
-	 * @details
+	 * @ingroup		TypeTraits
+	 * @brief		Tests that `class T` meets the requirements for a non-linear scale
+	 * @details		A non-linear scale must:
+	 *				- be default constructible
+	 *				- have an `operator()` member which returns the non-linear value stored in the scale
+	 *				- have an accesible `m_value` member type which stores the linearized value in the scale.
+	 *
+	 *				Linear/nonlinear scales are used by `units::unit` to store values and scale them
+	 *				if they represent things like dB.
 	 */
-	template<class T, class Rhs, class Ret>
+	template<class T, class Ret>
 	struct is_nonlinear_scale : std::integral_constant<bool,
 		std::is_default_constructible<T>::value &&
 		has_operator_parenthesis<T, Ret>::value &&
@@ -843,6 +924,11 @@ namespace units
 	//	UNIT_T TYPE TRAITS
 	//------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		unit_t_traits specialization for things which are not unit_t
+	 * @details		
+	 */
 	template<typename T, typename = void>
 	struct unit_t_traits
 	{
@@ -850,7 +936,13 @@ namespace units
 		typedef void underlying_type;
 		typedef void unit_type;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait for accessing the publically defined types of `units::unit_t`
+	 * @details		
+	 */
 	template<typename T>
 	struct unit_t_traits < T, typename void_t<
 		typename T::non_linear_scale_type,
@@ -862,11 +954,31 @@ namespace units
 		typedef typename T::unit_type unit_type;
 	};
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether two container types derived from `unit_t` are convertible to each other
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_t<U1, U2>::value` to test
+	 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic meaning,
+	 *				(i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
+	 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
+	 *				U2 will be convertible to U1.
+	 * @tparam		U1 Unit to convert from.
+	 * @tparam		U2 Unit to convert to.
+	 * @sa			is_convertible_unit
+	 */
 	template<class U1, class U2>
 	struct is_convertible_unit_t : std::integral_constant<bool,
 		is_convertible_unit<typename unit_t_traits<U1>::unit_type, typename unit_t_traits<U2>::unit_type>::value>
 	{};
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether one or more types derived from `unit_t` represent scalar values.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_scalar_unit<U1 [, U2, ...]>::value` to test
+	 *				one or more types to see if they represent scalar value containers. A scalar unit is one which has no 
+	 *				dimensions (e.g. PI).
+	 * @tparam		T	one or more types to test.
+	 */
 	template<class... T>
 	struct is_scalar_unit : std::integral_constant<bool,
 		all_true<std::is_same<base_unit_of<typename unit_t_traits<T>::unit_type>, category::scalar_unit>::value...>::value >
@@ -876,18 +988,36 @@ namespace units
 	//	UNIT TYPE
 	//----------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	// forward declaration
 	template<typename T> struct linear_scale;
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief
-	 * @details
-	 * @TODO		DOCUMENT THIS!
+	 * @ingroup		UnitContainers
+	 * @brief		Container for values which represent quantities of a given unit.
+	 * @details		Stores a value which represents a quantity in the given units. Unit containers
+	 *				(except scalar values) are *not* convertible to built-in c++ types, in order to
+	 *				provide type safety in dimensional analysis. Unit containers *are* implicitely 
+	 *				convertible to other compatible unit container types. Unit containers support
+	 *				various types of arithmetic operations, depending on their scale type.
+	 *
+	 *				The value of a `unit_t` can only be changed on construction, or by assignment
+	 *				from another `unit_t` type. If necessary, the underlying value can be accessed
+	 *				using `operator()`: @code 
+	 *				meter_t m(5.0);
+	 *				double val = m(); // val == 5.0	@endcode.
+	 * @tparam		Units unit tag for which type of units the `unit_t` represents (e.g. meters)
+	 * @tparam		T underlying type of the storage. Defaults to double.
+	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
+	 *				not scale the unit value). Examples of non-linear scales could be logarithmic, 
+	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
+	 *				concept, i.e. `is_nonlinear_scale<...>::value` must be `true`.
 	 */
 	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>
 	{
-		static_assert(units::is_nonlinear_scale<NonLinearScale<T>, T, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
+		static_assert(units::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	protected:
 
@@ -895,25 +1025,51 @@ namespace units
 
 	public:
 
-		typedef NonLinearScale<T> non_linear_scale_type;
-		typedef T underlying_type;
-		typedef Units unit_type;
+		typedef NonLinearScale<T> non_linear_scale_type;											///< Type of the non-linear scale of the unit_t (e.g. linear_scale)
+		typedef T underlying_type;																	///< Type of the underlying storage of the unit_t (e.g. double)
+		typedef Units unit_type;																	///< Type of `unit` the `unit_t` represents (e.g. meters)
 
+		/**
+		 * @ingroup		Constructors
+		 * @brief		default constructor.
+		 */
 		inline unit_t() : NonLinearScale<T>(0) {};
 
+
+		/**
+		 * @brief		constructor
+		 * @details		constructs a new unit_t using the non-linear scale's constructor.
+		 * @param[in]	args	constructor arguments are forwarded to the non-linear scale constructor. Which
+		 *				args are required depends on which scale is used. For the default (linear) scale,
+		 *				a single double-type value should be given.
+		 */
 		template<class... Args>
 		inline explicit unit_t(const Args&... args) : nls(args...) {};
 
-		// enable implicit conversion from T types ONLY for linear scalar units
+		/**
+		 * @brief		constructor
+		 * @details		enable implicit conversions from T types ONLY for linear scalar units
+		 * @param[in]	value value of the unit_t	
+		 */
 		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
-		inline unit_t(Ty rhs) : nls(rhs) {};
+		inline unit_t(Ty value) : nls(value) {};
 
+		/**
+		 * @brief		copy constructor
+		 * @details		performs implicit unit conversions if required.
+		 * @param[in]	rhs unit to copy. 
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
+		/**
+		 * @brief		assignment
+		 * @details		performs implicit unit conversions if required
+		 * @param[in]	rhs unit to copy.
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
@@ -921,7 +1077,11 @@ namespace units
 			return *this;
 		}
 
-		// enable implicit conversion from T types ONLY for linear scalar units
+		/**
+		* @brief		assignment
+		* @details		performs implicit conversions from built-in types ONLY for scalar units
+		* @param[in]	rhs value to copy.
+		*/
 		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
 		inline unit_t& operator=(Ty rhs)
 		{
@@ -929,36 +1089,74 @@ namespace units
 			return *this;
 		}
 
+		/**
+		 * @brief		less-than
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` is less than the value of `rhs`
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return unit_t(nls::m_value<convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		less-than or equal
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` is less than or equal to the value of `rhs`
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value <= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		greater-than
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` is greater than the value of `rhs`
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value> convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		greater-than or equal
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` is greater than or equal to the value of `rhs`
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value >= convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		equality
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
+		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			return (nls::m_value == convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
+		/**
+		 * @brief		inequality
+		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
+		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
+		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
+		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator!=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
@@ -987,25 +1185,36 @@ namespace units
 	template<typename T> struct decibel_scale;
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type is inherited from a linear scale.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_linear_scale<U1 [, U2, ...]>::value` to test
+	 *				one or more types to see if they represent unit_t's whose scale is linear.
+	 * @tparam		T	one or more types to test.
+	 */
 	template<typename... T>
 	struct has_linear_scale : std::integral_constant<bool,
 		all_true<std::is_base_of<linear_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value >
 	{};
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type is inherited from a decibel scale.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_decibel_scale<U1 [, U2, ...]>::value` to test
+	 *				one or more types to see if they represent unit_t's whose scale is in decibels.
+	 * @tparam		T	one or more types to test.
+	 */
 	template<typename... T>
 	struct has_decibel_scale : std::integral_constant<bool,
 		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
 	{};
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether two types has the same non-linear scale.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_same_scale<U1 , U2>::value` to test
+	 *				whether two types have the same non-linear scale.
+	 * @tparam		T	one or more types to test.
+	 */
 	template<typename T1, typename T2>
 	struct is_same_scale : std::integral_constant<bool,
 		std::is_same<typename unit_t_traits<T1>::non_linear_scale_type, typename unit_t_traits<T2>::non_linear_scale_type>::value>
@@ -1024,18 +1233,20 @@ namespace units
 	//------------------------------
 
 	/**
-	* @brief
-	* @details
-	* @TODO		DOCUMENT THIS!
-	*/
+	 * @brief		unit_t scale which is linear
+	 * @details		Represents units on a linear scale. This is the appropriate unit_t scale for almost
+	 *				all units almost all of the time.
+	 * @tparam		T	underlying storage type
+	 * @sa			unit_t
+	 */
 	template<typename T>
 	struct linear_scale
 	{
-		inline linear_scale() : m_value(0) {}
-		inline linear_scale(T value) : m_value(value) {}
-		inline T operator()() const { return m_value; }
+		inline linear_scale() : m_value(0) {}														///< default constructor.
+		inline linear_scale(T value) : m_value(value) {}											///< constructor.
+		inline T operator()() const { return m_value; }												///< returns value.
 
-		T m_value;	///< linearized value		
+		T m_value;																					///< linearized value.	
 	};
 
 	//----------------------------------
@@ -1056,6 +1267,7 @@ namespace units
 	//	LINEAR ARITHMETIC
 	//------------------------------
 
+	
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<!is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline int operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
@@ -1063,42 +1275,49 @@ namespace units
 		return 0;
 	}
 
+	/// Addition operator for unit_t types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeLhs(lhs.m_value + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
+	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
 	{
 		return dimensionless::scalar_t(lhs.m_value + rhs);
 	}
 
+	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(T lhs, const dimensionless::scalar_t& rhs)
 	{
 		return dimensionless::scalar_t(lhs + rhs.m_value);
 	}
 
+	/// Subtraction operator for unit_t types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		return UnitTypeLhs(lhs.m_value - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
+	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(const dimensionless::scalar_t& lhs, T rhs)
 	{
 		return dimensionless::scalar_t(lhs.m_value - rhs);
 	}
 
+	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(T lhs, const dimensionless::scalar_t& rhs)
 	{
 		return dimensionless::scalar_t(lhs - rhs.m_value);
 	}
 
+	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
@@ -1107,6 +1326,7 @@ namespace units
 			(lhs.m_value * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
+	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
@@ -1115,6 +1335,7 @@ namespace units
 			(lhs.m_value * rhs.m_value);
 	}
 
+	/// Multiplication by a scalar for unit_t types with a linear scale.
 	template<class UnitTypeLhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
@@ -1122,6 +1343,7 @@ namespace units
 		return UnitTypeLhs(lhs.m_value * rhs);
 	}
 
+	/// Multiplication by a scalar for unit_t types with a linear scale.
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
@@ -1129,6 +1351,7 @@ namespace units
 		return UnitTypeRhs(lhs * rhs.m_value);
 	}
 
+	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a scalar
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
@@ -1136,6 +1359,7 @@ namespace units
 		return dimensionless::scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
 	}
 
+	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<!is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
@@ -1144,6 +1368,7 @@ namespace units
 			(lhs.m_value / rhs.m_value);
 	}
 
+	/// Division by a scalar for unit_t types with a linear scale
 	template<class UnitTypeLhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
@@ -1151,6 +1376,7 @@ namespace units
 		return UnitTypeLhs(lhs.m_value / rhs);
 	}
 
+	/// Division of a scalar  by a unit_t type with a linear scale
 	template<class UnitTypeRhs, typename T,
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
@@ -1159,16 +1385,27 @@ namespace units
 			(lhs / rhs.m_value);
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
+	/// recursive exponential implementation
 	template <int N, class U> struct _power_unit
 	{
 		typedef typename units::unit_multiply<U, typename _power_unit<N - 1, U>::type> type;
 	};
 
+	/// End recursion
 	template <class U> struct _power_unit<1, U>
 	{
 		typedef U type;
 	};
+	/** @endcond */	// END DOXYGEN IGNORE
 
+	/**
+	 * @brief		computes the value of <i>value</i> raised to the power <i>power</i>
+	 * @details		Only implemented for linear_scale units. Power must be known at compile time, so the resulting unit type can be deduced.
+	 * @tparam		power exponential power to raise <i>value</i> by.
+	 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
+	 * @returns		new unit_t, raised to the given exponent
+	 */
 	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
 	inline auto pow(const UnitType& value) -> unit_t<typename _power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 	{
@@ -1183,7 +1420,7 @@ namespace units
 	/**
 	* @brief
 	* @details
-	* @TODO		DOCUMENT THIS!
+	* @sa			unit_t
 	*/
 	template<typename T>
 	struct decibel_scale
@@ -1277,6 +1514,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing length values
 	 * @details		The SI unit for length is `meters`, and the corresponding `base_unit` category is
 	 *				`length_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	namespace length
 	{
@@ -1358,6 +1596,7 @@ namespace units
 		/** @} */
 
 		/**
+		 * @ingroup		UnitContainers
 		 * @name Unit Containers
 		 * @{
 		 */
@@ -2698,7 +2937,7 @@ namespace units
 		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
 		static const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(4.0e-7 * PI);							///< vacuum permeability.
 		static const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>														epsilon0(1.0 / (mu0 * units::pow<2>(c)));	///< vacuum permitivity.
-		static const impedance::ohm_t																										Z0(mu0 * c);								///< characteristic impedance of vacuum.
+		static const impedance::ohm_t																										Z0 (mu0 * c);								///< characteristic impedance of vacuum.
 		static const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));				///< Coulomb's constant.
 		static const charge::coulomb_t																										e(1.602176565e-19);							///< elementary charge.
 		static const mass::kilogram_t																										m_e(9.10938291e-31);						///< electron mass.
