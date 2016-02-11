@@ -66,8 +66,9 @@ namespace units
 	//----------------------------------
 
 	/**
-	 * @defgroup	TypeTraits Type Traits
-	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
+	 * @defgroup	UnitContainers Unit Containers
+	 * @brief		Defines a series of classes which contain dimensioned values. Unit containers
+	 *				store a value, and support various arithmetic operations.
 	 */
 
 	 /**
@@ -83,17 +84,16 @@ namespace units
 	  *				manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to
 	  *				represent picoseconds^-2.
 	  */
-
-	/**
-	 * @defgroup	UnitContainers Unit Containers
-	 * @brief		Defines a series of classes which contain dimensioned values. Unit containers
-	 *				store a value, and support various arithmetic operations.
-	 */
 	
 	/**
 	 * @defgroup	Conversion Explicit Conversion
 	 * @brief		Functions used to convert values of one logical type to another.
 	 */
+
+	 /**
+	  * @defgroup	TypeTraits Type Traits
+	  * @brief		Defines a series of classes to obtain unit type information at compile-time.
+	  */
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -712,22 +712,22 @@ namespace units
 	 * @ingroup Prefixes
 	 * @{
 	 */
-	template<class U> using atto	= typename prefix<std::atto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21
-	template<class U> using femto	= typename prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18
-	template<class U> using pico	= typename prefix<std::pico, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15
-	template<class U> using nano = typename prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12
-	template<class U> using micro = typename prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9
-	template<class U> using milli = typename prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6
-	template<class U> using centi = typename prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3
-	template<class U> using deci = typename prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2
-	template<class U> using deca = typename prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1
-	template<class U> using hecto = typename prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1
-	template<class U> using kilo = typename prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2
-	template<class U> using mega = typename prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3
-	template<class U> using giga = typename prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6
-	template<class U> using tera = typename prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9
-	template<class U> using peta = typename prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12
-	template<class U> using exa = typename prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15
+	template<class U> using atto	= typename prefix<std::atto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21	@tparam U unit type to apply the prefix to.
+	template<class U> using femto	= typename prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
+	template<class U> using pico	= typename prefix<std::pico, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
+	template<class U> using nano = typename prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
+	template<class U> using micro = typename prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
+	template<class U> using milli = typename prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
+	template<class U> using centi = typename prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
+	template<class U> using deci = typename prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
+	template<class U> using deca = typename prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
+	template<class U> using hecto = typename prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
+	template<class U> using kilo = typename prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
+	template<class U> using mega = typename prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
+	template<class U> using giga = typename prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
+	template<class U> using tera = typename prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
+	template<class U> using peta = typename prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
+	template<class U> using exa = typename prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
 	/** @} @} */
 
 	//------------------------------
@@ -1013,6 +1013,39 @@ namespace units
 	 *				not scale the unit value). Examples of non-linear scales could be logarithmic, 
 	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
 	 *				concept, i.e. `is_nonlinear_scale<...>::value` must be `true`.
+	 * @sa			
+	 *				- \ref lengthContainers "length unit containers"
+	 *				- \ref massContainers "mass unit containers"
+	 *				- \ref timeContainers "time unit containers"
+	 *				- \ref angleContainers "angle unit containers"
+	 *				- \ref currentContainers "current unit containers"
+	 *				- \ref temperatureContainers "temperature unit containers"
+	 *				- \ref substanceContainers "substance unit containers"
+	 *				- \ref luminousIntensityContainers "luminous intensity unit containers"
+	 *				- \ref solidAngleContainers "solid angle unit containers"
+	 *				- \ref frequencyContainers "frequency unit containers"
+	 *				- \ref velocityContainers "velocity unit containers"
+	 *				- \ref accelerationContainers "acceleration unit containers"
+	 *				- \ref forceContainers "force unit containers"
+	 *				- \ref pressureContainers "pressure unit containers"
+	 *				- \ref chargeContainers "charge unit containers"
+	 *				- \ref energyContainers "energy unit containers"
+	 *				- \ref powerContainers "power unit containers"
+	 *				- \ref voltageContainers "voltage unit containers"
+	 *				- \ref capacitanceContainers "capacitance unit containers"
+	 *				- \ref impedanceContainers "impedance unit containers"
+	 *				- \ref magneticFluxContainers "magnetic flux unit containers"
+	 *				- \ref magneticFieldStrengthContainers "magnetic field strength unit containers"
+	 *				- \ref inductanceContainers "inductance unit containers"
+	 *				- \ref luminousFluxContainers "luminous flux unit containers"
+	 *				- \ref illuminanceContainers "illuminance unit containers"
+	 *				- \ref radiationContainers "radiation unit containers"
+	 *				- \ref torqueContainers "torque unit containers"
+	 *				- \ref areaContainers "area unit containers"
+	 *				- \ref volumeContainers "volume unit containers"
+	 *				- \ref densityContainers "density unit containers"
+	 *				- \ref concentrationContainers "concentration unit containers"
+	 *				- \ref constantContainers "constant unit containers"
 	 */
 	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>
@@ -1400,8 +1433,8 @@ namespace units
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @brief		computes the value of <i>value</i> raised to the power <i>power</i>
-	 * @details		Only implemented for linear_scale units. Power must be known at compile time, so the resulting unit type can be deduced.
+	 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
+	 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
 	 * @tparam		power exponential power to raise <i>value</i> by.
 	 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
 	 * @returns		new unit_t, raised to the given exponent
@@ -1530,8 +1563,8 @@ namespace units
 	namespace length
 	{
 		/**
-		 * @name Units (full names)
-		 * @{		
+		 * @name Units (full names plural)
+		 * @{
 		 */
 		using meters = unit<std::ratio<1>, category::length_unit>;
 		using nanometers = nano<meters>;
@@ -1556,7 +1589,12 @@ namespace units
 		using leagues = unit<std::ratio<3>, miles>;
 		using nauticalLeagues = unit<std::ratio<3>, nauticalMiles>;
 		using yards = unit<std::ratio<3>, feet>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using meter = meters;
 		using nanometer = nanometers;
 		using micrometer = micrometers;
@@ -1582,7 +1620,7 @@ namespace units
 		/** @} */
 
 		/**
-		* @name Units (abreviated names)
+		* @name Units (abbreviated names)
 		* @{
 		*/
 		using m = meters;
@@ -1607,8 +1645,8 @@ namespace units
 		/** @} */
 
 		/**
-		 * @ingroup		UnitContainers
-		 * @name Unit Containers
+		 * @anchor		lengthContainers
+		 * @name		Unit Containers
 		 * @{
 		 */
 		using meter_t = unit_t<meter>;
@@ -1640,8 +1678,18 @@ namespace units
 	//	MASS UNITS
 	//------------------------------
 
+	/**
+	 * @brief		namespace for unit types and containers representing mass values
+	 * @details		The SI unit for mass is `kilograms`, and the corresponding `base_unit` category is
+	 *				`mass_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace mass
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using kilograms = unit<std::ratio<1>, category::mass_unit>;
 		using grams = unit<std::ratio<1, 1000>, kilograms>;
 		using micrograms = micro<grams>;
@@ -1654,7 +1702,12 @@ namespace units
 		using ounces = unit<std::ratio<1, 16>, pounds>;
 		using carats = unit<std::ratio<200>, milligrams>;
 		using slugs = unit<std::ratio<145939029, 10000000>, kilograms>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using gram = grams;
 		using microgram = micrograms;
 		using milligram = milligrams;
@@ -1666,7 +1719,12 @@ namespace units
 		using ounce = ounces;
 		using carat = carats;
 		using slug = slugs;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using g = grams;
 		using ug = micrograms;
 		using mg = milligrams;
@@ -1678,7 +1736,13 @@ namespace units
 		using st = stone;
 		using oz = ounces;
 		using ct = carats;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor massContainers
+		 * @{
+		 */
 		using gram_t = unit_t<gram>;
 		using microgram_t = unit_t<microgram>;
 		using milligram_t = unit_t<milligram>;
@@ -1690,14 +1754,25 @@ namespace units
 		using ounce_t = unit_t<ounce>;
 		using carat_t = unit_t<carat>;
 		using slug_t = unit_t<slug>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	TIME UNITS
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing time values
+ 	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` category is
+ 	 *				`time_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace time
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using seconds = unit<std::ratio<1>, category::time_unit>;
 		using nanoseconds = nano<seconds>;
 		using microseconds = micro<seconds>;
@@ -1707,7 +1782,12 @@ namespace units
 		using days = unit<std::ratio<24>, hours>;
 		using weeks = unit<std::ratio<7>, days>;
 		using years = unit<std::ratio<365>, days>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using second = seconds;
 		using nanosecond = nanoseconds;
 		using microsecond = microseconds;
@@ -1717,7 +1797,12 @@ namespace units
 		using day = days;
 		using week = weeks;
 		using year = years;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using s = seconds;
 		using ns = nanoseconds;
 		using us = microseconds;
@@ -1727,7 +1812,13 @@ namespace units
 		using d = days;
 		using wk = weeks;
 		using yr = years;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor timeContainers
+		 * @{
+		 */
 		using second_t = unit_t<second>;
 		using nanosecond_t = unit_t<nanosecond>;
 		using microsecond_t = unit_t<microsecond>;
@@ -1737,14 +1828,25 @@ namespace units
 		using day_t = unit_t<day>;
 		using week_t = unit_t<week>;
 		using year_t = unit_t<year>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	ANGLE UNITS
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing angle values
+ 	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` category is
+ 	 *				`angle_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace angle
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using radians = unit<std::ratio<1>, category::angle_unit>;
 		using milliradians = milli<radians>;
 		using degrees = unit<std::ratio<1, 180>, radians, std::ratio<1>>;
@@ -1753,7 +1855,12 @@ namespace units
 		using turns = unit<std::ratio<2>, radians, std::ratio<1>>;
 		using mils = unit<std::ratio<1, 6400>, radians>;	// 1/6400 of a circle
 		using gradians = unit<std::ratio<1, 400>, turns>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using radian = radians;
 		using milliradian = milliradians;
 		using degree = degrees;
@@ -1762,7 +1869,12 @@ namespace units
 		using turn = turns;
 		using mil = mils;
 		using gradian = gradians;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using rad = radians;
 		using mrad = milliradians;
 		using deg = degrees;
@@ -1771,7 +1883,13 @@ namespace units
 		using tr = turn;
 		using gon = gradians;
 		using grad = gradians;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor angleContainers
+		 * @{
+		 */
 		using radian_t = unit_t<radian>;
 		using milliradian_t = unit_t<milliradian>;
 		using degree_t = unit_t<degree>;
@@ -1780,273 +1898,567 @@ namespace units
 		using turn_t = unit_t<turn>;
 		using mil_t = unit_t<mil>;
 		using gradian_t = unit_t<gradian>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF CURRENT
 	//------------------------------
+	/**
+ 	 * @brief		namespace for unit types and containers representing current values
+ 	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` category is
+ 	 *				`current_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace current
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using amperes = unit<std::ratio<1>, category::current_unit>;
 		using milliamps = milli<amperes>;
 		using microamps = micro<amperes>;
 		using nanoamps = nano<amperes>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using ampere = amperes;
 		using amps = amperes;
 		using amp = amperes;
 		using milliamp = milliamps;
 		using microamp = microamps;
 		using nanoamp = nanoamps;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using A = amperes;
 		using mA = milliamps;
 		using uA = microamps;
 		using nA = nanoamps;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor currentContainers
+		 * @{
+		 */
 		using ampere_t = unit_t<ampere>;
 		using amps_t = unit_t<amps>;
 		using amp_t = unit_t<amp>;
 		using milliamp_t = unit_t<milliamp>;
 		using microamp_t = unit_t<microamp>;
 		using nanoamp_t = unit_t<nanoamp>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
 	//------------------------------
 
+	// NOTE: temperature units have special conversion overloads, since they
+	// require translations and aren't a reversible transform.
+
+	/**
+ 	 * @brief		namespace for unit types and containers representing temperature values
+ 	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` category is
+ 	 *				`temperature_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace temperature
 	{
-		// NOTE: temperature units have special conversion overloads, since they
-		// require translations and aren't a reversible transform.
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using kelvin = unit<std::ratio<1>, category::temperature_unit>;
 		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>;
 		using fahrenheit = unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>;
 		using reaumur = unit<std::ratio<10, 8>, celsius>;
 		using rankine = unit<std::ratio<5, 9>, kelvin>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using centigrade = celsius;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using K = kelvin;
 		using F = fahrenheit;
 		using C = celsius;
 		using Ra = rankine;
 		using Re = reaumur;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor temperatureContainers
+		 * @{
+		 */
 		using kelvin_t = unit_t<kelvin>;
 		using celsius_t = unit_t<celsius>;
 		using fahrenheit_t = unit_t<fahrenheit>;
 		using reaumur_t = unit_t<reaumur>;
 		using rankine_t = unit_t<rankine>;
 		using centigrade_t = unit_t<centigrade>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing substance values
+ 	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` category is
+ 	 *				`substance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace substance
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using moles = unit<std::ratio<1>, category::substance_unit>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using mole = moles;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using mol = mole;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor substanceContainers
+		 * @{
+		 */
 		using mole_t = unit_t<mole>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing luminous_intensity values
+ 	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` category is
+ 	 *				`luminous_intensity_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace luminous_intensity
 	{
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
 		using candelas = unit<std::ratio<1>, category::luminous_intensity_unit>;
 		using millicandelas = milli<candelas>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using candela = candelas;
 		using millicandela = millicandelas;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using cd = candela;
 		using mcd = millicandela;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor luminousIntensityContainers
+		 * @{
+		 */
 		using candela_t = unit_t<candela>;
 		using millicandela_t = unit_t<millicandela>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing solid_angle values
+ 	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` category is
+ 	 *				`solid_angle_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace solid_angle
 	{
+		/**
+		 * @name Units (full names plural)  
+		 * @{
+		 */
 		using steradians = unit<std::ratio<1>, category::solid_angle_unit>;
 		using degrees_squared = squared<angle::degrees>;
 		using spats = unit<std::ratio<4>, steradians, std::ratio<1>>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using steradian = steradians;
 		using degree_squared = degrees_squared;
 		using spat = spats;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using sr = steradians;
 		using sq_deg = degrees_squared;
 		using sp = spat;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor solidAngleContainers
+		 * @{
+		 */
 		using steradian_t = unit_t<steradian>;
 		using degree_squared_t = unit_t<degree_squared>;
 		using spat_t = unit_t<spat>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing frequency values
+ 	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` category is
+ 	 *				`frequency_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace frequency
 	{
+		/**
+		 * @name Units (full names)  
+		 * @{
+		 */
 		using hertz = unit<std::ratio<1>, category::frequency_unit>;
 		using kilohertz = kilo<hertz>;
 		using megahertz = mega<hertz>;
 		using gigahertz = giga<hertz>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using Hz = hertz;
 		using kHz = kilohertz;
 		using MHz = megahertz;
 		using GHz = gigahertz;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor frequencyContainers
+		 * @{
+		 */
 		using hertz_t = unit_t<hertz>;
 		using kilohertz_t = unit_t<kilohertz>;
 		using megahertz_t = unit_t<megahertz>;
 		using gigahertz_t = unit_t<gigahertz>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	VELOCITY UNITS
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing velocity values
+ 	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` category is
+ 	 *				`velocity_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace velocity
 	{
-		using meters_per_second = compound_unit<length::meters, inverse<time::second>>;
+		/**
+		 * @name  Units (full names plural) 
+		 * @{
+		 */
+		using meters_per_second = unit<std::ratio<1>, category::velocity_unit>;
 		using feet_per_second = compound_unit<length::feet, inverse<time::seconds>>;
 		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
 		using kilometers_per_hour = compound_unit<length::kilometers, inverse<time::hour>>;
 		using knots = compound_unit<length::nauticalMiles, inverse<time::hour>>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using knot = knots;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using mps = meters_per_second;
 		using mph = miles_per_hour;
 		using fps = feet_per_second;
 		using kmph = kilometers_per_hour;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor velocityContainers
+		 * @{
+		 */
 		using meters_per_second_t = unit_t<meters_per_second>;
 		using feet_per_second_t = unit_t<feet_per_second>;
 		using miles_per_hour_t = unit_t<miles_per_hour>;
 		using kilometers_per_hour_t = unit_t<kilometers_per_hour>;
 		using knot_t = unit_t<knot>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF ACCELERATION
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing acceleration values
+ 	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` category is
+ 	 *				`acceleration_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace acceleration
 	{
-		using meters_per_second_squared = compound_unit<length::meters, inverse<squared<time::seconds>>>;
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
+		using meters_per_second_squared = unit<std::ratio<1>, category::acceleration_unit>;
 		using feet_per_second_squared = compound_unit<length::feet, inverse<squared<time::seconds>>>;
 		using standard_gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor accelerationContainers
+		 * @{
+		 */
 		using meters_per_second_squared_t = unit_t<meters_per_second_squared>;
 		using feet_per_second_squared_t = unit_t<feet_per_second_squared>;
 		using standard_gravity_t = unit_t<standard_gravity>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF FORCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing force values
+ 	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` category is
+ 	 *				`force_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace force
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using newtons = unit<std::ratio<1>, category::force_unit>;
 		using pounds = compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>;
 		using dynes = unit<std::ratio<1, 100000>, newtons>;
 		using kiloponds = compound_unit<acceleration::standard_gravity, mass::kilograms>;
 		using poundals = compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular)
+		 * @{
+		 */
 		using newton = newtons;
 		using pound = pounds;
 		using dyne = dynes;
 		using kilopond = kiloponds;
 		using poundal = poundals;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names)
+		 * @{
+		 */
 		using N = newtons;
 		using lbf = pounds;
 		using dyn = dynes;
 		using kp = kiloponds;
 		using pdl = poundals;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor forceContainers
+		 * @{
+		 */
 		using newton_t = unit_t<newton>;
 		using pound_t = unit_t<pound>;
 		using dyne_t = unit_t<dyne>;
 		using kilopond_t = unit_t<kilopond>;
 		using poundal_t = unit_t<poundal>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF PRESSURE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing pressure values
+ 	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` category is
+ 	 *				`pressure_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace pressure
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using pascals = unit<std::ratio<1>, category::pressure_unit>;
 		using bars = unit<std::ratio<100>, kilo<pascals>>;
 		using atmospheres = unit<std::ratio<101325>, pascals>;
 		using pounds_per_square_inch = compound_unit<force::pounds, inverse<squared<length::inch>>>;
 		using torrs = unit<std::ratio<1, 760>, atmospheres>;
+		/** @} */
 
+		/**
+		 * @name  Units (full names singular)
+		 * @{
+		 */
 		using pascal = pascals;
 		using bar = bars;
 		using atmosphere = atmospheres;
 		using pound_per_square_inch = pounds_per_square_inch;
 		using torr = torrs;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using Pa = pascals;
 		using atm = atmospheres;
 		using psi = pound_per_square_inch;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor pressureContainers
+		 * @{
+		 */
 		using pascal_t = unit_t<pascal>;
 		using bar_t = unit_t<bar>;
 		using atmosphere_t = unit_t<atmosphere>;
 		using pound_per_square_inch_t = unit_t<pound_per_square_inch>;
 		using torr_t = unit_t<torr>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF CHARGE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing charge values
+ 	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` category is
+ 	 *				`charge_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace charge
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using coulombs = unit<std::ratio<1>, category::charge_unit>;
 		using ampere_hours = compound_unit<current::ampere, time::hours>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using coulomb = coulombs;
 		using ampere_hour = ampere_hours;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using C = coulombs;
 		using Ah = ampere_hours;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor chargeContainers
+		 * @{
+		 */
 		using coulomb_t = unit_t<coulomb>;
 		using ampere_hour_t = unit_t<ampere_hour>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF ENERGY
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing energy values
+ 	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` category is
+ 	 *				`energy_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace energy
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using joules = unit<std::ratio<1>, category::energy_unit>;
 		using megajoules = mega<joules>;
 		using kilojoules = kilo<joules>;
@@ -2059,7 +2471,12 @@ namespace units
 		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
 		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
 		using foot_pounds = unit<std::ratio<13558179483314004, 10000000000000000>, joules>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using joule = joules;
 		using megajoule = megajoules;
 		using kilojoule = kilojoules;
@@ -2070,7 +2487,12 @@ namespace units
 		using british_thermal_unit = british_thermal_units;
 		using therm = therms;
 		using foot_pound = foot_pounds;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using J = joules;
 		using MJ = megajoules;
 		using kJ = kilojoules;
@@ -2081,7 +2503,13 @@ namespace units
 		using BTU = british_thermal_units;
 		using thm = therms;
 		using ftlbf = foot_pounds;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor energyContainers
+		 * @{
+		 */
 		using joule_t = unit_t<joule>;
 		using megajoule_t = unit_t<megajoule>;
 		using kilojoule_t = unit_t<kilojoule>;
@@ -2092,14 +2520,25 @@ namespace units
 		using british_thermal_unit_t = unit_t<british_thermal_unit>;
 		using therm_t = unit_t<therm>;
 		using foot_pound_t = unit_t<foot_pound>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF POWER
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing power values
+ 	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` category is
+ 	 *				`power_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace power
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using watts = unit<std::ratio<1>, category::power_unit>;
 		using nanowatts = nano<watts>;
 		using microwatts = micro<watts>;
@@ -2108,7 +2547,12 @@ namespace units
 		using megawatts = mega<watts>;
 		using gigawatts = giga<watts>;
 		using horsepower = unit<std::ratio<7457, 10>, watts>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using watt = watts;
 		using nanowatt = nanowatts;
 		using microwatt = microwatts;
@@ -2116,7 +2560,12 @@ namespace units
 		using kilwatt = kilowatts;
 		using megawatt = megawatts;
 		using gigawatt = gigawatts;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using W = watts;
 		using nW = nanowatts;
 		using uW = microwatts;
@@ -2125,7 +2574,13 @@ namespace units
 		using MW = megawatts;
 		using GW = gigawatts;
 		using hp = horsepower;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor powerContainers
+		 * @{
+		 */
 		using watt_t = unit_t<watt>;
 		using nanowatt_t = unit_t<nanowatt>;
 		using microwatt_t = unit_t<microwatt>;
@@ -2136,14 +2591,25 @@ namespace units
 
 		using dBW_t = unit_t<watt, double, decibel_scale>;
 		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing voltage values
+ 	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` category is
+ 	 *				`voltage_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace voltage
 	{
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
 		using volts = unit<std::ratio<1>, category::voltage_unit>;
 		using picovolts = pico<volts>;
 		using nanovolts = nano<volts>;
@@ -2154,7 +2620,12 @@ namespace units
 		using gigavolts = giga<volts>;
 		using statvolts = unit<std::ratio<1000000, 299792458>, volts>;
 		using abvolts = unit<std::ratio<1, 100000000>, volts>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using volt = volts;
 		using picovolt = picovolts;
 		using nanovolt = nanovolts;
@@ -2165,7 +2636,12 @@ namespace units
 		using gigavolt = gigavolts;
 		using statvolt = statvolts;
 		using abvolt = abvolts;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using volt_t = unit_t<volt>;
 		using picovolt_t = unit_t<picovolt>;
 		using nanovolt_t = unit_t<nanovolt>;
@@ -2176,7 +2652,13 @@ namespace units
 		using gigavolt_t = unit_t<gigavolt>;
 		using statvolt_t = unit_t<statvolt>;
 		using abvolt_t = unit_t<abvolt>;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor voltageContainers
+		 * @{
+		 */
 		using V = volts;
 		using pV = picovolts;
 		using nV = nanovolts;
@@ -2187,15 +2669,26 @@ namespace units
 		using GV = gigavolts;
 		using statV = statvolts;
 		using abV = abvolts;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing capacitance values
+ 	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` category is
+ 	 *				`capacitance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace capacitance
 	{
-		using farads = unit<std::ratio<1>, category::capacitance_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using farads = unit<std::ratio<1>, category::capacitance_unit>;
 		using picofarads = pico<farads>;
 		using nanofarads = nano<farads>;
 		using microfarads = micro<farads>;
@@ -2203,7 +2696,12 @@ namespace units
 		using kilofarads = kilo<farads>;
 		using megafarads = mega<farads>;
 		using gigafarads = giga<farads>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using farad = farads;
 		using picofarad = picofarads;
 		using nanofarad = nanofarads;
@@ -2212,16 +2710,12 @@ namespace units
 		using kilofarad = kilofarads;
 		using megafarad = megafarads;
 		using gigafarad = gigafarads;
+		/** @} */
 
-		using farad_t = unit_t<farad>;
-		using picofarad_t = unit_t<picofarad>;
-		using nanofarad_t = unit_t<nanofarad>;
-		using microfarad_t = unit_t<microfarad>;
-		using millifarad_t = unit_t<millifarad>;
-		using kilofarad_t = unit_t<kilofarad>;
-		using megafarad_t = unit_t<megafarad>;
-		using gigafarad_t = unit_t<gigafarad>;
-
+		/**
+		 * @name  Units (abbreviated names)
+		 * @{
+		 */
 		using F = farads;
 		using pF = picofarads;
 		using nF = nanofarads;
@@ -2230,15 +2724,41 @@ namespace units
 		using kF = kilofarads;
 		using MF = megafarads;
 		using GF = gigafarads;
+		/** @} */
+
+		/**
+		 * @name Unit Containers
+		 * @anchor capacitanceContainers
+		 * @{
+		 */
+		using farad_t = unit_t<farad>;
+		using picofarad_t = unit_t<picofarad>;
+		using nanofarad_t = unit_t<nanofarad>;
+		using microfarad_t = unit_t<microfarad>;
+		using millifarad_t = unit_t<millifarad>;
+		using kilofarad_t = unit_t<kilofarad>;
+		using megafarad_t = unit_t<megafarad>;
+		using gigafarad_t = unit_t<gigafarad>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing impedance values
+ 	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` category is
+ 	 *				`impedance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace impedance
 	{
-		using ohms = unit<std::ratio<1>, category::impedance_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using ohms = unit<std::ratio<1>, category::impedance_unit>;
 		using picoohms = pico<ohms>;
 		using nanoohms = nano<ohms>;
 		using microohms = micro<ohms>;
@@ -2246,7 +2766,12 @@ namespace units
 		using kiloohms = kilo<ohms>;
 		using megaohms = mega<ohms>;
 		using gigaohms = giga<ohms>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using ohm = ohms;
 		using picoohm = picoohms;
 		using nanoohm = nanoohms;
@@ -2255,7 +2780,13 @@ namespace units
 		using kiloohm = kiloohms;
 		using megaohm = megaohms;
 		using gigaohm = gigaohms;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor impedanceContainers
+		 * @{
+		 */
 		using ohm_t = unit_t<ohm>;
 		using picoohm_t = unit_t<picoohm>;
 		using nanoohm_t = unit_t<nanoohm>;
@@ -2264,7 +2795,12 @@ namespace units
 		using kiloohm_t = unit_t<kiloohm>;
 		using megaohm_t = unit_t<megaohm>;
 		using gigaohm_t = unit_t<gigaohm>;
+		/** @} */
 
+		/**
+		 * @name  Units (abbreviated names)
+		 * @{
+		 */
 		using Ohm = ohms;
 		using pOhm = picoohms;
 		using nOhm = nanoohms;
@@ -2273,15 +2809,26 @@ namespace units
 		using kOhm = kiloohms;
 		using MOhm = megaohms;
 		using GOhm = gigaohms;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing conductance values
+ 	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` category is
+ 	 *				`conductance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace conductance
 	{
-		using siemens = unit<std::ratio<1>, category::conductance_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using siemens = unit<std::ratio<1>, category::conductance_unit>;
 		using picosiemens = pico<siemens>;
 		using nanosiemens = nano<siemens>;
 		using microsiemens = micro<siemens>;
@@ -2289,7 +2836,12 @@ namespace units
 		using kilosiemens = kilo<siemens>;
 		using megasiemens = mega<siemens>;
 		using gigasiemens = giga<siemens>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using siemen = siemens;
 		using picosiemen = picosiemens;
 		using nanosiemen = nanosiemens;
@@ -2298,7 +2850,13 @@ namespace units
 		using kilosiemen = kilosiemens;
 		using megasiemen = megasiemens;
 		using gigasiemen = gigasiemens;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor conductanceContainers
+		 * @{
+		 */
 		using siemen_t = unit_t<siemen>;
 		using picosiemen_t = unit_t<picosiemen>;
 		using nanosiemen_t = unit_t<nanosiemen>;
@@ -2307,7 +2865,12 @@ namespace units
 		using kilosiemen_t = unit_t<kilosiemen>;
 		using megasiemen_t = unit_t<megasiemen>;
 		using gigasiemen_t = unit_t<gigasiemen>;
+		/** @} */
 
+		/**
+		 * @name  Units (abbreviated names)
+		 * @{
+		 */
 		using S = siemens;
 		using pS = picosiemens;
 		using nS = nanosiemens;
@@ -2316,15 +2879,26 @@ namespace units
 		using kS = kilosiemens;
 		using MS = megasiemens;
 		using GS = gigasiemens;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing magnetic_flux values
+ 	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` category is
+ 	 *				`magnetic_flux_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace magnetic_flux
 	{
-		using webers = unit<std::ratio<1>, category::magnetic_flux_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using webers = unit<std::ratio<1>, category::magnetic_flux_unit>;
 		using picowebers = pico<webers>;
 		using nanowebers = nano<webers>;
 		using microwebers = micro<webers>;
@@ -2333,7 +2907,12 @@ namespace units
 		using megawebers = mega<webers>;
 		using gigawebers = giga<webers>;
 		using maxwells = unit<std::ratio<1, 100000000>, webers>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using weber = webers;
 		using picoweber = picowebers;
 		using nanoweber = nanowebers;
@@ -2343,7 +2922,13 @@ namespace units
 		using megaweber = megawebers;
 		using gigaweber = gigawebers;
 		using maxwell = maxwells;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor magneticFluxContainers
+		 * @{
+		 */
 		using weber_t = unit_t<weber>;
 		using picoweber_t = unit_t<picoweber>;
 		using nanoweber_t = unit_t<nanoweber>;
@@ -2353,7 +2938,12 @@ namespace units
 		using megaweber_t = unit_t<megaweber>;
 		using gigaweber_t = unit_t<gigaweber>;
 		using maxwell_t = unit_t<maxwell>;
+		/** @} */
 
+		/**
+		 * @name  Units (abbreviated names)
+		 * @{
+		 */
 		using Wb = webers;
 		using pWb = picowebers;
 		using nWb = nanowebers;
@@ -2363,15 +2953,26 @@ namespace units
 		using MWb = megawebers;
 		using GWb = gigawebers;
 		using Mx = maxwells;
+		/** @} */
 	}
 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
 	//----------------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
+ 	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` category is
+ 	 *				`magnetic_field_strength_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace magnetic_field_strength
 	{
-		using teslas = unit<std::ratio<1>, category::magnetic_field_strength_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using teslas = unit<std::ratio<1>, category::magnetic_field_strength_unit>;
 		using picoteslas = pico<teslas>;
 		using nanoteslas = nano<teslas>;
 		using microteslas = micro<teslas>;
@@ -2380,7 +2981,12 @@ namespace units
 		using megateslas = mega<teslas>;
 		using gigateslas = giga<teslas>;
 		using gauss = compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using tesla = teslas;
 		using picotesla = picoteslas;
 		using nanotesla = nanoteslas;
@@ -2389,7 +2995,13 @@ namespace units
 		using kilotesla = kiloteslas;
 		using megatesla = megateslas;
 		using gigatesla = gigateslas;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor magneticFieldStrengthContainers
+		 * @{
+		 */
 		using tesla_t = unit_t<tesla>;
 		using picotesla_t = unit_t<picotesla>;
 		using nanotesla_t = unit_t<nanotesla>;
@@ -2399,7 +3011,12 @@ namespace units
 		using megatesla_t = unit_t<megatesla>;
 		using gigatesla_t = unit_t<gigatesla>;
 		using gauss_t = unit_t<gauss>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using T = teslas;
 		using pT = picoteslas;
 		using nT = nanoteslas;
@@ -2409,15 +3026,26 @@ namespace units
 		using MT = megateslas;
 		using GT = gigateslas;
 		using G = gauss;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing inductance values
+ 	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` category is
+ 	 *				`inductance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace inductance
 	{
-		using henrys = unit<std::ratio<1>, category::inductance_unit>;;
+		/**
+		 * @name Units (full names plural)
+		 * @{
+		 */
+		using henrys = unit<std::ratio<1>, category::inductance_unit>;
 		using picohenrys = pico<henrys>;
 		using nanohenrys = nano<henrys>;
 		using microhenrys = micro<henrys>;
@@ -2425,7 +3053,12 @@ namespace units
 		using kilohenrys = kilo<henrys>;
 		using megahenrys = mega<henrys>;
 		using gigahenrys = giga<henrys>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using henry = henrys;
 		using picohenry = picohenrys;
 		using nanohenry = nanohenrys;
@@ -2434,7 +3067,12 @@ namespace units
 		using kilohenry = kilohenrys;
 		using megahenry = megahenrys;
 		using gigahenry = gigahenrys;
+		/** @} */
 
+		/**
+		 * @name Units (alternate spellings)
+		 * @{
+		 */
 		using henries = henrys;
 		using picohenries = picohenrys;
 		using nanohenries = nanohenrys;
@@ -2443,7 +3081,13 @@ namespace units
 		using kilohenries = kilohenrys;
 		using megahenries = megahenrys;
 		using gigahenries = gigahenrys;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor inductanceContainers
+		 * @{
+		 */
 		using henry_t = unit_t<henry>;
 		using picohenry_t = unit_t<picohenry>;
 		using nanohenry_t = unit_t<nanohenry>;
@@ -2452,7 +3096,12 @@ namespace units
 		using kilohenry_t = unit_t<kilohenry>;
 		using megahenry_t = unit_t<megahenry>;
 		using gigahenry_t = unit_t<gigahenry>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using H = henrys;
 		using pH = picohenrys;
 		using nH = nanohenrys;
@@ -2461,15 +3110,26 @@ namespace units
 		using kH = kilohenrys;
 		using MH = megahenrys;
 		using GH = gigahenrys;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing luminous_flux values
+ 	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` category is
+ 	 *				`luminous_flux_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace luminous_flux
 	{
-		using lumens = unit<std::ratio<1>, category::luminous_flux_unit>;;
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
+		using lumens = unit<std::ratio<1>, category::luminous_flux_unit>;
 		using picolumens = pico<lumens>;
 		using nanolumens = nano<lumens>;
 		using microlumens = micro<lumens>;
@@ -2477,7 +3137,12 @@ namespace units
 		using kilolumens = kilo<lumens>;
 		using megalumens = mega<lumens>;
 		using gigalumens = giga<lumens>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using lumen = lumens;
 		using picolumen = picolumens;
 		using nanolumen = nanolumens;
@@ -2486,7 +3151,13 @@ namespace units
 		using kilolumen = kilolumens;
 		using megalumen = megalumens;
 		using gigalumen = gigalumens;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor luminousFluxContainers
+		 * @{
+		 */
 		using lumen_t = unit_t<lumen>;
 		using picolumen_t = unit_t<picolumen>;
 		using nanolumen_t = unit_t<nanolumen>;
@@ -2495,7 +3166,12 @@ namespace units
 		using kilolumen_t = unit_t<kilolumen>;
 		using megalumen_t = unit_t<megalumen>;
 		using gigalumen_t = unit_t<gigalumen>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using lm = lumens;
 		using plm = picolumens;
 		using nlm = nanolumens;
@@ -2504,15 +3180,26 @@ namespace units
 		using klm = kilolumens;
 		using Mlm = megalumens;
 		using Glm = gigalumens;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing illuminance values
+ 	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` category is
+ 	 *				`illuminance_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace illuminance
 	{
-		using luxes = unit<std::ratio<1>, category::illuminance_unit>;;
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
+		using luxes = unit<std::ratio<1>, category::illuminance_unit>;
 		using picoluxes = pico<luxes>;
 		using nanoluxes = nano<luxes>;
 		using microluxes = micro<luxes>;
@@ -2523,7 +3210,12 @@ namespace units
 		using footcandles = compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>;
 		using lumens_per_square_inch = compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>;
 		using phots = compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>;
+		/** @} */
 
+		/**
+		 * @name  Units (full names singular)
+		 * @{
+		 */
 		using lux = luxes;
 		using picolux = picoluxes;
 		using nanolux = nanoluxes;
@@ -2534,7 +3226,13 @@ namespace units
 		using gigalux = gigaluxes;
 		using footcandle = footcandles;
 		using phot = phots;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor illuminanceContainers
+		 * @{
+		 */
 		using lux_t = unit_t<lux>;
 		using picolux_t = unit_t<picolux>;
 		using nanolux_t = unit_t<nanolux>;
@@ -2546,7 +3244,12 @@ namespace units
 		using footcandle_t = unit_t<footcandle>;
 		using lumens_per_square_inch_t = unit_t<lumens_per_square_inch>;
 		using phot_t = unit_t<phot>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using lx = luxes;
 		using plx = picoluxes;
 		using nlx = nanoluxes;
@@ -2557,14 +3260,27 @@ namespace units
 		using Glx = gigaluxes;
 		using fc = footcandles;
 		using ph = phots;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF RADIATION
 	//------------------------------
 
+	/**
+	 * @brief		namespace for unit types and containers representing radiation values
+	 * @details		The SI units for radiation are:
+	 *				- source activity:	becquerel
+	 *				- absorbed dose:	gray
+	 *				- equivalent dose:	sievert
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace radiation
 	{
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
 		using becquerels = inverse<time::seconds>;
 		using picobecquerels = pico<becquerels>;
 		using nanobecquerels = nano<becquerels>;
@@ -2592,7 +3308,12 @@ namespace units
 		using curies = unit<std::ratio<37>, gigabecquerels>;
 		using rutherfords = megabecquerels;
 		using rads = unit<std::ratio<1, 100>, grays>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using becquerel = becquerels;
 		using picobecquerel = picobecquerels;
 		using nanobecquerel = nanobecquerels;
@@ -2620,7 +3341,13 @@ namespace units
 		using curie = curies;
 		using rutherford = rutherfords;
 		using rad = rads;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor radiationContainers
+		 * @{
+		 */
 		using becquerel_t = unit_t<becquerel>;
 		using picobecquerel_t = unit_t<picobecquerel>;
 		using nanobecquerel_t = unit_t<nanobecquerel>;
@@ -2648,7 +3375,12 @@ namespace units
 		using curie_t = unit_t<curie>;
 		using rutherford_t = unit_t<rutherford>;
 		using rad_t = unit_t<rad>;
+		/** @} */
 
+		/**
+		 * @name  Units (abbreviated names)
+		 * @{
+		 */
 		using Bq = becquerels;
 		using pBq = picobecquerels;
 		using nBq = nanobecquerels;
@@ -2675,53 +3407,96 @@ namespace units
 		using GSv = gigasieverts;
 		using Ci = curies;
 		using rd = rutherfords;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF TORQUE
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing torque values
+ 	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` category is
+ 	 *				`torque_units`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace torque
 	{
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
 		using newton_meters = unit<std::ratio<1>, category::torque_units>;
 		using foot_pounds = compound_unit<length::foot, force::pounds>;
 		using foot_poundals = compound_unit<length::foot, force::poundal>;
 		using inch_pounds = compound_unit<length::inch, force::pounds>;
 		using meter_kilograms = compound_unit<length::meter, force::kiloponds>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using newton_meter = newton_meters;
 		using foot_pound = foot_pounds;
 		using foot_poundal = foot_poundals;
 		using inch_pound = inch_pounds;
 		using meter_kilogram = meter_kilograms;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor torqueContainers
+		 * @{
+		 */
 		using newton_meter_t = unit_t<newton_meter>;
 		using foot_pound_t = unit_t<foot_pound>;
 		using foot_poundal_t = unit_t<foot_poundal>;
 		using inch_pound_t = unit_t<inch_pound>;
 		using meter_kilogram_t = unit_t<meter_kilogram>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using Nm = newton_meters;
 		using ftlbf = foot_pounds;
 		using ftpdl = foot_poundals;
 		using inlbf = inch_pounds;
 		using mkgf = meter_kilograms;
+		/** @} */
 	}
 
 	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing area values
+ 	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` category is
+ 	 *				`area_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace area
 	{
-		using square_meters = squared<length::meters>;
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
+		using square_meters = unit<std::ratio<1>, category::area_unit>;
 		using square_feet = squared<length::feet>;
 		using square_inches = squared<length::inch>;
 		using square_miles = squared<length::miles>;
 		using square_kilometers = squared<length::kilometers>;
 		using hectares = unit<std::ratio<10000>, square_meters>;
 		using acres = unit<std::ratio<43560>, square_feet>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using square_meter = square_meters;
 		using square_foot = square_feet;
 		using square_inch = square_inches;
@@ -2729,9 +3504,20 @@ namespace units
 		using square_kilometer = square_kilometers;
 		using hectare = hectares;
 		using acre = acres;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using ha = hectares;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor areaContainers
+		 * @{
+		 */
 		using square_meter_t = unit_t<square_meter>;
 		using square_foot_t = unit_t<square_foot>;
 		using square_inch_t = unit_t<square_inch>;
@@ -2739,22 +3525,25 @@ namespace units
 		using square_kilometer_t = unit_t<square_kilometer>;
 		using hectare_t = unit_t<hectare>;
 		using acre_t = unit_t<acre>;
-
-		using square_meter_t = unit_t<square_meter>;
-		using square_foot_t = unit_t<square_foot>;
-		using square_inch_t = unit_t<square_inch>;
-		using square_mile_t = unit_t<square_mile>;
-		using square_kilometer_t = unit_t<square_kilometer>;
-		using hectare_t = unit_t<hectare>;
-		using acre_t = unit_t<acre>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF VOLUME
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing volume values
+ 	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` category is
+ 	 *				`volume_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace volume
 	{
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
 		using cubic_meters = unit<std::ratio<1>, category::volume_unit>;
 		using cubic_millimeters = cubed<length::millimeter>;
 		using cubic_kilometers = cubed<length::kilometer>;
@@ -2785,9 +3574,19 @@ namespace units
 		using sacks = unit<std::ratio<3>, bushels>;
 		using shots = unit<std::ratio<3, 2>, ounces>;
 		using strikes = unit<std::ratio<2>, bushels>;
+		/** @} */
 
+		/**
+		 * @name Units (alternate names)
+		 * @{
+		 */
 		using fluidOunces = ounces;
+		/** @} */
 
+		/**
+		 * @name  Units (full names singular)
+		 * @{
+		 */
 		using cubic_meter = cubic_meters;
 		using cubic_millimeter = cubic_millimeters;
 		using cubic_kilometer = cubic_kilometers;
@@ -2819,7 +3618,13 @@ namespace units
 		using shot = shots;
 		using strike = strikes;
 		using fluidOunce = fluidOunces;
+		/** @} */
 
+		/**
+		 * @name  Unit Containers
+		 * @anchor volumeContainers
+		 * @{
+		 */
 		using cubic_meter_t = unit_t<cubic_meter>;
 		using cubic_millimeter_t = unit_t<cubic_millimeter>;
 		using cubic_kilometer_t = unit_t<cubic_kilometer>;
@@ -2850,7 +3655,12 @@ namespace units
 		using sack_t = unit_t<sack>;
 		using shot_t = unit_t<shot>;
 		using strike_t = unit_t<strike>;
+		/** @} */
 
+		/**
+		 * @name Units (abbreviated names) 
+		 * @{
+		 */
 		using m3 = cubic_meters;
 		using mm3 = cubic_millimeters;
 		using km3 = cubic_kilometers;
@@ -2873,14 +3683,25 @@ namespace units
 		using dr = drams;
 		using gi = gills;
 		using pk = pecks;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF DENSITY
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing density values
+ 	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` category is
+ 	 *				`density_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace density
 	{
+		/**
+		 * @name Units (full names plural) 
+		 * @{
+		 */
 		using kilograms_per_cubic_meter = unit<std::ratio<1>, category::density_unit>;
 		using grams_per_milliliter = compound_unit<mass::grams, inverse<volume::milliliter>>;
 		using kilograms_per_liter = compound_unit<mass::kilograms, inverse<volume::liter>>;
@@ -2891,7 +3712,12 @@ namespace units
 		using pounds_per_cubic_inch = compound_unit<mass::pounds, inverse<volume::cubic_inch>>;
 		using pounds_per_gallon = compound_unit<mass::pounds, inverse<volume::gallon>>;
 		using slugs_per_cubic_foot = compound_unit<mass::slugs, inverse<volume::cubic_foot>>;
+		/** @} */
 
+		/**
+		 * @name Units (full names singular) 
+		 * @{
+		 */
 		using kilogram_per_cubic_meter = kilograms_per_cubic_meter;
 		using gram_per_milliliter = grams_per_milliliter;
 		using kilogram_per_liter = kilograms_per_liter;
@@ -2902,7 +3728,13 @@ namespace units
 		using pound_per_cubic_inch = pounds_per_cubic_inch;
 		using pound_per_gallon = pounds_per_gallon;
 		using slug_per_cubic_foot = slugs_per_cubic_foot;
+		/** @} */
 
+		/**
+		 * @name  Unit Containers
+		 * @anchor densityContainers
+		 * @{
+		 */
 		using kilogram_per_cubic_meter_t = unit_t<kilogram_per_cubic_meter>;
 		using gram_per_milliliter_t = unit_t<gram_per_milliliter>;
 		using kilogram_per_liter_t = unit_t<kilogram_per_liter>;
@@ -2913,35 +3745,67 @@ namespace units
 		using pound_per_cubic_inch_t = unit_t<pound_per_cubic_inch>;
 		using pound_per_gallon_t = unit_t<pound_per_gallon>;
 		using slug_per_cubic_foot_t = unit_t<slug_per_cubic_foot>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	UNITS OF CONCENTRATION
 	//------------------------------
 
+	/**
+ 	 * @brief		namespace for unit types and containers representing concentration values
+ 	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` category is
+ 	 *				`scalar_unit`.
+ 	 * @sa			See unit_t for more information on unit type containers.
+ 	 */
 	namespace concentration
 	{
+		/**
+		 * @name  Units (full names plural)
+		 * @{
+		 */
 		using parts_per_million = unit<std::ratio<1, 1000000>, category::scalar_unit>;
 		using parts_per_billion = unit<std::ratio<1, 1000>, parts_per_million>;
 		using parts_per_trillion = unit<std::ratio<1, 1000>, parts_per_billion>;
 		using percent = unit<std::ratio<1, 100>, category::scalar_unit>;
+		/** @} */
 
+		/**
+		 * @name  Units (full names singular)
+		 * @{
+		 */
 		using ppm = parts_per_million;
 		using ppb = parts_per_billion;
 		using ppt = parts_per_trillion;
+		/** @} */
 
+		/**
+		 * @name Unit Containers
+		 * @anchor concentrationContainers
+		 * @{
+		 */
 		using ppm_t = unit_t<ppm>;
 		using ppb_t = unit_t<ppb>;
 		using ppt_t = unit_t<ppt>;
 		using percent_t = unit_t<percent>;
+		/** @} */
 	}
 
 	//------------------------------
 	//	CONSTANTS
 	//------------------------------
 
+	/**
+	 * @brief		namespace for physical constants like PI and Avogadro's Number.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace constants
 	{
+		/**
+		 * @name Unit Containers
+		 * @anchor constantContainers
+		 * @{
+		 */
 		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);									///< Ratio of a circle's circumference to its diameter.
 		static const velocity::meters_per_second_t																							c(299792458.0);								///< Speed of light in vacuum.
 		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
@@ -2959,6 +3823,7 @@ namespace units
 		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);								///< Boltzmann constant.
 		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);									///< Faraday constnat.
 		static const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>		sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		/** @} */
 	}
 
 };	// end namespace units

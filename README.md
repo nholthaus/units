@@ -3,9 +3,10 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 
 Releases
 --------
-v1.0.0 - 02/07/2016    - Initial release, tested with msvc2015
 
-v1.1.0 - TBD (Feb '16) - Adds doxygen, testing with gcc-4.9.2, msvc2013, msvc2015.
+v1.1.0 - 02/11/2016	- Adds Doxygen. Tested with gcc-4.9.2, msvc2013, msvc2015.
+
+v1.0.0 - 02/07/2016	- Initial release. Tested with msvc2015
 
 Description
 -----------
@@ -87,6 +88,22 @@ Unit containers can also be used to perform implicit conversions:
 	
 	a = b;	// a == 60.0
 
+Unsupported arithmetic, or improper return types will result in compiler errors:
+
+	meter_t a_m(1.0), b_m(2.0), c_m;
+	foot_t	a_ft(1.0), b_ft(2.0), c_ft;
+	
+	c_m = a_m + b_m;							// OK. c == 3m
+	c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
+	auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
+	
+	c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
+	c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
+	auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
+	
+	auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
+	auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
+	
 Exponentials
 ------------
 
@@ -108,8 +125,8 @@ Unit tags and containers are split into separate namespaces to avoid conflicting
 - units::current
 - units::temperature
 - units::substance (amount of, i.e. moles)
-- units::luminous intensity
-- units::solid angle
+- units::luminous_intensity
+- units::solid_angle
 - units::frequency
 - units::velocity
 - units::acceleration
@@ -121,10 +138,10 @@ Unit tags and containers are split into separate namespaces to avoid conflicting
 - units::voltage
 - units::capacitance
 - units::impedance
-- units::magnetic flux
-- units::magnetic field strength
+- units::magnetic_flux
+- units::magnetic_field_strength
 - units::inductance
-- units::luminous flux
+- units::luminous_flux
 - units::illuminance
 - units::radiation
 - units::torque
