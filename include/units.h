@@ -348,7 +348,7 @@ namespace units
 		using radioactivity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 
 		// OTHER UNIT TYPES			---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	torque_units				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
+		using	torque_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
 		using	area_unit					=	base_unit<std::ratio<2>>;
 		using	volume_unit					=	base_unit<std::ratio<3>>;
 		using	density_unit				=	base_unit<std::ratio<-3>,	std::ratio<1>>;
@@ -1674,6 +1674,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of length
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_length_unit<T>::value` to test
+	 *				the unit represents a length quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_length_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_length_unit<unit<C,U,P,T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::length_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_length_unit<unit_t<U,S,N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::length_unit>::type {};
+
 	//------------------------------
 	//	MASS UNITS
 	//------------------------------
@@ -1751,11 +1764,25 @@ namespace units
 		using pound_t = unit_t<pound>;
 		using imperial_ton_t = unit_t<imperial_ton>;
 		using us_ton_t = unit_t<us_ton>;
+		using stone_t = unit_t<stone>;
 		using ounce_t = unit_t<ounce>;
 		using carat_t = unit_t<carat>;
 		using slug_t = unit_t<slug>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of mass
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_mass_unit<T>::value` to test
+	 *				the unit represents a mass quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_mass_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_mass_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::mass_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_mass_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::mass_unit>::type {};
 
 	//------------------------------
 	//	TIME UNITS
@@ -1831,6 +1858,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of time
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_time_unit<T>::value` to test
+	 *				the unit represents a time quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_time_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_time_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::time_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_time_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::time_unit>::type {};
+
 	//------------------------------
 	//	ANGLE UNITS
 	//------------------------------
@@ -1850,8 +1890,9 @@ namespace units
 		using radians = unit<std::ratio<1>, category::angle_unit>;
 		using milliradians = milli<radians>;
 		using degrees = unit<std::ratio<1, 180>, radians, std::ratio<1>>;
-		using minutes = unit<std::ratio<1, 60>, degrees>;
-		using seconds = unit<std::ratio<1, 60>, minutes>;
+		using arcminutes = unit<std::ratio<1, 60>, degrees>;
+		using arcseconds = unit<std::ratio<1, 60>, arcminutes>;
+		using milliarcseconds = milli<arcseconds>;
 		using turns = unit<std::ratio<2>, radians, std::ratio<1>>;
 		using mils = unit<std::ratio<1, 6400>, radians>;	// 1/6400 of a circle
 		using gradians = unit<std::ratio<1, 400>, turns>;
@@ -1864,8 +1905,9 @@ namespace units
 		using radian = radians;
 		using milliradian = milliradians;
 		using degree = degrees;
-		using minute = minutes;
-		using second = seconds;
+		using arcminute = arcminutes;
+		using arcsecond = arcseconds;
+		using milliarcsecond = milliarcseconds;
 		using turn = turns;
 		using mil = mils;
 		using gradian = gradians;
@@ -1878,8 +1920,9 @@ namespace units
 		using rad = radians;
 		using mrad = milliradians;
 		using deg = degrees;
-		using min = minutes;
-		using sec = seconds;
+		using min = arcminutes;
+		using sec = arcseconds;
+		using mas = milliarcseconds;
 		using tr = turn;
 		using gon = gradians;
 		using grad = gradians;
@@ -1893,13 +1936,26 @@ namespace units
 		using radian_t = unit_t<radian>;
 		using milliradian_t = unit_t<milliradian>;
 		using degree_t = unit_t<degree>;
-		using minute_t = unit_t<minute>;
-		using second_t = unit_t<second>;
+		using minute_t = unit_t<arcminute>;
+		using second_t = unit_t<arcsecond>;
 		using turn_t = unit_t<turn>;
 		using mil_t = unit_t<mil>;
 		using gradian_t = unit_t<gradian>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of angle
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angle_unit<T>::value` to test
+	 *				the unit represents a angle quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_angle_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_angle_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angle_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_angle_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angle_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF CURRENT
@@ -1957,6 +2013,19 @@ namespace units
 		using nanoamp_t = unit_t<nanoamp>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of current
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_current_unit<T>::value` to test
+	 *				the unit represents a current quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_current_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_current_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::current_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_current_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::current_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
@@ -2016,6 +2085,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of temperature
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_temperature_unit<T>::value` to test
+	 *				the unit represents a temperature quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_temperature_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_temperature_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::temperature_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_temperature_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::temperature_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
 	//------------------------------
@@ -2057,6 +2139,19 @@ namespace units
 		using mole_t = unit_t<mole>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of substance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_substance_unit<T>::value` to test
+	 *				the unit represents a substance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_substance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_substance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::substance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_substance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::substance_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
@@ -2103,6 +2198,19 @@ namespace units
 		using millicandela_t = unit_t<millicandela>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of luminous_intensity
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_intensity_unit<T>::value` to test
+	 *				the unit represents a luminous_intensity quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_luminous_intensity_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_luminous_intensity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_intensity_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_luminous_intensity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_intensity_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
@@ -2154,6 +2262,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of solid_angle
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_solid_angle_unit<T>::value` to test
+	 *				the unit represents a solid_angle quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_solid_angle_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_solid_angle_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::solid_angle_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_solid_angle_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::solid_angle_unit>::type {};
+
 	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
@@ -2197,6 +2318,19 @@ namespace units
 		using gigahertz_t = unit_t<gigahertz>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of frequency
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_frequency_unit<T>::value` to test
+	 *				the unit represents a frequency quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_frequency_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_frequency_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::frequency_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_frequency_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::frequency_unit>::type {};
 
 	//------------------------------
 	//	VELOCITY UNITS
@@ -2251,6 +2385,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of velocity
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_velocity_unit<T>::value` to test
+	 *				the unit represents a velocity quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_velocity_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_velocity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::velocity_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_velocity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::velocity_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF ACCELERATION
 	//------------------------------
@@ -2282,6 +2429,19 @@ namespace units
 		using standard_gravity_t = unit_t<standard_gravity>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of acceleration
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_acceleration_unit<T>::value` to test
+	 *				the unit represents a acceleration quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_acceleration_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_acceleration_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::acceleration_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_acceleration_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::acceleration_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF FORCE
@@ -2341,6 +2501,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of force
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_force_unit<T>::value` to test
+	 *				the unit represents a force quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_force_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_force_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::force_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_force_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::force_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF PRESSURE
 	//------------------------------
@@ -2397,6 +2570,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of pressure
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_pressure_unit<T>::value` to test
+	 *				the unit represents a pressure quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_pressure_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_pressure_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::pressure_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_pressure_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::pressure_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF CHARGE
 	//------------------------------
@@ -2442,6 +2628,19 @@ namespace units
 		using ampere_hour_t = unit_t<ampere_hour>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of charge
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_charge_unit<T>::value` to test
+	 *				the unit represents a charge quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_charge_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_charge_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::charge_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_charge_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::charge_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF ENERGY
@@ -2523,6 +2722,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of energy
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_energy_unit<T>::value` to test
+	 *				the unit represents a energy quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_energy_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_energy_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::energy_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_energy_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::energy_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF POWER
 	//------------------------------
@@ -2593,6 +2805,19 @@ namespace units
 		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of power
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_power_unit<T>::value` to test
+	 *				the unit represents a power quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_power_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_power_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::power_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_power_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::power_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
@@ -2672,6 +2897,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of voltage
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_voltage_unit<T>::value` to test
+	 *				the unit represents a voltage quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_voltage_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_voltage_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::voltage_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_voltage_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::voltage_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF CAPACITANCE
 	//------------------------------
@@ -2741,6 +2979,19 @@ namespace units
 		using gigafarad_t = unit_t<gigafarad>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of capacitance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_capacitance_unit<T>::value` to test
+	 *				the unit represents a capacitance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_capacitance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_capacitance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::capacitance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_capacitance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::capacitance_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
@@ -2812,6 +3063,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of impedance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_impedance_unit<T>::value` to test
+	 *				the unit represents a impedance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_impedance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_impedance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::impedance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_impedance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::impedance_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
 	//------------------------------
@@ -2881,6 +3145,19 @@ namespace units
 		using GS = gigasiemens;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of conductance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conductance_unit<T>::value` to test
+	 *				the unit represents a conductance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_conductance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_conductance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::conductance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_conductance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::conductance_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
@@ -2956,6 +3233,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of magnetic_flux
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_flux_unit<T>::value` to test
+	 *				the unit represents a magnetic_flux quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_magnetic_flux_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_magnetic_flux_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_flux_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_magnetic_flux_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_flux_unit>::type {};
+	 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
 	//----------------------------------------
@@ -3028,6 +3318,19 @@ namespace units
 		using G = gauss;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of magnetic_field_strength
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_field_strength_unit<T>::value` to test
+	 *				the unit represents a magnetic_field_strength quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_magnetic_field_strength_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_magnetic_field_strength_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_field_strength_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_magnetic_field_strength_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_field_strength_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
@@ -3113,6 +3416,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of inductance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_inductance_unit<T>::value` to test
+	 *				the unit represents a inductance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_inductance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_inductance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::inductance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_inductance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::inductance_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
 	//------------------------------
@@ -3182,6 +3498,19 @@ namespace units
 		using Glm = gigalumens;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of luminous_flux
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_flux_unit<T>::value` to test
+	 *				the unit represents a luminous_flux quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_luminous_flux_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_luminous_flux_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_flux_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_luminous_flux_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_flux_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
@@ -3262,6 +3591,19 @@ namespace units
 		using ph = phots;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of illuminance
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_illuminance_unit<T>::value` to test
+	 *				the unit represents a illuminance quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_illuminance_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_illuminance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::illuminance_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_illuminance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::illuminance_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF RADIATION
@@ -3410,6 +3752,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of radiation
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_radioactivity_unit<T>::value` to test
+	 *				the unit represents a radiation quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_radioactivity_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_radioactivity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::radioactivity_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_radioactivity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::radioactivity_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF TORQUE
 	//------------------------------
@@ -3426,7 +3781,7 @@ namespace units
 		 * @name Units (full names plural) 
 		 * @{
 		 */
-		using newton_meters = unit<std::ratio<1>, category::torque_units>;
+		using newton_meters = unit<std::ratio<1>, category::torque_unit>;
 		using foot_pounds = compound_unit<length::foot, force::pounds>;
 		using foot_poundals = compound_unit<length::foot, force::poundal>;
 		using inch_pounds = compound_unit<length::inch, force::pounds>;
@@ -3467,6 +3822,19 @@ namespace units
 		using mkgf = meter_kilograms;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of torque
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_torque_unit<T>::value` to test
+	 *				the unit represents a torque quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_torque_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_torque_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::torque_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_torque_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::torque_unit>::type {};
 
 	//------------------------------
 	//	AREA UNITS
@@ -3527,6 +3895,19 @@ namespace units
 		using acre_t = unit_t<acre>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of area
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_area_unit<T>::value` to test
+	 *				the unit represents a area quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_area_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_area_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::area_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_area_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::area_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF VOLUME
@@ -3686,6 +4067,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of volume
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_volume_unit<T>::value` to test
+	 *				the unit represents a volume quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_volume_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_volume_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::volume_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_volume_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::volume_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF DENSITY
 	//------------------------------
@@ -3748,6 +4142,19 @@ namespace units
 		/** @} */
 	}
 
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of density
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_density_unit<T>::value` to test
+	 *				the unit represents a density quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_density_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_density_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::density_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_density_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::density_unit>::type {};
+
 	//------------------------------
 	//	UNITS OF CONCENTRATION
 	//------------------------------
@@ -3790,6 +4197,19 @@ namespace units
 		using percent_t = unit_t<percent>;
 		/** @} */
 	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of concentration
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_concentration_unit<T>::value` to test
+	 *				the unit represents a concentration quantity.
+	 * @tparam		T	type to test.
+	 */
+	template<typename T> struct is_concentration_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_concentration_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::scalar_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_concentration_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
 
 	//------------------------------
 	//	CONSTANTS

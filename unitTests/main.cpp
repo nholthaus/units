@@ -188,6 +188,628 @@ TEST_F(UnitTest, isScalarUnit)
 	EXPECT_FALSE(test);
 }
 
+TEST_F(UnitTest, isLengthUnit)
+{
+	bool test;
+
+	test = is_length_unit<meter>::value;
+	EXPECT_TRUE(test);
+	test = is_length_unit<cubit>::value;
+	EXPECT_TRUE(test);
+	test = is_length_unit<year>::value;
+	EXPECT_FALSE(test);
+	test = is_length_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_length_unit<meter_t>::value;
+	EXPECT_TRUE(test);
+	test = is_length_unit<cubit_t>::value;
+	EXPECT_TRUE(test);
+	test = is_length_unit<year_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ismass_unit)
+{
+	bool test;
+
+
+	test = is_mass_unit<kilogram>::value;
+	EXPECT_TRUE(test);
+	test = is_mass_unit<stone>::value;
+	EXPECT_TRUE(test);
+	test = is_mass_unit<meter>::value;
+	EXPECT_FALSE(test);
+	test = is_mass_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_mass_unit<kilogram_t>::value;
+	EXPECT_TRUE(test);
+	test = is_mass_unit<stone_t>::value;
+	EXPECT_TRUE(test);
+	test = is_mass_unit<meter_t>::value;
+	EXPECT_FALSE(test);
+}
+
+
+TEST_F(UnitTest, istime_unit)
+{
+	bool test;
+
+
+	test = is_time_unit<second>::value;
+	EXPECT_TRUE(test);
+	test = is_time_unit<year>::value;
+	EXPECT_TRUE(test);
+	test = is_time_unit<meter>::value;
+	EXPECT_FALSE(test);
+	test = is_time_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_time_unit<second_t>::value;
+	EXPECT_TRUE(test);
+	test = is_time_unit<year_t>::value;
+	EXPECT_TRUE(test);
+	test = is_time_unit<meter_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isangle_unit)
+{
+	bool test;
+
+
+	test = is_angle_unit<angle::radian>::value;
+	EXPECT_TRUE(test);
+	test = is_angle_unit<angle::degree>::value;
+	EXPECT_TRUE(test);
+	test = is_angle_unit<watt>::value;
+	EXPECT_FALSE(test);
+	test = is_angle_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_angle_unit<angle::radian_t>::value;
+	EXPECT_TRUE(test);
+	test = is_angle_unit<angle::degree_t>::value;
+	EXPECT_TRUE(test);
+	test = is_angle_unit<watt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, iscurrent_unit)
+{
+	bool test;
+
+
+	test = is_current_unit<current::ampere>::value;
+	EXPECT_TRUE(test);
+	test = is_current_unit<volt>::value;
+	EXPECT_FALSE(test);
+	test = is_current_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_current_unit<current::ampere_t>::value;
+	EXPECT_TRUE(test);
+	test = is_current_unit<volt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, istemperature_unit)
+{
+	bool test;
+
+
+	test = is_temperature_unit<fahrenheit>::value;
+	EXPECT_TRUE(test);
+	test = is_temperature_unit<kelvin>::value;
+	EXPECT_TRUE(test);
+	test = is_temperature_unit<cubit>::value;
+	EXPECT_FALSE(test);
+	test = is_temperature_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_temperature_unit<fahrenheit_t>::value;
+	EXPECT_TRUE(test);
+	test = is_temperature_unit<kelvin_t>::value;
+	EXPECT_TRUE(test);
+	test = is_temperature_unit<cubit_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, issubstance_unit)
+{
+	bool test;
+
+
+	test = is_substance_unit<substance::mol>::value;
+	EXPECT_TRUE(test);
+	test = is_substance_unit<year>::value;
+	EXPECT_FALSE(test);
+	test = is_substance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_substance_unit<substance::mole_t>::value;
+	EXPECT_TRUE(test);
+	test = is_substance_unit<year_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isluminous_intensity_unit)
+{
+	bool test;
+
+
+	test = is_luminous_intensity_unit<candela>::value;
+	EXPECT_TRUE(test);
+	test = is_luminous_intensity_unit<rad>::value;
+	EXPECT_FALSE(test);
+	test = is_luminous_intensity_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_luminous_intensity_unit<candela_t>::value;
+	EXPECT_TRUE(test);
+	test = is_luminous_intensity_unit<rad_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, issolid_angle_unit)
+{
+	bool test;
+
+
+	test = is_solid_angle_unit<steradian>::value;
+	EXPECT_TRUE(test);
+	test = is_solid_angle_unit<degree_squared>::value;
+	EXPECT_TRUE(test);
+	test = is_solid_angle_unit<angle::degree>::value;
+	EXPECT_FALSE(test);
+	test = is_solid_angle_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_solid_angle_unit<steradian_t>::value;
+	EXPECT_TRUE(test);
+	test = is_solid_angle_unit<degree_squared_t>::value;
+	EXPECT_TRUE(test);
+	test = is_solid_angle_unit<angle::degree_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isfrequency_unit)
+{
+	bool test;
+
+
+	test = is_frequency_unit<hertz>::value;
+	EXPECT_TRUE(test);
+	test = is_frequency_unit<second>::value;
+	EXPECT_FALSE(test);
+	test = is_frequency_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_frequency_unit<hertz_t>::value;
+	EXPECT_TRUE(test);
+	test = is_frequency_unit<second_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isvelocity_unit)
+{
+	bool test;
+
+
+	test = is_velocity_unit<meters_per_second>::value;
+	EXPECT_TRUE(test);
+	test = is_velocity_unit<miles_per_hour>::value;
+	EXPECT_TRUE(test);
+	test = is_velocity_unit<meters_per_second_squared>::value;
+	EXPECT_FALSE(test);
+	test = is_velocity_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_velocity_unit<meters_per_second_t>::value;
+	EXPECT_TRUE(test);
+	test = is_velocity_unit<miles_per_hour_t>::value;
+	EXPECT_TRUE(test);
+	test = is_velocity_unit<meters_per_second_squared_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isacceleration_unit)
+{
+	bool test;
+
+
+	test = is_acceleration_unit<meters_per_second_squared>::value;
+	EXPECT_TRUE(test);
+	test = is_acceleration_unit<acceleration::standard_gravity>::value;
+	EXPECT_TRUE(test);
+	test = is_acceleration_unit<inch>::value;
+	EXPECT_FALSE(test);
+	test = is_acceleration_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_acceleration_unit<meters_per_second_squared_t>::value;
+	EXPECT_TRUE(test);
+	test = is_acceleration_unit<standard_gravity_t>::value;
+	EXPECT_TRUE(test);
+	test = is_acceleration_unit<inch_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isforce_unit)
+{
+	bool test;
+
+
+	test = is_force_unit<force::newton>::value;
+	EXPECT_TRUE(test);
+	test = is_force_unit<force::dynes>::value;
+	EXPECT_TRUE(test);
+	test = is_force_unit<meter>::value;
+	EXPECT_FALSE(test);
+	test = is_force_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_force_unit<force::newton_t>::value;
+	EXPECT_TRUE(test);
+	test = is_force_unit<force::dyne_t>::value;
+	EXPECT_TRUE(test);
+	test = is_force_unit<watt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ispressure_unit)
+{
+	bool test;
+
+	test = is_pressure_unit<pressure::pascals>::value;
+	EXPECT_TRUE(test);
+	test = is_pressure_unit<atmosphere>::value;
+	EXPECT_TRUE(test);
+	test = is_pressure_unit<year>::value;
+	EXPECT_FALSE(test);
+	test = is_pressure_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_pressure_unit<pascal_t>::value;
+	EXPECT_TRUE(test);
+	test = is_pressure_unit<atmosphere_t>::value;
+	EXPECT_TRUE(test);
+	test = is_pressure_unit<year_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ischarge_unit)
+{
+	bool test;
+
+	test = is_charge_unit<coulomb>::value;
+	EXPECT_TRUE(test);
+	test = is_charge_unit<watt>::value;
+	EXPECT_FALSE(test);
+	test = is_charge_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_charge_unit<coulomb_t>::value;
+	EXPECT_TRUE(test);
+	test = is_charge_unit<watt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isenergy_unit)
+{
+	bool test;
+
+	test = is_energy_unit<joule>::value;
+	EXPECT_TRUE(test);
+	test = is_energy_unit<calorie>::value;
+	EXPECT_TRUE(test);
+	test = is_energy_unit<watt>::value;
+	EXPECT_FALSE(test);
+	test = is_energy_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_energy_unit<joule_t>::value;
+	EXPECT_TRUE(test);
+	test = is_energy_unit<calorie_t>::value;
+	EXPECT_TRUE(test);
+	test = is_energy_unit<watt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ispower_unit)
+{
+	bool test;
+
+	test = is_power_unit<watt>::value;
+	EXPECT_TRUE(test);
+	test = is_power_unit<henry>::value;
+	EXPECT_FALSE(test);
+	test = is_power_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_power_unit<watt_t>::value;
+	EXPECT_TRUE(test);
+	test = is_power_unit<henry_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isvoltage_unit)
+{
+	bool test;
+
+	test = is_voltage_unit<volt>::value;
+	EXPECT_TRUE(test);
+	test = is_voltage_unit<henry>::value;
+	EXPECT_FALSE(test);
+	test = is_voltage_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_voltage_unit<volt_t>::value;
+	EXPECT_TRUE(test);
+	test = is_voltage_unit<henry_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, iscapacitance_unit)
+{
+	bool test;
+
+	test = is_capacitance_unit<farad>::value;
+	EXPECT_TRUE(test);
+	test = is_capacitance_unit<ohm>::value;
+	EXPECT_FALSE(test);
+	test = is_capacitance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_capacitance_unit<farad_t>::value;
+	EXPECT_TRUE(test);
+	test = is_capacitance_unit<ohm_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isimpedance_unit)
+{
+	bool test;
+
+
+	test = is_impedance_unit<ohm>::value;
+	EXPECT_TRUE(test);
+	test = is_impedance_unit<farad>::value;
+	EXPECT_FALSE(test);
+	test = is_impedance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_impedance_unit<ohm_t>::value;
+	EXPECT_TRUE(test);
+	test = is_impedance_unit<farad_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isconductance_unit)
+{
+	bool test;
+
+	test = is_conductance_unit<siemen>::value;
+	EXPECT_TRUE(test);
+	test = is_conductance_unit<volt>::value;
+	EXPECT_FALSE(test);
+	test = is_conductance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_conductance_unit<siemen_t>::value;
+	EXPECT_TRUE(test);
+	test = is_conductance_unit<volt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ismagnetic_flux_unit)
+{
+	bool test;
+
+	test = is_magnetic_flux_unit<weber>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_flux_unit<maxwell>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_flux_unit<inch>::value;
+	EXPECT_FALSE(test);
+	test = is_magnetic_flux_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_magnetic_flux_unit<weber_t>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_flux_unit<maxwell_t>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_flux_unit<inch_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, ismagnetic_field_strength_unit)
+{
+	bool test;
+
+
+	test = is_magnetic_field_strength_unit<tesla>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_field_strength_unit<gauss>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_field_strength_unit<volt>::value;
+	EXPECT_FALSE(test);
+	test = is_magnetic_field_strength_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_magnetic_field_strength_unit<tesla_t>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_field_strength_unit<gauss_t>::value;
+	EXPECT_TRUE(test);
+	test = is_magnetic_field_strength_unit<volt_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isinductance_unit)
+{
+	bool test;
+
+
+	test = is_inductance_unit<henry>::value;
+	EXPECT_TRUE(test);
+	test = is_inductance_unit<farad>::value;
+	EXPECT_FALSE(test);
+	test = is_inductance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_inductance_unit<henry_t>::value;
+	EXPECT_TRUE(test);
+	test = is_inductance_unit<farad_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isluminous_flux_unit)
+{
+	bool test;
+
+
+	test = is_luminous_flux_unit<lumen>::value;
+	EXPECT_TRUE(test);
+	test = is_luminous_flux_unit<pound>::value;
+	EXPECT_FALSE(test);
+	test = is_luminous_flux_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_luminous_flux_unit<lumen_t>::value;
+	EXPECT_TRUE(test);
+	test = is_luminous_flux_unit<pound_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isilluminance_unit)
+{
+	bool test;
+
+
+	test = is_illuminance_unit<illuminance::footcandle>::value;
+	EXPECT_TRUE(test);
+	test = is_illuminance_unit<illuminance::lux>::value;
+	EXPECT_TRUE(test);
+	test = is_illuminance_unit<meter>::value;
+	EXPECT_FALSE(test);
+	test = is_illuminance_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_illuminance_unit<footcandle_t>::value;
+	EXPECT_TRUE(test);
+	test = is_illuminance_unit<lux_t>::value;
+	EXPECT_TRUE(test);
+	test = is_illuminance_unit<meter_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isradioactivity_unit)
+{
+	bool test;
+
+
+	test = is_radioactivity_unit<becquerel>::value;
+	EXPECT_TRUE(test);
+	test = is_radioactivity_unit<year>::value;
+	EXPECT_FALSE(test);
+	test = is_radioactivity_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_radioactivity_unit<becquerel_t>::value;
+	EXPECT_TRUE(test);
+	test = is_radioactivity_unit<year_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, istorque_unit)
+{
+	bool test;
+
+
+	test = is_torque_unit<torque::newton_meter>::value;
+	EXPECT_TRUE(test);
+	test = is_torque_unit<torque::foot_pound>::value;
+	EXPECT_TRUE(test);
+	test = is_torque_unit<volume::cubic_meter>::value;
+	EXPECT_FALSE(test);
+	test = is_torque_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_torque_unit<torque::newton_meter_t>::value;
+	EXPECT_TRUE(test);
+	test = is_torque_unit<torque::foot_pound_t>::value;
+	EXPECT_TRUE(test);
+	test = is_torque_unit<volume::cubic_meter_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isarea_unit)
+{
+	bool test;
+
+
+	test = is_area_unit<square_meter>::value;
+	EXPECT_TRUE(test);
+	test = is_area_unit<hectare>::value;
+	EXPECT_TRUE(test);
+	test = is_area_unit<astronicalUnit>::value;
+	EXPECT_FALSE(test);
+	test = is_area_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_area_unit<square_meter_t>::value;
+	EXPECT_TRUE(test);
+	test = is_area_unit<hectare_t>::value;
+	EXPECT_TRUE(test);
+	test = is_area_unit<astronicalUnit_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isvolume_unit)
+{
+	bool test;
+
+
+	test = is_volume_unit<cubic_meter>::value;
+	EXPECT_TRUE(test);
+	test = is_volume_unit<cubic_foot>::value;
+	EXPECT_TRUE(test);
+	test = is_volume_unit<square_feet>::value;
+	EXPECT_FALSE(test);
+	test = is_volume_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_volume_unit<cubic_meter_t>::value;
+	EXPECT_TRUE(test);
+	test = is_volume_unit<cubic_inch_t>::value;
+	EXPECT_TRUE(test);
+	test = is_volume_unit<foot_t>::value;
+	EXPECT_FALSE(test);
+}
+
+TEST_F(UnitTest, isdensity_unit)
+{
+	bool test;
+
+
+	test = is_density_unit<kilograms_per_cubic_meter>::value;
+	EXPECT_TRUE(test);
+	test = is_density_unit<ounces_per_cubic_foot>::value;
+	EXPECT_TRUE(test);
+	test = is_density_unit<year>::value;
+	EXPECT_FALSE(test);
+	test = is_density_unit<double>::value;
+	EXPECT_FALSE(test);
+
+	test = is_density_unit<kilogram_per_cubic_meter_t>::value;
+	EXPECT_TRUE(test);
+	test = is_density_unit<ounce_per_cubic_foot_t>::value;
+	EXPECT_TRUE(test);
+	test = is_density_unit<year_t>::value;
+	EXPECT_FALSE(test);
+}
+
 TEST_F(UnitTest, squared)
 {
 	double test;
@@ -694,9 +1316,9 @@ TEST_F(UnitTest, angleConversionFactors)
 	EXPECT_NEAR(1.0, test, 5.0e-4);
 	test = convert<angle::radians, angle::degrees>(0.0174533);
 	EXPECT_NEAR(1.0, test, 5.0e-7);
-	test = convert<angle::radians, angle::minutes>(0.000290888);
+	test = convert<angle::radians, angle::arcminutes>(0.000290888);
 	EXPECT_NEAR(0.99999928265913, test, 5.0e-8);
-	test = convert<angle::radians, angle::seconds>(4.8481e-6);
+	test = convert<angle::radians, angle::arcseconds>(4.8481e-6);
 	EXPECT_NEAR(0.999992407, test, 5.0e-10);
 	test = convert<angle::radians, angle::turns>(6.28319);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
@@ -707,7 +1329,7 @@ TEST_F(UnitTest, angleConversionFactors)
 
 	test = convert<angle::radians, angle::radians>(2.1);
 	EXPECT_NEAR(2.1, test, 5.0e-6);
-	test = convert<angle::seconds, angle::gradians>(2.1);
+	test = convert<angle::arcseconds, angle::gradians>(2.1);
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
 	test = convert<angle::radians, angle::degrees>(units::constants::PI);
 	EXPECT_NEAR(180.0, test, 5.0e-6);
