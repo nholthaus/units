@@ -4,7 +4,7 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 Releases
 --------
 
-v1.1.0 - 02/11/2016	- Adds Doxygen. Tested with gcc-4.9.2, msvc2013, msvc2015.
+v1.1.1 - 02/11/2016	- Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
 
 v1.0.0 - 02/07/2016	- Initial release. Tested with msvc2015
 
