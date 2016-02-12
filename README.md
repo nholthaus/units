@@ -129,6 +129,7 @@ Unit tags and containers are split into separate namespaces to avoid conflicting
 - units::solid_angle
 - units::frequency
 - units::velocity
+- units::angular_velocity
 - units::acceleration
 - units::force
 - units::pressure

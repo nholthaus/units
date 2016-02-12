@@ -330,6 +330,7 @@ namespace units
 		using solid_angle_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
 		using frequency_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
 		using velocity_unit					=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
+		using angular_velocity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>, std::ratio<1>>;
 		using acceleration_unit				=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
 		using force_unit					=	base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
 		using pressure_unit					=	base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
@@ -1025,6 +1026,7 @@ namespace units
 	 *				- \ref solidAngleContainers "solid angle unit containers"
 	 *				- \ref frequencyContainers "frequency unit containers"
 	 *				- \ref velocityContainers "velocity unit containers"
+	 *				- \ref angularVelocityContainers "angular velocity unit containers"
 	 *				- \ref accelerationContainers "acceleration unit containers"
 	 *				- \ref forceContainers "force unit containers"
 	 *				- \ref pressureContainers "pressure unit containers"
@@ -2397,6 +2399,70 @@ namespace units
 	struct is_velocity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::velocity_unit>::type {};
 	template<typename U, typename S, template<typename> class N>
 	struct is_velocity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::velocity_unit>::type {};
+
+	//------------------------------
+	//	ANGULAR VELOCITY UNITS
+	//------------------------------
+
+	/**
+	* @brief		namespace for unit types and containers representing angular velocity values
+	* @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` category is
+	*				`angular_velocity_unit`.
+	* @sa			See unit_t for more information on unit type containers.
+	*/
+	namespace angular_velocity
+	{
+		/**
+		* @name  Units (full names plural)
+		* @{
+		*/
+		using radians_per_second = unit<std::ratio<1>, category::angular_velocity_unit>;
+		using degrees_per_second = compound_unit<angle::degrees, inverse<time::seconds>>;
+		using revolutions_per_minute = unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>;
+		using milliarcseconds_per_year = compound_unit<angle::milliarcseconds, inverse<time::year>>;
+		/** @} */
+
+		/**
+		* @name Units (full names singular)
+		* @{
+		*/
+		using radian_per_second = radians_per_second;
+		using degree_per_second = degrees_per_second;
+		using revolution_per_minute = revolutions_per_minute;
+		using milliarcsecond_per_year = milliarcseconds_per_year;
+		/** @} */
+
+		/**
+		* @name Units (abbreviated names)
+		* @{
+		*/
+		using rpm = revolutions_per_minute;
+		/** @} */
+
+		/**
+		* @name Unit Containers
+		* @anchor angular_velocityContainers
+		* @{
+		*/
+		using radians_per_second_t = unit_t<radians_per_second>;
+		using degrees_per_second_t = unit_t<degrees_per_second>;
+		using revolutions_per_minute_t = unit_t<revolutions_per_minute>;
+		using milliarcseconds_per_year_t = unit_t<milliarcseconds_per_year>;
+		/** @} */
+	}
+
+	/**
+	* @ingroup		TypeTraits
+	* @brief		Trait which tests whether a type represents a unit of angular_velocity
+	* @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angular_velocity_unit<T>::value` to test
+	*				the unit represents a angular_velocity quantity.
+	* @tparam		T	type to test.
+	*/
+	template<typename T> struct is_angular_velocity_unit : std::false_type {};
+	template<typename C, typename U, typename P, typename T>
+	struct is_angular_velocity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angular_velocity_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_angular_velocity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angular_velocity_unit>::type {};
 
 	//------------------------------
 	//	UNITS OF ACCELERATION

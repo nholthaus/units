@@ -10,6 +10,7 @@ using namespace units::time;
 using namespace units::frequency;
 using namespace units::area;
 using namespace units::velocity;
+using namespace units::angular_velocity;
 using namespace units::temperature;
 using namespace units::luminous_intensity;
 using namespace units::solid_angle;
@@ -1465,6 +1466,26 @@ TEST_F(UnitTest, velocityConversion)
 	EXPECT_NEAR(176.0, test, 5.0e-5);
 	test = convert<feet_per_second, meters_per_second>(10.0);
 	EXPECT_NEAR(3.048, test, 5.0e-5);
+}
+
+TEST_F(UnitTest, angularVelocityConversion)
+{
+	double test;
+	bool same;
+
+	same = std::is_same<radians_per_second, unit<std::ratio<1>, category::angular_velocity_unit>>::value;
+	EXPECT_TRUE(same);
+	same = units::is_convertible_unit<rpm, radians_per_second>::value;
+	EXPECT_TRUE(same);
+
+	test = convert<radians_per_second, milliarcseconds_per_year>(1.0);
+	EXPECT_NEAR(6.504e15, test, 1.0e12);
+	test = convert<degrees_per_second, radians_per_second>(1.0);
+	EXPECT_NEAR(0.0174533, test, 5.0e-8);
+	test = convert<rpm, radians_per_second>(1.0);
+	EXPECT_NEAR(0.10471975512, test, 5.0e-13);
+	test = convert<milliarcseconds_per_year, radians_per_second>(1.0);
+	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
 TEST_F(UnitTest, accelerationConversion)
