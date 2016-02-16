@@ -24,6 +24,7 @@ bld/
 #Cmake generated stuff
 [Gg]enerated/
 [Bb]uild/
+[Ms]svc*
 
 # Visual Studio 2015 cache/options directory
 .vs/
