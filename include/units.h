@@ -1134,7 +1134,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return unit_t(nls::m_value < units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value < units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
