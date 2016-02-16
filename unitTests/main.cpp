@@ -1114,6 +1114,18 @@ TEST_F(UnitTest, scalarTypeImplicitConversion)
 	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
+TEST_F(UnitTest, valueMethod)
+{
+	double test = meter_t(3.0).value();
+	EXPECT_DOUBLE_EQ(3.0, test);
+}
+
+TEST_F(UnitTest, convertMethod)
+{
+	double test = meter_t(3.0).convert<feet>().value();
+	EXPECT_NEAR(9.84252, test, 5.0e-6);
+}
+
 TEST_F(UnitTest, unitPowers)
 {
 	bool isSame;

@@ -1097,7 +1097,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
-			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = units::convert<UnitsRhs, Units, T>(rhs.m_value);
 		};
 
 		/**
@@ -1108,7 +1108,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t& operator=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
-			nls::m_value = convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = units::convert<UnitsRhs, Units, T>(rhs.m_value);
 			return *this;
 		}
 
@@ -1133,7 +1133,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return unit_t(nls::m_value<convert<UnitsRhs, Units>(rhs.m_value));
+			return unit_t(nls::m_value < units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1145,7 +1145,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator<=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value <= convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value <= units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1157,7 +1157,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value> convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value>  units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1169,7 +1169,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value >= convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value >= units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1182,7 +1182,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value == convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value == units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1195,7 +1195,31 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator!=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value != convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value != units::convert<UnitsRhs, Units>(rhs.m_value));
+		}
+		
+		/**
+		 * @brief		unit value
+		 * @returns		value of the unit in it's underlying, non-safe type.
+		 */
+		inline T value() const
+		{
+			return (*this)();
+		}
+
+		/**
+		 * @brief		conversion
+		 * @details		Converts to a different unit container. Units can be converted to other containers
+		 *				implicitly, but this can be used in cases where explicit notation of a conversion
+		 *				is beneficial, or where an r-value container is needed.
+		 * @tparam		Units unit (not unit_t) to convert to
+		 * @returns		a unit container with the specified units conataining the equivalent value to
+		 *				*this.
+		 */
+		template<class Units>
+		inline auto convert() const -> unit_t<Units>
+		{
+			return unit_t<Units>(*this);
 		}
 
 		/**
@@ -1203,7 +1227,7 @@ namespace units
 		 * @details		only enabled for scalar unit types.
 		 */
 		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
-		operator Ty() const { return convert<Units, unit<std::ratio<1>, category::scalar_unit>>(nls::m_value); }
+		operator Ty() const { return  units::convert<Units, unit<std::ratio<1>, category::scalar_unit>>(nls::m_value); }
 
 	public:
 
