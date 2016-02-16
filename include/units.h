@@ -1057,6 +1057,7 @@ namespace units
 	protected:
 
 		using nls = NonLinearScale<T>;
+		nls::m_value;
 
 	public:
 
@@ -1208,18 +1209,29 @@ namespace units
 		}
 
 		/**
+		 * @brief		linearized unit value
+		 * @returns		linearized value of unit which has a non-linear scale. For `unit_t` types with
+		 *				linear scales, this is equivalent to `value`.
+		 */
+		inline T linearizedValue() const
+		{
+			return m_value;
+		}
+
+		/**
 		 * @brief		conversion
 		 * @details		Converts to a different unit container. Units can be converted to other containers
 		 *				implicitly, but this can be used in cases where explicit notation of a conversion
 		 *				is beneficial, or where an r-value container is needed.
-		 * @tparam		Units unit (not unit_t) to convert to
-		 * @returns		a unit container with the specified units conataining the equivalent value to
+		 * @tparam		U unit (not unit_t) to convert to
+		 * @returns		a unit container with the specified units containing the equivalent value to
 		 *				*this.
 		 */
-		template<class Units>
-		inline auto convert() const -> unit_t<Units>
+		template<class U>
+		inline auto convert() const -> unit_t<U>
 		{
-			return unit_t<Units>(*this);
+			static_assert(units::is_unit<U>::value, "Template parameter `U` must be a unit type.");
+			return unit_t<U>(*this);
 		}
 
 		/**
@@ -1338,42 +1350,42 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.m_value + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
+		return UnitTypeLhs(lhs.value() + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.m_value + rhs);
+		return dimensionless::scalar_t(lhs.value() + rhs);
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs + rhs.m_value);
+		return dimensionless::scalar_t(lhs + rhs.value());
 	}
 
 	/// Subtraction operator for unit_t types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.m_value - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
+		return UnitTypeLhs(lhs.value() - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.m_value - rhs);
+		return dimensionless::scalar_t(lhs.value() - rhs);
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs - rhs.m_value);
+		return dimensionless::scalar_t(lhs - rhs.value());
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
@@ -1382,7 +1394,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
 		return  unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
-			(lhs.m_value * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
+			(lhs.value() * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -1391,7 +1403,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs.m_value * rhs.m_value);
+			(lhs.value() * rhs.value());
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1399,7 +1411,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.m_value * rhs);
+		return UnitTypeLhs(lhs.value() * rhs);
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1407,7 +1419,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeRhs(lhs * rhs.m_value);
+		return UnitTypeRhs(lhs * rhs.value());
 	}
 
 	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a scalar
@@ -1415,7 +1427,7 @@ namespace units
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return dimensionless::scalar_t(lhs.m_value / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.m_value));
+		return dimensionless::scalar_t(lhs.value() / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
 	}
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -1424,7 +1436,7 @@ namespace units
 		inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
-			(lhs.m_value / rhs.m_value);
+			(lhs.value() / rhs.value());
 	}
 
 	/// Division by a scalar for unit_t types with a linear scale
@@ -1432,7 +1444,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.m_value / rhs);
+		return UnitTypeLhs(lhs.value() / rhs);
 	}
 
 	/// Division of a scalar  by a unit_t type with a linear scale
@@ -1441,7 +1453,7 @@ namespace units
 		inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs / rhs.m_value);
+			(lhs / rhs.value());
 	}
 
 	/** @cond */	// DOXYGEN IGNORE
@@ -1520,7 +1532,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale> ret;
-		ret.m_value = lhs.m_value * convert<RhsUnits, LhsUnits>(rhs.m_value);
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * convert<RhsUnits, LhsUnits>(rhs.linearizedValue());
 		return ret;
 	}
 
@@ -1528,8 +1540,10 @@ namespace units
 	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
+		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
+
 		UnitTypeLhs ret;
-		ret.m_value = lhs.m_value * rhs.m_value;
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * rhs.linearizedValue();
 		return ret;
 	}
 
@@ -1537,8 +1551,10 @@ namespace units
 	template<class UnitTypeRhs, typename std::enable_if<has_decibel_scale<UnitTypeRhs>::value && !is_scalar_unit<UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeRhs operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs)
 	{
+		using underlying_type = typename unit_t_traits<UnitTypeRhs>::underlying_type;
+
 		UnitTypeRhs ret;
-		ret.m_value = lhs.m_value * rhs.m_value;
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * rhs.linearizedValue();
 		return ret;
 	}
 
@@ -1551,7 +1567,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale> ret;
-		ret.m_value = lhs.m_value / convert<RhsUnits, LhsUnits>(rhs.m_value);
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / convert<RhsUnits, LhsUnits>(rhs.linearizedValue());
 		return ret;
 	}
 
@@ -1559,8 +1575,10 @@ namespace units
 	template<class UnitTypeLhs, typename std::enable_if<has_decibel_scale<UnitTypeLhs>::value && !is_scalar_unit<UnitTypeLhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs)
 	{
+		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
+
 		UnitTypeLhs ret;
-		ret.m_value = lhs.m_value / rhs.m_value;
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / rhs.linearizedValue();
 		return ret;
 	}
 
@@ -1572,7 +1590,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<RhsUnits>::underlying_type;
 
 		unit_t<inverse<RhsUnits>, underlying_type, decibel_scale> ret;
-		ret.m_value = lhs.m_value / rhs.m_value;
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / rhs.linearizedValue();
 		return ret;
 	}
 
