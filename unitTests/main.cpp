@@ -201,8 +201,12 @@ TEST_F(UnitTest, isLengthUnit)
 	EXPECT_FALSE(test);
 	test = is_length_unit<double>::value;
 	EXPECT_FALSE(test);
-
+	
 	test = is_length_unit<meter_t>::value;
+	EXPECT_TRUE(test);
+	test = std::is_same<base_unit_of<typename unit_t_traits<const meter_t>::unit_type>, category::length_unit>::value;
+	EXPECT_TRUE(test);
+	test = is_length_unit<const meter_t>::value;
 	EXPECT_TRUE(test);
 	test = is_length_unit<cubit_t>::value;
 	EXPECT_TRUE(test);

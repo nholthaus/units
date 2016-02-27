@@ -945,7 +945,7 @@ namespace units
 	 * @details		
 	 */
 	template<typename T>
-	struct unit_t_traits < T, typename void_t<
+	struct unit_t_traits <T, typename void_t<
 		typename T::non_linear_scale_type,
 		typename T::underlying_type,
 		typename T::unit_type>::type>
@@ -1730,6 +1730,8 @@ namespace units
 	struct is_length_unit<unit<C,U,P,T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::length_unit>::type {};
 	template<typename U, typename S, template<typename> class N>
 	struct is_length_unit<unit_t<U,S,N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::length_unit>::type {};
+	template<typename U, typename S, template<typename> class N>
+	struct is_length_unit<const unit_t<U, S, N>> : is_length_unit<unit_t<U, S, N>> {};
 
 	//------------------------------
 	//	MASS UNITS
