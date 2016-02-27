@@ -55,7 +55,7 @@
 //	UNITS NAMESPACE
 //--------------------
 
-/** 
+/**
  * @namespace units
  * @brief Unit Conversion Library namespace
  */
@@ -71,29 +71,29 @@ namespace units
 	 *				store a value, and support various arithmetic operations.
 	 */
 
-	 /**
-	  * @defgroup	UnitTypes Unit Types
-	  * @brief		Defines a series of classes which represent units. These types are tags used by
-	  *				the conversion function, to create compound units, or to create `unit_t` types.
-	  *				By themselves, they are not containers and have no stored value.
-	  */
+	/**
+	 * @defgroup	UnitTypes Unit Types
+	 * @brief		Defines a series of classes which represent units. These types are tags used by
+	 *				the conversion function, to create compound units, or to create `unit_t` types.
+	 *				By themselves, they are not containers and have no stored value.
+	 */
 
-	 /**
-	  * @defgroup	UnitManipulators Unit Manipulators
-	  * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>`, `squared<>`, and metric prefixes. Unit
-	  *				manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to
-	  *				represent picoseconds^-2.
-	  */
-	
+	/**
+	 * @defgroup	UnitManipulators Unit Manipulators
+	 * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>`, `squared<>`, and metric prefixes. Unit
+	 *				manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to
+	 *				represent picoseconds^-2.
+	 */
+
 	/**
 	 * @defgroup	Conversion Explicit Conversion
 	 * @brief		Functions used to convert values of one logical type to another.
 	 */
 
-	 /**
-	  * @defgroup	TypeTraits Type Traits
-	  * @brief		Defines a series of classes to obtain unit type information at compile-time.
-	  */
+	/**
+	 * @defgroup	TypeTraits Type Traits
+	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
+	 */
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -116,18 +116,20 @@ namespace units
 	 */
 
 	/** @cond */	// DOXYGEN IGNORE
-
-	/// has_num implementation.
-	template<class T>
-	struct has_num_impl
+	namespace detail
 	{
-		template<class U>
-		static auto test(U*)->std::is_integral<decltype(U::num)>;
-		template<typename>
-		static std::false_type test(...);
+		/// has_num implementation.
+		template<class T>
+		struct has_num_impl
+		{
+			template<class U>
+			static auto test(U*)->std::is_integral<decltype(U::num)>;
+			template<typename>
+			static std::false_type test(...);
 
-		using type = decltype(test<T>(0));
-	};
+			using type = decltype(test<T>(0));
+		};
+	}
 
 	/**
 	 * @brief		Trait which checks for the existence of a static numerator.
@@ -135,20 +137,22 @@ namespace units
 	 *				whether `class T` has a numerator static member.
 	 */
 	template<class T>
-	struct has_num : has_num_impl<T>::type {};
+	struct has_num : detail::has_num_impl<T>::type {};
 
-	/// has_den implementation.
-	template<class T>
-	struct has_den_impl
+	namespace detail
 	{
-		template<class U>
-		static auto test(U*)->std::is_integral<decltype(U::den)>;
-		template<typename>
-		static std::false_type test(...);
+		/// has_den implementation.
+		template<class T>
+		struct has_den_impl
+		{
+			template<class U>
+			static auto test(U*)->std::is_integral<decltype(U::den)>;
+			template<typename>
+			static std::false_type test(...);
 
-		using type = decltype(test<T>(0));
-	};
-
+			using type = decltype(test<T>(0));
+		};
+	}
 
 	/**
 	 * @brief		Trait which checks for the existence of a static denominator.
@@ -156,7 +160,7 @@ namespace units
 	 *				whether `class T` has a denominator static member.
 	 */
 	template<class T>
-	struct has_den : has_den_impl<T>::type {};
+	struct has_den : detail::has_den_impl<T>::type {};
 
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -210,7 +214,7 @@ namespace units
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Traits class defining the properties of units.
-	 * @details		
+	 * @details
 	 */
 	template<class T>
 	struct unit_traits
@@ -227,11 +231,14 @@ namespace units
 	};
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		helper type to identify base units.
-	 * @details		A non-templated base class for `base_unit` which enables RTTI testing.
-	 */
-	struct _base_unit_t {};
+	namespace detail
+	{
+		/**
+		 * @brief		helper type to identify base units.
+		 * @details		A non-templated base class for `base_unit` which enables RTTI testing.
+		 */
+		struct _base_unit_t {};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -241,14 +248,17 @@ namespace units
 	 *				whether `class T` implements a `base_unit`.
 	 */
 	template<class T>
-	struct is_base_unit : std::is_base_of<_base_unit_t, T> {};
+	struct is_base_unit : std::is_base_of<detail::_base_unit_t, T> {};
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		helper type to identify units.
-	 * @details		A non-templated base class for `unit` which enables RTTI testing.
-	 */
-	struct _unit_t {};
+	namespace detail
+	{
+		/**
+		 * @brief		helper type to identify units.
+		 * @details		A non-templated base class for `unit` which enables RTTI testing.
+		 */
+		struct _unit_t {};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -258,7 +268,7 @@ namespace units
 	 *				whether `class T` implements a `unit`.
 	 */
 	template<class T>
-	struct is_unit : std::is_base_of<_unit_t, T>::type {};
+	struct is_unit : std::is_base_of<detail::_unit_t, T>::type {};
 
 	/** @} */ // end of TypeTraits
 
@@ -291,7 +301,7 @@ namespace units
 	class Kelvin = std::ratio<0>,
 	class Mole = std::ratio<0>,
 	class Candela = std::ratio < 0 >>
-	struct base_unit : _base_unit_t
+	struct base_unit : detail::_base_unit_t
 	{
 		static_assert(is_ratio<Meter>::value, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
 		static_assert(is_ratio<Kilogram>::value, "Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
@@ -313,46 +323,46 @@ namespace units
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar_unit					=	base_unit<>;
-		using dimensionless_unit			=	base_unit<>;
+		using scalar_unit = base_unit<>;
+		using dimensionless_unit = base_unit<>;
 
 		// SI BASE UNIT TYPES	--------------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using length_unit					=	base_unit<std::ratio<1>>;
-		using mass_unit						=	base_unit<std::ratio<0>,	std::ratio<1>>;
-		using time_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using angle_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using current_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using temperature_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using substance_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using luminous_intensity_unit		=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
+		using length_unit = base_unit<std::ratio<1>>;
+		using mass_unit = base_unit<std::ratio<0>, std::ratio<1>>;
+		using time_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using current_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using temperature_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using substance_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using luminous_intensity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
 
 		// SI DERIVED UNIT TYPES	---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using solid_angle_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;
-		using frequency_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
-		using velocity_unit					=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;
-		using angular_velocity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>, std::ratio<1>>;
-		using acceleration_unit				=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;
-		using force_unit					=	base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;
-		using pressure_unit					=	base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;
-		using charge_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;
-		using energy_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
-		using power_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;
-		using voltage_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;
-		using capacitance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;
-		using impedance_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;
-		using conductance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;
-		using magnetic_flux_unit			=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
-		using magnetic_field_strength_unit	=	base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;
-		using inductance_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;
-		using luminous_flux_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using illuminance_unit				=	base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;
-		using radioactivity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;
+		using solid_angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>>;
+		using frequency_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
+		using velocity_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
+		using angular_velocity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>, std::ratio<1>>;
+		using acceleration_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
+		using force_unit = base_unit<std::ratio<1>, std::ratio<1>, std::ratio<-2>>;
+		using pressure_unit = base_unit<std::ratio<-1>, std::ratio<1>, std::ratio<-2>>;
+		using charge_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<1>>;
+		using energy_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
+		using power_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>>;
+		using voltage_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-1>>;
+		using capacitance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<4>, std::ratio<0>, std::ratio<2>>;
+		using impedance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-2>>;
+		using conductance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<3>, std::ratio<0>, std::ratio<2>>;
+		using magnetic_flux_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
+		using magnetic_field_strength_unit = base_unit<std::ratio<0>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
+		using inductance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-2>>;
+		using luminous_flux_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using illuminance_unit = base_unit<std::ratio<-2>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using radioactivity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
 
 		// OTHER UNIT TYPES			---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	torque_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
-		using	area_unit					=	base_unit<std::ratio<2>>;
-		using	volume_unit					=	base_unit<std::ratio<3>>;
-		using	density_unit				=	base_unit<std::ratio<-3>,	std::ratio<1>>;
+		using	torque_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
+		using	area_unit = base_unit<std::ratio<2>>;
+		using	volume_unit = base_unit<std::ratio<3>>;
+		using	density_unit = base_unit<std::ratio<-3>, std::ratio<1>>;
 	}
 
 	//------------------------------
@@ -365,7 +375,7 @@ namespace units
 	 */
 	template <class, class, class, class> struct unit;
 	template<class Conversion, class... Exponents, class PiExponent, class Translation>
-	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : _unit_t
+	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : detail::_unit_t
 	{
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
@@ -382,7 +392,7 @@ namespace units
 	 * @brief		Type representing an arbitrary unit.
 	 * @ingroup		UnitTypes
 	 * @details		`unit` types are used as tags for the `conversion` function. They are *not* containers
-	 *				(see `unit_t` for a  container class). Each unit is defined by: 
+	 *				(see `unit_t` for a  container class). Each unit is defined by:
 	 *
 	 *				- A `std::ratio` defining the conversion factor to the base unit type. (e.g. `std::ratio<1,12>` for inches to feet)
 	 *				- A base unit that the unit is derived from (or a unit category. Must be of type `unit` or `base_unit`)
@@ -398,7 +408,7 @@ namespace units
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
 	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
-	struct unit : _unit_t
+	struct unit : detail::_unit_t
 	{
 		static_assert(is_unit<BaseUnit>::value, "Template parameter `BaseUnit` must be a `unit` type.");
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
@@ -415,121 +425,127 @@ namespace units
 	//------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		base_unit_of trait implementation
-	 * @details		recursively seeks base_unit type that a unit is derived from. Since units can be
-	 *				derived from other units, the `base_unit_type` typedef may not represent this value.
-	 */
-	template<class> struct base_unit_of_impl;
-	template<class Conversion, class BaseUnit, class PiExponent, class Translation>
-	struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> : base_unit_of_impl<BaseUnit> {};
-	template<class... Exponents>
-	struct base_unit_of_impl<base_unit<Exponents...>>
+	namespace detail
 	{
-		typedef base_unit<Exponents...> type;
-	};
-	template<>
-	struct base_unit_of_impl<void>
-	{
-		typedef void type;
-	};
+		/**
+		 * @brief		base_unit_of trait implementation
+		 * @details		recursively seeks base_unit type that a unit is derived from. Since units can be
+		 *				derived from other units, the `base_unit_type` typedef may not represent this value.
+		 */
+		template<class> struct base_unit_of_impl;
+		template<class Conversion, class BaseUnit, class PiExponent, class Translation>
+		struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> : base_unit_of_impl<BaseUnit> {};
+		template<class... Exponents>
+		struct base_unit_of_impl<base_unit<Exponents...>>
+		{
+			typedef base_unit<Exponents...> type;
+		};
+		template<>
+		struct base_unit_of_impl<void>
+		{
+			typedef void type;
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @brief		Trait which returns the `base_unit` type that a unit is originally derived from.
 	 * @details		Since units can be derived from other `unit` types in addition to `base_unit` types,
 	 *				the `base_unit_type` typedef will not always be a `base_unit` (or unit category).
-	 *				Since compatible 
+	 *				Since compatible
 	 */
 	template<class U>
-	using base_unit_of = typename base_unit_of_impl<U>::type;
+	using base_unit_of = typename detail::base_unit_of_impl<U>::type;
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of base_unit_multiply
-	 * @details		'multiples' (adds exponent ratios of) two base unit types. Base units can be found
-	 *				using `base_unit_of`.
-	 */
-	template<class, class> struct base_unit_multiply_impl;
-	template<class... Exponents1, class... Exponents2>
-	struct base_unit_multiply_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
-		using type = base_unit<std::ratio_add<Exponents1, Exponents2>...>;
-	};
+	namespace detail
+	{
+		/**
+		 * @brief		implementation of base_unit_multiply
+		 * @details		'multiples' (adds exponent ratios of) two base unit types. Base units can be found
+		 *				using `base_unit_of`.
+		 */
+		template<class, class> struct base_unit_multiply_impl;
+		template<class... Exponents1, class... Exponents2>
+		struct base_unit_multiply_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
+			using type = base_unit<std::ratio_add<Exponents1, Exponents2>...>;
+		};
 
-	/**
-	 * @brief		represents type of two base units multiplied together
-	 */
-	template<class U1, class U2>
-	using base_unit_multiply = typename base_unit_multiply_impl<U1, U2>::type;
+		/**
+		 * @brief		represents type of two base units multiplied together
+		 */
+		template<class U1, class U2>
+		using base_unit_multiply = typename base_unit_multiply_impl<U1, U2>::type;
 
-	/**
-	 * @brief		implementation of base_unit_divide
-	 * @details		'dived' (subtracts exponent ratios of) two base unit types. Base units can be found
-	 *				using `base_unit_of`.
-	 */
-	template<class, class> struct base_unit_divide_impl;
-	template<class... Exponents1, class... Exponents2>
-	struct base_unit_divide_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
-		using type = base_unit<std::ratio_subtract<Exponents1, Exponents2>...>;
-	};
+		/**
+		 * @brief		implementation of base_unit_divide
+		 * @details		'dived' (subtracts exponent ratios of) two base unit types. Base units can be found
+		 *				using `base_unit_of`.
+		 */
+		template<class, class> struct base_unit_divide_impl;
+		template<class... Exponents1, class... Exponents2>
+		struct base_unit_divide_impl<base_unit<Exponents1...>, base_unit<Exponents2...>> {
+			using type = base_unit<std::ratio_subtract<Exponents1, Exponents2>...>;
+		};
 
-	/**
-	 * @brief		represents the resulting type of `base_unit` U1 divided by U2.
-	 */
-	template<class U1, class U2>
-	using base_unit_divide = typename base_unit_divide_impl<U1, U2>::type;
+		/**
+		 * @brief		represents the resulting type of `base_unit` U1 divided by U2.
+		 */
+		template<class U1, class U2>
+		using base_unit_divide = typename base_unit_divide_impl<U1, U2>::type;
 
-	/**
-	 * @brief		implementation of inverse_base
-	 * @details		multiplies all `base_unit` exponent ratios by -1. The resulting type represents
-	 *				the inverse base unit of the given `base_unit` type.
-	 */
-	template<class> struct inverse_base_impl;
+		/**
+		 * @brief		implementation of inverse_base
+		 * @details		multiplies all `base_unit` exponent ratios by -1. The resulting type represents
+		 *				the inverse base unit of the given `base_unit` type.
+		 */
+		template<class> struct inverse_base_impl;
 
-	template<class... Exponents>
-	struct inverse_base_impl<base_unit<Exponents...>> {
-		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
-	};
+		template<class... Exponents>
+		struct inverse_base_impl<base_unit<Exponents...>> {
+			using type = base_unit<std::ratio_multiply<Exponents, std::ratio<-1>>...>;
+		};
 
-	/**
-	 * @brief		represent the inverse type of `class U`
-	 * @details		E.g. if `U` is `length_unit`, then `inverse<U>` will represent `length_unit^-1`.
-	 */
-	template<class U> using inverse_base = typename inverse_base_impl<U>::type;
+		/**
+		 * @brief		represent the inverse type of `class U`
+		 * @details		E.g. if `U` is `length_unit`, then `inverse<U>` will represent `length_unit^-1`.
+		 */
+		template<class U> using inverse_base = typename inverse_base_impl<U>::type;
 
-	/**
-	 * @brief		implementation of `squared_base`
-	 * @details		multiplies all the exponent ratios of the given class by 2. The resulting type is
-	 *				equivalent to the given type squared.
-	 */
-	template<class U> struct squared_base_impl;
-	template<class... Exponents>
-	struct squared_base_impl<base_unit<Exponents...>> {
-		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<2>>...>;
-	};
+		/**
+		 * @brief		implementation of `squared_base`
+		 * @details		multiplies all the exponent ratios of the given class by 2. The resulting type is
+		 *				equivalent to the given type squared.
+		 */
+		template<class U> struct squared_base_impl;
+		template<class... Exponents>
+		struct squared_base_impl<base_unit<Exponents...>> {
+			using type = base_unit<std::ratio_multiply<Exponents, std::ratio<2>>...>;
+		};
 
-	/**
-	 * @brief		represents the type of a `base_unit` squared.
-	 * @details		E.g. `squared<length_unit>` will represent `length_unit^2`.
-	 */
-	template<class U> using squared_base = typename squared_base_impl<U>::type;
+		/**
+		 * @brief		represents the type of a `base_unit` squared.
+		 * @details		E.g. `squared<length_unit>` will represent `length_unit^2`.
+		 */
+		template<class U> using squared_base = typename squared_base_impl<U>::type;
 
-	/**
-	 * @brief		implementation of `cubed_base`
-	 * @details		multiplies all the exponent ratios of the given class by 3. The resulting type is
-	 *				equivalent to the given type cubed.
-	 */
-	template<class U> struct cubed_base_impl;
-	template<class... Exponents>
-	struct cubed_base_impl<base_unit<Exponents...>> {
-		using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
-	};
+		/**
+		 * @brief		implementation of `cubed_base`
+		 * @details		multiplies all the exponent ratios of the given class by 3. The resulting type is
+		 *				equivalent to the given type cubed.
+		 */
+		template<class U> struct cubed_base_impl;
+		template<class... Exponents>
+		struct cubed_base_impl<base_unit<Exponents...>> {
+			using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
+		};
 
-	/**
-	 * @brief		represents the type of a `base_unit` cubed.
-	 * @details		E.g. `cubed<length_unit>` will represent `length_unit^3`.
-	 */
-	template<class U> using cubed_base = typename cubed_base_impl<U>::type;
+		/**
+		 * @brief		represents the type of a `base_unit` cubed.
+		 * @details		E.g. `cubed<length_unit>` will represent `length_unit^3`.
+		 */
+		template<class U> using cubed_base = typename cubed_base_impl<U>::type;
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	//------------------------------
@@ -537,64 +553,67 @@ namespace units
 	//------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of `unit_multiply`.
-	 * @details		multiplies two units. The base unit becomes the base units of each with their exponents
-	 *				added together. The conversion factors of each are multiplied by each other. Pi exponent ratios
-	 *				are added, and datum translations are removed.
-	 */
-	template<class Unit1, class Unit2>
-	struct unit_multiply_impl
+	namespace detail
 	{
-		using type = unit < std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-			base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
-			std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
-			std::ratio < 0 >> ;
-	};
+		/**
+		 * @brief		implementation of `unit_multiply`.
+		 * @details		multiplies two units. The base unit becomes the base units of each with their exponents
+		 *				added together. The conversion factors of each are multiplied by each other. Pi exponent ratios
+		 *				are added, and datum translations are removed.
+		 */
+		template<class Unit1, class Unit2>
+		struct unit_multiply_impl
+		{
+			using type = unit < std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
+				base_unit_multiply <base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
+				std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
+				std::ratio < 0 >> ;
+		};
 
-	/**
-	 * @brief		represents the type of two units multiplied together.
-	 * @details		recalculates conversion and exponent ratios at compile-time.
-	 */
-	template<class U1, class U2>
-	using unit_multiply = typename unit_multiply_impl<U1, U2>::type;
+		/**
+		 * @brief		represents the type of two units multiplied together.
+		 * @details		recalculates conversion and exponent ratios at compile-time.
+		 */
+		template<class U1, class U2>
+		using unit_multiply = typename unit_multiply_impl<U1, U2>::type;
 
-	/**
-	 * @brief		implementation of `unit_divide`.
-	 * @details		divides two units. The base unit becomes the base units of each with their exponents
-	 *				subtracted from each other. The conversion factors of each are divided by each other. Pi exponent ratios
-	 *				are subtracted, and datum translations are removed.
-	 */
-	template<class Unit1, class Unit2>
-	struct unit_divide_impl
-	{
-		using type = unit < std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-			base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
-			std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
-			std::ratio < 0 >> ;
-	};
+		/**
+		 * @brief		implementation of `unit_divide`.
+		 * @details		divides two units. The base unit becomes the base units of each with their exponents
+		 *				subtracted from each other. The conversion factors of each are divided by each other. Pi exponent ratios
+		 *				are subtracted, and datum translations are removed.
+		 */
+		template<class Unit1, class Unit2>
+		struct unit_divide_impl
+		{
+			using type = unit < std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
+				base_unit_divide<base_unit_of<typename Unit1::base_unit_type>, base_unit_of<typename Unit2::base_unit_type>>,
+				std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
+				std::ratio < 0 >> ;
+		};
 
-	/**
-	 * @brief		represents the type of two units divided by each other.
-	 * @details		recalculates conversion and exponent ratios at compile-time.
-	 */
-	template<class U1, class U2>
-	using unit_divide = typename unit_divide_impl<U1, U2>::type;
+		/**
+		 * @brief		represents the type of two units divided by each other.
+		 * @details		recalculates conversion and exponent ratios at compile-time.
+		 */
+		template<class U1, class U2>
+		using unit_divide = typename unit_divide_impl<U1, U2>::type;
 
-	/**
-	 * @brief		implementation of `inverse`
-	 * @details		inverts a unit (equivalent to 1/unit). The `base_unit` and pi exponents are all multiplied by
-	 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
-	 *				ratios are removed.
-	 */
-	template<class Unit>
-	struct inverse_impl
-	{
-		using type = unit < std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
-			inverse_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
-			std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
-			std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
-	};
+		/**
+		 * @brief		implementation of `inverse`
+		 * @details		inverts a unit (equivalent to 1/unit). The `base_unit` and pi exponents are all multiplied by
+		 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
+		 *				ratios are removed.
+		 */
+		template<class Unit>
+		struct inverse_impl
+		{
+			using type = unit < std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
+				inverse_base<base_unit_of<typename unit_traits<Unit>::base_unit_type>>,
+				std::ratio_multiply<typename unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
+				std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -603,24 +622,27 @@ namespace units
 	 * @tparam		U	`unit` type to invert.
 	 * @details		E.g. `inverse<meters>` will represent meters^-1 (i.e. 1/meters).
 	 */
-	template<class U> using inverse = typename inverse_impl<U>::type;
+	template<class U> using inverse = typename detail::inverse_impl<U>::type;
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of `squared`
-	 * @details		Squares the conversion ratio, `base_unit` exponents, pi exponents, and removes
-	 *				datum translation ratios.
-	 */
-	template<class Unit>
-	struct squared_impl
+	namespace detail
 	{
-		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		using Conversion = typename Unit::conversion_ratio;
-		using type = unit < std::ratio_multiply<Conversion, Conversion>,
-			squared_base<base_unit_of<typename Unit::base_unit_type>>,
-			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
-			std::ratio < 0 >> ;
-	};
+		/**
+		 * @brief		implementation of `squared`
+		 * @details		Squares the conversion ratio, `base_unit` exponents, pi exponents, and removes
+		 *				datum translation ratios.
+		 */
+		template<class Unit>
+		struct squared_impl
+		{
+			static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			using Conversion = typename Unit::conversion_ratio;
+			using type = unit < std::ratio_multiply<Conversion, Conversion>,
+				squared_base<base_unit_of<typename Unit::base_unit_type>>,
+				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
+				std::ratio < 0 >> ;
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -630,24 +652,27 @@ namespace units
 	 * @details		E.g. `square<meters>` will represent meters^2.
 	 */
 	template<class U>
-	using squared = typename squared_impl<U>::type;
+	using squared = typename detail::squared_impl<U>::type;
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of `cubed`
-	 * @details		Cubes the conversion ratio, `base_unit` exponents, pi exponents, and removes
-	 *				datum translation ratios.
-	 */
-	template<class Unit>
-	struct cubed_impl
+	namespace detail
 	{
-		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		using Conversion = typename Unit::conversion_ratio;
-		using type = unit < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-			cubed_base<base_unit_of<typename Unit::base_unit_type>>,
-			std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
-			std::ratio < 0 >> ;
-	};
+		/**
+			 * @brief		implementation of `cubed`
+			 * @details		Cubes the conversion ratio, `base_unit` exponents, pi exponents, and removes
+			 *				datum translation ratios.
+			 */
+		template<class Unit>
+		struct cubed_impl
+		{
+			static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			using Conversion = typename Unit::conversion_ratio;
+			using type = unit < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
+				cubed_base<base_unit_of<typename Unit::base_unit_type>>,
+				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
+				std::ratio < 0 >> ;
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -657,23 +682,26 @@ namespace units
 	 * @details		E.g. `cubed<meters>` will represent meters^3.
 	 */
 	template<class U>
-	using cubed = typename cubed_impl<U>::type;
+	using cubed = typename detail::cubed_impl<U>::type;
 
 	//------------------------------
 	//	COMPOUND UNITS
 	//------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of compound_unit
-	 * @details		multiplies a variadic list of units together, and is inherited from the resulting
-	 *				type.
-	 */
-	template<class U, class... Us> struct compound_impl;
-	template<class U> struct compound_impl<U> { using type = U; };
-	template<class U1, class U2, class...Us>
-	struct compound_impl<U1, U2, Us...>
-		: compound_impl<unit_multiply<U1, U2>, Us...> {};
+	namespace detail
+	{
+		/**
+			 * @brief		implementation of compound_unit
+			 * @details		multiplies a variadic list of units together, and is inherited from the resulting
+			 *				type.
+			 */
+		template<class U, class... Us> struct compound_impl;
+		template<class U> struct compound_impl<U> { using type = U; };
+		template<class U1, class U2, class...Us>
+		struct compound_impl<U1, U2, Us...>
+			: compound_impl<unit_multiply<U1, U2>, Us...> {};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -681,54 +709,57 @@ namespace units
 	 * @details		Compound units are formed by multiplying the units of all the types provided in
 	 *				the template argument. Types provided must inherit from `unit`. A compound unit can
 	 *				be formed from any number of other units, and unit manipulators like `inverse` and
-	 *				`squared` are supported. E.g. to specify acceleration, on could create 
+	 *				`squared` are supported. E.g. to specify acceleration, on could create
 	 *				`using acceleration = compound_unit<length::meters, inverse<squared<seconds>>;`
 	 * @tparam		U...	units which, when multiplied together, form the desired compound unit.
 	 * @ingroup		UnitTypes
 	 */
 	template<class U, class... Us>
-	using compound_unit = typename compound_impl<U, Us...>::type;
+	using compound_unit = typename detail::compound_impl<U, Us...>::type;
 
 	//------------------------------
 	//	PREFIXES
 	//------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		prefix applicator.
-	 * @details		creates a unit type from a prefix and a unit
-	 */
-	template<class Ratio, class Unit>
-	struct prefix
+	namespace detail
 	{
-		static_assert(is_ratio<Ratio>::value, "Template parameter `Ratio` must be a `std::ratio`.");
-		static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-		typedef typename units::unit<Ratio, Unit> type;
-	};
+		/**
+			 * @brief		prefix applicator.
+			 * @details		creates a unit type from a prefix and a unit
+			 */
+		template<class Ratio, class Unit>
+		struct prefix
+		{
+			static_assert(is_ratio<Ratio>::value, "Template parameter `Ratio` must be a `std::ratio`.");
+			static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			typedef typename units::unit<Ratio, Unit> type;
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
-	 * @ingroup UnitManipulators		
-	 * @{		
+	 * @ingroup UnitManipulators
+	 * @{
 	 * @ingroup Prefixes
 	 * @{
 	 */
-	template<class U> using atto	= typename prefix<std::atto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21	@tparam U unit type to apply the prefix to.
-	template<class U> using femto	= typename prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
-	template<class U> using pico	= typename prefix<std::pico, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
-	template<class U> using nano = typename prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
-	template<class U> using micro = typename prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
-	template<class U> using milli = typename prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
-	template<class U> using centi = typename prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
-	template<class U> using deci = typename prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
-	template<class U> using deca = typename prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
-	template<class U> using hecto = typename prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
-	template<class U> using kilo = typename prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
-	template<class U> using mega = typename prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
-	template<class U> using giga = typename prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
-	template<class U> using tera = typename prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
-	template<class U> using peta = typename prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
-	template<class U> using exa = typename prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
+	template<class U> using atto = typename detail::prefix<std::atto, U>::type;								///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21	@tparam U unit type to apply the prefix to.
+	template<class U> using femto = typename detail::prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
+	template<class U> using pico = typename detail::prefix<std::pico, U>::type;								///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
+	template<class U> using nano = typename detail::prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
+	template<class U> using micro = typename detail::prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
+	template<class U> using milli = typename detail::prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
+	template<class U> using centi = typename detail::prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
+	template<class U> using deci = typename detail::prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
+	template<class U> using deca = typename detail::prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
+	template<class U> using hecto = typename detail::prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
+	template<class U> using kilo = typename detail::prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
+	template<class U> using mega = typename detail::prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
+	template<class U> using giga = typename detail::prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
+	template<class U> using tera = typename detail::prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
+	template<class U> using peta = typename detail::prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
+	template<class U> using exa = typename detail::prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
 	/** @} @} */
 
 	//------------------------------
@@ -748,7 +779,7 @@ namespace units
 	 * @sa			is_convertible_unit_t
 	 */
 	template<class U1, class U2>
-	struct is_convertible_unit : std::is_same < base_unit_of<typename unit_traits<U1>::base_unit_type>,
+	struct is_convertible_unit : std::is_same <base_unit_of<typename unit_traits<U1>::base_unit_type>,
 		base_unit_of<typename unit_traits<U2>::base_unit_type >> {};
 
 	//------------------------------
@@ -756,68 +787,71 @@ namespace units
 	//------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::false_type, std::false_type)
+	namespace detail
 	{
-		return value;
-	}
+		/// convert dispatch for units which are both the same
+		template<class, class, typename T>
+		static inline T convert(const T& value, std::true_type, std::false_type, std::false_type)
+		{
+			return value;
+		}
 
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::false_type, std::true_type)
-	{
-		return value;
-	}
+		/// convert dispatch for units which are both the same
+		template<class, class, typename T>
+		static inline T convert(const T& value, std::true_type, std::false_type, std::true_type)
+		{
+			return value;
+		}
 
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::true_type, std::false_type)
-	{
-		return value;
-	}
+		/// convert dispatch for units which are both the same
+		template<class, class, typename T>
+		static inline T convert(const T& value, std::true_type, std::true_type, std::false_type)
+		{
+			return value;
+		}
 
-	/// convert dispatch for units which are both the same
-	template<class, class, typename T>
-	static inline T _convert(const T& value, std::true_type, std::true_type, std::true_type)
-	{
-		return value;
-	}
+		/// convert dispatch for units which are both the same
+		template<class, class, typename T>
+		static inline T convert(const T& value, std::true_type, std::true_type, std::true_type)
+		{
+			return value;
+		}
 
-	/// convert dispatch for units of different types w/ no translation and no PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::false_type, std::false_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		return (double(Ratio::num) * value / Ratio::den);
-	}
+		/// convert dispatch for units of different types w/ no translation and no PI
+		template<class UnitFrom, class UnitTo, typename T>
+		static inline T convert(const T& value, std::false_type, std::false_type, std::false_type)
+		{
+			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+			return (double(Ratio::num) * value / Ratio::den);
+		}
 
-	/// convert dispatch for units of different types w/ no translation, but has PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::true_type, std::false_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
-	}
+		/// convert dispatch for units of different types w/ no translation, but has PI
+		template<class UnitFrom, class UnitTo, typename T>
+		static inline T convert(const T& value, std::false_type, std::true_type, std::false_type)
+		{
+			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
+			return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
+		}
 
-	/// convert dispatch for units of different types with a translation, but no PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::false_type, std::true_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
-	}
+		/// convert dispatch for units of different types with a translation, but no PI
+		template<class UnitFrom, class UnitTo, typename T>
+		static inline T convert(const T& value, std::false_type, std::false_type, std::true_type)
+		{
+			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+			return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
+		}
 
-	/// convert dispatch for units of different types with a translation AND PI
-	template<class UnitFrom, class UnitTo, typename T>
-	static inline T _convert(const T& value, std::false_type, std::true_type, std::true_type)
-	{
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
+		/// convert dispatch for units of different types with a translation AND PI
+		template<class UnitFrom, class UnitTo, typename T>
+		static inline T convert(const T& value, std::false_type, std::true_type, std::true_type)
+		{
+			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
+			return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
+		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -850,7 +884,7 @@ namespace units
 		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::translation_ratio>::value &&
 			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
 
-		return _convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
+		return detail::convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
 	};
 
 	//----------------------------------
@@ -858,49 +892,55 @@ namespace units
 	//----------------------------------
 
 	/** @cond */	// DOXYGEN IGNORE
-	/**
-	 * @brief		implementation of has_operator_parenthesis
-	 * @details		checks that operator() returns the same type as `Ret`
-	 */
-	template<class T, class Ret>
-	struct has_operator_parenthesis_impl
+	namespace detail
 	{
-		template<class U>
-		static auto test(U*) -> decltype(std::declval<U>()());
-		template<typename>
-		static std::false_type test(...);
+		/**
+			 * @brief		implementation of has_operator_parenthesis
+			 * @details		checks that operator() returns the same type as `Ret`
+			 */
+		template<class T, class Ret>
+		struct has_operator_parenthesis_impl
+		{
+			template<class U>
+			static auto test(U*) -> decltype(std::declval<U>()());
+			template<typename>
+			static std::false_type test(...);
 
-		using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
-	};
+			using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
+		};
+	}
 
 	/**
 	 * @brief		checks that `class T` has an `operator()` member which returns `Ret`
 	 * @details		used as part of the linear_scale concept.
 	 */
 	template<class T, class Ret>
-	struct has_operator_parenthesis : has_operator_parenthesis_impl<T, Ret>::type {};
+	struct has_operator_parenthesis : detail::has_operator_parenthesis_impl<T, Ret>::type {};
 
-	/**
-	* @brief		implementation of has_value_member
-	* @details		checks for a member named `m_member` with type `Ret`
-	*/
-	template<class T, class Ret>
-	struct has_value_member_impl
+	namespace detail
 	{
-		template<class U>
-		static auto test(U* p) -> decltype(U::m_value);
-		template<typename>
-		static auto test(...)->std::false_type;
+		/**
+			* @brief		implementation of has_value_member
+			* @details		checks for a member named `m_member` with type `Ret`
+			*/
+		template<class T, class Ret>
+		struct has_value_member_impl
+		{
+			template<class U>
+			static auto test(U* p) -> decltype(p->m_value);
+			template<typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
-	};
+			using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
+		};
+	}
 
 	/**
 	 * @brief		checks for a member named `m_member` with type `Ret`
 	 * @details		used as part of the linear_scale concept checker.
 	 */
 	template<class T, class Ret>
-	struct has_value_member : has_value_member_impl<T, Ret>::type {};
+	struct has_value_member : detail::has_value_member_impl<T, Ret>::type {};
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -928,7 +968,7 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	/**
 	 * @brief		unit_t_traits specialization for things which are not unit_t
-	 * @details		
+	 * @details
 	 */
 	template<typename T, typename = void>
 	struct unit_t_traits
@@ -942,7 +982,7 @@ namespace units
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait for accessing the publically defined types of `units::unit_t`
-	 * @details		
+	 * @details
 	 */
 	template<typename T>
 	struct unit_t_traits <T, typename void_t<
@@ -972,19 +1012,6 @@ namespace units
 		is_convertible_unit<typename unit_t_traits<U1>::unit_type, typename unit_t_traits<U2>::unit_type>::value>
 	{};
 
-	/**
-	 * @ingroup		TypeTraits
-	 * @brief		Trait which tests whether one or more types derived from `unit_t` represent scalar values.
-	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_scalar_unit<U1 [, U2, ...]>::value` to test
-	 *				one or more types to see if they represent scalar value containers. A scalar unit is one which has no 
-	 *				dimensions (e.g. PI).
-	 * @tparam		T	one or more types to test.
-	 */
-	template<class... T>
-	struct is_scalar_unit : std::integral_constant<bool,
-		all_true<std::is_same<base_unit_of<typename unit_t_traits<T>::unit_type>, category::scalar_unit>::value...>::value >
-	{};
-
 	//---------------------------------- 
 	//	UNIT TYPE
 	//----------------------------------
@@ -999,22 +1026,22 @@ namespace units
 	 * @brief		Container for values which represent quantities of a given unit.
 	 * @details		Stores a value which represents a quantity in the given units. Unit containers
 	 *				(except scalar values) are *not* convertible to built-in c++ types, in order to
-	 *				provide type safety in dimensional analysis. Unit containers *are* implicitely 
+	 *				provide type safety in dimensional analysis. Unit containers *are* implicitely
 	 *				convertible to other compatible unit container types. Unit containers support
 	 *				various types of arithmetic operations, depending on their scale type.
 	 *
 	 *				The value of a `unit_t` can only be changed on construction, or by assignment
 	 *				from another `unit_t` type. If necessary, the underlying value can be accessed
-	 *				using `operator()`: @code 
+	 *				using `operator()`: @code
 	 *				meter_t m(5.0);
 	 *				double val = m(); // val == 5.0	@endcode.
 	 * @tparam		Units unit tag for which type of units the `unit_t` represents (e.g. meters)
 	 * @tparam		T underlying type of the storage. Defaults to double.
 	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
-	 *				not scale the unit value). Examples of non-linear scales could be logarithmic, 
+	 *				not scale the unit value). Examples of non-linear scales could be logarithmic,
 	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
 	 *				concept, i.e. `is_nonlinear_scale<...>::value` must be `true`.
-	 * @sa			
+	 * @sa
 	 *				- \ref lengthContainers "length unit containers"
 	 *				- \ref massContainers "mass unit containers"
 	 *				- \ref timeContainers "time unit containers"
@@ -1085,7 +1112,7 @@ namespace units
 		/**
 		 * @brief		constructor
 		 * @details		enable implicit conversions from T types ONLY for linear scalar units
-		 * @param[in]	value value of the unit_t	
+		 * @param[in]	value value of the unit_t
 		 */
 		template<class Ty, class = typename std::enable_if<std::is_same<base_unit_of<Units>, category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
 		inline unit_t(Ty value) : nls(value) {};
@@ -1093,7 +1120,7 @@ namespace units
 		/**
 		 * @brief		copy constructor
 		 * @details		performs implicit unit conversions if required.
-		 * @param[in]	rhs unit to copy. 
+		 * @param[in]	rhs unit to copy.
 		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
@@ -1158,7 +1185,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator>(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
-			return (nls::m_value>  units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value > units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1198,7 +1225,7 @@ namespace units
 		{
 			return (nls::m_value != units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
-		
+
 		/**
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
@@ -1284,7 +1311,8 @@ namespace units
 	 * @brief		Trait which tests whether two types has the same non-linear scale.
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_same_scale<U1 , U2>::value` to test
 	 *				whether two types have the same non-linear scale.
-	 * @tparam		T	one or more types to test.
+	 * @tparam		T1	left hand type.
+	 * @tparam		T2	right hand type
 	 */
 	template<typename T1, typename T2>
 	struct is_same_scale : std::integral_constant<bool,
@@ -1334,11 +1362,30 @@ namespace units
 		using dimensionless_t = scalar_t;
 	}
 
+	namespace detail
+	{
+		template<class T> struct is_scalar_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_scalar_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::scalar_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_scalar_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
+	}
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether one or more types derived from `unit_t` represent scalar values.
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_scalar_unit<U1 [, U2, ...]>::value` to test
+	 *				one or more types to see if they represent scalar value containers. A scalar unit is one which has no
+	 *				dimensions (e.g. PI).
+	 * @tparam		T	one or more types to test.
+	 */
+	template<class... T>
+	struct is_scalar_unit : std::integral_constant<bool, all_true<detail::is_scalar_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+
 	//------------------------------
 	//	LINEAR ARITHMETIC
 	//------------------------------
 
-	
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<!is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline int operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
@@ -1457,17 +1504,20 @@ namespace units
 	}
 
 	/** @cond */	// DOXYGEN IGNORE
-	/// recursive exponential implementation
-	template <int N, class U> struct _power_unit
+	namespace detail
 	{
-		typedef typename units::unit_multiply<U, typename _power_unit<N - 1, U>::type> type;
-	};
+		/// recursive exponential implementation
+		template <int N, class U> struct power_unit
+		{
+			typedef typename unit_multiply<U, typename power_unit<N - 1, U>::type> type;
+		};
 
-	/// End recursion
-	template <class U> struct _power_unit<1, U>
-	{
-		typedef U type;
-	};
+		/// End recursion
+		template <class U> struct power_unit<1, U>
+		{
+			typedef U type;
+		};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
@@ -1478,9 +1528,9 @@ namespace units
 	 * @returns		new unit_t, raised to the given exponent
 	 */
 	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
-	inline auto pow(const UnitType& value) -> unit_t<typename _power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+	inline auto pow(const UnitType& value) -> unit_t<typename detail::power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 	{
-		return unit_t<typename _power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+		return unit_t<typename detail::power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 			(std::pow(value(), power));
 	}
 
@@ -1718,20 +1768,23 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_length_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_length_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::length_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_length_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::length_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of length
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_length_unit<T>::value` to test
 	 *				the unit represents a length quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_length_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_length_unit<unit<C,U,P,T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::length_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_length_unit<unit_t<U,S,N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::length_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_length_unit<const unit_t<U, S, N>> : is_length_unit<unit_t<U, S, N>> {};
+	template<typename... T> struct is_length_unit : std::integral_constant<bool, all_true<detail::is_length_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	MASS UNITS
@@ -1817,29 +1870,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_mass_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_mass_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::mass_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_mass_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::mass_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of mass
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_mass_unit<T>::value` to test
 	 *				the unit represents a mass quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_mass_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_mass_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::mass_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_mass_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::mass_unit>::type {};
+	template<typename... T> struct is_mass_unit : std::integral_constant<bool, all_true<detail::is_mass_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	TIME UNITS
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing time values
- 	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` category is
- 	 *				`time_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing time values
+	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` category is
+	 *				`time_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace time
 	{
 		/**
@@ -1904,29 +1962,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_time_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_time_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::time_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_time_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::time_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of time
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_time_unit<T>::value` to test
 	 *				the unit represents a time quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_time_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_time_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::time_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_time_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::time_unit>::type {};
+	template<typename... T> struct is_time_unit : std::integral_constant<bool, all_true<detail::is_time_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	ANGLE UNITS
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing angle values
- 	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` category is
- 	 *				`angle_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing angle values
+	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` category is
+	 *				`angle_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace angle
 	{
 		/**
@@ -1990,28 +2053,33 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_angle_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_angle_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angle_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_angle_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angle_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of angle
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angle_unit<T>::value` to test
 	 *				the unit represents a angle quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_angle_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_angle_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angle_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_angle_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angle_unit>::type {};
+	template<typename... T> struct is_angle_unit : std::integral_constant<bool, all_true<detail::is_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF CURRENT
 	//------------------------------
 	/**
- 	 * @brief		namespace for unit types and containers representing current values
- 	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` category is
- 	 *				`current_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing current values
+	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` category is
+	 *				`current_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace current
 	{
 		/**
@@ -2060,18 +2128,23 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_current_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_current_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::current_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_current_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::current_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of current
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_current_unit<T>::value` to test
 	 *				the unit represents a current quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_current_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_current_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::current_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_current_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::current_unit>::type {};
+	template<typename... T> struct is_current_unit : std::integral_constant<bool, all_true<detail::is_current_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
@@ -2081,11 +2154,11 @@ namespace units
 	// require translations and aren't a reversible transform.
 
 	/**
- 	 * @brief		namespace for unit types and containers representing temperature values
- 	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` category is
- 	 *				`temperature_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing temperature values
+	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` category is
+	 *				`temperature_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace temperature
 	{
 		/**
@@ -2131,29 +2204,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_temperature_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_temperature_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::temperature_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_temperature_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::temperature_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of temperature
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_temperature_unit<T>::value` to test
 	 *				the unit represents a temperature quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_temperature_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_temperature_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::temperature_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_temperature_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::temperature_unit>::type {};
+	template<typename... T> struct is_temperature_unit : std::integral_constant<bool, all_true<detail::is_temperature_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing substance values
- 	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` category is
- 	 *				`substance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing substance values
+	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` category is
+	 *				`substance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace substance
 	{
 		/**
@@ -2186,33 +2264,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_substance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_substance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::substance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_substance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::substance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of substance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_substance_unit<T>::value` to test
 	 *				the unit represents a substance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_substance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_substance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::substance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_substance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::substance_unit>::type {};
+	template<typename... T> struct is_substance_unit : std::integral_constant<bool, all_true<detail::is_substance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing luminous_intensity values
- 	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` category is
- 	 *				`luminous_intensity_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing luminous_intensity values
+	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` category is
+	 *				`luminous_intensity_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace luminous_intensity
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using candelas = unit<std::ratio<1>, category::luminous_intensity_unit>;
@@ -2245,33 +2328,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_luminous_intensity_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_luminous_intensity_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_intensity_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_luminous_intensity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_intensity_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of luminous_intensity
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_intensity_unit<T>::value` to test
 	 *				the unit represents a luminous_intensity quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_luminous_intensity_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_luminous_intensity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_intensity_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_luminous_intensity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_intensity_unit>::type {};
+	template<typename... T> struct is_luminous_intensity_unit : std::integral_constant<bool, all_true<detail::is_luminous_intensity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing solid_angle values
- 	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` category is
- 	 *				`solid_angle_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing solid_angle values
+	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` category is
+	 *				`solid_angle_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace solid_angle
 	{
 		/**
-		 * @name Units (full names plural)  
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using steradians = unit<std::ratio<1>, category::solid_angle_unit>;
@@ -2308,33 +2396,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_solid_angle_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_solid_angle_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::solid_angle_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_solid_angle_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::solid_angle_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of solid_angle
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_solid_angle_unit<T>::value` to test
 	 *				the unit represents a solid_angle quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_solid_angle_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_solid_angle_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::solid_angle_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_solid_angle_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::solid_angle_unit>::type {};
+	template<typename... T> struct is_solid_angle_unit : std::integral_constant<bool, all_true<detail::is_solid_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing frequency values
- 	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` category is
- 	 *				`frequency_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing frequency values
+	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` category is
+	 *				`frequency_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace frequency
 	{
 		/**
-		 * @name Units (full names)  
+		 * @name Units (full names)
 		 * @{
 		 */
 		using hertz = unit<std::ratio<1>, category::frequency_unit>;
@@ -2365,33 +2458,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_frequency_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_frequency_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::frequency_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_frequency_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::frequency_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of frequency
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_frequency_unit<T>::value` to test
 	 *				the unit represents a frequency quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_frequency_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_frequency_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::frequency_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_frequency_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::frequency_unit>::type {};
+	template<typename... T> struct is_frequency_unit : std::integral_constant<bool, all_true<detail::is_frequency_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	VELOCITY UNITS
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing velocity values
- 	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` category is
- 	 *				`velocity_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing velocity values
+	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` category is
+	 *				`velocity_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace velocity
 	{
 		/**
-		 * @name  Units (full names plural) 
+		 * @name  Units (full names plural)
 		 * @{
 		 */
 		using meters_per_second = unit<std::ratio<1>, category::velocity_unit>;
@@ -2431,18 +2529,23 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_velocity_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_velocity_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::velocity_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_velocity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::velocity_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of velocity
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_velocity_unit<T>::value` to test
 	 *				the unit represents a velocity quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_velocity_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_velocity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::velocity_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_velocity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::velocity_unit>::type {};
+	template<typename... T> struct is_velocity_unit : std::integral_constant<bool, all_true<detail::is_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	ANGULAR VELOCITY UNITS
@@ -2500,7 +2603,7 @@ namespace units
 	* @brief		Trait which tests whether a type represents a unit of angular_velocity
 	* @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angular_velocity_unit<T>::value` to test
 	*				the unit represents a angular_velocity quantity.
-	* @tparam		T	type to test.
+	* @tparam		T	one or more types to test
 	*/
 	template<typename T> struct is_angular_velocity_unit : std::false_type {};
 	template<typename C, typename U, typename P, typename T>
@@ -2513,15 +2616,15 @@ namespace units
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing acceleration values
- 	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` category is
- 	 *				`acceleration_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing acceleration values
+	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` category is
+	 *				`acceleration_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace acceleration
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using meters_per_second_squared = unit<std::ratio<1>, category::acceleration_unit>;
@@ -2540,29 +2643,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_acceleration_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_acceleration_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::acceleration_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_acceleration_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::acceleration_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of acceleration
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_acceleration_unit<T>::value` to test
 	 *				the unit represents a acceleration quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_acceleration_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_acceleration_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::acceleration_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_acceleration_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::acceleration_unit>::type {};
+	template<typename... T> struct is_acceleration_unit : std::integral_constant<bool, all_true<detail::is_acceleration_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF FORCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing force values
- 	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` category is
- 	 *				`force_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing force values
+	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` category is
+	 *				`force_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace force
 	{
 		/**
@@ -2611,29 +2719,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_force_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_force_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::force_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_force_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::force_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of force
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_force_unit<T>::value` to test
 	 *				the unit represents a force quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_force_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_force_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::force_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_force_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::force_unit>::type {};
+	template<typename... T> struct is_force_unit : std::integral_constant<bool, all_true<detail::is_force_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF PRESSURE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing pressure values
- 	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` category is
- 	 *				`pressure_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing pressure values
+	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` category is
+	 *				`pressure_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace pressure
 	{
 		/**
@@ -2659,7 +2772,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using Pa = pascals;
@@ -2680,29 +2793,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_pressure_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_pressure_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::pressure_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_pressure_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::pressure_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of pressure
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_pressure_unit<T>::value` to test
 	 *				the unit represents a pressure quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_pressure_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_pressure_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::pressure_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_pressure_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::pressure_unit>::type {};
+	template<typename... T> struct is_pressure_unit : std::integral_constant<bool, all_true<detail::is_pressure_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF CHARGE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing charge values
- 	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` category is
- 	 *				`charge_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing charge values
+	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` category is
+	 *				`charge_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace charge
 	{
 		/**
@@ -2714,7 +2832,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using coulomb = coulombs;
@@ -2722,7 +2840,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using C = coulombs;
@@ -2739,29 +2857,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_charge_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_charge_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::charge_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_charge_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::charge_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of charge
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_charge_unit<T>::value` to test
 	 *				the unit represents a charge quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_charge_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_charge_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::charge_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_charge_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::charge_unit>::type {};
+	template<typename... T> struct is_charge_unit : std::integral_constant<bool, all_true<detail::is_charge_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF ENERGY
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing energy values
- 	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` category is
- 	 *				`energy_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing energy values
+	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` category is
+	 *				`energy_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace energy
 	{
 		/**
@@ -2783,7 +2906,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using joule = joules;
@@ -2799,7 +2922,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using J = joules;
@@ -2832,29 +2955,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_energy_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_energy_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::energy_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_energy_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::energy_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of energy
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_energy_unit<T>::value` to test
 	 *				the unit represents a energy quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_energy_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_energy_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::energy_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_energy_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::energy_unit>::type {};
+	template<typename... T> struct is_energy_unit : std::integral_constant<bool, all_true<detail::is_energy_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF POWER
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing power values
- 	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` category is
- 	 *				`power_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing power values
+	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` category is
+	 *				`power_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace power
 	{
 		/**
@@ -2872,7 +3000,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using watt = watts;
@@ -2885,7 +3013,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using W = watts;
@@ -2916,29 +3044,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_power_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_power_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::power_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_power_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::power_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of power
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_power_unit<T>::value` to test
 	 *				the unit represents a power quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_power_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_power_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::power_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_power_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::power_unit>::type {};
+	template<typename... T> struct is_power_unit : std::integral_constant<bool, all_true<detail::is_power_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing voltage values
- 	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` category is
- 	 *				`voltage_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing voltage values
+	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` category is
+	 *				`voltage_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace voltage
 	{
 		/**
@@ -2958,7 +3091,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using volt = volts;
@@ -2974,7 +3107,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using volt_t = unit_t<volt>;
@@ -3007,29 +3140,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_voltage_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_voltage_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::voltage_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_voltage_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::voltage_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of voltage
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_voltage_unit<T>::value` to test
 	 *				the unit represents a voltage quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_voltage_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_voltage_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::voltage_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_voltage_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::voltage_unit>::type {};
+	template<typename... T> struct is_voltage_unit : std::integral_constant<bool, all_true<detail::is_voltage_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing capacitance values
- 	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` category is
- 	 *				`capacitance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing capacitance values
+	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` category is
+	 *				`capacitance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace capacitance
 	{
 		/**
@@ -3047,7 +3185,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using farad = farads;
@@ -3090,29 +3228,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_capacitance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_capacitance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::capacitance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_capacitance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::capacitance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of capacitance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_capacitance_unit<T>::value` to test
 	 *				the unit represents a capacitance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_capacitance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_capacitance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::capacitance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_capacitance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::capacitance_unit>::type {};
+	template<typename... T> struct is_capacitance_unit : std::integral_constant<bool, all_true<detail::is_capacitance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing impedance values
- 	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` category is
- 	 *				`impedance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing impedance values
+	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` category is
+	 *				`impedance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace impedance
 	{
 		/**
@@ -3130,7 +3273,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using ohm = ohms;
@@ -3173,29 +3316,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_impedance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_impedance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::impedance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_impedance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::impedance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of impedance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_impedance_unit<T>::value` to test
 	 *				the unit represents a impedance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_impedance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_impedance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::impedance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_impedance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::impedance_unit>::type {};
+	template<typename... T> struct is_impedance_unit : std::integral_constant<bool, all_true<detail::is_impedance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing conductance values
- 	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` category is
- 	 *				`conductance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing conductance values
+	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` category is
+	 *				`conductance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace conductance
 	{
 		/**
@@ -3213,7 +3361,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using siemen = siemens;
@@ -3256,29 +3404,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_conductance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_conductance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::conductance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_conductance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::conductance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of conductance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conductance_unit<T>::value` to test
 	 *				the unit represents a conductance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_conductance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_conductance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::conductance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_conductance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::conductance_unit>::type {};
+	template<typename... T> struct is_conductance_unit : std::integral_constant<bool, all_true<detail::is_conductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing magnetic_flux values
- 	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` category is
- 	 *				`magnetic_flux_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing magnetic_flux values
+	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` category is
+	 *				`magnetic_flux_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace magnetic_flux
 	{
 		/**
@@ -3297,7 +3450,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using weber = webers;
@@ -3343,29 +3496,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_magnetic_flux_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_magnetic_flux_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_flux_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_magnetic_flux_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_flux_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of magnetic_flux
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_flux_unit<T>::value` to test
 	 *				the unit represents a magnetic_flux quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_magnetic_flux_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_magnetic_flux_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_flux_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_magnetic_flux_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_flux_unit>::type {};
-	 
+	template<typename... T> struct is_magnetic_flux_unit : std::integral_constant<bool, all_true<detail::is_magnetic_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
 	//----------------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
- 	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` category is
- 	 *				`magnetic_field_strength_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
+	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` category is
+	 *				`magnetic_field_strength_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace magnetic_field_strength
 	{
 		/**
@@ -3384,7 +3542,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using tesla = teslas;
@@ -3414,7 +3572,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using T = teslas;
@@ -3429,29 +3587,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_magnetic_field_strength_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_magnetic_field_strength_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_field_strength_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_magnetic_field_strength_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_field_strength_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of magnetic_field_strength
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_field_strength_unit<T>::value` to test
 	 *				the unit represents a magnetic_field_strength quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_magnetic_field_strength_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_magnetic_field_strength_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::magnetic_field_strength_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_magnetic_field_strength_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_field_strength_unit>::type {};
+	template<typename... T> struct is_magnetic_field_strength_unit : std::integral_constant<bool, all_true<detail::is_magnetic_field_strength_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing inductance values
- 	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` category is
- 	 *				`inductance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing inductance values
+	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` category is
+	 *				`inductance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace inductance
 	{
 		/**
@@ -3469,7 +3632,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using henry = henrys;
@@ -3512,7 +3675,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using H = henrys;
@@ -3526,33 +3689,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_inductance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_inductance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::inductance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_inductance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::inductance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of inductance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_inductance_unit<T>::value` to test
 	 *				the unit represents a inductance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_inductance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_inductance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::inductance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_inductance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::inductance_unit>::type {};
+	template<typename... T> struct is_inductance_unit : std::integral_constant<bool, all_true<detail::is_inductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing luminous_flux values
- 	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` category is
- 	 *				`luminous_flux_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing luminous_flux values
+	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` category is
+	 *				`luminous_flux_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace luminous_flux
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using lumens = unit<std::ratio<1>, category::luminous_flux_unit>;
@@ -3566,7 +3734,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using lumen = lumens;
@@ -3595,7 +3763,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using lm = lumens;
@@ -3609,33 +3777,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_luminous_flux_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_luminous_flux_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_flux_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_luminous_flux_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_flux_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of luminous_flux
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_flux_unit<T>::value` to test
 	 *				the unit represents a luminous_flux quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_luminous_flux_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_luminous_flux_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::luminous_flux_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_luminous_flux_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_flux_unit>::type {};
+	template<typename... T> struct is_luminous_flux_unit : std::integral_constant<bool, all_true<detail::is_luminous_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing illuminance values
- 	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` category is
- 	 *				`illuminance_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing illuminance values
+	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` category is
+	 *				`illuminance_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace illuminance
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using luxes = unit<std::ratio<1>, category::illuminance_unit>;
@@ -3686,7 +3859,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using lx = luxes;
@@ -3702,18 +3875,23 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_illuminance_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_illuminance_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::illuminance_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_illuminance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::illuminance_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of illuminance
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_illuminance_unit<T>::value` to test
 	 *				the unit represents a illuminance quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_illuminance_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_illuminance_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::illuminance_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_illuminance_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::illuminance_unit>::type {};
+	template<typename... T> struct is_illuminance_unit : std::integral_constant<bool, all_true<detail::is_illuminance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF RADIATION
@@ -3730,7 +3908,7 @@ namespace units
 	namespace radiation
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using becquerels = inverse<time::seconds>;
@@ -3763,7 +3941,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using becquerel = becquerels;
@@ -3862,33 +4040,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_radioactivity_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_radioactivity_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::radioactivity_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_radioactivity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::radioactivity_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of radiation
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_radioactivity_unit<T>::value` to test
 	 *				the unit represents a radiation quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_radioactivity_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_radioactivity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::radioactivity_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_radioactivity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::radioactivity_unit>::type {};
+	template<typename... T> struct is_radioactivity_unit : std::integral_constant<bool, all_true<detail::is_radioactivity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF TORQUE
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing torque values
- 	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` category is
- 	 *				`torque_units`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing torque values
+	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` category is
+	 *				`torque_units`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace torque
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using newton_meters = unit<std::ratio<1>, category::torque_unit>;
@@ -3899,7 +4082,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using newton_meter = newton_meters;
@@ -3922,7 +4105,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using Nm = newton_meters;
@@ -3933,33 +4116,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_torque_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_torque_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::torque_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_torque_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::torque_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of torque
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_torque_unit<T>::value` to test
 	 *				the unit represents a torque quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_torque_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_torque_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::torque_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_torque_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::torque_unit>::type {};
+	template<typename... T> struct is_torque_unit : std::integral_constant<bool, all_true<detail::is_torque_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing area values
- 	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` category is
- 	 *				`area_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing area values
+	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` category is
+	 *				`area_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace area
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using square_meters = unit<std::ratio<1>, category::area_unit>;
@@ -3972,7 +4160,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using square_meter = square_meters;
@@ -3985,7 +4173,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using ha = hectares;
@@ -4006,33 +4194,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_area_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_area_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::area_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_area_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::area_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of area
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_area_unit<T>::value` to test
 	 *				the unit represents a area quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_area_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_area_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::area_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_area_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::area_unit>::type {};
+	template<typename... T> struct is_area_unit : std::integral_constant<bool, all_true<detail::is_area_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF VOLUME
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing volume values
- 	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` category is
- 	 *				`volume_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing volume values
+	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` category is
+	 *				`volume_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace volume
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using cubic_meters = unit<std::ratio<1>, category::volume_unit>;
@@ -4149,7 +4342,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (abbreviated names) 
+		 * @name Units (abbreviated names)
 		 * @{
 		 */
 		using m3 = cubic_meters;
@@ -4177,33 +4370,38 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_volume_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_volume_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::volume_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_volume_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::volume_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of volume
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_volume_unit<T>::value` to test
 	 *				the unit represents a volume quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_volume_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_volume_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::volume_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_volume_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::volume_unit>::type {};
+	template<typename... T> struct is_volume_unit : std::integral_constant<bool, all_true<detail::is_volume_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF DENSITY
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing density values
- 	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` category is
- 	 *				`density_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing density values
+	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` category is
+	 *				`density_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace density
 	{
 		/**
-		 * @name Units (full names plural) 
+		 * @name Units (full names plural)
 		 * @{
 		 */
 		using kilograms_per_cubic_meter = unit<std::ratio<1>, category::density_unit>;
@@ -4219,7 +4417,7 @@ namespace units
 		/** @} */
 
 		/**
-		 * @name Units (full names singular) 
+		 * @name Units (full names singular)
 		 * @{
 		 */
 		using kilogram_per_cubic_meter = kilograms_per_cubic_meter;
@@ -4252,29 +4450,34 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_density_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_density_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::density_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_density_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::density_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of density
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_density_unit<T>::value` to test
 	 *				the unit represents a density quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_density_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_density_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::density_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_density_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::density_unit>::type {};
+	template<typename... T> struct is_density_unit : std::integral_constant<bool, all_true<detail::is_density_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF CONCENTRATION
 	//------------------------------
 
 	/**
- 	 * @brief		namespace for unit types and containers representing concentration values
- 	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` category is
- 	 *				`scalar_unit`.
- 	 * @sa			See unit_t for more information on unit type containers.
- 	 */
+	 * @brief		namespace for unit types and containers representing concentration values
+	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` category is
+	 *				`scalar_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
 	namespace concentration
 	{
 		/**
@@ -4308,18 +4511,23 @@ namespace units
 		/** @} */
 	}
 
+	namespace detail
+	{
+		template<typename T> struct is_concentration_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_concentration_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::scalar_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_concentration_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
+	}
+
 	/**
 	 * @ingroup		TypeTraits
 	 * @brief		Trait which tests whether a type represents a unit of concentration
 	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_concentration_unit<T>::value` to test
 	 *				the unit represents a concentration quantity.
-	 * @tparam		T	type to test.
+	 * @tparam		T	one or more types to test
 	 */
-	template<typename T> struct is_concentration_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_concentration_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::scalar_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_concentration_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
+	template<typename T> struct is_concentration_unit : detail::is_concentration_unit_impl <typename std::decay<T>::type> {};
 
 	//------------------------------
 	//	CONSTANTS
@@ -4342,7 +4550,7 @@ namespace units
 		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
 		static const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(4.0e-7 * PI);							///< vacuum permeability.
 		static const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>														epsilon0(1.0 / (mu0 * units::pow<2>(c)));	///< vacuum permitivity.
-		static const impedance::ohm_t																										Z0 (mu0 * c);								///< characteristic impedance of vacuum.
+		static const impedance::ohm_t																										Z0(mu0 * c);								///< characteristic impedance of vacuum.
 		static const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));				///< Coulomb's constant.
 		static const charge::coulomb_t																										e(1.602176565e-19);							///< elementary charge.
 		static const mass::kilogram_t																										m_e(9.10938291e-31);						///< electron mass.
