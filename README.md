@@ -4,6 +4,8 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 Releases
 --------
 
+v1.2.1 - Bug fixes (#1) and namespace cleanup
+
 v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
 
 v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
