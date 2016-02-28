@@ -1084,7 +1084,7 @@ namespace units
 	protected:
 
 		using nls = NonLinearScale<T>;
-		nls::m_value;
+		using nls::m_value;
 
 	public:
 
@@ -1509,7 +1509,7 @@ namespace units
 		/// recursive exponential implementation
 		template <int N, class U> struct power_unit
 		{
-			typedef typename unit_multiply<U, typename power_unit<N - 1, U>::type> type;
+			typedef typename units::detail::unit_multiply<U, typename power_unit<N - 1, U>::type> type;
 		};
 
 		/// End recursion
