@@ -50,6 +50,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <cmath>
+#include <iostream>
 
 //--------------------
 //	UNITS NAMESPACE
@@ -949,7 +950,7 @@ namespace units
 	 * @details		A non-linear scale must:
 	 *				- be default constructible
 	 *				- have an `operator()` member which returns the non-linear value stored in the scale
-	 *				- have an accesible `m_value` member type which stores the linearized value in the scale.
+	 *				- have an accessible `m_value` member type which stores the linearized value in the scale.
 	 *
 	 *				Linear/nonlinear scales are used by `units::unit` to store values and scale them
 	 *				if they represent things like dB.
@@ -1275,6 +1276,13 @@ namespace units
 
 	};
 
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj)
+	{
+		os << obj.value();
+		return os;
+	}
+
 	//------------------------------
 	//	NON-LINEAR SCALE TRAITS
 	//------------------------------
@@ -1507,13 +1515,13 @@ namespace units
 	namespace detail
 	{
 		/// recursive exponential implementation
-		template <int N, class U> struct power_unit
+		template <int N, class U> struct power_of_unit
 		{
-			typedef typename units::detail::unit_multiply<U, typename power_unit<N - 1, U>::type> type;
+			typedef typename units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type> type;
 		};
 
 		/// End recursion
-		template <class U> struct power_unit<1, U>
+		template <class U> struct power_of_unit<1, U>
 		{
 			typedef U type;
 		};
@@ -1527,10 +1535,10 @@ namespace units
 	 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
 	 * @returns		new unit_t, raised to the given exponent
 	 */
-	template<int power, class UnitType, typename std::enable_if<has_linear_scale<UnitType>::value, int>::type = 0>
-	inline auto pow(const UnitType& value) -> unit_t<typename detail::power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+	template<int power, class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
+	inline auto pow(const UnitType& value) -> unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 	{
-		return unit_t<typename detail::power_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+		return unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 			(std::pow(value(), power));
 	}
 

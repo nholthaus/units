@@ -1,6 +1,7 @@
 #include <units.h>
 #include <gtest/gtest.h>
 #include <chrono>
+#include <string>
 
 using namespace units;
 using namespace units::dimensionless;
@@ -138,6 +139,8 @@ TEST_F(UnitTest, hasLinearScale)
 	test = has_linear_scale<meter_t>::value;
 	EXPECT_TRUE(test);
 	test = has_linear_scale<foot_t>::value;
+	EXPECT_TRUE(test);
+	test = has_linear_scale<watt_t, scalar_t>::value;
 	EXPECT_TRUE(test);
 	test = has_linear_scale<meters_per_second_t>::value;
 	EXPECT_TRUE(test);
@@ -1120,8 +1123,6 @@ TEST_F(UnitTest, hasValueMember)
 
 	test = units::has_value_member<linear_scale<double>, double>::value;
 	EXPECT_TRUE(test);
-	test = units::has_value_member<meter_t, double>::value;
-	EXPECT_FALSE(test);
 	test = units::has_value_member<meter, double>::value;
 	EXPECT_FALSE(test);
 }
@@ -2308,6 +2309,28 @@ TEST_F(UnitTest, testConstants)
 	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
 	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
 	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
+}
+
+TEST_F(UnitTest, cout)
+{
+	angle::degree_t test1(349.87);
+	meter_t test2(1.0);
+	dB_t test3(31.0);
+
+	testing::internal::CaptureStdout();
+	std::cout << test1;
+	std::string output1 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("349.87", output1.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << test2;
+	std::string output2 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1", output2.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << test3;
+	std::string output3 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("31", output3.c_str());
 }
 
 TEST_F(UnitTest, radarRangeEquation)
