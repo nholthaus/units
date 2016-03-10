@@ -4,6 +4,8 @@ a compile-time, header-only, unit conversion library built on c++14 with no depe
 Releases
 --------
 
+v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
+
 v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1
 
 v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
