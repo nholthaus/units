@@ -142,6 +142,8 @@ TEST_F(UnitTest, hasLinearScale)
 	EXPECT_TRUE(test);
 	test = has_linear_scale<watt_t, scalar_t>::value;
 	EXPECT_TRUE(test);
+	test = has_linear_scale<scalar_t, meter_t>::value;
+	EXPECT_TRUE(test);
 	test = has_linear_scale<meters_per_second_t>::value;
 	EXPECT_TRUE(test);
 	test = has_linear_scale<dB_t>::value;
