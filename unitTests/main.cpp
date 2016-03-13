@@ -54,7 +54,7 @@ TEST_F(UnitTest, isRatio)
 	EXPECT_FALSE(units::is_ratio<double>::value);
 }
 
-TEST_F(UnitTest, DISABLED_isUnit)
+TEST_F(UnitTest, isUnit)
 {
 	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
 	EXPECT_FALSE(units::is_unit<double>::value);
@@ -64,7 +64,6 @@ TEST_F(UnitTest, DISABLED_isUnit)
 
 TEST_F(UnitTest, unitTraits)
 {
-	EXPECT_TRUE(true);
 	bool isntUnit = std::is_same<void, units::unit_traits<double>>::value;
 	bool isUnit = std::is_same<void, units::unit_traits<meters>>::value;
 	EXPECT_TRUE(units::is_unit<meters>::value);
