@@ -7,8 +7,11 @@ before_build:
   - cd ..
   - dir
   
+platform:
+  - x64
+  
 configuration:
-  - Debug
+#  - Debug
   - Release
  
 build:
