@@ -1,4 +1,4 @@
-os: Visual Studio 2013
+os: Visual Studio 2015
   
 before_build:
   - md build
