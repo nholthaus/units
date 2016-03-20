@@ -6,7 +6,7 @@ platform:
   - x64
   
 configuration:
-#  - Debug
+  - Debug
   - Release
  
 before_build:
@@ -16,3 +16,6 @@ before_build:
 
 build:
   project: C:/projects/units/build/units.sln
+
+test_script:
+  - cmd: ctest -VV -C %CONFIGURATION%
