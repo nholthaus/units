@@ -1,4 +1,4 @@
-# units [![Build Status](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units)
+# units [![Build Status](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Build Status](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?branch=master&svg=true)](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?branch=master&svg=true)
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
 Releases
