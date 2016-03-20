@@ -6,9 +6,10 @@ before_install:
   - sudo apt-get update -qq
   
 install:
-  - sudo apt-get install cmake-3.4.1 -y
+  - sudo apt-get install cmake-y
   - sudo apt-get install g++-4.9 -y
   - export CXX="g++-4.9"
+  - cmake --version
   
 script:
   - mkdir build
