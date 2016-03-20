@@ -1,12 +1,5 @@
 os: Visual Studio 2015
-  
-before_build:
-  - md build
-  - cd build
-  - cmake ..
-  - cd ..
-  - dir
-  
+
 platform:
   - x64
   
@@ -14,5 +7,10 @@ configuration:
 #  - Debug
   - Release
  
+ before_build:
+  - cmd: md build
+  - cmd: cd build
+  - cmd: if "%platform%"=="x64" cmake -G"Visual Studio 14 Win64" ..
+
 build:
-  project: build/units.sln
+  project: C:/projects/units/build/units.sln
