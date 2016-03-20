@@ -1,15 +1,20 @@
-sudo: required
-
-before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
-  - sudo apt-get update -qq
-  
+language: cpp
+os:
+  - linux
+compiler: 
+    - gcc
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+    
 install:
-  - sudo apt-get install cmake -y
-  - sudo apt-get install g++-4.9 -y
-  - export CXX="g++-4.9"
-  - cmake --version
+# Install CMake 3.4.3
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz       ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar -xzf cmake-3.4.3-Linux-x86_64.tar.gz                                                      ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then if [ "$CXX" = "g++" ]; then export CXX="g++-4.9"; fi   
   
 script:
   - mkdir build
