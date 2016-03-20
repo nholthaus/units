@@ -50,7 +50,6 @@ namespace {
 
 TEST_F(UnitTest, isRatio)
 {
-	EXPECT_FALSE(true);
 	EXPECT_TRUE(units::is_ratio<std::ratio<1>>::value);
 	EXPECT_FALSE(units::is_ratio<double>::value);
 }
