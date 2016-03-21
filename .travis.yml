@@ -11,10 +11,6 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.9
-    
-before_install:
-  - export COVERALLS_SERVICE_NAME=travis-ci
-  - export COVERALLS_REPO_TOKEN=mvhm7Vyj3qRh5p9gF4eY
 
 install:
   # install coveralls dependencies
