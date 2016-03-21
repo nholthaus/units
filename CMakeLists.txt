@@ -12,7 +12,7 @@ option(COVERALLS "Generate coveralls data" OFF)
 if (COVERALLS)
 	include(Coveralls)
 	coveralls_turn_on_coverage()
-	coveralls_setup("include/units.h" # The source files.
+	coveralls_setup("unitTests/main.cpp" # The source files.
 		ON   
 	)
 endif()
