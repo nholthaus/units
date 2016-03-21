@@ -26,13 +26,13 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-4.9" ;fi   
   
 script:
-  - mkdir build
-  - cd build
+  - mkdir build && cd build
   # Build project (linux)
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.4.3-Linux-x86_64/bin/cmake .. ;fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.4.3-Linux-x86_64/bin/cmake --build . --config Release ;fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.4.3-Linux-x86_64/bin/cmake --build . --config Debug ;fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.4.3-Linux-x86_64/bin/cmake -DCOVERALLS=ON --build . --target coveralls --config Debug ;fi  
+  - cd .. && mkdir coverallsBuild && cd coverallsBuild
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.4.3-Linux-x86_64/bin/cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls ;fi  
 
 
 after_success:
