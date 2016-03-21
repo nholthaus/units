@@ -20,6 +20,17 @@ else(WIN32)
 	LIST(APPEND CMAKE_CXX_FLAGS -std=c++14)
 endif(WIN32)
 
+# coveralls support
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
+option(COVERALLS "Generate coveralls data" OFF)
+if (COVERALLS)
+	include(Coveralls)
+	coveralls_turn_on_coverage()
+	coveralls_setup("${SOURCE_CODE}" # The source files.
+		ON   
+	)
+endif()
+
 include_directories(${INCLUDE_DIRS})
 ADD_EXECUTABLE(${TARGET_NAME} ${SOURCE_CODE})
 ADD_TEST(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
