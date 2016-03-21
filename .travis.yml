@@ -14,7 +14,7 @@ addons:
     
 before_install:
   - export COVERALLS_SERVICE_NAME=travis-ci
-  - export COVERALLS_REPO_TOKEN=abc12345
+  - export COVERALLS_REPO_TOKEN=3bf7e7d6a63ad5b11934002b560b426da3e1fa14
 
 install:
   # install coveralls dependencies
