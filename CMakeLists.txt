@@ -6,17 +6,6 @@ SET(TARGET_NAME ${BRANCH})
 
 set( ENV{CL} /MP )
 
-# coveralls support
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
-option(COVERALLS "Generate coveralls data" OFF)
-if (COVERALLS)
-	include(Coveralls)
-	coveralls_turn_on_coverage()
-	coveralls_setup("unitTests/main.cpp" # The source files.
-		ON   
-	)
-endif()
-
 SET(VERSION_GTEST "1.7.0" CACHE STRING "Google Test framework version")
 
 enable_testing ()
