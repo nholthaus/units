@@ -12,11 +12,6 @@ addons:
     packages:
     - g++-4.9
 
-before_install:
-  - export CI_BUILD_NUMBER="$TRAVIS_BUILD_NUMBER"
-  - export CI_PULL_REQUEST="$TRAVIS_PULL_REQUEST"
-  - export CI_BRANCH="$TRAVIS_BRANCH"
-
 install:
   # install coveralls dependencies
   - sudo apt-get update -qq
