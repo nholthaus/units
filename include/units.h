@@ -1696,7 +1696,7 @@ namespace units
 	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
 	struct unit_value_t : private std::ratio<Num, Denom>, detail::_unit_value_t<Units>
 	{
-		typedef typename unit_value_t::Units unit_type;
+		typedef Units unit_type;
 
 		static_assert(is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
 		static const unit_t<Units> value() { return unit_t<Units>((double)std::ratio<Num, Denom>::num / std::ratio<Num, Denom>::den); }
@@ -1720,7 +1720,7 @@ namespace units
 	 */
 	template<typename Category, typename T>
 	struct is_unit_value_t_category : std::integral_constant<bool,
-		std::is_same<typename base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value &&
+		std::is_same<base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value &&
 		std::is_base_of<detail::_unit_value_t<typename unit_value_t_traits<T>::unit_type>, T>::value>	// T is a unit_value_t
 	{
 		static_assert(is_base_unit<Category>::value, "Template parameter `Category` must be a `base_unit` type.");
