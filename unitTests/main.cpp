@@ -2338,12 +2338,24 @@ TEST_F(UnitTest, cout)
 TEST_F(UnitTest, unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
-
 	EXPECT_EQ(meter_t(1.5), mRatio::value());
+}
 
+TEST_F(UnitTest, is_unit_value_t)
+{
+	typedef unit_value_t<meters, 3, 2> mRatio;
 	EXPECT_TRUE((units::is_unit_value_t<meters, mRatio>::value));
 	EXPECT_FALSE((units::is_unit_value_t<meters, meter_t>::value));
 	EXPECT_FALSE((units::is_unit_value_t<meters, double>::value));
+}
+
+TEST_F(UnitTest, unit_value_t_category)
+{
+	typedef unit_value_t<feet, 3, 2> mRatio;
+	EXPECT_TRUE((units::is_unit_value_t_category<category::length_unit, mRatio>::value));
+	EXPECT_FALSE((units::is_unit_value_t_category<category::angle_unit, mRatio>::value));
+	EXPECT_FALSE((units::is_unit_value_t_category<category::length_unit, meter_t>::value));
+	EXPECT_FALSE((units::is_unit_value_t_category<category::length_unit, double>::value));
 }
 
 TEST_F(UnitTest, radarRangeEquation)

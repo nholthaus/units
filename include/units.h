@@ -1656,11 +1656,35 @@ namespace units
 	//	UNIT RATIO CLASS
 	//----------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<class Units>
 		struct _unit_value_t {};
 	}
+
+	/**
+	 * @brief		unit_value_t_traits specialization for things which are not unit_t
+	 * @details
+	 */
+	template<typename T, typename = void>
+	struct unit_value_t_traits
+	{
+		typedef void unit_type;
+	};
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait for accessing the publically defined types of `units::unit_value_t_traits`
+	 * @details
+	 */
+	template<typename T>
+	struct unit_value_t_traits <T, typename void_t<
+		typename T::unit_type>::type>
+	{
+		typedef typename T::unit_type unit_type;
+	};
 
 	//	----------------------------------------------------------------------------
 	//	CLASS		unit_value_t
@@ -1672,14 +1696,35 @@ namespace units
 	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
 	struct unit_value_t : private std::ratio<Num, Denom>, detail::_unit_value_t<Units>
 	{
+		typedef typename unit_value_t::Units unit_type;
+
 		static_assert(is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
 		static const unit_t<Units> value() { return unit_t<Units>((double)std::ratio<Num, Denom>::num / std::ratio<Num, Denom>::den); }
 	};
 
+	/**
+	 * @brief		tests whether a type is a unit_value_t representing the given unit type.
+	 * @details		e.g. is_unit_value_t<meters, myType>::value` would test that `myType` is a 
+	 *				`unit_value_t<meters>`.
+	 * @tparam		Units	units that the `unit_value_t` is supposed to have.
+	 * @tparam		T		type to test.
+	 */
 	template<typename Units, typename T>
 	struct is_unit_value_t : std::integral_constant<bool, 
 		std::is_base_of<detail::_unit_value_t<Units>, T>::value>
 	{};
+
+	/**
+	 * @brief		type trait that tests whether type T is a unit_value_t with a unit type in the given category.
+	 * @details		e.g. `is_unit_value_t_category<units::category::length, unit_value_t<feet>>::value` would be true
+	 */
+	template<typename Category, typename T>
+	struct is_unit_value_t_category : std::integral_constant<bool,
+		std::is_same<typename base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value &&
+		std::is_base_of<detail::_unit_value_t<typename unit_value_t_traits<T>::unit_type>, T>::value>	// T is a unit_value_t
+	{
+		static_assert(is_base_unit<Category>::value, "Template parameter `Category` must be a `base_unit` type.");
+	};
 
 	//------------------------------
 	//	LENGTH UNITS
