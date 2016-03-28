@@ -1652,6 +1652,33 @@ namespace units
 		return ret;
 	}
 
+	//----------------------------------
+	//	UNIT RATIO CLASS
+	//----------------------------------
+
+	namespace detail
+	{
+		struct _unit_value_t {};
+	}
+
+	//	----------------------------------------------------------------------------
+	//	CLASS		unit_value_t
+	//  ----------------------------------------------------------------------------
+	///	@brief		A strongly-typed ratio
+	///	@details	This can be used as a work-around to define unit values at 
+	///				compile time and put them into template parameters.
+	//  ----------------------------------------------------------------------------
+	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
+	struct unit_value_t : private std::ratio<Num, Denom>, detail::_unit_value_t
+	{
+		static_assert(is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
+		static const unit_t<Units> value() { return unit_t<Units>((double)num / den); }
+	};
+
+	template<typename T>
+	struct is_unit_value_t : std::integral_constant<bool, std::is_base_of<detail::_unit_value_t, T>::value>
+	{};
+
 	//------------------------------
 	//	LENGTH UNITS
 	//------------------------------
