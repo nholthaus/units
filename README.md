@@ -1,4 +1,4 @@
-# units [![Build Status](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Build Status](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true)](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master)
+# units [![Build Status](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Build Status](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master)
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
 Releases
