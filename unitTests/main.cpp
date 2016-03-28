@@ -2335,6 +2335,13 @@ TEST_F(UnitTest, cout)
 	EXPECT_STREQ("31", output3.c_str());
 }
 
+TEST_F(UnitTest, unitRatio)
+{
+	typedef unit_value_t<meters, 3, 2> mRatio;
+
+	EXPECT_EQ(meter_t(1.5), mRatio::value());
+}
+
 TEST_F(UnitTest, radarRangeEquation)
 {
 
