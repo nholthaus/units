@@ -1672,8 +1672,6 @@ namespace units
 	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
 	struct unit_value_t : private std::ratio<Num, Denom>, detail::_unit_value_t<Units>
 	{
-		typedef typename unit_value_t::Units unit_type;
-
 		static_assert(is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
 		static const unit_t<Units> value() { return unit_t<Units>((double)std::ratio<Num, Denom>::num / std::ratio<Num, Denom>::den); }
 	};
