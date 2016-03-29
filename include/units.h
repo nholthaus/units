@@ -1786,15 +1786,16 @@ namespace units
 	template<class U1, class U2>
 	struct unit_value_add : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
 	{
-		typedef _UNIT1 unit_type;
-		using ratio = std::ratio_add<_RATIO1, _RATIO2CONV>;
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		typedef typename Base::_UNIT1 unit_type;
+		using ratio = std::ratio_add<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
 
-		static_assert(units::is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, "Unit types are not compatible.");
+		static_assert(units::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
 		{
-			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
 			return value(UsePi());
 		}
 
@@ -1807,7 +1808,8 @@ namespace units
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)_RATIO1::num / _RATIO1::den) + ((double)_RATIO2CONV::num / _RATIO2CONV::den) * std::pow(units::constants::PI, ((double)_PI_EXP::num / _PI_EXP::den)));
+			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) + 
+			((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 	};
 
@@ -1821,15 +1823,17 @@ namespace units
 	template<class U1, class U2>
 	struct unit_value_subtract : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
 	{
-		typedef _UNIT1 unit_type;
-		using ratio = std::ratio_subtract<_RATIO1, _RATIO2CONV>;
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		typedef typename Base::_UNIT1 unit_type;
+		using ratio = std::ratio_subtract<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
 
-		static_assert(units::is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, "Unit types are not compatible.");
+		static_assert(units::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
 		{
-			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
 			return value(UsePi());
 		}
 
@@ -1842,7 +1846,8 @@ namespace units
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)_RATIO1::num / _RATIO1::den) - ((double)_RATIO2CONV::num / _RATIO2CONV::den) * std::pow(units::constants::PI, ((double)_PI_EXP::num / _PI_EXP::den)));
+			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) - ((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) 
+			* std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 	};
 
@@ -1856,13 +1861,15 @@ namespace units
 	template<class U1, class U2>
 	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
 	{
-		using unit_type = typename std::conditional<is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, compound_unit<squared<_UNIT1>>, compound_unit<_UNIT1, _UNIT2>>::type;
-		using ratio = typename std::conditional<is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, std::ratio_multiply<_RATIO1, _RATIO2CONV>, std::ratio_multiply<_RATIO1, _RATIO2>>::type;
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		using unit_type = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, compound_unit<squared<typename Base::_UNIT1>>, compound_unit<typename Base::_UNIT1, typename Base::_UNIT2>>::type;
+		using ratio = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2>>::type;
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
 		{
-			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
 			return value(UsePi());
 		}
 
@@ -1875,7 +1882,7 @@ namespace units
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)_PI_EXP::num / _PI_EXP::den)));
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 	};
 
@@ -1889,13 +1896,15 @@ namespace units
 	template<class U1, class U2>
 	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
 	{
-		using unit_type = typename std::conditional<is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, dimensionless::scalar, compound_unit<_UNIT1, inverse<_UNIT2>>>::type;
-		using ratio = typename std::conditional<is_convertible_unit<typename _UNIT1, typename _UNIT2>::value, std::ratio_divide<_RATIO1, _RATIO2CONV>, std::ratio_divide<_RATIO1, _RATIO2>>::type;
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		using unit_type = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, dimensionless::scalar, compound_unit<typename Base::_UNIT1, inverse<typename Base::_UNIT2>>>::type;
+		using ratio = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2>>::type;
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
 		{
-			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
 			return value(UsePi());
 		}
 
@@ -1908,7 +1917,7 @@ namespace units
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)_PI_EXP::num / _PI_EXP::den)));
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 	};
 
@@ -1922,14 +1931,16 @@ namespace units
 	template<class U1, int power>
 	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
 	{
-		using unit_type = typename detail::power_of_unit<power, _UNIT1>::type;
-		using ratio = typename detail::power_of_ratio<power, typename _RATIO1>::type;
-		using pi_exponent = std::ratio_multiply<std::ratio<power>, typename _UNIT1::pi_exponent_ratio>;
+		using Base = detail::unit_value_arithmetic<U1, U1>;
+		
+		using unit_type = typename detail::power_of_unit<power, typename Base::_UNIT1>::type;
+		using ratio = typename detail::power_of_ratio<power, typename Base::_RATIO1>::type;
+		using pi_exponent = std::ratio_multiply<std::ratio<power>, typename Base::_UNIT1::pi_exponent_ratio>;
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
 		{
-			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
 			return value(UsePi());
 		}
 
