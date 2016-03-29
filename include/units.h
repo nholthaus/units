@@ -1231,7 +1231,7 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		inline T value() const
+		inline T toDouble() const
 		{
 			return (*this)();
 		}
@@ -1241,7 +1241,7 @@ namespace units
 		 * @returns		linearized value of unit which has a non-linear scale. For `unit_t` types with
 		 *				linear scales, this is equivalent to `value`.
 		 */
-		inline T linearizedValue() const
+		inline T toLinearizedDouble() const
 		{
 			return m_value;
 		}
@@ -1279,7 +1279,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj)
 	{
-		os << obj.value();
+		os << obj.toDouble();
 		return os;
 	}
 
@@ -1405,42 +1405,42 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.value() + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
+		return UnitTypeLhs(lhs.toDouble() + convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.value() + rhs);
+		return dimensionless::scalar_t(lhs.toDouble() + rhs);
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs + rhs.value());
+		return dimensionless::scalar_t(lhs + rhs.toDouble());
 	}
 
 	/// Subtraction operator for unit_t types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.value() - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
+		return UnitTypeLhs(lhs.toDouble() - convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.value() - rhs);
+		return dimensionless::scalar_t(lhs.toDouble() - rhs);
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs - rhs.value());
+		return dimensionless::scalar_t(lhs - rhs.toDouble());
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
@@ -1449,7 +1449,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
 		return  unit_t<compound_unit<squared<typename unit_t_traits<UnitTypeLhs>::unit_type>>>
-			(lhs.value() * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
+			(lhs.toDouble() * convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -1458,7 +1458,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs.value() * rhs.value());
+			(lhs.toDouble() * rhs.toDouble());
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1466,7 +1466,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.value() * rhs);
+		return UnitTypeLhs(lhs.toDouble() * rhs);
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1474,7 +1474,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeRhs(lhs * rhs.value());
+		return UnitTypeRhs(lhs * rhs.toDouble());
 	}
 
 	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a scalar
@@ -1482,7 +1482,7 @@ namespace units
 		typename std::enable_if<is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return dimensionless::scalar_t(lhs.value() / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.value()));
+		return dimensionless::scalar_t(lhs.toDouble() / convert<typename unit_t_traits<UnitTypeRhs>::unit_type, typename unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
 	}
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -1491,7 +1491,7 @@ namespace units
 		inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
 		return unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>>
-			(lhs.value() / rhs.value());
+			(lhs.toDouble() / rhs.toDouble());
 	}
 
 	/// Division by a scalar for unit_t types with a linear scale
@@ -1499,7 +1499,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.value() / rhs);
+		return UnitTypeLhs(lhs.toDouble() / rhs);
 	}
 
 	/// Division of a scalar  by a unit_t type with a linear scale
@@ -1508,12 +1508,26 @@ namespace units
 		inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<inverse<typename unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs / rhs.value());
+			(lhs / rhs.toDouble());
 	}
 
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
+		/// recursive exponential implementation
+		template <int N, class U> 
+		struct power_of_ratio
+		{
+			typedef std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type> type;
+		};
+
+		/// End recursion
+		template <class U>
+		struct power_of_ratio<1, U>
+		{
+			typedef U type;
+		};
+
 		/// recursive exponential implementation
 		template <int N, class U> struct power_of_unit
 		{
@@ -1528,13 +1542,13 @@ namespace units
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
-	/**
-	 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
-	 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
-	 * @tparam		power exponential power to raise <i>value</i> by.
-	 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
-	 * @returns		new unit_t, raised to the given exponent
-	 */
+					/**
+					* @brief		computes the value of <i>value</i> raised to the <i>power</i>
+					* @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
+					* @tparam		power exponential power to raise <i>value</i> by.
+					* @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
+					* @returns		new unit_t, raised to the given exponent
+					*/
 	template<int power, class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
 	inline auto pow(const UnitType& value) -> unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 	{
@@ -1590,7 +1604,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * convert<RhsUnits, LhsUnits>(rhs.linearizedValue());
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * convert<RhsUnits, LhsUnits>(rhs.toLinearizedDouble());
 		return ret;
 	}
 
@@ -1601,7 +1615,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * rhs.linearizedValue();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * rhs.toLinearizedDouble();
 		return ret;
 	}
 
@@ -1612,7 +1626,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeRhs>::underlying_type;
 
 		UnitTypeRhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() * rhs.linearizedValue();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * rhs.toLinearizedDouble();
 		return ret;
 	}
 
@@ -1625,7 +1639,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / convert<RhsUnits, LhsUnits>(rhs.linearizedValue());
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / convert<RhsUnits, LhsUnits>(rhs.toLinearizedDouble());
 		return ret;
 	}
 
@@ -1636,7 +1650,7 @@ namespace units
 		using underlying_type = typename unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / rhs.linearizedValue();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / rhs.toLinearizedDouble();
 		return ret;
 	}
 
@@ -1648,9 +1662,300 @@ namespace units
 		using underlying_type = typename unit_t_traits<RhsUnits>::underlying_type;
 
 		unit_t<inverse<RhsUnits>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.linearizedValue() / rhs.linearizedValue();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / rhs.linearizedValue();
 		return ret;
 	}
+
+	//----------------------------------
+	//	UNIT RATIO CLASS
+	//----------------------------------
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		template<class Units>
+		struct _unit_value_t {};
+	}
+
+	/**
+	 * @brief		unit_value_t_traits specialization for things which are not unit_t
+	 * @details
+	 */
+	template<typename T, typename = void>
+	struct unit_value_t_traits
+	{
+		typedef void unit_type;
+		typedef void ratio;
+	};
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Trait for accessing the publically defined types of `units::unit_value_t_traits`
+	 * @details
+	 */
+	template<typename T>
+	struct unit_value_t_traits <T, typename void_t<
+		typename T::unit_type,
+		typename T::ratio>::type>
+	{
+		typedef typename T::unit_type unit_type;
+		typedef typename T::ratio ratio;
+	};
+
+	//------------------------------------------------------------------------------
+	//	COMPILE-TIME UNIT VALUES AND ARITHMETIC
+	//------------------------------------------------------------------------------
+
+	/**
+	 * @ingroup		UnitContainers
+	 * @brief		Stores a rational unit value as a compile-time constant
+	 * @details		unit_value_t is useful for performing compile-time arithmetic on known 
+	 *				unit quantities.
+	 * @tparam		Units	units represented by the `unit_value_t`
+	 * @tparam		Num		numerator of the represented value.
+	 * @tparam		Denom	denominator of the represented value.
+	 * @note		This is intentionally identical in concept to a `std::ratio`.
+	 *
+	 */
+	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
+	struct unit_value_t : detail::_unit_value_t<Units>
+	{
+		typedef Units unit_type;
+		typedef std::ratio<Num, Denom> ratio;
+
+		static_assert(is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
+		static const unit_t<Units> value() { return unit_t<Units>((double)ratio::num / ratio::den); }
+	};
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		tests whether a type is a unit_value_t representing the given unit type.
+	 * @details		e.g. is_unit_value_t<meters, myType>::value` would test that `myType` is a 
+	 *				`unit_value_t<meters>`.
+	 * @tparam		Units	units that the `unit_value_t` is supposed to have.
+	 * @tparam		T		type to test.
+	 */
+	template<typename T, typename Units = typename unit_value_t_traits<T>::unit_type>
+	struct is_unit_value_t : std::integral_constant<bool, 
+		std::is_base_of<detail::_unit_value_t<Units>, T>::value>
+	{};
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		type trait that tests whether type T is a unit_value_t with a unit type in the given category.
+	 * @details		e.g. `is_unit_value_t_category<units::category::length, unit_value_t<feet>>::value` would be true
+	 */
+	template<typename Category, typename T>
+	struct is_unit_value_t_category : std::integral_constant<bool,
+		std::is_same<base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value &&
+		std::is_base_of<detail::_unit_value_t<typename unit_value_t_traits<T>::unit_type>, T>::value>	// T is a unit_value_t
+	{
+		static_assert(is_base_unit<Category>::value, "Template parameter `Category` must be a `base_unit` type.");
+	};
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		// base class for common arithmetic
+		template<class U1, class U2>
+		struct unit_value_arithmetic
+		{
+			static_assert(units::is_unit_value_t<U1>::value, "Template parameter `U1` must be a `unit_value_t` type.");
+			static_assert(units::is_unit_value_t<U2>::value, "Template parameter `U1` must be a `unit_value_t` type.");
+
+			using _UNIT1 = typename unit_value_t_traits<U1>::unit_type;
+			using _UNIT2 = typename unit_value_t_traits<U2>::unit_type;
+			using _CONV1 = typename unit_traits<_UNIT1>::conversion_ratio;
+			using _CONV2 = typename unit_traits<_UNIT2>::conversion_ratio;
+			using _RATIO1 = typename unit_value_t_traits<U1>::ratio;
+			using _RATIO2 = typename unit_value_t_traits<U2>::ratio;
+			using _RATIO2CONV = typename std::ratio_divide<std::ratio_multiply<_RATIO2, _CONV2>, _CONV1>;
+			using _PI_EXP = std::ratio_subtract<typename unit_traits<_UNIT2>::pi_exponent_ratio, typename unit_traits<_UNIT1>::pi_exponent_ratio>;
+		};
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @brief		adds two unit_value_t types at compile-time
+	 * @details		The resulting unit will the the `unit_type` of `U1`
+	 * @tparam		U1	left-hand `unit_value_t`
+	 * @patarm		U2	right-hand `unit_value_t`
+	 * @note		very similar in concept to `std::ratio_add`
+	 */
+	template<class U1, class U2>
+	struct unit_value_add : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		typedef typename Base::_UNIT1 unit_type;
+		using ratio = std::ratio_add<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
+
+		static_assert(units::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type) 
+		{ 
+			return unit_t<unit_type>((double)ratio::num / ratio::den); 
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) + 
+			((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+		}
+	};
+
+	/**
+	 * @brief		subtracts two unit_value_t types at compile-time
+	 * @details		The resulting unit will the the `unit_type` of `U1`
+	 * @tparam		U1	left-hand `unit_value_t`
+	 * @patarm		U2	right-hand `unit_value_t`
+	 * @note		very similar in concept to `std::ratio_subtract`
+	 */
+	template<class U1, class U2>
+	struct unit_value_subtract : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		typedef typename Base::_UNIT1 unit_type;
+		using ratio = std::ratio_subtract<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
+
+		static_assert(units::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) - ((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) 
+			* std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+		}
+	};
+
+	/**
+	 * @brief		multiplies two unit_value_t types at compile-time
+	 * @details		The resulting unit will the the `unit_type` of `U1`
+	 * @tparam		U1	left-hand `unit_value_t`
+	 * @patarm		U2	right-hand `unit_value_t`
+	 * @note		very similar in concept to `std::ratio_multiply`
+	 */
+	template<class U1, class U2>
+	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		using unit_type = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, compound_unit<squared<typename Base::_UNIT1>>, compound_unit<typename Base::_UNIT1, typename Base::_UNIT2>>::type;
+		using ratio = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2>>::type;
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+		}
+	};
+
+	/**
+	 * @brief		divides two unit_value_t types at compile-time
+	 * @details		The resulting unit will the the `unit_type` of `U1`
+	 * @tparam		U1	left-hand `unit_value_t`
+	 * @patarm		U2	right-hand `unit_value_t`
+	 * @note		very similar in concept to `std::ratio_divide`
+	 */
+	template<class U1, class U2>
+	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U2>;
+		
+		using unit_type = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, dimensionless::scalar, compound_unit<typename Base::_UNIT1, inverse<typename Base::_UNIT2>>>::type;
+		using ratio = typename std::conditional<is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2>>::type;
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+		}
+	};
+
+	/**
+	* @brief		raises unit_value_to a power at compile-time
+	* @details		The resulting unit will the the `unit_type` of `U1`
+	* @tparam		U1	left-hand `unit_value_t`
+	* @patarm		U2	right-hand `unit_value_t`
+	* @note		very similar in concept to `std::ratio_divide`
+	*/
+	template<class U1, int power>
+	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U1>;
+		
+		using unit_type = typename detail::power_of_unit<power, typename Base::_UNIT1>::type;
+		using ratio = typename detail::power_of_ratio<power, typename Base::_RATIO1>::type;
+		using pi_exponent = std::ratio_multiply<std::ratio<power>, typename Base::_UNIT1::pi_exponent_ratio>;
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+		}
+	};
 
 	//------------------------------
 	//	LENGTH UNITS
@@ -1662,7 +1967,7 @@ namespace units
 	 *				`length_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace length
+ 	namespace length
 	{
 		/**
 		 * @name Units (full names plural)
@@ -2991,7 +3296,7 @@ namespace units
 	 *				`power_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace power
+	namespace powerNum
 	{
 		/**
 		 * @name Units (full names plural)
@@ -4568,7 +4873,7 @@ namespace units
 		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>							R(8.3144621);								///< Gas constant.
 		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);								///< Boltzmann constant.
 		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);									///< Faraday constnat.
-		static const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>		sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static const unit_t<compound_unit<powerNum::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>		sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
 
