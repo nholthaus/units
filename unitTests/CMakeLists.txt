@@ -1,9 +1,13 @@
 SET(TARGET_NAME unitLibTest)
 PROJECT(${TARGET_NAME})	# it's a pun, GET IT!?!?
 
+# use absolute paths to help coveralls
+get_filename_component(MAIN main.cpp ABSOLUTE)
+get_filename_component(INC ../include/units.h ABSOLUTE)
+
 SET(SOURCE_CODE 
-main.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/../include/units.h
+${MAIN}
+${INC}
 )
 
 LIST(APPEND INCLUDE_DIRS
