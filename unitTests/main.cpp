@@ -60,6 +60,7 @@ TEST_F(UnitTest, isUnit)
 	EXPECT_FALSE(units::is_unit<double>::value);
 	EXPECT_TRUE(units::is_unit<meters>::value);
 	EXPECT_TRUE(units::is_unit<feet>::value);
+	EXPECT_TRUE(units::is_unit<degrees_squared>::value);
 }
 
 TEST_F(UnitTest, unitTraits)
@@ -2491,6 +2492,22 @@ TEST_F(UnitTest, unit_value_divide)
 	EXPECT_TRUE((std::is_same<typename std::decay<radians_per_second_t>::type, typename std::decay<decltype(productRS::value())>::type>::value));
 	EXPECT_NEAR(2, productRS::value().toDouble(), 5.0e-8);
 	EXPECT_NEAR(114.592, (productRS::value().convert<degrees_per_second>().toDouble()), 5.0e-4);
+}
+
+TEST_F(UnitTest, unit_value_power)
+{
+	typedef unit_value_t<meters, 2> mRatio;
+
+	using sq = unit_value_power<mRatio, 2>;
+	EXPECT_TRUE((std::is_convertible<typename std::decay<square_meter_t>::type, typename std::decay<decltype(sq::value())>::type>::value));
+	EXPECT_NEAR(4, sq::value().toDouble(), 5.0e-8);
+
+	typedef unit_value_t<angle::radian, 18, 10> rRatio;
+
+	using sqr = unit_value_power<rRatio, 2>;
+	EXPECT_TRUE((std::is_convertible<typename std::decay<steradian_t>::type, typename std::decay<decltype(sqr::value())>::type>::value));
+	EXPECT_NEAR(3.24, sqr::value().toDouble(), 5.0e-8);
+	EXPECT_NEAR(10636.292574038049895092690529904, (sqr::value().convert<degrees_squared>().toDouble()), 5.0e-10);
 }
 
 TEST_F(UnitTest, radarRangeEquation)
