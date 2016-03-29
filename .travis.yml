@@ -12,6 +12,10 @@ addons:
     packages:
     - g++-4.9
 
+env:
+  - COVERALLS_SERVICE_NAME=travis-ci
+  - COVERALLS_REPO_TOKEN=fDF0IBNgW46GnEEwMGEqhEagk48rR2esI
+
 install:
   # install coveralls dependencies
   - sudo apt-get update -qq
