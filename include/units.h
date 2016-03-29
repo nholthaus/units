@@ -1515,6 +1515,20 @@ namespace units
 	namespace detail
 	{
 		/// recursive exponential implementation
+		template <int N, class U> 
+		struct power_of_ratio
+		{
+			typedef std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type> type;
+		};
+
+		/// End recursion
+		template <class U>
+		struct power_of_ratio<1, U>
+		{
+			typedef U type;
+		};
+
+		/// recursive exponential implementation
 		template <int N, class U> struct power_of_unit
 		{
 			typedef typename units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type> type;
@@ -1702,7 +1716,6 @@ namespace units
 	 * @tparam		Num		numerator of the represented value.
 	 * @tparam		Denom	denominator of the represented value.
 	 * @note		This is intentionally identical in concept to a `std::ratio`.
-	 * @WARNING		DO NOT USE THE INVERSE/SQUARED TEMPLATE ALIASES WITH THIS TYPE.
 	 *
 	 */
 	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
@@ -1896,6 +1909,40 @@ namespace units
 		static const unit_t<unit_type> value(std::true_type)
 		{
 			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)_PI_EXP::num / _PI_EXP::den)));
+		}
+	};
+
+	/**
+	* @brief		raises unit_value_to a power at compile-time
+	* @details		The resulting unit will the the `unit_type` of `U1`
+	* @tparam		U1	left-hand `unit_value_t`
+	* @patarm		U2	right-hand `unit_value_t`
+	* @note		very similar in concept to `std::ratio_divide`
+	*/
+	template<class U1, int power>
+	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	{
+		using unit_type = typename detail::power_of_unit<power, _UNIT1>::type;
+		using ratio = typename detail::power_of_ratio<power, typename _RATIO1>::type;
+		using pi_exponent = std::ratio_multiply<std::ratio<power>, typename _UNIT1::pi_exponent_ratio>;
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = std::conditional<_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
 		}
 	};
 
