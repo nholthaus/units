@@ -1516,7 +1516,76 @@ namespace units
 			(lhs / rhs.toDouble());
 	}
 
+	//----------------------------------
+	//	SCALAR COMPARISONS
+	//----------------------------------
+
+	bool operator==(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs == rhs.toDouble();
+	}
+
+	bool operator==(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() == rhs;
+	}
+
+	bool operator!=(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs != rhs.toDouble();
+	}
+
+	bool operator!=(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() != rhs;
+	}
+
+	bool operator>=(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs >= rhs.toDouble();
+	}
+
+	bool operator>=(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() >= rhs;
+	}
+
+	bool operator>(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs > rhs.toDouble();
+	}
+
+	bool operator>(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() > rhs;
+	}
+
+	bool operator<=(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs <= rhs.toDouble();
+	}
+
+	bool operator<=(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() <= rhs;
+	}
+
+	bool operator<(double lhs, const dimensionless::scalar_t& rhs)
+	{
+		return lhs < rhs.toDouble();
+	}
+
+	bool operator<(const dimensionless::scalar_t& lhs, double rhs)
+	{
+		return lhs.toDouble() < rhs;
+	}
+
 	/** @cond */	// DOXYGEN IGNORE
+
+	//----------------------------------
+	//	POW
+	//----------------------------------
+
 	namespace detail
 	{
 		/// recursive exponential implementation
@@ -5092,8 +5161,125 @@ namespace units
 		}
 
 		//----------------------------------
-		//	
+		//	TRANSCENDENTAL FUNCTIONS
 		//----------------------------------
+
+		// it makes NO SENSE to put dimensioned units into a transcendental function, and if you think it does you are
+		// demonstrably wrong. https://en.wikipedia.org/wiki/Transcendental_function#Dimensional_analysis
+		
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute exponential function
+		 * @details		Returns the base-e exponential function of x, which is e raised to the power x: ex.
+		 * @param[in]	x	scalar value of the exponent.
+		 * @returns		Exponential value of x.
+		 *				If the magnitude of the result is too large to be represented by a value of the return type, the
+		 *				function returns HUGE_VAL (or HUGE_VALF or HUGE_VALL) with the proper sign, and an overflow range error occurs
+		 */
+		dimensionless::scalar_t exp(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::exp(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute natural logarithm
+		 * @details		Returns the natural logarithm of x.
+		 * @param[in]	x	scalar value whose logarithm is calculated. If the argument is negative, a 
+		 *					domain error occurs.
+		 * @sa			log10 for more common base-10 logarithms
+		 * @returns		Natural logarithm of x.
+		 */
+		dimensionless::scalar_t log(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::log(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute common logarithm
+		 * @details		Returns the common (base-10) logarithm of x.
+		 * @param[in]	x	Value whose logarithm is calculated. If the argument is negative, a 
+		 *					domain error occurs.
+		 * @returns		Common logarithm of x.
+		 */
+		dimensionless::scalar_t log10(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::log10(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Break into fractional and integral parts.
+		 * @details		The integer part is stored in the object pointed by intpart, and the 
+		 *				fractional part is returned by the function. Both parts have the same sign 
+		 *				as x.
+		 * @param[in]	x		scalar value to break into parts.
+		 * @param[in]	intpart Pointer to an object (of the same type as x) where the integral part
+		 *				is stored with the same sign as x.
+		 * @returns		The fractional part of x, with the same sign.
+		 */
+		dimensionless::scalar_t modf(dimensionless::scalar_t x, dimensionless::scalar_t* intpart)
+		{
+			double intp;
+			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x.toDouble(), &intp));
+			*intpart = intp;
+			return fracpart;
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute binary exponential function
+		 * @details		Returns the base-2 exponential function of x, which is 2 raised to the power x: 2^x.
+		 * 2param[in]	x	Value of the exponent.
+		 * @returns		2 raised to the power of x.
+		 */
+		dimensionless::scalar_t exp2(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::exp2(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute exponential minus one
+		 * @details		Returns e raised to the power x minus one: e^x-1. For small magnitude values 
+		 *				of x, expm1 may be more accurate than exp(x)-1.
+		 * @param[in]	x	Value of the exponent.
+		 * @returns		e raised to the power of x, minus one.
+		 */
+		dimensionless::scalar_t expm1(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::expm1(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute logarithm plus one
+		 * @details		Returns the natural logarithm of one plus x. For small magnitude values of 
+		 *				x, logp1 may be more accurate than log(1+x).
+		 * @param[in]	x	Value whose logarithm is calculated. If the argument is less than -1, a 
+		 *					domain error occurs.
+		 * @returns		The natural logarithm of (1+x).
+		 */
+		dimensionless::scalar_t log1p(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::log1p(x.toDouble()));
+		}
+		
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute binary logarithm
+		 * @details		Returns the binary (base-2) logarithm of x.
+		 * @param[in]	x	Value whose logarithm is calculated. If the argument is negative, a 
+		 *					domain error occurs.
+		 * @returns		The binary logarithm of x: log2x.
+		 */
+		dimensionless::scalar_t log2(dimensionless::scalar_t x)
+		{
+			return dimensionless::scalar_t(std::log2(x.toDouble()));
+		}
+
+
 	}	// end namespace math
 
 };	// end namespace units

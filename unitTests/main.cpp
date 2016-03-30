@@ -2465,6 +2465,49 @@ TEST_F(UnitMath, atanh)
 	EXPECT_NEAR(angle::degree_t(31.472923730945389).toDouble(), angle::degree_t(atanh(scalar_t(0.5))).toDouble(), 5.0e-12);
 }
 
+TEST_F(UnitMath, exp)
+{
+	EXPECT_EQ(exp(10.0), exp(scalar_t(10.0)));
+}
+
+TEST_F(UnitMath, log)
+{
+	EXPECT_EQ(log(100.0), log(scalar_t(100.0)));
+}
+
+TEST_F(UnitMath, log10)
+{
+	EXPECT_EQ(log10(100.0), log10(scalar_t(100.0)));
+}
+
+TEST_F(UnitMath, modf)
+{
+	double modfr1;
+	scalar_t modfr2;
+	EXPECT_EQ(modf(100.0, &modfr1), modf(scalar_t(100.0), &modfr2));
+	EXPECT_EQ(modfr1, modfr2);
+}
+
+TEST_F(UnitMath, exp2)
+{
+	EXPECT_EQ(exp2(10.0), exp2(scalar_t(10.0)));
+}
+
+TEST_F(UnitMath, expm1)
+{
+	EXPECT_EQ(expm1(10.0), expm1(scalar_t(10.0)));
+}
+
+TEST_F(UnitMath, log1p)
+{
+	EXPECT_EQ(log1p(100.0), log1p(scalar_t(100.0)));
+}
+
+TEST_F(UnitMath, log2)
+{
+	EXPECT_EQ(log2(100.0), log2(scalar_t(100.0)));
+}
+
 TEST_F(UnitMath, pow)
 {
 	bool isSame;
