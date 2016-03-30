@@ -4990,31 +4990,17 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute arc tangent with two parameters
 		 * @details		To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant.
-		 * @param[in]	y		y-component of the triangle expressed as a scalar magnitude.
-		 * @param[in]	x		x-component of the triangle expressed as a scalar magnitude.
+		 * @param[in]	y		y-component of the triangle expressed.
+		 * @param[in]	x		x-component of the triangle expressed.
 		 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
 		 */
-		angle::radian_t atan2(dimensionless::scalar_t y, dimensionless::scalar_t x)
+		template<class Y, class X>
+		angle::radian_t atan2(Y y, X x)
 		{
-			return angle::radian_t(std::atan2(y.toDouble(), x.toDouble()));
-		}
-
-		/**
-		 * @ingroup		UnitMath
-		 * @brief		Compute arc tangent with two parameters
-		 * @details		To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant.
-		 * @param[in]	y		y-component of the triangle expressed as a length.
-		 * @param[in]	x		x-component of the triangle expressed as a length.
-		 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
-		 */
-		template<class LengthY, class LengthX>
-		angle::radian_t atan2(LengthY y, LengthX x)
-		{
-			static_assert(is_length_unit<LengthX>::value, "Type `Y` must be a length unit.");
-			static_assert(is_length_unit<LengthX>::value, "Type `X` must be a length unit.");
+			static_assert(is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
-			return angle::radian_t(std::atan2(y.convert<length::meters>().toDouble(), x.convert<length::meters>().toDouble()));
+			return angle::radian_t(std::atan2(y.convert<unit_t_traits<X>::unit_type>().toDouble(), x.toDouble()));
 		}
 
 		//----------------------------------
@@ -5105,6 +5091,9 @@ namespace units
 			return angle::radian_t(std::atanh(x.toDouble()));
 		}
 
+		//----------------------------------
+		//	
+		//----------------------------------
 	}	// end namespace math
 
 };	// end namespace units
