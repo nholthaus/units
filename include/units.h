@@ -86,6 +86,11 @@ namespace units
 	 *				represent picoseconds^-2.
 	 */
 
+	 /**
+	 * @defgroup	UnitMath Unit Math
+	 * @details		Defines a collection of unit-enabled, strongly-typed versions of <cmath> functions.
+	 */
+
 	/**
 	 * @defgroup	Conversion Explicit Conversion
 	 * @brief		Functions used to convert values of one logical type to another.
@@ -1542,18 +1547,21 @@ namespace units
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
-					/**
-					* @brief		computes the value of <i>value</i> raised to the <i>power</i>
-					* @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
-					* @tparam		power exponential power to raise <i>value</i> by.
-					* @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
-					* @returns		new unit_t, raised to the given exponent
-					*/
-	template<int power, class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
-	inline auto pow(const UnitType& value) -> unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+	namespace math
 	{
-		return unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
-			(std::pow(value(), power));
+		/**
+		 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
+		 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
+		 * @tparam		power exponential power to raise <i>value</i> by.
+		 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
+		 * @returns		new unit_t, raised to the given exponent
+		 */
+		template<int power, class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
+		inline auto pow(const UnitType& value) -> unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+		{
+			return unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+				(std::pow(value(), power));
+		}
 	}
 
 	//------------------------------
@@ -4857,25 +4865,247 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
-		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);									///< Ratio of a circle's circumference to its diameter.
-		static const velocity::meters_per_second_t																							c(299792458.0);								///< Speed of light in vacuum.
-		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);								///< Newtonian constant of gravitation.
-		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);							///< Planck constant.
-		static const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(4.0e-7 * PI);							///< vacuum permeability.
-		static const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>														epsilon0(1.0 / (mu0 * units::pow<2>(c)));	///< vacuum permitivity.
-		static const impedance::ohm_t																										Z0(mu0 * c);								///< characteristic impedance of vacuum.
-		static const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));				///< Coulomb's constant.
-		static const charge::coulomb_t																										e(1.602176565e-19);							///< elementary charge.
-		static const mass::kilogram_t																										m_e(9.10938291e-31);						///< electron mass.
-		static const mass::kilogram_t																										m_p(1.672621777e-27);						///< proton mass.
-		static const unit_t<compound_unit<energy::joules, inverse<magnetic_field_strength::tesla>>>											mu_B(e * h / (4 * pi *m_e));				///< Bohr magneton.
-		static const unit_t<inverse<substance::mol>>																						N_A(6.02214129e23);							///< Avagadro's Number.
-		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>							R(8.3144621);								///< Gas constant.
-		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);								///< Boltzmann constant.
-		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);									///< Faraday constnat.
-		static const unit_t<compound_unit<powerNum::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>		sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static const unit_t<unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>>														pi(1.0);										///< Ratio of a circle's circumference to its diameter.
+		static const velocity::meters_per_second_t																							c(299792458.0);									///< Speed of light in vacuum.
+		static const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>					G(6.67408e-11);									///< Newtonian constant of gravitation.
+		static const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
+		static const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(4.0e-7 * PI);								///< vacuum permeability.
+		static const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>														epsilon0(1.0 / (mu0 * math::pow<2>(c)));		///< vacuum permitivity.
+		static const impedance::ohm_t																										Z0(mu0 * c);									///< characteristic impedance of vacuum.
+		static const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
+		static const charge::coulomb_t																										e(1.602176565e-19);								///< elementary charge.
+		static const mass::kilogram_t																										m_e(9.10938291e-31);							///< electron mass.
+		static const mass::kilogram_t																										m_p(1.672621777e-27);							///< proton mass.
+		static const unit_t<compound_unit<energy::joules, inverse<magnetic_field_strength::tesla>>>											mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
+		static const unit_t<inverse<substance::mol>>																						N_A(6.02214129e23);								///< Avagadro's Number.
+		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>							R(8.3144621);									///< Gas constant.
+		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
+		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constnat.
+		static const unit_t<compound_unit<powerNum::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::pow<5>(pi) * math::pow<4>(R)) / (15 * math::pow<3>(h) * math::pow<2>(c) * math::pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
+
+	//----------------------------------
+	//	UNIT-ENABLED CMATH FUNCTIONS
+	//----------------------------------
+
+	/**
+	 * @brief		namespace for unit-enabled versions of the <cmath> library
+	 * @details		Includes trigonometric functions, exponential/log functions, rounding functions, etc.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
+	namespace math
+	{
+
+		//----------------------------------
+		//	TRIGONOMETRIC FUNCTIONS
+		//----------------------------------
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute cosine
+		 * @details		The input value can be in any unit of angle, including radians or degrees.
+		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`. 
+		 * @param[in]	angle		angle to compute the cosine of
+		 * @returns		Returns the cosine of <i>angle</i>
+		 */
+		template<class AngleUnit>
+		dimensionless::scalar_t cos(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::cos(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute sine
+		 * @details		The input value can be in any unit of angle, including radians or degrees.
+		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @param[in]	angle		angle to compute the since of
+		 * @returns		Returns the sine of <i>angle</i>
+		 */
+		template<class AngleUnit>
+		dimensionless::scalar_t sin(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::sin(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute tangent
+		 * @details		The input value can be in any unit of angle, including radians or degrees.
+		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @param[in]	angle		angle to compute the tangent of
+		 * @returns		Returns the tangent of <i>angle</i>
+		 */
+		template<class AngleUnit>
+		dimensionless::scalar_t tan(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::tan(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc cosine
+		 * @details		Returns the principal value of the arc cosine of x, expressed in radians.
+		 * @param[in]	x		Value whose arc cosine is computed, in the interval [-1,+1].
+		 * @returns		Principal arc cosine of x, in the interval [0,pi] radians.
+		 */
+		angle::radian_t acos(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::acos(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc sine
+		 * @details		Returns the principal value of the arc sine of x, expressed in radians.
+		 * @param[in]	x		Value whose arc sine is computed, in the interval [-1,+1].
+		 * @returns		Principal arc sine of x, in the interval [-pi/2,+pi/2] radians.
+		 */
+		angle::radian_t asin(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::asin(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc tangent
+		 * @details		Returns the principal value of the arc tangent of x, expressed in radians. 
+		 *				Notice that because of the sign ambiguity, the function cannot determine with 
+		 *				certainty in which quadrant the angle falls only by its tangent value. See 
+		 *				atan2 for an alternative that takes a fractional argument instead.
+		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
+		 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
+		 */
+		angle::radian_t atan(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::atan(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc tangent with two parameters
+		 * @details		To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant.
+		 * @param[in]	y		y-component of the triangle expressed as a scalar magnitude.
+		 * @param[in]	x		x-component of the triangle expressed as a scalar magnitude.
+		 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
+		 */
+		angle::radian_t atan2(dimensionless::scalar_t y, dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::atan2(y.toDouble(), x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc tangent with two parameters
+		 * @details		To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant.
+		 * @param[in]	y		y-component of the triangle expressed as a length.
+		 * @param[in]	x		x-component of the triangle expressed as a length.
+		 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
+		 */
+		template<class LengthY, class LengthX>
+		angle::radian_t atan2(LengthY y, LengthX x)
+		{
+			static_assert(is_length_unit<LengthX>::value, "Type `Y` must be a length unit.");
+			static_assert(is_length_unit<LengthX>::value, "Type `X` must be a length unit.");
+
+			// X and Y could be different length units, so normalize them
+			return angle::radian_t(std::atan2(y.convert<length::meters>().toDouble(), x.convert<length::meters>().toDouble()));
+		}
+
+		//----------------------------------
+		//	HYPERBOLIC TRIG FUNCTIONS
+		//----------------------------------
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute hyperbolic cosine
+		 * @details		The input value can be in any unit of angle, including radians or degrees.
+		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @param[in]	angle		angle to compute the hyperbolic cosine of
+		 * @returns		Returns the hyperbolic cosine of <i>angle</i>
+		 */
+		template<class AngleUnit>
+		dimensionless::scalar_t cosh(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::cosh(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		* @ingroup		UnitMath
+		* @brief		Compute hyperbolic sine
+		* @details		The input value can be in any unit of angle, including radians or degrees.
+		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @param[in]	angle		angle to compute the hyperbolic sine of
+		* @returns		Returns the hyperbolic sine of <i>angle</i>
+		*/
+		template<class AngleUnit>
+		dimensionless::scalar_t sinh(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::sinh(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		* @ingroup		UnitMath
+		* @brief		Compute hyperbolic tangent
+		* @details		The input value can be in any unit of angle, including radians or degrees.
+		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @param[in]	angle		angle to compute the hyperbolic tangent of
+		* @returns		Returns the hyperbolic tangent of <i>angle</i>
+		*/
+		template<class AngleUnit>
+		dimensionless::scalar_t tanh(AngleUnit angle)
+		{
+			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+			return scalar_t(std::tanh(angle.convert<angle::radian>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc hyperbolic cosine
+		 * @details		Returns the nonnegative arc hyperbolic cosine of x, expressed in radians.
+		 * @param[in]	x	Value whose arc hyperbolic cosine is computed. If the argument is less
+		 *					than 1, a domain error occurs.
+		 * @returns		Nonnegative arc hyperbolic cosine of x, in the interval [0,+INFINITY] radians.
+		 */
+		angle::radian_t acosh(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::acosh(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc hyperbolic sine
+		 * @details		Returns the arc hyperbolic sine of x, expressed in radians.
+		 * @param[in]	x	Value whose arc hyperbolic sine is computed.
+		 * @returns		Arc hyperbolic sine of x, in radians.
+		 */
+		angle::radian_t asinh(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::asinh(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute arc hyperbolic tangent
+		 * @details		Returns the arc hyperbolic tangent of x, expressed in radians.
+		 * @param[in]	x	Value whose arc hyperbolic tangent is computed, in the interval [-1,+1]. 
+		 *					If the argument is out of this interval, a domain error occurs. For 
+		 *					values of -1 and +1, a pole error may occur.
+		 * @returns		units::angle::radian_t
+		 */
+		angle::radian_t atanh(dimensionless::scalar_t x)
+		{
+			return angle::radian_t(std::atanh(x.toDouble()));
+		}
+
+	}	// end namespace math
 
 };	// end namespace units
 
