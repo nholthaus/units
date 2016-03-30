@@ -4913,7 +4913,7 @@ namespace units
 		dimensionless::scalar_t cos(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::cos(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::cos(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
@@ -4928,7 +4928,7 @@ namespace units
 		dimensionless::scalar_t sin(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::sin(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::sin(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
@@ -4943,7 +4943,7 @@ namespace units
 		dimensionless::scalar_t tan(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::tan(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::tan(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
@@ -5033,7 +5033,7 @@ namespace units
 		dimensionless::scalar_t cosh(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::cosh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::cosh(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
@@ -5048,7 +5048,7 @@ namespace units
 		dimensionless::scalar_t sinh(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::sinh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::sinh(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
@@ -5063,7 +5063,7 @@ namespace units
 		dimensionless::scalar_t tanh(AngleUnit angle)
 		{
 			static_assert(units::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return scalar_t(std::tanh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::tanh(angle.convert<angle::radian>().toDouble()));
 		}
 
 		/**
