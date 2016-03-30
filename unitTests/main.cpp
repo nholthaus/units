@@ -35,26 +35,81 @@ using namespace units::torque;
 using namespace units::volume;
 using namespace units::density;
 using namespace units::concentration;
+using namespace units::math;
 
 namespace {
 
-	class UnitTest : public ::testing::Test {
+	class TypeTraits : public ::testing::Test {
 	protected:
 
-		UnitTest() {};
-		virtual ~UnitTest() {};
+		TypeTraits() {};
+		virtual ~TypeTraits() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class UnitManipulators : public ::testing::Test {
+	protected:
+
+		UnitManipulators() {};
+		virtual ~UnitManipulators() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class UnitContainer : public ::testing::Test {
+	protected:
+
+		UnitContainer() {};
+		virtual ~UnitContainer() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class UnitConversion : public ::testing::Test {
+	protected:
+
+		UnitConversion() {};
+		virtual ~UnitConversion() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class UnitMath : public ::testing::Test {
+	protected:
+
+		UnitMath() {};
+		virtual ~UnitMath() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class CompileTimeArithmetic : public ::testing::Test {
+	protected:
+
+		CompileTimeArithmetic() {};
+		virtual ~CompileTimeArithmetic() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
+	class CaseStudies : public ::testing::Test {
+	protected:
+
+		CaseStudies() {};
+		virtual ~CaseStudies() {};
 		virtual void SetUp() {};
 		virtual void TearDown() {};
 	};
 }
 
-TEST_F(UnitTest, isRatio)
+TEST_F(TypeTraits, isRatio)
 {
 	EXPECT_TRUE(units::is_ratio<std::ratio<1>>::value);
 	EXPECT_FALSE(units::is_ratio<double>::value);
 }
 
-TEST_F(UnitTest, isUnit)
+TEST_F(TypeTraits, isUnit)
 {
 	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
 	EXPECT_FALSE(units::is_unit<double>::value);
@@ -63,7 +118,7 @@ TEST_F(UnitTest, isUnit)
 	EXPECT_TRUE(units::is_unit<degrees_squared>::value);
 }
 
-TEST_F(UnitTest, unitTraits)
+TEST_F(TypeTraits, unitTraits)
 {
 	bool isntUnit = std::is_same<void, units::unit_traits<double>>::value;
 	bool isUnit = std::is_same<void, units::unit_traits<meters>>::value;
@@ -71,7 +126,7 @@ TEST_F(UnitTest, unitTraits)
 	EXPECT_TRUE(units::is_unit<feet>::value);
 }
 
-TEST_F(UnitTest, areConvertibleUnitsLength)
+TEST_F(TypeTraits, areConvertibleUnitsLength)
 {
 	bool test1 = units::is_convertible_unit<meters, meters>::value;
 	bool test2 = units::is_convertible_unit<meters, astronicalUnits>::value;
@@ -96,7 +151,7 @@ TEST_F(UnitTest, areConvertibleUnitsLength)
 	EXPECT_FALSE(test8);
 }
 
-TEST_F(UnitTest, areConvertibleUnitsTime)
+TEST_F(TypeTraits, areConvertibleUnitsTime)
 {
 	bool shouldBeTrue;
 	bool shouldBeFalse;
@@ -108,7 +163,7 @@ TEST_F(UnitTest, areConvertibleUnitsTime)
 	EXPECT_FALSE(shouldBeFalse);
 }
 
-TEST_F(UnitTest, inverseUnits)
+TEST_F(TypeTraits, inverseUnits)
 {
 	double test;
 
@@ -123,7 +178,7 @@ TEST_F(UnitTest, inverseUnits)
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, baseUnitOf)
+TEST_F(TypeTraits, baseUnitOf)
 {
 	using base = units::base_unit_of<years>;
 	bool shouldBeTrue = std::is_same<base, category::time_unit>::value;
@@ -131,7 +186,7 @@ TEST_F(UnitTest, baseUnitOf)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
-TEST_F(UnitTest, hasLinearScale)
+TEST_F(TypeTraits, hasLinearScale)
 {
 	bool test;
 	
@@ -151,7 +206,7 @@ TEST_F(UnitTest, hasLinearScale)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, hasDecibelScale)
+TEST_F(TypeTraits, hasDecibelScale)
 {
 	bool test;
 
@@ -167,7 +222,7 @@ TEST_F(UnitTest, hasDecibelScale)
 	EXPECT_TRUE(test);
 }
 
-TEST_F(UnitTest, isSameScale)
+TEST_F(TypeTraits, isSameScale)
 {
 	bool test;
 
@@ -179,7 +234,7 @@ TEST_F(UnitTest, isSameScale)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isScalarUnit)
+TEST_F(TypeTraits, isScalarUnit)
 {
 	bool test;
 
@@ -199,7 +254,7 @@ TEST_F(UnitTest, isScalarUnit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isLengthUnit)
+TEST_F(TypeTraits, isLengthUnit)
 {
 	bool test;
 
@@ -228,7 +283,7 @@ TEST_F(UnitTest, isLengthUnit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ismass_unit)
+TEST_F(TypeTraits, ismass_unit)
 {
 	bool test;
 
@@ -259,7 +314,7 @@ TEST_F(UnitTest, ismass_unit)
 }
 
 
-TEST_F(UnitTest, istime_unit)
+TEST_F(TypeTraits, istime_unit)
 {
 	bool test;
 
@@ -289,7 +344,7 @@ TEST_F(UnitTest, istime_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isangle_unit)
+TEST_F(TypeTraits, isangle_unit)
 {
 	bool test;
 
@@ -319,7 +374,7 @@ TEST_F(UnitTest, isangle_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, iscurrent_unit)
+TEST_F(TypeTraits, iscurrent_unit)
 {
 	bool test;
 
@@ -345,7 +400,7 @@ TEST_F(UnitTest, iscurrent_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, istemperature_unit)
+TEST_F(TypeTraits, istemperature_unit)
 {
 	bool test;
 
@@ -375,7 +430,7 @@ TEST_F(UnitTest, istemperature_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, issubstance_unit)
+TEST_F(TypeTraits, issubstance_unit)
 {
 	bool test;
 
@@ -399,7 +454,7 @@ TEST_F(UnitTest, issubstance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isluminous_intensity_unit)
+TEST_F(TypeTraits, isluminous_intensity_unit)
 {
 	bool test;
 
@@ -423,7 +478,7 @@ TEST_F(UnitTest, isluminous_intensity_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, issolid_angle_unit)
+TEST_F(TypeTraits, issolid_angle_unit)
 {
 	bool test;
 
@@ -451,7 +506,7 @@ TEST_F(UnitTest, issolid_angle_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isfrequency_unit)
+TEST_F(TypeTraits, isfrequency_unit)
 {
 	bool test;
 
@@ -477,7 +532,7 @@ TEST_F(UnitTest, isfrequency_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isvelocity_unit)
+TEST_F(TypeTraits, isvelocity_unit)
 {
 	bool test;
 
@@ -507,7 +562,7 @@ TEST_F(UnitTest, isvelocity_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isacceleration_unit)
+TEST_F(TypeTraits, isacceleration_unit)
 {
 	bool test;
 
@@ -537,7 +592,7 @@ TEST_F(UnitTest, isacceleration_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isforce_unit)
+TEST_F(TypeTraits, isforce_unit)
 {
 	bool test;
 
@@ -567,7 +622,7 @@ TEST_F(UnitTest, isforce_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ispressure_unit)
+TEST_F(TypeTraits, ispressure_unit)
 {
 	bool test;
 
@@ -596,7 +651,7 @@ TEST_F(UnitTest, ispressure_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ischarge_unit)
+TEST_F(TypeTraits, ischarge_unit)
 {
 	bool test;
 
@@ -621,7 +676,7 @@ TEST_F(UnitTest, ischarge_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isenergy_unit)
+TEST_F(TypeTraits, isenergy_unit)
 {
 	bool test;
 
@@ -650,7 +705,7 @@ TEST_F(UnitTest, isenergy_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ispower_unit)
+TEST_F(TypeTraits, ispower_unit)
 {
 	bool test;
 
@@ -675,7 +730,7 @@ TEST_F(UnitTest, ispower_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isvoltage_unit)
+TEST_F(TypeTraits, isvoltage_unit)
 {
 	bool test;
 
@@ -700,7 +755,7 @@ TEST_F(UnitTest, isvoltage_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, iscapacitance_unit)
+TEST_F(TypeTraits, iscapacitance_unit)
 {
 	bool test;
 
@@ -725,7 +780,7 @@ TEST_F(UnitTest, iscapacitance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isimpedance_unit)
+TEST_F(TypeTraits, isimpedance_unit)
 {
 	bool test;
 
@@ -751,7 +806,7 @@ TEST_F(UnitTest, isimpedance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isconductance_unit)
+TEST_F(TypeTraits, isconductance_unit)
 {
 	bool test;
 
@@ -776,7 +831,7 @@ TEST_F(UnitTest, isconductance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ismagnetic_flux_unit)
+TEST_F(TypeTraits, ismagnetic_flux_unit)
 {
 	bool test;
 
@@ -805,7 +860,7 @@ TEST_F(UnitTest, ismagnetic_flux_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, ismagnetic_field_strength_unit)
+TEST_F(TypeTraits, ismagnetic_field_strength_unit)
 {
 	bool test;
 
@@ -835,7 +890,7 @@ TEST_F(UnitTest, ismagnetic_field_strength_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isinductance_unit)
+TEST_F(TypeTraits, isinductance_unit)
 {
 	bool test;
 
@@ -861,7 +916,7 @@ TEST_F(UnitTest, isinductance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isluminous_flux_unit)
+TEST_F(TypeTraits, isluminous_flux_unit)
 {
 	bool test;
 
@@ -887,7 +942,7 @@ TEST_F(UnitTest, isluminous_flux_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isilluminance_unit)
+TEST_F(TypeTraits, isilluminance_unit)
 {
 	bool test;
 
@@ -917,7 +972,7 @@ TEST_F(UnitTest, isilluminance_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isradioactivity_unit)
+TEST_F(TypeTraits, isradioactivity_unit)
 {
 	bool test;
 
@@ -943,7 +998,7 @@ TEST_F(UnitTest, isradioactivity_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, istorque_unit)
+TEST_F(TypeTraits, istorque_unit)
 {
 	bool test;
 
@@ -972,7 +1027,7 @@ TEST_F(UnitTest, istorque_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isarea_unit)
+TEST_F(TypeTraits, isarea_unit)
 {
 	bool test;
 
@@ -1002,7 +1057,7 @@ TEST_F(UnitTest, isarea_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isvolume_unit)
+TEST_F(TypeTraits, isvolume_unit)
 {
 	bool test;
 
@@ -1031,7 +1086,7 @@ TEST_F(UnitTest, isvolume_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, isdensity_unit)
+TEST_F(TypeTraits, isdensity_unit)
 {
 	bool test;
 
@@ -1061,7 +1116,7 @@ TEST_F(UnitTest, isdensity_unit)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, squared)
+TEST_F(UnitManipulators, squared)
 {
 	double test;
 
@@ -1073,7 +1128,7 @@ TEST_F(UnitTest, squared)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitTest, cubed)
+TEST_F(UnitManipulators, cubed)
 {
 	double test;
 
@@ -1081,7 +1136,7 @@ TEST_F(UnitTest, cubed)
 	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
 }
 
-TEST_F(UnitTest, compoundUnits)
+TEST_F(UnitManipulators, compoundUnits)
 {
 	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
 	using acceleration2 = compound_unit<meters, inverse<seconds>, inverse<seconds>>;
@@ -1104,7 +1159,7 @@ TEST_F(UnitTest, compoundUnits)
 	using arbitary2 = compound_unit<meters, celsius>;
 }
 
-TEST_F(UnitTest, dimensionalAnalysis)
+TEST_F(UnitManipulators, dimensionalAnalysis)
 {
 	// these look like 'compound units', but the dimensional analysis can be REALLY handy if the
 	// unit types aren't know (i.e. they themselves are template parameters), as you can get the resulting unit of the
@@ -1120,7 +1175,7 @@ TEST_F(UnitTest, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
-TEST_F(UnitTest, hasValueMember)
+TEST_F(UnitContainer, hasValueMember)
 {
 	bool test;
 
@@ -1130,7 +1185,7 @@ TEST_F(UnitTest, hasValueMember)
 	EXPECT_FALSE(test);
 }
 
-TEST_F(UnitTest, unitTypeAddition)
+TEST_F(UnitContainer, unitTypeAddition)
 {
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
@@ -1166,7 +1221,7 @@ TEST_F(UnitTest, unitTypeAddition)
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
-TEST_F(UnitTest, unitTypeSubtraction)
+TEST_F(UnitContainer, unitTypeSubtraction)
 {
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
@@ -1199,7 +1254,7 @@ TEST_F(UnitTest, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 }
 
-TEST_F(UnitTest, unitTypeMultiplication)
+TEST_F(UnitContainer, unitTypeMultiplication)
 {
 	meter_t a_m(1.0), b_m(2.0);
 	foot_t a_ft(3.28084);
@@ -1241,7 +1296,7 @@ TEST_F(UnitTest, unitTypeMultiplication)
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 }
 
-TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
+TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 {
 	meter_t a_m(1.0);
 	foot_t b_ft(3.28084);
@@ -1279,7 +1334,7 @@ TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
 
 }
 
-TEST_F(UnitTest, unitTypeScalarMultiplication)
+TEST_F(UnitContainer, unitTypeScalarMultiplication)
 {
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
@@ -1300,7 +1355,7 @@ TEST_F(UnitTest, unitTypeScalarMultiplication)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitTest, unitTypeDivision)
+TEST_F(UnitContainer, unitTypeDivision)
 {
 	meter_t a_m(1.0), b_m(2.0);
 	foot_t a_ft(3.28084);
@@ -1355,7 +1410,7 @@ TEST_F(UnitTest, unitTypeDivision)
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 }
 
-TEST_F(UnitTest, scalarTypeImplicitConversion)
+TEST_F(UnitContainer, scalarTypeImplicitConversion)
 {
 	double test = scalar_t(3.0);
 	EXPECT_DOUBLE_EQ(3.0, test);
@@ -1364,40 +1419,41 @@ TEST_F(UnitTest, scalarTypeImplicitConversion)
 	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
-TEST_F(UnitTest, valueMethod)
+TEST_F(UnitContainer, valueMethod)
 {
 	double test = meter_t(3.0).toDouble();
 	EXPECT_DOUBLE_EQ(3.0, test);
 }
 
-TEST_F(UnitTest, convertMethod)
+TEST_F(UnitContainer, convertMethod)
 {
 	double test = meter_t(3.0).convert<feet>().toDouble();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
-TEST_F(UnitTest, unitPowers)
+TEST_F(UnitContainer, cout)
 {
-	bool isSame;
-	meter_t value(10.0);
+	angle::degree_t test1(349.87);
+	meter_t test2(1.0);
+	dB_t test3(31.0);
 
-	auto sq = units::pow<2>(value);
-	EXPECT_NEAR(100.0, sq(), 5.0e-2);
-	isSame = std::is_same<decltype(sq), square_meter_t>::value;
-	EXPECT_TRUE(isSame);
+	testing::internal::CaptureStdout();
+	std::cout << test1;
+	std::string output1 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("349.87", output1.c_str());
 
-	auto cube = units::pow<3>(value);
-	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
-	isSame = std::is_same<decltype(cube), unit_t<cubed<meter>>>::value;
-	EXPECT_TRUE(isSame);
+	testing::internal::CaptureStdout();
+	std::cout << test2;
+	std::string output2 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1", output2.c_str());
 
-	auto fourth = units::pow<4>(value);
-	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
-	isSame = std::is_same<decltype(fourth), unit_t<compound_unit<squared<meter>, squared<meter>>>>::value;
-	EXPECT_TRUE(isSame);
+	testing::internal::CaptureStdout();
+	std::cout << test3;
+	std::string output3 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("31", output3.c_str());
 }
 
-TEST_F(UnitTest, dBConversion)
+TEST_F(UnitContainer, dBConversion)
 {
 	dBW_t a_dbw(23.1);
 	watt_t a_w = a_dbw;
@@ -1416,7 +1472,7 @@ TEST_F(UnitTest, dBConversion)
 	EXPECT_NEAR(20.0, b_dbw(), 5.0e-7);
 }
 
-TEST_F(UnitTest, dBAddition)
+TEST_F(UnitContainer, dBAddition)
 {
 	bool isSame;
 
@@ -1437,7 +1493,7 @@ TEST_F(UnitTest, dBAddition)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitTest, dBSubtraction)
+TEST_F(UnitContainer, dBSubtraction)
 {
 	bool isSame;
 
@@ -1462,7 +1518,7 @@ TEST_F(UnitTest, dBSubtraction)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitTest, lengthConversion)
+TEST_F(UnitConversion, length)
 {
 	double test;
 	test = convert<meters, nanometers>(0.000000001);
@@ -1509,7 +1565,7 @@ TEST_F(UnitTest, lengthConversion)
 
 }
 
-TEST_F(UnitTest, massConversion)
+TEST_F(UnitConversion, mass)
 {
 	double test;
 
@@ -1540,7 +1596,7 @@ TEST_F(UnitTest, massConversion)
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
-TEST_F(UnitTest, timeConversion)
+TEST_F(UnitConversion, time)
 {
 	double test;
 
@@ -1569,7 +1625,7 @@ TEST_F(UnitTest, timeConversion)
 	EXPECT_NEAR(240.0, test, 5.0e-14);
 }
 
-TEST_F(UnitTest, angleConversionFactors)
+TEST_F(UnitConversion, angleConversionFactors)
 {
 	double test;
 
@@ -1603,7 +1659,7 @@ TEST_F(UnitTest, angleConversionFactors)
 
 }
 
-TEST_F(UnitTest, currentConversion)
+TEST_F(UnitConversion, current)
 {
 	double test;
 
@@ -1611,7 +1667,7 @@ TEST_F(UnitTest, currentConversion)
 	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
-TEST_F(UnitTest, temperature)
+TEST_F(UnitConversion, temperature)
 {
 	// temp conversion are weird/hard since they involve translations AND scaling.
 	double test;
@@ -1656,7 +1712,7 @@ TEST_F(UnitTest, temperature)
 	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
-TEST_F(UnitTest, luminousIntensityConversion)
+TEST_F(UnitConversion, luminousIntensity)
 {
 	double test;
 
@@ -1666,7 +1722,7 @@ TEST_F(UnitTest, luminousIntensityConversion)
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, solidAngleConversion)
+TEST_F(UnitConversion, solidAngle)
 {
 	double test;
 	bool same;
@@ -1694,7 +1750,7 @@ TEST_F(UnitTest, solidAngleConversion)
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, frequencyConversion)
+TEST_F(UnitConversion, frequency)
 {
 	double test;
 
@@ -1708,7 +1764,7 @@ TEST_F(UnitTest, frequencyConversion)
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, velocityConversion)
+TEST_F(UnitConversion, velocity)
 {
 	double test;
 	bool same;
@@ -1730,7 +1786,7 @@ TEST_F(UnitTest, velocityConversion)
 	EXPECT_NEAR(3.048, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, angularVelocityConversion)
+TEST_F(UnitConversion, angularVelocity)
 {
 	double test;
 	bool same;
@@ -1750,14 +1806,14 @@ TEST_F(UnitTest, angularVelocityConversion)
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
-TEST_F(UnitTest, accelerationConversion)
+TEST_F(UnitConversion, acceleration)
 {
 	double test;
 
 	test = convert<standard_gravity, meters_per_second_squared>(1.0);
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
 }
-TEST_F(UnitTest, forceConversion)
+TEST_F(UnitConversion, force)
 {
 	double test;
 
@@ -1775,7 +1831,7 @@ TEST_F(UnitTest, forceConversion)
 	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
-TEST_F(UnitTest, areaConversionFactors)
+TEST_F(UnitConversion, areaConversionFactors)
 {
 	double test;
 
@@ -1791,7 +1847,7 @@ TEST_F(UnitTest, areaConversionFactors)
 	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, pressureConversion)
+TEST_F(UnitConversion, pressure)
 {
 	double test;
 
@@ -1817,7 +1873,7 @@ TEST_F(UnitTest, pressureConversion)
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 }
 	
-TEST_F(UnitTest, chargeConversion)
+TEST_F(UnitConversion, charge)
 {
 	double test;
 
@@ -1827,7 +1883,7 @@ TEST_F(UnitTest, chargeConversion)
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
-TEST_F(UnitTest, energyConversion)
+TEST_F(UnitConversion, energy)
 {
 	double test;
 
@@ -1859,7 +1915,7 @@ TEST_F(UnitTest, energyConversion)
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, powerConversion)
+TEST_F(UnitConversion, power)
 {
 	double test;
 
@@ -1879,7 +1935,7 @@ TEST_F(UnitTest, powerConversion)
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
-TEST_F(UnitTest, voltageConversion)
+TEST_F(UnitConversion, voltage)
 {
 	double test;
 
@@ -1909,7 +1965,7 @@ TEST_F(UnitTest, voltageConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, capacitanceConversion)
+TEST_F(UnitConversion, capacitance)
 {
 	double test;
 
@@ -1931,7 +1987,7 @@ TEST_F(UnitTest, capacitanceConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, impedanceConversion)
+TEST_F(UnitConversion, impedance)
 {
 	double test;
 
@@ -1953,7 +2009,7 @@ TEST_F(UnitTest, impedanceConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, conductanceConversion)
+TEST_F(UnitConversion, conductance)
 {
 	double test;
 
@@ -1975,7 +2031,7 @@ TEST_F(UnitTest, conductanceConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, magneticFluxConversion)
+TEST_F(UnitConversion, magneticFlux)
 {
 	double test;
 
@@ -2001,7 +2057,7 @@ TEST_F(UnitTest, magneticFluxConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, magneticFieldStrengthConversion)
+TEST_F(UnitConversion, magneticFieldStrength)
 {
 	double test;
 
@@ -2027,7 +2083,7 @@ TEST_F(UnitTest, magneticFieldStrengthConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, inductanceConversion)
+TEST_F(UnitConversion, inductance)
 {
 	double test;
 
@@ -2049,7 +2105,7 @@ TEST_F(UnitTest, inductanceConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, luminousFluxConversion)
+TEST_F(UnitConversion, luminousFlux)
 {
 	double test;
 
@@ -2071,7 +2127,7 @@ TEST_F(UnitTest, luminousFluxConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, illuminanceConversion)
+TEST_F(UnitConversion, illuminance)
 {
 	double test;
 
@@ -2100,7 +2156,7 @@ TEST_F(UnitTest, illuminanceConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, radiationConversion)
+TEST_F(UnitConversion, radiation)
 {
 	double test;
 
@@ -2163,7 +2219,7 @@ TEST_F(UnitTest, radiationConversion)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, torqueConversions)
+TEST_F(UnitConversion, torque)
 {
 	double test;
 
@@ -2182,7 +2238,7 @@ TEST_F(UnitTest, torqueConversions)
 
 }
 
-TEST_F(UnitTest, volumeConversion)
+TEST_F(UnitConversion, volume)
 {
 	double test;
 
@@ -2250,7 +2306,7 @@ TEST_F(UnitTest, volumeConversion)
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
-TEST_F(UnitTest, densityConversion)
+TEST_F(UnitConversion, density)
 {
 	double test;
 
@@ -2276,7 +2332,7 @@ TEST_F(UnitTest, densityConversion)
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
-TEST_F(UnitTest, concentrationConversion)
+TEST_F(UnitConversion, concentration)
 {
 	double test;
 
@@ -2290,7 +2346,7 @@ TEST_F(UnitTest, concentrationConversion)
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
-TEST_F(UnitTest, testConstants)
+TEST_F(UnitConversion, constants)
 {
 	// scalar constants
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
@@ -2314,35 +2370,129 @@ TEST_F(UnitTest, testConstants)
 	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
 }
 
-TEST_F(UnitTest, cout)
+TEST_F(UnitMath, cos)
 {
-	angle::degree_t test1(349.87);
-	meter_t test2(1.0);
-	dB_t test3(31.0);
-
-	testing::internal::CaptureStdout();
-	std::cout << test1;
-	std::string output1 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("349.87", output1.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << test2;
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1", output2.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << test3;
-	std::string output3 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("31", output3.c_str());
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(cos(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(-0.41614683654), cos(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(-0.70710678118), cos(angle::degree_t(135)), 5.0e-11);
 }
 
-TEST_F(UnitTest, unit_value_t)
+TEST_F(UnitMath, sin)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(sin(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(0.90929742682), sin(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(0.70710678118), sin(angle::degree_t(135)), 5.0e-11);
+}
+
+TEST_F(UnitMath, tan)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(tan(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(-2.18503986326), tan(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(-1.0), tan(angle::degree_t(135)), 5.0e-11);
+}
+
+TEST_F(UnitMath, acos)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acos(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(2).toDouble(), acos(scalar_t(-0.41614683654)).toDouble(), 5.0e-11);
+	EXPECT_NEAR(angle::degree_t(135).toDouble(), angle::degree_t(acos(scalar_t(-0.70710678118654752440084436210485))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, asin)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asin(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(1.14159265).toDouble(), asin(scalar_t(0.90929742682)).toDouble(), 5.0e-9);
+	EXPECT_NEAR(angle::degree_t(45).toDouble(), angle::degree_t(asin(scalar_t(0.70710678118654752440084436210485))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, atan)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(-1.14159265).toDouble(), atan(scalar_t(-2.18503986326)).toDouble(), 5.0e-9);
+	EXPECT_NEAR(angle::degree_t(-45).toDouble(), angle::degree_t(atan(scalar_t(-1.0))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, atan2)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(scalar_t(1), scalar_t(1)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(constants::PI / 4).toDouble(), atan2(scalar_t(2), scalar_t(2)).toDouble(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(45).toDouble(), angle::degree_t(atan2(scalar_t(2), scalar_t(2))).toDouble(), 5.0e-12);
+
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(scalar_t(1), scalar_t(1)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(constants::PI / 6).toDouble(), atan2(scalar_t(1), scalar_t(sqrt(3))).toDouble(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(30).toDouble(), angle::degree_t(atan2(scalar_t(1), scalar_t(sqrt(3)))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, cosh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(cosh(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(3.76219569108), cosh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(5.32275215), cosh(angle::degree_t(135)), 5.0e-9);
+}
+
+TEST_F(UnitMath, sinh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(sinh(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(3.62686040785), sinh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(5.22797192), sinh(angle::degree_t(135)), 5.0e-9);
+}
+
+TEST_F(UnitMath, tanh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(tanh(angle::radian_t(0)))>::type>::value));
+	EXPECT_NEAR(scalar_t(0.96402758007), tanh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(scalar_t(0.98219338), tanh(angle::degree_t(135)), 5.0e-11);
+}
+
+TEST_F(UnitMath, acosh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acosh(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(1.316957896924817).toDouble(), acosh(scalar_t(2.0)).toDouble(), 5.0e-11);
+	EXPECT_NEAR(angle::degree_t(75.456129290216893).toDouble(), angle::degree_t(acosh(scalar_t(2.0))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, asinh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asinh(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(1.443635475178810).toDouble(), asinh(scalar_t(2)).toDouble(), 5.0e-9);
+	EXPECT_NEAR(angle::degree_t(82.714219883108939).toDouble(), angle::degree_t(asinh(scalar_t(2))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, atanh)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atanh(scalar_t(0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(0.549306144334055).toDouble(), atanh(scalar_t(0.5)).toDouble(), 5.0e-9);
+	EXPECT_NEAR(angle::degree_t(31.472923730945389).toDouble(), angle::degree_t(atanh(scalar_t(0.5))).toDouble(), 5.0e-12);
+}
+
+TEST_F(UnitMath, pow)
+{
+	bool isSame;
+	meter_t value(10.0);
+
+	auto sq = pow<2>(value);
+	EXPECT_NEAR(100.0, sq(), 5.0e-2);
+	isSame = std::is_same<decltype(sq), square_meter_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto cube = pow<3>(value);
+	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
+	isSame = std::is_same<decltype(cube), unit_t<cubed<meter>>>::value;
+	EXPECT_TRUE(isSame);
+
+	auto fourth = pow<4>(value);
+	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
+	isSame = std::is_same<decltype(fourth), unit_t<compound_unit<squared<meter>, squared<meter>>>>::value;
+	EXPECT_TRUE(isSame);
+}
+
+TEST_F(CompileTimeArithmetic, unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
 	EXPECT_EQ(meter_t(1.5), mRatio::value());
 }
 
-TEST_F(UnitTest, is_unit_value_t)
+TEST_F(CompileTimeArithmetic, is_unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
 
@@ -2356,7 +2506,7 @@ TEST_F(UnitTest, is_unit_value_t)
 
 }
 
-TEST_F(UnitTest, is_unit_value_t_category)
+TEST_F(CompileTimeArithmetic, is_unit_value_t_category)
 {
 	typedef unit_value_t<feet, 3, 2> mRatio;
 	EXPECT_TRUE((units::is_unit_value_t_category<category::length_unit, mRatio>::value));
@@ -2365,7 +2515,7 @@ TEST_F(UnitTest, is_unit_value_t_category)
 	EXPECT_FALSE((units::is_unit_value_t_category<category::length_unit, double>::value));
 }
 
-TEST_F(UnitTest, unit_value_add)
+TEST_F(CompileTimeArithmetic, unit_value_add)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
 
@@ -2393,7 +2543,7 @@ TEST_F(UnitTest, unit_value_add)
 	EXPECT_NEAR(1.05235988, sumr::value().toDouble(), 5.0e-8);
 }
 
-TEST_F(UnitTest, unit_value_subtract)
+TEST_F(CompileTimeArithmetic, unit_value_subtract)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
 
@@ -2421,7 +2571,7 @@ TEST_F(UnitTest, unit_value_subtract)
 	EXPECT_NEAR(0.947640122, diffr::value().toDouble(), 5.0e-8);
 }
 
-TEST_F(UnitTest, unit_value_multiply)
+TEST_F(CompileTimeArithmetic, unit_value_multiply)
 {
 	typedef unit_value_t<meters, 2> mRatio;
 	typedef unit_value_t<feet, 656168, 100000> ftRatio;	// 2 meter
@@ -2459,7 +2609,7 @@ TEST_F(UnitTest, unit_value_multiply)
 	EXPECT_NEAR(7944.39137, (productR::value().convert<degrees_squared>().toDouble()), 5.0e-6);
 }
 
-TEST_F(UnitTest, unit_value_divide)
+TEST_F(CompileTimeArithmetic, unit_value_divide)
 {
 	typedef unit_value_t<meters, 2> mRatio;
 	typedef unit_value_t<feet, 656168, 100000> ftRatio;	// 2 meter
@@ -2494,7 +2644,7 @@ TEST_F(UnitTest, unit_value_divide)
 	EXPECT_NEAR(114.592, (productRS::value().convert<degrees_per_second>().toDouble()), 5.0e-4);
 }
 
-TEST_F(UnitTest, unit_value_power)
+TEST_F(CompileTimeArithmetic, unit_value_power)
 {
 	typedef unit_value_t<meters, 2> mRatio;
 
@@ -2510,7 +2660,7 @@ TEST_F(UnitTest, unit_value_power)
 	EXPECT_NEAR(10636.292574038049895092690529904, (sqr::value().convert<degrees_squared>().toDouble()), 5.0e-10);
 }
 
-TEST_F(UnitTest, radarRangeEquation)
+TEST_F(CaseStudies, radarRangeEquation)
 {
 
 	watt_t			P_t;				// transmit power
@@ -2531,8 +2681,8 @@ TEST_F(UnitTest, radarRangeEquation)
 	B_n = megahertz_t(1.67);
 	L = dB_t(8.0);
 
-	scalar_t SNR =	(P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
-					(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * constants::k_B * T_s * B_n * L);
+	scalar_t SNR =	(P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) / 
+					(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
