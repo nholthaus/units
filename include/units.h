@@ -27,6 +27,7 @@
 // Parts of this work have been adapted from: 
 // http://stackoverflow.com/questions/35069778/create-comparison-trait-for-template-classes-whose-parameters-are-in-a-different
 // http://stackoverflow.com/questions/28253399/check-traits-for-all-variadic-template-arguments/28253503
+// http://stackoverflow.com/questions/36321295/rational-approximation-of-square-root-of-stdratio-at-compile-time?noredirect=1#comment60266601_36321295
 //
 //--------------------------------------------------------------------------------------------------
 // 
@@ -551,6 +552,40 @@ namespace units
 		 * @details		E.g. `cubed<length_unit>` will represent `length_unit^3`.
 		 */
 		template<class U> using cubed_base = typename cubed_base_impl<U>::type;
+
+		/**
+		 * @brief		implementation of `sqrt_base`
+		 * @details		divides all the exponent ratios of the given class by 2. The resulting type is
+		 *				equivalent to the square root of the given type.
+		 */
+		template<class U> struct sqrt_base_impl;
+		template<class... Exponents>
+		struct sqrt_base_impl<base_unit<Exponents...>> {
+			using type = base_unit<std::ratio_divide<Exponents, std::ratio<2>>...>;
+		};
+
+		/**
+		 * @brief		represents the square-root type of a `base_unit`.
+		 * @details		E.g. `sqrt<length_unit>` will represent `length_unit^(1/2)`.
+		 */
+		template<class U> using sqrt_base = typename sqrt_base_impl<U>::type;
+
+		/**
+		 * @brief		implementation of `cbrt_base`
+		 * @details		divides all the exponent ratios of the given class by 3. The resulting type is
+		 *				equivalent to the given type's cube-root.
+		 */
+		template<class U> struct cbrt_base_impl;
+		template<class... Exponents>
+		struct cbrt_base_impl<base_unit<Exponents...>> {
+			using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
+		};
+
+		/**
+		 * @brief		represents the cube-root type of a `base_unit` .
+		 * @details		E.g. `cbrt<length_unit>` will represent `length_unit^(1/3)`.
+		 */
+		template<class U> using cbrt_base = typename cbrt_base_impl<U>::type;
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -689,6 +724,215 @@ namespace units
 	 */
 	template<class U>
 	using cubed = typename detail::cubed_impl<U>::type;
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		//----------------------------------
+		//	RATIO_SQRT IMPLEMENTATION
+		//----------------------------------
+
+		using Zero = std::ratio<0>;
+		using One = std::ratio<1>;
+		template <typename R> using Square = std::ratio_multiply<R, R>;
+	
+		// Find the largest integer N such that Predicate<N>::value is true.
+		template <template <std::uintmax_t N> class Predicate, typename Enabled = void>
+		struct BinarySearch 
+		{
+			template <std::uintmax_t N>
+			struct SafeDouble_ 
+			{
+				const std::uintmax_t static value = 2 * N;
+				static_assert(value > 0, "Overflows when computing 2 * N");
+			};
+	
+			template <std::uintmax_t Lower, std::uintmax_t Upper, typename Enabled1 = void>
+			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
+	
+			template <std::uintmax_t Lower, std::uintmax_t Upper>
+			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<Upper - Lower == 1>::type> : std::integral_constant<int, Lower> {};
+	
+			template <std::uintmax_t Lower, std::uintmax_t Upper>
+			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<(Upper - Lower > 1 && Predicate<Lower + (Upper - Lower) / 2>::value)>::type>
+				: DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
+	
+			template <std::uintmax_t Lower, typename Enabled1 = void>
+			struct SingleSidedSearch_ : DoubleSidedSearch_<Lower, SafeDouble_<Lower>::value> {};
+	
+			template <std::uintmax_t Lower>
+			struct SingleSidedSearch_<Lower, typename std::enable_if<Predicate<SafeDouble_<Lower>::value>::value>::type>
+				: SingleSidedSearch_<SafeDouble_<Lower>::value> {};
+	
+			const static std::uintmax_t value = SingleSidedSearch_<1>::value;
+		};
+	
+		template <template <std::uintmax_t N> class Predicate>
+		struct BinarySearch<Predicate, typename std::enable_if<!Predicate<1>::value>::type> : std::integral_constant<int, 0> {};
+	
+		// Find largest integer N such that N<=sqrt(R)
+		template <typename R>
+		struct Integer 
+		{
+			template <std::uintmax_t N> using Predicate_ = std::ratio_less_equal<Square<std::ratio<N>>, R>;
+			const static std::uintmax_t value = BinarySearch<Predicate_>::value;
+		};
+	
+		template <typename R>
+		struct IsPerfectSquare 
+		{
+			using Den_ = std::ratio<R::den>;
+			using S_ = std::ratio_multiply<R, Square<Den_>>;
+			using I_ = std::ratio<Integer<S_>::value>;
+			const static bool value = std::ratio_equal<S_, Square<I_>>::value;
+			using Sqrt = std::ratio_divide<I_, Den_>;
+		};
+	
+		// Represents sqrt(P)-Q.
+		template <typename Tp, typename Tq>
+		struct Remainder 
+		{
+			using P = Tp;
+			using Q = Tq;
+		};
+	
+		// Represents abs(1/R) = I + Rem where R is a remainder.
+		template <typename R>
+		struct Reciprocal 
+		{
+			template <typename T>
+			using Abs_ = typename std::conditional<std::ratio_less<T, Zero>::value, std::ratio_subtract<Zero, T>, T>::type;
+	
+			using P_ = typename R::P;
+			using Q_ = typename R::Q;
+			using Den_ = Abs_<std::ratio_subtract<P_, Square<Q_>>>;
+			using A_ = std::ratio_divide<Q_, Den_>;
+			using B_ = std::ratio_divide<P_, Square<Den_>>;
+			const static std::uintmax_t I = (A_::num + Integer<std::ratio_multiply<B_, Square<std::ratio<A_::den>>>>::value) / A_::den;
+			using Rem = Remainder<B_, std::ratio_subtract<std::ratio<I>, A_>>;
+		};
+	
+		// Expands sqrt(R) to continued fraction:
+		// f(x)=C1+1/(C2+1/(C3+1/(...+1/(Cn+x)))) = (U*x+V)/(W*x+1) and sqrt(R)=f(Rem).
+		template <typename Tr, std::uintmax_t N>
+		struct ContinuedFraction {
+			using R = Tr;
+			using Last_ = ContinuedFraction<R, N - 1>;
+			using Reciprocal_ = Reciprocal<typename Last_::Rem>;
+			using Rem = typename Reciprocal_::Rem;
+			using I_ = std::ratio<Reciprocal_::I>;
+			using Den_ = std::ratio_add<typename Last_::W, I_>;
+			using U = std::ratio_divide<typename Last_::V, Den_>;
+			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, Den_>;
+			using W = std::ratio_divide<One, Den_>;
+		};
+	
+		template <typename Tr>
+		struct ContinuedFraction<Tr, 1> 
+		{
+			using R = Tr;
+			using U = One;
+			using V = std::ratio<Integer<R>::value>;
+			using W = Zero;
+			using Rem = Remainder<R, V>;
+		};
+	
+		template <typename Fraction>
+		using Error = std::ratio<1, Reciprocal<Remainder<typename Fraction::R, typename Fraction::V>>::I>;
+	
+		template <typename R, typename Eps, std::uintmax_t N = 1, typename Enabled = void>
+		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
+	
+		template <typename R, typename Eps, std::uintmax_t N>
+		struct Sqrt_<R, Eps, N, typename std::enable_if<std::ratio_less_equal<Error<ContinuedFraction<R, N>>, Eps>::value>::type> 
+		{
+			using type = typename ContinuedFraction<R, N>::V;
+		};
+
+		template <typename R, typename Eps, typename Enabled = void>
+		struct Sqrt
+		{
+			static_assert(is_ratio<R>::value, "Ratio must be a `std::ratio` type.");
+			static_assert(std::ratio_greater_equal<R, Zero>::value, "R can't be negative");
+		};
+
+		template <typename R, typename Eps>
+		struct Sqrt<R, Eps, typename std::enable_if<std::ratio_greater_equal<R, Zero>::value && IsPerfectSquare<R>::value>::type> {
+			using type = typename IsPerfectSquare<R>::Sqrt;
+		};
+
+		template <typename R, typename Eps>
+		struct Sqrt<R, Eps, typename std::enable_if<(std::ratio_greater_equal<R, Zero>::value && !IsPerfectSquare<R>::value)>::type> : Sqrt_<R, Eps> {};
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Calculate square root of a ratio at compile-time
+	 * @details		Calculates a rational approximation of the square root of the ratio. The error
+	 *				in the calculation is bounded by 1/epsilon (Eps). E.g. for the default value
+	 *				of 100000000, the maximum error will be a/100000000, or 1e-8, or said another way,
+	 *				the error will be on the order of 10^-9. Since these calculations are done at 
+	 *				compile time, it is advisable to set epsilon to the highest value that does not
+	 *				cause an integer overflow in the calculation. If you can't compile `ratio_sqrt` 
+	 *				due to overflow errors, reducing the value of epsilon sufficiently will correct
+	 *				the problem.\n\n
+	 *				`ratio_sqrt` is guaranteed to converge for all values of `Ratio` which do not
+	 *				overflow. 
+	 * @note		This function provides a rational approximation, _NOT_ an exact value.
+	 * @tparam		Ratio	ratio to take the square root of. This can represent any rational value,
+	 *						_not_ just integers or values with integer roots.
+	 * @tparam		Eps		Value of epsilon, which represents the inverse of the maximum allowable
+	 *						error. This value should be chosen to be as high as possible before
+	 *						integer overflow errors occur in the compiler.
+	 */
+	template<typename Ratio, std::intmax_t Eps = 100000000>
+	using ratio_sqrt = typename  detail::Sqrt<Ratio, std::ratio<1, Eps>>::type;
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		 * @brief		implementation of `sqrt`
+		 * @details		square roots the conversion ratio, `base_unit` exponents, pi exponents, and removes
+		 *				datum translation ratios.
+		 */
+		template<class Unit, std::intmax_t Eps>
+		struct sqrt_impl
+		{
+			static_assert(is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			using Conversion = typename Unit::conversion_ratio;
+			using type = unit <ratio_sqrt<Conversion, Eps>,
+				sqrt_base<base_unit_of<typename Unit::base_unit_type>>,
+				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>,
+				std::ratio < 0 >>;
+		};
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**	 
+	 * @ingroup		UnitManipulators
+	 * @brief		represents the square root of type `class U`.
+	 * @details	Calculates a rational approximation of the square root of the unit. The error
+	 *				in the calculation is bounded by 1/epsilon (Eps). E.g. for the default value
+	 *				of 100000000, the maximum error will be a/100000000, or 1e-8, or said another way,
+	 *				the error will be on the order of 10^-9. Since these calculations are done at
+	 *				compile time, it is advisable to set epsilon to the highest value that does not
+	 *				cause an integer overflow in the calculation. If you can't compile `ratio_sqrt`
+	 *				due to overflow errors, reducing the value of epsilon sufficiently will correct
+	 *				the problem.\n\n
+	 *				`ratio_sqrt` is guaranteed to converge for all values of `Ratio` which do not
+	 *				overflow.
+	 * @tparam		U	`unit` type to take the square root of.
+	 * @tparam		Eps	Value of epsilon, which represents the inverse of the maximum allowable
+	 *					error. This value should be chosen to be as high as possible before
+	 *					integer overflow errors occur in the compiler. 
+	 * @note		USE WITH CAUTION. The is an approximate value. In general, squared<sqrt<meter>> != meter,
+	 *				i.e. the operation is not reversible, and it will result in propogated approximations.
+	 *				Use only when absolutely necessary.
+	 */
+	template<class U, std::intmax_t Eps = 100000000>
+	using square_root = typename detail::sqrt_impl<U, Eps>::type;
 
 	//------------------------------
 	//	COMPOUND UNITS
@@ -1795,7 +2039,7 @@ namespace units
 	 * @note		This is intentionally identical in concept to a `std::ratio`.
 	 *
 	 */
-	template<typename Units, std::intmax_t Num, std::intmax_t Denom = 1>
+	template<typename Units, std::uintmax_t Num, std::uintmax_t Denom = 1>
 	struct unit_value_t : detail::_unit_value_t<Units>
 	{
 		typedef Units unit_type;
@@ -1825,8 +2069,7 @@ namespace units
 	 */
 	template<typename Category, typename T>
 	struct is_unit_value_t_category : std::integral_constant<bool,
-		std::is_same<base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value &&
-		std::is_base_of<detail::_unit_value_t<typename unit_value_t_traits<T>::unit_type>, T>::value>	// T is a unit_value_t
+		std::is_same<base_unit_of<typename unit_value_t_traits<T>::unit_type>, Category>::value>
 	{
 		static_assert(is_base_unit<Category>::value, "Template parameter `Category` must be a `base_unit` type.");
 	};
@@ -1930,13 +2173,13 @@ namespace units
 
 	/**
 	 * @brief		multiplies two unit_value_t types at compile-time
-	 * @details		The resulting unit will the the `unit_type` of `U1`
+	 * @details		The resulting unit will the the `unit_type` of `U1 * U2`
 	 * @tparam		U1	left-hand `unit_value_t`
 	 * @patarm		U2	right-hand `unit_value_t`
 	 * @note		very similar in concept to `std::ratio_multiply`
 	 */
 	template<class U1, class U2>
-	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<compound_unit<typename unit_value_t_traits<U1>::unit_type, typename unit_value_t_traits<U2>::unit_type>>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U2>;
 		
@@ -1971,7 +2214,7 @@ namespace units
 	 * @note		very similar in concept to `std::ratio_divide`
 	 */
 	template<class U1, class U2>
-	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<compound_unit<typename unit_value_t_traits<U1>::unit_type, inverse<typename unit_value_t_traits<U1>::unit_type>>>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U2>;
 		
@@ -1999,20 +2242,54 @@ namespace units
 	};
 
 	/**
-	* @brief		raises unit_value_to a power at compile-time
-	* @details		The resulting unit will the the `unit_type` of `U1`
-	* @tparam		U1	left-hand `unit_value_t`
-	* @patarm		U2	right-hand `unit_value_t`
-	* @note		very similar in concept to `std::ratio_divide`
-	*/
+	 * @brief		raises unit_value_to a power at compile-time
+	 * @details		The resulting unit will the `unit_type` of `U1` squared
+	 * @tparam		U1	`unit_value_t` to take the square root of
+	 * @note		very similar in concept to `units::math::pow`
+	 */
 	template<class U1, int power>
-	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<typename unit_value_t_traits<U1>::unit_type>
+	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<detail::power_of_unit<2, typename unit_value_t_traits<U1>::unit_type>>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U1>;
 		
 		using unit_type = typename detail::power_of_unit<power, typename Base::_UNIT1>::type;
 		using ratio = typename detail::power_of_ratio<power, typename Base::_RATIO1>::type;
 		using pi_exponent = std::ratio_multiply<std::ratio<power>, typename Base::_UNIT1::pi_exponent_ratio>;
+
+		// dispatch value based on pi exponent
+		static const unit_t<unit_type> value()
+		{
+			using UsePi = typename std::conditional<Base::_PI_EXP::num != 0, std::true_type, std::false_type>::type;
+			return value(UsePi());
+		}
+
+		// value if PI isn't involved
+		static const unit_t<unit_type> value(std::false_type)
+		{
+			return unit_t<unit_type>((double)ratio::num / ratio::den);
+		}
+
+		// value if PI *is* involved
+		static const unit_t<unit_type> value(std::true_type)
+		{
+			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+		}
+	};
+
+	/**
+	* @brief		calculates square root of unit_value_t at compile-time
+	* @details		The resulting unit will the square root `unit_type` of `U1`	 
+	* @tparam		U1	`unit_value_t` to take the square root of
+	* @note			very similar in concept to `units::ratio_sqrt`
+	*/
+	template<class U1, std::intmax_t Eps = 100000000>
+	struct unit_value_sqrt : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<square_root<typename unit_value_t_traits<U1>::unit_type, Eps>>
+	{
+		using Base = detail::unit_value_arithmetic<U1, U1>;
+
+		using unit_type = square_root<typename Base::_UNIT1, Eps>;
+		using ratio = ratio_sqrt<typename Base::_RATIO1, Eps>;
+		using pi_exponent = ratio_sqrt<typename Base::_UNIT1::pi_exponent_ratio, Eps>;
 
 		// dispatch value based on pi exponent
 		static const unit_t<unit_type> value()
@@ -5279,6 +5556,21 @@ namespace units
 			return dimensionless::scalar_t(std::log2(x.toDouble()));
 		}
 
+		/* pow is implemented earlier in the library since a lot of the unit definitions depend on it */
+
+		/**
+		 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
+		 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
+		 * @tparam		power exponential power to raise <i>value</i> by.
+		 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
+		 * @returns		new unit_t, raised to the given exponent
+		 */
+		template<class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
+		inline auto sqrt(const UnitType& value) -> unit_t<square_root<typename unit_t_traits<UnitType>::unit_type>, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+		{
+			return unit_t<square_root<typename unit_t_traits<UnitType>::unit_type>, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
+				(std::sqrt(value.toDouble()));
+		}
 
 	}	// end namespace math
 
