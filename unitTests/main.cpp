@@ -109,6 +109,33 @@ TEST_F(TypeTraits, isRatio)
 	EXPECT_FALSE(units::is_ratio<double>::value);
 }
 
+TEST_F(TypeTraits, ratio_sqrt)
+{
+	using rt2 = ratio_sqrt<std::ratio<2>>;
+	EXPECT_LT(std::abs(std::sqrt(2 / (double)1) - rt2::num / (double)rt2::den), 5e-9);
+
+	using rt4 = ratio_sqrt<std::ratio<4>>;
+	EXPECT_LT(std::abs(std::sqrt(4 / (double)1) - rt4::num / (double)rt4::den), 5e-9);
+
+	using rt10 = ratio_sqrt<std::ratio<10>>;
+	EXPECT_LT(std::abs(std::sqrt(10 / (double)1) - rt10::num / (double)rt10::den), 5e-9);
+
+	using rt30 = ratio_sqrt<std::ratio<30>>;
+	EXPECT_LT(std::abs(std::sqrt(30 / (double)1) - rt30::num / (double)rt30::den), 5e-9);
+
+	using rt61 = ratio_sqrt<std::ratio<61>>;
+	EXPECT_LT(std::abs(std::sqrt(61 / (double)1) - rt61::num / (double)rt61::den), 5e-9);
+
+	using rt100 = ratio_sqrt<std::ratio<100>>;
+	EXPECT_LT(std::abs(std::sqrt(100 / (double)1) - rt100::num / (double)rt100::den), 5e-9);
+
+	using rt1000 = ratio_sqrt<std::ratio<1000>>;
+	EXPECT_LT(std::abs(std::sqrt(1000 / (double)1) - rt1000::num / (double)rt1000::den), 5e-9);
+
+	using rt10000 = ratio_sqrt<std::ratio<10000>>;
+	EXPECT_LT(std::abs(std::sqrt(10000 / (double)1) - rt10000::num / (double)rt10000::den), 5e-9);
+}
+
 TEST_F(TypeTraits, isUnit)
 {
 	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
@@ -1134,6 +1161,15 @@ TEST_F(UnitManipulators, cubed)
 
 	test = convert<cubed<meters>, cubic_feet>(0.0283168);
 	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
+}
+
+TEST_F(UnitManipulators, square_root)
+{
+	double test;
+
+	test = convert<units::square_root<square_kilometer>, meter>(1.0);
+	EXPECT_TRUE((is_convertible_unit<typename std::decay<units::square_root<square_kilometer>>::type, kilometer>::value));
+	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
 
 TEST_F(UnitManipulators, compoundUnits)
@@ -2529,6 +2565,23 @@ TEST_F(UnitMath, pow)
 	EXPECT_TRUE(isSame);
 }
 
+TEST_F(UnitMath, sqrt)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(sqrt(square_meter_t(4.0)))>::type>::value));
+	EXPECT_NEAR(meter_t(2.0).toDouble(), sqrt(square_meter_t(4.0)).toDouble(), 5.0e-9);
+
+	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(sqrt(steradian_t(16.0)))>::type>::value));
+	EXPECT_NEAR(angle::radian_t(4.0).toDouble(), sqrt(steradian_t(16.0)).toDouble(), 5.0e-9);
+
+	EXPECT_TRUE((std::is_convertible<typename std::decay<foot_t>::type, typename std::decay<decltype(sqrt(square_foot_t(10.0)))>::type>::value));
+
+	// for rational conversion (i.e. no integral root) let's check a bunch of different ways this could go wrong
+	foot_t resultFt = sqrt(square_foot_t(10.0));
+	EXPECT_NEAR(foot_t(3.16227766017).toDouble(), sqrt(square_foot_t(10.0)).toDouble(), 5.0e-9);
+	EXPECT_NEAR(foot_t(3.16227766017).toDouble(), resultFt.toDouble(), 5.0e-9);
+	EXPECT_EQ(resultFt, sqrt(square_foot_t(10.0)));
+}
+
 TEST_F(CompileTimeArithmetic, unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
@@ -2564,12 +2617,14 @@ TEST_F(CompileTimeArithmetic, unit_value_add)
 
 	using sum = unit_value_add<mRatio, mRatio>;
 	EXPECT_EQ(meter_t(3.0), sum::value());
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, sum>::value));
 
 	typedef unit_value_t<feet, 1> ftRatio;
 
 	using sumf = unit_value_add<ftRatio, mRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<foot_t>::type, typename std::decay<decltype(sumf::value())>::type>::value));
 	EXPECT_NEAR(5.92125984, sumf::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, sumf>::value));
 
 	typedef unit_value_t<celsius, 1> cRatio;
 	typedef unit_value_t<fahrenheit, 2> fRatio;
@@ -2577,6 +2632,7 @@ TEST_F(CompileTimeArithmetic, unit_value_add)
 	using sumc = unit_value_add<cRatio, fRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<celsius_t>::type, typename std::decay<decltype(sumc::value())>::type>::value));
 	EXPECT_NEAR(2.11111111111, sumc::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::temperature_unit, sumc>::value));
 
 	typedef unit_value_t<angle::radian, 1> rRatio;
 	typedef unit_value_t<angle::degree, 3> dRatio;
@@ -2584,6 +2640,7 @@ TEST_F(CompileTimeArithmetic, unit_value_add)
 	using sumr = unit_value_add<rRatio, dRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(sumr::value())>::type>::value));
 	EXPECT_NEAR(1.05235988, sumr::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::angle_unit, sumr>::value));
 }
 
 TEST_F(CompileTimeArithmetic, unit_value_subtract)
@@ -2592,12 +2649,14 @@ TEST_F(CompileTimeArithmetic, unit_value_subtract)
 
 	using diff = unit_value_subtract<mRatio, mRatio>;
 	EXPECT_EQ(meter_t(0), diff::value());
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, diff>::value));
 
 	typedef unit_value_t<feet, 1> ftRatio;
 
 	using difff = unit_value_subtract<ftRatio, mRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<foot_t>::type, typename std::decay<decltype(difff::value())>::type>::value));
 	EXPECT_NEAR(-3.92125984, difff::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, difff>::value));
 
 	typedef unit_value_t<celsius, 1> cRatio;
 	typedef unit_value_t<fahrenheit, 2> fRatio;
@@ -2605,6 +2664,7 @@ TEST_F(CompileTimeArithmetic, unit_value_subtract)
 	using diffc = unit_value_subtract<cRatio, fRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<celsius_t>::type, typename std::decay<decltype(diffc::value())>::type>::value));
 	EXPECT_NEAR(-0.11111111111, diffc::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::temperature_unit, diffc>::value));
 
 	typedef unit_value_t<angle::radian, 1> rRatio;
 	typedef unit_value_t<angle::degree, 3> dRatio;
@@ -2612,6 +2672,7 @@ TEST_F(CompileTimeArithmetic, unit_value_subtract)
 	using diffr = unit_value_subtract<rRatio, dRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(diffr::value())>::type>::value));
 	EXPECT_NEAR(0.947640122, diffr::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::angle_unit, diffr>::value));
 }
 
 TEST_F(CompileTimeArithmetic, unit_value_multiply)
@@ -2621,19 +2682,23 @@ TEST_F(CompileTimeArithmetic, unit_value_multiply)
 
 	using product = unit_value_multiply<mRatio, mRatio>;
 	EXPECT_EQ(square_meter_t(4), product::value());
-	
+	EXPECT_TRUE((is_unit_value_t_category<category::area_unit, product>::value));
+
 	using productM = unit_value_multiply<mRatio, ftRatio>;
 	
 	EXPECT_TRUE((std::is_same<typename std::decay<square_meter_t>::type, typename std::decay<decltype(productM::value())>::type>::value));
 	EXPECT_NEAR(4.0, productM::value().toDouble(), 5.0e-7);
+	EXPECT_TRUE((is_unit_value_t_category<category::area_unit, productM>::value));
 
 	using productF = unit_value_multiply<ftRatio, mRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<square_foot_t>::type, typename std::decay<decltype(productF::value())>::type>::value));
 	EXPECT_NEAR(43.0556444224, productF::value().toDouble(), 5.0e-6);
+	EXPECT_TRUE((is_unit_value_t_category<category::area_unit, productF>::value));
 
 	using productF2 = unit_value_multiply<ftRatio, ftRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<square_foot_t>::type, typename std::decay<decltype(productF2::value())>::type>::value));
 	EXPECT_NEAR(43.0556444224, productF2::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::area_unit, productF2>::value));
 
  	typedef unit_value_t<force::newton, 5> nRatio;
 
@@ -2642,6 +2707,7 @@ TEST_F(CompileTimeArithmetic, unit_value_multiply)
 	EXPECT_TRUE((std::is_convertible<typename std::decay<torque::newton_meter_t>::type, typename std::decay<decltype(productN::value())>::type>::value));
 	EXPECT_NEAR(32.8084, productN::value().toDouble(), 5.0e-8);
 	EXPECT_NEAR(10.0, (productN::value().convert<newton_meter>().toDouble()), 5.0e-7);
+	EXPECT_TRUE((is_unit_value_t_category<category::torque_unit, productN>::value));
 
 	typedef unit_value_t<angle::radian, 11, 10> r1Ratio;
 	typedef unit_value_t<angle::radian, 22, 10> r2Ratio;
@@ -2650,6 +2716,7 @@ TEST_F(CompileTimeArithmetic, unit_value_multiply)
 	EXPECT_TRUE((std::is_same<typename std::decay<steradian_t>::type, typename std::decay<decltype(productR::value())>::type>::value));
 	EXPECT_NEAR(2.42, productR::value().toDouble(), 5.0e-8);
 	EXPECT_NEAR(7944.39137, (productR::value().convert<degrees_squared>().toDouble()), 5.0e-6);
+	EXPECT_TRUE((is_unit_value_t_category<category::solid_angle_unit, productR>::value));
 }
 
 TEST_F(CompileTimeArithmetic, unit_value_divide)
@@ -2659,32 +2726,38 @@ TEST_F(CompileTimeArithmetic, unit_value_divide)
 
 	using product = unit_value_divide<mRatio, mRatio>;
 	EXPECT_EQ(scalar_t(1), product::value());
+	EXPECT_TRUE((is_unit_value_t_category<category::scalar_unit, product>::value));
 
 	using productM = unit_value_divide<mRatio, ftRatio>;
 
 	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(productM::value())>::type>::value));
 	EXPECT_NEAR(1, productM::value().toDouble(), 5.0e-7);
+	EXPECT_TRUE((is_unit_value_t_category<category::scalar_unit, productM>::value));
 
 	using productF = unit_value_divide<ftRatio, mRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(productF::value())>::type>::value));
 	EXPECT_NEAR(1.0, productF::value().toDouble(), 5.0e-6);
+	EXPECT_TRUE((is_unit_value_t_category<category::scalar_unit, productF>::value));
 
 	using productF2 = unit_value_divide<ftRatio, ftRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(productF2::value())>::type>::value));
 	EXPECT_NEAR(1.0, productF2::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::scalar_unit, productF2>::value));
 
 	typedef unit_value_t<seconds, 10> sRatio;
 
 	using productMS = unit_value_divide<mRatio, sRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<meters_per_second_t>::type, typename std::decay<decltype(productMS::value())>::type>::value));
 	EXPECT_NEAR(0.2, productMS::value().toDouble(), 5.0e-8);
-	
+	EXPECT_TRUE((is_unit_value_t_category<category::velocity_unit, productMS>::value));
+
 	typedef unit_value_t<angle::radian, 20> rRatio;
 
 	using productRS = unit_value_divide<rRatio, sRatio>;
 	EXPECT_TRUE((std::is_same<typename std::decay<radians_per_second_t>::type, typename std::decay<decltype(productRS::value())>::type>::value));
 	EXPECT_NEAR(2, productRS::value().toDouble(), 5.0e-8);
 	EXPECT_NEAR(114.592, (productRS::value().convert<degrees_per_second>().toDouble()), 5.0e-4);
+	EXPECT_TRUE((is_unit_value_t_category<category::angular_velocity_unit, productRS>::value));
 }
 
 TEST_F(CompileTimeArithmetic, unit_value_power)
@@ -2694,6 +2767,7 @@ TEST_F(CompileTimeArithmetic, unit_value_power)
 	using sq = unit_value_power<mRatio, 2>;
 	EXPECT_TRUE((std::is_convertible<typename std::decay<square_meter_t>::type, typename std::decay<decltype(sq::value())>::type>::value));
 	EXPECT_NEAR(4, sq::value().toDouble(), 5.0e-8);
+	EXPECT_TRUE((is_unit_value_t_category<category::area_unit, sq>::value));
 
 	typedef unit_value_t<angle::radian, 18, 10> rRatio;
 
@@ -2701,6 +2775,34 @@ TEST_F(CompileTimeArithmetic, unit_value_power)
 	EXPECT_TRUE((std::is_convertible<typename std::decay<steradian_t>::type, typename std::decay<decltype(sqr::value())>::type>::value));
 	EXPECT_NEAR(3.24, sqr::value().toDouble(), 5.0e-8);
 	EXPECT_NEAR(10636.292574038049895092690529904, (sqr::value().convert<degrees_squared>().toDouble()), 5.0e-10);
+	EXPECT_TRUE((is_unit_value_t_category<category::solid_angle_unit, sqr>::value));
+}
+
+TEST_F(CompileTimeArithmetic, unit_value_sqrt)
+{
+	typedef unit_value_t<square_meters, 10> mRatio;
+
+	using root = unit_value_sqrt<mRatio>;
+	EXPECT_TRUE((std::is_convertible<typename std::decay<meter_t>::type, typename std::decay<decltype(root::value())>::type>::value));
+	EXPECT_NEAR(3.16227766017, root::value().toDouble(), 5.0e-9);
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, root>::value));
+
+	typedef unit_value_t<hectare, 51, 7> hRatio;
+
+	using rooth = unit_value_sqrt<hRatio, 100000000>;
+	double test = rooth::value().toDouble();
+	EXPECT_TRUE((std::is_convertible<typename std::decay<mile_t>::type, typename std::decay<decltype(rooth::value())>::type>::value));
+	EXPECT_NEAR(2.69920623253, rooth::value().toDouble(), 5.0e-8);
+	EXPECT_NEAR(269.920623, rooth::value().convert<meters>().toDouble(), 5.0e-6);
+	EXPECT_TRUE((is_unit_value_t_category<category::length_unit, rooth>::value));
+
+	typedef unit_value_t<steradian, 18, 10> rRatio;
+
+	using rootr = unit_value_sqrt<rRatio>;
+	EXPECT_TRUE((std::is_convertible<typename std::decay<angle::radian>::type, typename std::decay<decltype(rootr::value())>::type>::value));
+	EXPECT_NEAR(1.3416407865, rootr::value().toDouble(), 5.0e-8);
+	EXPECT_NEAR(76.8703525747261, rootr::value().convert<angle::degrees>().toDouble(), 5.0e-10);
+	EXPECT_TRUE((is_unit_value_t_category<category::angle_unit, rootr>::value));
 }
 
 TEST_F(CaseStudies, radarRangeEquation)
