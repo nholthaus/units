@@ -5069,7 +5069,7 @@ namespace units
 			static_assert(is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
-			return angle::radian_t(std::atan2(y.convert<unit_t_traits<X>::unit_type>().toDouble(), x.toDouble()));
+			return angle::radian_t(std::atan2(y.convert<typename unit_t_traits<X>::unit_type>().toDouble(), x.toDouble()));
 		}
 
 		//----------------------------------
