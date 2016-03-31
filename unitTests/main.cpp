@@ -136,16 +136,27 @@ TEST_F(TypeTraits, ratio_sqrt)
 	EXPECT_LT(std::abs(std::sqrt(10000 / (double)1) - rt10000::num / (double)rt10000::den), 5e-9);
 }
 
-TEST_F(TypeTraits, isUnit)
+TEST_F(TypeTraits, is_unit)
 {
 	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
 	EXPECT_FALSE(units::is_unit<double>::value);
 	EXPECT_TRUE(units::is_unit<meters>::value);
 	EXPECT_TRUE(units::is_unit<feet>::value);
 	EXPECT_TRUE(units::is_unit<degrees_squared>::value);
+	EXPECT_FALSE(units::is_unit<meter_t>::value);
 }
 
-TEST_F(TypeTraits, unitTraits)
+TEST_F(TypeTraits, is_unit_t)
+{
+	EXPECT_FALSE(units::is_unit_t<std::ratio<1>>::value);
+	EXPECT_FALSE(units::is_unit_t<double>::value);
+	EXPECT_FALSE(units::is_unit_t<meters>::value);
+	EXPECT_FALSE(units::is_unit_t<feet>::value);
+	EXPECT_FALSE(units::is_unit_t<degrees_squared>::value);
+	EXPECT_TRUE(units::is_unit_t<meter_t>::value);
+}
+
+TEST_F(TypeTraits, unit_traits)
 {
 	bool isntUnit = std::is_same<void, units::unit_traits<double>>::value;
 	bool isUnit = std::is_same<void, units::unit_traits<meters>>::value;
@@ -2542,6 +2553,36 @@ TEST_F(UnitMath, log1p)
 TEST_F(UnitMath, log2)
 {
 	EXPECT_EQ(log2(100.0), log2(scalar_t(100.0)));
+}
+
+TEST_F(UnitMath, ceil)
+{
+	double val = 101.1;
+	EXPECT_EQ(ceil(val), ceil(meter_t(val)).toDouble());
+	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(ceil(meter_t(val)))>::type>::value));
+}
+
+TEST_F(UnitMath, floor)
+{
+	double val = 101.1;
+	EXPECT_EQ(floor(val), floor(scalar_t(val)));
+}
+
+TEST_F(UnitMath, fmod)
+{
+	EXPECT_EQ(fmod(100.0, 101.2), fmod(meter_t(100.0), meter_t(101.2)).toDouble());
+}
+
+TEST_F(UnitMath, trunc)
+{
+	double val = 101.1;
+	EXPECT_EQ(trunc(val), trunc(scalar_t(val)));
+}
+
+TEST_F(UnitMath, round)
+{
+	double val = 101.1;
+	EXPECT_EQ(round(val), round(scalar_t(val)));
 }
 
 TEST_F(UnitMath, pow)
