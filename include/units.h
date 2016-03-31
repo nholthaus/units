@@ -777,10 +777,11 @@ namespace units
 
 		template <typename R>
 		struct IsPerfectSquare {
-			const static std::intmax_t DenSqrt_ = Integer<std::ratio<R::den>>::value;
-			const static std::intmax_t NumSqrt_ = Integer<std::ratio<R::num>>::value;
-			const static bool value = DenSqrt_ * DenSqrt_ == R::den && NumSqrt_ * NumSqrt_ == R::num;
-			using Sqrt = std::ratio<NumSqrt_, DenSqrt_>;
+			using Den_ = std::ratio<R::den>;
+			using S_ = std::ratio_multiply<R, Square<Den_>>;
+			using I_ = std::ratio<Integer<S_>::value>;
+			const static bool value = std::ratio_equal<S_, Square<I_>>::value;
+			using Sqrt = std::ratio_divide<I_, Den_>;
 		};
 
 		// Represents sqrt(P)-Q.
@@ -818,10 +819,10 @@ namespace units
 			using Rem = typename Reciprocal_::Rem;
 			using I_ = typename Reciprocal_::I;
 			using Den_ = std::ratio_add<typename Last_::W, I_>;
-			using U = std::ratio_divide<typename Last_::V, Den_>;
-			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, Den_>;
-			using W = std::ratio_divide<One, Den_>;
-			using Error = Abs_<std::ratio_divide<std::ratio_subtract<U, std::ratio_multiply<V, W>>, typename Reciprocal<Rem>::I>>;
+			using U = std::ratio_divide<typename Last_::V, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
+			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
+			using W = std::ratio_divide<One, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
+			using Error = Abs_<std::ratio_divide<std::ratio_subtract<U, std::ratio_multiply<V, W>>, typename std::conditional<(Reciprocal<Rem>::I::num != 0), typename Reciprocal<Rem>::I, One>::type>>;
 		};
 
 		template <typename Tr>
@@ -831,7 +832,7 @@ namespace units
 			using V = std::ratio<Integer<R>::value>;
 			using W = Zero;
 			using Rem = Remainder<R, V>;
-			using Error = std::ratio_divide<One, typename Reciprocal<Rem>::I>;
+			using Error = std::ratio_divide<One, typename std::conditional<(Reciprocal<Rem>::I::num != 0), typename Reciprocal<Rem>::I, One>::type>;
 		};
 
 		template <typename R, typename Eps, std::intmax_t N = 1, typename Enabled = void>
@@ -2483,7 +2484,7 @@ namespace units
 		using micrograms = micro<grams>;
 		using milligrams = milli<grams>;
 		using metric_tons = unit<std::ratio<1000>, kilograms>;
-		using pounds = unit<std::ratio<45359237, 10000000000>, kilograms>;
+		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
 		using imperial_tons = unit<std::ratio<2240>, pounds>;
 		using us_tons = unit<std::ratio<2000>, pounds>;
 		using stone = unit<std::ratio<14>, pounds>;
@@ -3574,11 +3575,11 @@ namespace units
 		using kilocalories = kilo<calories>;
 		using kilowatt_hours = unit<std::ratio<36, 10>, megajoules>;
 		using watt_hours = unit<std::ratio<1, 1000>, kilowatt_hours>;
-		using british_thermal_units = unit<std::ratio<105505585262, 10000000000>, joules>;
+		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
 		using british_thermal_units_iso = unit<std::ratio<1055056, 1000>, joules>;
 		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
 		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
-		using foot_pounds = unit<std::ratio<13558179483314004, 1000000000000000000>, joules>;
+		using foot_pounds = unit<std::ratio<13558179483314004, 10000000000000000>, joules>;
 		/** @} */
 
 		/**
@@ -3763,7 +3764,7 @@ namespace units
 		using megavolts = mega<volts>;
 		using gigavolts = giga<volts>;
 		using statvolts = unit<std::ratio<1000000, 299792458>, volts>;
-		using abvolts = unit<std::ratio<1, 10000000000>, volts>;
+		using abvolts = unit<std::ratio<1, 100000000>, volts>;
 		/** @} */
 
 		/**
@@ -4122,7 +4123,7 @@ namespace units
 		using kilowebers = kilo<webers>;
 		using megawebers = mega<webers>;
 		using gigawebers = giga<webers>;
-		using maxwells = unit<std::ratio<1, 10000000000>, webers>;
+		using maxwells = unit<std::ratio<1, 100000000>, webers>;
 		/** @} */
 
 		/**
