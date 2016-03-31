@@ -264,7 +264,7 @@ namespace units
 		 * @brief		helper type to identify units.
 		 * @details		A non-templated base class for `unit` which enables RTTI testing.
 		 */
-		struct _unit_t {};
+		struct _unit {};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -275,7 +275,7 @@ namespace units
 	 *				whether `class T` implements a `unit`.
 	 */
 	template<class T>
-	struct is_unit : std::is_base_of<detail::_unit_t, T>::type {};
+	struct is_unit : std::is_base_of<detail::_unit, T>::type {};
 
 	/** @} */ // end of TypeTraits
 
@@ -382,7 +382,7 @@ namespace units
 	 */
 	template <class, class, class, class> struct unit;
 	template<class Conversion, class... Exponents, class PiExponent, class Translation>
-	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : detail::_unit_t
+	struct unit<Conversion, base_unit<Exponents...>, PiExponent, Translation> : detail::_unit
 	{
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
@@ -415,7 +415,7 @@ namespace units
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
 	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
-	struct unit : detail::_unit_t
+	struct unit : detail::_unit
 	{
 		static_assert(is_unit<BaseUnit>::value, "Template parameter `BaseUnit` must be a `unit` type.");
 		static_assert(is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
@@ -1269,7 +1269,25 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	// forward declaration
 	template<typename T> struct linear_scale;
+
+	namespace detail
+	{
+		/**
+		* @brief		helper type to identify units.
+		* @details		A non-templated base class for `unit` which enables RTTI testing.
+		*/
+		struct _unit_t {};
+	}
 	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		TypeTraits
+	 * @brief		Traits which tests if a class is a `unit`
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
+	 *				whether `class T` implements a `unit`.
+	 */
+	template<class T>
+	struct is_unit_t : std::is_base_of<detail::_unit_t, T>::type {};
 
 	/**
 	 * @ingroup		UnitContainers
@@ -1327,7 +1345,7 @@ namespace units
 	 *				- \ref constantContainers "constant unit containers"
 	 */
 	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
-	class unit_t : public NonLinearScale<T>
+	class unit_t : public NonLinearScale<T>, detail::_unit_t
 	{
 		static_assert(units::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
@@ -5556,9 +5574,14 @@ namespace units
 			return dimensionless::scalar_t(std::log2(x.toDouble()));
 		}
 
+		//----------------------------------
+		//	POWER FUNCTIONS
+		//----------------------------------
+		
 		/* pow is implemented earlier in the library since a lot of the unit definitions depend on it */
 
 		/**
+		 * @ingroup		UnitMath
 		 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
 		 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
 		 * @tparam		power exponential power to raise <i>value</i> by.
@@ -5570,6 +5593,79 @@ namespace units
 		{
 			return unit_t<square_root<typename unit_t_traits<UnitType>::unit_type>, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 				(std::sqrt(value.toDouble()));
+		}
+
+		//----------------------------------
+		//	ROUNDING FUNCTIONS
+		//----------------------------------
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Round up value
+		 * @details		Rounds x upward, returning the smallest integral value that is not less than x.
+		 * @param[in]	x	Unit value to round up.
+		 * @returns		The smallest integral value that is not less than x.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType ceil(UnitType x)
+		{
+			return UnitType(std::ceil(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Round down value
+		 * @details		Rounds x downward, returning the largest integral value that is not greater than x.
+		 * @param[in]	x	Unit value to round down.
+		 * @returns		The value of x rounded downward.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType floor(UnitType x)
+		{
+			return UnitType(std::floor(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute remainder of division
+		 * @details		Returns the floating-point remainder of numer/denom (rounded towards zero).
+		 * @param[in]	numer	Value of the quotient numerator.
+		 * @param[in]	denom	Value of the quotient denominator.
+		 * @returns		The remainder of dividing the arguments.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType fmod(UnitType numer, UnitType denom)
+		{
+			return UnitType(std::fmod(numer.toDouble(), denom.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Truncate value
+		 * @details		Rounds x toward zero, returning the nearest integral value that is not 
+		 *				larger in magnitude than x. Effectively rounds towards 0.
+		 * @param[in]	x	Value to truncate
+		 * @returns		The nearest integral value that is not larger in magnitude than x.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType trunc(UnitType x)
+		{
+			return UnitType(std::trunc(x.toDouble()));
+		}
+
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Round to nearest
+		 * @details		Returns the integral value that is nearest to x, with halfway cases rounded
+		 *				away from zero.
+		 * @param[in]	x	value to round.
+		 * @returns		The value of x rounded to the nearest integral.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType round(UnitType x)
+		{
+			return UnitType(std::round(x.toDouble()));
 		}
 
 	}	// end namespace math
