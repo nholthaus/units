@@ -5668,6 +5668,88 @@ namespace units
 			return UnitType(std::round(x.toDouble()));
 		}
 
+		//----------------------------------
+		//	FLOATING POINT MANIPULATION 
+		//----------------------------------
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Copy sign
+		 * @details		Returns a value with the magnitude and dimension of x, and the sign of y. 
+		 *				Values x and y do not have to be compatible units.
+		 * @param[in]	x	Value with the magnitude of the resulting value.
+		 * @param[in]	y	Value with the sign of the resulting value.
+		 * @returns		value with the magnitude and dimension of x, and the sign of y.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		UnitTypeLhs copysign(UnitTypeLhs x, UnitTypeRhs y)
+		{
+			return UnitTypeLhs(std::copysign(x.toDouble(), y.toDouble()));
+		}
+
+		/// Overload to copy the sign from a raw double
+		template<class UnitTypeLhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value>::type>
+		UnitTypeLhs copysign(UnitTypeLhs x, double y)
+		{
+			return UnitTypeLhs(std::copysign(x.toDouble(), y));
+		}
+
+		//----------------------------------
+		//	MIN / MAX / DIFFERENCE 
+		//----------------------------------
+		
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Positive difference
+		 * @details		The function returns x-y if x>y, and zero otherwise, in the same units as x.
+		 *				Values x and y do not have to be the same type of units, but they do have to
+		 *				be compatible.
+		 * @param[in]	x	Values whose difference is calculated.
+		 * @param[in]	y	Values whose difference is calculated.
+		 * @returns		The positive difference between x and y.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		UnitTypeLhs fdim(UnitTypeLhs x, UnitTypeRhs y)
+		{
+			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return UnitTypeLhs(std::fdim(x.toDouble(), y.convert<typename unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Maximum value
+		 * @details		Returns the larger of its arguments: either x or y, in the same units as x.
+		 *				Values x and y do not have to be the same type of units, but they do have to
+		 *				be compatible.
+		 * @param[in]	x	Values among which the function selects a maximum.
+		 * @param[in]	y	Values among which the function selects a maximum.
+		 * @returns		The maximum numeric value of its arguments.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		UnitTypeLhs fmax(UnitTypeLhs x, UnitTypeRhs y)
+		{
+			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return UnitTypeLhs(std::fmax(x.toDouble(), y.convert<typename unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Minimum value
+		 * @details		Returns the smaller of its arguments: either x or y, in the same units as x.
+		 *				If one of the arguments in a NaN, the other is returned.
+		 *				Values x and y do not have to be the same type of units, but they do have to
+		 *				be compatible.
+		 * @param[in]	x	Values among which the function selects a minimum.
+		 * @param[in]	y	Values among which the function selects a minimum.
+		 * @returns		The minimum numeric value of its arguments.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		UnitTypeLhs fmin(UnitTypeLhs x, UnitTypeRhs y)
+		{
+			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return UnitTypeLhs(std::fmin(x.toDouble(), y.convert<typename unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+		}
+
 	}	// end namespace math
 
 };	// end namespace units
