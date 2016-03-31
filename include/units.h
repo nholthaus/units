@@ -735,124 +735,115 @@ namespace units
 		using Zero = std::ratio<0>;
 		using One = std::ratio<1>;
 		template <typename R> using Square = std::ratio_multiply<R, R>;
-	
+
 		// Find the largest integer N such that Predicate<N>::value is true.
-		template <template <std::uintmax_t N> class Predicate, typename Enabled = void>
-		struct BinarySearch 
-		{
-			template <std::uintmax_t N>
-			struct SafeDouble_ 
-			{
-				const std::uintmax_t static value = 2 * N;
+		template <template <std::intmax_t N> class Predicate, typename Enabled = void>
+		struct BinarySearch {
+			template <std::intmax_t N>
+			struct SafeDouble_ {
+				const std::intmax_t static value = 2 * N;
 				static_assert(value > 0, "Overflows when computing 2 * N");
 			};
-	
-			template <std::uintmax_t Lower, std::uintmax_t Upper, typename Enabled1 = void>
+
+			template <std::intmax_t Lower, std::intmax_t Upper, typename Enabled1 = void>
 			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
-	
-			template <std::uintmax_t Lower, std::uintmax_t Upper>
-			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<Upper - Lower == 1>::type> : std::integral_constant<int, Lower> {};
-	
-			template <std::uintmax_t Lower, std::uintmax_t Upper>
-			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<(Upper - Lower > 1 && Predicate<Lower + (Upper - Lower) / 2>::value)>::type>
+
+			template <std::intmax_t Lower, std::intmax_t Upper>
+			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<Upper - Lower == 1>::type> : std::integral_constant<std::intmax_t, Lower>{};
+
+			template <std::intmax_t Lower, std::intmax_t Upper>
+			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if < (Upper - Lower > 1 && Predicate<Lower + (Upper - Lower) / 2>::value)>::type >
 				: DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
-	
-			template <std::uintmax_t Lower, typename Enabled1 = void>
+
+			template <std::intmax_t Lower, typename Enabled1 = void>
 			struct SingleSidedSearch_ : DoubleSidedSearch_<Lower, SafeDouble_<Lower>::value> {};
-	
-			template <std::uintmax_t Lower>
+
+			template <std::intmax_t Lower>
 			struct SingleSidedSearch_<Lower, typename std::enable_if<Predicate<SafeDouble_<Lower>::value>::value>::type>
-				: SingleSidedSearch_<SafeDouble_<Lower>::value> {};
-	
-			const static std::uintmax_t value = SingleSidedSearch_<1>::value;
+				: SingleSidedSearch_<SafeDouble_<Lower>::value>{};
+
+			const static std::intmax_t value = SingleSidedSearch_<1>::value;
 		};
-	
-		template <template <std::uintmax_t N> class Predicate>
-		struct BinarySearch<Predicate, typename std::enable_if<!Predicate<1>::value>::type> : std::integral_constant<int, 0> {};
-	
+
+		template <template <std::intmax_t N> class Predicate>
+		struct BinarySearch<Predicate, typename std::enable_if<!Predicate<1>::value>::type> : std::integral_constant<intmax_t, 0>{};
+
 		// Find largest integer N such that N<=sqrt(R)
 		template <typename R>
-		struct Integer 
-		{
-			template <std::uintmax_t N> using Predicate_ = std::ratio_less_equal<Square<std::ratio<N>>, R>;
-			const static std::uintmax_t value = BinarySearch<Predicate_>::value;
+		struct Integer {
+			template <std::intmax_t N> using Predicate_ = std::ratio_less_equal<std::ratio<N>, std::ratio_divide<R, std::ratio<N>>>;
+			const static std::intmax_t value = BinarySearch<Predicate_>::value;
 		};
-	
+
 		template <typename R>
-		struct IsPerfectSquare 
-		{
-			using Den_ = std::ratio<R::den>;
-			using S_ = std::ratio_multiply<R, Square<Den_>>;
-			using I_ = std::ratio<Integer<S_>::value>;
-			const static bool value = std::ratio_equal<S_, Square<I_>>::value;
-			using Sqrt = std::ratio_divide<I_, Den_>;
+		struct IsPerfectSquare {
+			const static std::intmax_t DenSqrt_ = Integer<std::ratio<R::den>>::value;
+			const static std::intmax_t NumSqrt_ = Integer<std::ratio<R::num>>::value;
+			const static bool value = DenSqrt_ * DenSqrt_ == R::den && NumSqrt_ * NumSqrt_ == R::num;
+			using Sqrt = std::ratio<NumSqrt_, DenSqrt_>;
 		};
-	
+
 		// Represents sqrt(P)-Q.
 		template <typename Tp, typename Tq>
-		struct Remainder 
-		{
+		struct Remainder {
 			using P = Tp;
 			using Q = Tq;
 		};
-	
-		// Represents abs(1/R) = I + Rem where R is a remainder.
+
+		// Represents 1/R = I + Rem where R is a Remainder.
 		template <typename R>
-		struct Reciprocal 
-		{
-			template <typename T>
-			using Abs_ = typename std::conditional<std::ratio_less<T, Zero>::value, std::ratio_subtract<Zero, T>, T>::type;
-	
+		struct Reciprocal {
 			using P_ = typename R::P;
 			using Q_ = typename R::Q;
-			using Den_ = Abs_<std::ratio_subtract<P_, Square<Q_>>>;
+			using Den_ = std::ratio_subtract<P_, Square<Q_>>;
 			using A_ = std::ratio_divide<Q_, Den_>;
 			using B_ = std::ratio_divide<P_, Square<Den_>>;
-			const static std::uintmax_t I = (A_::num + Integer<std::ratio_multiply<B_, Square<std::ratio<A_::den>>>>::value) / A_::den;
-			using Rem = Remainder<B_, std::ratio_subtract<std::ratio<I>, A_>>;
+			const static std::intmax_t I_ = (A_::num + Integer<std::ratio_multiply<B_, Square<std::ratio<A_::den>>>>::value) / A_::den;
+			using I = std::ratio<I_>;
+			using Rem = Remainder<B_, std::ratio_subtract<I, A_>>;
 		};
-	
+
 		// Expands sqrt(R) to continued fraction:
 		// f(x)=C1+1/(C2+1/(C3+1/(...+1/(Cn+x)))) = (U*x+V)/(W*x+1) and sqrt(R)=f(Rem).
-		template <typename Tr, std::uintmax_t N>
+		// The error |f(Rem)-V| = |(U-W*V)x/(W*x+1)| <= |U-W*V|*Rem <= |U-W*V|/I' where
+		// I' is the integer part of reciprocal of Rem.
+		template <typename Tr, std::intmax_t N>
 		struct ContinuedFraction {
+			template <typename T>
+			using Abs_ = typename std::conditional<std::ratio_less<T, Zero>::value, std::ratio_subtract<Zero, T>, T>::type;
+
 			using R = Tr;
 			using Last_ = ContinuedFraction<R, N - 1>;
 			using Reciprocal_ = Reciprocal<typename Last_::Rem>;
 			using Rem = typename Reciprocal_::Rem;
-			using I_ = std::ratio<Reciprocal_::I>;
+			using I_ = typename Reciprocal_::I;
 			using Den_ = std::ratio_add<typename Last_::W, I_>;
 			using U = std::ratio_divide<typename Last_::V, Den_>;
 			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, Den_>;
 			using W = std::ratio_divide<One, Den_>;
+			using Error = Abs_<std::ratio_divide<std::ratio_subtract<U, std::ratio_multiply<V, W>>, typename Reciprocal<Rem>::I>>;
 		};
-	
+
 		template <typename Tr>
-		struct ContinuedFraction<Tr, 1> 
-		{
+		struct ContinuedFraction<Tr, 1> {
 			using R = Tr;
 			using U = One;
 			using V = std::ratio<Integer<R>::value>;
 			using W = Zero;
 			using Rem = Remainder<R, V>;
+			using Error = std::ratio_divide<One, typename Reciprocal<Rem>::I>;
 		};
-	
-		template <typename Fraction>
-		using Error = std::ratio<1, Reciprocal<Remainder<typename Fraction::R, typename Fraction::V>>::I>;
-	
-		template <typename R, typename Eps, std::uintmax_t N = 1, typename Enabled = void>
+
+		template <typename R, typename Eps, std::intmax_t N = 1, typename Enabled = void>
 		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
-	
-		template <typename R, typename Eps, std::uintmax_t N>
-		struct Sqrt_<R, Eps, N, typename std::enable_if<std::ratio_less_equal<Error<ContinuedFraction<R, N>>, Eps>::value>::type> 
-		{
+
+		template <typename R, typename Eps, intmax_t N>
+		struct Sqrt_<R, Eps, N, typename std::enable_if<std::ratio_less_equal<typename ContinuedFraction<R, N>::Error, Eps>::value>::type> {
 			using type = typename ContinuedFraction<R, N>::V;
 		};
 
 		template <typename R, typename Eps, typename Enabled = void>
-		struct Sqrt
-		{
-			static_assert(is_ratio<R>::value, "Ratio must be a `std::ratio` type.");
+		struct Sqrt {
 			static_assert(std::ratio_greater_equal<R, Zero>::value, "R can't be negative");
 		};
 
@@ -862,7 +853,7 @@ namespace units
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, typename std::enable_if<(std::ratio_greater_equal<R, Zero>::value && !IsPerfectSquare<R>::value)>::type> : Sqrt_<R, Eps> {};
+		struct Sqrt<R, Eps, typename std::enable_if<(std::ratio_greater_equal<R, Zero>::value && !IsPerfectSquare<R>::value)>::type> : Sqrt_<R, Eps>{};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -871,7 +862,7 @@ namespace units
 	 * @brief		Calculate square root of a ratio at compile-time
 	 * @details		Calculates a rational approximation of the square root of the ratio. The error
 	 *				in the calculation is bounded by 1/epsilon (Eps). E.g. for the default value
-	 *				of 100000000, the maximum error will be a/100000000, or 1e-8, or said another way,
+	 *				of 10000000000, the maximum error will be a/10000000000, or 1e-8, or said another way,
 	 *				the error will be on the order of 10^-9. Since these calculations are done at 
 	 *				compile time, it is advisable to set epsilon to the highest value that does not
 	 *				cause an integer overflow in the calculation. If you can't compile `ratio_sqrt` 
@@ -886,7 +877,7 @@ namespace units
 	 *						error. This value should be chosen to be as high as possible before
 	 *						integer overflow errors occur in the compiler.
 	 */
-	template<typename Ratio, std::intmax_t Eps = 100000000>
+	template<typename Ratio, std::intmax_t Eps = 10000000000>
 	using ratio_sqrt = typename  detail::Sqrt<Ratio, std::ratio<1, Eps>>::type;
 
 	/** @cond */	// DOXYGEN IGNORE
@@ -915,7 +906,7 @@ namespace units
 	 * @brief		represents the square root of type `class U`.
 	 * @details	Calculates a rational approximation of the square root of the unit. The error
 	 *				in the calculation is bounded by 1/epsilon (Eps). E.g. for the default value
-	 *				of 100000000, the maximum error will be a/100000000, or 1e-8, or said another way,
+	 *				of 10000000000, the maximum error will be a/10000000000, or 1e-8, or said another way,
 	 *				the error will be on the order of 10^-9. Since these calculations are done at
 	 *				compile time, it is advisable to set epsilon to the highest value that does not
 	 *				cause an integer overflow in the calculation. If you can't compile `ratio_sqrt`
@@ -931,7 +922,7 @@ namespace units
 	 *				i.e. the operation is not reversible, and it will result in propogated approximations.
 	 *				Use only when absolutely necessary.
 	 */
-	template<class U, std::intmax_t Eps = 100000000>
+	template<class U, std::intmax_t Eps = 10000000000>
 	using square_root = typename detail::sqrt_impl<U, Eps>::type;
 
 	//------------------------------
@@ -2300,7 +2291,7 @@ namespace units
 	* @tparam		U1	`unit_value_t` to take the square root of
 	* @note			very similar in concept to `units::ratio_sqrt`
 	*/
-	template<class U1, std::intmax_t Eps = 100000000>
+	template<class U1, std::intmax_t Eps = 10000000000>
 	struct unit_value_sqrt : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<square_root<typename unit_value_t_traits<U1>::unit_type, Eps>>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U1>;
@@ -2492,7 +2483,7 @@ namespace units
 		using micrograms = micro<grams>;
 		using milligrams = milli<grams>;
 		using metric_tons = unit<std::ratio<1000>, kilograms>;
-		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
+		using pounds = unit<std::ratio<45359237, 10000000000>, kilograms>;
 		using imperial_tons = unit<std::ratio<2240>, pounds>;
 		using us_tons = unit<std::ratio<2000>, pounds>;
 		using stone = unit<std::ratio<14>, pounds>;
@@ -3583,11 +3574,11 @@ namespace units
 		using kilocalories = kilo<calories>;
 		using kilowatt_hours = unit<std::ratio<36, 10>, megajoules>;
 		using watt_hours = unit<std::ratio<1, 1000>, kilowatt_hours>;
-		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
+		using british_thermal_units = unit<std::ratio<105505585262, 10000000000>, joules>;
 		using british_thermal_units_iso = unit<std::ratio<1055056, 1000>, joules>;
 		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
 		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
-		using foot_pounds = unit<std::ratio<13558179483314004, 10000000000000000>, joules>;
+		using foot_pounds = unit<std::ratio<13558179483314004, 1000000000000000000>, joules>;
 		/** @} */
 
 		/**
@@ -3772,7 +3763,7 @@ namespace units
 		using megavolts = mega<volts>;
 		using gigavolts = giga<volts>;
 		using statvolts = unit<std::ratio<1000000, 299792458>, volts>;
-		using abvolts = unit<std::ratio<1, 100000000>, volts>;
+		using abvolts = unit<std::ratio<1, 10000000000>, volts>;
 		/** @} */
 
 		/**
@@ -4131,7 +4122,7 @@ namespace units
 		using kilowebers = kilo<webers>;
 		using megawebers = mega<webers>;
 		using gigawebers = giga<webers>;
-		using maxwells = unit<std::ratio<1, 100000000>, webers>;
+		using maxwells = unit<std::ratio<1, 10000000000>, webers>;
 		/** @} */
 
 		/**
