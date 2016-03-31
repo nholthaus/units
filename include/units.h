@@ -5750,6 +5750,54 @@ namespace units
 			return UnitTypeLhs(std::fmin(x.toDouble(), y.convert<typename unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
 		}
 
+		//----------------------------------
+		//	OTHER FUNCTIONS
+		//----------------------------------
+		
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute absolute value
+		 * @details		Returns the absolute value of x, i.e. |x|.
+		 * @param[in]	x	Value whose absolute value is returned.
+		 * @returns		The absolute value of x.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType fabs(UnitType x)
+		{
+			return UnitType(std::fabs(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Compute absolute value
+		 * @details		Returns the absolute value of x, i.e. |x|.
+		 * @param[in]	x	Value whose absolute value is returned.
+		 * @returns		The absolute value of x.
+		 */
+		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		UnitType abs(UnitType x)
+		{
+			return UnitType(std::fabs(x.toDouble()));
+		}
+
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Multiply-add
+		 * @details		Returns x*y+z. The function computes the result without losing precision in 
+		 *				any intermediate result. The resulting unit type is a compound unit of x* y.
+		 * @param[in]	x	Values to be multiplied.
+		 * @param[in]	y	Values to be multiplied.
+		 * @param[in]	z	Value to be added.
+		 * @returns		The result of x*y+z
+		 */
+		template<class UnitTypeLhs, class UnitMultiply, class UnitAdd, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitMultiply>::value && is_unit_t<UnitAdd>::value>::type>
+		auto fma(UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x * y)
+		{
+			using resultType = decltype(x * y);
+			static_assert(is_convertible_unit_t<compound_unit<typename unit_t_traits<UnitTypeLhs>::unit_type, typename unit_t_traits<UnitMultiply>::unit_type>, typename unit_t_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
+			return resultType(std::fma(x.toDouble(), y.toDouble(), resultType(z).toDouble()));
+		}
+
 	}	// end namespace math
 
 };	// end namespace units
