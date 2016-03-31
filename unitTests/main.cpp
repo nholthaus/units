@@ -2799,9 +2799,9 @@ TEST_F(CompileTimeArithmetic, unit_value_sqrt)
 	typedef unit_value_t<steradian, 18, 10> rRatio;
 
 	using rootr = unit_value_sqrt<rRatio>;
-	EXPECT_TRUE((std::is_convertible<typename std::decay<angle::radian>::type, typename std::decay<decltype(rootr::value())>::type>::value));
+	EXPECT_TRUE((is_angle_unit<decltype(rootr::value())>::value));
 	EXPECT_NEAR(1.3416407865, rootr::value().toDouble(), 5.0e-8);
-	EXPECT_NEAR(76.8703525747261, rootr::value().convert<angle::degrees>().toDouble(), 5.0e-10);
+	EXPECT_NEAR(76.870352574, rootr::value().convert<angle::degrees>().toDouble(), 5.0e-6);
 	EXPECT_TRUE((is_unit_value_t_category<category::angle_unit, rootr>::value));
 }
 
