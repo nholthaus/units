@@ -2555,36 +2555,6 @@ TEST_F(UnitMath, log2)
 	EXPECT_EQ(log2(100.0), log2(scalar_t(100.0)));
 }
 
-TEST_F(UnitMath, ceil)
-{
-	double val = 101.1;
-	EXPECT_EQ(ceil(val), ceil(meter_t(val)).toDouble());
-	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(ceil(meter_t(val)))>::type>::value));
-}
-
-TEST_F(UnitMath, floor)
-{
-	double val = 101.1;
-	EXPECT_EQ(floor(val), floor(scalar_t(val)));
-}
-
-TEST_F(UnitMath, fmod)
-{
-	EXPECT_EQ(fmod(100.0, 101.2), fmod(meter_t(100.0), meter_t(101.2)).toDouble());
-}
-
-TEST_F(UnitMath, trunc)
-{
-	double val = 101.1;
-	EXPECT_EQ(trunc(val), trunc(scalar_t(val)));
-}
-
-TEST_F(UnitMath, round)
-{
-	double val = 101.1;
-	EXPECT_EQ(round(val), round(scalar_t(val)));
-}
-
 TEST_F(UnitMath, pow)
 {
 	bool isSame;
@@ -2623,6 +2593,65 @@ TEST_F(UnitMath, sqrt)
 	EXPECT_EQ(resultFt, sqrt(square_foot_t(10.0)));
 }
 
+TEST_F(UnitMath, ceil)
+{
+	double val = 101.1;
+	EXPECT_EQ(ceil(val), ceil(meter_t(val)).toDouble());
+	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(ceil(meter_t(val)))>::type>::value));
+}
+
+TEST_F(UnitMath, floor)
+{
+	double val = 101.1;
+	EXPECT_EQ(floor(val), floor(scalar_t(val)));
+}
+
+TEST_F(UnitMath, fmod)
+{
+	EXPECT_EQ(fmod(100.0, 101.2), fmod(meter_t(100.0), meter_t(101.2)).toDouble());
+}
+
+TEST_F(UnitMath, trunc)
+{
+	double val = 101.1;
+	EXPECT_EQ(trunc(val), trunc(scalar_t(val)));
+}
+
+TEST_F(UnitMath, round)
+{
+	double val = 101.1;
+	EXPECT_EQ(round(val), round(scalar_t(val)));
+}
+
+TEST_F(UnitMath, copysign)
+{
+	double sign = -1;
+	meter_t val(5.0);
+	EXPECT_EQ(meter_t(-5.0), copysign(val, sign));
+	EXPECT_EQ(meter_t(-5.0), copysign(val, angle::radian_t(sign)));
+}
+
+TEST_F(UnitMath, fdim)
+{
+	EXPECT_EQ(meter_t(0.0), fdim(meter_t(8.0), meter_t(10.0)));
+	EXPECT_EQ(meter_t(2.0), fdim(meter_t(10.0), meter_t(8.0)));
+	EXPECT_EQ(meter_t(9.3904), fdim(meter_t(10.0), foot_t(2.0)));
+}
+
+TEST_F(UnitMath, fmin)
+{
+	EXPECT_EQ(meter_t(8.0), fmin(meter_t(8.0), meter_t(10.0)));
+	EXPECT_EQ(meter_t(8.0), fmin(meter_t(10.0), meter_t(8.0)));
+	EXPECT_EQ(foot_t(2.0), fmin(meter_t(10.0), foot_t(2.0)));
+}
+
+TEST_F(UnitMath, fmax)
+{
+	EXPECT_EQ(meter_t(10.0), fmax(meter_t(8.0), meter_t(10.0)));
+	EXPECT_EQ(meter_t(10.0), fmax(meter_t(10.0), meter_t(8.0)));
+	EXPECT_EQ(meter_t(10.0), fmax(meter_t(10.0), foot_t(2.0)));
+}
+
 TEST_F(CompileTimeArithmetic, unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
@@ -2640,7 +2669,6 @@ TEST_F(CompileTimeArithmetic, is_unit_value_t)
 	EXPECT_TRUE((units::is_unit_value_t<mRatio, meters>::value));
 	EXPECT_FALSE((units::is_unit_value_t<meter_t, meters>::value));
 	EXPECT_FALSE((units::is_unit_value_t<double, meters>::value));
-
 }
 
 TEST_F(CompileTimeArithmetic, is_unit_value_t_category)
