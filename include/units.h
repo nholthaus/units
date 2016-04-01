@@ -194,16 +194,33 @@ namespace units
 	template<class ...>
 	struct void_t { typedef void type; };
 
-	/**
-	 * @brief		parameter pack for boolean arguments.
-	 */
-	template<bool...> struct bool_pack {};
+// 	/**
+// 	 * @brief		parameter pack for boolean arguments.
+// 	 */
+// 	template<bool...> struct bool_pack {};
+// 
+// 	/**
+// 	 * @brief		Trait which tests that a set of other traits are all true.
+// 	 */
+// 	template<bool... Args>
+// 	struct all_true : std::is_same<bool_pack<true, Args...>, bool_pack<Args..., true>> {};
 
-	/**
-	 * @brief		Trait which tests that a set of other traits are all true.
-	 */
 	template<bool... Args>
-	struct all_true : std::is_same<bool_pack<true, Args...>, bool_pack<Args..., true>> {};
+	struct all_true;
+
+	template<bool First, bool... Args>
+	struct all_true<First, Args...>
+	{
+		static const bool value = First && all_true<Args...>::value;
+		using type = typename std::integral_constant<bool, value>::type;
+	};
+
+	template<bool Last>
+	struct all_true<Last>
+	{
+		static const bool value = Last;
+		using type = typename std::integral_constant<bool, value>::type;
+	};
 
 	/**
 	 * @brief		unit traits implementation for classes which are not units.
@@ -736,39 +753,57 @@ namespace units
 		using One = std::ratio<1>;
 		template <typename R> using Square = std::ratio_multiply<R, R>;
 
-		// Find the largest integer N such that Predicate<N>::value is true.
-		template <template <std::intmax_t N> class Predicate, typename Enabled = void>
+		// Find the largest std::integer N such that Predicate<N>::value is true.
+		template <template <std::intmax_t N> class Predicate, typename enabled = void>
 		struct BinarySearch {
 			template <std::intmax_t N>
 			struct SafeDouble_ {
-				const std::intmax_t static value = 2 * N;
+				static const std::intmax_t value = 2 * N;
 				static_assert(value > 0, "Overflows when computing 2 * N");
 			};
 
-			template <std::intmax_t Lower, std::intmax_t Upper, typename Enabled1 = void>
-			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
+// 			template <intmax_t Lower, intmax_t Upper, typename Enabled1 = void>
+// 			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
+// 
+// 			template <intmax_t Lower, intmax_t Upper>
+// 			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<Upper - Lower == 1>::type> : std::integral_constant<intmax_t, Lower>{};
+// 
+// 			template <intmax_t Lower, intmax_t Upper>
+// 			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if < (Upper - Lower>1 && Predicate<Lower + (Upper - Lower) / 2>::value)>::type >
+// 				: DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
 
-			template <std::intmax_t Lower, std::intmax_t Upper>
-			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if<Upper - Lower == 1>::type> : std::integral_constant<std::intmax_t, Lower>{};
+			template <intmax_t Lower, intmax_t Upper, typename Condition1 = void, typename Condition2 = void>
+			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Upper,
+				typename std::conditional<(Upper - Lower == 1), std::true_type, std::false_type>::type,
+				typename std::conditional<((Upper - Lower>1 && Predicate<Lower + (Upper - Lower) / 2>::value)), std::true_type, std::false_type>::type> {};
 
-			template <std::intmax_t Lower, std::intmax_t Upper>
-			struct DoubleSidedSearch_<Lower, Upper, typename std::enable_if < (Upper - Lower > 1 && Predicate<Lower + (Upper - Lower) / 2>::value)>::type >
-				: DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
+			template <intmax_t Lower, intmax_t Upper>
+			struct DoubleSidedSearch_<Lower, Upper, std::false_type, std::false_type> : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
 
-			template <std::intmax_t Lower, typename Enabled1 = void>
-			struct SingleSidedSearch_ : DoubleSidedSearch_<Lower, SafeDouble_<Lower>::value> {};
+			template <intmax_t Lower, intmax_t Upper, typename Condition2>
+			struct DoubleSidedSearch_<Lower, Upper, std::true_type, Condition2> : std::integral_constant<intmax_t, Lower>{};
+
+			template <intmax_t Lower, intmax_t Upper, typename Condition1>
+			struct DoubleSidedSearch_<Lower, Upper, Condition1, std::true_type> : DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
+
+
+
+			template <std::intmax_t Lower, class enabled = void>
+			struct SingleSidedSearch_ : SingleSidedSearch_<Lower, typename std::conditional<Predicate<SafeDouble_<Lower>::value>::value, std::true_type, std::false_type>::type>{};
 
 			template <std::intmax_t Lower>
-			struct SingleSidedSearch_<Lower, typename std::enable_if<Predicate<SafeDouble_<Lower>::value>::value>::type>
-				: SingleSidedSearch_<SafeDouble_<Lower>::value>{};
+			struct SingleSidedSearch_<Lower, std::false_type> : DoubleSidedSearch_<Lower, SafeDouble_<Lower>::value> {};
+
+			template <std::intmax_t Lower>
+			struct SingleSidedSearch_<Lower, std::true_type> : SingleSidedSearch_<SafeDouble_<Lower>::value>{};
 
 			const static std::intmax_t value = SingleSidedSearch_<1>::value;
-		};
+ 		};
 
 		template <template <std::intmax_t N> class Predicate>
-		struct BinarySearch<Predicate, typename std::enable_if<!Predicate<1>::value>::type> : std::integral_constant<intmax_t, 0>{};
+		struct BinarySearch<Predicate, typename std::enable_if<!Predicate<1>::value>::type> : std::integral_constant<std::intmax_t, 0>{};
 
-		// Find largest integer N such that N<=sqrt(R)
+		// Find largest std::integer N such that N<=sqrt(R)
 		template <typename R>
 		struct Integer {
 			template <std::intmax_t N> using Predicate_ = std::ratio_less_equal<std::ratio<N>, std::ratio_divide<R, std::ratio<N>>>;
@@ -777,11 +812,10 @@ namespace units
 
 		template <typename R>
 		struct IsPerfectSquare {
-			using Den_ = std::ratio<R::den>;
-			using S_ = std::ratio_multiply<R, Square<Den_>>;
-			using I_ = std::ratio<Integer<S_>::value>;
-			const static bool value = std::ratio_equal<S_, Square<I_>>::value;
-			using Sqrt = std::ratio_divide<I_, Den_>;
+			const static std::intmax_t DenSqrt_ = Integer<std::ratio<R::den>>::value;
+			const static std::intmax_t NumSqrt_ = Integer<std::ratio<R::num>>::value;
+			const static bool value =( DenSqrt_ * DenSqrt_ == R::den && NumSqrt_ * NumSqrt_ == R::num);
+			using Sqrt = std::ratio<NumSqrt_, DenSqrt_>;
 		};
 
 		// Represents sqrt(P)-Q.
@@ -807,7 +841,7 @@ namespace units
 		// Expands sqrt(R) to continued fraction:
 		// f(x)=C1+1/(C2+1/(C3+1/(...+1/(Cn+x)))) = (U*x+V)/(W*x+1) and sqrt(R)=f(Rem).
 		// The error |f(Rem)-V| = |(U-W*V)x/(W*x+1)| <= |U-W*V|*Rem <= |U-W*V|/I' where
-		// I' is the integer part of reciprocal of Rem.
+		// I' is the std::integer part of reciprocal of Rem.
 		template <typename Tr, std::intmax_t N>
 		struct ContinuedFraction {
 			template <typename T>
@@ -819,10 +853,10 @@ namespace units
 			using Rem = typename Reciprocal_::Rem;
 			using I_ = typename Reciprocal_::I;
 			using Den_ = std::ratio_add<typename Last_::W, I_>;
-			using U = std::ratio_divide<typename Last_::V, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
-			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
-			using W = std::ratio_divide<One, typename std::conditional<(Den_::num != 0), Den_, One>::type>;
-			using Error = Abs_<std::ratio_divide<std::ratio_subtract<U, std::ratio_multiply<V, W>>, typename std::conditional<(Reciprocal<Rem>::I::num != 0), typename Reciprocal<Rem>::I, One>::type>>;
+			using U = std::ratio_divide<typename Last_::V, Den_>;
+			using V = std::ratio_divide<std::ratio_add<typename Last_::U, std::ratio_multiply<typename Last_::V, I_>>, Den_>;
+			using W = std::ratio_divide<One, Den_>;
+			using Error = Abs_<std::ratio_divide<std::ratio_subtract<U, std::ratio_multiply<V, W>>, typename Reciprocal<Rem>::I>>;
 		};
 
 		template <typename Tr>
@@ -832,18 +866,18 @@ namespace units
 			using V = std::ratio<Integer<R>::value>;
 			using W = Zero;
 			using Rem = Remainder<R, V>;
-			using Error = std::ratio_divide<One, typename std::conditional<(Reciprocal<Rem>::I::num != 0), typename Reciprocal<Rem>::I, One>::type>;
+			using Error = std::ratio_divide<One, typename Reciprocal<Rem>::I>;
 		};
 
-		template <typename R, typename Eps, std::intmax_t N = 1, typename Enabled = void>
+		template <typename R, typename Eps, std::intmax_t N = 1, typename enabled = void>
 		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
 
-		template <typename R, typename Eps, intmax_t N>
+		template <typename R, typename Eps, std::intmax_t N>
 		struct Sqrt_<R, Eps, N, typename std::enable_if<std::ratio_less_equal<typename ContinuedFraction<R, N>::Error, Eps>::value>::type> {
 			using type = typename ContinuedFraction<R, N>::V;
 		};
 
-		template <typename R, typename Eps, typename Enabled = void>
+		template <typename R, typename Eps, typename enabled = void>
 		struct Sqrt {
 			static_assert(std::ratio_greater_equal<R, Zero>::value, "R can't be negative");
 		};
@@ -1568,10 +1602,12 @@ namespace units
 	 *				one or more types to see if they represent unit_t's whose scale is in decibels.
 	 * @tparam		T	one or more types to test.
 	 */
+// 	template<typename... T>
+// 	struct has_decibel_scale : std::integral_constant<bool,
+// 		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
+// 	{};
 	template<typename... T>
-	struct has_decibel_scale : std::integral_constant<bool,
-		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
-	{};
+	using has_decibel_scale = typename all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::type;
 
 	/**
 	 * @ingroup		TypeTraits
