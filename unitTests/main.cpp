@@ -238,7 +238,7 @@ TEST_F(TypeTraits, baseUnitOf)
 TEST_F(TypeTraits, hasLinearScale)
 {
 	bool test;
-	
+
 	test = has_linear_scale<scalar_t>::value;
 	EXPECT_TRUE(test);
 	test = has_linear_scale<meter_t>::value;
@@ -269,6 +269,13 @@ TEST_F(TypeTraits, hasDecibelScale)
 	EXPECT_TRUE(test);
 	test = has_decibel_scale<dBW_t>::value;
 	EXPECT_TRUE(test);
+
+	EXPECT_TRUE((has_decibel_scale<dBW_t, dB_t>::value));
+	EXPECT_TRUE((has_decibel_scale<dBW_t, dBm_t>::value));
+	EXPECT_TRUE((has_decibel_scale<dB_t, dB_t>::value));
+	EXPECT_TRUE((has_decibel_scale<dB_t, dB_t, dB_t>::value));
+	EXPECT_FALSE((has_decibel_scale<dB_t, dB_t, dB_t, meter_t>::value));
+	EXPECT_FALSE((has_decibel_scale<meter_t, dB_t>::value));
 }
 
 TEST_F(TypeTraits, isSameScale)
@@ -1534,49 +1541,47 @@ TEST_F(UnitContainer, dBAddition)
 {
 	bool isSame;
 
-	EXPECT_TRUE((has_decibel_scale<dBW_t, dB_t>::value));
+	auto result_dbw = dBW_t(10.0) + dB_t(30.0);
+	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
+	result_dbw = dB_t(12.0) + dBW_t(30.0);
+	EXPECT_NEAR(42.0, result_dbw(), 5.0e-5);
+	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
+	EXPECT_TRUE(isSame);
 
-// 	auto result_dbw = dBW_t(10.0) + dB_t(30.0);
-// 	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
-// 	result_dbw = dB_t(12.0) + dBW_t(30.0);
-// 	EXPECT_NEAR(42.0, result_dbw(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
-// 	EXPECT_TRUE(isSame);
-// 
-// 	auto result_dbm = dB_t(30.0) + dBm_t(20.0);
-// 	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
-// 
-// 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
-// 	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
-// 	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_dBW2), unit_t<squared<watts>, double, decibel_scale>>::value;
-// 	EXPECT_TRUE(isSame);
+	auto result_dbm = dB_t(30.0) + dBm_t(20.0);
+	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
+
+	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
+	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
+	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
+	isSame = std::is_same<decltype(result_dBW2), unit_t<squared<watts>, double, decibel_scale>>::value;
+	EXPECT_TRUE(isSame);
 }
 
-// TEST_F(UnitContainer, dBSubtraction)
-// {
-// 	bool isSame;
-// 
-// 	auto result_dbw = dBW_t(10.0) - dB_t(30.0);
-// 	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
-// 	EXPECT_TRUE(isSame);
-// 
-// 	auto result_dbm = dBm_t(100.0) - dB_t(30.0);
-// 	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_dbm), dBm_t>::value;
-// 	EXPECT_TRUE(isSame);
-// 
-// 	auto result_db = dBW_t(100.0) - dBW_t(80.0);
-// 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_db), dB_t>::value;
-// 	EXPECT_TRUE(isSame);
-// 
-// 	result_db = dB_t(100.0) - dB_t(80.0);
-// 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-// 	isSame = std::is_same<decltype(result_db), dB_t>::value;
-// 	EXPECT_TRUE(isSame);
-// }
+TEST_F(UnitContainer, dBSubtraction)
+{
+	bool isSame;
+
+	auto result_dbw = dBW_t(10.0) - dB_t(30.0);
+	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
+	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto result_dbm = dBm_t(100.0) - dB_t(30.0);
+	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
+	isSame = std::is_same<decltype(result_dbm), dBm_t>::value;
+	EXPECT_TRUE(isSame);
+
+	auto result_db = dBW_t(100.0) - dBW_t(80.0);
+	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+	isSame = std::is_same<decltype(result_db), dB_t>::value;
+	EXPECT_TRUE(isSame);
+
+	result_db = dB_t(100.0) - dB_t(80.0);
+	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+	isSame = std::is_same<decltype(result_db), dB_t>::value;
+	EXPECT_TRUE(isSame);
+}
 
 TEST_F(UnitConversion, length)
 {
