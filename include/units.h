@@ -194,33 +194,23 @@ namespace units
 	template<class ...>
 	struct void_t { typedef void type; };
 
-// 	/**
-// 	 * @brief		parameter pack for boolean arguments.
-// 	 */
-// 	template<bool...> struct bool_pack {};
-// 
-// 	/**
-// 	 * @brief		Trait which tests that a set of other traits are all true.
-// 	 */
-// 	template<bool... Args>
-// 	struct all_true : std::is_same<bool_pack<true, Args...>, bool_pack<Args..., true>> {};
-
 	template<bool... Args>
-	struct all_true;
+	struct all_true_impl;
 
 	template<bool First, bool... Args>
-	struct all_true<First, Args...>
+	struct all_true_impl<First, Args...>
 	{
-		static const bool value = First && all_true<Args...>::value;
-		using type = typename std::integral_constant<bool, value>::type;
+		using type = typename std::integral_constant<bool, First && all_true_impl<Args...>::type::value>::type;
 	};
 
 	template<bool Last>
-	struct all_true<Last>
+	struct all_true_impl<Last>
 	{
-		static const bool value = Last;
-		using type = typename std::integral_constant<bool, value>::type;
+		using type = typename std::integral_constant<bool, Last>::type;
 	};
+
+	template<bool... Args>
+	using all_true = typename all_true_impl<Args...>::type;
 
 	/**
 	 * @brief		unit traits implementation for classes which are not units.
@@ -1590,12 +1580,10 @@ namespace units
 	 *				one or more types to see if they represent unit_t's whose scale is in decibels.
 	 * @tparam		T	one or more types to test.
 	 */
-// 	template<typename... T>
-// 	struct has_decibel_scale : std::integral_constant<bool,
-// 		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
-// 	{};
 	template<typename... T>
-	using has_decibel_scale = typename all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::type;
+	struct has_decibel_scale : std::integral_constant<bool,
+		all_true<std::is_base_of<decibel_scale<typename unit_t_traits<T>::underlying_type>, T>::value...>::value>
+	{};
 
 	/**
 	 * @ingroup		TypeTraits
@@ -1903,7 +1891,7 @@ namespace units
 		 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
 		 * @returns		new unit_t, raised to the given exponent
 		 */
-		template<int power, class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
+		template<int power, class UnitType, class = typename std::enable_if<units::has_linear_scale<UnitType>::value, int>>
 		inline auto pow(const UnitType& value) -> unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
 		{
 			return unit_t<typename detail::power_of_unit<power, typename unit_t_traits<UnitType>::unit_type>::type, typename unit_t_traits<UnitType>::underlying_type, linear_scale>
