@@ -8,6 +8,7 @@ New features:
  - Compile-time unit arithmetic via `unit_value_t`
  - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
  - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`
+ - Improved documentation
 
 Tested on:
  - gcc -4.9
@@ -15,15 +16,6 @@ Tested on:
  - msvc2015
 
 <a href="https://github.com/nholthaus/units/releases/tag/v2.0.0" target="_blank">Download units v2.0.0</a>
-
-Previous Releases
---------
-
- - v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1
- - v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.0.0 - Initial release. Tested with msvc2015
 
 Description
 -----------
@@ -107,6 +99,8 @@ Unit containers can also be used to perform implicit conversions:
 
 Unsupported arithmetic, or improper return types will result in compiler errors:
 
+	using namespace units::length;
+	
 	meter_t a_m(1.0), b_m(2.0), c_m;
 	foot_t	a_ft(1.0), b_ft(2.0), c_ft;
 	
@@ -121,61 +115,124 @@ Unsupported arithmetic, or improper return types will result in compiler errors:
 	auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
 	auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
 	
-Exponentials
-------------
+`<cmath>` Functions
+-------------------
 
-Many functions require units to be raised to some power. This can be accomplished using the units::pow function:
+The `units` library include type-safe unit_t container wrappers for almost all of the <cmath> functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with <cmath>, and it's possible to use both libraries in the same code. 
 
-		square_meter_t m2 = units::pow<2>(meter_t(5.0));	// m2 == 25.0
+The overloaded functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to result to the type-unsafe `toDouble()` member.
+
+In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply preprend the function with the fully-qualified `units::math` prefix, e.g.
+
+    meter_t x(2.0);
+	meter_t y(3.0);
+	square_meter_t z(1.0);
+	square_meter_t result;
+	
+	result = fma(x, y, z);												// Error: ambiguous
+	double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// <cmath> option. Bad. This works, but is type-unsafe and cumbersome!
+	result = math::fma(x, y, z);										// units::math option. OK. Simple and type-safe. 
+	
+Exponentials and Square Roots
+-----------------------------
+
+Many functions require units to be raised to some power. This can be accomplished using the `units::math::pow` function:
+
+	using units::math;
+	
+	square_meter_t m2 = pow<2>(meter_t(5.0));	// m2 == 25.0
 		
-The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type.
+The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the `<cmath> pow` implementation, which takes exponent values at runtime.
 
+Square roots are also provided with the `units::math::sqrt` function. Due to the nature of the `sqrt` operation, the units library can often provide exact conversions for square root operations, but _not in every case_. The rest of the time, the `sqrt` unit will be a _rational_approximation_ of the real value. These are guaranteed to be accurate to at least 10 decimal places.
+
+	using units::math;
+	
+	meter_t m = sqrt(square_meter_t(4.0));		// m == 2.0
+	
 Namespaces
 ----------
 
-Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities. The currently defined namespaces are:
+Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities.
 
-- units::length
-- units::mass
-- units::time
-- units::angle (plane)
-- units::current
-- units::temperature
-- units::substance (amount of, i.e. moles)
-- units::luminous_intensity
-- units::solid_angle
-- units::frequency
-- units::velocity
-- units::angular_velocity
-- units::acceleration
-- units::force
-- units::pressure
-- units::charge
-- units::energy
-- units::power
-- units::voltage
-- units::capacitance
-- units::impedance
-- units::magnetic_flux
-- units::magnetic_field_strength
-- units::inductance
-- units::luminous_flux
-- units::illuminance
-- units::radiation
-- units::torque
-- units::area
-- units::volume
-- units::density
-- units::concentration
-- units::constants (scalar and non-scalar physical constants like Avagadro's number)
+Unit tag and unit_t container definitions are defined in the following namespaces:
+ - units::length
+ - units::mass
+ - units::time
+ - units::angle (plane)
+ - units::current
+ - units::temperature
+ - units::substance (amount of, i.e. moles)
+ - units::luminous_intensity
+ - units::solid_angle
+ - units::frequency
+ - units::velocity
+ - units::angular_velocity
+ - units::acceleration
+ - units::force
+ - units::pressure
+ - units::charge
+ - units::energy
+ - units::power
+ - units::voltage
+ - units::capacitance
+ - units::impedance
+ - units::magnetic_flux
+ - units::magnetic_field_strength
+ - units::inductance
+ - units::luminous_flux
+ - units::illuminance
+ - units::radiation
+ - units::torque
+ - units::area
+ - units::volume
+ - units::density
+ - units::concentration
+ - units::constants (scalar and non-scalar physical constants like Avagadro's number)
+ 
+Mathematical operations like `sin`, `log`, `floor`, etc are defined in the following namespaces:
+ - units::math
+ 
+Type traits that you can use to test unit types are defined in the following namespaces:
+ - units::traits
 
 Build Instructions
 ------------------
 
-The library itself consists of a single header (include/units.h), and can be included into your project without being built. The unit tests and documentation can be built with CMake. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.
+The library itself consists of a single header (include/units.h), and can be included into your project without being built. 
+
+The unit tests and documentation can be built with CMake. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.
 
 To build the tests:
 
-1. create a `build` directory inside or outside of the source tree.
-2. from the build directory, call `cmake [relative path to build direcory]`
-3. This will generate makefiles or a visual studio solution, depending on your platform. From here the project can be built in the usual platform-specific way.
+Windows:
+ 1. Ensure cmake is installed, and that the `bin` directory is in your %PATH% variable, and that a compiler like `Visual Studio 2015 Community Edition` is installed.
+ 2. clone the repository or download the `.zip` package.
+ 3. Open a `cmd` terminal and navigate to the source directory.
+ 4. Type the following commands:
+   - `md build`
+   - `cd build`
+   - `cmake -Wno-dev ..`
+   - `cmake --build . --config Release`
+ 5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
+   
+Linux:
+ 1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
+ 2. Ensure you are using gcc version 4.9 or greater. You can verify this with `gcc --version`.
+ 3. clone the repository or download the `.tar.gz` package.
+ 4. Open a terminal and navigate to the source directory.
+ 5. Type the following commands:
+   - `mkdir build`
+   - `cd build`
+   - `cmake -Wno-dev ..`
+   - `cmake --build . --config Release`
+ 6. The tests will be created in an executable called `unitLibTest` in the folder `build/unitTests`.
+
+Previous Releases
+--------
+
+ - v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
+ - v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1
+ - v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
+ - v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
+ - v1.0.0 - Initial release. Tested with msvc2015
