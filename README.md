@@ -20,20 +20,20 @@ Tested on:
 Description
 -----------
 
-The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. Use the included CMake project to build the tests and documentation.
+The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
 
-unitTests/main.cpp provides comprehensive examples of how to use the library.
 
-Complex, recurively-defined conversions are performed in just 5 processor instructions:
+Complex, recurively-defined conversions are performed in just 2 floating-point arithmetic instructions:
 
-		auto test2 = convert<years, weeks>(2.0);
-	00007FF6D6475ECC  mov         eax,16Dh  
-	00007FF6D6475ED1  xorps       xmm1,xmm1  
-	00007FF6D6475ED4  cvtsi2sd    xmm1,rax  
-	00007FF6D6475ED9  mulsd       xmm1,mmword ptr [__real@4000000000000000 (07FF6D64AFE38h)]  
-	00007FF6D6475EE1  divsd       xmm1,mmword ptr [__real@401c000000000000 (07FF6D64AFE58h)] 
-		EXPECT_NEAR(104.357143, test2, 5.0e-7);
-	00007FF6D6475EE9  ...
+		year_t twoYears(2.0);
+		week_t twoYearsInWeeks = twoYears;
+	00007FF7BDB57FF6  xorps       xmm9,xmm9  
+	00007FF7BDB57FFA  cvtsi2sd    xmm9,rax  
+	00007FF7BDB57FFF  mulsd       xmm9,mmword ptr [__real@4000000000000000 (07FF7BDBB31A0h)]  
+	00007FF7BDB58008  divsd       xmm9,mmword ptr [__real@401c000000000000 (07FF7BDBB33C0h)]  
+	00007FF7BDB58011  movsd       mmword ptr [rbp+6Fh],xmm9  
+		EXPECT_EQ(week_t(104.286), twoYearsInWeeks);
+	00007FF7BDB58017  ...
 
 An explanation of the instructions can be found at: http://stackoverflow.com/questions/35103741/what-is-the-purpose-of-xorps-on-the-same-register/35103871#35103871
 
@@ -65,6 +65,8 @@ The preferred method of conversion is implicitly though the use of unit containe
 	
 For type-safe conversion, see the next section.
 
+The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
+
 Unit containers
 ---------------
 
@@ -90,7 +92,7 @@ The resulting velocity type will be deduced to be `velocity::meters_per_second` 
 
     velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: cannot convert.`
 
-Unit containers can also be used to perform implicit conversions:
+Unit containers can (and should!) be used to perform implicit conversions:
 
 	second_t a;
 	minute_t b(1.0);
@@ -150,6 +152,10 @@ Square roots are also provided with the `units::math::sqrt` function. Due to the
 	
 	meter_t m = sqrt(square_meter_t(4.0));		// m == 2.0
 	
+Compile-time Unit Manipulation
+------------------------------
+
+
 Namespaces
 ----------
 

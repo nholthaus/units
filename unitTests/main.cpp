@@ -1663,6 +1663,10 @@ TEST_F(UnitConversion, mass)
 
 TEST_F(UnitConversion, time)
 {
+	year_t twoYears(2.0);
+	week_t twoYearsInWeeks = twoYears;
+	EXPECT_NEAR(week_t(104.286).toDouble(), twoYearsInWeeks.toDouble(), 5.0e-4);
+
 	double test;
 
 	test = convert<seconds, seconds>(1.0);
@@ -1690,8 +1694,12 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(240.0, test, 5.0e-14);
 }
 
-TEST_F(UnitConversion, angleConversionFactors)
+TEST_F(UnitConversion, angle)
 {
+	angle::degree_t quarterCircleDeg(90.0);
+	angle::radian_t quarterCircleRad = quarterCircleDeg;
+	EXPECT_NEAR(angle::radian_t(constants::PI / 2.0).toDouble(), quarterCircleRad.toDouble(), 5.0e-12);
+
 	double test;
 
 	test = convert<angle::radians, angle::radians>(1.0);
@@ -1721,7 +1729,6 @@ TEST_F(UnitConversion, angleConversionFactors)
 	EXPECT_NEAR(constants::PI / 2, test, 5.0e-6);
 	test = convert<angle::degrees, angle::mils>(47.0);
 	EXPECT_NEAR(5249.95039, test, 5.0e-6);
-
 }
 
 TEST_F(UnitConversion, current)
