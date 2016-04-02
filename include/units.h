@@ -89,7 +89,8 @@ namespace units
 
 	 /**
 	 * @defgroup	UnitMath Unit Math
-	 * @details		Defines a collection of unit-enabled, strongly-typed versions of <cmath> functions.
+	 * @brief		Defines a collection of unit-enabled, strongly-typed versions of `<cmath>` functions.
+	 * @details		Includes most c++11 extensions.
 	 */
 
 	/**
@@ -5258,9 +5259,9 @@ namespace units
 	//----------------------------------
 
 	/**
-	 * @brief		namespace for unit-enabled versions of the <cmath> library
+	 * @brief		namespace for unit-enabled versions of the `<cmath>` library
 	 * @details		Includes trigonometric functions, exponential/log functions, rounding functions, etc.
-	 * @sa			See unit_t for more information on unit type containers.
+	 * @sa			See `unit_t` for more information on unit type containers.
 	 */
 	namespace math
 	{
