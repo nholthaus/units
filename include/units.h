@@ -3720,7 +3720,7 @@ namespace units
 	 *				`power_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace powerNum
+	namespace power
 	{
 		/**
 		 * @name Units (full names plural)
@@ -5329,7 +5329,7 @@ namespace units
 		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>							R(8.3144621);									///< Gas constant.
 		static const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
 		static const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constnat.
-		static const unit_t<compound_unit<powerNum::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::pow<5>(pi) * math::pow<4>(R)) / (15 * math::pow<3>(h) * math::pow<2>(c) * math::pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::pow<5>(pi) * math::pow<4>(R)) / (15 * math::pow<3>(h) * math::pow<2>(c) * math::pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
 
@@ -5666,11 +5666,15 @@ namespace units
 
 		/**
 		 * @ingroup		UnitMath
-		 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
-		 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
-		 * @tparam		power exponential power to raise <i>value</i> by.
-		 * @param[in]	value `unit_t` derived type to raise to the given <i>power</i>
-		 * @returns		new unit_t, raised to the given exponent
+		 * @brief		computes the square root of <i>value</i>
+		 * @details		Only implemented for linear_scale units.
+		 * @param[in]	value `unit_t` derived type to compute the square root of.
+		 * @returns		new unit_t, whose units are the square root of value's. E.g. if values
+		 *				had units of `square_meter`, then the return type will have units of
+		 *				`meter`.
+		 * @note		`sqrt` provides a _rational approximation_ of the square root of <i>value</i>.
+		 *				In some cases, _both_ the returned value _and_ conversion factor of the returned
+		 *				unit type may have errors no larger than `1e-10`.
 		 */
 		template<class UnitType, typename std::enable_if<units::has_linear_scale<UnitType>::value, int>::type = 0>
 		inline auto sqrt(const UnitType& value) -> unit_t<square_root<typename unit_t_traits<UnitType>::unit_type>, typename unit_t_traits<UnitType>::underlying_type, linear_scale>

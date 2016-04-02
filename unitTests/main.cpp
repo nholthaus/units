@@ -20,7 +20,7 @@ using namespace units::acceleration;
 using namespace units::pressure;
 using namespace units::charge;
 using namespace units::energy;
-using namespace units::powerNum;
+using namespace units::power;
 using namespace units::voltage;
 using namespace units::capacitance;
 using namespace units::impedance;
