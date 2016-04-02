@@ -4,16 +4,16 @@ clone_folder: c:/projects/units
 
 platform:
   - x64
-  
+
 configuration:
   - Debug
   - Release
- 
+
 environment:
   matrix:
-  - VS_GEN: Visual Studio 14 2015 Win64
-  - VS_GEN: Visual Studio 12 2013 Win64
-	
+    - VS_GEN: Visual Studio 14 2015 Win64
+    - VS_GEN: Visual Studio 12 2013 Win64
+
 build_script:
   - md build
   - cd build
