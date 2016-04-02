@@ -34,6 +34,12 @@
 // Copyright (c) 2016 Nic Holthaus
 // 
 //--------------------------------------------------------------------------------------------------
+//
+/// @file	units.h
+/// @brief	Complete implementation of `units` - a compile-time, header-only, unit conversion 
+///			library built on c++14 with no dependencies.
+//
+//--------------------------------------------------------------------------------------------------
 
 #ifndef units_h__
 #define units_h__
@@ -1642,6 +1648,7 @@ namespace units
 		using dimensionless_t = scalar_t;
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<class T> struct is_scalar_unit_impl : std::false_type {};
@@ -1650,6 +1657,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_scalar_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2458,6 +2466,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_length_unit_impl : std::false_type {};
@@ -2466,6 +2475,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_length_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::length_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2560,6 +2570,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_mass_unit_impl : std::false_type {};
@@ -2568,6 +2579,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_mass_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::mass_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2652,6 +2664,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_time_unit_impl : std::false_type {};
@@ -2660,6 +2673,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_time_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::time_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2743,6 +2757,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_angle_unit_impl : std::false_type {};
@@ -2751,6 +2766,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_angle_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angle_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2818,6 +2834,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_current_unit_impl : std::false_type {};
@@ -2826,6 +2843,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_current_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::current_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2894,6 +2912,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_temperature_unit_impl : std::false_type {};
@@ -2902,6 +2921,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_temperature_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::temperature_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -2954,6 +2974,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_substance_unit_impl : std::false_type {};
@@ -2962,6 +2983,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_substance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::substance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3018,6 +3040,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_luminous_intensity_unit_impl : std::false_type {};
@@ -3026,6 +3049,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_luminous_intensity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_intensity_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3086,6 +3110,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_solid_angle_unit_impl : std::false_type {};
@@ -3094,6 +3119,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_solid_angle_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::solid_angle_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3148,6 +3174,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_frequency_unit_impl : std::false_type {};
@@ -3156,6 +3183,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_frequency_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::frequency_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3219,6 +3247,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_velocity_unit_impl : std::false_type {};
@@ -3227,6 +3256,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_velocity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::velocity_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3288,18 +3318,25 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		template<typename T> struct is_angular_velocity_unit_impl : std::false_type {};
+		template<typename C, typename U, typename P, typename T>
+		struct is_angular_velocity_unit_impl<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angular_velocity_unit>::type {};
+		template<typename U, typename S, template<typename> class N>
+		struct is_angular_velocity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angular_velocity_unit>::type {};
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
 	/**
-	* @ingroup		TypeTraits
-	* @brief		Trait which tests whether a type represents a unit of angular_velocity
-	* @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angular_velocity_unit<T>::value` to test
-	*				the unit represents a angular_velocity quantity.
-	* @tparam		T	one or more types to test
-	*/
-	template<typename T> struct is_angular_velocity_unit : std::false_type {};
-	template<typename C, typename U, typename P, typename T>
-	struct is_angular_velocity_unit<unit<C, U, P, T>> : std::is_same<base_unit_of<typename unit_traits<unit<C, U, P, T>>::base_unit_type>, category::angular_velocity_unit>::type {};
-	template<typename U, typename S, template<typename> class N>
-	struct is_angular_velocity_unit<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::angular_velocity_unit>::type {};
+	 * @ingroup		TypeTraits
+	 * @brief		Trait which tests whether a type represents a unit of angular_velocity
+	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angular_velocity_unit<T>::value` to test
+	 *				the unit represents a angular_velocity quantity.
+	 * @tparam		T	one or more types to test
+	 */
+	template<typename... T> struct is_angular_velocity_unit : std::integral_constant<bool, all_true<detail::is_angular_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
 
 	//------------------------------
 	//	UNITS OF ACCELERATION
@@ -3333,6 +3370,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_acceleration_unit_impl : std::false_type {};
@@ -3341,6 +3379,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_acceleration_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::acceleration_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3409,6 +3448,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_force_unit_impl : std::false_type {};
@@ -3417,6 +3457,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_force_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::force_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3483,6 +3524,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_pressure_unit_impl : std::false_type {};
@@ -3491,6 +3533,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_pressure_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::pressure_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3547,6 +3590,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_charge_unit_impl : std::false_type {};
@@ -3555,6 +3599,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_charge_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::charge_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3645,6 +3690,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_energy_unit_impl : std::false_type {};
@@ -3653,6 +3699,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_energy_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::energy_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3734,6 +3781,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_power_unit_impl : std::false_type {};
@@ -3742,6 +3790,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_power_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::power_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3830,6 +3879,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_voltage_unit_impl : std::false_type {};
@@ -3838,6 +3888,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_voltage_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::voltage_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -3918,6 +3969,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_capacitance_unit_impl : std::false_type {};
@@ -3926,6 +3978,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_capacitance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::capacitance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4006,6 +4059,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_impedance_unit_impl : std::false_type {};
@@ -4014,6 +4068,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_impedance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::impedance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4094,6 +4149,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_conductance_unit_impl : std::false_type {};
@@ -4102,6 +4158,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_conductance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::conductance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4186,6 +4243,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_magnetic_flux_unit_impl : std::false_type {};
@@ -4194,6 +4252,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_magnetic_flux_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_flux_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4277,6 +4336,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_magnetic_field_strength_unit_impl : std::false_type {};
@@ -4285,6 +4345,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_magnetic_field_strength_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::magnetic_field_strength_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4379,6 +4440,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_inductance_unit_impl : std::false_type {};
@@ -4387,6 +4449,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_inductance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::inductance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4467,6 +4530,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_luminous_flux_unit_impl : std::false_type {};
@@ -4475,6 +4539,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_luminous_flux_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::luminous_flux_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4565,6 +4630,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_illuminance_unit_impl : std::false_type {};
@@ -4573,6 +4639,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_illuminance_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::illuminance_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4730,6 +4797,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_radioactivity_unit_impl : std::false_type {};
@@ -4738,6 +4806,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_radioactivity_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::radioactivity_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4806,6 +4875,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_torque_unit_impl : std::false_type {};
@@ -4814,6 +4884,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_torque_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::torque_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -4884,6 +4955,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_area_unit_impl : std::false_type {};
@@ -4892,6 +4964,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_area_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::area_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -5060,6 +5133,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_volume_unit_impl : std::false_type {};
@@ -5068,6 +5142,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_volume_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::volume_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -5140,6 +5215,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_density_unit_impl : std::false_type {};
@@ -5148,6 +5224,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_density_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::density_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
@@ -5201,6 +5278,7 @@ namespace units
 		/** @} */
 	}
 
+	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T> struct is_concentration_unit_impl : std::false_type {};
@@ -5209,6 +5287,7 @@ namespace units
 		template<typename U, typename S, template<typename> class N>
 		struct is_concentration_unit_impl<unit_t<U, S, N>> : std::is_same<base_unit_of<typename unit_t_traits<unit_t<U, S, N>>::unit_type>, category::scalar_unit>::type {};
 	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		TypeTraits
