@@ -22,42 +22,11 @@ Description
 
 The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
 
+The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidently misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
-Complex, recurively-defined conversions are performed in just 2 floating-point arithmetic instructions:
 
-		year_t twoYears(2.0);
-		week_t twoYearsInWeeks = twoYears;
-	00007FF7BDB57FF6  xorps       xmm9,xmm9  
-	00007FF7BDB57FFA  cvtsi2sd    xmm9,rax  
-	00007FF7BDB57FFF  mulsd       xmm9,mmword ptr [__real@4000000000000000 (07FF7BDBB31A0h)]  
-	00007FF7BDB58008  divsd       xmm9,mmword ptr [__real@401c000000000000 (07FF7BDBB33C0h)]  
-	00007FF7BDB58011  movsd       mmword ptr [rbp+6Fh],xmm9  
-		EXPECT_EQ(week_t(104.286), twoYearsInWeeks);
-	00007FF7BDB58017  ...
 
-An explanation of the instructions can be found at: http://stackoverflow.com/questions/35103741/what-is-the-purpose-of-xorps-on-the-same-register/35103871#35103871
 
-In the library, the year to week conversion is defined in terms of
-years -> days -> hours -> minutes -> seconds -> minutes -> hours -> days -> weeks
-but the total conversion ratio is computed at compile-time and the math is optimized to two floating-point operations.
-
-Unit conversions between equivalent types are optimized away completely, and generate no machine code.
-
-Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
-
-	namespace time
-	{
-		using seconds = unit<std::ratio<1>, category::time_unit>;
-		using minutes = unit<std::ratio<60>, seconds>;
-		using hours = unit<std::ratio<60>, minutes>;
-		using days = unit<std::ratio<24>, hours>;
-		using weeks = unit<std::ratio<7>, days>;
-		using years = unit<std::ratio<365>, days>;
-	}
-
-Compound units are defined in a similar manner, with additional helper functions for polynomials:
-
-	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;
 	
 The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using `units::convert` for arithmetic types:
 
@@ -152,6 +121,27 @@ Square roots are also provided with the `units::math::sqrt` function. Due to the
 	
 	meter_t m = sqrt(square_meter_t(4.0));		// m == 2.0
 	
+Efficiency
+----------
+
+Complex, recurively-defined conversions are performed in just 5 instructions:
+
+		year_t twoYears(2.0);
+		week_t twoYearsInWeeks = twoYears;
+	00007FF7BDB57FF6  xorps       xmm9,xmm9  
+	00007FF7BDB57FFA  cvtsi2sd    xmm9,rax  
+	00007FF7BDB57FFF  mulsd       xmm9,mmword ptr [__real@4000000000000000 (07FF7BDBB31A0h)]  
+	00007FF7BDB58008  divsd       xmm9,mmword ptr [__real@401c000000000000 (07FF7BDBB33C0h)]  
+	00007FF7BDB58011  movsd       mmword ptr [rbp+6Fh],xmm9  
+		EXPECT_EQ(week_t(104.286), twoYearsInWeeks);
+	00007FF7BDB58017  ...
+
+In the library, the year to week conversion is defined in terms of
+`years -> days -> hours -> minutes -> seconds -> minutes -> hours -> days -> weeks`
+but the total conversion ratio is computed at compile-time and the math is optimized to two floating-point operations.
+
+Unit conversions between equivalent types are optimized away completely, and generate _no machine code_.
+
 Compile-time Unit Manipulation
 ------------------------------
 
@@ -202,6 +192,41 @@ Mathematical operations like `sin`, `log`, `floor`, etc are defined in the follo
 Type traits that you can use to test unit types are defined in the following namespaces:
  - units::traits
 
+Defining new units
+------------------
+
+The units library strives to provide built-in types for every conceievable unit, and before defing your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.
+
+Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
+
+	namespace time
+	{
+		using seconds = unit<std::ratio<1>, category::time_unit>;
+		using minutes = unit<std::ratio<60>, seconds>;
+		using hours = unit<std::ratio<60>, minutes>;
+		using days = unit<std::ratio<24>, hours>;
+		using weeks = unit<std::ratio<7>, days>;
+		using years = unit<std::ratio<365>, days>;
+	}
+
+Units are defined in the form: `using [unit] = unit<std::ratio<[number of base units per unit]>, [base unit]>;`, where:
+ - the `[unit]` is what you are defining.
+ - the `[base unit]` is the unit that `[unit]` will be defined in terms of, and
+ - the `[number of base units per unit]` is the conversion ratio between the two, expressed as a `std::ratio` type.
+ 
+Compound units are defined in a similar manner, with additional helper functions for polynomials:
+
+	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;		// (m / s^2)
+	
+The available helpers are:
+ - `inverse<...>`     (inverts the unit, e.g. meters becomes meters^-1, or 1 / meters)
+ - `squared<...>`     (squares the unit, e.g. meters becomes meters^2)
+ - `cubed<...>`       (cubes the unit, e.g. meters becomes meters^3)
+ - `square_root<...>` (takes the square root of the unit, e.g meters^2 becomes meters)
+ - metric prefixes `atto<...>` through `exa<...>`.
+ 
+ See \ref UnitManipulators for more details.
+	
 Build Instructions
 ------------------
 

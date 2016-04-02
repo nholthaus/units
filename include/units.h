@@ -924,7 +924,7 @@ namespace units
 	/**	 
 	 * @ingroup		UnitManipulators
 	 * @brief		represents the square root of type `class U`.
-	 * @details	Calculates a rational approximation of the square root of the unit. The error
+	 * @details		Calculates a rational approximation of the square root of the unit. The error
 	 *				in the calculation is bounded by 1/epsilon (Eps). E.g. for the default value
 	 *				of 10000000000, the maximum error will be a/10000000000, or 1e-8, or said another way,
 	 *				the error will be on the order of 10^-9. Since these calculations are done at
