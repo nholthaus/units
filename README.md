@@ -2,7 +2,15 @@
 
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
-Releases
+Latest Release - v2.0.0
+--------
+
+Features:
+ - Compile-time unit arithmetic via `unit_value_t`
+ - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
+ - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`
+ 
+Previous Releases
 --------
 
 v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
