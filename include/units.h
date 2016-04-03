@@ -1183,9 +1183,9 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T = double>
 	static inline T convert(const T& value)
 	{
-		static_assert(is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
-		static_assert(is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(is_convertible_unit<UnitFrom, UnitTo>::value, "Units are not compatible.");
+		static_assert(traits::is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
+		static_assert(traits::is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
+		static_assert(traits::is_convertible_unit<UnitFrom, UnitTo>::value, "Units are not compatible.");
 
 		using isSame = typename std::is_same<typename std::decay<UnitFrom>::type, typename std::decay<UnitTo>::type>::type;
 		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, typename UnitFrom::pi_exponent_ratio>::value &&
@@ -1765,7 +1765,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<!traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline int operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		static_assert(is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, "Cannot add units with different linear/non-linear scales.");
+		static_assert(traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, "Cannot add units with different linear/non-linear scales.");
 		return 0;
 	}
 
@@ -5736,7 +5736,7 @@ namespace units
 		template<class Y, class X>
 		angle::radian_t atan2(Y y, X x)
 		{
-			static_assert(is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
+			static_assert(traits::is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
 			return angle::radian_t(std::atan2(y.convert<typename traits::unit_t_traits<X>::unit_type>().toDouble(), x.toDouble()));
@@ -5985,7 +5985,7 @@ namespace units
 		 * @param[in]	x	Unit value to round up.
 		 * @returns		The smallest integral value that is not less than x.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType ceil(UnitType x)
 		{
 			return UnitType(std::ceil(x.toDouble()));
@@ -5998,7 +5998,7 @@ namespace units
 		 * @param[in]	x	Unit value to round down.
 		 * @returns		The value of x rounded downward.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType floor(UnitType x)
 		{
 			return UnitType(std::floor(x.toDouble()));
@@ -6012,7 +6012,7 @@ namespace units
 		 * @param[in]	denom	Value of the quotient denominator.
 		 * @returns		The remainder of dividing the arguments.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType fmod(UnitType numer, UnitType denom)
 		{
 			return UnitType(std::fmod(numer.toDouble(), denom.toDouble()));
@@ -6026,7 +6026,7 @@ namespace units
 		 * @param[in]	x	Value to truncate
 		 * @returns		The nearest integral value that is not larger in magnitude than x.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType trunc(UnitType x)
 		{
 			return UnitType(std::trunc(x.toDouble()));
@@ -6041,7 +6041,7 @@ namespace units
 		 * @param[in]	x	value to round.
 		 * @returns		The value of x rounded to the nearest integral.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType round(UnitType x)
 		{
 			return UnitType(std::round(x.toDouble()));
@@ -6060,14 +6060,14 @@ namespace units
 		 * @param[in]	y	Value with the sign of the resulting value.
 		 * @returns		value with the magnitude and dimension of x, and the sign of y.
 		 */
-		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs copysign(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			return UnitTypeLhs(std::copysign(x.toDouble(), y.toDouble()));
 		}
 
 		/// Overload to copy the sign from a raw double
-		template<class UnitTypeLhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value>::type>
+		template<class UnitTypeLhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value>::type>
 		UnitTypeLhs copysign(UnitTypeLhs x, double y)
 		{
 			return UnitTypeLhs(std::copysign(x.toDouble(), y));
@@ -6087,10 +6087,10 @@ namespace units
 		 * @param[in]	y	Values whose difference is calculated.
 		 * @returns		The positive difference between x and y.
 		 */
-		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fdim(UnitTypeLhs x, UnitTypeRhs y)
 		{
-			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			return UnitTypeLhs(std::fdim(x.toDouble(), y.convert<typename traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
 		}
 
@@ -6104,10 +6104,10 @@ namespace units
 		 * @param[in]	y	Values among which the function selects a maximum.
 		 * @returns		The maximum numeric value of its arguments.
 		 */
-		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmax(UnitTypeLhs x, UnitTypeRhs y)
 		{
-			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			return UnitTypeLhs(std::fmax(x.toDouble(), y.convert<typename traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
 		}
 
@@ -6122,10 +6122,10 @@ namespace units
 		 * @param[in]	y	Values among which the function selects a minimum.
 		 * @returns		The minimum numeric value of its arguments.
 		 */
-		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitTypeRhs>::value>::type>
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmin(UnitTypeLhs x, UnitTypeRhs y)
 		{
-			static_assert(is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			return UnitTypeLhs(std::fmin(x.toDouble(), y.convert<typename traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
 		}
 
@@ -6140,7 +6140,7 @@ namespace units
 		 * @param[in]	x	Value whose absolute value is returned.
 		 * @returns		The absolute value of x.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType fabs(UnitType x)
 		{
 			return UnitType(std::fabs(x.toDouble()));
@@ -6153,7 +6153,7 @@ namespace units
 		 * @param[in]	x	Value whose absolute value is returned.
 		 * @returns		The absolute value of x.
 		 */
-		template<class UnitType, class = typename std::enable_if<is_unit_t<UnitType>::value>::type>
+		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType abs(UnitType x)
 		{
 			return UnitType(std::fabs(x.toDouble()));
@@ -6169,11 +6169,11 @@ namespace units
 		 * @param[in]	z	Value to be added.
 		 * @returns		The result of x*y+z
 		 */
-		template<class UnitTypeLhs, class UnitMultiply, class UnitAdd, class = typename std::enable_if<is_unit_t<UnitTypeLhs>::value && is_unit_t<UnitMultiply>::value && is_unit_t<UnitAdd>::value>::type>
+		template<class UnitTypeLhs, class UnitMultiply, class UnitAdd, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitMultiply>::value && traits::is_unit_t<UnitAdd>::value>::type>
 		auto fma(UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x * y)
 		{
 			using resultType = decltype(x * y);
-			static_assert(is_convertible_unit_t<compound_unit<typename traits::unit_t_traits<UnitTypeLhs>::unit_type, typename traits::unit_t_traits<UnitMultiply>::unit_type>, typename traits::unit_t_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<compound_unit<typename traits::unit_t_traits<UnitTypeLhs>::unit_type, typename traits::unit_t_traits<UnitMultiply>::unit_type>, typename traits::unit_t_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
 			return resultType(std::fma(x.toDouble(), y.toDouble(), resultType(z).toDouble()));
 		}
 
