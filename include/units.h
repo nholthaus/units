@@ -2210,7 +2210,10 @@ namespace units
 	 * @note		very similar in concept to `std::ratio_multiply`
 	 */
 	template<class U1, class U2>
-	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<compound_unit<typename unit_value_t_traits<U1>::unit_type, typename unit_value_t_traits<U2>::unit_type>>
+	struct unit_value_multiply : detail::unit_value_arithmetic<U1, U2>, 
+		detail::_unit_value_t<typename std::conditional<is_convertible_unit<typename unit_value_t_traits<U1>::unit_type, 
+			typename unit_value_t_traits<U2>::unit_type>::value, compound_unit<squared<typename unit_value_t_traits<U1>::unit_type>>, 
+			compound_unit<typename unit_value_t_traits<U1>::unit_type, typename unit_value_t_traits<U2>::unit_type>>::type>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U2>;
 		
@@ -2245,7 +2248,10 @@ namespace units
 	 * @note		very similar in concept to `std::ratio_divide`
 	 */
 	template<class U1, class U2>
-	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, detail::_unit_value_t<compound_unit<typename unit_value_t_traits<U1>::unit_type, inverse<typename unit_value_t_traits<U1>::unit_type>>>
+	struct unit_value_divide : detail::unit_value_arithmetic<U1, U2>, 
+		detail::_unit_value_t<typename std::conditional<is_convertible_unit<typename unit_value_t_traits<U1>::unit_type, 
+		typename unit_value_t_traits<U2>::unit_type>::value, dimensionless::scalar, compound_unit<typename unit_value_t_traits<U1>::unit_type, 
+		inverse<typename unit_value_t_traits<U2>::unit_type>>>::type>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U2>;
 		
@@ -2279,7 +2285,7 @@ namespace units
 	 * @note		very similar in concept to `units::math::pow`
 	 */
 	template<class U1, int power>
-	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<detail::power_of_unit<2, typename unit_value_t_traits<U1>::unit_type>>
+	struct unit_value_power : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<typename detail::power_of_unit<power, typename unit_value_t_traits<U1>::unit_type>::type>
 	{
 		using Base = detail::unit_value_arithmetic<U1, U1>;
 		

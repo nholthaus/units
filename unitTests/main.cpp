@@ -105,10 +105,7 @@ namespace {
 		{
 			using a = unit_value_t<meters, 3>;
 			using b = unit_value_t<meters, 4>;
-			using a2 = unit_value_power<a, 2>;
-			using b2 = unit_value_power<b, 2>;
-			using c2 = unit_value_add<a2, b2>;
-			using c = unit_value_sqrt<c2>;
+			using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
 		};
 	};
 }
@@ -2971,15 +2968,11 @@ TEST_F(CaseStudies, radarRangeEquation)
 
 TEST_F(CaseStudies, pythagoreanTheorum)
 {
-	using rt1 = unit_value_sqrt<unit_value_multiply<RightTriangle::a, RightTriangle::a>>;
-	EXPECT_DOUBLE_EQ(2.0, rt1::value().toDouble());
-	using rt2 = unit_value_sqrt<unit_value_add<RightTriangle::a, RightTriangle::a>>;
-	EXPECT_DOUBLE_EQ(2.0, rt2::value().toDouble());
-	auto a2 = pow<2>(RightTriangle::a::value());
-	auto b2 = pow<2>(RightTriangle::b::value());
-	auto c2 = RightTriangle::c::value();
-//  	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value()) 
-//  		== pow<2>(RightTriangle::c::value()));
+	EXPECT_EQ(meter_t(3), RightTriangle::a::value());
+	EXPECT_EQ(meter_t(4), RightTriangle::b::value());
+	EXPECT_EQ(meter_t(5), RightTriangle::c::value());
+  	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value()) 
+  		== pow<2>(RightTriangle::c::value()));
 }
 int main(int argc, char* argv[])
 {
