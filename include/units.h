@@ -2308,11 +2308,11 @@ namespace units
 	};
 
 	/**
-	* @brief		calculates square root of unit_value_t at compile-time
-	* @details		The resulting unit will the square root `unit_type` of `U1`	 
-	* @tparam		U1	`unit_value_t` to take the square root of
-	* @note			very similar in concept to `units::ratio_sqrt`
-	*/
+	 * @brief		calculates square root of unit_value_t at compile-time
+	 * @details		The resulting unit will the square root `unit_type` of `U1`	 
+	 * @tparam		U1	`unit_value_t` to take the square root of
+	 * @note			very similar in concept to `units::ratio_sqrt`
+	 */
 	template<class U1, std::intmax_t Eps = 10000000000>
 	struct unit_value_sqrt : detail::unit_value_arithmetic<U1, U1>, detail::_unit_value_t<square_root<typename unit_value_t_traits<U1>::unit_type, Eps>>
 	{
