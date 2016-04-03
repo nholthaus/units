@@ -56,7 +56,7 @@ Unit containers are the workhorse of the libary, and the primary classes which w
 
 Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
 
-   using meter_t = unit_t<length::meter, double, linear_scale>
+    using meter_t = unit_t<length::meter, double, linear_scale>
 
 or simply 
 
