@@ -4,6 +4,7 @@
 #include <string>
 
 using namespace units;
+using namespace units::traits;
 using namespace units::dimensionless;
 using namespace units::length;
 using namespace units::mass;
@@ -112,8 +113,8 @@ namespace {
 
 TEST_F(TypeTraits, isRatio)
 {
-	EXPECT_TRUE(units::is_ratio<std::ratio<1>>::value);
-	EXPECT_FALSE(units::is_ratio<double>::value);
+	EXPECT_TRUE(traits::is_ratio<std::ratio<1>>::value);
+	EXPECT_FALSE(traits::is_ratio<double>::value);
 }
 
 TEST_F(TypeTraits, ratio_sqrt)
@@ -145,30 +146,30 @@ TEST_F(TypeTraits, ratio_sqrt)
 
 TEST_F(TypeTraits, is_unit)
 {
-	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
-	EXPECT_FALSE(units::is_unit<double>::value);
-	EXPECT_TRUE(units::is_unit<meters>::value);
-	EXPECT_TRUE(units::is_unit<feet>::value);
-	EXPECT_TRUE(units::is_unit<degrees_squared>::value);
-	EXPECT_FALSE(units::is_unit<meter_t>::value);
+	EXPECT_FALSE(traits::is_unit<std::ratio<1>>::value);
+	EXPECT_FALSE(traits::is_unit<double>::value);
+	EXPECT_TRUE(traits::is_unit<meters>::value);
+	EXPECT_TRUE(traits::is_unit<feet>::value);
+	EXPECT_TRUE(traits::is_unit<degrees_squared>::value);
+	EXPECT_FALSE(traits::is_unit<meter_t>::value);
 }
 
 TEST_F(TypeTraits, is_unit_t)
 {
-	EXPECT_FALSE(units::is_unit_t<std::ratio<1>>::value);
-	EXPECT_FALSE(units::is_unit_t<double>::value);
-	EXPECT_FALSE(units::is_unit_t<meters>::value);
-	EXPECT_FALSE(units::is_unit_t<feet>::value);
-	EXPECT_FALSE(units::is_unit_t<degrees_squared>::value);
-	EXPECT_TRUE(units::is_unit_t<meter_t>::value);
+	EXPECT_FALSE(traits::is_unit_t<std::ratio<1>>::value);
+	EXPECT_FALSE(traits::is_unit_t<double>::value);
+	EXPECT_FALSE(traits::is_unit_t<meters>::value);
+	EXPECT_FALSE(traits::is_unit_t<feet>::value);
+	EXPECT_FALSE(traits::is_unit_t<degrees_squared>::value);
+	EXPECT_TRUE(traits::is_unit_t<meter_t>::value);
 }
 
 TEST_F(TypeTraits, unit_traits)
 {
-	bool isntUnit = std::is_same<void, units::unit_traits<double>>::value;
-	bool isUnit = std::is_same<void, units::unit_traits<meters>>::value;
-	EXPECT_TRUE(units::is_unit<meters>::value);
-	EXPECT_TRUE(units::is_unit<feet>::value);
+	bool isntUnit = std::is_same<void, traits::unit_traits<double>>::value;
+	bool isUnit = std::is_same<void, traits::unit_traits<meters>>::value;
+	EXPECT_TRUE(traits::is_unit<meters>::value);
+	EXPECT_TRUE(traits::is_unit<feet>::value);
 }
 
 TEST_F(TypeTraits, all_true)
@@ -184,16 +185,16 @@ TEST_F(TypeTraits, all_true)
 
 TEST_F(TypeTraits, areConvertibleUnitsLength)
 {
-	bool test1 = units::is_convertible_unit<meters, meters>::value;
-	bool test2 = units::is_convertible_unit<meters, astronicalUnits>::value;
-	bool test3 = units::is_convertible_unit<meters, parsecs>::value;
+	bool test1 = traits::is_convertible_unit<meters, meters>::value;
+	bool test2 = traits::is_convertible_unit<meters, astronicalUnits>::value;
+	bool test3 = traits::is_convertible_unit<meters, parsecs>::value;
 	
-	bool test4 = units::is_convertible_unit<meters, meters>::value;
-	bool test5 = units::is_convertible_unit<astronicalUnits, meters>::value;
-	bool test6 = units::is_convertible_unit<parsecs, meters>::value;
+	bool test4 = traits::is_convertible_unit<meters, meters>::value;
+	bool test5 = traits::is_convertible_unit<astronicalUnits, meters>::value;
+	bool test6 = traits::is_convertible_unit<parsecs, meters>::value;
 
-	bool test7 = units::is_convertible_unit<meters, seconds>::value;
-	bool test8 = units::is_convertible_unit<seconds, meters>::value;
+	bool test7 = traits::is_convertible_unit<meters, seconds>::value;
+	bool test8 = traits::is_convertible_unit<seconds, meters>::value;
 
 	EXPECT_TRUE(test1);
 	EXPECT_TRUE(test2);
@@ -212,10 +213,10 @@ TEST_F(TypeTraits, areConvertibleUnitsTime)
 	bool shouldBeTrue;
 	bool shouldBeFalse;
 
-	shouldBeTrue = units::is_convertible_unit<years, weeks>::value;
+	shouldBeTrue = traits::is_convertible_unit<years, weeks>::value;
 	EXPECT_TRUE(shouldBeTrue);
 
-	shouldBeFalse = units::is_convertible_unit<years, meters>::value;
+	shouldBeFalse = traits::is_convertible_unit<years, meters>::value;
 	EXPECT_FALSE(shouldBeFalse);
 }
 
@@ -223,7 +224,7 @@ TEST_F(TypeTraits, inverseUnits)
 {
 	double test;
 
-	using htz = units::inverse<seconds>;
+	using htz = inverse<seconds>;
 	bool shouldBeTrue = std::is_same<htz, hertz>::value;
 	EXPECT_TRUE(shouldBeTrue);
 
@@ -236,7 +237,7 @@ TEST_F(TypeTraits, inverseUnits)
 
 TEST_F(TypeTraits, baseUnitOf)
 {
-	using base = units::base_unit_of<years>;
+	using base = traits::base_unit_of<years>;
 	bool shouldBeTrue = std::is_same<base, category::time_unit>::value;
 
 	EXPECT_TRUE(shouldBeTrue);
@@ -1186,7 +1187,7 @@ TEST_F(UnitManipulators, squared)
 	test = convert<squared<meters>, square_feet>(0.092903);
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
-	using scalar_2 = units::squared<scalar>;	// this is actually nonsensical, and should also result in a scalar.
+	using scalar_2 = squared<scalar>;	// this is actually nonsensical, and should also result in a scalar.
 	bool isSame = std::is_same<typename std::decay<scalar_t>::type, typename std::decay<unit_t<scalar_2>>::type>::value;
 	EXPECT_TRUE(isSame);
 }
@@ -1203,8 +1204,8 @@ TEST_F(UnitManipulators, square_root)
 {
 	double test;
 
-	test = convert<units::square_root<square_kilometer>, meter>(1.0);
-	EXPECT_TRUE((is_convertible_unit<typename std::decay<units::square_root<square_kilometer>>::type, kilometer>::value));
+	test = convert<square_root<square_kilometer>, meter>(1.0);
+	EXPECT_TRUE((is_convertible_unit<typename std::decay<square_root<square_kilometer>>::type, kilometer>::value));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
 
@@ -1251,9 +1252,9 @@ TEST_F(UnitContainer, hasValueMember)
 {
 	bool test;
 
-	test = units::has_value_member<linear_scale<double>, double>::value;
+	test = traits::has_value_member<linear_scale<double>, double>::value;
 	EXPECT_TRUE(test);
-	test = units::has_value_member<meter, double>::value;
+	test = traits::has_value_member<meter, double>::value;
 	EXPECT_FALSE(test);
 }
 
@@ -1262,7 +1263,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
 
-	double d = units::convert<feet, meters>(b_ft());
+	double d = convert<feet, meters>(b_ft());
 	EXPECT_NEAR(1.0, d, 5.0e-5);
 
 	c_m = a_m + b_ft;
@@ -1743,7 +1744,7 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(2.1, test, 5.0e-6);
 	test = convert<angle::arcseconds, angle::gradians>(2.1);
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
-	test = convert<angle::radians, angle::degrees>(units::constants::PI);
+	test = convert<angle::radians, angle::degrees>(constants::PI);
 	EXPECT_NEAR(180.0, test, 5.0e-6);
 	test = convert<angle::degrees, angle::radians>(90.0);
 	EXPECT_NEAR(constants::PI / 2, test, 5.0e-6);
@@ -1863,7 +1864,7 @@ TEST_F(UnitConversion, velocity)
 
 	same = std::is_same<meters_per_second, unit<std::ratio<1>, category::velocity_unit>>::value;
 	EXPECT_TRUE(same);
-	same = units::is_convertible_unit<miles_per_hour, meters_per_second>::value;
+	same = traits::is_convertible_unit<miles_per_hour, meters_per_second>::value;
 	EXPECT_TRUE(same);
 
 	test = convert<meters_per_second, miles_per_hour>(1250.0);
@@ -1885,7 +1886,7 @@ TEST_F(UnitConversion, angularVelocity)
 
 	same = std::is_same<radians_per_second, unit<std::ratio<1>, category::angular_velocity_unit>>::value;
 	EXPECT_TRUE(same);
-	same = units::is_convertible_unit<rpm, radians_per_second>::value;
+	same = traits::is_convertible_unit<rpm, radians_per_second>::value;
 	EXPECT_TRUE(same);
 
 	test = convert<radians_per_second, milliarcseconds_per_year>(1.0);
@@ -2728,22 +2729,22 @@ TEST_F(CompileTimeArithmetic, is_unit_value_t)
 {
 	typedef unit_value_t<meters, 3, 2> mRatio;
 
-	EXPECT_TRUE((units::is_unit_value_t<mRatio>::value));
-	EXPECT_FALSE((units::is_unit_value_t<meter_t>::value));
-	EXPECT_FALSE((units::is_unit_value_t<double>::value));
+	EXPECT_TRUE((traits::is_unit_value_t<mRatio>::value));
+	EXPECT_FALSE((traits::is_unit_value_t<meter_t>::value));
+	EXPECT_FALSE((traits::is_unit_value_t<double>::value));
 
-	EXPECT_TRUE((units::is_unit_value_t<mRatio, meters>::value));
-	EXPECT_FALSE((units::is_unit_value_t<meter_t, meters>::value));
-	EXPECT_FALSE((units::is_unit_value_t<double, meters>::value));
+	EXPECT_TRUE((traits::is_unit_value_t<mRatio, meters>::value));
+	EXPECT_FALSE((traits::is_unit_value_t<meter_t, meters>::value));
+	EXPECT_FALSE((traits::is_unit_value_t<double, meters>::value));
 }
 
 TEST_F(CompileTimeArithmetic, is_unit_value_t_category)
 {
 	typedef unit_value_t<feet, 3, 2> mRatio;
-	EXPECT_TRUE((units::is_unit_value_t_category<category::length_unit, mRatio>::value));
-	EXPECT_FALSE((units::is_unit_value_t_category<category::angle_unit, mRatio>::value));
-	EXPECT_FALSE((units::is_unit_value_t_category<category::length_unit, meter_t>::value));
-	EXPECT_FALSE((units::is_unit_value_t_category<category::length_unit, double>::value));
+	EXPECT_TRUE((traits::is_unit_value_t_category<category::length_unit, mRatio>::value));
+	EXPECT_FALSE((traits::is_unit_value_t_category<category::angle_unit, mRatio>::value));
+	EXPECT_FALSE((traits::is_unit_value_t_category<category::length_unit, meter_t>::value));
+	EXPECT_FALSE((traits::is_unit_value_t_category<category::length_unit, double>::value));
 }
 
 TEST_F(CompileTimeArithmetic, unit_value_add)
