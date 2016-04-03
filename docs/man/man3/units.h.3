@@ -1,0 +1,5264 @@
+.TH "/home/nholthaus/workspace/units/include/units.h" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/home/nholthaus/workspace/units/include/units.h \- Complete implementation of \fCunits\fP - a compile-time, header-only, unit conversion library built on c++14 with no dependencies\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBunits::traits::is_ratio< T >\fP"
+.br
+.RI "\fITrait that tests whether a type represents a std::ratio\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::unit_traits< T >\fP"
+.br
+.RI "\fITraits class defining the properties of units\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_base_unit< T >\fP"
+.br
+.RI "\fITrait which tests if a class is a \fC\fBbase_unit\fP\fP type\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit< T >\fP"
+.br
+.RI "\fITraits which tests if a class is a \fCunit\fP \fP"
+.ti -1c
+.RI "struct \fBunits::base_unit< Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela >\fP"
+.br
+.RI "\fIClass representing SI base unit types\&. \fP"
+.ti -1c
+.RI "struct \fBunits::unit< Conversion, BaseUnit, PiExponent, Translation >\fP"
+.br
+.RI "\fIType representing an arbitrary unit\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_convertible_unit< U1, U2 >\fP"
+.br
+.RI "\fITrait which checks whether two units can be converted to each other\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_nonlinear_scale< T, Ret >\fP"
+.br
+.RI "\fITrait which tests that \fCclass T\fP meets the requirements for a non-linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::unit_t_traits< T >\fP"
+.br
+.RI "\fITrait for accessing the publically defined types of \fC\fBunits::unit_t\fP\fP \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_convertible_unit_t< U1, U2 >\fP"
+.br
+.RI "\fITrait which tests whether two container types derived from \fC\fBunit_t\fP\fP are convertible to each other\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_t< T >\fP"
+.br
+.RI "\fITraits which tests if a class is a \fCunit\fP \fP"
+.ti -1c
+.RI "class \fBunits::unit_t< Units, T, NonLinearScale >\fP"
+.br
+.RI "\fIContainer for values which represent quantities of a given unit\&. \fP"
+.ti -1c
+.RI "struct \fBunits::decibel_scale< T >\fP"
+.br
+.RI "\fI\fBunit_t\fP scale for representing decibel values\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::has_linear_scale< T >\fP"
+.br
+.RI "\fITrait which tests whether a type is inherited from a linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::has_decibel_scale< T >\fP"
+.br
+.RI "\fITrait which tests whether a type is inherited from a decibel scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_same_scale< T1, T2 >\fP"
+.br
+.RI "\fITrait which tests whether two types has the same non-linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::linear_scale< T >\fP"
+.br
+.RI "\fI\fBunit_t\fP scale which is linear \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_scalar_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether one or more types derived from \fC\fBunit_t\fP\fP represent scalar values\&. \fP"
+.ti -1c
+.RI "struct \fBunits::decibel_scale< T >\fP"
+.br
+.RI "\fI\fBunit_t\fP scale for representing decibel values\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::unit_value_t_traits< T >\fP"
+.br
+.RI "\fITrait for accessing the publically defined types of \fCunits::unit_value_t_traits\fP \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_t< Units, Num, Denom >\fP"
+.br
+.RI "\fIStores a rational unit value as a compile-time constant\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_value_t< T, Units >\fP"
+.br
+.RI "\fITrait which tests whether a type is a \fBunit_value_t\fP representing the given unit type\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_value_t_category< Category, T >\fP"
+.br
+.RI "\fITrait which tests whether type T is a \fBunit_value_t\fP with a unit type in the given category\&. \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_add< U1, U2 >\fP"
+.br
+.RI "\fIadds two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_subtract< U1, U2 >\fP"
+.br
+.RI "\fIsubtracts two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_multiply< U1, U2 >\fP"
+.br
+.RI "\fImultiplies two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_divide< U1, U2 >\fP"
+.br
+.RI "\fIdivides two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_power< U1, power >\fP"
+.br
+.RI "\fIraises unit_value_to a power at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_sqrt< U1, Eps >\fP"
+.br
+.RI "\fIcalculates square root of \fBunit_value_t\fP at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_length_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of length\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_mass_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of mass\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_time_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of time\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_angle_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of angle\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_current_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of current\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_temperature_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of temperature\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_substance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of substance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_luminous_intensity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBluminous_intensity\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_solid_angle_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBsolid_angle\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_frequency_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of frequency\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_velocity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of velocity\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_angular_velocity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBangular_velocity\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_acceleration_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of acceleration\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_force_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of force\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_pressure_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of pressure\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_charge_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of charge\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_energy_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of energy\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_power_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of power\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_voltage_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of voltage\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_capacitance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of capacitance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_impedance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of impedance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_conductance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of conductance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_magnetic_flux_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBmagnetic_flux\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_magnetic_field_strength_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBmagnetic_field_strength\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_inductance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of inductance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_luminous_flux_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBluminous_flux\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_illuminance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of illuminance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_radioactivity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of radiation\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_torque_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of torque\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_area_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of area\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_volume_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of volume\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_density_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of density\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_concentration_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of concentration\&. \fP"
+.in -1c
+.SS "Namespaces"
+
+.in +1c
+.ti -1c
+.RI " \fBunits\fP"
+.br
+.RI "\fIUnit Conversion Library namespace\&. \fP"
+.ti -1c
+.RI " \fBunits::traits\fP"
+.br
+.RI "\fInamespace representing type traits which can access the properties of types provided by the units library\&. \fP"
+.ti -1c
+.RI " \fBunits::category\fP"
+.br
+.RI "\fInamespace representing the implemented base and derived unit types\&. \fP"
+.ti -1c
+.RI " \fBunits::dimensionless\fP"
+.br
+.RI "\fInamespace for unit types and containers for units that have no dimension (scalar units) \fP"
+.ti -1c
+.RI " \fBunits::math\fP"
+.br
+.RI "\fInamespace for unit-enabled versions of the \fC<cmath>\fP library \fP"
+.ti -1c
+.RI " \fBunits::length\fP"
+.br
+.RI "\fInamespace for unit types and containers representing length values \fP"
+.ti -1c
+.RI " \fBunits::mass\fP"
+.br
+.RI "\fInamespace for unit types and containers representing mass values \fP"
+.ti -1c
+.RI " \fBunits::time\fP"
+.br
+.RI "\fInamespace for unit types and containers representing time values \fP"
+.ti -1c
+.RI " \fBunits::angle\fP"
+.br
+.RI "\fInamespace for unit types and containers representing angle values \fP"
+.ti -1c
+.RI " \fBunits::current\fP"
+.br
+.RI "\fInamespace for unit types and containers representing current values \fP"
+.ti -1c
+.RI " \fBunits::temperature\fP"
+.br
+.RI "\fInamespace for unit types and containers representing temperature values \fP"
+.ti -1c
+.RI " \fBunits::substance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing substance values \fP"
+.ti -1c
+.RI " \fBunits::luminous_intensity\fP"
+.br
+.RI "\fInamespace for unit types and containers representing \fBluminous_intensity\fP values \fP"
+.ti -1c
+.RI " \fBunits::solid_angle\fP"
+.br
+.RI "\fInamespace for unit types and containers representing \fBsolid_angle\fP values \fP"
+.ti -1c
+.RI " \fBunits::frequency\fP"
+.br
+.RI "\fInamespace for unit types and containers representing frequency values \fP"
+.ti -1c
+.RI " \fBunits::velocity\fP"
+.br
+.RI "\fInamespace for unit types and containers representing velocity values \fP"
+.ti -1c
+.RI " \fBunits::angular_velocity\fP"
+.br
+.RI "\fInamespace for unit types and containers representing angular velocity values \fP"
+.ti -1c
+.RI " \fBunits::acceleration\fP"
+.br
+.RI "\fInamespace for unit types and containers representing acceleration values \fP"
+.ti -1c
+.RI " \fBunits::force\fP"
+.br
+.RI "\fInamespace for unit types and containers representing force values \fP"
+.ti -1c
+.RI " \fBunits::pressure\fP"
+.br
+.RI "\fInamespace for unit types and containers representing pressure values \fP"
+.ti -1c
+.RI " \fBunits::charge\fP"
+.br
+.RI "\fInamespace for unit types and containers representing charge values \fP"
+.ti -1c
+.RI " \fBunits::energy\fP"
+.br
+.RI "\fInamespace for unit types and containers representing energy values \fP"
+.ti -1c
+.RI " \fBunits::power\fP"
+.br
+.RI "\fInamespace for unit types and containers representing power values \fP"
+.ti -1c
+.RI " \fBunits::voltage\fP"
+.br
+.RI "\fInamespace for unit types and containers representing voltage values \fP"
+.ti -1c
+.RI " \fBunits::capacitance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing capacitance values \fP"
+.ti -1c
+.RI " \fBunits::impedance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing impedance values \fP"
+.ti -1c
+.RI " \fBunits::conductance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing conductance values \fP"
+.ti -1c
+.RI " \fBunits::magnetic_flux\fP"
+.br
+.RI "\fInamespace for unit types and containers representing \fBmagnetic_flux\fP values \fP"
+.ti -1c
+.RI " \fBunits::magnetic_field_strength\fP"
+.br
+.RI "\fInamespace for unit types and containers representing \fBmagnetic_field_strength\fP values \fP"
+.ti -1c
+.RI " \fBunits::inductance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing inductance values \fP"
+.ti -1c
+.RI " \fBunits::luminous_flux\fP"
+.br
+.RI "\fInamespace for unit types and containers representing \fBluminous_flux\fP values \fP"
+.ti -1c
+.RI " \fBunits::illuminance\fP"
+.br
+.RI "\fInamespace for unit types and containers representing illuminance values \fP"
+.ti -1c
+.RI " \fBunits::radiation\fP"
+.br
+.RI "\fInamespace for unit types and containers representing radiation values \fP"
+.ti -1c
+.RI " \fBunits::torque\fP"
+.br
+.RI "\fInamespace for unit types and containers representing torque values \fP"
+.ti -1c
+.RI " \fBunits::area\fP"
+.br
+.RI "\fInamespace for unit types and containers representing area values \fP"
+.ti -1c
+.RI " \fBunits::volume\fP"
+.br
+.RI "\fInamespace for unit types and containers representing volume values \fP"
+.ti -1c
+.RI " \fBunits::density\fP"
+.br
+.RI "\fInamespace for unit types and containers representing density values \fP"
+.ti -1c
+.RI " \fBunits::concentration\fP"
+.br
+.RI "\fInamespace for unit types and containers representing concentration values \fP"
+.ti -1c
+.RI " \fBunits::constants\fP"
+.br
+.RI "\fInamespace for physical constants like PI and Avogadro's Number\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "using \fBunits::category::scalar_unit\fP = base_unit<>"
+.br
+.RI "\fIRepresents a quantity with no dimension\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::dimensionless_unit\fP = base_unit<>"
+.br
+.RI "\fIRepresents a quantity with no dimension\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::length_unit\fP = base_unit< std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of length\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::mass_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of mass\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::time_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of time\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::angle_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of angle\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::current_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of current\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::temperature_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of temperature\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::substance_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of amount of substance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::luminous_intensity_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI base unit of luminous intensity\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::solid_angle_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 2 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >>"
+.br
+.RI "\fIRepresents an SI derived unit of solid angle\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::frequency_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of frequency\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::velocity_unit\fP = base_unit< std::ratio< 1 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of velocity\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::angular_velocity_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio<-1 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of angular velocity\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::acceleration_unit\fP = base_unit< std::ratio< 1 >, std::ratio< 0 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of acceleration\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::force_unit\fP = base_unit< std::ratio< 1 >, std::ratio< 1 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of force\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::pressure_unit\fP = base_unit< std::ratio<-1 >, std::ratio< 1 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of pressure\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::charge_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of charge\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::energy_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of energy\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::power_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-3 >>"
+.br
+.RI "\fIRepresents an SI derived unit of power\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::voltage_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-3 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of voltage\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::capacitance_unit\fP = base_unit< std::ratio<-2 >, std::ratio<-1 >, std::ratio< 4 >, std::ratio< 0 >, std::ratio< 2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of capacitance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::impedance_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-3 >, std::ratio< 0 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of impedance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::conductance_unit\fP = base_unit< std::ratio<-2 >, std::ratio<-1 >, std::ratio< 3 >, std::ratio< 0 >, std::ratio< 2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of conductance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::magnetic_flux_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-2 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of magnetic flux\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::magnetic_field_strength_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 1 >, std::ratio<-2 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of magnetic field strength\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::inductance_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-2 >, std::ratio< 0 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of inductance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::luminous_flux_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 2 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of luminous flux\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::illuminance_unit\fP = base_unit< std::ratio<-2 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 2 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 0 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of illuminance\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::radioactivity_unit\fP = base_unit< std::ratio< 0 >, std::ratio< 0 >, std::ratio<-1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of radioactivity\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::torque_unit\fP = base_unit< std::ratio< 2 >, std::ratio< 1 >, std::ratio<-2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of torque\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::area_unit\fP = base_unit< std::ratio< 2 >>"
+.br
+.RI "\fIRepresents an SI derived unit of area\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::volume_unit\fP = base_unit< std::ratio< 3 >>"
+.br
+.RI "\fIRepresents an SI derived unit of volume\&. \fP"
+.ti -1c
+.RI "using \fBunits::category::density_unit\fP = base_unit< std::ratio<-3 >, std::ratio< 1 >>"
+.br
+.RI "\fIRepresents an SI derived unit of density\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::traits::base_unit_of\fP = typename detail::base_unit_of_impl< U >::type"
+.br
+.RI "\fITrait which returns the \fC\fBbase_unit\fP\fP type that a unit is originally derived from\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::inverse\fP = typename detail::inverse_impl< U >::type"
+.br
+.RI "\fIrepresents the inverse unit type of \fCclass U\fP\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::squared\fP = typename detail::squared_impl< U >::type"
+.br
+.RI "\fIrepresents the unit type of \fCclass U\fP squared \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::cubed\fP = typename detail::cubed_impl< U >::type"
+.br
+.RI "\fIrepresents the type of \fCclass U\fP cubed\&. \fP"
+.ti -1c
+.RI "template<typename Ratio , std::intmax_t Eps = 10000000000> using \fBunits::ratio_sqrt\fP = typename detail::Sqrt< Ratio, std::ratio< 1, Eps >>::type"
+.br
+.RI "\fICalculate square root of a ratio at compile-time\&. \fP"
+.ti -1c
+.RI "template<class U , std::intmax_t Eps = 10000000000> using \fBunits::square_root\fP = typename detail::sqrt_impl< U, Eps >::type"
+.br
+.RI "\fIrepresents the square root of type \fCclass U\fP\&. \fP"
+.ti -1c
+.RI "template<class U , class\&.\&.\&. Us> using \fBunits::compound_unit\fP = typename detail::compound_impl< U, Us\&.\&.\&.>::type"
+.br
+.RI "\fIRepresents a unit type made up from other units\&. \fP"
+.ti -1c
+.RI "using \fBunits::dimensionless::scalar\fP = unit< std::ratio< 1 >, category::scalar_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::dimensionless::dimensionless\fP = unit< std::ratio< 1 >, category::dimensionless_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::dimensionless::scalar_t\fP = unit_t< scalar >"
+.br
+.ti -1c
+.RI "using \fBunits::dimensionless::dimensionless_t\fP = scalar_t"
+.br
+.ti -1c
+.RI "using \fBunits::dimensionless::dB_t\fP = unit_t< scalar, double, decibel_scale >"
+.br
+.ti -1c
+.RI "using \fBunits::dimensionless::dBi_t\fP = dB_t"
+.br
+.in -1c
+.PP
+.RI "\fB\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "template<class U > using \fBunits::atto\fP = typename detail::prefix< std::atto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::femto\fP = typename detail::prefix< std::femto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::pico\fP = typename detail::prefix< std::pico, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'femto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::nano\fP = typename detail::prefix< std::nano, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'pico' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::micro\fP = typename detail::prefix< std::micro, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'nano' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::milli\fP = typename detail::prefix< std::milli, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'micro' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::centi\fP = typename detail::prefix< std::centi, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'milli' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::deci\fP = typename detail::prefix< std::deci, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'centi' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::deca\fP = typename detail::prefix< std::deca, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'deci' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::hecto\fP = typename detail::prefix< std::hecto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'deca' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::kilo\fP = typename detail::prefix< std::kilo, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'hecto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::mega\fP = typename detail::prefix< std::mega, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'kilo' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::giga\fP = typename detail::prefix< std::giga, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'mega' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::tera\fP = typename detail::prefix< std::tera, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'giga' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::peta\fP = typename detail::prefix< std::peta, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'tera' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::exa\fP = typename detail::prefix< std::exa, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'peta' prefix appended\&. \fP"
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::length::meters\fP = unit< std::ratio< 1 >, category::length_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nanometers\fP = nano< meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::micrometers\fP = micro< meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::millimeters\fP = milli< meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::centimeters\fP = centi< meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::kilometers\fP = kilo< meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::feet\fP = unit< std::ratio< 381, 1250 >, meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::mils\fP = unit< std::ratio< 1000 >, feet >"
+.br
+.ti -1c
+.RI "using \fBunits::length::inches\fP = unit< std::ratio< 1, 12 >, feet >"
+.br
+.ti -1c
+.RI "using \fBunits::length::miles\fP = unit< std::ratio< 5280 >, feet >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalMiles\fP = unit< std::ratio< 1852 >, meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::astronicalUnits\fP = unit< std::ratio< 149597870700 >, meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::lightyears\fP = unit< std::ratio< 9460730472580800 >, meters >"
+.br
+.ti -1c
+.RI "using \fBunits::length::parsecs\fP = unit< std::ratio< 648000 >, astronicalUnits, std::ratio<-1 >>"
+.br
+.ti -1c
+.RI "using \fBunits::length::angstroms\fP = unit< std::ratio< 1, 10 >, nanometers >"
+.br
+.ti -1c
+.RI "using \fBunits::length::cubits\fP = unit< std::ratio< 18 >, inches >"
+.br
+.ti -1c
+.RI "using \fBunits::length::fathoms\fP = unit< std::ratio< 6 >, feet >"
+.br
+.ti -1c
+.RI "using \fBunits::length::chains\fP = unit< std::ratio< 66 >, feet >"
+.br
+.ti -1c
+.RI "using \fBunits::length::furlongs\fP = unit< std::ratio< 10 >, chains >"
+.br
+.ti -1c
+.RI "using \fBunits::length::hands\fP = unit< std::ratio< 4 >, inches >"
+.br
+.ti -1c
+.RI "using \fBunits::length::leagues\fP = unit< std::ratio< 3 >, miles >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalLeagues\fP = unit< std::ratio< 3 >, nauticalMiles >"
+.br
+.ti -1c
+.RI "using \fBunits::length::yards\fP = unit< std::ratio< 3 >, feet >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::length::meter\fP = meters"
+.br
+.ti -1c
+.RI "using \fBunits::length::nanometer\fP = nanometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::micrometer\fP = micrometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::millimeter\fP = millimeters"
+.br
+.ti -1c
+.RI "using \fBunits::length::centimeter\fP = centimeters"
+.br
+.ti -1c
+.RI "using \fBunits::length::kilometer\fP = kilometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::foot\fP = feet"
+.br
+.ti -1c
+.RI "using \fBunits::length::inch\fP = inches"
+.br
+.ti -1c
+.RI "using \fBunits::length::mile\fP = miles"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalMile\fP = nauticalMiles"
+.br
+.ti -1c
+.RI "using \fBunits::length::astronicalUnit\fP = astronicalUnits"
+.br
+.ti -1c
+.RI "using \fBunits::length::lightyear\fP = lightyears"
+.br
+.ti -1c
+.RI "using \fBunits::length::parsec\fP = parsecs"
+.br
+.ti -1c
+.RI "using \fBunits::length::angstrom\fP = angstroms"
+.br
+.ti -1c
+.RI "using \fBunits::length::cubit\fP = cubits"
+.br
+.ti -1c
+.RI "using \fBunits::length::fathom\fP = fathoms"
+.br
+.ti -1c
+.RI "using \fBunits::length::chain\fP = chains"
+.br
+.ti -1c
+.RI "using \fBunits::length::furlong\fP = furlongs"
+.br
+.ti -1c
+.RI "using \fBunits::length::hand\fP = hands"
+.br
+.ti -1c
+.RI "using \fBunits::length::league\fP = leagues"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalLeague\fP = nauticalLeagues"
+.br
+.ti -1c
+.RI "using \fBunits::length::yard\fP = yards"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::length::m\fP = meters"
+.br
+.ti -1c
+.RI "using \fBunits::length::nm\fP = nanometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::um\fP = micrometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::mm\fP = millimeters"
+.br
+.ti -1c
+.RI "using \fBunits::length::cm\fP = centimeters"
+.br
+.ti -1c
+.RI "using \fBunits::length::km\fP = kilometers"
+.br
+.ti -1c
+.RI "using \fBunits::length::ft\fP = feet"
+.br
+.ti -1c
+.RI "using \fBunits::length::inc\fP = inches"
+.br
+.ti -1c
+.RI "using \fBunits::length::mi\fP = miles"
+.br
+.ti -1c
+.RI "using \fBunits::length::nmi\fP = nauticalMiles"
+.br
+.ti -1c
+.RI "using \fBunits::length::au\fP = astronicalUnits"
+.br
+.ti -1c
+.RI "using \fBunits::length::ly\fP = lightyears"
+.br
+.ti -1c
+.RI "using \fBunits::length::pc\fP = parsecs"
+.br
+.ti -1c
+.RI "using \fBunits::length::ftm\fP = fathoms"
+.br
+.ti -1c
+.RI "using \fBunits::length::ch\fP = chains"
+.br
+.ti -1c
+.RI "using \fBunits::length::fur\fP = furlongs"
+.br
+.ti -1c
+.RI "using \fBunits::length::lea\fP = leagues"
+.br
+.ti -1c
+.RI "using \fBunits::length::nl\fP = nauticalLeagues"
+.br
+.ti -1c
+.RI "using \fBunits::length::yd\fP = yards"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::length::meter_t\fP = unit_t< meter >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nanometer_t\fP = unit_t< nanometer >"
+.br
+.ti -1c
+.RI "using \fBunits::length::micrometer_t\fP = unit_t< micrometer >"
+.br
+.ti -1c
+.RI "using \fBunits::length::millimeter_t\fP = unit_t< millimeter >"
+.br
+.ti -1c
+.RI "using \fBunits::length::centimeter_t\fP = unit_t< centimeter >"
+.br
+.ti -1c
+.RI "using \fBunits::length::kilometer_t\fP = unit_t< kilometer >"
+.br
+.ti -1c
+.RI "using \fBunits::length::foot_t\fP = unit_t< foot >"
+.br
+.ti -1c
+.RI "using \fBunits::length::inch_t\fP = unit_t< inch >"
+.br
+.ti -1c
+.RI "using \fBunits::length::mile_t\fP = unit_t< mile >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalMile_t\fP = unit_t< nauticalMile >"
+.br
+.ti -1c
+.RI "using \fBunits::length::astronicalUnit_t\fP = unit_t< astronicalUnit >"
+.br
+.ti -1c
+.RI "using \fBunits::length::lightyear_t\fP = unit_t< lightyear >"
+.br
+.ti -1c
+.RI "using \fBunits::length::parsec_t\fP = unit_t< parsec >"
+.br
+.ti -1c
+.RI "using \fBunits::length::angstrom_t\fP = unit_t< angstrom >"
+.br
+.ti -1c
+.RI "using \fBunits::length::cubit_t\fP = unit_t< cubit >"
+.br
+.ti -1c
+.RI "using \fBunits::length::fathom_t\fP = unit_t< fathom >"
+.br
+.ti -1c
+.RI "using \fBunits::length::chain_t\fP = unit_t< chain >"
+.br
+.ti -1c
+.RI "using \fBunits::length::furlong_t\fP = unit_t< furlong >"
+.br
+.ti -1c
+.RI "using \fBunits::length::hand_t\fP = unit_t< hand >"
+.br
+.ti -1c
+.RI "using \fBunits::length::league_t\fP = unit_t< league >"
+.br
+.ti -1c
+.RI "using \fBunits::length::nauticalLeague_t\fP = unit_t< nauticalLeague >"
+.br
+.ti -1c
+.RI "using \fBunits::length::yard_t\fP = unit_t< yard >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::mass::kilograms\fP = unit< std::ratio< 1 >, category::mass_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::grams\fP = unit< std::ratio< 1, 1000 >, kilograms >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::micrograms\fP = micro< grams >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::milligrams\fP = milli< grams >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::metric_tons\fP = unit< std::ratio< 1000 >, kilograms >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::pounds\fP = unit< std::ratio< 45359237, 100000000 >, kilograms >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::imperial_tons\fP = unit< std::ratio< 2240 >, pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::us_tons\fP = unit< std::ratio< 2000 >, pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::stone\fP = unit< std::ratio< 14 >, pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::ounces\fP = unit< std::ratio< 1, 16 >, pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::carats\fP = unit< std::ratio< 200 >, milligrams >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::slugs\fP = unit< std::ratio< 145939029, 10000000 >, kilograms >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::mass::gram\fP = grams"
+.br
+.ti -1c
+.RI "using \fBunits::mass::microgram\fP = micrograms"
+.br
+.ti -1c
+.RI "using \fBunits::mass::milligram\fP = milligrams"
+.br
+.ti -1c
+.RI "using \fBunits::mass::kilogram\fP = kilograms"
+.br
+.ti -1c
+.RI "using \fBunits::mass::metric_ton\fP = metric_tons"
+.br
+.ti -1c
+.RI "using \fBunits::mass::pound\fP = pounds"
+.br
+.ti -1c
+.RI "using \fBunits::mass::imperial_ton\fP = imperial_tons"
+.br
+.ti -1c
+.RI "using \fBunits::mass::us_ton\fP = us_tons"
+.br
+.ti -1c
+.RI "using \fBunits::mass::ounce\fP = ounces"
+.br
+.ti -1c
+.RI "using \fBunits::mass::carat\fP = carats"
+.br
+.ti -1c
+.RI "using \fBunits::mass::slug\fP = slugs"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::mass::g\fP = grams"
+.br
+.ti -1c
+.RI "using \fBunits::mass::ug\fP = micrograms"
+.br
+.ti -1c
+.RI "using \fBunits::mass::mg\fP = milligrams"
+.br
+.ti -1c
+.RI "using \fBunits::mass::kg\fP = kilograms"
+.br
+.ti -1c
+.RI "using \fBunits::mass::mt\fP = metric_tons"
+.br
+.ti -1c
+.RI "using \fBunits::mass::t\fP = us_tons"
+.br
+.ti -1c
+.RI "using \fBunits::mass::Ib\fP = pounds"
+.br
+.ti -1c
+.RI "using \fBunits::mass::Ibs\fP = pounds"
+.br
+.ti -1c
+.RI "using \fBunits::mass::st\fP = stone"
+.br
+.ti -1c
+.RI "using \fBunits::mass::oz\fP = ounces"
+.br
+.ti -1c
+.RI "using \fBunits::mass::ct\fP = carats"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::mass::gram_t\fP = unit_t< gram >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::microgram_t\fP = unit_t< microgram >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::milligram_t\fP = unit_t< milligram >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::kilogram_t\fP = unit_t< kilogram >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::metric_ton_t\fP = unit_t< metric_ton >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::pound_t\fP = unit_t< pound >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::imperial_ton_t\fP = unit_t< imperial_ton >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::us_ton_t\fP = unit_t< us_ton >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::stone_t\fP = unit_t< stone >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::ounce_t\fP = unit_t< ounce >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::carat_t\fP = unit_t< carat >"
+.br
+.ti -1c
+.RI "using \fBunits::mass::slug_t\fP = unit_t< slug >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::time::seconds\fP = unit< std::ratio< 1 >, category::time_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::time::nanoseconds\fP = nano< seconds >"
+.br
+.ti -1c
+.RI "using \fBunits::time::microseconds\fP = micro< seconds >"
+.br
+.ti -1c
+.RI "using \fBunits::time::millseconds\fP = milli< seconds >"
+.br
+.ti -1c
+.RI "using \fBunits::time::minutes\fP = unit< std::ratio< 60 >, seconds >"
+.br
+.ti -1c
+.RI "using \fBunits::time::hours\fP = unit< std::ratio< 60 >, minutes >"
+.br
+.ti -1c
+.RI "using \fBunits::time::days\fP = unit< std::ratio< 24 >, hours >"
+.br
+.ti -1c
+.RI "using \fBunits::time::weeks\fP = unit< std::ratio< 7 >, days >"
+.br
+.ti -1c
+.RI "using \fBunits::time::years\fP = unit< std::ratio< 365 >, days >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::time::second\fP = seconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::nanosecond\fP = nanoseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::microsecond\fP = microseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::millsecond\fP = millseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::minute\fP = minutes"
+.br
+.ti -1c
+.RI "using \fBunits::time::hour\fP = hours"
+.br
+.ti -1c
+.RI "using \fBunits::time::day\fP = days"
+.br
+.ti -1c
+.RI "using \fBunits::time::week\fP = weeks"
+.br
+.ti -1c
+.RI "using \fBunits::time::year\fP = years"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::time::s\fP = seconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::ns\fP = nanoseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::us\fP = microseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::ms\fP = millseconds"
+.br
+.ti -1c
+.RI "using \fBunits::time::m\fP = minutes"
+.br
+.ti -1c
+.RI "using \fBunits::time::hr\fP = hours"
+.br
+.ti -1c
+.RI "using \fBunits::time::d\fP = days"
+.br
+.ti -1c
+.RI "using \fBunits::time::wk\fP = weeks"
+.br
+.ti -1c
+.RI "using \fBunits::time::yr\fP = years"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::time::second_t\fP = unit_t< second >"
+.br
+.ti -1c
+.RI "using \fBunits::time::nanosecond_t\fP = unit_t< nanosecond >"
+.br
+.ti -1c
+.RI "using \fBunits::time::microsecond_t\fP = unit_t< microsecond >"
+.br
+.ti -1c
+.RI "using \fBunits::time::millsecond_t\fP = unit_t< millsecond >"
+.br
+.ti -1c
+.RI "using \fBunits::time::minute_t\fP = unit_t< minute >"
+.br
+.ti -1c
+.RI "using \fBunits::time::hour_t\fP = unit_t< hour >"
+.br
+.ti -1c
+.RI "using \fBunits::time::day_t\fP = unit_t< day >"
+.br
+.ti -1c
+.RI "using \fBunits::time::week_t\fP = unit_t< week >"
+.br
+.ti -1c
+.RI "using \fBunits::time::year_t\fP = unit_t< year >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angle::radians\fP = unit< std::ratio< 1 >, category::angle_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::milliradians\fP = milli< radians >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::degrees\fP = unit< std::ratio< 1, 180 >, radians, std::ratio< 1 >>"
+.br
+.ti -1c
+.RI "using \fBunits::angle::arcminutes\fP = unit< std::ratio< 1, 60 >, degrees >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::arcseconds\fP = unit< std::ratio< 1, 60 >, arcminutes >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::milliarcseconds\fP = milli< arcseconds >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::turns\fP = unit< std::ratio< 2 >, radians, std::ratio< 1 >>"
+.br
+.ti -1c
+.RI "using \fBunits::angle::mils\fP = unit< std::ratio< 1, 6400 >, radians >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::gradians\fP = unit< std::ratio< 1, 400 >, turns >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angle::radian\fP = radians"
+.br
+.ti -1c
+.RI "using \fBunits::angle::milliradian\fP = milliradians"
+.br
+.ti -1c
+.RI "using \fBunits::angle::degree\fP = degrees"
+.br
+.ti -1c
+.RI "using \fBunits::angle::arcminute\fP = arcminutes"
+.br
+.ti -1c
+.RI "using \fBunits::angle::arcsecond\fP = arcseconds"
+.br
+.ti -1c
+.RI "using \fBunits::angle::milliarcsecond\fP = milliarcseconds"
+.br
+.ti -1c
+.RI "using \fBunits::angle::turn\fP = turns"
+.br
+.ti -1c
+.RI "using \fBunits::angle::mil\fP = mils"
+.br
+.ti -1c
+.RI "using \fBunits::angle::gradian\fP = gradians"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angle::rad\fP = radians"
+.br
+.ti -1c
+.RI "using \fBunits::angle::mrad\fP = milliradians"
+.br
+.ti -1c
+.RI "using \fBunits::angle::deg\fP = degrees"
+.br
+.ti -1c
+.RI "using \fBunits::angle::min\fP = arcminutes"
+.br
+.ti -1c
+.RI "using \fBunits::angle::sec\fP = arcseconds"
+.br
+.ti -1c
+.RI "using \fBunits::angle::mas\fP = milliarcseconds"
+.br
+.ti -1c
+.RI "using \fBunits::angle::tr\fP = turn"
+.br
+.ti -1c
+.RI "using \fBunits::angle::gon\fP = gradians"
+.br
+.ti -1c
+.RI "using \fBunits::angle::grad\fP = gradians"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angle::radian_t\fP = unit_t< radian >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::milliradian_t\fP = unit_t< milliradian >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::degree_t\fP = unit_t< degree >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::minute_t\fP = unit_t< arcminute >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::second_t\fP = unit_t< arcsecond >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::turn_t\fP = unit_t< turn >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::mil_t\fP = unit_t< mil >"
+.br
+.ti -1c
+.RI "using \fBunits::angle::gradian_t\fP = unit_t< gradian >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::current::amperes\fP = unit< std::ratio< 1 >, category::current_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::current::milliamps\fP = milli< amperes >"
+.br
+.ti -1c
+.RI "using \fBunits::current::microamps\fP = micro< amperes >"
+.br
+.ti -1c
+.RI "using \fBunits::current::nanoamps\fP = nano< amperes >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::current::ampere\fP = amperes"
+.br
+.ti -1c
+.RI "using \fBunits::current::amps\fP = amperes"
+.br
+.ti -1c
+.RI "using \fBunits::current::amp\fP = amperes"
+.br
+.ti -1c
+.RI "using \fBunits::current::milliamp\fP = milliamps"
+.br
+.ti -1c
+.RI "using \fBunits::current::microamp\fP = microamps"
+.br
+.ti -1c
+.RI "using \fBunits::current::nanoamp\fP = nanoamps"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::current::A\fP = amperes"
+.br
+.ti -1c
+.RI "using \fBunits::current::mA\fP = milliamps"
+.br
+.ti -1c
+.RI "using \fBunits::current::uA\fP = microamps"
+.br
+.ti -1c
+.RI "using \fBunits::current::nA\fP = nanoamps"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::current::ampere_t\fP = unit_t< ampere >"
+.br
+.ti -1c
+.RI "using \fBunits::current::amps_t\fP = unit_t< amps >"
+.br
+.ti -1c
+.RI "using \fBunits::current::amp_t\fP = unit_t< amp >"
+.br
+.ti -1c
+.RI "using \fBunits::current::milliamp_t\fP = unit_t< milliamp >"
+.br
+.ti -1c
+.RI "using \fBunits::current::microamp_t\fP = unit_t< microamp >"
+.br
+.ti -1c
+.RI "using \fBunits::current::nanoamp_t\fP = unit_t< nanoamp >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::temperature::kelvin\fP = unit< std::ratio< 1 >, category::temperature_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::celsius\fP = unit< std::ratio< 1 >, kelvin, std::ratio< 0 >, std::ratio< 27315, 100 >>"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::fahrenheit\fP = unit< std::ratio< 5, 9 >, celsius, std::ratio< 0 >, std::ratio<-160, 9 >>"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::reaumur\fP = unit< std::ratio< 10, 8 >, celsius >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::rankine\fP = unit< std::ratio< 5, 9 >, kelvin >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::temperature::centigrade\fP = celsius"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::temperature::K\fP = kelvin"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::F\fP = fahrenheit"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::C\fP = celsius"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::Ra\fP = rankine"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::Re\fP = reaumur"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::temperature::kelvin_t\fP = unit_t< kelvin >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::celsius_t\fP = unit_t< celsius >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::fahrenheit_t\fP = unit_t< fahrenheit >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::reaumur_t\fP = unit_t< reaumur >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::rankine_t\fP = unit_t< rankine >"
+.br
+.ti -1c
+.RI "using \fBunits::temperature::centigrade_t\fP = unit_t< centigrade >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::substance::moles\fP = unit< std::ratio< 1 >, category::substance_unit >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::substance::mole\fP = moles"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::substance::mol\fP = mole"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::substance::mole_t\fP = unit_t< mole >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_intensity::candelas\fP = unit< std::ratio< 1 >, category::luminous_intensity_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_intensity::millicandelas\fP = milli< candelas >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_intensity::candela\fP = candelas"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_intensity::millicandela\fP = millicandelas"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_intensity::cd\fP = candela"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_intensity::mcd\fP = millicandela"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_intensity::candela_t\fP = unit_t< candela >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_intensity::millicandela_t\fP = unit_t< millicandela >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::solid_angle::steradians\fP = unit< std::ratio< 1 >, category::solid_angle_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::degrees_squared\fP = squared< angle::degrees >"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::spats\fP = unit< std::ratio< 4 >, steradians, std::ratio< 1 >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::solid_angle::steradian\fP = steradians"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::degree_squared\fP = degrees_squared"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::spat\fP = spats"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::solid_angle::sr\fP = steradians"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::sq_deg\fP = degrees_squared"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::sp\fP = spat"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::solid_angle::steradian_t\fP = unit_t< steradian >"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::degree_squared_t\fP = unit_t< degree_squared >"
+.br
+.ti -1c
+.RI "using \fBunits::solid_angle::spat_t\fP = unit_t< spat >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::frequency::hertz\fP = unit< std::ratio< 1 >, category::frequency_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::kilohertz\fP = kilo< hertz >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::megahertz\fP = mega< hertz >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::gigahertz\fP = giga< hertz >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::frequency::Hz\fP = hertz"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::kHz\fP = kilohertz"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::MHz\fP = megahertz"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::GHz\fP = gigahertz"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::frequency::hertz_t\fP = unit_t< hertz >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::kilohertz_t\fP = unit_t< kilohertz >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::megahertz_t\fP = unit_t< megahertz >"
+.br
+.ti -1c
+.RI "using \fBunits::frequency::gigahertz_t\fP = unit_t< gigahertz >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::velocity::meters_per_second\fP = unit< std::ratio< 1 >, category::velocity_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::feet_per_second\fP = compound_unit< length::feet, inverse< time::seconds >>"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::miles_per_hour\fP = compound_unit< length::miles, inverse< time::hour >>"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::kilometers_per_hour\fP = compound_unit< length::kilometers, inverse< time::hour >>"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::knots\fP = compound_unit< length::nauticalMiles, inverse< time::hour >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::velocity::knot\fP = knots"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::velocity::mps\fP = meters_per_second"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::mph\fP = miles_per_hour"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::fps\fP = feet_per_second"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::kmph\fP = kilometers_per_hour"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::velocity::meters_per_second_t\fP = unit_t< meters_per_second >"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::feet_per_second_t\fP = unit_t< feet_per_second >"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::miles_per_hour_t\fP = unit_t< miles_per_hour >"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::kilometers_per_hour_t\fP = unit_t< kilometers_per_hour >"
+.br
+.ti -1c
+.RI "using \fBunits::velocity::knot_t\fP = unit_t< knot >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angular_velocity::radians_per_second\fP = unit< std::ratio< 1 >, category::angular_velocity_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::degrees_per_second\fP = compound_unit< angle::degrees, inverse< time::seconds >>"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::revolutions_per_minute\fP = unit< std::ratio< 2, 60 >, radians_per_second, std::ratio< 1 >>"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::milliarcseconds_per_year\fP = compound_unit< angle::milliarcseconds, inverse< time::year >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angular_velocity::radian_per_second\fP = radians_per_second"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::degree_per_second\fP = degrees_per_second"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::revolution_per_minute\fP = revolutions_per_minute"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::milliarcsecond_per_year\fP = milliarcseconds_per_year"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angular_velocity::rpm\fP = revolutions_per_minute"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::angular_velocity::radians_per_second_t\fP = unit_t< radians_per_second >"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::degrees_per_second_t\fP = unit_t< degrees_per_second >"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::revolutions_per_minute_t\fP = unit_t< revolutions_per_minute >"
+.br
+.ti -1c
+.RI "using \fBunits::angular_velocity::milliarcseconds_per_year_t\fP = unit_t< milliarcseconds_per_year >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::acceleration::meters_per_second_squared\fP = unit< std::ratio< 1 >, category::acceleration_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::acceleration::feet_per_second_squared\fP = compound_unit< length::feet, inverse< squared< time::seconds >>>"
+.br
+.ti -1c
+.RI "using \fBunits::acceleration::standard_gravity\fP = unit< std::ratio< 980665, 100000 >, meters_per_second_squared >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::acceleration::meters_per_second_squared_t\fP = unit_t< meters_per_second_squared >"
+.br
+.ti -1c
+.RI "using \fBunits::acceleration::feet_per_second_squared_t\fP = unit_t< feet_per_second_squared >"
+.br
+.ti -1c
+.RI "using \fBunits::acceleration::standard_gravity_t\fP = unit_t< standard_gravity >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::force::newtons\fP = unit< std::ratio< 1 >, category::force_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::force::pounds\fP = compound_unit< mass::slug, length::foot, inverse< squared< time::seconds >>>"
+.br
+.ti -1c
+.RI "using \fBunits::force::dynes\fP = unit< std::ratio< 1, 100000 >, newtons >"
+.br
+.ti -1c
+.RI "using \fBunits::force::kiloponds\fP = compound_unit< acceleration::standard_gravity, mass::kilograms >"
+.br
+.ti -1c
+.RI "using \fBunits::force::poundals\fP = compound_unit< mass::pound, length::foot, inverse< squared< time::seconds >>>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::force::newton\fP = newtons"
+.br
+.ti -1c
+.RI "using \fBunits::force::pound\fP = pounds"
+.br
+.ti -1c
+.RI "using \fBunits::force::dyne\fP = dynes"
+.br
+.ti -1c
+.RI "using \fBunits::force::kilopond\fP = kiloponds"
+.br
+.ti -1c
+.RI "using \fBunits::force::poundal\fP = poundals"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::force::N\fP = newtons"
+.br
+.ti -1c
+.RI "using \fBunits::force::lbf\fP = pounds"
+.br
+.ti -1c
+.RI "using \fBunits::force::dyn\fP = dynes"
+.br
+.ti -1c
+.RI "using \fBunits::force::kp\fP = kiloponds"
+.br
+.ti -1c
+.RI "using \fBunits::force::pdl\fP = poundals"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::force::newton_t\fP = unit_t< newton >"
+.br
+.ti -1c
+.RI "using \fBunits::force::pound_t\fP = unit_t< pound >"
+.br
+.ti -1c
+.RI "using \fBunits::force::dyne_t\fP = unit_t< dyne >"
+.br
+.ti -1c
+.RI "using \fBunits::force::kilopond_t\fP = unit_t< kilopond >"
+.br
+.ti -1c
+.RI "using \fBunits::force::poundal_t\fP = unit_t< poundal >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::pressure::pascals\fP = unit< std::ratio< 1 >, category::pressure_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::bars\fP = unit< std::ratio< 100 >, kilo< pascals >>"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::atmospheres\fP = unit< std::ratio< 101325 >, pascals >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::pounds_per_square_inch\fP = compound_unit< force::pounds, inverse< squared< length::inch >>>"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::torrs\fP = unit< std::ratio< 1, 760 >, atmospheres >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::pressure::pascal\fP = pascals"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::bar\fP = bars"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::atmosphere\fP = atmospheres"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::pound_per_square_inch\fP = pounds_per_square_inch"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::torr\fP = torrs"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::pressure::Pa\fP = pascals"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::atm\fP = atmospheres"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::psi\fP = pound_per_square_inch"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::pressure::pascal_t\fP = unit_t< pascal >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::bar_t\fP = unit_t< bar >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::atmosphere_t\fP = unit_t< atmosphere >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::pound_per_square_inch_t\fP = unit_t< pound_per_square_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::pressure::torr_t\fP = unit_t< torr >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::charge::coulombs\fP = unit< std::ratio< 1 >, category::charge_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::charge::ampere_hours\fP = compound_unit< current::ampere, time::hours >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::charge::coulomb\fP = coulombs"
+.br
+.ti -1c
+.RI "using \fBunits::charge::ampere_hour\fP = ampere_hours"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::charge::C\fP = coulombs"
+.br
+.ti -1c
+.RI "using \fBunits::charge::Ah\fP = ampere_hours"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::charge::coulomb_t\fP = unit_t< coulomb >"
+.br
+.ti -1c
+.RI "using \fBunits::charge::ampere_hour_t\fP = unit_t< ampere_hour >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::energy::joules\fP = unit< std::ratio< 1 >, category::energy_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::megajoules\fP = mega< joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilojoules\fP = kilo< joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::calories\fP = unit< std::ratio< 4184, 1000 >, joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilocalories\fP = kilo< calories >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilowatt_hours\fP = unit< std::ratio< 36, 10 >, megajoules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::watt_hours\fP = unit< std::ratio< 1, 1000 >, kilowatt_hours >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::british_thermal_units\fP = unit< std::ratio< 105505585262, 100000000 >, joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::british_thermal_units_iso\fP = unit< std::ratio< 1055056, 1000 >, joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::british_thermal_units_59\fP = unit< std::ratio< 1054804, 1000 >, joules >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::therms\fP = unit< std::ratio< 100000 >, british_thermal_units_59 >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::foot_pounds\fP = unit< std::ratio< 13558179483314004, 10000000000000000 >, joules >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::energy::joule\fP = joules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::megajoule\fP = megajoules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilojoule\fP = kilojoules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::calorie\fP = calories"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilocalorie\fP = kilocalories"
+.br
+.ti -1c
+.RI "using \fBunits::energy::watt_hour\fP = watt_hours"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilowatt_hour\fP = kilowatt_hours"
+.br
+.ti -1c
+.RI "using \fBunits::energy::british_thermal_unit\fP = british_thermal_units"
+.br
+.ti -1c
+.RI "using \fBunits::energy::therm\fP = therms"
+.br
+.ti -1c
+.RI "using \fBunits::energy::foot_pound\fP = foot_pounds"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::energy::J\fP = joules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::MJ\fP = megajoules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kJ\fP = kilojoules"
+.br
+.ti -1c
+.RI "using \fBunits::energy::cal\fP = calories"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kcal\fP = kilocalories"
+.br
+.ti -1c
+.RI "using \fBunits::energy::Wh\fP = watt_hours"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kWh\fP = kilowatt_hours"
+.br
+.ti -1c
+.RI "using \fBunits::energy::BTU\fP = british_thermal_units"
+.br
+.ti -1c
+.RI "using \fBunits::energy::thm\fP = therms"
+.br
+.ti -1c
+.RI "using \fBunits::energy::ftlbf\fP = foot_pounds"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::energy::joule_t\fP = unit_t< joule >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::megajoule_t\fP = unit_t< megajoule >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilojoule_t\fP = unit_t< kilojoule >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::calorie_t\fP = unit_t< calorie >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilocalorie_t\fP = unit_t< kilocalorie >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::watt_hour_t\fP = unit_t< watt_hour >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::kilowatt_hour_t\fP = unit_t< kilowatt_hour >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::british_thermal_unit_t\fP = unit_t< british_thermal_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::therm_t\fP = unit_t< therm >"
+.br
+.ti -1c
+.RI "using \fBunits::energy::foot_pound_t\fP = unit_t< foot_pound >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::power::watts\fP = unit< std::ratio< 1 >, category::power_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::power::nanowatts\fP = nano< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::microwatts\fP = micro< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::milliwatts\fP = milli< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::kilowatts\fP = kilo< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::megawatts\fP = mega< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::gigawatts\fP = giga< watts >"
+.br
+.ti -1c
+.RI "using \fBunits::power::horsepower\fP = unit< std::ratio< 7457, 10 >, watts >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::power::watt\fP = watts"
+.br
+.ti -1c
+.RI "using \fBunits::power::nanowatt\fP = nanowatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::microwatt\fP = microwatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::milliwatt\fP = milliwatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::kilwatt\fP = kilowatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::megawatt\fP = megawatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::gigawatt\fP = gigawatts"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::power::W\fP = watts"
+.br
+.ti -1c
+.RI "using \fBunits::power::nW\fP = nanowatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::uW\fP = microwatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::mW\fP = milliwatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::kW\fP = kilowatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::MW\fP = megawatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::GW\fP = gigawatts"
+.br
+.ti -1c
+.RI "using \fBunits::power::hp\fP = horsepower"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::power::watt_t\fP = unit_t< watt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::nanowatt_t\fP = unit_t< nanowatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::microwatt_t\fP = unit_t< microwatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::milliwatt_t\fP = unit_t< milliwatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::kilwatt_t\fP = unit_t< kilwatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::megawatt_t\fP = unit_t< megawatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::gigawatt_t\fP = unit_t< gigawatt >"
+.br
+.ti -1c
+.RI "using \fBunits::power::dBW_t\fP = unit_t< watt, double, decibel_scale >"
+.br
+.ti -1c
+.RI "using \fBunits::power::dBm_t\fP = unit_t< milliwatt, double, decibel_scale >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::voltage::volts\fP = unit< std::ratio< 1 >, category::voltage_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::picovolts\fP = pico< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::nanovolts\fP = nano< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::microvolts\fP = micro< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::millivolts\fP = milli< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::kilovolts\fP = kilo< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::megavolts\fP = mega< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::gigavolts\fP = giga< volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::statvolts\fP = unit< std::ratio< 1000000, 299792458 >, volts >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::abvolts\fP = unit< std::ratio< 1, 100000000 >, volts >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::voltage::volt\fP = volts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::picovolt\fP = picovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::nanovolt\fP = nanovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::microvolt\fP = microvolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::millivolt\fP = millivolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::kilovolt\fP = kilovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::megavolt\fP = megavolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::gigavolt\fP = gigavolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::statvolt\fP = statvolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::abvolt\fP = abvolts"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::voltage::volt_t\fP = unit_t< volt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::picovolt_t\fP = unit_t< picovolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::nanovolt_t\fP = unit_t< nanovolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::microvolt_t\fP = unit_t< microvolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::millivolt_t\fP = unit_t< millivolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::kilovolt_t\fP = unit_t< kilovolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::megavolt_t\fP = unit_t< megavolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::gigavolt_t\fP = unit_t< gigavolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::statvolt_t\fP = unit_t< statvolt >"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::abvolt_t\fP = unit_t< abvolt >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::voltage::V\fP = volts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::pV\fP = picovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::nV\fP = nanovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::uV\fP = microvolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::mV\fP = millivolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::kV\fP = kilovolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::MV\fP = megavolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::GV\fP = gigavolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::statV\fP = statvolts"
+.br
+.ti -1c
+.RI "using \fBunits::voltage::abV\fP = abvolts"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::capacitance::farads\fP = unit< std::ratio< 1 >, category::capacitance_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::picofarads\fP = pico< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::nanofarads\fP = nano< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::microfarads\fP = micro< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::millifarads\fP = milli< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::kilofarads\fP = kilo< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::megafarads\fP = mega< farads >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::gigafarads\fP = giga< farads >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::capacitance::farad\fP = farads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::picofarad\fP = picofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::nanofarad\fP = nanofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::microfarad\fP = microfarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::millifarad\fP = millifarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::kilofarad\fP = kilofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::megafarad\fP = megafarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::gigafarad\fP = gigafarads"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::capacitance::F\fP = farads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::pF\fP = picofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::nF\fP = nanofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::uF\fP = microfarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::mF\fP = millifarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::kF\fP = kilofarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::MF\fP = megafarads"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::GF\fP = gigafarads"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::capacitance::farad_t\fP = unit_t< farad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::picofarad_t\fP = unit_t< picofarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::nanofarad_t\fP = unit_t< nanofarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::microfarad_t\fP = unit_t< microfarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::millifarad_t\fP = unit_t< millifarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::kilofarad_t\fP = unit_t< kilofarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::megafarad_t\fP = unit_t< megafarad >"
+.br
+.ti -1c
+.RI "using \fBunits::capacitance::gigafarad_t\fP = unit_t< gigafarad >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::impedance::ohms\fP = unit< std::ratio< 1 >, category::impedance_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::picoohms\fP = pico< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::nanoohms\fP = nano< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::microohms\fP = micro< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::milliohms\fP = milli< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::kiloohms\fP = kilo< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::megaohms\fP = mega< ohms >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::gigaohms\fP = giga< ohms >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::impedance::ohm\fP = ohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::picoohm\fP = picoohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::nanoohm\fP = nanoohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::microohm\fP = microohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::milliohm\fP = milliohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::kiloohm\fP = kiloohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::megaohm\fP = megaohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::gigaohm\fP = gigaohms"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::impedance::ohm_t\fP = unit_t< ohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::picoohm_t\fP = unit_t< picoohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::nanoohm_t\fP = unit_t< nanoohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::microohm_t\fP = unit_t< microohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::milliohm_t\fP = unit_t< milliohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::kiloohm_t\fP = unit_t< kiloohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::megaohm_t\fP = unit_t< megaohm >"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::gigaohm_t\fP = unit_t< gigaohm >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::impedance::Ohm\fP = ohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::pOhm\fP = picoohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::nOhm\fP = nanoohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::uOhm\fP = microohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::mOhm\fP = milliohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::kOhm\fP = kiloohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::MOhm\fP = megaohms"
+.br
+.ti -1c
+.RI "using \fBunits::impedance::GOhm\fP = gigaohms"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::conductance::siemens\fP = unit< std::ratio< 1 >, category::conductance_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::picosiemens\fP = pico< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::nanosiemens\fP = nano< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::microsiemens\fP = micro< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::millisiemens\fP = milli< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::kilosiemens\fP = kilo< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::megasiemens\fP = mega< siemens >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::gigasiemens\fP = giga< siemens >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::conductance::siemen\fP = siemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::picosiemen\fP = picosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::nanosiemen\fP = nanosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::microsiemen\fP = microsiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::millisiemen\fP = millisiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::kilosiemen\fP = kilosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::megasiemen\fP = megasiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::gigasiemen\fP = gigasiemens"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::conductance::siemen_t\fP = unit_t< siemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::picosiemen_t\fP = unit_t< picosiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::nanosiemen_t\fP = unit_t< nanosiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::microsiemen_t\fP = unit_t< microsiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::millisiemen_t\fP = unit_t< millisiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::kilosiemen_t\fP = unit_t< kilosiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::megasiemen_t\fP = unit_t< megasiemen >"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::gigasiemen_t\fP = unit_t< gigasiemen >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::conductance::S\fP = siemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::pS\fP = picosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::nS\fP = nanosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::uS\fP = microsiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::mS\fP = millisiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::kS\fP = kilosiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::MS\fP = megasiemens"
+.br
+.ti -1c
+.RI "using \fBunits::conductance::GS\fP = gigasiemens"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_flux::webers\fP = unit< std::ratio< 1 >, category::magnetic_flux_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::picowebers\fP = pico< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::nanowebers\fP = nano< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::microwebers\fP = micro< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::milliwebers\fP = milli< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::kilowebers\fP = kilo< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::megawebers\fP = mega< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::gigawebers\fP = giga< webers >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::maxwells\fP = unit< std::ratio< 1, 100000000 >, webers >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_flux::weber\fP = webers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::picoweber\fP = picowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::nanoweber\fP = nanowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::microweber\fP = microwebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::milliweber\fP = milliwebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::kiloweber\fP = kilowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::megaweber\fP = megawebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::gigaweber\fP = gigawebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::maxwell\fP = maxwells"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_flux::weber_t\fP = unit_t< weber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::picoweber_t\fP = unit_t< picoweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::nanoweber_t\fP = unit_t< nanoweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::microweber_t\fP = unit_t< microweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::milliweber_t\fP = unit_t< milliweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::kiloweber_t\fP = unit_t< kiloweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::megaweber_t\fP = unit_t< megaweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::gigaweber_t\fP = unit_t< gigaweber >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::maxwell_t\fP = unit_t< maxwell >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_flux::Wb\fP = webers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::pWb\fP = picowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::nWb\fP = nanowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::uWb\fP = microwebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::mWb\fP = milliwebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::kWb\fP = kilowebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::MWb\fP = megawebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::GWb\fP = gigawebers"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_flux::Mx\fP = maxwells"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::teslas\fP = unit< std::ratio< 1 >, category::magnetic_field_strength_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::picoteslas\fP = pico< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::nanoteslas\fP = nano< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::microteslas\fP = micro< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::milliteslas\fP = milli< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::kiloteslas\fP = kilo< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::megateslas\fP = mega< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::gigateslas\fP = giga< teslas >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::gauss\fP = compound_unit< magnetic_flux::maxwell, inverse< squared< length::centimeter >>>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::tesla\fP = teslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::picotesla\fP = picoteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::nanotesla\fP = nanoteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::microtesla\fP = microteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::millitesla\fP = milliteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::kilotesla\fP = kiloteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::megatesla\fP = megateslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::gigatesla\fP = gigateslas"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::tesla_t\fP = unit_t< tesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::picotesla_t\fP = unit_t< picotesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::nanotesla_t\fP = unit_t< nanotesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::microtesla_t\fP = unit_t< microtesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::millitesla_t\fP = unit_t< millitesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::kilotesla_t\fP = unit_t< kilotesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::megatesla_t\fP = unit_t< megatesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::gigatesla_t\fP = unit_t< gigatesla >"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::gauss_t\fP = unit_t< gauss >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::T\fP = teslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::pT\fP = picoteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::nT\fP = nanoteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::uT\fP = microteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::mT\fP = milliteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::kT\fP = kiloteslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::MT\fP = megateslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::GT\fP = gigateslas"
+.br
+.ti -1c
+.RI "using \fBunits::magnetic_field_strength::G\fP = gauss"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::inductance::henrys\fP = unit< std::ratio< 1 >, category::inductance_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::picohenrys\fP = pico< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::nanohenrys\fP = nano< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::microhenrys\fP = micro< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::millihenrys\fP = milli< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::kilohenrys\fP = kilo< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::megahenrys\fP = mega< henrys >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::gigahenrys\fP = giga< henrys >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::inductance::henry\fP = henrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::picohenry\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::nanohenry\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::microhenry\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::millihenry\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::kilohenry\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::megahenry\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::gigahenry\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (alternate spellings)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::inductance::henries\fP = henrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::picohenries\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::nanohenries\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::microhenries\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::millihenries\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::kilohenries\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::megahenries\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::gigahenries\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::inductance::henry_t\fP = unit_t< henry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::picohenry_t\fP = unit_t< picohenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::nanohenry_t\fP = unit_t< nanohenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::microhenry_t\fP = unit_t< microhenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::millihenry_t\fP = unit_t< millihenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::kilohenry_t\fP = unit_t< kilohenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::megahenry_t\fP = unit_t< megahenry >"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::gigahenry_t\fP = unit_t< gigahenry >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::inductance::H\fP = henrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::pH\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::nH\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::uH\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::mH\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::kH\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::MH\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBunits::inductance::GH\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_flux::lumens\fP = unit< std::ratio< 1 >, category::luminous_flux_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::picolumens\fP = pico< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::nanolumens\fP = nano< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::microlumens\fP = micro< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::millilumens\fP = milli< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::kilolumens\fP = kilo< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::megalumens\fP = mega< lumens >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::gigalumens\fP = giga< lumens >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_flux::lumen\fP = lumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::picolumen\fP = picolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::nanolumen\fP = nanolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::microlumen\fP = microlumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::millilumen\fP = millilumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::kilolumen\fP = kilolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::megalumen\fP = megalumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::gigalumen\fP = gigalumens"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_flux::lumen_t\fP = unit_t< lumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::picolumen_t\fP = unit_t< picolumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::nanolumen_t\fP = unit_t< nanolumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::microlumen_t\fP = unit_t< microlumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::millilumen_t\fP = unit_t< millilumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::kilolumen_t\fP = unit_t< kilolumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::megalumen_t\fP = unit_t< megalumen >"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::gigalumen_t\fP = unit_t< gigalumen >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::luminous_flux::lm\fP = lumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::plm\fP = picolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::nlm\fP = nanolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::ulm\fP = microlumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::mlm\fP = millilumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::klm\fP = kilolumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::Mlm\fP = megalumens"
+.br
+.ti -1c
+.RI "using \fBunits::luminous_flux::Glm\fP = gigalumens"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::illuminance::luxes\fP = unit< std::ratio< 1 >, category::illuminance_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::picoluxes\fP = pico< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::nanoluxes\fP = nano< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::microluxes\fP = micro< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::milliluxes\fP = milli< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::kiloluxes\fP = kilo< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::megaluxes\fP = mega< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::gigaluxes\fP = giga< luxes >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::footcandles\fP = compound_unit< luminous_flux::lumen, inverse< squared< length::foot >>>"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::lumens_per_square_inch\fP = compound_unit< luminous_flux::lumen, inverse< squared< length::inch >>>"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::phots\fP = compound_unit< luminous_flux::lumens, inverse< squared< length::centimeter >>>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::illuminance::lux\fP = luxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::picolux\fP = picoluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::nanolux\fP = nanoluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::microlux\fP = microluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::millilux\fP = milliluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::kilolux\fP = kiloluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::megalux\fP = megaluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::gigalux\fP = gigaluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::footcandle\fP = footcandles"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::phot\fP = phots"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::illuminance::lux_t\fP = unit_t< lux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::picolux_t\fP = unit_t< picolux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::nanolux_t\fP = unit_t< nanolux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::microlux_t\fP = unit_t< microlux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::millilux_t\fP = unit_t< millilux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::kilolux_t\fP = unit_t< kilolux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::megalux_t\fP = unit_t< megalux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::gigalux_t\fP = unit_t< gigalux >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::footcandle_t\fP = unit_t< footcandle >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::lumens_per_square_inch_t\fP = unit_t< lumens_per_square_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::phot_t\fP = unit_t< phot >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::illuminance::lx\fP = luxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::plx\fP = picoluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::nlx\fP = nanoluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::ulx\fP = microluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::mlx\fP = milliluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::klx\fP = kiloluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::Mlx\fP = megaluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::Glx\fP = gigaluxes"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::fc\fP = footcandles"
+.br
+.ti -1c
+.RI "using \fBunits::illuminance::ph\fP = phots"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::radiation::becquerels\fP = inverse< time::seconds >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picobecquerels\fP = pico< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanobecquerels\fP = nano< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microbecquerels\fP = micro< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millibecquerels\fP = milli< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilobecquerels\fP = kilo< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megabecquerels\fP = mega< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigabecquerels\fP = giga< becquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::grays\fP = compound_unit< energy::joules, inverse< mass::kilogram >>"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picograys\fP = pico< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanograys\fP = nano< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::micrograys\fP = micro< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::milligrays\fP = milli< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilograys\fP = kilo< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megagrays\fP = mega< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigagrays\fP = giga< grays >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::sieverts\fP = compound_unit< energy::joules, inverse< mass::kilogram >>"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picosieverts\fP = pico< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanosieverts\fP = nano< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microsieverts\fP = micro< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millisieverts\fP = milli< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilosieverts\fP = kilo< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megasieverts\fP = mega< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigasieverts\fP = giga< sieverts >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::curies\fP = unit< std::ratio< 37 >, gigabecquerels >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rutherfords\fP = megabecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rads\fP = unit< std::ratio< 1, 100 >, grays >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::radiation::becquerel\fP = becquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picobecquerel\fP = picobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanobecquerel\fP = nanobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microbecquerel\fP = microbecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millibecquerel\fP = millibecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilobecquerel\fP = kilobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megabecquerel\fP = megabecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigabecquerel\fP = gigabecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gray\fP = grays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picogray\fP = picograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanogray\fP = nanograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microgray\fP = micrograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::milligray\fP = milligrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilogray\fP = kilograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megagray\fP = megagrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigagray\fP = gigagrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::sievert\fP = sieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picosievert\fP = picosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanosievert\fP = nanosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microsievert\fP = microsieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millisievert\fP = millisieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilosievert\fP = kilosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megasievert\fP = megasieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigasievert\fP = gigasieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::curie\fP = curies"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rutherford\fP = rutherfords"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rad\fP = rads"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::radiation::becquerel_t\fP = unit_t< becquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picobecquerel_t\fP = unit_t< picobecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanobecquerel_t\fP = unit_t< nanobecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microbecquerel_t\fP = unit_t< microbecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millibecquerel_t\fP = unit_t< millibecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilobecquerel_t\fP = unit_t< kilobecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megabecquerel_t\fP = unit_t< megabecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigabecquerel_t\fP = unit_t< gigabecquerel >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gray_t\fP = unit_t< gray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picogray_t\fP = unit_t< picogray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanogray_t\fP = unit_t< nanogray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microgray_t\fP = unit_t< microgray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::milligray_t\fP = unit_t< milligray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilogray_t\fP = unit_t< kilogray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megagray_t\fP = unit_t< megagray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigagray_t\fP = unit_t< gigagray >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::sievert_t\fP = unit_t< sievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::picosievert_t\fP = unit_t< picosievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nanosievert_t\fP = unit_t< nanosievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::microsievert_t\fP = unit_t< microsievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::millisievert_t\fP = unit_t< millisievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kilosievert_t\fP = unit_t< kilosievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::megasievert_t\fP = unit_t< megasievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::gigasievert_t\fP = unit_t< gigasievert >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::curie_t\fP = unit_t< curie >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rutherford_t\fP = unit_t< rutherford >"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rad_t\fP = unit_t< rad >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::radiation::Bq\fP = becquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::pBq\fP = picobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nBq\fP = nanobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::uBq\fP = microbecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::mBq\fP = millibecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kBq\fP = kilobecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::MBq\fP = megabecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::GBq\fP = gigabecquerels"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::Gy\fP = grays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::pGy\fP = picograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nGy\fP = nanograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::uGy\fP = micrograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::mGy\fP = milligrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kGy\fP = kilograys"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::MGy\fP = megagrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::GGy\fP = gigagrays"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::Sv\fP = sieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::pSv\fP = picosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::nSv\fP = nanosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::uSv\fP = microsieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::mSv\fP = millisieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::kSv\fP = kilosieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::MSv\fP = megasieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::GSv\fP = gigasieverts"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::Ci\fP = curies"
+.br
+.ti -1c
+.RI "using \fBunits::radiation::rd\fP = rutherfords"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::torque::newton_meters\fP = unit< std::ratio< 1 >, category::torque_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_pounds\fP = compound_unit< length::foot, force::pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_poundals\fP = compound_unit< length::foot, force::poundal >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::inch_pounds\fP = compound_unit< length::inch, force::pounds >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::meter_kilograms\fP = compound_unit< length::meter, force::kiloponds >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::torque::newton_meter\fP = newton_meters"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_pound\fP = foot_pounds"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_poundal\fP = foot_poundals"
+.br
+.ti -1c
+.RI "using \fBunits::torque::inch_pound\fP = inch_pounds"
+.br
+.ti -1c
+.RI "using \fBunits::torque::meter_kilogram\fP = meter_kilograms"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::torque::newton_meter_t\fP = unit_t< newton_meter >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_pound_t\fP = unit_t< foot_pound >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::foot_poundal_t\fP = unit_t< foot_poundal >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::inch_pound_t\fP = unit_t< inch_pound >"
+.br
+.ti -1c
+.RI "using \fBunits::torque::meter_kilogram_t\fP = unit_t< meter_kilogram >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::torque::Nm\fP = newton_meters"
+.br
+.ti -1c
+.RI "using \fBunits::torque::ftlbf\fP = foot_pounds"
+.br
+.ti -1c
+.RI "using \fBunits::torque::ftpdl\fP = foot_poundals"
+.br
+.ti -1c
+.RI "using \fBunits::torque::inlbf\fP = inch_pounds"
+.br
+.ti -1c
+.RI "using \fBunits::torque::mkgf\fP = meter_kilograms"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::area::square_meters\fP = unit< std::ratio< 1 >, category::area_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_feet\fP = squared< length::feet >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_inches\fP = squared< length::inch >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_miles\fP = squared< length::miles >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_kilometers\fP = squared< length::kilometers >"
+.br
+.ti -1c
+.RI "using \fBunits::area::hectares\fP = unit< std::ratio< 10000 >, square_meters >"
+.br
+.ti -1c
+.RI "using \fBunits::area::acres\fP = unit< std::ratio< 43560 >, square_feet >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::area::square_meter\fP = square_meters"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_foot\fP = square_feet"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_inch\fP = square_inches"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_mile\fP = square_miles"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_kilometer\fP = square_kilometers"
+.br
+.ti -1c
+.RI "using \fBunits::area::hectare\fP = hectares"
+.br
+.ti -1c
+.RI "using \fBunits::area::acre\fP = acres"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::area::ha\fP = hectares"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::area::square_meter_t\fP = unit_t< square_meter >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_foot_t\fP = unit_t< square_foot >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_inch_t\fP = unit_t< square_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_mile_t\fP = unit_t< square_mile >"
+.br
+.ti -1c
+.RI "using \fBunits::area::square_kilometer_t\fP = unit_t< square_kilometer >"
+.br
+.ti -1c
+.RI "using \fBunits::area::hectare_t\fP = unit_t< hectare >"
+.br
+.ti -1c
+.RI "using \fBunits::area::acre_t\fP = unit_t< acre >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::volume::cubic_meters\fP = unit< std::ratio< 1 >, category::volume_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_millimeters\fP = cubed< length::millimeter >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_kilometers\fP = cubed< length::kilometer >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::liters\fP = cubed< deci< length::meter >>"
+.br
+.ti -1c
+.RI "using \fBunits::volume::milliliters\fP = milli< liters >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_inches\fP = cubed< length::inches >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_feet\fP = cubed< length::feet >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_yards\fP = cubed< length::yards >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_miles\fP = cubed< length::miles >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gallons\fP = unit< std::ratio< 231 >, cubic_inches >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::quarts\fP = unit< std::ratio< 1, 4 >, gallons >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pints\fP = unit< std::ratio< 1, 2 >, quarts >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cups\fP = unit< std::ratio< 1, 2 >, pints >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::ounces\fP = unit< std::ratio< 1, 8 >, cups >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::barrels\fP = unit< std::ratio< 42 >, gallons >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::bushels\fP = unit< std::ratio< 215042, 100 >, cubic_inches >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cords\fP = unit< std::ratio< 128 >, cubic_feet >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_fathoms\fP = cubed< length::fathom >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::tablespoons\fP = unit< std::ratio< 1, 2 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::teaspoons\fP = unit< std::ratio< 1, 6 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pinches\fP = unit< std::ratio< 1, 8 >, teaspoons >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dashes\fP = unit< std::ratio< 1, 2 >, pinches >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::drops\fP = unit< std::ratio< 1, 360 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::fifths\fP = unit< std::ratio< 1, 5 >, gallons >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::drams\fP = unit< std::ratio< 1, 8 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gills\fP = unit< std::ratio< 4 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pecks\fP = unit< std::ratio< 1, 4 >, bushels >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::sacks\fP = unit< std::ratio< 3 >, bushels >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::shots\fP = unit< std::ratio< 3, 2 >, ounces >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::strikes\fP = unit< std::ratio< 2 >, bushels >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (alternate names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::volume::fluidOunces\fP = ounces"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::volume::cubic_meter\fP = cubic_meters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_millimeter\fP = cubic_millimeters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_kilometer\fP = cubic_kilometers"
+.br
+.ti -1c
+.RI "using \fBunits::volume::liter\fP = liters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::milliliter\fP = milliliters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_inch\fP = cubic_inches"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_foot\fP = cubic_feet"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_yard\fP = cubic_yards"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_mile\fP = cubic_miles"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gallon\fP = gallons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::quart\fP = quarts"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pint\fP = pints"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cup\fP = cups"
+.br
+.ti -1c
+.RI "using \fBunits::volume::ounce\fP = ounces"
+.br
+.ti -1c
+.RI "using \fBunits::volume::barrel\fP = barrels"
+.br
+.ti -1c
+.RI "using \fBunits::volume::bushel\fP = bushels"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cord\fP = cords"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_fathom\fP = cubic_fathoms"
+.br
+.ti -1c
+.RI "using \fBunits::volume::tablespoon\fP = tablespoons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::teaspoon\fP = teaspoons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pinch\fP = pinches"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dash\fP = dashes"
+.br
+.ti -1c
+.RI "using \fBunits::volume::drop\fP = drops"
+.br
+.ti -1c
+.RI "using \fBunits::volume::fifth\fP = fifths"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dram\fP = drams"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gill\fP = gills"
+.br
+.ti -1c
+.RI "using \fBunits::volume::peck\fP = pecks"
+.br
+.ti -1c
+.RI "using \fBunits::volume::sack\fP = sacks"
+.br
+.ti -1c
+.RI "using \fBunits::volume::shot\fP = shots"
+.br
+.ti -1c
+.RI "using \fBunits::volume::strike\fP = strikes"
+.br
+.ti -1c
+.RI "using \fBunits::volume::fluidOunce\fP = fluidOunces"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::volume::cubic_meter_t\fP = unit_t< cubic_meter >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_millimeter_t\fP = unit_t< cubic_millimeter >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_kilometer_t\fP = unit_t< cubic_kilometer >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::liter_t\fP = unit_t< liter >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::milliliter_t\fP = unit_t< milliliter >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_inch_t\fP = unit_t< cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_foot_t\fP = unit_t< cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_yard_t\fP = unit_t< cubic_yard >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_mile_t\fP = unit_t< cubic_mile >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gallon_t\fP = unit_t< gallon >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::quart_t\fP = unit_t< quart >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pint_t\fP = unit_t< pint >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cup_t\fP = unit_t< cup >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::ounce_t\fP = unit_t< ounce >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::barrel_t\fP = unit_t< barrel >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::bushel_t\fP = unit_t< bushel >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cord_t\fP = unit_t< cord >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cubic_fathom_t\fP = unit_t< cubic_fathom >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::tablespoon_t\fP = unit_t< tablespoon >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::teaspoon_t\fP = unit_t< teaspoon >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pinch_t\fP = unit_t< pinch >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dash_t\fP = unit_t< dash >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::drop_t\fP = unit_t< drop >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::fifth_t\fP = unit_t< fifth >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dram_t\fP = unit_t< dram >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gill_t\fP = unit_t< gill >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::peck_t\fP = unit_t< peck >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::sack_t\fP = unit_t< sack >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::shot_t\fP = unit_t< shot >"
+.br
+.ti -1c
+.RI "using \fBunits::volume::strike_t\fP = unit_t< strike >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::volume::m3\fP = cubic_meters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::mm3\fP = cubic_millimeters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::km3\fP = cubic_kilometers"
+.br
+.ti -1c
+.RI "using \fBunits::volume::L\fP = liters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::mL\fP = milliliters"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cu_in\fP = cubic_inches"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cu_ft\fP = cubic_feet"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cu_yd\fP = cubic_yards"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cu_mi\fP = cubic_miles"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gal\fP = gallons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::qt\fP = quarts"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pt\fP = pints"
+.br
+.ti -1c
+.RI "using \fBunits::volume::c\fP = cups"
+.br
+.ti -1c
+.RI "using \fBunits::volume::oz\fP = ounces"
+.br
+.ti -1c
+.RI "using \fBunits::volume::bl\fP = barrels"
+.br
+.ti -1c
+.RI "using \fBunits::volume::bu\fP = bushels"
+.br
+.ti -1c
+.RI "using \fBunits::volume::cu_fm\fP = cubic_fathoms"
+.br
+.ti -1c
+.RI "using \fBunits::volume::tbsp\fP = tablespoons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::tsp\fP = teaspoons"
+.br
+.ti -1c
+.RI "using \fBunits::volume::dr\fP = drams"
+.br
+.ti -1c
+.RI "using \fBunits::volume::gi\fP = gills"
+.br
+.ti -1c
+.RI "using \fBunits::volume::pk\fP = pecks"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::density::kilograms_per_cubic_meter\fP = unit< std::ratio< 1 >, category::density_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::density::grams_per_milliliter\fP = compound_unit< mass::grams, inverse< volume::milliliter >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::kilograms_per_liter\fP = compound_unit< mass::kilograms, inverse< volume::liter >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounces_per_cubic_foot\fP = compound_unit< mass::ounces, inverse< volume::cubic_foot >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounces_per_cubic_inch\fP = compound_unit< mass::ounces, inverse< volume::cubic_inch >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounces_per_gallon\fP = compound_unit< mass::ounces, inverse< volume::gallon >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::pounds_per_cubic_foot\fP = compound_unit< mass::pounds, inverse< volume::cubic_foot >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::pounds_per_cubic_inch\fP = compound_unit< mass::pounds, inverse< volume::cubic_inch >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::pounds_per_gallon\fP = compound_unit< mass::pounds, inverse< volume::gallon >>"
+.br
+.ti -1c
+.RI "using \fBunits::density::slugs_per_cubic_foot\fP = compound_unit< mass::slugs, inverse< volume::cubic_foot >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::density::kilogram_per_cubic_meter\fP = kilograms_per_cubic_meter"
+.br
+.ti -1c
+.RI "using \fBunits::density::gram_per_milliliter\fP = grams_per_milliliter"
+.br
+.ti -1c
+.RI "using \fBunits::density::kilogram_per_liter\fP = kilograms_per_liter"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_cubic_foot\fP = ounces_per_cubic_foot"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_cubic_inch\fP = ounces_per_cubic_inch"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_gallon\fP = ounces_per_gallon"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_cubic_foot\fP = pounds_per_cubic_foot"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_cubic_inch\fP = pounds_per_cubic_inch"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_gallon\fP = pounds_per_gallon"
+.br
+.ti -1c
+.RI "using \fBunits::density::slug_per_cubic_foot\fP = slugs_per_cubic_foot"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::density::kilogram_per_cubic_meter_t\fP = unit_t< kilogram_per_cubic_meter >"
+.br
+.ti -1c
+.RI "using \fBunits::density::gram_per_milliliter_t\fP = unit_t< gram_per_milliliter >"
+.br
+.ti -1c
+.RI "using \fBunits::density::kilogram_per_liter_t\fP = unit_t< kilogram_per_liter >"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_cubic_foot_t\fP = unit_t< ounce_per_cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_cubic_inch_t\fP = unit_t< ounce_per_cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::density::ounce_per_gallon_t\fP = unit_t< ounce_per_gallon >"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_cubic_foot_t\fP = unit_t< pound_per_cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_cubic_inch_t\fP = unit_t< pound_per_cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBunits::density::pound_per_gallon_t\fP = unit_t< pound_per_gallon >"
+.br
+.ti -1c
+.RI "using \fBunits::density::slug_per_cubic_foot_t\fP = unit_t< slug_per_cubic_foot >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::concentration::parts_per_million\fP = unit< std::ratio< 1, 1000000 >, category::scalar_unit >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::parts_per_billion\fP = unit< std::ratio< 1, 1000 >, parts_per_million >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::parts_per_trillion\fP = unit< std::ratio< 1, 1000 >, parts_per_billion >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::percent\fP = unit< std::ratio< 1, 100 >, category::scalar_unit >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::concentration::ppm\fP = parts_per_million"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::ppb\fP = parts_per_billion"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::ppt\fP = parts_per_trillion"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBunits::concentration::ppm_t\fP = unit_t< ppm >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::ppb_t\fP = unit_t< ppb >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::ppt_t\fP = unit_t< ppt >"
+.br
+.ti -1c
+.RI "using \fBunits::concentration::percent_t\fP = unit_t< percent >"
+.br
+.in -1c
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "template<class UnitFrom , class UnitTo , typename T  = double> static T \fBunits::convert\fP (const T &value)"
+.br
+.RI "\fIconverts a \fIvalue\fP from one type to another\&. \fP"
+.ti -1c
+.RI "template<class Units , typename T , template< typename > class NonLinearScale> std::ostream & \fBunits::operator<<\fP (std::ostream &os, const unit_t< Units, T, NonLinearScale > &obj)"
+.br
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if<!traits::is_same_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> int \fBunits::operator+\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs)"
+.br
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::has_linear_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator+\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs)"
+.br
+.RI "\fIAddition operator for \fBunit_t\fP types with a \fBlinear_scale\fP\&. \fP"
+.ti -1c
+.RI "template<typename T , typename std::enable_if< std::is_arithmetic< T >::value, int >::type  = 0> dimensionless::scalar_t \fBunits::operator+\fP (const dimensionless::scalar_t &lhs, T rhs)"
+.br
+.RI "\fIAddition operator for scalar \fBunit_t\fP types with a \fBlinear_scale\fP\&. Scalar types can be implicitly converted to built-in types\&. \fP"
+.ti -1c
+.RI "template<typename T , typename std::enable_if< std::is_arithmetic< T >::value, int >::type  = 0> dimensionless::scalar_t \fBunits::operator+\fP (T lhs, const dimensionless::scalar_t &rhs)"
+.br
+.RI "\fIAddition operator for scalar \fBunit_t\fP types with a \fBlinear_scale\fP\&. Scalar types can be implicitly converted to built-in types\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::has_linear_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator-\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs)"
+.br
+.RI "\fISubtraction operator for \fBunit_t\fP types with a \fBlinear_scale\fP\&. \fP"
+.ti -1c
+.RI "template<typename T , typename std::enable_if< std::is_arithmetic< T >::value, int >::type  = 0> dimensionless::scalar_t \fBunits::operator-\fP (const dimensionless::scalar_t &lhs, T rhs)"
+.br
+.RI "\fISubtraction operator for scalar \fBunit_t\fP types with a \fBlinear_scale\fP\&. Scalar types can be implicitly converted to built-in types\&. \fP"
+.ti -1c
+.RI "template<typename T , typename std::enable_if< std::is_arithmetic< T >::value, int >::type  = 0> dimensionless::scalar_t \fBunits::operator-\fP (T lhs, const dimensionless::scalar_t &rhs)"
+.br
+.RI "\fISubtraction operator for scalar \fBunit_t\fP types with a \fBlinear_scale\fP\&. Scalar types can be implicitly converted to built-in types\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::is_convertible_unit_t< UnitTypeLhs, UnitTypeRhs >::value &&traits::has_linear_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator*\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs) -> unit_t< compound_unit< squared< typename traits::unit_t_traits< UnitTypeLhs >::unit_type >>>"
+.br
+.RI "\fIMultiplication type for convertible \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , typename T , typename std::enable_if< std::is_arithmetic< T >::value &&traits::has_linear_scale< UnitTypeLhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator*\fP (const UnitTypeLhs &lhs, T rhs)"
+.br
+.RI "\fIMultiplication by a scalar for \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeRhs , typename T , typename std::enable_if< std::is_arithmetic< T >::value &&traits::has_linear_scale< UnitTypeRhs >::value, int >::type  = 0> UnitTypeRhs \fBunits::operator*\fP (T lhs, const UnitTypeRhs &rhs)"
+.br
+.RI "\fIMultiplication by a scalar for \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::is_convertible_unit_t< UnitTypeLhs, UnitTypeRhs >::value &&traits::has_linear_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> dimensionless::scalar_t \fBunits::operator/\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs)"
+.br
+.RI "\fIDivision for convertible \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if<!traits::is_convertible_unit_t< UnitTypeLhs, UnitTypeRhs >::value &&traits::has_linear_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator/\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs) -> unit_t< compound_unit< typename traits::unit_t_traits< UnitTypeLhs >::unit_type, inverse< typename traits::unit_t_traits< UnitTypeRhs >::unit_type >>>"
+.br
+.RI "\fIDivision for non-convertible \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , typename T , typename std::enable_if< std::is_arithmetic< T >::value &&traits::has_linear_scale< UnitTypeLhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator/\fP (const UnitTypeLhs &lhs, T rhs)"
+.br
+.RI "\fIDivision by a scalar for \fBunit_t\fP types with a linear scale\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeRhs , typename T , typename std::enable_if< std::is_arithmetic< T >::value &&traits::has_linear_scale< UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator/\fP (T lhs, const UnitTypeRhs &rhs) -> unit_t< inverse< typename traits::unit_t_traits< UnitTypeRhs >::unit_type >>"
+.br
+.RI "\fIDivision of a scalar by a \fBunit_t\fP type with a linear scale\&. \fP"
+.ti -1c
+.RI "bool \fBunits::operator==\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator==\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator!=\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator!=\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator>=\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator>=\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator>\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator>\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator<=\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator<=\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator<\fP (double lhs, const dimensionless::scalar_t &rhs)"
+.br
+.ti -1c
+.RI "bool \fBunits::operator<\fP (const dimensionless::scalar_t &lhs, double rhs)"
+.br
+.ti -1c
+.RI "template<int power, class UnitType , class  = typename std::enable_if<traits::has_linear_scale<UnitType>::value, int>> auto \fBunits::math::pow\fP (const UnitType &value) -> unit_t< typename detail::power_of_unit< power, typename traits::unit_t_traits< UnitType >::unit_type >::type, typename traits::unit_t_traits< UnitType >::underlying_type, linear_scale >"
+.br
+.RI "\fIcomputes the value of \fIvalue\fP raised to the \fIpower\fP \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator+\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs) -> unit_t< compound_unit< squared< typename traits::unit_t_traits< UnitTypeLhs >::unit_type >>, typename traits::unit_t_traits< UnitTypeLhs >::underlying_type, decibel_scale >"
+.br
+.RI "\fIAddition for convertible \fBunit_t\fP types with a \fBdecibel_scale\fP\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeLhs >::value &&!traits::is_scalar_unit< UnitTypeLhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator+\fP (const UnitTypeLhs &lhs, const dimensionless::dB_t &rhs)"
+.br
+.RI "\fIAddition between \fBunit_t\fP types with a \fBdecibel_scale\fP and dimensionless dB units\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeRhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeRhs >::value &&!traits::is_scalar_unit< UnitTypeRhs >::value, int >::type  = 0> UnitTypeRhs \fBunits::operator+\fP (const dimensionless::dB_t &lhs, const UnitTypeRhs &rhs)"
+.br
+.RI "\fIAddition between \fBunit_t\fP types with a \fBdecibel_scale\fP and dimensionless dB units\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeLhs, UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator-\fP (const UnitTypeLhs &lhs, const UnitTypeRhs &rhs) -> unit_t< compound_unit< typename traits::unit_t_traits< UnitTypeLhs >::unit_type, inverse< typename traits::unit_t_traits< UnitTypeRhs >::unit_type >>, typename traits::unit_t_traits< UnitTypeLhs >::underlying_type, decibel_scale >"
+.br
+.RI "\fISubtraction for convertible \fBunit_t\fP types with a \fBdecibel_scale\fP\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeLhs >::value &&!traits::is_scalar_unit< UnitTypeLhs >::value, int >::type  = 0> UnitTypeLhs \fBunits::operator-\fP (const UnitTypeLhs &lhs, const dimensionless::dB_t &rhs)"
+.br
+.RI "\fISubtraction between \fBunit_t\fP types with a \fBdecibel_scale\fP and dimensionless dB units\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeRhs , typename std::enable_if< traits::has_decibel_scale< UnitTypeRhs >::value &&!traits::is_scalar_unit< UnitTypeRhs >::value, int >::type  = 0> auto \fBunits::operator-\fP (const dimensionless::dB_t &lhs, const UnitTypeRhs &rhs) -> unit_t< inverse< typename traits::unit_t_traits< UnitTypeRhs >::unit_type >, typename traits::unit_t_traits< UnitTypeRhs >::underlying_type, decibel_scale >"
+.br
+.RI "\fISubtraction between \fBunit_t\fP types with a \fBdecibel_scale\fP and dimensionless dB units\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::cos\fP (AngleUnit angle)"
+.br
+.RI "\fICompute cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::sin\fP (AngleUnit angle)"
+.br
+.RI "\fICompute sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::tan\fP (AngleUnit angle)"
+.br
+.RI "\fICompute tangent\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::acos\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc cosine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::asin\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc sine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::atan\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc tangent\&. \fP"
+.ti -1c
+.RI "template<class Y , class X > angle::radian_t \fBunits::math::atan2\fP (Y y, X x)"
+.br
+.RI "\fICompute arc tangent with two parameters\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::cosh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::sinh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::tanh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::acosh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::asinh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic sine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::atanh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::exp\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute exponential function\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute natural logarithm\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log10\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute common logarithm\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::modf\fP (dimensionless::scalar_t x, dimensionless::scalar_t *intpart)"
+.br
+.RI "\fIBreak into fractional and integral parts\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::exp2\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute binary exponential function\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::expm1\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute exponential minus one\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log1p\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute logarithm plus one\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log2\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute binary logarithm\&. \fP"
+.ti -1c
+.RI "template<class UnitType , typename std::enable_if< traits::has_linear_scale< UnitType >::value, int >::type  = 0> auto \fBunits::math::sqrt\fP (const UnitType &value) -> unit_t< square_root< typename traits::unit_t_traits< UnitType >::unit_type >, typename traits::unit_t_traits< UnitType >::underlying_type, linear_scale >"
+.br
+.RI "\fIcomputes the square root of \fIvalue\fP \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::ceil\fP (UnitType x)"
+.br
+.RI "\fIRound up value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::floor\fP (UnitType x)"
+.br
+.RI "\fIRound down value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::fmod\fP (UnitType numer, UnitType denom)"
+.br
+.RI "\fICompute remainder of division\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::trunc\fP (UnitType x)"
+.br
+.RI "\fITruncate value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::round\fP (UnitType x)"
+.br
+.RI "\fIRound to nearest\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::copysign\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fICopy sign\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value>::type> UnitTypeLhs \fBunits::math::copysign\fP (UnitTypeLhs x, double y)"
+.br
+.RI "\fIOverload to copy the sign from a raw double\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fdim\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIPositive difference\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fmax\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMaximum value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fmin\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMinimum value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::fabs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::abs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitMultiply , class UnitAdd , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitMultiply>::value && traits::is_unit_t<UnitAdd>::value>::type> auto \fBunits::math::fma\fP (UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x *y)"
+.br
+.RI "\fIMultiply-add\&. \fP"
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "static const unit_t< unit< std::ratio< 1 >, dimensionless::scalar, std::ratio< 1 > > > \fBunits::constants::pi\fP (1\&.0)"
+.br
+.RI "\fIRatio of a circle's circumference to its diameter\&. \fP"
+.ti -1c
+.RI "static const velocity::meters_per_second_t \fBunits::constants::c\fP (299792458\&.0)"
+.br
+.RI "\fISpeed of light in vacuum\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< cubed< length::meters >, inverse< mass::kilogram >, inverse< squared< time::seconds > > > > \fBunits::constants::G\fP (6\&.67408e-11)"
+.br
+.RI "\fINewtonian constant of gravitation\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< energy::joule, time::seconds > > \fBunits::constants::h\fP (6\&.626070040e-34)"
+.br
+.RI "\fIPlanck constant\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< force::newtons, inverse< squared< current::ampere > > > > \fBunits::constants::mu0\fP (4\&.0e-7 *PI)"
+.br
+.RI "\fIvacuum permeability\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< capacitance::farad, inverse< length::meter > > > \fBunits::constants::epsilon0\fP (1\&.0/(mu0 *math::pow< 2 >(c)))"
+.br
+.RI "\fIvacuum permitivity\&. \fP"
+.ti -1c
+.RI "static const impedance::ohm_t \fBunits::constants::Z0\fP (mu0 *c)"
+.br
+.RI "\fIcharacteristic impedance of vacuum\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< force::newtons, area::square_meter, inverse< squared< charge::coulomb > > > > \fBunits::constants::k_e\fP (1\&.0/(4 *pi *epsilon0))"
+.br
+.RI "\fICoulomb's constant\&. \fP"
+.ti -1c
+.RI "static const charge::coulomb_t \fBunits::constants::e\fP (1\&.602176565e-19)"
+.br
+.RI "\fIelementary charge\&. \fP"
+.ti -1c
+.RI "static const mass::kilogram_t \fBunits::constants::m_e\fP (9\&.10938291e-31)"
+.br
+.RI "\fIelectron mass\&. \fP"
+.ti -1c
+.RI "static const mass::kilogram_t \fBunits::constants::m_p\fP (1\&.672621777e-27)"
+.br
+.RI "\fIproton mass\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< energy::joules, inverse< magnetic_field_strength::tesla > > > \fBunits::constants::mu_B\fP (e *h/(4 *pi *m_e))"
+.br
+.RI "\fIBohr magneton\&. \fP"
+.ti -1c
+.RI "static const unit_t< inverse< substance::mol > > \fBunits::constants::N_A\fP (6\&.02214129e23)"
+.br
+.RI "\fIAvagadro's Number\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< energy::joules, inverse< temperature::kelvin >, inverse< substance::moles > > > \fBunits::constants::R\fP (8\&.3144621)"
+.br
+.RI "\fIGas constant\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< energy::joules, inverse< temperature::kelvin > > > \fBunits::constants::k_B\fP (R/N_A)"
+.br
+.RI "\fIBoltzmann constant\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< charge::coulomb, inverse< substance::mol > > > \fBunits::constants::F\fP (N_A *e)"
+.br
+.RI "\fIFaraday constnat\&. \fP"
+.ti -1c
+.RI "static const unit_t< compound_unit< power::watts, inverse< area::square_meters >, inverse< squared< squared< temperature::kelvin > > > > > \fBunits::constants::sigma\fP ((2 *math::pow< 5 >(pi)*math::pow< 4 >(R))/(15 *math::pow< 3 >(h)*math::pow< 2 >(c)*math::pow< 4 >(N_A)))"
+.br
+.RI "\fIStefan-Boltzmann constant\&. \fP"
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+Complete implementation of \fCunits\fP - a compile-time, header-only, unit conversion library built on c++14 with no dependencies\&. 
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

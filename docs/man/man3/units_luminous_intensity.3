@@ -1,0 +1,83 @@
+.TH "units::luminous_intensity" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::luminous_intensity \- namespace for unit types and containers representing \fBluminous_intensity\fP values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcandelas\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::luminous_intensity_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBmillicandelas\fP = \fBmilli\fP< \fBcandelas\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcandela\fP = \fBcandelas\fP"
+.br
+.ti -1c
+.RI "using \fBmillicandela\fP = millicandelas"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcd\fP = \fBcandela\fP"
+.br
+.ti -1c
+.RI "using \fBmcd\fP = millicandela"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcandela_t\fP = \fBunit_t\fP< \fBcandela\fP >"
+.br
+.ti -1c
+.RI "using \fBmillicandela_t\fP = \fBunit_t\fP< millicandela >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing \fBluminous_intensity\fP values 
+
+The SI unit for \fBluminous_intensity\fP is \fCcandelas\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCluminous_intensity_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

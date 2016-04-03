@@ -1,0 +1,46 @@
+.TH "units::dimensionless" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::dimensionless \- namespace for unit types and containers for units that have no dimension (scalar units)  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "using \fBscalar\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::scalar_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBdimensionless\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::dimensionless_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBscalar_t\fP = \fBunit_t\fP< \fBscalar\fP >"
+.br
+.ti -1c
+.RI "using \fBdimensionless_t\fP = \fBscalar_t\fP"
+.br
+.ti -1c
+.RI "using \fBdB_t\fP = \fBunit_t\fP< \fBscalar\fP, double, \fBdecibel_scale\fP >"
+.br
+.ti -1c
+.RI "using \fBdBi_t\fP = \fBdB_t\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers for units that have no dimension (scalar units) 
+
+
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

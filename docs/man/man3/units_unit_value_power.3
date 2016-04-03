@@ -1,0 +1,62 @@
+.TH "units::unit_value_power< U1, power >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::unit_value_power< U1, power > \- raises unit_value_to a power at compile-time  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits unit_value_arithmetic< U1, U1 >, and _unit_value_t< detail::power_of_unit< power, traits::unit_value_t_traits< U1 >::unit_type >::type >\&.
+.SS "Static Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "static const \fBunit_t\fP< unit_type > \fBvalue\fP ()"
+.br
+.RI "\fIValue of exponentiation\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class U1, int power>struct units::unit_value_power< U1, power >"
+raises unit_value_to a power at compile-time 
+
+The resulting unit will the \fCunit_type\fP of \fCU1\fP squared 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU1\fP \fC\fBunit_value_t\fP\fP to take the exponentiation of\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+unit_value_t_traits to access information about the properties of the class, such as it's \fBunit\fP type and rational \fBvalue\fP\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+very similar in concept to \fC\fBunits::math::pow\fP\fP 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<class U1 , int power> static const \fBunit_t\fP<unit_type> \fBunits::unit_value_power\fP< U1, power >::value ()\fC [inline]\fP, \fC [static]\fP"
+
+.PP
+Value of exponentiation\&. Returns the calculated value of the exponentiation of \fCU1\fP, in units of \fCU1^power\fP\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Value of the exponentiation in the appropriate units\&. 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

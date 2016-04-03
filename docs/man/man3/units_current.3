@@ -1,0 +1,119 @@
+.TH "units::current" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::current \- namespace for unit types and containers representing current values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBamperes\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::current_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBmilliamps\fP = \fBmilli\fP< \fBamperes\fP >"
+.br
+.ti -1c
+.RI "using \fBmicroamps\fP = \fBmicro\fP< \fBamperes\fP >"
+.br
+.ti -1c
+.RI "using \fBnanoamps\fP = \fBnano\fP< \fBamperes\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBampere\fP = \fBamperes\fP"
+.br
+.ti -1c
+.RI "using \fBamps\fP = \fBamperes\fP"
+.br
+.ti -1c
+.RI "using \fBamp\fP = \fBamperes\fP"
+.br
+.ti -1c
+.RI "using \fBmilliamp\fP = milliamps"
+.br
+.ti -1c
+.RI "using \fBmicroamp\fP = microamps"
+.br
+.ti -1c
+.RI "using \fBnanoamp\fP = nanoamps"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBA\fP = \fBamperes\fP"
+.br
+.ti -1c
+.RI "using \fBmA\fP = milliamps"
+.br
+.ti -1c
+.RI "using \fBuA\fP = microamps"
+.br
+.ti -1c
+.RI "using \fBnA\fP = nanoamps"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBampere_t\fP = \fBunit_t\fP< \fBampere\fP >"
+.br
+.ti -1c
+.RI "using \fBamps_t\fP = \fBunit_t\fP< \fBamps\fP >"
+.br
+.ti -1c
+.RI "using \fBamp_t\fP = \fBunit_t\fP< \fBamp\fP >"
+.br
+.ti -1c
+.RI "using \fBmilliamp_t\fP = \fBunit_t\fP< milliamp >"
+.br
+.ti -1c
+.RI "using \fBmicroamp_t\fP = \fBunit_t\fP< microamp >"
+.br
+.ti -1c
+.RI "using \fBnanoamp_t\fP = \fBunit_t\fP< nanoamp >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing current values 
+
+The SI unit for current is \fCamperes\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCcurrent_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

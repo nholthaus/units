@@ -1,0 +1,167 @@
+.TH "units::time" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::time \- namespace for unit types and containers representing time values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBseconds\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::time_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBnanoseconds\fP = \fBnano\fP< \fBseconds\fP >"
+.br
+.ti -1c
+.RI "using \fBmicroseconds\fP = \fBmicro\fP< \fBseconds\fP >"
+.br
+.ti -1c
+.RI "using \fBmillseconds\fP = \fBmilli\fP< \fBseconds\fP >"
+.br
+.ti -1c
+.RI "using \fBminutes\fP = \fBunit\fP< std::ratio< 60 >, \fBseconds\fP >"
+.br
+.ti -1c
+.RI "using \fBhours\fP = \fBunit\fP< std::ratio< 60 >, \fBminutes\fP >"
+.br
+.ti -1c
+.RI "using \fBdays\fP = \fBunit\fP< std::ratio< 24 >, \fBhours\fP >"
+.br
+.ti -1c
+.RI "using \fBweeks\fP = \fBunit\fP< std::ratio< 7 >, \fBdays\fP >"
+.br
+.ti -1c
+.RI "using \fByears\fP = \fBunit\fP< std::ratio< 365 >, \fBdays\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBsecond\fP = \fBseconds\fP"
+.br
+.ti -1c
+.RI "using \fBnanosecond\fP = nanoseconds"
+.br
+.ti -1c
+.RI "using \fBmicrosecond\fP = microseconds"
+.br
+.ti -1c
+.RI "using \fBmillsecond\fP = millseconds"
+.br
+.ti -1c
+.RI "using \fBminute\fP = \fBminutes\fP"
+.br
+.ti -1c
+.RI "using \fBhour\fP = \fBhours\fP"
+.br
+.ti -1c
+.RI "using \fBday\fP = \fBdays\fP"
+.br
+.ti -1c
+.RI "using \fBweek\fP = \fBweeks\fP"
+.br
+.ti -1c
+.RI "using \fByear\fP = \fByears\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBs\fP = \fBseconds\fP"
+.br
+.ti -1c
+.RI "using \fBns\fP = nanoseconds"
+.br
+.ti -1c
+.RI "using \fBus\fP = microseconds"
+.br
+.ti -1c
+.RI "using \fBms\fP = millseconds"
+.br
+.ti -1c
+.RI "using \fBm\fP = \fBminutes\fP"
+.br
+.ti -1c
+.RI "using \fBhr\fP = \fBhours\fP"
+.br
+.ti -1c
+.RI "using \fBd\fP = \fBdays\fP"
+.br
+.ti -1c
+.RI "using \fBwk\fP = \fBweeks\fP"
+.br
+.ti -1c
+.RI "using \fByr\fP = \fByears\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBsecond_t\fP = \fBunit_t\fP< \fBsecond\fP >"
+.br
+.ti -1c
+.RI "using \fBnanosecond_t\fP = \fBunit_t\fP< nanosecond >"
+.br
+.ti -1c
+.RI "using \fBmicrosecond_t\fP = \fBunit_t\fP< microsecond >"
+.br
+.ti -1c
+.RI "using \fBmillsecond_t\fP = \fBunit_t\fP< millsecond >"
+.br
+.ti -1c
+.RI "using \fBminute_t\fP = \fBunit_t\fP< \fBminute\fP >"
+.br
+.ti -1c
+.RI "using \fBhour_t\fP = \fBunit_t\fP< \fBhour\fP >"
+.br
+.ti -1c
+.RI "using \fBday_t\fP = \fBunit_t\fP< \fBday\fP >"
+.br
+.ti -1c
+.RI "using \fBweek_t\fP = \fBunit_t\fP< \fBweek\fP >"
+.br
+.ti -1c
+.RI "using \fByear_t\fP = \fBunit_t\fP< \fByear\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing time values 
+
+The SI unit for time is \fCseconds\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCtime_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

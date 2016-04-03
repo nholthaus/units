@@ -1,0 +1,87 @@
+.TH "units::frequency" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::frequency \- namespace for unit types and containers representing frequency values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhertz\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::frequency_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBkilohertz\fP = \fBkilo\fP< \fBhertz\fP >"
+.br
+.ti -1c
+.RI "using \fBmegahertz\fP = \fBmega\fP< \fBhertz\fP >"
+.br
+.ti -1c
+.RI "using \fBgigahertz\fP = \fBgiga\fP< \fBhertz\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBHz\fP = \fBhertz\fP"
+.br
+.ti -1c
+.RI "using \fBkHz\fP = kilohertz"
+.br
+.ti -1c
+.RI "using \fBMHz\fP = megahertz"
+.br
+.ti -1c
+.RI "using \fBGHz\fP = gigahertz"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhertz_t\fP = \fBunit_t\fP< \fBhertz\fP >"
+.br
+.ti -1c
+.RI "using \fBkilohertz_t\fP = \fBunit_t\fP< kilohertz >"
+.br
+.ti -1c
+.RI "using \fBmegahertz_t\fP = \fBunit_t\fP< megahertz >"
+.br
+.ti -1c
+.RI "using \fBgigahertz_t\fP = \fBunit_t\fP< gigahertz >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing frequency values 
+
+The SI unit for frequency is \fChertz\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCfrequency_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

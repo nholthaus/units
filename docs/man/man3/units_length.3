@@ -1,0 +1,317 @@
+.TH "units::length" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::length \- namespace for unit types and containers representing length values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBmeters\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::length_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBnanometers\fP = \fBnano\fP< \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBmicrometers\fP = \fBmicro\fP< \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBmillimeters\fP = \fBmilli\fP< \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBcentimeters\fP = \fBcenti\fP< \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBkilometers\fP = \fBkilo\fP< \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBfeet\fP = \fBunit\fP< std::ratio< 381, 1250 >, \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBmils\fP = \fBunit\fP< std::ratio< 1000 >, \fBfeet\fP >"
+.br
+.ti -1c
+.RI "using \fBinches\fP = \fBunit\fP< std::ratio< 1, 12 >, \fBfeet\fP >"
+.br
+.ti -1c
+.RI "using \fBmiles\fP = \fBunit\fP< std::ratio< 5280 >, \fBfeet\fP >"
+.br
+.ti -1c
+.RI "using \fBnauticalMiles\fP = \fBunit\fP< std::ratio< 1852 >, \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBastronicalUnits\fP = \fBunit\fP< std::ratio< 149597870700 >, \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBlightyears\fP = \fBunit\fP< std::ratio< 9460730472580800 >, \fBmeters\fP >"
+.br
+.ti -1c
+.RI "using \fBparsecs\fP = \fBunit\fP< std::ratio< 648000 >, \fBastronicalUnits\fP, std::ratio<-1 >>"
+.br
+.ti -1c
+.RI "using \fBangstroms\fP = \fBunit\fP< std::ratio< 1, 10 >, nanometers >"
+.br
+.ti -1c
+.RI "using \fBcubits\fP = \fBunit\fP< std::ratio< 18 >, \fBinches\fP >"
+.br
+.ti -1c
+.RI "using \fBfathoms\fP = \fBunit\fP< std::ratio< 6 >, \fBfeet\fP >"
+.br
+.ti -1c
+.RI "using \fBchains\fP = \fBunit\fP< std::ratio< 66 >, \fBfeet\fP >"
+.br
+.ti -1c
+.RI "using \fBfurlongs\fP = \fBunit\fP< std::ratio< 10 >, \fBchains\fP >"
+.br
+.ti -1c
+.RI "using \fBhands\fP = \fBunit\fP< std::ratio< 4 >, \fBinches\fP >"
+.br
+.ti -1c
+.RI "using \fBleagues\fP = \fBunit\fP< std::ratio< 3 >, \fBmiles\fP >"
+.br
+.ti -1c
+.RI "using \fBnauticalLeagues\fP = \fBunit\fP< std::ratio< 3 >, \fBnauticalMiles\fP >"
+.br
+.ti -1c
+.RI "using \fByards\fP = \fBunit\fP< std::ratio< 3 >, \fBfeet\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBmeter\fP = \fBmeters\fP"
+.br
+.ti -1c
+.RI "using \fBnanometer\fP = nanometers"
+.br
+.ti -1c
+.RI "using \fBmicrometer\fP = micrometers"
+.br
+.ti -1c
+.RI "using \fBmillimeter\fP = millimeters"
+.br
+.ti -1c
+.RI "using \fBcentimeter\fP = centimeters"
+.br
+.ti -1c
+.RI "using \fBkilometer\fP = kilometers"
+.br
+.ti -1c
+.RI "using \fBfoot\fP = \fBfeet\fP"
+.br
+.ti -1c
+.RI "using \fBinch\fP = \fBinches\fP"
+.br
+.ti -1c
+.RI "using \fBmile\fP = \fBmiles\fP"
+.br
+.ti -1c
+.RI "using \fBnauticalMile\fP = \fBnauticalMiles\fP"
+.br
+.ti -1c
+.RI "using \fBastronicalUnit\fP = \fBastronicalUnits\fP"
+.br
+.ti -1c
+.RI "using \fBlightyear\fP = \fBlightyears\fP"
+.br
+.ti -1c
+.RI "using \fBparsec\fP = \fBparsecs\fP"
+.br
+.ti -1c
+.RI "using \fBangstrom\fP = \fBangstroms\fP"
+.br
+.ti -1c
+.RI "using \fBcubit\fP = \fBcubits\fP"
+.br
+.ti -1c
+.RI "using \fBfathom\fP = \fBfathoms\fP"
+.br
+.ti -1c
+.RI "using \fBchain\fP = \fBchains\fP"
+.br
+.ti -1c
+.RI "using \fBfurlong\fP = \fBfurlongs\fP"
+.br
+.ti -1c
+.RI "using \fBhand\fP = \fBhands\fP"
+.br
+.ti -1c
+.RI "using \fBleague\fP = \fBleagues\fP"
+.br
+.ti -1c
+.RI "using \fBnauticalLeague\fP = \fBnauticalLeagues\fP"
+.br
+.ti -1c
+.RI "using \fByard\fP = \fByards\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBm\fP = \fBmeters\fP"
+.br
+.ti -1c
+.RI "using \fBnm\fP = nanometers"
+.br
+.ti -1c
+.RI "using \fBum\fP = micrometers"
+.br
+.ti -1c
+.RI "using \fBmm\fP = millimeters"
+.br
+.ti -1c
+.RI "using \fBcm\fP = centimeters"
+.br
+.ti -1c
+.RI "using \fBkm\fP = kilometers"
+.br
+.ti -1c
+.RI "using \fBft\fP = \fBfeet\fP"
+.br
+.ti -1c
+.RI "using \fBinc\fP = \fBinches\fP"
+.br
+.ti -1c
+.RI "using \fBmi\fP = \fBmiles\fP"
+.br
+.ti -1c
+.RI "using \fBnmi\fP = \fBnauticalMiles\fP"
+.br
+.ti -1c
+.RI "using \fBau\fP = \fBastronicalUnits\fP"
+.br
+.ti -1c
+.RI "using \fBly\fP = \fBlightyears\fP"
+.br
+.ti -1c
+.RI "using \fBpc\fP = \fBparsecs\fP"
+.br
+.ti -1c
+.RI "using \fBftm\fP = \fBfathoms\fP"
+.br
+.ti -1c
+.RI "using \fBch\fP = \fBchains\fP"
+.br
+.ti -1c
+.RI "using \fBfur\fP = \fBfurlongs\fP"
+.br
+.ti -1c
+.RI "using \fBlea\fP = \fBleagues\fP"
+.br
+.ti -1c
+.RI "using \fBnl\fP = \fBnauticalLeagues\fP"
+.br
+.ti -1c
+.RI "using \fByd\fP = \fByards\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBmeter_t\fP = \fBunit_t\fP< \fBmeter\fP >"
+.br
+.ti -1c
+.RI "using \fBnanometer_t\fP = \fBunit_t\fP< nanometer >"
+.br
+.ti -1c
+.RI "using \fBmicrometer_t\fP = \fBunit_t\fP< micrometer >"
+.br
+.ti -1c
+.RI "using \fBmillimeter_t\fP = \fBunit_t\fP< millimeter >"
+.br
+.ti -1c
+.RI "using \fBcentimeter_t\fP = \fBunit_t\fP< centimeter >"
+.br
+.ti -1c
+.RI "using \fBkilometer_t\fP = \fBunit_t\fP< kilometer >"
+.br
+.ti -1c
+.RI "using \fBfoot_t\fP = \fBunit_t\fP< \fBfoot\fP >"
+.br
+.ti -1c
+.RI "using \fBinch_t\fP = \fBunit_t\fP< \fBinch\fP >"
+.br
+.ti -1c
+.RI "using \fBmile_t\fP = \fBunit_t\fP< \fBmile\fP >"
+.br
+.ti -1c
+.RI "using \fBnauticalMile_t\fP = \fBunit_t\fP< \fBnauticalMile\fP >"
+.br
+.ti -1c
+.RI "using \fBastronicalUnit_t\fP = \fBunit_t\fP< \fBastronicalUnit\fP >"
+.br
+.ti -1c
+.RI "using \fBlightyear_t\fP = \fBunit_t\fP< \fBlightyear\fP >"
+.br
+.ti -1c
+.RI "using \fBparsec_t\fP = \fBunit_t\fP< \fBparsec\fP >"
+.br
+.ti -1c
+.RI "using \fBangstrom_t\fP = \fBunit_t\fP< \fBangstrom\fP >"
+.br
+.ti -1c
+.RI "using \fBcubit_t\fP = \fBunit_t\fP< \fBcubit\fP >"
+.br
+.ti -1c
+.RI "using \fBfathom_t\fP = \fBunit_t\fP< \fBfathom\fP >"
+.br
+.ti -1c
+.RI "using \fBchain_t\fP = \fBunit_t\fP< \fBchain\fP >"
+.br
+.ti -1c
+.RI "using \fBfurlong_t\fP = \fBunit_t\fP< \fBfurlong\fP >"
+.br
+.ti -1c
+.RI "using \fBhand_t\fP = \fBunit_t\fP< \fBhand\fP >"
+.br
+.ti -1c
+.RI "using \fBleague_t\fP = \fBunit_t\fP< \fBleague\fP >"
+.br
+.ti -1c
+.RI "using \fBnauticalLeague_t\fP = \fBunit_t\fP< \fBnauticalLeague\fP >"
+.br
+.ti -1c
+.RI "using \fByard_t\fP = \fBunit_t\fP< \fByard\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing length values 
+
+The SI unit for length is \fCmeters\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fClength_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

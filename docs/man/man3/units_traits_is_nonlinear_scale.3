@@ -1,0 +1,33 @@
+.TH "units::traits::is_nonlinear_scale< T, Ret >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::is_nonlinear_scale< T, Ret > \- Trait which tests that \fCclass T\fP meets the requirements for a non-linear scale\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits integral_constant< bool, std::is_default_constructible< T >::value &&has_operator_parenthesis< T, Ret >::value &&has_value_member< T, Ret >::value >\&.
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class T, class Ret>struct units::traits::is_nonlinear_scale< T, Ret >"
+Trait which tests that \fCclass T\fP meets the requirements for a non-linear scale\&. 
+
+A non-linear scale must:
+.IP "\(bu" 2
+be default constructible
+.IP "\(bu" 2
+have an \fCoperator()\fP member which returns the non-linear value stored in the scale
+.IP "\(bu" 2
+have an accessible \fCm_value\fP member type which stores the linearized value in the scale\&.
+.PP
+.PP
+Linear/nonlinear scales are used by \fC\fBunits::unit\fP\fP to store values and scale them if they represent things like dB\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

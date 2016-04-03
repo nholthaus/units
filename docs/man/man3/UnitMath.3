@@ -1,0 +1,762 @@
+.TH "UnitMath" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+UnitMath \- Unit Math
+.PP
+Defines a collection of unit-enabled, strongly-typed versions of \fC<cmath>\fP functions\&.  
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::cos\fP (AngleUnit angle)"
+.br
+.RI "\fICompute cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::sin\fP (AngleUnit angle)"
+.br
+.RI "\fICompute sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::tan\fP (AngleUnit angle)"
+.br
+.RI "\fICompute tangent\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::acos\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc cosine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::asin\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc sine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::atan\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc tangent\&. \fP"
+.ti -1c
+.RI "template<class Y , class X > angle::radian_t \fBunits::math::atan2\fP (Y y, X x)"
+.br
+.RI "\fICompute arc tangent with two parameters\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::cosh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::sinh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > dimensionless::scalar_t \fBunits::math::tanh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::acosh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::asinh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic sine\&. \fP"
+.ti -1c
+.RI "angle::radian_t \fBunits::math::atanh\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute arc hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::exp\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute exponential function\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute natural logarithm\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log10\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute common logarithm\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::modf\fP (dimensionless::scalar_t x, dimensionless::scalar_t *intpart)"
+.br
+.RI "\fIBreak into fractional and integral parts\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::exp2\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute binary exponential function\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::expm1\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute exponential minus one\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log1p\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute logarithm plus one\&. \fP"
+.ti -1c
+.RI "dimensionless::scalar_t \fBunits::math::log2\fP (dimensionless::scalar_t x)"
+.br
+.RI "\fICompute binary logarithm\&. \fP"
+.ti -1c
+.RI "template<class UnitType , typename std::enable_if< traits::has_linear_scale< UnitType >::value, int >::type  = 0> auto \fBunits::math::sqrt\fP (const UnitType &value) -> unit_t< square_root< typename traits::unit_t_traits< UnitType >::unit_type >, typename traits::unit_t_traits< UnitType >::underlying_type, linear_scale >"
+.br
+.RI "\fIcomputes the square root of \fIvalue\fP \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::ceil\fP (UnitType x)"
+.br
+.RI "\fIRound up value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::floor\fP (UnitType x)"
+.br
+.RI "\fIRound down value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::fmod\fP (UnitType numer, UnitType denom)"
+.br
+.RI "\fICompute remainder of division\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::trunc\fP (UnitType x)"
+.br
+.RI "\fITruncate value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::round\fP (UnitType x)"
+.br
+.RI "\fIRound to nearest\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::copysign\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fICopy sign\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fdim\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIPositive difference\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fmax\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMaximum value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBunits::math::fmin\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMinimum value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::fabs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBunits::math::abs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitMultiply , class UnitAdd , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitMultiply>::value && traits::is_unit_t<UnitAdd>::value>::type> auto \fBunits::math::fma\fP (UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x *y)"
+.br
+.RI "\fIMultiply-add\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Defines a collection of unit-enabled, strongly-typed versions of \fC<cmath>\fP functions\&. 
+
+Includes most c++11 extensions\&. 
+.SH "Function Documentation"
+.PP 
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::abs (UnitType x)"
+
+.PP
+Compute absolute value\&. Returns the absolute value of x, i\&.e\&. |x|\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose absolute value is returned\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The absolute value of x\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::acos (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc cosine\&. Returns the principal value of the arc cosine of x, expressed in radians\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc cosine is computed, in the interval [-1,+1]\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Principal arc cosine of x, in the interval [0,pi] radians\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::acosh (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc hyperbolic cosine\&. Returns the nonnegative arc hyperbolic cosine of x, expressed in radians\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc hyperbolic cosine is computed\&. If the argument is less than 1, a domain error occurs\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Nonnegative arc hyperbolic cosine of x, in the interval [0,+INFINITY] radians\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::asin (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc sine\&. Returns the principal value of the arc sine of x, expressed in radians\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc sine is computed, in the interval [-1,+1]\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Principal arc sine of x, in the interval [-pi/2,+pi/2] radians\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::asinh (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc hyperbolic sine\&. Returns the arc hyperbolic sine of x, expressed in radians\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc hyperbolic sine is computed\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Arc hyperbolic sine of x, in radians\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::atan (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc tangent\&. Returns the principal value of the arc tangent of x, expressed in radians\&. Notice that because of the sign ambiguity, the function cannot determine with certainty in which quadrant the angle falls only by its tangent value\&. See atan2 for an alternative that takes a fractional argument instead\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc tangent is computed, in the interval [-1,+1]\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians\&. 
+.RE
+.PP
+
+.SS "template<class Y , class X > angle::radian_t units::math::atan2 (Y y, X x)"
+
+.PP
+Compute arc tangent with two parameters\&. To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIy\fP y-component of the triangle expressed\&. 
+.br
+\fIx\fP x-component of the triangle expressed\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the principal value of the arc tangent of \fIy/x\fP, expressed in radians\&. 
+.RE
+.PP
+
+.SS "angle::radian_t units::math::atanh (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute arc hyperbolic tangent\&. Returns the arc hyperbolic tangent of x, expressed in radians\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose arc hyperbolic tangent is computed, in the interval [-1,+1]\&. If the argument is out of this interval, a domain error occurs\&. For values of -1 and +1, a pole error may occur\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+units::angle::radian_t 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::ceil (UnitType x)"
+
+.PP
+Round up value\&. Rounds x upward, returning the smallest integral value that is not less than x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Unit value to round up\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The smallest integral value that is not less than x\&. 
+.RE
+.PP
+
+.SS "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs units::math::copysign (UnitTypeLhs x, UnitTypeRhs y)"
+
+.PP
+Copy sign\&. Returns a value with the magnitude and dimension of x, and the sign of y\&. Values x and y do not have to be compatible units\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value with the magnitude of the resulting value\&. 
+.br
+\fIy\fP Value with the sign of the resulting value\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+value with the magnitude and dimension of x, and the sign of y\&. 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::cos (AngleUnit angle)"
+
+.PP
+Compute cosine\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the cosine of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the cosine of \fIangle\fP 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::cosh (AngleUnit angle)"
+
+.PP
+Compute hyperbolic cosine\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the hyperbolic cosine of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the hyperbolic cosine of \fIangle\fP 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::exp (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute exponential function\&. Returns the base-e exponential function of x, which is e raised to the power x: ex\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP scalar value of the exponent\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Exponential value of x\&. If the magnitude of the result is too large to be represented by a value of the return type, the function returns HUGE_VAL (or HUGE_VALF or HUGE_VALL) with the proper sign, and an overflow range error occurs 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::exp2 (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute binary exponential function\&. Returns the base-2 exponential function of x, which is 2 raised to the power x: 2^x\&. 2param[in] x Value of the exponent\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+2 raised to the power of x\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::expm1 (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute exponential minus one\&. Returns e raised to the power x minus one: e^x-1\&. For small magnitude values of x, expm1 may be more accurate than exp(x)-1\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value of the exponent\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+e raised to the power of x, minus one\&. 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::fabs (UnitType x)"
+
+.PP
+Compute absolute value\&. Returns the absolute value of x, i\&.e\&. |x|\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose absolute value is returned\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The absolute value of x\&. 
+.RE
+.PP
+
+.SS "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs units::math::fdim (UnitTypeLhs x, UnitTypeRhs y)"
+
+.PP
+Positive difference\&. The function returns x-y if x>y, and zero otherwise, in the same units as x\&. Values x and y do not have to be the same type of units, but they do have to be compatible\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Values whose difference is calculated\&. 
+.br
+\fIy\fP Values whose difference is calculated\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The positive difference between x and y\&. 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::floor (UnitType x)"
+
+.PP
+Round down value\&. Rounds x downward, returning the largest integral value that is not greater than x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Unit value to round down\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value of x rounded downward\&. 
+.RE
+.PP
+
+.SS "template<class UnitTypeLhs , class UnitMultiply , class UnitAdd , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitMultiply>::value && traits::is_unit_t<UnitAdd>::value>::type> auto units::math::fma (UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x * y)
+		"
+
+.PP
+Multiply-add\&. Returns x*y+z\&. The function computes the result without losing precision in any intermediate result\&. The resulting unit type is a compound unit of x* y\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Values to be multiplied\&. 
+.br
+\fIy\fP Values to be multiplied\&. 
+.br
+\fIz\fP Value to be added\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The result of x*y+z 
+.RE
+.PP
+
+.SS "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs units::math::fmax (UnitTypeLhs x, UnitTypeRhs y)"
+
+.PP
+Maximum value\&. Returns the larger of its arguments: either x or y, in the same units as x\&. Values x and y do not have to be the same type of units, but they do have to be compatible\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Values among which the function selects a maximum\&. 
+.br
+\fIy\fP Values among which the function selects a maximum\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The maximum numeric value of its arguments\&. 
+.RE
+.PP
+
+.SS "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs units::math::fmin (UnitTypeLhs x, UnitTypeRhs y)"
+
+.PP
+Minimum value\&. Returns the smaller of its arguments: either x or y, in the same units as x\&. If one of the arguments in a NaN, the other is returned\&. Values x and y do not have to be the same type of units, but they do have to be compatible\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Values among which the function selects a minimum\&. 
+.br
+\fIy\fP Values among which the function selects a minimum\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The minimum numeric value of its arguments\&. 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::fmod (UnitType numer, UnitType denom)"
+
+.PP
+Compute remainder of division\&. Returns the floating-point remainder of numer/denom (rounded towards zero)\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fInumer\fP Value of the quotient numerator\&. 
+.br
+\fIdenom\fP Value of the quotient denominator\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The remainder of dividing the arguments\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::log (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute natural logarithm\&. Returns the natural logarithm of x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP scalar value whose logarithm is calculated\&. If the argument is negative, a domain error occurs\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBlog10\fP for more common base-10 logarithms 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Natural logarithm of x\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::log10 (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute common logarithm\&. Returns the common (base-10) logarithm of x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose logarithm is calculated\&. If the argument is negative, a domain error occurs\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Common logarithm of x\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::log1p (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute logarithm plus one\&. Returns the natural logarithm of one plus x\&. For small magnitude values of x, logp1 may be more accurate than log(1+x)\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose logarithm is calculated\&. If the argument is less than -1, a domain error occurs\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The natural logarithm of (1+x)\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::log2 (\fBdimensionless::scalar_t\fP x)"
+
+.PP
+Compute binary logarithm\&. Returns the binary (base-2) logarithm of x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value whose logarithm is calculated\&. If the argument is negative, a domain error occurs\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The binary logarithm of x: log2x\&. 
+.RE
+.PP
+
+.SS "dimensionless::scalar_t units::math::modf (\fBdimensionless::scalar_t\fP x, \fBdimensionless::scalar_t\fP * intpart)"
+
+.PP
+Break into fractional and integral parts\&. The integer part is stored in the object pointed by intpart, and the fractional part is returned by the function\&. Both parts have the same sign as x\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP scalar value to break into parts\&. 
+.br
+\fIintpart\fP Pointer to an object (of the same type as x) where the integral part is stored with the same sign as x\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The fractional part of x, with the same sign\&. 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::round (UnitType x)"
+
+.PP
+Round to nearest\&. Returns the integral value that is nearest to x, with halfway cases rounded away from zero\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP value to round\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value of x rounded to the nearest integral\&. 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::sin (AngleUnit angle)"
+
+.PP
+Compute sine\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the since of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the sine of \fIangle\fP 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::sinh (AngleUnit angle)"
+
+.PP
+Compute hyperbolic sine\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the hyperbolic sine of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the hyperbolic sine of \fIangle\fP 
+.RE
+.PP
+
+.SS "template<class UnitType , typename std::enable_if< traits::has_linear_scale< UnitType >::value, int >::type  = 0> auto units::math::sqrt (const UnitType & value) -> \fBunit_t\fP<\fBsquare_root\fP<typename \fBtraits::unit_t_traits\fP<UnitType>::unit_type>, typename \fBtraits::unit_t_traits\fP<UnitType>::underlying_type, \fBlinear_scale\fP>
+		\fC [inline]\fP"
+
+.PP
+computes the square root of \fIvalue\fP Only implemented for \fBlinear_scale\fP units\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP \fC\fBunit_t\fP\fP derived type to compute the square root of\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+new \fBunit_t\fP, whose units are the square root of value's\&. E\&.g\&. if values had units of \fCsquare_meter\fP, then the return type will have units of \fCmeter\fP\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+\fCsqrt\fP provides a \fIrational approximation\fP of the square root of \fIvalue\fP\&. In some cases, \fIboth\fP the returned value \fIand\fP conversion factor of the returned unit type may have errors no larger than \fC1e-10\fP\&. 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::tan (AngleUnit angle)"
+
+.PP
+Compute tangent\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the tangent of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the tangent of \fIangle\fP 
+.RE
+.PP
+
+.SS "template<class AngleUnit > dimensionless::scalar_t units::math::tanh (AngleUnit angle)"
+
+.PP
+Compute hyperbolic tangent\&. The input value can be in any unit of angle, including radians or degrees\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIAngleUnit\fP any \fC\fBunit_t\fP\fP type of \fCcatgeory::angle_unit\fP\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIangle\fP angle to compute the hyperbolic tangent of 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Returns the hyperbolic tangent of \fIangle\fP 
+.RE
+.PP
+
+.SS "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType units::math::trunc (UnitType x)"
+
+.PP
+Truncate value\&. Rounds x toward zero, returning the nearest integral value that is not larger in magnitude than x\&. Effectively rounds towards 0\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value to truncate 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The nearest integral value that is not larger in magnitude than x\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

@@ -1,0 +1,24 @@
+.TH "units::traits::is_ratio< T >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::is_ratio< T > \- Trait that tests whether a type represents a std::ratio\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits integral_constant< bool, has_num< T >::value &&has_den< T >::value >\&.
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class T>struct units::traits::is_ratio< T >"
+Trait that tests whether a type represents a std::ratio\&. 
+
+Inherits from \fCstd::true_type\fP or \fCstd::false_type\fP\&. Use \fC\fBis_ratio\fP<T>::value\fP to test whether \fCclass T\fP implements a std::ratio\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

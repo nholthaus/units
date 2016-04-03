@@ -1,0 +1,38 @@
+.TH "units::traits::is_convertible_unit_t< U1, U2 >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::is_convertible_unit_t< U1, U2 > \- Trait which tests whether two container types derived from \fC\fBunit_t\fP\fP are convertible to each other\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits integral_constant< bool, is_convertible_unit< traits::unit_t_traits< U1 >::unit_type, traits::unit_t_traits< U2 >::unit_type >::value >\&.
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class U1, class U2>struct units::traits::is_convertible_unit_t< U1, U2 >"
+Trait which tests whether two container types derived from \fC\fBunit_t\fP\fP are convertible to each other\&. 
+
+Inherits from \fCstd::true_type\fP or \fCstd::false_type\fP\&. Use \fC\fBis_convertible_unit_t\fP<U1, U2>::value\fP to test whether \fCclass U1\fP is convertible to \fCclass U2\fP\&. Note: convertible has both the semantic meaning, (i\&.e\&. meters can be converted to feet), and the c++ meaning of conversion (type meters can be converted to type feet)\&. Conversion is always symmetric, so if U1 is convertible to U2, then U2 will be convertible to U1\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU1\fP Unit to convert from\&. 
+.br
+\fIU2\fP Unit to convert to\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBis_convertible_unit\fP 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

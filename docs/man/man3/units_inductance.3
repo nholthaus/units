@@ -1,0 +1,187 @@
+.TH "units::inductance" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::inductance \- namespace for unit types and containers representing inductance values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhenrys\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::inductance_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBpicohenrys\fP = \fBpico\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBnanohenrys\fP = \fBnano\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBmicrohenrys\fP = \fBmicro\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBmillihenrys\fP = \fBmilli\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBkilohenrys\fP = \fBkilo\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBmegahenrys\fP = \fBmega\fP< \fBhenrys\fP >"
+.br
+.ti -1c
+.RI "using \fBgigahenrys\fP = \fBgiga\fP< \fBhenrys\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhenry\fP = \fBhenrys\fP"
+.br
+.ti -1c
+.RI "using \fBpicohenry\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBnanohenry\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBmicrohenry\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBmillihenry\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBkilohenry\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBmegahenry\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBgigahenry\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (alternate spellings)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhenries\fP = \fBhenrys\fP"
+.br
+.ti -1c
+.RI "using \fBpicohenries\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBnanohenries\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBmicrohenries\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBmillihenries\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBkilohenries\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBmegahenries\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBgigahenries\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBhenry_t\fP = \fBunit_t\fP< \fBhenry\fP >"
+.br
+.ti -1c
+.RI "using \fBpicohenry_t\fP = \fBunit_t\fP< picohenry >"
+.br
+.ti -1c
+.RI "using \fBnanohenry_t\fP = \fBunit_t\fP< nanohenry >"
+.br
+.ti -1c
+.RI "using \fBmicrohenry_t\fP = \fBunit_t\fP< microhenry >"
+.br
+.ti -1c
+.RI "using \fBmillihenry_t\fP = \fBunit_t\fP< millihenry >"
+.br
+.ti -1c
+.RI "using \fBkilohenry_t\fP = \fBunit_t\fP< kilohenry >"
+.br
+.ti -1c
+.RI "using \fBmegahenry_t\fP = \fBunit_t\fP< megahenry >"
+.br
+.ti -1c
+.RI "using \fBgigahenry_t\fP = \fBunit_t\fP< gigahenry >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBH\fP = \fBhenrys\fP"
+.br
+.ti -1c
+.RI "using \fBpH\fP = picohenrys"
+.br
+.ti -1c
+.RI "using \fBnH\fP = nanohenrys"
+.br
+.ti -1c
+.RI "using \fBuH\fP = microhenrys"
+.br
+.ti -1c
+.RI "using \fBmH\fP = millihenrys"
+.br
+.ti -1c
+.RI "using \fBkH\fP = kilohenrys"
+.br
+.ti -1c
+.RI "using \fBMH\fP = megahenrys"
+.br
+.ti -1c
+.RI "using \fBGH\fP = gigahenrys"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing inductance values 
+
+The SI unit for inductance is \fChenrys\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCinductance_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

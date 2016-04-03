@@ -1,0 +1,252 @@
+.TH "TypeTraits" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+TypeTraits \- Type Traits
+.PP
+Defines a series of classes to obtain unit type information at compile-time\&.  
+
+.SS "Namespaces"
+
+.in +1c
+.ti -1c
+.RI " \fBunits::traits\fP"
+.br
+.RI "\fInamespace representing type traits which can access the properties of types provided by the units library\&. \fP"
+.in -1c
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBunits::traits::unit_traits< T >\fP"
+.br
+.RI "\fITraits class defining the properties of units\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_base_unit< T >\fP"
+.br
+.RI "\fITrait which tests if a class is a \fC\fBbase_unit\fP\fP type\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit< T >\fP"
+.br
+.RI "\fITraits which tests if a class is a \fCunit\fP \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_convertible_unit< U1, U2 >\fP"
+.br
+.RI "\fITrait which checks whether two units can be converted to each other\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_nonlinear_scale< T, Ret >\fP"
+.br
+.RI "\fITrait which tests that \fCclass T\fP meets the requirements for a non-linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::unit_t_traits< T >\fP"
+.br
+.RI "\fITrait for accessing the publically defined types of \fC\fBunits::unit_t\fP\fP \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_convertible_unit_t< U1, U2 >\fP"
+.br
+.RI "\fITrait which tests whether two container types derived from \fC\fBunit_t\fP\fP are convertible to each other\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_t< T >\fP"
+.br
+.RI "\fITraits which tests if a class is a \fCunit\fP \fP"
+.ti -1c
+.RI "struct \fBunits::traits::has_linear_scale< T >\fP"
+.br
+.RI "\fITrait which tests whether a type is inherited from a linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::has_decibel_scale< T >\fP"
+.br
+.RI "\fITrait which tests whether a type is inherited from a decibel scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_same_scale< T1, T2 >\fP"
+.br
+.RI "\fITrait which tests whether two types has the same non-linear scale\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_scalar_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether one or more types derived from \fC\fBunit_t\fP\fP represent scalar values\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::unit_value_t_traits< T >\fP"
+.br
+.RI "\fITrait for accessing the publically defined types of \fCunits::unit_value_t_traits\fP \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_value_t< T, Units >\fP"
+.br
+.RI "\fITrait which tests whether a type is a \fBunit_value_t\fP representing the given unit type\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_unit_value_t_category< Category, T >\fP"
+.br
+.RI "\fITrait which tests whether type T is a \fBunit_value_t\fP with a unit type in the given category\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_length_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of length\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_mass_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of mass\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_time_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of time\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_angle_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of angle\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_current_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of current\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_temperature_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of temperature\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_substance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of substance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_luminous_intensity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBluminous_intensity\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_solid_angle_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBsolid_angle\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_frequency_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of frequency\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_velocity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of velocity\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_angular_velocity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBangular_velocity\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_acceleration_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of acceleration\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_force_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of force\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_pressure_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of pressure\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_charge_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of charge\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_energy_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of energy\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_power_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of power\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_voltage_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of voltage\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_capacitance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of capacitance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_impedance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of impedance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_conductance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of conductance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_magnetic_flux_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBmagnetic_flux\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_magnetic_field_strength_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBmagnetic_field_strength\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_inductance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of inductance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_luminous_flux_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of \fBluminous_flux\fP\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_illuminance_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of illuminance\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_radioactivity_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of radiation\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_torque_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of torque\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_area_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of area\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_volume_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of volume\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_density_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of density\&. \fP"
+.ti -1c
+.RI "struct \fBunits::traits::is_concentration_unit< T >\fP"
+.br
+.RI "\fITrait which tests whether a type represents a unit of concentration\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "template<typename Ratio , std::intmax_t Eps = 10000000000> using \fBunits::ratio_sqrt\fP = typename detail::Sqrt< Ratio, std::ratio< 1, Eps >>::type"
+.br
+.RI "\fICalculate square root of a ratio at compile-time\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Defines a series of classes to obtain unit type information at compile-time\&. 
+
+
+.SH "Typedef Documentation"
+.PP 
+.SS "template<typename Ratio , std::intmax_t Eps = 10000000000> using \fBunits::ratio_sqrt\fP = typedef typename detail::Sqrt<Ratio, std::ratio<1, Eps>>::type"
+
+.PP
+Calculate square root of a ratio at compile-time\&. Calculates a rational approximation of the square root of the ratio\&. The error in the calculation is bounded by 1/epsilon (Eps)\&. E\&.g\&. for the default value of 10000000000, the maximum error will be a/10000000000, or 1e-8, or said another way, the error will be on the order of 10^-9\&. Since these calculations are done at compile time, it is advisable to set epsilon to the highest value that does not cause an integer overflow in the calculation\&. If you can't compile \fCratio_sqrt\fP due to overflow errors, reducing the value of epsilon sufficiently will correct the problem\&.
+.br
+
+.br
+ \fCratio_sqrt\fP is guaranteed to converge for all values of \fCRatio\fP which do not overflow\&. 
+.PP
+\fBNote:\fP
+.RS 4
+This function provides a rational approximation, \fINOT\fP an exact value\&. 
+.RE
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIRatio\fP ratio to take the square root of\&. This can represent any rational value, \fInot\fP just integers or values with integer roots\&. 
+.br
+\fIEps\fP Value of epsilon, which represents the inverse of the maximum allowable error\&. This value should be chosen to be as high as possible before integer overflow errors occur in the compiler\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

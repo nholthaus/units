@@ -1,0 +1,143 @@
+\hypertarget{group___type_traits}{}\section{Type Traits}
+\label{group___type_traits}\index{Type Traits@{Type Traits}}
+
+
+Defines a series of classes to obtain unit type information at compile-\/time.  
+
+
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespaceunits_1_1traits}{units\+::traits}
+\begin{DoxyCompactList}\small\item\em namespace representing type traits which can access the properties of types provided by the units library. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structunits_1_1traits_1_1unit__traits}{units\+::traits\+::unit\+\_\+traits$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Traits class defining the properties of units. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__base__unit}{units\+::traits\+::is\+\_\+base\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests if a class is a {\ttfamily \hyperlink{structunits_1_1base__unit}{base\+\_\+unit}} type. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__unit}{units\+::traits\+::is\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Traits which tests if a class is a {\ttfamily unit} \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__convertible__unit}{units\+::traits\+::is\+\_\+convertible\+\_\+unit$<$ U1, U2 $>$}
+\begin{DoxyCompactList}\small\item\em Trait which checks whether two units can be converted to each other. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__nonlinear__scale}{units\+::traits\+::is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests that {\ttfamily class T} meets the requirements for a non-\/linear scale. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1unit__t__traits}{units\+::traits\+::unit\+\_\+t\+\_\+traits$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait for accessing the publically defined types of {\ttfamily \hyperlink{classunits_1_1unit__t}{units\+::unit\+\_\+t}} \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__convertible__unit__t}{units\+::traits\+::is\+\_\+convertible\+\_\+unit\+\_\+t$<$ U1, U2 $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether two container types derived from {\ttfamily \hyperlink{classunits_1_1unit__t}{unit\+\_\+t}} are convertible to each other. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__unit__t}{units\+::traits\+::is\+\_\+unit\+\_\+t$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Traits which tests if a class is a {\ttfamily unit} \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1has__linear__scale}{units\+::traits\+::has\+\_\+linear\+\_\+scale$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type is inherited from a linear scale. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1has__decibel__scale}{units\+::traits\+::has\+\_\+decibel\+\_\+scale$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type is inherited from a decibel scale. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__same__scale}{units\+::traits\+::is\+\_\+same\+\_\+scale$<$ T1, T2 $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether two types has the same non-\/linear scale. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__scalar__unit}{units\+::traits\+::is\+\_\+scalar\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether one or more types derived from {\ttfamily \hyperlink{classunits_1_1unit__t}{unit\+\_\+t}} represent scalar values. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1unit__value__t__traits}{units\+::traits\+::unit\+\_\+value\+\_\+t\+\_\+traits$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait for accessing the publically defined types of {\ttfamily units\+::unit\+\_\+value\+\_\+t\+\_\+traits} \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__unit__value__t}{units\+::traits\+::is\+\_\+unit\+\_\+value\+\_\+t$<$ T, Units $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type is a \hyperlink{structunits_1_1unit__value__t}{unit\+\_\+value\+\_\+t} representing the given unit type. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__unit__value__t__category}{units\+::traits\+::is\+\_\+unit\+\_\+value\+\_\+t\+\_\+category$<$ Category, T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether type T is a \hyperlink{structunits_1_1unit__value__t}{unit\+\_\+value\+\_\+t} with a unit type in the given category. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__length__unit}{units\+::traits\+::is\+\_\+length\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of length. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__mass__unit}{units\+::traits\+::is\+\_\+mass\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of mass. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__time__unit}{units\+::traits\+::is\+\_\+time\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of time. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__angle__unit}{units\+::traits\+::is\+\_\+angle\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of angle. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__current__unit}{units\+::traits\+::is\+\_\+current\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of current. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__temperature__unit}{units\+::traits\+::is\+\_\+temperature\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of temperature. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__substance__unit}{units\+::traits\+::is\+\_\+substance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of substance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__luminous__intensity__unit}{units\+::traits\+::is\+\_\+luminous\+\_\+intensity\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1luminous__intensity}{luminous\+\_\+intensity}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__solid__angle__unit}{units\+::traits\+::is\+\_\+solid\+\_\+angle\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1solid__angle}{solid\+\_\+angle}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__frequency__unit}{units\+::traits\+::is\+\_\+frequency\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of frequency. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__velocity__unit}{units\+::traits\+::is\+\_\+velocity\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of velocity. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__angular__velocity__unit}{units\+::traits\+::is\+\_\+angular\+\_\+velocity\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1angular__velocity}{angular\+\_\+velocity}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__acceleration__unit}{units\+::traits\+::is\+\_\+acceleration\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of acceleration. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__force__unit}{units\+::traits\+::is\+\_\+force\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of force. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__pressure__unit}{units\+::traits\+::is\+\_\+pressure\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of pressure. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__charge__unit}{units\+::traits\+::is\+\_\+charge\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of charge. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__energy__unit}{units\+::traits\+::is\+\_\+energy\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of energy. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__power__unit}{units\+::traits\+::is\+\_\+power\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of power. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__voltage__unit}{units\+::traits\+::is\+\_\+voltage\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of voltage. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__capacitance__unit}{units\+::traits\+::is\+\_\+capacitance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of capacitance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__impedance__unit}{units\+::traits\+::is\+\_\+impedance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of impedance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__conductance__unit}{units\+::traits\+::is\+\_\+conductance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of conductance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__magnetic__flux__unit}{units\+::traits\+::is\+\_\+magnetic\+\_\+flux\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1magnetic__flux}{magnetic\+\_\+flux}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__magnetic__field__strength__unit}{units\+::traits\+::is\+\_\+magnetic\+\_\+field\+\_\+strength\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1magnetic__field__strength}{magnetic\+\_\+field\+\_\+strength}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__inductance__unit}{units\+::traits\+::is\+\_\+inductance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of inductance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__luminous__flux__unit}{units\+::traits\+::is\+\_\+luminous\+\_\+flux\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of \hyperlink{namespaceunits_1_1luminous__flux}{luminous\+\_\+flux}. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__illuminance__unit}{units\+::traits\+::is\+\_\+illuminance\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of illuminance. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__radioactivity__unit}{units\+::traits\+::is\+\_\+radioactivity\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of radiation. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__torque__unit}{units\+::traits\+::is\+\_\+torque\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of torque. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__area__unit}{units\+::traits\+::is\+\_\+area\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of area. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__volume__unit}{units\+::traits\+::is\+\_\+volume\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of volume. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__density__unit}{units\+::traits\+::is\+\_\+density\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of density. \end{DoxyCompactList}\item 
+struct \hyperlink{structunits_1_1traits_1_1is__concentration__unit}{units\+::traits\+::is\+\_\+concentration\+\_\+unit$<$ T $>$}
+\begin{DoxyCompactList}\small\item\em Trait which tests whether a type represents a unit of concentration. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename Ratio , std\+::intmax\+\_\+t Eps = 10000000000$>$ }\\using \hyperlink{group___type_traits_ga62dd90a825a801e3e29841ed51713693}{units\+::ratio\+\_\+sqrt} = typename detail\+::\+Sqrt$<$ Ratio, std\+::ratio$<$ 1, Eps $>$$>$\+::type
+\begin{DoxyCompactList}\small\item\em Calculate square root of a ratio at compile-\/time. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Defines a series of classes to obtain unit type information at compile-\/time. 
+
+
+
+\subsection{Typedef Documentation}
+\hypertarget{group___type_traits_ga62dd90a825a801e3e29841ed51713693}{}\index{Type Traits@{Type Traits}!ratio\+\_\+sqrt@{ratio\+\_\+sqrt}}
+\index{ratio\+\_\+sqrt@{ratio\+\_\+sqrt}!Type Traits@{Type Traits}}
+\subsubsection[{ratio\+\_\+sqrt}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename Ratio , std\+::intmax\+\_\+t Eps = 10000000000$>$ using {\bf units\+::ratio\+\_\+sqrt} = typedef typename detail\+::\+Sqrt$<$Ratio, std\+::ratio$<$1, Eps$>$$>$\+::type}\label{group___type_traits_ga62dd90a825a801e3e29841ed51713693}
+
+
+Calculate square root of a ratio at compile-\/time. 
+
+Calculates a rational approximation of the square root of the ratio. The error in the calculation is bounded by 1/epsilon (Eps). E.\+g. for the default value of 10000000000, the maximum error will be a/10000000000, or 1e-\/8, or said another way, the error will be on the order of 10$^\wedge$-\/9. Since these calculations are done at compile time, it is advisable to set epsilon to the highest value that does not cause an integer overflow in the calculation. If you can\textquotesingle{}t compile {\ttfamily ratio\+\_\+sqrt} due to overflow errors, reducing the value of epsilon sufficiently will correct the problem.~\newline
+~\newline
+ {\ttfamily ratio\+\_\+sqrt} is guaranteed to converge for all values of {\ttfamily Ratio} which do not overflow. \begin{DoxyNote}{Note}
+This function provides a rational approximation, {\itshape N\+O\+T} an exact value. 
+\end{DoxyNote}
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em Ratio} & ratio to take the square root of. This can represent any rational value, {\itshape not} just integers or values with integer roots. \\
+\hline
+{\em Eps} & Value of epsilon, which represents the inverse of the maximum allowable error. This value should be chosen to be as high as possible before integer overflow errors occur in the compiler. \\
+\hline
+\end{DoxyTemplParams}

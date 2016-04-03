@@ -1,0 +1,51 @@
+\hypertarget{structunits_1_1base__unit}{}\section{units\+:\+:base\+\_\+unit$<$ Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela $>$ Struct Template Reference}
+\label{structunits_1_1base__unit}\index{units\+::base\+\_\+unit$<$ Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela $>$@{units\+::base\+\_\+unit$<$ Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela $>$}}
+
+
+Class representing S\+I base unit types.  
+
+
+
+
+{\ttfamily \#include $<$units.\+h$>$}
+
+Inheritance diagram for units\+:\+:base\+\_\+unit$<$ Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{structunits_1_1base__unit}
+\end{center}
+\end{figure}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class Meter = std\+::ratio$<$0$>$, class Kilogram = std\+::ratio$<$0$>$, class Second = std\+::ratio$<$0$>$, class Radian = std\+::ratio$<$0$>$, class Ampere = std\+::ratio$<$0$>$, class Kelvin = std\+::ratio$<$0$>$, class Mole = std\+::ratio$<$0$>$, class Candela = std\+::ratio $<$ 0 $>$$>$struct units\+::base\+\_\+unit$<$ Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela $>$}
+
+Class representing S\+I base unit types. 
+
+Base units are represented by a combination of {\ttfamily std\+::ratio} template parameters, each describing the exponent of the type of unit they represent. Example\+: meters per second would be described by a +1 exponent for meters, and a -\/1 exponent for seconds, thus\+: {\ttfamily \hyperlink{structunits_1_1base__unit}{base\+\_\+unit}$<$std\+::ratio$<$1$>$, std\+::ratio$<$0$>$, std\+::ratio$<$-\/1$>$$>$} 
+\begin{DoxyTemplParams}{Template Parameters}
+{\em Meter} & {\ttfamily std\+::ratio} representing the exponent value for meters. \\
+\hline
+{\em Kilogram} & {\ttfamily std\+::ratio} representing the exponent value for kilograms. \\
+\hline
+{\em Second} & {\ttfamily std\+::ratio} representing the exponent value for seconds. \\
+\hline
+{\em Radian} & {\ttfamily std\+::ratio} representing the exponent value for radians. Although radians are not S\+I base units, they are included because radians are described by the S\+I as m $\ast$ m$^\wedge$-\/1, which would make them indistinguishable from scalars. \\
+\hline
+{\em Ampere} & {\ttfamily std\+::ratio} representing the exponent value for amperes. \\
+\hline
+{\em Kelvin} & {\ttfamily std\+::ratio} representing the exponent value for Kelvin. \\
+\hline
+{\em Mole} & {\ttfamily std\+::ratio} representing the exponent value for moles. \\
+\hline
+{\em Candela} & {\ttfamily std\+::ratio} representing the exponent value for candelas. \\
+\hline
+\end{DoxyTemplParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{namespaceunits_1_1category}{category} for type aliases for S\+I \hyperlink{structunits_1_1base__unit}{base\+\_\+unit} types. 
+\end{DoxySeeAlso}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/nholthaus/workspace/units/include/\hyperlink{units_8h}{units.\+h}\end{DoxyCompactItemize}

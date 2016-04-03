@@ -1,0 +1,362 @@
+a compile-\/time, header-\/only, unit conversion library built on c++14 with no dependencies.
+
+\subsection*{Latest Release -\/ v2.\+0.\+0 }
+
+New features\+:
+\begin{DoxyItemize}
+\item Compile-\/time unit arithmetic via {\ttfamily unit\+\_\+value\+\_\+t}
+\item Unit-\/enabled ports of most {\ttfamily $<$cmath$>$} functions, including c++11 extensions.
+\item Square-\/root manipulators for {\ttfamily unit}, {\ttfamily unit\+\_\+t}, and {\ttfamily unit\+\_\+value\+\_\+t}
+\item Improved documentation
+\end{DoxyItemize}
+
+Tested on\+:
+\begin{DoxyItemize}
+\item gcc -\/4.\+9
+\item msvc2013
+\item msvc2015
+\end{DoxyItemize}
+
+\href{https://github.com/nholthaus/units/releases/tag/v2.0.0}{\tt Download units v2.\+0.\+0}
+
+\subsection*{Documentation }
+
+The full documentation is available $\ast$\href{http://nholthaus.github.io/units}{\tt here}$\ast$.
+
+\subsection*{Description }
+
+The library consists of a single file (\hyperlink{units_8h}{include/units.\+h}), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A C\+Make project is included to build the unit tests and documentation if desired.
+
+The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library {\itshape incredibly} fast. Additionally, specifying units as {\itshape types}, rather than variable suffixes (or not at all), provides complete type-\/safety within the compiler. This means that code that accidently misuses units or which has errors in the dimensional analysis {\itshape will fail at compile-\/time, not at run-\/time}.
+
+The unit test file {\ttfamily unit\+Tests/main.\+cpp} contains example usage of every type, trait, and function contained in the library, and while not exactly user-\/friendly, can be a valuable resource.
+
+\subsection*{Unit tags }
+
+Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-\/information about different units, including how to convert between them, and how to determine their compatibility for conversion.
+
+All unit tags are defined in namespaces under the {\ttfamily units} namespace, such as {\ttfamily \hyperlink{namespaceunits_1_1length}{units\+::length}} or {\ttfamily \hyperlink{namespaceunits_1_1angle}{units\+::angle}}, to avoid name clashes between units of different physical quantities which share the same names (like pounds). S\+I base units are defined as \char`\"{}categories\char`\"{} in the {\ttfamily unit} namespace.
+
+Units are defined in terms of
+\begin{DoxyEnumerate}
+\item A scale factor relative to a base unit type.
+\item A base unit
+\item \mbox{[}optionally\mbox{]} a scale factor of {\ttfamily pi}
+\item \mbox{[}optionally\mbox{]} a datum translation (such as the +/-\/ 32 required to convert between {\ttfamily fahrenheit} and {\ttfamily celsius})
+\end{DoxyEnumerate}
+
+All units have their origin in the Scientific International (S\+I) base unit system. A special exception is made for angle units, which are defined in S\+I as ( m $\ast$ m$^\wedge$-\/1), which is not {\itshape exactly} the same as dimensionless/scalar units for practical purposes (and probably why the S\+I didn\textquotesingle{}t define them as simple scalar units), and so in this library they are treated as a basic unit type.
+
+{\itshape Example}\+: the defintions of some common length units are\+: \begin{DoxyVerb}namespace length
+{
+    using meters = units::unit<std::ratio<1>, units::category::length_unit>;    // meters are (1) unit of length in the SI system.
+    using feet = units::unit<std::ratio<381, 1250>, meters>;                    // feet are 3.28084 meters.
+}
+\end{DoxyVerb}
+
+
+\subsection*{Unit containers }
+
+Unit containers are the workhorse of the units libary, and the primary classes which will be instantiated in user code. Containers are derived from the {\ttfamily unit\+\_\+t} class, and have the form {\ttfamily \mbox{[}unitname\mbox{]}\+\_\+t}, e.\+g. {\ttfamily meter\+\_\+t} or {\ttfamily radian\+\_\+t}. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
+
+Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-\/linear scale (think decibels or richter scale). For example, {\ttfamily meter\+\_\+t} would be defined\+: \begin{DoxyVerb}using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
+\end{DoxyVerb}
+
+
+or simply \begin{DoxyVerb}using meter_t = units::unit_t<units::length::meter>
+\end{DoxyVerb}
+
+
+since the underlying type and scale parameters default to {\ttfamily double} and {\ttfamily linear\+\_\+scale} respectively.
+
+Units of compatible types (e.\+g length units) can be implicitely converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitely converted to/from built-\/in types, such as {\ttfamily double}.
+
+Units are constructed from built-\/in types, and the {\ttfamily to\+Double()} method (or {\ttfamily operator()}) can be used to retrieve a built-\/in type value. That said, the user should prefer to operate within the unit type-\/space as much as is practical, and wrappers of most {\ttfamily $<$cmath$>$} functions are provided to enable operating soly in the {\ttfamily unit\+\_\+t} domain.
+
+The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated\+: \begin{DoxyVerb}auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+\end{DoxyVerb}
+
+
+The resulting velocity type will be deduced to be {\ttfamily velocity\+::meters\+\_\+per\+\_\+second} with a value of 50.\+0. Additionally, if the return type if specified, the type system wll verify that the units are compatible. For example, the following will fail to compile\+: \begin{DoxyVerb}units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+\end{DoxyVerb}
+
+
+Unit containers can (and should!) be used to perform implicit conversions\+: \begin{DoxyVerb}units::time::second_t a;
+units::time::minute_t b(1.0);
+
+a = b;  // a == 60.0
+\end{DoxyVerb}
+
+
+Arithmetic can be performed on unit containers the same way it can for built-\/in types. However, unlike built-\/in types, the return value of unit-\/type arithmetic will be the proper unit to represent the resulting quantity. \begin{DoxyVerb}using namespace units::length;
+using namespace units::area;
+
+meter_t a_m(1.0), b_m(2.0), c_m;
+foot_t  a_ft(1.0), b_ft(2.0), c_ft;
+
+c_m = a_m + b_m;                            // OK. c == 3m
+c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
+auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
+
+auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
+auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
+auto result = a_m * b_ft;                   // OK. result is `square_meter_t` (left-most unit)
+
+auto result = a_m * square_meter_t(1.0);    // OK. units can always be multiplied. Result is `cubed<meter_t>`.
+auto result = a_m * scalar_t(1.0);          // OK. units can always be multiplied. Result is `meter_t`.
+\end{DoxyVerb}
+
+
+Unsupported arithmetic, or improper return types will result in compiler errors\+: \begin{DoxyVerb}c_m = a_m + 5.0;                            // Error. can't add scalars to dimensioned units.
+c_m = a_m + scalar_t(5.0);                  // Error. can't add scalars to dimensioned units.
+auto result = a_m + square_meter_t(1.0);    // Error. Incompatible units.
+\end{DoxyVerb}
+
+
+By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
+
+\subsection*{{\ttfamily $<$cmath$>$} Functions }
+
+The {\ttfamily units} library include type-\/safe unit\+\_\+t container wrappers for almost all of the $<$cmath$>$ functions, {\itshape including} the c++11 extensions. These functions can be found in the {\ttfamily \hyperlink{namespaceunits_1_1math}{units\+::math}} namespace. The {\ttfamily units} library versions don\textquotesingle{}t conflict with $<$cmath$>$, and it\textquotesingle{}s possible to use both libraries in the same code.
+
+The overloaded functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to result to the type-\/unsafe {\ttfamily to\+Double()} member.
+
+In {\itshape rare} cases, the overload resolution for a given type may be ambiguous. If so, simply preprend the function with the fully-\/qualified {\ttfamily \hyperlink{namespaceunits_1_1math}{units\+::math}} prefix, e.\+g. \begin{DoxyVerb}meter_t x(2.0);
+meter_t y(3.0);
+square_meter_t z(1.0);
+square_meter_t result;
+
+result = fma(x, y, z);                                              // Error: ambiguous
+double result = fma(x.toDouble(), y.toDouble(), z.toDouble());      // Warning: Unsafe!
+result = math::fma(x, y, z);                                        // OK.
+\end{DoxyVerb}
+
+
+\subsection*{Exponentials and Square Roots }
+
+Many functions require units to be raised to some power. This can be accomplished using the {\ttfamily \hyperlink{namespaceunits_1_1math_adf689b7864a5c78a00628574cc8dca6b}{units\+::math\+::pow}} function\+: \begin{DoxyVerb}square_meter_t m2 = units::math::pow<2>(meter_t(5.0));  // m2 == 25.0
+\end{DoxyVerb}
+
+
+The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the {\ttfamily $<$cmath$>$ pow} implementation, which takes exponent values at runtime.
+
+Square roots are also provided with the {\ttfamily \hyperlink{group___unit_math_gabfa4684a203331f788cf8294fdc25c7a}{units\+::math\+::sqrt}} function. Due to the nature of the {\ttfamily sqrt} operation, the units library can often provide exact conversions for square root operations, but {\itshape not in every case}. The rest of the time, the {\ttfamily sqrt} unit will be a {\itshape rational\+\_\+approximation} of the real value. These are guaranteed to be accurate to at least 10 decimal places. \begin{DoxyVerb}meter_t m = units::math::sqrt(square_meter_t(4.0));     // m == 2.0
+\end{DoxyVerb}
+
+
+\subsection*{Efficiency }
+
+Complex, recurively-\/defined conversions are performed in just 5 instructions\+: \begin{DoxyVerb}    year_t twoYears(2.0);
+    week_t twoYearsInWeeks = twoYears;
+00007FF7BDB57FF6  xorps       xmm9,xmm9  
+00007FF7BDB57FFA  cvtsi2sd    xmm9,rax  
+00007FF7BDB57FFF  mulsd       xmm9,mmword ptr [__real@4000000000000000 (07FF7BDBB31A0h)]  
+00007FF7BDB58008  divsd       xmm9,mmword ptr [__real@401c000000000000 (07FF7BDBB33C0h)]  
+00007FF7BDB58011  movsd       mmword ptr [rbp+6Fh],xmm9  
+    EXPECT_EQ(week_t(104.286), twoYearsInWeeks);
+00007FF7BDB58017  ...
+\end{DoxyVerb}
+
+
+In the library, the year to week conversion is defined in terms of {\ttfamily years -\/$>$ days -\/$>$ hours -\/$>$ minutes -\/$>$ seconds -\/$>$ minutes -\/$>$ hours -\/$>$ days -\/$>$ weeks} but the total conversion ratio is computed at compile-\/time and the math is optimized to two floating-\/point operations.
+
+Unit conversions between equivalent types are optimized away completely, and generate {\itshape no machine code}.
+
+\subsection*{Compile-\/time Unit Manipulation }
+
+In many cases, unit equations are used to determine derived values from a set of values which are known at comile-\/time. In these situations, it would be optimal to pre-\/compute the derived values {\itshape at compile time}, thus generating no machine code and incurring no run-\/time penalty.
+
+The {\ttfamily unit\+\_\+value\+\_\+t} class is the mechanism in the units library to perform compule-\/time arithmetic. The {\ttfamily unit\+\_\+value\+\_\+t} class functions exactly the same way as {\ttfamily std\+::ratio}, but with an associated unit tag and the ensuing type safety.
+
+For a simple example, let\textquotesingle{}s define a right triangle whose hypotnuse is the sum of the squares of its side (a pythagorean triple) \begin{DoxyVerb}struct RightTriangle
+{
+    using a = unit_value_t<meters, 3>;
+    using b = unit_value_t<meters, 4>;
+    using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
+};
+\end{DoxyVerb}
+
+
+The definition above is perfectly efficient, as it generates {\itshape no run-\/time code} whatsoever, and still provides all the type safety of unit containers. The values of {\ttfamily a}, {\ttfamily b}, and {\ttfamily c} can be accessed at runtime using the static {\ttfamily value()} method of {\ttfamily unit\+\_\+value\+\_\+t} \begin{DoxyVerb}auto a = RightTriangle::a::value(); // a is `meter_t(3)`
+auto b = RightTriangle::b::value(); // b is `meter_t(4)`
+auto c = RightTriangle::c::value(); // c is `meter_t(5)`
+\end{DoxyVerb}
+
+
+The available compile-\/time operations are\+:
+\begin{DoxyItemize}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__add}{units\+::unit\+\_\+value\+\_\+add}}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__subtract}{units\+::unit\+\_\+value\+\_\+subtract}}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__multiply}{units\+::unit\+\_\+value\+\_\+multiply}}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__divide}{units\+::unit\+\_\+value\+\_\+divide}}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__power}{units\+::unit\+\_\+value\+\_\+power}}
+\item {\ttfamily \hyperlink{structunits_1_1unit__value__sqrt}{units\+::unit\+\_\+value\+\_\+sqrt}}
+\end{DoxyItemize}
+
+\subsection*{Conversion without unit containers }
+
+The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using {\ttfamily \hyperlink{group___conversion_gae7541dbcd66420e011c82ac58ef7723c}{units\+::convert}} for arithmetic types\+: \begin{DoxyVerb}double val_in = convert<feet, inches>(1.0); // val_in == 12.0
+\end{DoxyVerb}
+
+
+For type-\/safe conversion, prefer implicit conversion via unit\+\_\+t type containers..
+
+\subsection*{Namespaces }
+
+Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities.
+
+Unit tag and unit\+\_\+t container definitions are defined in the following namespaces\+:
+\begin{DoxyItemize}
+\item \hyperlink{namespaceunits_1_1length}{units\+::length}
+\item \hyperlink{namespaceunits_1_1mass}{units\+::mass}
+\item \hyperlink{namespaceunits_1_1time}{units\+::time}
+\item \hyperlink{namespaceunits_1_1angle}{units\+::angle} (plane)
+\item \hyperlink{namespaceunits_1_1current}{units\+::current}
+\item \hyperlink{namespaceunits_1_1temperature}{units\+::temperature}
+\item \hyperlink{namespaceunits_1_1substance}{units\+::substance} (amount of, i.\+e. moles)
+\item \hyperlink{namespaceunits_1_1luminous__intensity}{units\+::luminous\+\_\+intensity}
+\item \hyperlink{namespaceunits_1_1solid__angle}{units\+::solid\+\_\+angle}
+\item \hyperlink{namespaceunits_1_1frequency}{units\+::frequency}
+\item \hyperlink{namespaceunits_1_1velocity}{units\+::velocity}
+\item \hyperlink{namespaceunits_1_1angular__velocity}{units\+::angular\+\_\+velocity}
+\item \hyperlink{namespaceunits_1_1acceleration}{units\+::acceleration}
+\item \hyperlink{namespaceunits_1_1force}{units\+::force}
+\item \hyperlink{namespaceunits_1_1pressure}{units\+::pressure}
+\item \hyperlink{namespaceunits_1_1charge}{units\+::charge}
+\item \hyperlink{namespaceunits_1_1energy}{units\+::energy}
+\item \hyperlink{namespaceunits_1_1power}{units\+::power}
+\item \hyperlink{namespaceunits_1_1voltage}{units\+::voltage}
+\item \hyperlink{namespaceunits_1_1capacitance}{units\+::capacitance}
+\item \hyperlink{namespaceunits_1_1impedance}{units\+::impedance}
+\item \hyperlink{namespaceunits_1_1magnetic__flux}{units\+::magnetic\+\_\+flux}
+\item \hyperlink{namespaceunits_1_1magnetic__field__strength}{units\+::magnetic\+\_\+field\+\_\+strength}
+\item \hyperlink{namespaceunits_1_1inductance}{units\+::inductance}
+\item \hyperlink{namespaceunits_1_1luminous__flux}{units\+::luminous\+\_\+flux}
+\item \hyperlink{namespaceunits_1_1illuminance}{units\+::illuminance}
+\item \hyperlink{namespaceunits_1_1radiation}{units\+::radiation}
+\item \hyperlink{namespaceunits_1_1torque}{units\+::torque}
+\item \hyperlink{namespaceunits_1_1area}{units\+::area}
+\item \hyperlink{namespaceunits_1_1volume}{units\+::volume}
+\item \hyperlink{namespaceunits_1_1density}{units\+::density}
+\item \hyperlink{namespaceunits_1_1concentration}{units\+::concentration}
+\item \hyperlink{namespaceunits_1_1constants}{units\+::constants} (scalar and non-\/scalar physical constants like Avagadro\textquotesingle{}s number)
+\end{DoxyItemize}
+
+Mathematical operations like {\ttfamily sin}, {\ttfamily log}, {\ttfamily floor}, etc are defined in the following namespaces\+:
+\begin{DoxyItemize}
+\item \hyperlink{namespaceunits_1_1math}{units\+::math}
+\end{DoxyItemize}
+
+Type traits that you can use to test unit types are defined in the following namespaces\+:
+\begin{DoxyItemize}
+\item \hyperlink{namespaceunits_1_1traits}{units\+::traits}
+\end{DoxyItemize}
+
+\subsection*{Defining new units }
+
+The units library strives to provide built-\/in types for every conceievable unit, and before defing your own units you should double-\/check the namespaces to make sure it\textquotesingle{}s not already included. That said, if you need to roll your own units, the library is extensible by design.
+
+Defining new units is simple, as they can be recursively defined as ratio of previously-\/defined units in a way that mimics natural language and is highly readable\+: \begin{DoxyVerb}namespace time
+{
+    using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
+    using minutes = units::unit<std::ratio<60>,  seconds>;
+    using hours   = units::unit<std::ratio<60>,  minutes>;
+    using days    = units::unit<std::ratio<24>,  hours>;
+    using weeks   = units::unit<std::ratio<7>,   days>;
+    using years   = units::unit<std::ratio<365>, days>;
+}
+\end{DoxyVerb}
+
+
+Units are defined in the form\+: {\ttfamily using \mbox{[}unit\mbox{]} = unit$<$std\+::ratio$<$\mbox{[}number of base units per unit\mbox{]}$>$, \mbox{[}base unit\mbox{]}$>$;}, where\+:
+\begin{DoxyItemize}
+\item the {\ttfamily \mbox{[}unit\mbox{]}} is what you are defining.
+\item the {\ttfamily \mbox{[}base unit\mbox{]}} is the unit that {\ttfamily \mbox{[}unit\mbox{]}} will be defined in terms of, and
+\item the {\ttfamily \mbox{[}number of base units per unit\mbox{]}} is the conversion ratio between the two, expressed as a {\ttfamily std\+::ratio} type.
+\end{DoxyItemize}
+
+Compound units are defined in a similar manner, with additional helper functions for polynomials\+: \begin{DoxyVerb}using acceleration = compound_unit<meters, inverse<squared<seconds>>>;      // (m / s^2)
+\end{DoxyVerb}
+
+
+The available helpers are\+:
+\begin{DoxyItemize}
+\item {\ttfamily \hyperlink{group___unit_manipulators_gaacc539ef162e24b260d023d3ff949b57}{units\+::inverse}$<$...$>$} (inverts the unit, e.\+g. meters becomes meters$^\wedge$-\/1, or 1 / meters)
+\item {\ttfamily \hyperlink{group___unit_manipulators_ga636346f7898c35eb98a796bec1d77fb2}{units\+::squared}$<$...$>$} (squares the unit, e.\+g. meters becomes meters$^\wedge$2)
+\item {\ttfamily \hyperlink{group___unit_manipulators_gad3e94dc693fe45a580b382cb666434a1}{units\+::cubed}$<$...$>$} (cubes the unit, e.\+g. meters becomes meters$^\wedge$3)
+\item {\ttfamily \hyperlink{group___unit_manipulators_ga66c5d3d0e80c7c3e56683d7df366b380}{units\+::square\+\_\+root}$<$...$>$} (takes the square root of the unit, e.\+g meters$^\wedge$2 becomes meters)
+\item {\ttfamily \hyperlink{group___unit_manipulators_ga8a7180c782263384a118dc8ffa5bc689}{units\+::atto}$<$...$>$} through {\ttfamily \hyperlink{group___unit_manipulators_gad0c18c5a47e0fe677715f0328f818515}{units\+::exa}$<$...$>$} metric prefixes
+\end{DoxyItemize}
+
+\subsection*{Unit Type Traits }
+
+The units library provides a comprehensive set of type-\/traits, which can be used in templated user code to enforce that the unit types have certain properties.
+
+For example, let\textquotesingle{}s say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance. \begin{DoxyVerb}template<typename Units>
+bool isMinimumSize(Units x)
+{
+    return x >= square_feet_t(80.0);
+}
+\end{DoxyVerb}
+
+
+This function will fail to compile if {\ttfamily Units} is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-\/to-\/understand tempalte errors. Type traits could be used to make the error message more friendly\+: \begin{DoxyVerb}template<typename Units>
+bool isMinimumSize(Units x)
+{
+    static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
+    return x >= square_feet_t(80.0);
+}
+\end{DoxyVerb}
+
+
+See the {\ttfamily \hyperlink{namespaceunits_1_1traits}{units\+::traits}} namespace for a list of all the suported traits.
+
+\subsection*{Build Instructions }
+
+The library itself consists of a single header (\hyperlink{units_8h}{include/units.\+h}), and can be included into your project without being built.
+
+The unit tests and documentation can be built with C\+Make. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.
+
+To build the tests\+:
+
+Windows\+:
+\begin{DoxyEnumerate}
+\item Ensure cmake is installed, and that the {\ttfamily bin} directory is in your P\+A\+T\+H\% variable, and that a compiler like {\ttfamily Visual Studio 2015 Community Edition} is installed.
+\item clone the repository or download the {\ttfamily .zip} package.
+\item Open a {\ttfamily cmd} terminal and navigate to the source directory.
+\item Type the following commands\+:
+\begin{DoxyItemize}
+\item {\ttfamily md build}
+\item {\ttfamily cd build}
+\item {\ttfamily cmake -\/\+Wno-\/dev ..}
+\item {\ttfamily cmake -\/-\/build . -\/-\/config Release}
+\end{DoxyItemize}
+\item The tests will be created in an executable called {\ttfamily unit\+Lib\+Test.\+exe} in the folder {\ttfamily build/unit\+Tests/\+Release}.
+\end{DoxyEnumerate}
+
+Linux\+:
+\begin{DoxyEnumerate}
+\item Ensure you are using cmake 3.\+2 or later. You can verify this with {\ttfamily cmake -\/-\/version}.
+\item Ensure you are using gcc version 4.\+9 or greater. You can verify this with {\ttfamily gcc -\/-\/version}.
+\item clone the repository or download the {\ttfamily .tar.\+gz} package.
+\item Open a terminal and navigate to the source directory.
+\item Type the following commands\+:
+\begin{DoxyItemize}
+\item {\ttfamily mkdir build}
+\item {\ttfamily cd build}
+\item {\ttfamily cmake -\/\+Wno-\/dev ..}
+\item {\ttfamily cmake -\/-\/build . -\/-\/config Release}
+\end{DoxyItemize}
+\item The tests will be created in an executable called {\ttfamily unit\+Lib\+Test} in the folder {\ttfamily build/unit\+Tests}.
+\end{DoxyEnumerate}
+
+\subsection*{Previous Releases }
+
+
+\begin{DoxyItemize}
+\item v1.\+3.\+0 -\/ Adds ostream support. bug fixes. Tested with gcc-\/4.\+9.\+2, msvc2013, msvc2015.
+\item v1.\+2.\+2 -\/ Bug fixes (\#1) and namespace cleanup. Tested with msvc2015, gcc 5.\+2.\+1
+\item v1.\+2.\+0 -\/ Adds angular velocity units. Tested with gcc-\/4.\+9.\+2, msvc2013, msvc2015.
+\item v1.\+1.\+1 -\/ Adds Doxygen and additional type traits. Tested with gcc-\/4.\+9.\+2, msvc2013, msvc2015.
+\item v1.\+0.\+0 -\/ Initial release. Tested with msvc2015 
+\end{DoxyItemize}

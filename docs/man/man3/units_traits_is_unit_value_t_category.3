@@ -1,0 +1,24 @@
+.TH "units::traits::is_unit_value_t_category< Category, T >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::is_unit_value_t_category< Category, T > \- Trait which tests whether type T is a \fBunit_value_t\fP with a unit type in the given category\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits integral_constant< bool, std::is_same< traits::base_unit_of< traits::unit_value_t_traits< T >::unit_type >, Category >::value >\&.
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename Category, typename T>struct units::traits::is_unit_value_t_category< Category, T >"
+Trait which tests whether type T is a \fBunit_value_t\fP with a unit type in the given category\&. 
+
+e\&.g\&. \fC\fBis_unit_value_t_category\fP<units::category::length, \fBunit_value_t\fP<feet>>::value\fP would be true 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

@@ -1,0 +1,98 @@
+.TH "units::angular_velocity" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::angular_velocity \- namespace for unit types and containers representing angular velocity values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBradians_per_second\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::angular_velocity_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBdegrees_per_second\fP = \fBcompound_unit\fP< \fBangle::degrees\fP, \fBinverse\fP< \fBtime::seconds\fP >>"
+.br
+.ti -1c
+.RI "using \fBrevolutions_per_minute\fP = \fBunit\fP< std::ratio< 2, 60 >, \fBradians_per_second\fP, std::ratio< 1 >>"
+.br
+.ti -1c
+.RI "using \fBmilliarcseconds_per_year\fP = \fBcompound_unit\fP< angle::milliarcseconds, \fBinverse\fP< \fBtime::year\fP >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBradian_per_second\fP = \fBradians_per_second\fP"
+.br
+.ti -1c
+.RI "using \fBdegree_per_second\fP = degrees_per_second"
+.br
+.ti -1c
+.RI "using \fBrevolution_per_minute\fP = \fBrevolutions_per_minute\fP"
+.br
+.ti -1c
+.RI "using \fBmilliarcsecond_per_year\fP = milliarcseconds_per_year"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBrpm\fP = \fBrevolutions_per_minute\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBradians_per_second_t\fP = \fBunit_t\fP< \fBradians_per_second\fP >"
+.br
+.ti -1c
+.RI "using \fBdegrees_per_second_t\fP = \fBunit_t\fP< degrees_per_second >"
+.br
+.ti -1c
+.RI "using \fBrevolutions_per_minute_t\fP = \fBunit_t\fP< \fBrevolutions_per_minute\fP >"
+.br
+.ti -1c
+.RI "using \fBmilliarcseconds_per_year_t\fP = \fBunit_t\fP< milliarcseconds_per_year >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing angular velocity values 
+
+The SI unit for angular velocity is \fCradians_per_second\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCangular_velocity_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

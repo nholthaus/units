@@ -1,0 +1,155 @@
+.TH "units::power" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::power \- namespace for unit types and containers representing power values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBwatts\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::power_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBnanowatts\fP = \fBnano\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBmicrowatts\fP = \fBmicro\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBmilliwatts\fP = \fBmilli\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBkilowatts\fP = \fBkilo\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBmegawatts\fP = \fBmega\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBgigawatts\fP = \fBgiga\fP< \fBwatts\fP >"
+.br
+.ti -1c
+.RI "using \fBhorsepower\fP = \fBunit\fP< std::ratio< 7457, 10 >, \fBwatts\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBwatt\fP = \fBwatts\fP"
+.br
+.ti -1c
+.RI "using \fBnanowatt\fP = nanowatts"
+.br
+.ti -1c
+.RI "using \fBmicrowatt\fP = microwatts"
+.br
+.ti -1c
+.RI "using \fBmilliwatt\fP = milliwatts"
+.br
+.ti -1c
+.RI "using \fBkilwatt\fP = kilowatts"
+.br
+.ti -1c
+.RI "using \fBmegawatt\fP = megawatts"
+.br
+.ti -1c
+.RI "using \fBgigawatt\fP = gigawatts"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBW\fP = \fBwatts\fP"
+.br
+.ti -1c
+.RI "using \fBnW\fP = nanowatts"
+.br
+.ti -1c
+.RI "using \fBuW\fP = microwatts"
+.br
+.ti -1c
+.RI "using \fBmW\fP = milliwatts"
+.br
+.ti -1c
+.RI "using \fBkW\fP = kilowatts"
+.br
+.ti -1c
+.RI "using \fBMW\fP = megawatts"
+.br
+.ti -1c
+.RI "using \fBGW\fP = gigawatts"
+.br
+.ti -1c
+.RI "using \fBhp\fP = \fBhorsepower\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBwatt_t\fP = \fBunit_t\fP< \fBwatt\fP >"
+.br
+.ti -1c
+.RI "using \fBnanowatt_t\fP = \fBunit_t\fP< nanowatt >"
+.br
+.ti -1c
+.RI "using \fBmicrowatt_t\fP = \fBunit_t\fP< microwatt >"
+.br
+.ti -1c
+.RI "using \fBmilliwatt_t\fP = \fBunit_t\fP< milliwatt >"
+.br
+.ti -1c
+.RI "using \fBkilwatt_t\fP = \fBunit_t\fP< kilwatt >"
+.br
+.ti -1c
+.RI "using \fBmegawatt_t\fP = \fBunit_t\fP< megawatt >"
+.br
+.ti -1c
+.RI "using \fBgigawatt_t\fP = \fBunit_t\fP< gigawatt >"
+.br
+.ti -1c
+.RI "using \fBdBW_t\fP = \fBunit_t\fP< \fBwatt\fP, double, \fBdecibel_scale\fP >"
+.br
+.ti -1c
+.RI "using \fBdBm_t\fP = \fBunit_t\fP< milliwatt, double, \fBdecibel_scale\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing power values 
+
+The SI unit for power is \fCwatts\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCpower_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

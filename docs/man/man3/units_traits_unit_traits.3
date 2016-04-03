@@ -1,0 +1,42 @@
+.TH "units::traits::unit_traits< T >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::unit_traits< T > \- Traits class defining the properties of units\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.SS "Public Types"
+
+.in +1c
+.ti -1c
+.RI "typedef T::base_unit_type \fBbase_unit_type\fP"
+.br
+.RI "\fIUnit type that the unit was derived from\&. May be a \fC\fBbase_unit\fP\fP or another \fCunit\fP\&. Use the \fCbase_unit_of\fP trait to find the SI base unit type\&. This will be \fCvoid\fP if type \fCT\fP is not a unit\&. \fP"
+.ti -1c
+.RI "typedef T::conversion_ratio \fBconversion_ratio\fP"
+.br
+.RI "\fI\fCstd::ratio\fP representing the conversion factor to the \fCbase_unit_type\fP\&. This will be \fCvoid\fP if type \fCT\fP is not a unit\&. \fP"
+.ti -1c
+.RI "typedef T::pi_exponent_ratio \fBpi_exponent_ratio\fP"
+.br
+.RI "\fI\fCstd::ratio\fP representing the exponent of pi to be used in the conversion\&. This will be \fCvoid\fP if type \fCT\fP is not a unit\&. \fP"
+.ti -1c
+.RI "typedef T::translation_ratio \fBtranslation_ratio\fP"
+.br
+.RI "\fI\fCstd::ratio\fP representing a datum translation to the base unit (i\&.e\&. degrees C to degrees F conversion)\&. This will be \fCvoid\fP if type \fCT\fP is not a unit\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class T>struct units::traits::unit_traits< T >"
+Traits class defining the properties of units\&. 
+
+The units library determines certain properties of the units passed to them and what they represent by using the members of the corresponding \fBunit_traits\fP instantiation\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

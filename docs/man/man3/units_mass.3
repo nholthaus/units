@@ -1,0 +1,197 @@
+.TH "units::mass" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::mass \- namespace for unit types and containers representing mass values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkilograms\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::mass_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBgrams\fP = \fBunit\fP< std::ratio< 1, 1000 >, \fBkilograms\fP >"
+.br
+.ti -1c
+.RI "using \fBmicrograms\fP = \fBmicro\fP< \fBgrams\fP >"
+.br
+.ti -1c
+.RI "using \fBmilligrams\fP = \fBmilli\fP< \fBgrams\fP >"
+.br
+.ti -1c
+.RI "using \fBmetric_tons\fP = \fBunit\fP< std::ratio< 1000 >, \fBkilograms\fP >"
+.br
+.ti -1c
+.RI "using \fBpounds\fP = \fBunit\fP< std::ratio< 45359237, 100000000 >, \fBkilograms\fP >"
+.br
+.ti -1c
+.RI "using \fBimperial_tons\fP = \fBunit\fP< std::ratio< 2240 >, \fBpounds\fP >"
+.br
+.ti -1c
+.RI "using \fBus_tons\fP = \fBunit\fP< std::ratio< 2000 >, \fBpounds\fP >"
+.br
+.ti -1c
+.RI "using \fBstone\fP = \fBunit\fP< std::ratio< 14 >, \fBpounds\fP >"
+.br
+.ti -1c
+.RI "using \fBounces\fP = \fBunit\fP< std::ratio< 1, 16 >, \fBpounds\fP >"
+.br
+.ti -1c
+.RI "using \fBcarats\fP = \fBunit\fP< std::ratio< 200 >, milligrams >"
+.br
+.ti -1c
+.RI "using \fBslugs\fP = \fBunit\fP< std::ratio< 145939029, 10000000 >, \fBkilograms\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBgram\fP = \fBgrams\fP"
+.br
+.ti -1c
+.RI "using \fBmicrogram\fP = micrograms"
+.br
+.ti -1c
+.RI "using \fBmilligram\fP = milligrams"
+.br
+.ti -1c
+.RI "using \fBkilogram\fP = \fBkilograms\fP"
+.br
+.ti -1c
+.RI "using \fBmetric_ton\fP = \fBmetric_tons\fP"
+.br
+.ti -1c
+.RI "using \fBpound\fP = \fBpounds\fP"
+.br
+.ti -1c
+.RI "using \fBimperial_ton\fP = \fBimperial_tons\fP"
+.br
+.ti -1c
+.RI "using \fBus_ton\fP = \fBus_tons\fP"
+.br
+.ti -1c
+.RI "using \fBounce\fP = \fBounces\fP"
+.br
+.ti -1c
+.RI "using \fBcarat\fP = \fBcarats\fP"
+.br
+.ti -1c
+.RI "using \fBslug\fP = \fBslugs\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBg\fP = \fBgrams\fP"
+.br
+.ti -1c
+.RI "using \fBug\fP = micrograms"
+.br
+.ti -1c
+.RI "using \fBmg\fP = milligrams"
+.br
+.ti -1c
+.RI "using \fBkg\fP = \fBkilograms\fP"
+.br
+.ti -1c
+.RI "using \fBmt\fP = \fBmetric_tons\fP"
+.br
+.ti -1c
+.RI "using \fBt\fP = \fBus_tons\fP"
+.br
+.ti -1c
+.RI "using \fBIb\fP = \fBpounds\fP"
+.br
+.ti -1c
+.RI "using \fBIbs\fP = \fBpounds\fP"
+.br
+.ti -1c
+.RI "using \fBst\fP = \fBstone\fP"
+.br
+.ti -1c
+.RI "using \fBoz\fP = \fBounces\fP"
+.br
+.ti -1c
+.RI "using \fBct\fP = \fBcarats\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBgram_t\fP = \fBunit_t\fP< \fBgram\fP >"
+.br
+.ti -1c
+.RI "using \fBmicrogram_t\fP = \fBunit_t\fP< microgram >"
+.br
+.ti -1c
+.RI "using \fBmilligram_t\fP = \fBunit_t\fP< milligram >"
+.br
+.ti -1c
+.RI "using \fBkilogram_t\fP = \fBunit_t\fP< \fBkilogram\fP >"
+.br
+.ti -1c
+.RI "using \fBmetric_ton_t\fP = \fBunit_t\fP< \fBmetric_ton\fP >"
+.br
+.ti -1c
+.RI "using \fBpound_t\fP = \fBunit_t\fP< \fBpound\fP >"
+.br
+.ti -1c
+.RI "using \fBimperial_ton_t\fP = \fBunit_t\fP< \fBimperial_ton\fP >"
+.br
+.ti -1c
+.RI "using \fBus_ton_t\fP = \fBunit_t\fP< \fBus_ton\fP >"
+.br
+.ti -1c
+.RI "using \fBstone_t\fP = \fBunit_t\fP< \fBstone\fP >"
+.br
+.ti -1c
+.RI "using \fBounce_t\fP = \fBunit_t\fP< \fBounce\fP >"
+.br
+.ti -1c
+.RI "using \fBcarat_t\fP = \fBunit_t\fP< \fBcarat\fP >"
+.br
+.ti -1c
+.RI "using \fBslug_t\fP = \fBunit_t\fP< \fBslug\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing mass values 
+
+The SI unit for mass is \fCkilograms\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCmass_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

@@ -1,0 +1,44 @@
+.TH "CompileTimeUnitManipulators" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+CompileTimeUnitManipulators \- Compile-time Unit Manipulators
+.PP
+Defines a series of classes used to manipulate \fC\fBunit_value_t\fP\fP types at compile-time, such as \fC\fBunit_value_add\fP<>\fP, \fC\fBunit_value_sqrt\fP<>\fP, etc\&.  
+
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBunits::unit_value_add< U1, U2 >\fP"
+.br
+.RI "\fIadds two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_subtract< U1, U2 >\fP"
+.br
+.RI "\fIsubtracts two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_multiply< U1, U2 >\fP"
+.br
+.RI "\fImultiplies two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_divide< U1, U2 >\fP"
+.br
+.RI "\fIdivides two \fBunit_value_t\fP types at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_power< U1, power >\fP"
+.br
+.RI "\fIraises unit_value_to a power at compile-time \fP"
+.ti -1c
+.RI "struct \fBunits::unit_value_sqrt< U1, Eps >\fP"
+.br
+.RI "\fIcalculates square root of \fBunit_value_t\fP at compile-time \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Defines a series of classes used to manipulate \fC\fBunit_value_t\fP\fP types at compile-time, such as \fC\fBunit_value_add\fP<>\fP, \fC\fBunit_value_sqrt\fP<>\fP, etc\&. 
+
+Compile-time manipulators can be chained together, e\&.g\&. \fC\fBunit_value_sqrt\fP<\fBunit_value_add\fP<\fBunit_value_power\fP<a, 2>, \fBunit_value_power\fP<b, 2>>>\fP to represent `c = sqrt(a^2 + b^2)\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

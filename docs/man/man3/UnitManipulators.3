@@ -1,0 +1,335 @@
+.TH "UnitManipulators" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+UnitManipulators \- Unit Manipulators
+.PP
+Defines a series of classes used to manipulate unit types, such as \fCinverse<>\fP, \fCsquared<>\fP, and metric prefixes\&.  
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "template<class U > using \fBunits::inverse\fP = typename detail::inverse_impl< U >::type"
+.br
+.RI "\fIrepresents the inverse unit type of \fCclass U\fP\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::squared\fP = typename detail::squared_impl< U >::type"
+.br
+.RI "\fIrepresents the unit type of \fCclass U\fP squared \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::cubed\fP = typename detail::cubed_impl< U >::type"
+.br
+.RI "\fIrepresents the type of \fCclass U\fP cubed\&. \fP"
+.ti -1c
+.RI "template<class U , std::intmax_t Eps = 10000000000> using \fBunits::square_root\fP = typename detail::sqrt_impl< U, Eps >::type"
+.br
+.RI "\fIrepresents the square root of type \fCclass U\fP\&. \fP"
+.in -1c
+.in +1c
+.ti -1c
+.RI "template<class U > using \fBunits::atto\fP = typename detail::prefix< std::atto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::femto\fP = typename detail::prefix< std::femto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::pico\fP = typename detail::prefix< std::pico, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'femto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::nano\fP = typename detail::prefix< std::nano, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'pico' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::micro\fP = typename detail::prefix< std::micro, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'nano' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::milli\fP = typename detail::prefix< std::milli, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'micro' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::centi\fP = typename detail::prefix< std::centi, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'milli' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::deci\fP = typename detail::prefix< std::deci, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'centi' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::deca\fP = typename detail::prefix< std::deca, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'deci' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::hecto\fP = typename detail::prefix< std::hecto, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'deca' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::kilo\fP = typename detail::prefix< std::kilo, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'hecto' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::mega\fP = typename detail::prefix< std::mega, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'kilo' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::giga\fP = typename detail::prefix< std::giga, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'mega' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::tera\fP = typename detail::prefix< std::tera, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'giga' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::peta\fP = typename detail::prefix< std::peta, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'tera' prefix appended\&. \fP"
+.ti -1c
+.RI "template<class U > using \fBunits::exa\fP = typename detail::prefix< std::exa, U >::type"
+.br
+.RI "\fIRepresents the type of \fCclass U\fP with the metric 'peta' prefix appended\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Defines a series of classes used to manipulate unit types, such as \fCinverse<>\fP, \fCsquared<>\fP, and metric prefixes\&. 
+
+Unit manipulators can be chained together, e\&.g\&. \fCinverse<squared<pico<time::seconds>>>\fP to represent picoseconds^-2\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "template<class U > using \fBunits::atto\fP = typedef typename detail::prefix<std::atto, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. E\&.g\&. atto<meters> represents meters*10^-21 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::centi\fP = typedef typename detail::prefix<std::centi, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'milli' prefix appended\&. E\&.g\&. centi<meters> represents meters*10^-3 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::cubed\fP = typedef typename detail::cubed_impl<U>::type"
+
+.PP
+represents the type of \fCclass U\fP cubed\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP \fCunit\fP type to cube\&.
+.RE
+.PP
+E\&.g\&. \fCcubed<meters>\fP will represent meters^3\&. 
+.SS "template<class U > using \fBunits::deca\fP = typedef typename detail::prefix<std::deca, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'deci' prefix appended\&. E\&.g\&. deca<meters> represents meters*10^-1 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::deci\fP = typedef typename detail::prefix<std::deci, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'centi' prefix appended\&. E\&.g\&. deci<meters> represents meters*10^-2 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::exa\fP = typedef typename detail::prefix<std::exa, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'peta' prefix appended\&. E\&.g\&. exa<meters> represents meters*10^15 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::femto\fP = typedef typename detail::prefix<std::femto, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'atto' prefix appended\&. E\&.g\&. femto<meters> represents meters*10^-18 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::giga\fP = typedef typename detail::prefix<std::giga, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'mega' prefix appended\&. E\&.g\&. giga<meters> represents meters*10^6 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::hecto\fP = typedef typename detail::prefix<std::hecto, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'deca' prefix appended\&. E\&.g\&. hecto<meters> represents meters*10^1 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::inverse\fP = typedef typename detail::inverse_impl<U>::type"
+
+.PP
+represents the inverse unit type of \fCclass U\fP\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP \fCunit\fP type to invert\&.
+.RE
+.PP
+E\&.g\&. \fCinverse<meters>\fP will represent meters^-1 (i\&.e\&. 1/meters)\&. 
+.SS "template<class U > using \fBunits::kilo\fP = typedef typename detail::prefix<std::kilo, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'hecto' prefix appended\&. E\&.g\&. kilo<meters> represents meters*10^2 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::mega\fP = typedef typename detail::prefix<std::mega, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'kilo' prefix appended\&. E\&.g\&. mega<meters> represents meters*10^3 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::micro\fP = typedef typename detail::prefix<std::micro, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'nano' prefix appended\&. E\&.g\&. micro<meters> represents meters*10^-9 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::milli\fP = typedef typename detail::prefix<std::milli, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'micro' prefix appended\&. E\&.g\&. milli<meters> represents meters*10^-6 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::nano\fP = typedef typename detail::prefix<std::nano, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'pico' prefix appended\&. E\&.g\&. nano<meters> represents meters*10^-12 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::peta\fP = typedef typename detail::prefix<std::peta, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'tera' prefix appended\&. E\&.g\&. peta<meters> represents meters*10^12 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::pico\fP = typedef typename detail::prefix<std::pico, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'femto' prefix appended\&. E\&.g\&. pico<meters> represents meters*10^-15 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SS "template<class U , std::intmax_t Eps = 10000000000> using \fBunits::square_root\fP = typedef typename detail::sqrt_impl<U, Eps>::type"
+
+.PP
+represents the square root of type \fCclass U\fP\&. Calculates a rational approximation of the square root of the unit\&. The error in the calculation is bounded by 1/epsilon (Eps)\&. E\&.g\&. for the default value of 10000000000, the maximum error will be a/10000000000, or 1e-8, or said another way, the error will be on the order of 10^-9\&. Since these calculations are done at compile time, it is advisable to set epsilon to the highest value that does not cause an integer overflow in the calculation\&. If you can't compile \fCratio_sqrt\fP due to overflow errors, reducing the value of epsilon sufficiently will correct the problem\&.
+.br
+
+.br
+ \fCratio_sqrt\fP is guaranteed to converge for all values of \fCRatio\fP which do not overflow\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP \fCunit\fP type to take the square root of\&. 
+.br
+\fIEps\fP Value of epsilon, which represents the inverse of the maximum allowable error\&. This value should be chosen to be as high as possible before integer overflow errors occur in the compiler\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+USE WITH CAUTION\&. The is an approximate value\&. In general, squared<sqrt<meter>> != meter, i\&.e\&. the operation is not reversible, and it will result in propogated approximations\&. Use only when absolutely necessary\&. 
+.RE
+.PP
+
+.SS "template<class U > using \fBunits::squared\fP = typedef typename detail::squared_impl<U>::type"
+
+.PP
+represents the unit type of \fCclass U\fP squared 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP \fCunit\fP type to square\&.
+.RE
+.PP
+E\&.g\&. \fCsquare<meters>\fP will represent meters^2\&. 
+.SS "template<class U > using \fBunits::tera\fP = typedef typename detail::prefix<std::tera, U>::type"
+
+.PP
+Represents the type of \fCclass U\fP with the metric 'giga' prefix appended\&. E\&.g\&. tera<meters> represents meters*10^9 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\fP unit type to apply the prefix to\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

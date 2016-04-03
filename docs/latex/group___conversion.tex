@@ -1,0 +1,55 @@
+\hypertarget{group___conversion}{}\section{Explicit Conversion}
+\label{group___conversion}\index{Explicit Conversion@{Explicit Conversion}}
+
+
+Functions used to convert values of one logical type to another.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$class Unit\+From , class Unit\+To , typename T  = double$>$ }\\static T \hyperlink{group___conversion_gae7541dbcd66420e011c82ac58ef7723c}{units\+::convert} (const T \&value)
+\begin{DoxyCompactList}\small\item\em converts a {\itshape value} from one type to another. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Functions used to convert values of one logical type to another. 
+
+
+
+\subsection{Function Documentation}
+\hypertarget{group___conversion_gae7541dbcd66420e011c82ac58ef7723c}{}\index{Explicit Conversion@{Explicit Conversion}!convert@{convert}}
+\index{convert@{convert}!Explicit Conversion@{Explicit Conversion}}
+\subsubsection[{convert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Unit\+From , class Unit\+To , typename T  = double$>$ static T units\+::convert (
+\begin{DoxyParamCaption}
+\item[{const T \&}]{value}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}\label{group___conversion_gae7541dbcd66420e011c82ac58ef7723c}
+
+
+converts a {\itshape value} from one type to another. 
+
+Converts a {\itshape value} of a built-\/in arithmetic type to another unit. This does not change the type of {\itshape value}, only what it contains. E.\+g.
+\begin{DoxyCode}
+\textcolor{keywordtype}{double} result = convert<length::meters, length::feet>(1.0);  \textcolor{comment}{// result == 3.28084 }
+\end{DoxyCode}
+ \begin{DoxySeeAlso}{See also}
+\hyperlink{classunits_1_1unit__t}{unit\+\_\+t} for implicit conversion of \hyperlink{structunits_1_1unit}{unit} containers. 
+\end{DoxySeeAlso}
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em Unit\+From} & unit tag to convert {\itshape value} from. Must be a {\ttfamily unit} type (i.\+e. is\+\_\+unit$<$\+Unit\+From$>$\+::value == true), and must be convertible to {\ttfamily Unit\+To} (i.\+e. is\+\_\+converitble\+\_\+unit$<$\+Unit\+From, Unit\+To$>$\+::value == true). \\
+\hline
+{\em Unit\+To} & unit tag to convert {\itshape value} to. Must be a {\ttfamily unit} type (i.\+e. is\+\_\+unit$<$\+Unit\+To$>$\+::value == true), and must be convertible from {\ttfamily Unit\+From} (i.\+e. is\+\_\+converitble\+\_\+unit$<$\+Unit\+From, Unit\+To$>$\+::value == true). \\
+\hline
+{\em T} & type of {\itshape value}. It is infered from {\itshape value}, and is expected to be a built-\/in arethmetic type. \\
+\hline
+\end{DoxyTemplParams}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em value} & Arithmetic value to convert from {\ttfamily Unit\+From} to {\ttfamily Unit\+To}. The value should represent a quantity in units of {\ttfamily Unit\+From}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+value, converted from units of {\ttfamily Unit\+From} to {\ttfamily Unit\+To}. 
+\end{DoxyReturn}

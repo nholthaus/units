@@ -1,0 +1,33 @@
+.TH "units::traits::is_same_scale< T1, T2 >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::is_same_scale< T1, T2 > \- Trait which tests whether two types has the same non-linear scale\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits integral_constant< bool, std::is_same< traits::unit_t_traits< T1 >::non_linear_scale_type, traits::unit_t_traits< T2 >::non_linear_scale_type >::value >\&.
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename T1, typename T2>struct units::traits::is_same_scale< T1, T2 >"
+Trait which tests whether two types has the same non-linear scale\&. 
+
+Inherits from \fCstd::true_type\fP or \fCstd::false_type\fP\&. Use \fC\fBis_same_scale\fP<U1 , U2>::value\fP to test whether two types have the same non-linear scale\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIT1\fP left hand type\&. 
+.br
+\fIT2\fP right hand type 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

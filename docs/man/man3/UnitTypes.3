@@ -1,0 +1,49 @@
+.TH "UnitTypes" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+UnitTypes \- Unit Types
+.PP
+Defines a series of classes which represent units\&.  
+
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBunits::base_unit< Meter, Kilogram, Second, Radian, Ampere, Kelvin, Mole, Candela >\fP"
+.br
+.RI "\fIClass representing SI base unit types\&. \fP"
+.ti -1c
+.RI "struct \fBunits::unit< Conversion, BaseUnit, PiExponent, Translation >\fP"
+.br
+.RI "\fIType representing an arbitrary unit\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "template<class U , class\&.\&.\&. Us> using \fBunits::compound_unit\fP = typename detail::compound_impl< U, Us\&.\&.\&.>::type"
+.br
+.RI "\fIRepresents a unit type made up from other units\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Defines a series of classes which represent units\&. 
+
+These types are tags used by the conversion function, to create compound units, or to create \fC\fBunit_t\fP\fP types\&. By themselves, they are not containers and have no stored value\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "template<class U , class\&.\&.\&. Us> using \fBunits::compound_unit\fP = typedef typename detail::compound_impl<U, Us\&.\&.\&.>::type"
+
+.PP
+Represents a unit type made up from other units\&. Compound units are formed by multiplying the units of all the types provided in the template argument\&. Types provided must inherit from \fCunit\fP\&. A compound unit can be formed from any number of other units, and unit manipulators like \fCinverse\fP and \fCsquared\fP are supported\&. E\&.g\&. to specify acceleration, on could create \fCusing acceleration = compound_unit<length::meters, inverse<squared<seconds>>;\fP 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU\&.\&.\&.\fP units which, when multiplied together, form the desired compound unit\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

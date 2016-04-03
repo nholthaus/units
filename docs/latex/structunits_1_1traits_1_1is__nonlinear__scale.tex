@@ -1,0 +1,36 @@
+\hypertarget{structunits_1_1traits_1_1is__nonlinear__scale}{}\section{units\+:\+:traits\+:\+:is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$ Struct Template Reference}
+\label{structunits_1_1traits_1_1is__nonlinear__scale}\index{units\+::traits\+::is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$@{units\+::traits\+::is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$}}
+
+
+Trait which tests that {\ttfamily class T} meets the requirements for a non-\/linear scale.  
+
+
+
+
+{\ttfamily \#include $<$units.\+h$>$}
+
+Inheritance diagram for units\+:\+:traits\+:\+:is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.230769cm]{structunits_1_1traits_1_1is__nonlinear__scale}
+\end{center}
+\end{figure}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class T, class Ret$>$struct units\+::traits\+::is\+\_\+nonlinear\+\_\+scale$<$ T, Ret $>$}
+
+Trait which tests that {\ttfamily class T} meets the requirements for a non-\/linear scale. 
+
+A non-\/linear scale must\+:
+\begin{DoxyItemize}
+\item be default constructible
+\item have an {\ttfamily operator()} member which returns the non-\/linear value stored in the scale
+\item have an accessible {\ttfamily m\+\_\+value} member type which stores the linearized value in the scale.
+\end{DoxyItemize}
+
+Linear/nonlinear scales are used by {\ttfamily \hyperlink{structunits_1_1unit}{units\+::unit}} to store values and scale them if they represent things like d\+B. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/nholthaus/workspace/units/include/\hyperlink{units_8h}{units.\+h}\end{DoxyCompactItemize}

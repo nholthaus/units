@@ -1,0 +1,65 @@
+\hypertarget{structunits_1_1unit}{}\section{units\+:\+:unit$<$ Conversion, Base\+Unit, Pi\+Exponent, Translation $>$ Struct Template Reference}
+\label{structunits_1_1unit}\index{units\+::unit$<$ Conversion, Base\+Unit, Pi\+Exponent, Translation $>$@{units\+::unit$<$ Conversion, Base\+Unit, Pi\+Exponent, Translation $>$}}
+
+
+Type representing an arbitrary unit.  
+
+
+
+
+{\ttfamily \#include $<$units.\+h$>$}
+
+Inheritance diagram for units\+:\+:unit$<$ Conversion, Base\+Unit, Pi\+Exponent, Translation $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{structunits_1_1unit}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structunits_1_1unit_a04f963a5f260416cd96c9f57df5d2421}{}typedef \hyperlink{structunits_1_1traits_1_1unit__traits}{traits\+::unit\+\_\+traits}$<$ Base\+Unit $>$\+::base\+\_\+unit\+\_\+type {\bfseries base\+\_\+unit\+\_\+type}\label{structunits_1_1unit_a04f963a5f260416cd96c9f57df5d2421}
+
+\item 
+\hypertarget{structunits_1_1unit_a0f2b640f43170629369706775699fdbe}{}typedef std\+::ratio\+\_\+multiply$<$ typename Base\+Unit\+::conversion\+\_\+ratio, Conversion $>$ {\bfseries conversion\+\_\+ratio}\label{structunits_1_1unit_a0f2b640f43170629369706775699fdbe}
+
+\item 
+\hypertarget{structunits_1_1unit_aadc106afe2fedc05c154ff9f2c16025f}{}typedef std\+::ratio\+\_\+add$<$ typename Base\+Unit\+::pi\+\_\+exponent\+\_\+ratio, Pi\+Exponent $>$ {\bfseries pi\+\_\+exponent\+\_\+ratio}\label{structunits_1_1unit_aadc106afe2fedc05c154ff9f2c16025f}
+
+\item 
+\hypertarget{structunits_1_1unit_a0cdaa6959c83b6ddb1038d99a31e7814}{}typedef std\+::ratio\+\_\+add$<$ std\+::ratio\+\_\+multiply$<$ typename Base\+Unit\+::conversion\+\_\+ratio, Translation $>$, typename Base\+Unit\+::translation\+\_\+ratio $>$ {\bfseries translation\+\_\+ratio}\label{structunits_1_1unit_a0cdaa6959c83b6ddb1038d99a31e7814}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class Conversion, class Base\+Unit, class Pi\+Exponent = std\+::ratio$<$0$>$, class Translation = std\+::ratio$<$0$>$$>$struct units\+::unit$<$ Conversion, Base\+Unit, Pi\+Exponent, Translation $>$}
+
+Type representing an arbitrary unit. 
+
+{\ttfamily unit} types are used as tags for the {\ttfamily conversion} function. They are {\itshape not} containers (see {\ttfamily \hyperlink{classunits_1_1unit__t}{unit\+\_\+t}} for a container class). Each unit is defined by\+:
+
+
+\begin{DoxyItemize}
+\item A {\ttfamily std\+::ratio} defining the conversion factor to the base unit type. (e.\+g. {\ttfamily std\+::ratio$<$1,12$>$} for inches to feet)
+\item A base unit that the unit is derived from (or a unit category. Must be of type {\ttfamily unit} or {\ttfamily \hyperlink{structunits_1_1base__unit}{base\+\_\+unit}})
+\item An exponent representing factors of P\+I required by the conversion. (e.\+g. {\ttfamily std\+::ratio$<$-\/1$>$} for a radians to degrees conversion)
+\item a ratio representing a datum translation required for the conversion (e.\+g. {\ttfamily std\+::ratio$<$32$>$} for a farenheit to celsius conversion)
+\end{DoxyItemize}
+
+Typically, a specific unit, like {\ttfamily meters}, would be implemented as a type alias of {\ttfamily unit}, i.\+e. {\ttfamily using meters = unit$<$std\+::ratio$<$1$>$, \hyperlink{namespaceunits_1_1category_a1140509fa711ad6ae98a4c001d99cfe5}{category\+::length\+\_\+unit}}, or {\ttfamily using inches = unit$<$std\+::ratio$<$1,12$>$, feet$>$}. 
+\begin{DoxyTemplParams}{Template Parameters}
+{\em Conversion} & std\+::ratio representing scalar multiplication factor. \\
+\hline
+{\em Base\+Unit} & Unit type which this unit is derived from. May be a {\ttfamily \hyperlink{structunits_1_1base__unit}{base\+\_\+unit}}, or another {\ttfamily unit}. \\
+\hline
+{\em Pi\+Exponent} & std\+::ratio representing the exponent of pi required by the conversion. \\
+\hline
+{\em Translation} & std\+::ratio representing any datum translation required by the conversion. \\
+\hline
+\end{DoxyTemplParams}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/nholthaus/workspace/units/include/\hyperlink{units_8h}{units.\+h}\end{DoxyCompactItemize}

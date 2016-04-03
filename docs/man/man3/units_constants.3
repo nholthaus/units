@@ -1,0 +1,103 @@
+.TH "units::constants" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::constants \- namespace for physical constants like PI and Avogadro's Number\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBunit\fP< std::ratio< 1 >, \fBdimensionless::scalar\fP, std::ratio< 1 > > > \fBpi\fP (1\&.0)"
+.br
+.RI "\fIRatio of a circle's circumference to its diameter\&. \fP"
+.ti -1c
+.RI "static const \fBvelocity::meters_per_second_t\fP \fBc\fP (299792458\&.0)"
+.br
+.RI "\fISpeed of light in vacuum\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBcubed\fP< \fBlength::meters\fP >, \fBinverse\fP< \fBmass::kilogram\fP >, \fBinverse\fP< \fBsquared\fP< \fBtime::seconds\fP > > > > \fBG\fP (6\&.67408e-11)"
+.br
+.RI "\fINewtonian constant of gravitation\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBenergy::joule\fP, \fBtime::seconds\fP > > \fBh\fP (6\&.626070040e-34)"
+.br
+.RI "\fIPlanck constant\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBforce::newtons\fP, \fBinverse\fP< \fBsquared\fP< \fBcurrent::ampere\fP > > > > \fBmu0\fP (4\&.0e-7 *PI)"
+.br
+.RI "\fIvacuum permeability\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBcapacitance::farad\fP, \fBinverse\fP< \fBlength::meter\fP > > > \fBepsilon0\fP (1\&.0/(\fBmu0\fP *\fBmath::pow\fP< 2 >(\fBc\fP)))"
+.br
+.RI "\fIvacuum permitivity\&. \fP"
+.ti -1c
+.RI "static const \fBimpedance::ohm_t\fP \fBZ0\fP (\fBmu0\fP *\fBc\fP)"
+.br
+.RI "\fIcharacteristic impedance of vacuum\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBforce::newtons\fP, \fBarea::square_meter\fP, \fBinverse\fP< \fBsquared\fP< \fBcharge::coulomb\fP > > > > \fBk_e\fP (1\&.0/(4 *\fBpi\fP *\fBepsilon0\fP))"
+.br
+.RI "\fICoulomb's constant\&. \fP"
+.ti -1c
+.RI "static const \fBcharge::coulomb_t\fP \fBe\fP (1\&.602176565e-19)"
+.br
+.RI "\fIelementary charge\&. \fP"
+.ti -1c
+.RI "static const \fBmass::kilogram_t\fP \fBm_e\fP (9\&.10938291e-31)"
+.br
+.RI "\fIelectron mass\&. \fP"
+.ti -1c
+.RI "static const \fBmass::kilogram_t\fP \fBm_p\fP (1\&.672621777e-27)"
+.br
+.RI "\fIproton mass\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBenergy::joules\fP, \fBinverse\fP< \fBmagnetic_field_strength::tesla\fP > > > \fBmu_B\fP (\fBe\fP *\fBh\fP/(4 *\fBpi\fP *\fBm_e\fP))"
+.br
+.RI "\fIBohr magneton\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBinverse\fP< \fBsubstance::mol\fP > > \fBN_A\fP (6\&.02214129e23)"
+.br
+.RI "\fIAvagadro's Number\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBenergy::joules\fP, \fBinverse\fP< \fBtemperature::kelvin\fP >, \fBinverse\fP< \fBsubstance::moles\fP > > > \fBR\fP (8\&.3144621)"
+.br
+.RI "\fIGas constant\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBenergy::joules\fP, \fBinverse\fP< \fBtemperature::kelvin\fP > > > \fBk_B\fP (\fBR\fP/\fBN_A\fP)"
+.br
+.RI "\fIBoltzmann constant\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBcharge::coulomb\fP, \fBinverse\fP< \fBsubstance::mol\fP > > > \fBF\fP (\fBN_A\fP *\fBe\fP)"
+.br
+.RI "\fIFaraday constnat\&. \fP"
+.ti -1c
+.RI "static const \fBunit_t\fP< \fBcompound_unit\fP< \fBpower::watts\fP, \fBinverse\fP< \fBarea::square_meters\fP >, \fBinverse\fP< \fBsquared\fP< \fBsquared\fP< \fBtemperature::kelvin\fP > > > > > \fBsigma\fP ((2 *\fBmath::pow\fP< 5 >(\fBpi\fP)*\fBmath::pow\fP< 4 >(\fBR\fP))/(15 *\fBmath::pow\fP< 3 >(\fBh\fP)*\fBmath::pow\fP< 2 >(\fBc\fP)*\fBmath::pow\fP< 4 >(\fBN_A\fP)))"
+.br
+.RI "\fIStefan-Boltzmann constant\&. \fP"
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for physical constants like PI and Avogadro's Number\&. 
+
+
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

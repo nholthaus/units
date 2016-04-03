@@ -1,0 +1,125 @@
+.TH "units::area" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::area \- namespace for unit types and containers representing area values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBsquare_meters\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::area_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBsquare_feet\fP = \fBsquared\fP< \fBlength::feet\fP >"
+.br
+.ti -1c
+.RI "using \fBsquare_inches\fP = \fBsquared\fP< \fBlength::inch\fP >"
+.br
+.ti -1c
+.RI "using \fBsquare_miles\fP = \fBsquared\fP< \fBlength::miles\fP >"
+.br
+.ti -1c
+.RI "using \fBsquare_kilometers\fP = \fBsquared\fP< length::kilometers >"
+.br
+.ti -1c
+.RI "using \fBhectares\fP = \fBunit\fP< std::ratio< 10000 >, \fBsquare_meters\fP >"
+.br
+.ti -1c
+.RI "using \fBacres\fP = \fBunit\fP< std::ratio< 43560 >, square_feet >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBsquare_meter\fP = \fBsquare_meters\fP"
+.br
+.ti -1c
+.RI "using \fBsquare_foot\fP = square_feet"
+.br
+.ti -1c
+.RI "using \fBsquare_inch\fP = square_inches"
+.br
+.ti -1c
+.RI "using \fBsquare_mile\fP = square_miles"
+.br
+.ti -1c
+.RI "using \fBsquare_kilometer\fP = square_kilometers"
+.br
+.ti -1c
+.RI "using \fBhectare\fP = \fBhectares\fP"
+.br
+.ti -1c
+.RI "using \fBacre\fP = \fBacres\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBha\fP = \fBhectares\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBsquare_meter_t\fP = \fBunit_t\fP< \fBsquare_meter\fP >"
+.br
+.ti -1c
+.RI "using \fBsquare_foot_t\fP = \fBunit_t\fP< square_foot >"
+.br
+.ti -1c
+.RI "using \fBsquare_inch_t\fP = \fBunit_t\fP< square_inch >"
+.br
+.ti -1c
+.RI "using \fBsquare_mile_t\fP = \fBunit_t\fP< square_mile >"
+.br
+.ti -1c
+.RI "using \fBsquare_kilometer_t\fP = \fBunit_t\fP< square_kilometer >"
+.br
+.ti -1c
+.RI "using \fBhectare_t\fP = \fBunit_t\fP< \fBhectare\fP >"
+.br
+.ti -1c
+.RI "using \fBacre_t\fP = \fBunit_t\fP< \fBacre\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing area values 
+
+The SI unit for area is \fCsquare_meters\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCarea_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

@@ -1,0 +1,110 @@
+.TH "units::temperature" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::temperature \- namespace for unit types and containers representing temperature values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkelvin\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::temperature_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBcelsius\fP = \fBunit\fP< std::ratio< 1 >, \fBkelvin\fP, std::ratio< 0 >, std::ratio< 27315, 100 >>"
+.br
+.ti -1c
+.RI "using \fBfahrenheit\fP = \fBunit\fP< std::ratio< 5, 9 >, \fBcelsius\fP, std::ratio< 0 >, std::ratio<-160, 9 >>"
+.br
+.ti -1c
+.RI "using \fBreaumur\fP = \fBunit\fP< std::ratio< 10, 8 >, \fBcelsius\fP >"
+.br
+.ti -1c
+.RI "using \fBrankine\fP = \fBunit\fP< std::ratio< 5, 9 >, \fBkelvin\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcentigrade\fP = \fBcelsius\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBK\fP = \fBkelvin\fP"
+.br
+.ti -1c
+.RI "using \fBF\fP = \fBfahrenheit\fP"
+.br
+.ti -1c
+.RI "using \fBC\fP = \fBcelsius\fP"
+.br
+.ti -1c
+.RI "using \fBRa\fP = \fBrankine\fP"
+.br
+.ti -1c
+.RI "using \fBRe\fP = \fBreaumur\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkelvin_t\fP = \fBunit_t\fP< \fBkelvin\fP >"
+.br
+.ti -1c
+.RI "using \fBcelsius_t\fP = \fBunit_t\fP< \fBcelsius\fP >"
+.br
+.ti -1c
+.RI "using \fBfahrenheit_t\fP = \fBunit_t\fP< \fBfahrenheit\fP >"
+.br
+.ti -1c
+.RI "using \fBreaumur_t\fP = \fBunit_t\fP< \fBreaumur\fP >"
+.br
+.ti -1c
+.RI "using \fBrankine_t\fP = \fBunit_t\fP< \fBrankine\fP >"
+.br
+.ti -1c
+.RI "using \fBcentigrade_t\fP = \fBunit_t\fP< \fBcentigrade\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing temperature values 
+
+The SI unit for temperature is \fCkelvin\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCtemperature_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

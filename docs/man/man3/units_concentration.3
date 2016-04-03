@@ -1,0 +1,84 @@
+.TH "units::concentration" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::concentration \- namespace for unit types and containers representing concentration values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBparts_per_million\fP = \fBunit\fP< std::ratio< 1, 1000000 >, \fBcategory::scalar_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBparts_per_billion\fP = \fBunit\fP< std::ratio< 1, 1000 >, \fBparts_per_million\fP >"
+.br
+.ti -1c
+.RI "using \fBparts_per_trillion\fP = \fBunit\fP< std::ratio< 1, 1000 >, \fBparts_per_billion\fP >"
+.br
+.ti -1c
+.RI "using \fBpercent\fP = \fBunit\fP< std::ratio< 1, 100 >, \fBcategory::scalar_unit\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBppm\fP = \fBparts_per_million\fP"
+.br
+.ti -1c
+.RI "using \fBppb\fP = \fBparts_per_billion\fP"
+.br
+.ti -1c
+.RI "using \fBppt\fP = \fBparts_per_trillion\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBppm_t\fP = \fBunit_t\fP< \fBppm\fP >"
+.br
+.ti -1c
+.RI "using \fBppb_t\fP = \fBunit_t\fP< \fBppb\fP >"
+.br
+.ti -1c
+.RI "using \fBppt_t\fP = \fBunit_t\fP< \fBppt\fP >"
+.br
+.ti -1c
+.RI "using \fBpercent_t\fP = \fBunit_t\fP< \fBpercent\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing concentration values 
+
+The SI unit for concentration is \fCparts_per_million\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCscalar_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

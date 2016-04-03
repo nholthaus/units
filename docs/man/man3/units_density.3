@@ -1,0 +1,141 @@
+.TH "units::density" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::density \- namespace for unit types and containers representing density values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkilograms_per_cubic_meter\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::density_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBgrams_per_milliliter\fP = \fBcompound_unit\fP< \fBmass::grams\fP, \fBinverse\fP< volume::milliliter >>"
+.br
+.ti -1c
+.RI "using \fBkilograms_per_liter\fP = \fBcompound_unit\fP< \fBmass::kilograms\fP, \fBinverse\fP< volume::liter >>"
+.br
+.ti -1c
+.RI "using \fBounces_per_cubic_foot\fP = \fBcompound_unit\fP< \fBmass::ounces\fP, \fBinverse\fP< volume::cubic_foot >>"
+.br
+.ti -1c
+.RI "using \fBounces_per_cubic_inch\fP = \fBcompound_unit\fP< \fBmass::ounces\fP, \fBinverse\fP< volume::cubic_inch >>"
+.br
+.ti -1c
+.RI "using \fBounces_per_gallon\fP = \fBcompound_unit\fP< \fBmass::ounces\fP, \fBinverse\fP< \fBvolume::gallon\fP >>"
+.br
+.ti -1c
+.RI "using \fBpounds_per_cubic_foot\fP = \fBcompound_unit\fP< \fBmass::pounds\fP, \fBinverse\fP< volume::cubic_foot >>"
+.br
+.ti -1c
+.RI "using \fBpounds_per_cubic_inch\fP = \fBcompound_unit\fP< \fBmass::pounds\fP, \fBinverse\fP< volume::cubic_inch >>"
+.br
+.ti -1c
+.RI "using \fBpounds_per_gallon\fP = \fBcompound_unit\fP< \fBmass::pounds\fP, \fBinverse\fP< \fBvolume::gallon\fP >>"
+.br
+.ti -1c
+.RI "using \fBslugs_per_cubic_foot\fP = \fBcompound_unit\fP< \fBmass::slugs\fP, \fBinverse\fP< volume::cubic_foot >>"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkilogram_per_cubic_meter\fP = \fBkilograms_per_cubic_meter\fP"
+.br
+.ti -1c
+.RI "using \fBgram_per_milliliter\fP = grams_per_milliliter"
+.br
+.ti -1c
+.RI "using \fBkilogram_per_liter\fP = kilograms_per_liter"
+.br
+.ti -1c
+.RI "using \fBounce_per_cubic_foot\fP = ounces_per_cubic_foot"
+.br
+.ti -1c
+.RI "using \fBounce_per_cubic_inch\fP = ounces_per_cubic_inch"
+.br
+.ti -1c
+.RI "using \fBounce_per_gallon\fP = ounces_per_gallon"
+.br
+.ti -1c
+.RI "using \fBpound_per_cubic_foot\fP = pounds_per_cubic_foot"
+.br
+.ti -1c
+.RI "using \fBpound_per_cubic_inch\fP = pounds_per_cubic_inch"
+.br
+.ti -1c
+.RI "using \fBpound_per_gallon\fP = pounds_per_gallon"
+.br
+.ti -1c
+.RI "using \fBslug_per_cubic_foot\fP = slugs_per_cubic_foot"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBkilogram_per_cubic_meter_t\fP = \fBunit_t\fP< \fBkilogram_per_cubic_meter\fP >"
+.br
+.ti -1c
+.RI "using \fBgram_per_milliliter_t\fP = \fBunit_t\fP< gram_per_milliliter >"
+.br
+.ti -1c
+.RI "using \fBkilogram_per_liter_t\fP = \fBunit_t\fP< kilogram_per_liter >"
+.br
+.ti -1c
+.RI "using \fBounce_per_cubic_foot_t\fP = \fBunit_t\fP< ounce_per_cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBounce_per_cubic_inch_t\fP = \fBunit_t\fP< ounce_per_cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBounce_per_gallon_t\fP = \fBunit_t\fP< ounce_per_gallon >"
+.br
+.ti -1c
+.RI "using \fBpound_per_cubic_foot_t\fP = \fBunit_t\fP< pound_per_cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBpound_per_cubic_inch_t\fP = \fBunit_t\fP< pound_per_cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBpound_per_gallon_t\fP = \fBunit_t\fP< pound_per_gallon >"
+.br
+.ti -1c
+.RI "using \fBslug_per_cubic_foot_t\fP = \fBunit_t\fP< slug_per_cubic_foot >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing density values 
+
+The SI unit for density is \fCkilograms_per_cubic_meter\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCdensity_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

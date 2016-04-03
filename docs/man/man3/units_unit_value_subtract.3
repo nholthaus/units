@@ -1,0 +1,64 @@
+.TH "units::unit_value_subtract< U1, U2 >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::unit_value_subtract< U1, U2 > \- subtracts two \fBunit_value_t\fP types at compile-time  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.PP
+Inherits unit_value_arithmetic< U1, U2 >, and _unit_value_t< traits::unit_value_t_traits< U1 >::unit_type >\&.
+.SS "Static Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "static const \fBunit_t\fP< unit_type > \fBvalue\fP ()"
+.br
+.RI "\fIValue of difference\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<class U1, class U2>struct units::unit_value_subtract< U1, U2 >"
+subtracts two \fBunit_value_t\fP types at compile-time 
+
+The resulting unit will the the \fCunit_type\fP of \fCU1\fP 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIU1\fP left-hand \fC\fBunit_value_t\fP\fP 
+.br
+\fIU2\fP right-hand \fC\fBunit_value_t\fP\fP 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+unit_value_t_traits to access information about the properties of the class, such as it's \fBunit\fP type and rational \fBvalue\fP\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+very similar in concept to \fCstd::ratio_subtract\fP 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<class U1 , class U2 > static const \fBunit_t\fP<unit_type> \fBunits::unit_value_subtract\fP< U1, U2 >::value ()\fC [inline]\fP, \fC [static]\fP"
+
+.PP
+Value of difference\&. Returns the calculated value of the difference of \fCU1\fP and \fCU2\fP, in the same units as \fCU1\fP\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Value of the difference in the appropriate units\&. 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

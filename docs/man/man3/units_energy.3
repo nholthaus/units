@@ -1,0 +1,185 @@
+.TH "units::energy" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::energy \- namespace for unit types and containers representing energy values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBjoules\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::energy_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBmegajoules\fP = \fBmega\fP< \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBkilojoules\fP = \fBkilo\fP< \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBcalories\fP = \fBunit\fP< std::ratio< 4184, 1000 >, \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBkilocalories\fP = \fBkilo\fP< \fBcalories\fP >"
+.br
+.ti -1c
+.RI "using \fBkilowatt_hours\fP = \fBunit\fP< std::ratio< 36, 10 >, megajoules >"
+.br
+.ti -1c
+.RI "using \fBwatt_hours\fP = \fBunit\fP< std::ratio< 1, 1000 >, \fBkilowatt_hours\fP >"
+.br
+.ti -1c
+.RI "using \fBbritish_thermal_units\fP = \fBunit\fP< std::ratio< 105505585262, 100000000 >, \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBbritish_thermal_units_iso\fP = \fBunit\fP< std::ratio< 1055056, 1000 >, \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBbritish_thermal_units_59\fP = \fBunit\fP< std::ratio< 1054804, 1000 >, \fBjoules\fP >"
+.br
+.ti -1c
+.RI "using \fBtherms\fP = \fBunit\fP< std::ratio< 100000 >, \fBbritish_thermal_units_59\fP >"
+.br
+.ti -1c
+.RI "using \fBfoot_pounds\fP = \fBunit\fP< std::ratio< 13558179483314004, 10000000000000000 >, \fBjoules\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBjoule\fP = \fBjoules\fP"
+.br
+.ti -1c
+.RI "using \fBmegajoule\fP = megajoules"
+.br
+.ti -1c
+.RI "using \fBkilojoule\fP = kilojoules"
+.br
+.ti -1c
+.RI "using \fBcalorie\fP = \fBcalories\fP"
+.br
+.ti -1c
+.RI "using \fBkilocalorie\fP = kilocalories"
+.br
+.ti -1c
+.RI "using \fBwatt_hour\fP = \fBwatt_hours\fP"
+.br
+.ti -1c
+.RI "using \fBkilowatt_hour\fP = \fBkilowatt_hours\fP"
+.br
+.ti -1c
+.RI "using \fBbritish_thermal_unit\fP = \fBbritish_thermal_units\fP"
+.br
+.ti -1c
+.RI "using \fBtherm\fP = \fBtherms\fP"
+.br
+.ti -1c
+.RI "using \fBfoot_pound\fP = \fBfoot_pounds\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBJ\fP = \fBjoules\fP"
+.br
+.ti -1c
+.RI "using \fBMJ\fP = megajoules"
+.br
+.ti -1c
+.RI "using \fBkJ\fP = kilojoules"
+.br
+.ti -1c
+.RI "using \fBcal\fP = \fBcalories\fP"
+.br
+.ti -1c
+.RI "using \fBkcal\fP = kilocalories"
+.br
+.ti -1c
+.RI "using \fBWh\fP = \fBwatt_hours\fP"
+.br
+.ti -1c
+.RI "using \fBkWh\fP = \fBkilowatt_hours\fP"
+.br
+.ti -1c
+.RI "using \fBBTU\fP = \fBbritish_thermal_units\fP"
+.br
+.ti -1c
+.RI "using \fBthm\fP = \fBtherms\fP"
+.br
+.ti -1c
+.RI "using \fBftlbf\fP = \fBfoot_pounds\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBjoule_t\fP = \fBunit_t\fP< \fBjoule\fP >"
+.br
+.ti -1c
+.RI "using \fBmegajoule_t\fP = \fBunit_t\fP< megajoule >"
+.br
+.ti -1c
+.RI "using \fBkilojoule_t\fP = \fBunit_t\fP< kilojoule >"
+.br
+.ti -1c
+.RI "using \fBcalorie_t\fP = \fBunit_t\fP< \fBcalorie\fP >"
+.br
+.ti -1c
+.RI "using \fBkilocalorie_t\fP = \fBunit_t\fP< kilocalorie >"
+.br
+.ti -1c
+.RI "using \fBwatt_hour_t\fP = \fBunit_t\fP< \fBwatt_hour\fP >"
+.br
+.ti -1c
+.RI "using \fBkilowatt_hour_t\fP = \fBunit_t\fP< \fBkilowatt_hour\fP >"
+.br
+.ti -1c
+.RI "using \fBbritish_thermal_unit_t\fP = \fBunit_t\fP< \fBbritish_thermal_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBtherm_t\fP = \fBunit_t\fP< \fBtherm\fP >"
+.br
+.ti -1c
+.RI "using \fBfoot_pound_t\fP = \fBunit_t\fP< \fBfoot_pound\fP >"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing energy values 
+
+The SI unit for energy is \fCjoules\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCenergy_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

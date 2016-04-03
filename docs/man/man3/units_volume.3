@@ -1,0 +1,409 @@
+.TH "units::volume" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::volume \- namespace for unit types and containers representing volume values  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.PP
+.RI "\fBUnits (full names plural)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcubic_meters\fP = \fBunit\fP< std::ratio< 1 >, \fBcategory::volume_unit\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_millimeters\fP = \fBcubed\fP< length::millimeter >"
+.br
+.ti -1c
+.RI "using \fBcubic_kilometers\fP = \fBcubed\fP< length::kilometer >"
+.br
+.ti -1c
+.RI "using \fBliters\fP = \fBcubed\fP< \fBdeci\fP< \fBlength::meter\fP >>"
+.br
+.ti -1c
+.RI "using \fBmilliliters\fP = \fBmilli\fP< liters >"
+.br
+.ti -1c
+.RI "using \fBcubic_inches\fP = \fBcubed\fP< \fBlength::inches\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_feet\fP = \fBcubed\fP< \fBlength::feet\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_yards\fP = \fBcubed\fP< \fBlength::yards\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_miles\fP = \fBcubed\fP< \fBlength::miles\fP >"
+.br
+.ti -1c
+.RI "using \fBgallons\fP = \fBunit\fP< std::ratio< 231 >, cubic_inches >"
+.br
+.ti -1c
+.RI "using \fBquarts\fP = \fBunit\fP< std::ratio< 1, 4 >, \fBgallons\fP >"
+.br
+.ti -1c
+.RI "using \fBpints\fP = \fBunit\fP< std::ratio< 1, 2 >, \fBquarts\fP >"
+.br
+.ti -1c
+.RI "using \fBcups\fP = \fBunit\fP< std::ratio< 1, 2 >, \fBpints\fP >"
+.br
+.ti -1c
+.RI "using \fBounces\fP = \fBunit\fP< std::ratio< 1, 8 >, \fBcups\fP >"
+.br
+.ti -1c
+.RI "using \fBbarrels\fP = \fBunit\fP< std::ratio< 42 >, \fBgallons\fP >"
+.br
+.ti -1c
+.RI "using \fBbushels\fP = \fBunit\fP< std::ratio< 215042, 100 >, cubic_inches >"
+.br
+.ti -1c
+.RI "using \fBcords\fP = \fBunit\fP< std::ratio< 128 >, cubic_feet >"
+.br
+.ti -1c
+.RI "using \fBcubic_fathoms\fP = \fBcubed\fP< \fBlength::fathom\fP >"
+.br
+.ti -1c
+.RI "using \fBtablespoons\fP = \fBunit\fP< std::ratio< 1, 2 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBteaspoons\fP = \fBunit\fP< std::ratio< 1, 6 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBpinches\fP = \fBunit\fP< std::ratio< 1, 8 >, \fBteaspoons\fP >"
+.br
+.ti -1c
+.RI "using \fBdashes\fP = \fBunit\fP< std::ratio< 1, 2 >, \fBpinches\fP >"
+.br
+.ti -1c
+.RI "using \fBdrops\fP = \fBunit\fP< std::ratio< 1, 360 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBfifths\fP = \fBunit\fP< std::ratio< 1, 5 >, \fBgallons\fP >"
+.br
+.ti -1c
+.RI "using \fBdrams\fP = \fBunit\fP< std::ratio< 1, 8 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBgills\fP = \fBunit\fP< std::ratio< 4 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBpecks\fP = \fBunit\fP< std::ratio< 1, 4 >, \fBbushels\fP >"
+.br
+.ti -1c
+.RI "using \fBsacks\fP = \fBunit\fP< std::ratio< 3 >, \fBbushels\fP >"
+.br
+.ti -1c
+.RI "using \fBshots\fP = \fBunit\fP< std::ratio< 3, 2 >, \fBounces\fP >"
+.br
+.ti -1c
+.RI "using \fBstrikes\fP = \fBunit\fP< std::ratio< 2 >, \fBbushels\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (alternate names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBfluidOunces\fP = \fBounces\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (full names singular)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcubic_meter\fP = \fBcubic_meters\fP"
+.br
+.ti -1c
+.RI "using \fBcubic_millimeter\fP = cubic_millimeters"
+.br
+.ti -1c
+.RI "using \fBcubic_kilometer\fP = cubic_kilometers"
+.br
+.ti -1c
+.RI "using \fBliter\fP = liters"
+.br
+.ti -1c
+.RI "using \fBmilliliter\fP = milliliters"
+.br
+.ti -1c
+.RI "using \fBcubic_inch\fP = cubic_inches"
+.br
+.ti -1c
+.RI "using \fBcubic_foot\fP = cubic_feet"
+.br
+.ti -1c
+.RI "using \fBcubic_yard\fP = cubic_yards"
+.br
+.ti -1c
+.RI "using \fBcubic_mile\fP = cubic_miles"
+.br
+.ti -1c
+.RI "using \fBgallon\fP = \fBgallons\fP"
+.br
+.ti -1c
+.RI "using \fBquart\fP = \fBquarts\fP"
+.br
+.ti -1c
+.RI "using \fBpint\fP = \fBpints\fP"
+.br
+.ti -1c
+.RI "using \fBcup\fP = \fBcups\fP"
+.br
+.ti -1c
+.RI "using \fBounce\fP = \fBounces\fP"
+.br
+.ti -1c
+.RI "using \fBbarrel\fP = \fBbarrels\fP"
+.br
+.ti -1c
+.RI "using \fBbushel\fP = \fBbushels\fP"
+.br
+.ti -1c
+.RI "using \fBcord\fP = \fBcords\fP"
+.br
+.ti -1c
+.RI "using \fBcubic_fathom\fP = cubic_fathoms"
+.br
+.ti -1c
+.RI "using \fBtablespoon\fP = \fBtablespoons\fP"
+.br
+.ti -1c
+.RI "using \fBteaspoon\fP = \fBteaspoons\fP"
+.br
+.ti -1c
+.RI "using \fBpinch\fP = \fBpinches\fP"
+.br
+.ti -1c
+.RI "using \fBdash\fP = \fBdashes\fP"
+.br
+.ti -1c
+.RI "using \fBdrop\fP = \fBdrops\fP"
+.br
+.ti -1c
+.RI "using \fBfifth\fP = \fBfifths\fP"
+.br
+.ti -1c
+.RI "using \fBdram\fP = \fBdrams\fP"
+.br
+.ti -1c
+.RI "using \fBgill\fP = \fBgills\fP"
+.br
+.ti -1c
+.RI "using \fBpeck\fP = \fBpecks\fP"
+.br
+.ti -1c
+.RI "using \fBsack\fP = \fBsacks\fP"
+.br
+.ti -1c
+.RI "using \fBshot\fP = \fBshots\fP"
+.br
+.ti -1c
+.RI "using \fBstrike\fP = \fBstrikes\fP"
+.br
+.ti -1c
+.RI "using \fBfluidOunce\fP = \fBfluidOunces\fP"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnit Containers\fP"
+.br
+
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBcubic_meter_t\fP = \fBunit_t\fP< \fBcubic_meter\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_millimeter_t\fP = \fBunit_t\fP< cubic_millimeter >"
+.br
+.ti -1c
+.RI "using \fBcubic_kilometer_t\fP = \fBunit_t\fP< cubic_kilometer >"
+.br
+.ti -1c
+.RI "using \fBliter_t\fP = \fBunit_t\fP< liter >"
+.br
+.ti -1c
+.RI "using \fBmilliliter_t\fP = \fBunit_t\fP< milliliter >"
+.br
+.ti -1c
+.RI "using \fBcubic_inch_t\fP = \fBunit_t\fP< cubic_inch >"
+.br
+.ti -1c
+.RI "using \fBcubic_foot_t\fP = \fBunit_t\fP< cubic_foot >"
+.br
+.ti -1c
+.RI "using \fBcubic_yard_t\fP = \fBunit_t\fP< cubic_yard >"
+.br
+.ti -1c
+.RI "using \fBcubic_mile_t\fP = \fBunit_t\fP< cubic_mile >"
+.br
+.ti -1c
+.RI "using \fBgallon_t\fP = \fBunit_t\fP< \fBgallon\fP >"
+.br
+.ti -1c
+.RI "using \fBquart_t\fP = \fBunit_t\fP< \fBquart\fP >"
+.br
+.ti -1c
+.RI "using \fBpint_t\fP = \fBunit_t\fP< \fBpint\fP >"
+.br
+.ti -1c
+.RI "using \fBcup_t\fP = \fBunit_t\fP< \fBcup\fP >"
+.br
+.ti -1c
+.RI "using \fBounce_t\fP = \fBunit_t\fP< \fBounce\fP >"
+.br
+.ti -1c
+.RI "using \fBbarrel_t\fP = \fBunit_t\fP< \fBbarrel\fP >"
+.br
+.ti -1c
+.RI "using \fBbushel_t\fP = \fBunit_t\fP< \fBbushel\fP >"
+.br
+.ti -1c
+.RI "using \fBcord_t\fP = \fBunit_t\fP< \fBcord\fP >"
+.br
+.ti -1c
+.RI "using \fBcubic_fathom_t\fP = \fBunit_t\fP< cubic_fathom >"
+.br
+.ti -1c
+.RI "using \fBtablespoon_t\fP = \fBunit_t\fP< \fBtablespoon\fP >"
+.br
+.ti -1c
+.RI "using \fBteaspoon_t\fP = \fBunit_t\fP< \fBteaspoon\fP >"
+.br
+.ti -1c
+.RI "using \fBpinch_t\fP = \fBunit_t\fP< \fBpinch\fP >"
+.br
+.ti -1c
+.RI "using \fBdash_t\fP = \fBunit_t\fP< \fBdash\fP >"
+.br
+.ti -1c
+.RI "using \fBdrop_t\fP = \fBunit_t\fP< \fBdrop\fP >"
+.br
+.ti -1c
+.RI "using \fBfifth_t\fP = \fBunit_t\fP< \fBfifth\fP >"
+.br
+.ti -1c
+.RI "using \fBdram_t\fP = \fBunit_t\fP< \fBdram\fP >"
+.br
+.ti -1c
+.RI "using \fBgill_t\fP = \fBunit_t\fP< \fBgill\fP >"
+.br
+.ti -1c
+.RI "using \fBpeck_t\fP = \fBunit_t\fP< \fBpeck\fP >"
+.br
+.ti -1c
+.RI "using \fBsack_t\fP = \fBunit_t\fP< \fBsack\fP >"
+.br
+.ti -1c
+.RI "using \fBshot_t\fP = \fBunit_t\fP< \fBshot\fP >"
+.br
+.ti -1c
+.RI "using \fBstrike_t\fP = \fBunit_t\fP< \fBstrike\fP >"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBUnits (abbreviated names)\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "using \fBm3\fP = \fBcubic_meters\fP"
+.br
+.ti -1c
+.RI "using \fBmm3\fP = cubic_millimeters"
+.br
+.ti -1c
+.RI "using \fBkm3\fP = cubic_kilometers"
+.br
+.ti -1c
+.RI "using \fBL\fP = liters"
+.br
+.ti -1c
+.RI "using \fBmL\fP = milliliters"
+.br
+.ti -1c
+.RI "using \fBcu_in\fP = cubic_inches"
+.br
+.ti -1c
+.RI "using \fBcu_ft\fP = cubic_feet"
+.br
+.ti -1c
+.RI "using \fBcu_yd\fP = cubic_yards"
+.br
+.ti -1c
+.RI "using \fBcu_mi\fP = cubic_miles"
+.br
+.ti -1c
+.RI "using \fBgal\fP = \fBgallons\fP"
+.br
+.ti -1c
+.RI "using \fBqt\fP = \fBquarts\fP"
+.br
+.ti -1c
+.RI "using \fBpt\fP = \fBpints\fP"
+.br
+.ti -1c
+.RI "using \fBc\fP = \fBcups\fP"
+.br
+.ti -1c
+.RI "using \fBoz\fP = \fBounces\fP"
+.br
+.ti -1c
+.RI "using \fBbl\fP = \fBbarrels\fP"
+.br
+.ti -1c
+.RI "using \fBbu\fP = \fBbushels\fP"
+.br
+.ti -1c
+.RI "using \fBcu_fm\fP = cubic_fathoms"
+.br
+.ti -1c
+.RI "using \fBtbsp\fP = \fBtablespoons\fP"
+.br
+.ti -1c
+.RI "using \fBtsp\fP = \fBteaspoons\fP"
+.br
+.ti -1c
+.RI "using \fBdr\fP = \fBdrams\fP"
+.br
+.ti -1c
+.RI "using \fBgi\fP = \fBgills\fP"
+.br
+.ti -1c
+.RI "using \fBpk\fP = \fBpecks\fP"
+.br
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit types and containers representing volume values 
+
+The SI unit for volume is \fCcubic_meters\fP, and the corresponding \fC\fBbase_unit\fP\fP category is \fCvolume_unit\fP\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fBunit_t\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

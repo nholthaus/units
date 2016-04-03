@@ -1,0 +1,38 @@
+.TH "units::traits::unit_t_traits< T >" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::traits::unit_t_traits< T > \- Trait for accessing the publically defined types of \fC\fBunits::unit_t\fP\fP  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <units\&.h>\fP
+.SS "Public Types"
+
+.in +1c
+.ti -1c
+.RI "typedef T::non_linear_scale_type \fBnon_linear_scale_type\fP"
+.br
+.RI "\fIType of the \fBunit_t\fP non_linear_scale (e\&.g\&. \fBlinear_scale\fP, \fBdecibel_scale\fP)\&. This property is used to enable the proper linear or logatirhmic arithmetic functions\&. \fP"
+.ti -1c
+.RI "typedef T::underlying_type \fBunderlying_type\fP"
+.br
+.RI "\fIUnderlying storage type of the \fC\fBunit_t\fP\fP, e\&.g\&. \fCdouble\fP\&. \fP"
+.ti -1c
+.RI "typedef T::unit_type \fBunit_type\fP"
+.br
+.RI "\fIType of unit the \fC\fBunit_t\fP\fP represents, e\&.g\&. \fCmeters\fP \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename T>struct units::traits::unit_t_traits< T >"
+Trait for accessing the publically defined types of \fC\fBunits::unit_t\fP\fP 
+
+The units library determines certain properties of the \fBunit_t\fP types passed to them and what they represent by using the members of the corresponding \fBunit_t_traits\fP instantiation\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.

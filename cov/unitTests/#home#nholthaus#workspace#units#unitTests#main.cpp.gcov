@@ -1,0 +1,2373 @@
+        -:    0:Source:/home/nholthaus/workspace/units/unitTests/main.cpp
+        -:    0:Graph:/home/nholthaus/workspace/units/cov/unitTests/CMakeFiles/unitLibTest.dir/main.cpp.gcno
+        -:    0:Data:/home/nholthaus/workspace/units/cov/unitTests/CMakeFiles/unitLibTest.dir/main.cpp.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:#include <units.h>
+        -:    2:#include <gtest/gtest.h>
+        -:    3:#include <chrono>
+        -:    4:#include <string>
+        -:    5:
+        -:    6:using namespace units;
+        -:    7:using namespace units::dimensionless;
+        -:    8:using namespace units::length;
+        -:    9:using namespace units::mass;
+        -:   10:using namespace units::time;
+        -:   11:using namespace units::frequency;
+        -:   12:using namespace units::area;
+        -:   13:using namespace units::velocity;
+        -:   14:using namespace units::angular_velocity;
+        -:   15:using namespace units::temperature;
+        -:   16:using namespace units::luminous_intensity;
+        -:   17:using namespace units::solid_angle;
+        -:   18:using namespace units::frequency;
+        -:   19:using namespace units::acceleration;
+        -:   20:using namespace units::pressure;
+        -:   21:using namespace units::charge;
+        -:   22:using namespace units::energy;
+        -:   23:using namespace units::power;
+        -:   24:using namespace units::voltage;
+        -:   25:using namespace units::capacitance;
+        -:   26:using namespace units::impedance;
+        -:   27:using namespace units::conductance;
+        -:   28:using namespace units::magnetic_flux;
+        -:   29:using namespace units::magnetic_field_strength;
+        -:   30:using namespace units::inductance;
+        -:   31:using namespace units::luminous_flux;
+        -:   32:using namespace units::illuminance;
+        -:   33:using namespace units::radiation;
+        -:   34:using namespace units::torque;
+        -:   35:using namespace units::volume;
+        -:   36:using namespace units::density;
+        -:   37:using namespace units::concentration;
+        -:   38:
+        -:   39:namespace {
+        -:   40:
+        -:   41:	class UnitTest : public ::testing::Test {
+        -:   42:	protected:
+        -:   43:
+       95:   44:		UnitTest() {};
+       95:   45:		virtual ~UnitTest() {};
+       95:   46:		virtual void SetUp() {};
+       95:   47:		virtual void TearDown() {};
+        -:   48:	};
+        -:   49:}
+        -:   50:
+        5:   51:TEST_F(UnitTest, isRatio)
+        -:   52:{
+        1:   53:	EXPECT_TRUE(units::is_ratio<std::ratio<1>>::value);
+        1:   54:	EXPECT_FALSE(units::is_ratio<double>::value);
+        1:   55:}
+        -:   56:
+        5:   57:TEST_F(UnitTest, isUnit)
+        -:   58:{
+        1:   59:	EXPECT_FALSE(units::is_unit<std::ratio<1>>::value);
+        1:   60:	EXPECT_FALSE(units::is_unit<double>::value);
+        1:   61:	EXPECT_TRUE(units::is_unit<meters>::value);
+        1:   62:	EXPECT_TRUE(units::is_unit<feet>::value);
+        1:   63:}
+        -:   64:
+        5:   65:TEST_F(UnitTest, unitTraits)
+        -:   66:{
+        1:   67:	bool isntUnit = std::is_same<void, units::unit_traits<double>>::value;
+        1:   68:	bool isUnit = std::is_same<void, units::unit_traits<meters>>::value;
+        1:   69:	EXPECT_TRUE(units::is_unit<meters>::value);
+        1:   70:	EXPECT_TRUE(units::is_unit<feet>::value);
+        1:   71:}
+        -:   72:
+        5:   73:TEST_F(UnitTest, areConvertibleUnitsLength)
+        -:   74:{
+        1:   75:	bool test1 = units::is_convertible_unit<meters, meters>::value;
+        1:   76:	bool test2 = units::is_convertible_unit<meters, astronicalUnits>::value;
+        1:   77:	bool test3 = units::is_convertible_unit<meters, parsecs>::value;
+        -:   78:	
+        1:   79:	bool test4 = units::is_convertible_unit<meters, meters>::value;
+        1:   80:	bool test5 = units::is_convertible_unit<astronicalUnits, meters>::value;
+        1:   81:	bool test6 = units::is_convertible_unit<parsecs, meters>::value;
+        -:   82:
+        1:   83:	bool test7 = units::is_convertible_unit<meters, seconds>::value;
+        1:   84:	bool test8 = units::is_convertible_unit<seconds, meters>::value;
+        -:   85:
+        1:   86:	EXPECT_TRUE(test1);
+        1:   87:	EXPECT_TRUE(test2);
+        1:   88:	EXPECT_TRUE(test3);
+        -:   89:
+        1:   90:	EXPECT_TRUE(test4);
+        1:   91:	EXPECT_TRUE(test5);
+        1:   92:	EXPECT_TRUE(test6);
+        -:   93:
+        1:   94:	EXPECT_FALSE(test7);
+        1:   95:	EXPECT_FALSE(test8);
+        1:   96:}
+        -:   97:
+        5:   98:TEST_F(UnitTest, areConvertibleUnitsTime)
+        -:   99:{
+        -:  100:	bool shouldBeTrue;
+        -:  101:	bool shouldBeFalse;
+        -:  102:
+        1:  103:	shouldBeTrue = units::is_convertible_unit<years, weeks>::value;
+        1:  104:	EXPECT_TRUE(shouldBeTrue);
+        -:  105:
+        1:  106:	shouldBeFalse = units::is_convertible_unit<years, meters>::value;
+        1:  107:	EXPECT_FALSE(shouldBeFalse);
+        1:  108:}
+        -:  109:
+        5:  110:TEST_F(UnitTest, inverseUnits)
+        -:  111:{
+        -:  112:	double test;
+        -:  113:
+        -:  114:	using htz = units::inverse<seconds>;
+        1:  115:	bool shouldBeTrue = std::is_same<htz, hertz>::value;
+        1:  116:	EXPECT_TRUE(shouldBeTrue);
+        -:  117:
+        1:  118:	test = convert<inverse<celsius>, inverse<fahrenheit>>(1.0);
+        1:  119:	EXPECT_NEAR(5.0 / 9.0, test, 5.0e-5);
+        -:  120:
+        1:  121:	test = convert<inverse<kelvin>, inverse<fahrenheit>>(6.0);
+        1:  122:	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
+        1:  123:}
+        -:  124:
+        5:  125:TEST_F(UnitTest, baseUnitOf)
+        -:  126:{
+        -:  127:	using base = units::base_unit_of<years>;
+        1:  128:	bool shouldBeTrue = std::is_same<base, category::time_unit>::value;
+        -:  129:
+        1:  130:	EXPECT_TRUE(shouldBeTrue);
+        1:  131:}
+        -:  132:
+        5:  133:TEST_F(UnitTest, hasLinearScale)
+        -:  134:{
+        -:  135:	bool test;
+        -:  136:	
+        1:  137:	test = has_linear_scale<scalar_t>::value;
+        1:  138:	EXPECT_TRUE(test);
+        1:  139:	test = has_linear_scale<meter_t>::value;
+        1:  140:	EXPECT_TRUE(test);
+        1:  141:	test = has_linear_scale<foot_t>::value;
+        1:  142:	EXPECT_TRUE(test);
+        1:  143:	test = has_linear_scale<watt_t, scalar_t>::value;
+        1:  144:	EXPECT_TRUE(test);
+        1:  145:	test = has_linear_scale<scalar_t, meter_t>::value;
+        1:  146:	EXPECT_TRUE(test);
+        1:  147:	test = has_linear_scale<meters_per_second_t>::value;
+        1:  148:	EXPECT_TRUE(test);
+        1:  149:	test = has_linear_scale<dB_t>::value;
+        1:  150:	EXPECT_FALSE(test);
+        1:  151:}
+        -:  152:
+        5:  153:TEST_F(UnitTest, hasDecibelScale)
+        -:  154:{
+        -:  155:	bool test;
+        -:  156:
+        1:  157:	test = has_decibel_scale<scalar_t>::value;
+        1:  158:	EXPECT_FALSE(test);
+        1:  159:	test = has_decibel_scale<meter_t>::value;
+        1:  160:	EXPECT_FALSE(test);
+        1:  161:	test = has_decibel_scale<foot_t>::value;
+        1:  162:	EXPECT_FALSE(test);
+        1:  163:	test = has_decibel_scale<dB_t>::value;
+        1:  164:	EXPECT_TRUE(test);
+        1:  165:	test = has_decibel_scale<dBW_t>::value;
+        1:  166:	EXPECT_TRUE(test);
+        1:  167:}
+        -:  168:
+        5:  169:TEST_F(UnitTest, isSameScale)
+        -:  170:{
+        -:  171:	bool test;
+        -:  172:
+        1:  173:	test = is_same_scale<scalar_t, dimensionless_t>::value;
+        1:  174:	EXPECT_TRUE(test);
+        1:  175:	test = is_same_scale<dB_t, dBW_t>::value;
+        1:  176:	EXPECT_TRUE(test);
+        1:  177:	test = is_same_scale<dB_t, scalar_t>::value;
+        1:  178:	EXPECT_FALSE(test);
+        1:  179:}
+        -:  180:
+        5:  181:TEST_F(UnitTest, isScalarUnit)
+        -:  182:{
+        -:  183:	bool test;
+        -:  184:
+        1:  185:	test = is_scalar_unit<scalar_t>::value;
+        1:  186:	EXPECT_TRUE(test);
+        1:  187:	test = is_scalar_unit<const scalar_t>::value;
+        1:  188:	EXPECT_TRUE(test);
+        1:  189:	test = is_scalar_unit<const scalar_t&>::value;
+        1:  190:	EXPECT_TRUE(test);
+        1:  191:	test = is_scalar_unit<dimensionless_t>::value;
+        1:  192:	EXPECT_TRUE(test);
+        1:  193:	test = is_scalar_unit<dB_t>::value;
+        1:  194:	EXPECT_TRUE(test);
+        1:  195:	test = is_scalar_unit<meter_t>::value;
+        1:  196:	EXPECT_FALSE(test);
+        1:  197:	test = is_scalar_unit<dBW_t>::value;
+        1:  198:	EXPECT_FALSE(test);
+        1:  199:}
+        -:  200:
+        5:  201:TEST_F(UnitTest, isLengthUnit)
+        -:  202:{
+        -:  203:	bool test;
+        -:  204:
+        1:  205:	test = is_length_unit<meter>::value;
+        1:  206:	EXPECT_TRUE(test);
+        1:  207:	test = is_length_unit<cubit>::value;
+        1:  208:	EXPECT_TRUE(test);
+        1:  209:	test = is_length_unit<year>::value;
+        1:  210:	EXPECT_FALSE(test);
+        1:  211:	test = is_length_unit<double>::value;
+        1:  212:	EXPECT_FALSE(test);
+        -:  213:	
+        1:  214:	test = is_length_unit<meter_t>::value;
+        1:  215:	EXPECT_TRUE(test);
+        1:  216:	test = is_length_unit<const meter_t>::value;
+        1:  217:	EXPECT_TRUE(test);
+        1:  218:	test = is_length_unit<const meter_t&>::value;
+        1:  219:	EXPECT_TRUE(test);
+        1:  220:	test = is_length_unit<cubit_t>::value;
+        1:  221:	EXPECT_TRUE(test);
+        1:  222:	test = is_length_unit<year_t>::value;
+        1:  223:	EXPECT_FALSE(test);
+        1:  224:	test = is_length_unit<meter_t, cubit_t>::value;
+        1:  225:	EXPECT_TRUE(test);
+        1:  226:	test = is_length_unit<meter_t, year_t>::value;
+        1:  227:	EXPECT_FALSE(test);
+        1:  228:}
+        -:  229:
+        5:  230:TEST_F(UnitTest, ismass_unit)
+        -:  231:{
+        -:  232:	bool test;
+        -:  233:
+        -:  234:
+        1:  235:	test = is_mass_unit<kilogram>::value;
+        1:  236:	EXPECT_TRUE(test);
+        1:  237:	test = is_mass_unit<stone>::value;
+        1:  238:	EXPECT_TRUE(test);
+        1:  239:	test = is_mass_unit<meter>::value;
+        1:  240:	EXPECT_FALSE(test);
+        1:  241:	test = is_mass_unit<double>::value;
+        1:  242:	EXPECT_FALSE(test);
+        -:  243:
+        1:  244:	test = is_mass_unit<kilogram_t>::value;
+        1:  245:	EXPECT_TRUE(test);
+        1:  246:	test = is_mass_unit<const kilogram_t>::value;
+        1:  247:	EXPECT_TRUE(test);
+        1:  248:	test = is_mass_unit<const kilogram_t&>::value;
+        1:  249:	EXPECT_TRUE(test);
+        1:  250:	test = is_mass_unit<stone_t>::value;
+        1:  251:	EXPECT_TRUE(test);
+        1:  252:	test = is_mass_unit<meter_t>::value;
+        1:  253:	EXPECT_FALSE(test);
+        1:  254:	test = is_mass_unit<kilogram_t, stone_t>::value;
+        1:  255:	EXPECT_TRUE(test);
+        1:  256:	test = is_mass_unit<kilogram_t, meter_t>::value;
+        1:  257:	EXPECT_FALSE(test);
+        1:  258:}
+        -:  259:
+        -:  260:
+        5:  261:TEST_F(UnitTest, istime_unit)
+        -:  262:{
+        -:  263:	bool test;
+        -:  264:
+        -:  265:
+        1:  266:	test = is_time_unit<second>::value;
+        1:  267:	EXPECT_TRUE(test);
+        1:  268:	test = is_time_unit<year>::value;
+        1:  269:	EXPECT_TRUE(test);
+        1:  270:	test = is_time_unit<meter>::value;
+        1:  271:	EXPECT_FALSE(test);
+        1:  272:	test = is_time_unit<double>::value;
+        1:  273:	EXPECT_FALSE(test);
+        -:  274:
+        1:  275:	test = is_time_unit<second_t>::value;
+        1:  276:	EXPECT_TRUE(test);
+        1:  277:	test = is_time_unit<const second_t>::value;
+        1:  278:	EXPECT_TRUE(test);
+        1:  279:	test = is_time_unit<const second_t&>::value;
+        1:  280:	EXPECT_TRUE(test);
+        1:  281:	test = is_time_unit<year_t>::value;
+        1:  282:	EXPECT_TRUE(test);
+        1:  283:	test = is_time_unit<meter_t>::value;
+        1:  284:	EXPECT_FALSE(test);
+        1:  285:	test = is_time_unit<second_t, year_t>::value;
+        1:  286:	EXPECT_TRUE(test);
+        1:  287:	test = is_time_unit<second_t, meter_t>::value;
+        1:  288:	EXPECT_FALSE(test);
+        1:  289:}
+        -:  290:
+        5:  291:TEST_F(UnitTest, isangle_unit)
+        -:  292:{
+        -:  293:	bool test;
+        -:  294:
+        -:  295:
+        1:  296:	test = is_angle_unit<angle::radian>::value;
+        1:  297:	EXPECT_TRUE(test);
+        1:  298:	test = is_angle_unit<angle::degree>::value;
+        1:  299:	EXPECT_TRUE(test);
+        1:  300:	test = is_angle_unit<watt>::value;
+        1:  301:	EXPECT_FALSE(test);
+        1:  302:	test = is_angle_unit<double>::value;
+        1:  303:	EXPECT_FALSE(test);
+        -:  304:
+        1:  305:	test = is_angle_unit<angle::radian_t>::value;
+        1:  306:	EXPECT_TRUE(test);
+        1:  307:	test = is_angle_unit<const angle::radian_t>::value;
+        1:  308:	EXPECT_TRUE(test);
+        1:  309:	test = is_angle_unit<const angle::radian_t&>::value;
+        1:  310:	EXPECT_TRUE(test);
+        1:  311:	test = is_angle_unit<angle::degree_t>::value;
+        1:  312:	EXPECT_TRUE(test);
+        1:  313:	test = is_angle_unit<watt_t>::value;
+        1:  314:	EXPECT_FALSE(test);
+        1:  315:	test = is_angle_unit<angle::radian_t, angle::degree_t>::value;
+        1:  316:	EXPECT_TRUE(test);
+        1:  317:	test = is_angle_unit<angle::radian_t, watt_t>::value;
+        1:  318:	EXPECT_FALSE(test);
+        1:  319:}
+        -:  320:
+        5:  321:TEST_F(UnitTest, iscurrent_unit)
+        -:  322:{
+        -:  323:	bool test;
+        -:  324:
+        -:  325:
+        1:  326:	test = is_current_unit<current::ampere>::value;
+        1:  327:	EXPECT_TRUE(test);
+        1:  328:	test = is_current_unit<volt>::value;
+        1:  329:	EXPECT_FALSE(test);
+        1:  330:	test = is_current_unit<double>::value;
+        1:  331:	EXPECT_FALSE(test);
+        -:  332:
+        1:  333:	test = is_current_unit<current::ampere_t>::value;
+        1:  334:	EXPECT_TRUE(test);
+        1:  335:	test = is_current_unit<const current::ampere_t>::value;
+        1:  336:	EXPECT_TRUE(test);
+        1:  337:	test = is_current_unit<const current::ampere_t&>::value;
+        1:  338:	EXPECT_TRUE(test);
+        1:  339:	test = is_current_unit<volt_t>::value;
+        1:  340:	EXPECT_FALSE(test);
+        1:  341:	test = is_current_unit<current::ampere_t, current::milliamp_t>::value;
+        1:  342:	EXPECT_TRUE(test);
+        1:  343:	test = is_current_unit<current::ampere_t, volt_t>::value;
+        1:  344:	EXPECT_FALSE(test);
+        1:  345:}
+        -:  346:
+        5:  347:TEST_F(UnitTest, istemperature_unit)
+        -:  348:{
+        -:  349:	bool test;
+        -:  350:
+        -:  351:
+        1:  352:	test = is_temperature_unit<fahrenheit>::value;
+        1:  353:	EXPECT_TRUE(test);
+        1:  354:	test = is_temperature_unit<kelvin>::value;
+        1:  355:	EXPECT_TRUE(test);
+        1:  356:	test = is_temperature_unit<cubit>::value;
+        1:  357:	EXPECT_FALSE(test);
+        1:  358:	test = is_temperature_unit<double>::value;
+        1:  359:	EXPECT_FALSE(test);
+        -:  360:
+        1:  361:	test = is_temperature_unit<fahrenheit_t>::value;
+        1:  362:	EXPECT_TRUE(test);
+        1:  363:	test = is_temperature_unit<const fahrenheit_t>::value;
+        1:  364:	EXPECT_TRUE(test);
+        1:  365:	test = is_temperature_unit<const fahrenheit_t&>::value;
+        1:  366:	EXPECT_TRUE(test);
+        1:  367:	test = is_temperature_unit<kelvin_t>::value;
+        1:  368:	EXPECT_TRUE(test);
+        1:  369:	test = is_temperature_unit<cubit_t>::value;
+        1:  370:	EXPECT_FALSE(test);
+        1:  371:	test = is_temperature_unit<fahrenheit_t, kelvin_t>::value;
+        1:  372:	EXPECT_TRUE(test);
+        1:  373:	test = is_temperature_unit<cubit_t, fahrenheit_t>::value;
+        1:  374:	EXPECT_FALSE(test);
+        1:  375:}
+        -:  376:
+        5:  377:TEST_F(UnitTest, issubstance_unit)
+        -:  378:{
+        -:  379:	bool test;
+        -:  380:
+        -:  381:
+        1:  382:	test = is_substance_unit<substance::mol>::value;
+        1:  383:	EXPECT_TRUE(test);
+        1:  384:	test = is_substance_unit<year>::value;
+        1:  385:	EXPECT_FALSE(test);
+        1:  386:	test = is_substance_unit<double>::value;
+        1:  387:	EXPECT_FALSE(test);
+        -:  388:
+        1:  389:	test = is_substance_unit<substance::mole_t>::value;
+        1:  390:	EXPECT_TRUE(test);
+        1:  391:	test = is_substance_unit<const substance::mole_t>::value;
+        1:  392:	EXPECT_TRUE(test);
+        1:  393:	test = is_substance_unit<const substance::mole_t&>::value;
+        1:  394:	EXPECT_TRUE(test);
+        1:  395:	test = is_substance_unit<year_t>::value;
+        1:  396:	EXPECT_FALSE(test);
+        1:  397:	test = is_substance_unit<year_t, substance::mole_t>::value;
+        1:  398:	EXPECT_FALSE(test);
+        1:  399:}
+        -:  400:
+        5:  401:TEST_F(UnitTest, isluminous_intensity_unit)
+        -:  402:{
+        -:  403:	bool test;
+        -:  404:
+        -:  405:
+        1:  406:	test = is_luminous_intensity_unit<candela>::value;
+        1:  407:	EXPECT_TRUE(test);
+        1:  408:	test = is_luminous_intensity_unit<rad>::value;
+        1:  409:	EXPECT_FALSE(test);
+        1:  410:	test = is_luminous_intensity_unit<double>::value;
+        1:  411:	EXPECT_FALSE(test);
+        -:  412:
+        1:  413:	test = is_luminous_intensity_unit<candela_t>::value;
+        1:  414:	EXPECT_TRUE(test);
+        1:  415:	test = is_luminous_intensity_unit<const candela_t>::value;
+        1:  416:	EXPECT_TRUE(test);
+        1:  417:	test = is_luminous_intensity_unit<const candela_t&>::value;
+        1:  418:	EXPECT_TRUE(test);
+        1:  419:	test = is_luminous_intensity_unit<rad_t>::value;
+        1:  420:	EXPECT_FALSE(test);
+        1:  421:	test = is_luminous_intensity_unit<rad_t, candela_t>::value;
+        1:  422:	EXPECT_FALSE(test);
+        1:  423:}
+        -:  424:
+        5:  425:TEST_F(UnitTest, issolid_angle_unit)
+        -:  426:{
+        -:  427:	bool test;
+        -:  428:
+        -:  429:
+        1:  430:	test = is_solid_angle_unit<steradian>::value;
+        1:  431:	EXPECT_TRUE(test);
+        1:  432:	test = is_solid_angle_unit<degree_squared>::value;
+        1:  433:	EXPECT_TRUE(test);
+        1:  434:	test = is_solid_angle_unit<angle::degree>::value;
+        1:  435:	EXPECT_FALSE(test);
+        1:  436:	test = is_solid_angle_unit<double>::value;
+        1:  437:	EXPECT_FALSE(test);
+        -:  438:
+        1:  439:	test = is_solid_angle_unit<steradian_t>::value;
+        1:  440:	EXPECT_TRUE(test);
+        1:  441:	test = is_solid_angle_unit<const steradian_t>::value;
+        1:  442:	EXPECT_TRUE(test);
+        1:  443:	test = is_solid_angle_unit<const degree_squared_t&>::value;
+        1:  444:	EXPECT_TRUE(test);
+        1:  445:	test = is_solid_angle_unit<angle::degree_t>::value;
+        1:  446:	EXPECT_FALSE(test);
+        1:  447:	test = is_solid_angle_unit<degree_squared_t, steradian_t>::value;
+        1:  448:	EXPECT_TRUE(test);
+        1:  449:	test = is_solid_angle_unit<angle::degree_t, steradian_t>::value;
+        1:  450:	EXPECT_FALSE(test);
+        1:  451:}
+        -:  452:
+        5:  453:TEST_F(UnitTest, isfrequency_unit)
+        -:  454:{
+        -:  455:	bool test;
+        -:  456:
+        -:  457:
+        1:  458:	test = is_frequency_unit<hertz>::value;
+        1:  459:	EXPECT_TRUE(test);
+        1:  460:	test = is_frequency_unit<second>::value;
+        1:  461:	EXPECT_FALSE(test);
+        1:  462:	test = is_frequency_unit<double>::value;
+        1:  463:	EXPECT_FALSE(test);
+        -:  464:
+        1:  465:	test = is_frequency_unit<hertz_t>::value;
+        1:  466:	EXPECT_TRUE(test);
+        1:  467:	test = is_frequency_unit<const hertz_t>::value;
+        1:  468:	EXPECT_TRUE(test);
+        1:  469:	test = is_frequency_unit<const hertz_t&>::value;
+        1:  470:	EXPECT_TRUE(test);
+        1:  471:	test = is_frequency_unit<second_t>::value;
+        1:  472:	EXPECT_FALSE(test);
+        1:  473:	test = is_frequency_unit<const hertz_t&, gigahertz_t>::value;
+        1:  474:	EXPECT_TRUE(test);
+        1:  475:	test = is_frequency_unit<second_t, hertz_t>::value;
+        1:  476:	EXPECT_FALSE(test);
+        1:  477:}
+        -:  478:
+        5:  479:TEST_F(UnitTest, isvelocity_unit)
+        -:  480:{
+        -:  481:	bool test;
+        -:  482:
+        -:  483:
+        1:  484:	test = is_velocity_unit<meters_per_second>::value;
+        1:  485:	EXPECT_TRUE(test);
+        1:  486:	test = is_velocity_unit<miles_per_hour>::value;
+        1:  487:	EXPECT_TRUE(test);
+        1:  488:	test = is_velocity_unit<meters_per_second_squared>::value;
+        1:  489:	EXPECT_FALSE(test);
+        1:  490:	test = is_velocity_unit<double>::value;
+        1:  491:	EXPECT_FALSE(test);
+        -:  492:
+        1:  493:	test = is_velocity_unit<meters_per_second_t>::value;
+        1:  494:	EXPECT_TRUE(test);
+        1:  495:	test = is_velocity_unit<const meters_per_second_t>::value;
+        1:  496:	EXPECT_TRUE(test);
+        1:  497:	test = is_velocity_unit<const meters_per_second_t&>::value;
+        1:  498:	EXPECT_TRUE(test);
+        1:  499:	test = is_velocity_unit<miles_per_hour_t>::value;
+        1:  500:	EXPECT_TRUE(test);
+        1:  501:	test = is_velocity_unit<meters_per_second_squared_t>::value;
+        1:  502:	EXPECT_FALSE(test);
+        1:  503:	test = is_velocity_unit<miles_per_hour_t, meters_per_second_t>::value;
+        1:  504:	EXPECT_TRUE(test);
+        1:  505:	test = is_velocity_unit<meters_per_second_squared_t, meters_per_second_t>::value;
+        1:  506:	EXPECT_FALSE(test);
+        1:  507:}
+        -:  508:
+        5:  509:TEST_F(UnitTest, isacceleration_unit)
+        -:  510:{
+        -:  511:	bool test;
+        -:  512:
+        -:  513:
+        1:  514:	test = is_acceleration_unit<meters_per_second_squared>::value;
+        1:  515:	EXPECT_TRUE(test);
+        1:  516:	test = is_acceleration_unit<acceleration::standard_gravity>::value;
+        1:  517:	EXPECT_TRUE(test);
+        1:  518:	test = is_acceleration_unit<inch>::value;
+        1:  519:	EXPECT_FALSE(test);
+        1:  520:	test = is_acceleration_unit<double>::value;
+        1:  521:	EXPECT_FALSE(test);
+        -:  522:
+        1:  523:	test = is_acceleration_unit<meters_per_second_squared_t>::value;
+        1:  524:	EXPECT_TRUE(test);
+        1:  525:	test = is_acceleration_unit<const meters_per_second_squared_t>::value;
+        1:  526:	EXPECT_TRUE(test);
+        1:  527:	test = is_acceleration_unit<const meters_per_second_squared_t&>::value;
+        1:  528:	EXPECT_TRUE(test);
+        1:  529:	test = is_acceleration_unit<standard_gravity_t>::value;
+        1:  530:	EXPECT_TRUE(test);
+        1:  531:	test = is_acceleration_unit<inch_t>::value;
+        1:  532:	EXPECT_FALSE(test);
+        1:  533:	test = is_acceleration_unit<standard_gravity_t, meters_per_second_squared_t>::value;
+        1:  534:	EXPECT_TRUE(test);
+        1:  535:	test = is_acceleration_unit<inch_t, meters_per_second_squared_t>::value;
+        1:  536:	EXPECT_FALSE(test);
+        1:  537:}
+        -:  538:
+        5:  539:TEST_F(UnitTest, isforce_unit)
+        -:  540:{
+        -:  541:	bool test;
+        -:  542:
+        -:  543:
+        1:  544:	test = is_force_unit<force::newton>::value;
+        1:  545:	EXPECT_TRUE(test);
+        1:  546:	test = is_force_unit<force::dynes>::value;
+        1:  547:	EXPECT_TRUE(test);
+        1:  548:	test = is_force_unit<meter>::value;
+        1:  549:	EXPECT_FALSE(test);
+        1:  550:	test = is_force_unit<double>::value;
+        1:  551:	EXPECT_FALSE(test);
+        -:  552:
+        1:  553:	test = is_force_unit<force::newton_t>::value;
+        1:  554:	EXPECT_TRUE(test);
+        1:  555:	test = is_force_unit<const force::newton_t>::value;
+        1:  556:	EXPECT_TRUE(test);
+        1:  557:	test = is_force_unit<const force::newton_t&>::value;
+        1:  558:	EXPECT_TRUE(test);
+        1:  559:	test = is_force_unit<force::dyne_t>::value;
+        1:  560:	EXPECT_TRUE(test);
+        1:  561:	test = is_force_unit<watt_t>::value;
+        1:  562:	EXPECT_FALSE(test);
+        1:  563:	test = is_force_unit<force::dyne_t, force::newton_t>::value;
+        1:  564:	EXPECT_TRUE(test);
+        1:  565:	test = is_force_unit<watt_t, force::newton_t>::value;
+        1:  566:	EXPECT_FALSE(test);
+        1:  567:}
+        -:  568:
+        5:  569:TEST_F(UnitTest, ispressure_unit)
+        -:  570:{
+        -:  571:	bool test;
+        -:  572:
+        1:  573:	test = is_pressure_unit<pressure::pascals>::value;
+        1:  574:	EXPECT_TRUE(test);
+        1:  575:	test = is_pressure_unit<atmosphere>::value;
+        1:  576:	EXPECT_TRUE(test);
+        1:  577:	test = is_pressure_unit<year>::value;
+        1:  578:	EXPECT_FALSE(test);
+        1:  579:	test = is_pressure_unit<double>::value;
+        1:  580:	EXPECT_FALSE(test);
+        -:  581:
+        1:  582:	test = is_pressure_unit<pascal_t>::value;
+        1:  583:	EXPECT_TRUE(test);
+        1:  584:	test = is_pressure_unit<const pascal_t>::value;
+        1:  585:	EXPECT_TRUE(test);
+        1:  586:	test = is_pressure_unit<const pascal_t&>::value;
+        1:  587:	EXPECT_TRUE(test);
+        1:  588:	test = is_pressure_unit<atmosphere_t>::value;
+        1:  589:	EXPECT_TRUE(test);
+        1:  590:	test = is_pressure_unit<year_t>::value;
+        1:  591:	EXPECT_FALSE(test);
+        1:  592:	test = is_pressure_unit<atmosphere_t, pressure::pascal_t>::value;
+        1:  593:	EXPECT_TRUE(test);
+        1:  594:	test = is_pressure_unit<year_t, pressure::pascal_t>::value;
+        1:  595:	EXPECT_FALSE(test);
+        1:  596:}
+        -:  597:
+        5:  598:TEST_F(UnitTest, ischarge_unit)
+        -:  599:{
+        -:  600:	bool test;
+        -:  601:
+        1:  602:	test = is_charge_unit<coulomb>::value;
+        1:  603:	EXPECT_TRUE(test);
+        1:  604:	test = is_charge_unit<watt>::value;
+        1:  605:	EXPECT_FALSE(test);
+        1:  606:	test = is_charge_unit<double>::value;
+        1:  607:	EXPECT_FALSE(test);
+        -:  608:
+        1:  609:	test = is_charge_unit<coulomb_t>::value;
+        1:  610:	EXPECT_TRUE(test);
+        1:  611:	test = is_charge_unit<const coulomb_t>::value;
+        1:  612:	EXPECT_TRUE(test);
+        1:  613:	test = is_charge_unit<const coulomb_t&>::value;
+        1:  614:	EXPECT_TRUE(test);
+        1:  615:	test = is_charge_unit<watt_t>::value;
+        1:  616:	EXPECT_FALSE(test);
+        1:  617:	test = is_charge_unit<const coulomb_t&, coulomb_t>::value;
+        1:  618:	EXPECT_TRUE(test);
+        1:  619:	test = is_charge_unit<watt_t, coulomb_t>::value;
+        1:  620:	EXPECT_FALSE(test);
+        1:  621:}
+        -:  622:
+        5:  623:TEST_F(UnitTest, isenergy_unit)
+        -:  624:{
+        -:  625:	bool test;
+        -:  626:
+        1:  627:	test = is_energy_unit<joule>::value;
+        1:  628:	EXPECT_TRUE(test);
+        1:  629:	test = is_energy_unit<calorie>::value;
+        1:  630:	EXPECT_TRUE(test);
+        1:  631:	test = is_energy_unit<watt>::value;
+        1:  632:	EXPECT_FALSE(test);
+        1:  633:	test = is_energy_unit<double>::value;
+        1:  634:	EXPECT_FALSE(test);
+        -:  635:
+        1:  636:	test = is_energy_unit<joule_t>::value;
+        1:  637:	EXPECT_TRUE(test);
+        1:  638:	test = is_energy_unit<const joule_t>::value;
+        1:  639:	EXPECT_TRUE(test);
+        1:  640:	test = is_energy_unit<const joule_t&>::value;
+        1:  641:	EXPECT_TRUE(test);
+        1:  642:	test = is_energy_unit<calorie_t>::value;
+        1:  643:	EXPECT_TRUE(test);
+        1:  644:	test = is_energy_unit<watt_t>::value;
+        1:  645:	EXPECT_FALSE(test);
+        1:  646:	test = is_energy_unit<calorie_t, joule_t>::value;
+        1:  647:	EXPECT_TRUE(test);
+        1:  648:	test = is_energy_unit<watt_t, joule_t>::value;
+        1:  649:	EXPECT_FALSE(test);
+        1:  650:}
+        -:  651:
+        5:  652:TEST_F(UnitTest, ispower_unit)
+        -:  653:{
+        -:  654:	bool test;
+        -:  655:
+        1:  656:	test = is_power_unit<watt>::value;
+        1:  657:	EXPECT_TRUE(test);
+        1:  658:	test = is_power_unit<henry>::value;
+        1:  659:	EXPECT_FALSE(test);
+        1:  660:	test = is_power_unit<double>::value;
+        1:  661:	EXPECT_FALSE(test);
+        -:  662:
+        1:  663:	test = is_power_unit<watt_t>::value;
+        1:  664:	EXPECT_TRUE(test);
+        1:  665:	test = is_power_unit<const watt_t>::value;
+        1:  666:	EXPECT_TRUE(test);
+        1:  667:	test = is_power_unit<const watt_t&>::value;
+        1:  668:	EXPECT_TRUE(test);
+        1:  669:	test = is_power_unit<henry_t>::value;
+        1:  670:	EXPECT_FALSE(test);
+        1:  671:	test = is_power_unit<const watt_t&, watt_t>::value;
+        1:  672:	EXPECT_TRUE(test);
+        1:  673:	test = is_power_unit<henry_t, watt_t>::value;
+        1:  674:	EXPECT_FALSE(test);
+        1:  675:}
+        -:  676:
+        5:  677:TEST_F(UnitTest, isvoltage_unit)
+        -:  678:{
+        -:  679:	bool test;
+        -:  680:
+        1:  681:	test = is_voltage_unit<volt>::value;
+        1:  682:	EXPECT_TRUE(test);
+        1:  683:	test = is_voltage_unit<henry>::value;
+        1:  684:	EXPECT_FALSE(test);
+        1:  685:	test = is_voltage_unit<double>::value;
+        1:  686:	EXPECT_FALSE(test);
+        -:  687:
+        1:  688:	test = is_voltage_unit<volt_t>::value;
+        1:  689:	EXPECT_TRUE(test);
+        1:  690:	test = is_voltage_unit<const volt_t>::value;
+        1:  691:	EXPECT_TRUE(test);
+        1:  692:	test = is_voltage_unit<const volt_t&>::value;
+        1:  693:	EXPECT_TRUE(test);
+        1:  694:	test = is_voltage_unit<henry_t>::value;
+        1:  695:	EXPECT_FALSE(test);
+        1:  696:	test = is_voltage_unit<const volt_t&, volt_t>::value;
+        1:  697:	EXPECT_TRUE(test);
+        1:  698:	test = is_voltage_unit<henry_t, volt_t>::value;
+        1:  699:	EXPECT_FALSE(test);
+        1:  700:}
+        -:  701:
+        5:  702:TEST_F(UnitTest, iscapacitance_unit)
+        -:  703:{
+        -:  704:	bool test;
+        -:  705:
+        1:  706:	test = is_capacitance_unit<farad>::value;
+        1:  707:	EXPECT_TRUE(test);
+        1:  708:	test = is_capacitance_unit<ohm>::value;
+        1:  709:	EXPECT_FALSE(test);
+        1:  710:	test = is_capacitance_unit<double>::value;
+        1:  711:	EXPECT_FALSE(test);
+        -:  712:
+        1:  713:	test = is_capacitance_unit<farad_t>::value;
+        1:  714:	EXPECT_TRUE(test);
+        1:  715:	test = is_capacitance_unit<const farad_t>::value;
+        1:  716:	EXPECT_TRUE(test);
+        1:  717:	test = is_capacitance_unit<const farad_t&>::value;
+        1:  718:	EXPECT_TRUE(test);
+        1:  719:	test = is_capacitance_unit<ohm_t>::value;
+        1:  720:	EXPECT_FALSE(test);
+        1:  721:	test = is_capacitance_unit<const farad_t&, millifarad_t>::value;
+        1:  722:	EXPECT_TRUE(test);
+        1:  723:	test = is_capacitance_unit<ohm_t, farad_t>::value;
+        1:  724:	EXPECT_FALSE(test);
+        1:  725:}
+        -:  726:
+        5:  727:TEST_F(UnitTest, isimpedance_unit)
+        -:  728:{
+        -:  729:	bool test;
+        -:  730:
+        -:  731:
+        1:  732:	test = is_impedance_unit<ohm>::value;
+        1:  733:	EXPECT_TRUE(test);
+        1:  734:	test = is_impedance_unit<farad>::value;
+        1:  735:	EXPECT_FALSE(test);
+        1:  736:	test = is_impedance_unit<double>::value;
+        1:  737:	EXPECT_FALSE(test);
+        -:  738:
+        1:  739:	test = is_impedance_unit<ohm_t>::value;
+        1:  740:	EXPECT_TRUE(test);
+        1:  741:	test = is_impedance_unit<const ohm_t>::value;
+        1:  742:	EXPECT_TRUE(test);
+        1:  743:	test = is_impedance_unit<const ohm_t&>::value;
+        1:  744:	EXPECT_TRUE(test);
+        1:  745:	test = is_impedance_unit<farad_t>::value;
+        1:  746:	EXPECT_FALSE(test);
+        1:  747:	test = is_impedance_unit<const ohm_t&, milliohm_t>::value;
+        1:  748:	EXPECT_TRUE(test);
+        1:  749:	test = is_impedance_unit<farad_t, ohm_t>::value;
+        1:  750:	EXPECT_FALSE(test);
+        1:  751:}
+        -:  752:
+        5:  753:TEST_F(UnitTest, isconductance_unit)
+        -:  754:{
+        -:  755:	bool test;
+        -:  756:
+        1:  757:	test = is_conductance_unit<siemen>::value;
+        1:  758:	EXPECT_TRUE(test);
+        1:  759:	test = is_conductance_unit<volt>::value;
+        1:  760:	EXPECT_FALSE(test);
+        1:  761:	test = is_conductance_unit<double>::value;
+        1:  762:	EXPECT_FALSE(test);
+        -:  763:
+        1:  764:	test = is_conductance_unit<siemen_t>::value;
+        1:  765:	EXPECT_TRUE(test);
+        1:  766:	test = is_conductance_unit<const siemen_t>::value;
+        1:  767:	EXPECT_TRUE(test);
+        1:  768:	test = is_conductance_unit<const siemen_t&>::value;
+        1:  769:	EXPECT_TRUE(test);
+        1:  770:	test = is_conductance_unit<volt_t>::value;
+        1:  771:	EXPECT_FALSE(test);
+        1:  772:	test = is_conductance_unit<const siemen_t&, millisiemen_t>::value;
+        1:  773:	EXPECT_TRUE(test);
+        1:  774:	test = is_conductance_unit<volt_t, siemen_t>::value;
+        1:  775:	EXPECT_FALSE(test);
+        1:  776:}
+        -:  777:
+        5:  778:TEST_F(UnitTest, ismagnetic_flux_unit)
+        -:  779:{
+        -:  780:	bool test;
+        -:  781:
+        1:  782:	test = is_magnetic_flux_unit<weber>::value;
+        1:  783:	EXPECT_TRUE(test);
+        1:  784:	test = is_magnetic_flux_unit<maxwell>::value;
+        1:  785:	EXPECT_TRUE(test);
+        1:  786:	test = is_magnetic_flux_unit<inch>::value;
+        1:  787:	EXPECT_FALSE(test);
+        1:  788:	test = is_magnetic_flux_unit<double>::value;
+        1:  789:	EXPECT_FALSE(test);
+        -:  790:
+        1:  791:	test = is_magnetic_flux_unit<weber_t>::value;
+        1:  792:	EXPECT_TRUE(test);
+        1:  793:	test = is_magnetic_flux_unit<const weber_t>::value;
+        1:  794:	EXPECT_TRUE(test);
+        1:  795:	test = is_magnetic_flux_unit<const weber_t&>::value;
+        1:  796:	EXPECT_TRUE(test);
+        1:  797:	test = is_magnetic_flux_unit<maxwell_t>::value;
+        1:  798:	EXPECT_TRUE(test);
+        1:  799:	test = is_magnetic_flux_unit<inch_t>::value;
+        1:  800:	EXPECT_FALSE(test);
+        1:  801:	test = is_magnetic_flux_unit<maxwell_t, weber_t>::value;
+        1:  802:	EXPECT_TRUE(test);
+        1:  803:	test = is_magnetic_flux_unit<inch_t, weber_t>::value;
+        1:  804:	EXPECT_FALSE(test);
+        1:  805:}
+        -:  806:
+        5:  807:TEST_F(UnitTest, ismagnetic_field_strength_unit)
+        -:  808:{
+        -:  809:	bool test;
+        -:  810:
+        -:  811:
+        1:  812:	test = is_magnetic_field_strength_unit<tesla>::value;
+        1:  813:	EXPECT_TRUE(test);
+        1:  814:	test = is_magnetic_field_strength_unit<gauss>::value;
+        1:  815:	EXPECT_TRUE(test);
+        1:  816:	test = is_magnetic_field_strength_unit<volt>::value;
+        1:  817:	EXPECT_FALSE(test);
+        1:  818:	test = is_magnetic_field_strength_unit<double>::value;
+        1:  819:	EXPECT_FALSE(test);
+        -:  820:
+        1:  821:	test = is_magnetic_field_strength_unit<tesla_t>::value;
+        1:  822:	EXPECT_TRUE(test);
+        1:  823:	test = is_magnetic_field_strength_unit<const tesla_t>::value;
+        1:  824:	EXPECT_TRUE(test);
+        1:  825:	test = is_magnetic_field_strength_unit<const tesla_t&>::value;
+        1:  826:	EXPECT_TRUE(test);
+        1:  827:	test = is_magnetic_field_strength_unit<gauss_t>::value;
+        1:  828:	EXPECT_TRUE(test);
+        1:  829:	test = is_magnetic_field_strength_unit<volt_t>::value;
+        1:  830:	EXPECT_FALSE(test);
+        1:  831:	test = is_magnetic_field_strength_unit<gauss_t, tesla_t>::value;
+        1:  832:	EXPECT_TRUE(test);
+        1:  833:	test = is_magnetic_field_strength_unit<volt_t, tesla_t>::value;
+        1:  834:	EXPECT_FALSE(test);
+        1:  835:}
+        -:  836:
+        5:  837:TEST_F(UnitTest, isinductance_unit)
+        -:  838:{
+        -:  839:	bool test;
+        -:  840:
+        -:  841:
+        1:  842:	test = is_inductance_unit<henry>::value;
+        1:  843:	EXPECT_TRUE(test);
+        1:  844:	test = is_inductance_unit<farad>::value;
+        1:  845:	EXPECT_FALSE(test);
+        1:  846:	test = is_inductance_unit<double>::value;
+        1:  847:	EXPECT_FALSE(test);
+        -:  848:
+        1:  849:	test = is_inductance_unit<henry_t>::value;
+        1:  850:	EXPECT_TRUE(test);
+        1:  851:	test = is_inductance_unit<const henry_t>::value;
+        1:  852:	EXPECT_TRUE(test);
+        1:  853:	test = is_inductance_unit<const henry_t&>::value;
+        1:  854:	EXPECT_TRUE(test);
+        1:  855:	test = is_inductance_unit<farad_t>::value;
+        1:  856:	EXPECT_FALSE(test);
+        1:  857:	test = is_inductance_unit<const henry_t&, millihenry_t>::value;
+        1:  858:	EXPECT_TRUE(test);
+        1:  859:	test = is_inductance_unit<farad_t, henry_t>::value;
+        1:  860:	EXPECT_FALSE(test);
+        1:  861:}
+        -:  862:
+        5:  863:TEST_F(UnitTest, isluminous_flux_unit)
+        -:  864:{
+        -:  865:	bool test;
+        -:  866:
+        -:  867:
+        1:  868:	test = is_luminous_flux_unit<lumen>::value;
+        1:  869:	EXPECT_TRUE(test);
+        1:  870:	test = is_luminous_flux_unit<pound>::value;
+        1:  871:	EXPECT_FALSE(test);
+        1:  872:	test = is_luminous_flux_unit<double>::value;
+        1:  873:	EXPECT_FALSE(test);
+        -:  874:
+        1:  875:	test = is_luminous_flux_unit<lumen_t>::value;
+        1:  876:	EXPECT_TRUE(test);
+        1:  877:	test = is_luminous_flux_unit<const lumen_t>::value;
+        1:  878:	EXPECT_TRUE(test);
+        1:  879:	test = is_luminous_flux_unit<const lumen_t&>::value;
+        1:  880:	EXPECT_TRUE(test);
+        1:  881:	test = is_luminous_flux_unit<pound_t>::value;
+        1:  882:	EXPECT_FALSE(test);
+        1:  883:	test = is_luminous_flux_unit<const lumen_t&, millilumen_t>::value;
+        1:  884:	EXPECT_TRUE(test);
+        1:  885:	test = is_luminous_flux_unit<pound_t, lumen_t>::value;
+        1:  886:	EXPECT_FALSE(test);
+        1:  887:}
+        -:  888:
+        5:  889:TEST_F(UnitTest, isilluminance_unit)
+        -:  890:{
+        -:  891:	bool test;
+        -:  892:
+        -:  893:
+        1:  894:	test = is_illuminance_unit<illuminance::footcandle>::value;
+        1:  895:	EXPECT_TRUE(test);
+        1:  896:	test = is_illuminance_unit<illuminance::lux>::value;
+        1:  897:	EXPECT_TRUE(test);
+        1:  898:	test = is_illuminance_unit<meter>::value;
+        1:  899:	EXPECT_FALSE(test);
+        1:  900:	test = is_illuminance_unit<double>::value;
+        1:  901:	EXPECT_FALSE(test);
+        -:  902:
+        1:  903:	test = is_illuminance_unit<footcandle_t>::value;
+        1:  904:	EXPECT_TRUE(test);
+        1:  905:	test = is_illuminance_unit<const footcandle_t>::value;
+        1:  906:	EXPECT_TRUE(test);
+        1:  907:	test = is_illuminance_unit<const footcandle_t&>::value;
+        1:  908:	EXPECT_TRUE(test);
+        1:  909:	test = is_illuminance_unit<lux_t>::value;
+        1:  910:	EXPECT_TRUE(test);
+        1:  911:	test = is_illuminance_unit<meter_t>::value;
+        1:  912:	EXPECT_FALSE(test);
+        1:  913:	test = is_illuminance_unit<lux_t, footcandle_t>::value;
+        1:  914:	EXPECT_TRUE(test);
+        1:  915:	test = is_illuminance_unit<meter_t, footcandle_t>::value;
+        1:  916:	EXPECT_FALSE(test);
+        1:  917:}
+        -:  918:
+        5:  919:TEST_F(UnitTest, isradioactivity_unit)
+        -:  920:{
+        -:  921:	bool test;
+        -:  922:
+        -:  923:
+        1:  924:	test = is_radioactivity_unit<becquerel>::value;
+        1:  925:	EXPECT_TRUE(test);
+        1:  926:	test = is_radioactivity_unit<year>::value;
+        1:  927:	EXPECT_FALSE(test);
+        1:  928:	test = is_radioactivity_unit<double>::value;
+        1:  929:	EXPECT_FALSE(test);
+        -:  930:
+        1:  931:	test = is_radioactivity_unit<becquerel_t>::value;
+        1:  932:	EXPECT_TRUE(test);
+        1:  933:	test = is_radioactivity_unit<const becquerel_t>::value;
+        1:  934:	EXPECT_TRUE(test);
+        1:  935:	test = is_radioactivity_unit<const becquerel_t&>::value;
+        1:  936:	EXPECT_TRUE(test);
+        1:  937:	test = is_radioactivity_unit<year_t>::value;
+        1:  938:	EXPECT_FALSE(test);
+        1:  939:	test = is_radioactivity_unit<const becquerel_t&, millibecquerel_t>::value;
+        1:  940:	EXPECT_TRUE(test);
+        1:  941:	test = is_radioactivity_unit<year_t, becquerel_t>::value;
+        1:  942:	EXPECT_FALSE(test);
+        1:  943:}
+        -:  944:
+        5:  945:TEST_F(UnitTest, istorque_unit)
+        -:  946:{
+        -:  947:	bool test;
+        -:  948:
+        1:  949:	test = is_torque_unit<torque::newton_meter>::value;
+        1:  950:	EXPECT_TRUE(test);
+        1:  951:	test = is_torque_unit<torque::foot_pound>::value;
+        1:  952:	EXPECT_TRUE(test);
+        1:  953:	test = is_torque_unit<volume::cubic_meter>::value;
+        1:  954:	EXPECT_FALSE(test);
+        1:  955:	test = is_torque_unit<double>::value;
+        1:  956:	EXPECT_FALSE(test);
+        -:  957:
+        1:  958:	test = is_torque_unit<torque::newton_meter_t>::value;
+        1:  959:	EXPECT_TRUE(test);
+        1:  960:	test = is_torque_unit<const torque::newton_meter_t>::value;
+        1:  961:	EXPECT_TRUE(test);
+        1:  962:	test = is_torque_unit<const torque::newton_meter_t&>::value;
+        1:  963:	EXPECT_TRUE(test);
+        1:  964:	test = is_torque_unit<torque::foot_pound_t>::value;
+        1:  965:	EXPECT_TRUE(test);
+        1:  966:	test = is_torque_unit<volume::cubic_meter_t>::value;
+        1:  967:	EXPECT_FALSE(test);
+        1:  968:	test = is_torque_unit<torque::foot_pound_t, torque::newton_meter_t>::value;
+        1:  969:	EXPECT_TRUE(test);
+        1:  970:	test = is_torque_unit<volume::cubic_meter_t, torque::newton_meter_t>::value;
+        1:  971:	EXPECT_FALSE(test);
+        1:  972:}
+        -:  973:
+        5:  974:TEST_F(UnitTest, isarea_unit)
+        -:  975:{
+        -:  976:	bool test;
+        -:  977:
+        -:  978:
+        1:  979:	test = is_area_unit<square_meter>::value;
+        1:  980:	EXPECT_TRUE(test);
+        1:  981:	test = is_area_unit<hectare>::value;
+        1:  982:	EXPECT_TRUE(test);
+        1:  983:	test = is_area_unit<astronicalUnit>::value;
+        1:  984:	EXPECT_FALSE(test);
+        1:  985:	test = is_area_unit<double>::value;
+        1:  986:	EXPECT_FALSE(test);
+        -:  987:
+        1:  988:	test = is_area_unit<square_meter_t>::value;
+        1:  989:	EXPECT_TRUE(test);
+        1:  990:	test = is_area_unit<const square_meter_t>::value;
+        1:  991:	EXPECT_TRUE(test);
+        1:  992:	test = is_area_unit<const square_meter_t&>::value;
+        1:  993:	EXPECT_TRUE(test);
+        1:  994:	test = is_area_unit<hectare_t>::value;
+        1:  995:	EXPECT_TRUE(test);
+        1:  996:	test = is_area_unit<astronicalUnit_t>::value;
+        1:  997:	EXPECT_FALSE(test);
+        1:  998:	test = is_area_unit<hectare_t, square_meter_t>::value;
+        1:  999:	EXPECT_TRUE(test);
+        1: 1000:	test = is_area_unit<astronicalUnit_t, square_meter_t>::value;
+        1: 1001:	EXPECT_FALSE(test);
+        1: 1002:}
+        -: 1003:
+        5: 1004:TEST_F(UnitTest, isvolume_unit)
+        -: 1005:{
+        -: 1006:	bool test;
+        -: 1007:
+        1: 1008:	test = is_volume_unit<cubic_meter>::value;
+        1: 1009:	EXPECT_TRUE(test);
+        1: 1010:	test = is_volume_unit<cubic_foot>::value;
+        1: 1011:	EXPECT_TRUE(test);
+        1: 1012:	test = is_volume_unit<square_feet>::value;
+        1: 1013:	EXPECT_FALSE(test);
+        1: 1014:	test = is_volume_unit<double>::value;
+        1: 1015:	EXPECT_FALSE(test);
+        -: 1016:
+        1: 1017:	test = is_volume_unit<cubic_meter_t>::value;
+        1: 1018:	EXPECT_TRUE(test);
+        1: 1019:	test = is_volume_unit<const cubic_meter_t>::value;
+        1: 1020:	EXPECT_TRUE(test);
+        1: 1021:	test = is_volume_unit<const cubic_meter_t&>::value;
+        1: 1022:	EXPECT_TRUE(test);
+        1: 1023:	test = is_volume_unit<cubic_inch_t>::value;
+        1: 1024:	EXPECT_TRUE(test);
+        1: 1025:	test = is_volume_unit<foot_t>::value;
+        1: 1026:	EXPECT_FALSE(test);
+        1: 1027:	test = is_volume_unit<cubic_inch_t, cubic_meter_t>::value;
+        1: 1028:	EXPECT_TRUE(test);
+        1: 1029:	test = is_volume_unit<foot_t, cubic_meter_t>::value;
+        1: 1030:	EXPECT_FALSE(test);
+        1: 1031:}
+        -: 1032:
+        5: 1033:TEST_F(UnitTest, isdensity_unit)
+        -: 1034:{
+        -: 1035:	bool test;
+        -: 1036:
+        -: 1037:
+        1: 1038:	test = is_density_unit<kilograms_per_cubic_meter>::value;
+        1: 1039:	EXPECT_TRUE(test);
+        1: 1040:	test = is_density_unit<ounces_per_cubic_foot>::value;
+        1: 1041:	EXPECT_TRUE(test);
+        1: 1042:	test = is_density_unit<year>::value;
+        1: 1043:	EXPECT_FALSE(test);
+        1: 1044:	test = is_density_unit<double>::value;
+        1: 1045:	EXPECT_FALSE(test);
+        -: 1046:
+        1: 1047:	test = is_density_unit<kilogram_per_cubic_meter_t>::value;
+        1: 1048:	EXPECT_TRUE(test);
+        1: 1049:	test = is_density_unit<const kilogram_per_cubic_meter_t>::value;
+        1: 1050:	EXPECT_TRUE(test);
+        1: 1051:	test = is_density_unit<const kilogram_per_cubic_meter_t&>::value;
+        1: 1052:	EXPECT_TRUE(test);
+        1: 1053:	test = is_density_unit<ounce_per_cubic_foot_t>::value;
+        1: 1054:	EXPECT_TRUE(test);
+        1: 1055:	test = is_density_unit<year_t>::value;
+        1: 1056:	EXPECT_FALSE(test);
+        1: 1057:	test = is_density_unit<ounce_per_cubic_foot_t, kilogram_per_cubic_meter_t>::value;
+        1: 1058:	EXPECT_TRUE(test);
+        1: 1059:	test = is_density_unit<year_t, kilogram_per_cubic_meter_t>::value;
+        1: 1060:	EXPECT_FALSE(test);
+        1: 1061:}
+        -: 1062:
+        5: 1063:TEST_F(UnitTest, squared)
+        -: 1064:{
+        -: 1065:	double test;
+        -: 1066:
+        1: 1067:	test = convert<squared<meters>, square_feet>(0.092903);
+        1: 1068:	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
+        -: 1069:
+        -: 1070:	using scalar_2 = units::squared<scalar>;	// this is actually nonsensical, and should also result in a scalar.
+        1: 1071:	bool isSame = std::is_same<typename std::decay<scalar_t>::type, typename std::decay<unit_t<scalar_2>>::type>::value;
+        1: 1072:	EXPECT_TRUE(isSame);
+        1: 1073:}
+        -: 1074:
+        5: 1075:TEST_F(UnitTest, cubed)
+        -: 1076:{
+        -: 1077:	double test;
+        -: 1078:
+        1: 1079:	test = convert<cubed<meters>, cubic_feet>(0.0283168);
+        1: 1080:	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
+        1: 1081:}
+        -: 1082:
+        5: 1083:TEST_F(UnitTest, compoundUnits)
+        -: 1084:{
+        -: 1085:	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
+        -: 1086:	using acceleration2 = compound_unit<meters, inverse<seconds>, inverse<seconds>>;
+        -: 1087:	using acceleration3 = unit<std::ratio<1>, base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>>;
+        -: 1088:	using acceleration4 = compound_unit<meters, inverse<squared<seconds>>>;
+        -: 1089:	using acceleration5 = compound_unit<meters, squared<inverse<seconds>>>;
+        -: 1090:
+        1: 1091:	bool areSame12 = std::is_same<acceleration1, acceleration2>::value;
+        1: 1092:	bool areSame23 = std::is_same<acceleration2, acceleration3>::value;
+        1: 1093:	bool areSame34 = std::is_same<acceleration3, acceleration4>::value;
+        1: 1094:	bool areSame45 = std::is_same<acceleration4, acceleration5>::value;
+        -: 1095:
+        1: 1096:	EXPECT_TRUE(areSame12);
+        1: 1097:	EXPECT_TRUE(areSame23);
+        1: 1098:	EXPECT_TRUE(areSame34);
+        1: 1099:	EXPECT_TRUE(areSame45);
+        -: 1100:
+        -: 1101:	// test that thing with translations still compile
+        -: 1102:	using arbitary1 = compound_unit<meters, inverse<celsius>>;
+        -: 1103:	using arbitary2 = compound_unit<meters, celsius>;
+        1: 1104:}
+        -: 1105:
+        5: 1106:TEST_F(UnitTest, dimensionalAnalysis)
+        -: 1107:{
+        -: 1108:	// these look like 'compound units', but the dimensional analysis can be REALLY handy if the
+        -: 1109:	// unit types aren't know (i.e. they themselves are template parameters), as you can get the resulting unit of the
+        -: 1110:	// operation.
+        -: 1111:
+        -: 1112:	using velocity = detail::unit_divide<meters, second>;
+        1: 1113:	bool shouldBeTrue = std::is_same<meters_per_second, velocity>::value;
+        1: 1114:	EXPECT_TRUE(shouldBeTrue);
+        -: 1115:
+        -: 1116:	using acceleration1 = unit<std::ratio<1>, category::acceleration_unit>;
+        -: 1117:	using acceleration2 = detail::unit_divide<meters, detail::unit_multiply<seconds, seconds>>;
+        1: 1118:	shouldBeTrue = std::is_same<acceleration1, acceleration2>::value;
+        1: 1119:	EXPECT_TRUE(shouldBeTrue);
+        1: 1120:}
+        -: 1121:
+        5: 1122:TEST_F(UnitTest, hasValueMember)
+        -: 1123:{
+        -: 1124:	bool test;
+        -: 1125:
+        1: 1126:	test = units::has_value_member<linear_scale<double>, double>::value;
+        1: 1127:	EXPECT_TRUE(test);
+        1: 1128:	test = units::has_value_member<meter, double>::value;
+        1: 1129:	EXPECT_FALSE(test);
+        1: 1130:}
+        -: 1131:
+        5: 1132:TEST_F(UnitTest, unitTypeAddition)
+        -: 1133:{
+        1: 1134:	meter_t a_m(1.0), c_m;
+        1: 1135:	foot_t b_ft(3.28084);
+        -: 1136:
+        1: 1137:	double d = units::convert<feet, meters>(b_ft());
+        1: 1138:	EXPECT_NEAR(1.0, d, 5.0e-5);
+        -: 1139:
+        1: 1140:	c_m = a_m + b_ft;
+        1: 1141:	EXPECT_NEAR(2.0, c_m(), 5.0e-5);
+        -: 1142:
+        1: 1143:	c_m = b_ft + meter_t(3);
+        1: 1144:	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
+        -: 1145:
+        1: 1146:	auto e_ft = b_ft + meter_t(3);
+        1: 1147:	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
+        -: 1148:
+        1: 1149:	scalar_t sresult = scalar_t(1.0) + scalar_t(1.0);
+        1: 1150:	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+        -: 1151:
+        1: 1152:	sresult = scalar_t(1.0) + 1.0;
+        1: 1153:	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+        -: 1154:
+        1: 1155:	sresult = 1.0 + scalar_t(1.0);
+        1: 1156:	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+        -: 1157:
+        1: 1158:	d = scalar_t(1.0) + scalar_t(1.0);
+        1: 1159:	EXPECT_NEAR(2.0, d, 5.0e-6);
+        -: 1160:
+        1: 1161:	d = scalar_t(1.0) + 1.0;
+        1: 1162:	EXPECT_NEAR(2.0, d, 5.0e-6);
+        -: 1163:
+        1: 1164:	d = 1.0 + scalar_t(1.0);
+        1: 1165:	EXPECT_NEAR(2.0, d, 5.0e-6);
+        1: 1166:}
+        -: 1167:
+        5: 1168:TEST_F(UnitTest, unitTypeSubtraction)
+        -: 1169:{
+        1: 1170:	meter_t a_m(1.0), c_m;
+        1: 1171:	foot_t b_ft(3.28084);
+        -: 1172:
+        1: 1173:	c_m = a_m - b_ft;
+        1: 1174:	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
+        -: 1175:
+        1: 1176:	c_m = b_ft - meter_t(1);
+        1: 1177:	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
+        -: 1178:
+        1: 1179:	auto e_ft = b_ft - meter_t(1);
+        1: 1180:	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
+        -: 1181:
+        1: 1182:	scalar_t sresult = scalar_t(1.0) - scalar_t(1.0);
+        1: 1183:	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+        -: 1184:
+        1: 1185:	sresult = scalar_t(1.0) - 1.0;
+        1: 1186:	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+        -: 1187:
+        1: 1188:	sresult = 1.0 - scalar_t(1.0);
+        1: 1189:	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+        -: 1190:
+        1: 1191:	double d = scalar_t(1.0) - scalar_t(1.0);
+        1: 1192:	EXPECT_NEAR(0.0, d, 5.0e-6);
+        -: 1193:
+        1: 1194:	d = scalar_t(1.0) - 1.0;
+        1: 1195:	EXPECT_NEAR(0.0, d, 5.0e-6);
+        -: 1196:
+        1: 1197:	d = 1.0 - scalar_t(1.0);
+        1: 1198:	EXPECT_NEAR(0.0, d, 5.0e-6);
+        1: 1199:}
+        -: 1200:
+        5: 1201:TEST_F(UnitTest, unitTypeMultiplication)
+        -: 1202:{
+        1: 1203:	meter_t a_m(1.0), b_m(2.0);
+        1: 1204:	foot_t a_ft(3.28084);
+        -: 1205:
+        1: 1206:	auto c_m2 = a_m * b_m;
+        1: 1207:	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+        -: 1208:
+        1: 1209:	c_m2 = b_m * meter_t(2);
+        1: 1210:	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
+        -: 1211:
+        1: 1212:	c_m2 = b_m *a_ft;
+        1: 1213:	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+        -: 1214:
+        1: 1215:	auto c_m = b_m * 2.0;
+        1: 1216:	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
+        -: 1217:
+        1: 1218:	c_m = 2.0 * b_m;
+        1: 1219:	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
+        -: 1220:
+        1: 1221:	double convert = scalar_t(3.14);
+        1: 1222:	EXPECT_NEAR(3.14, convert, 5.0e-5);
+        -: 1223:	
+        1: 1224: 	scalar_t sresult = scalar_t(5.0) * scalar_t(4.0);
+        1: 1225: 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+        -: 1226: 
+        1: 1227:	sresult = scalar_t(5.0) * 4.0;
+        1: 1228:	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+        -: 1229:
+        1: 1230:	sresult = 4.0 * scalar_t(5.0);
+        1: 1231:	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+        -: 1232:
+        1: 1233: 	double result = scalar_t(5.0) * scalar_t(4.0);
+        1: 1234: 	EXPECT_NEAR(20.0, result, 5.0e-5);
+        -: 1235:
+        1: 1236:	result = scalar_t(5.0) * 4.0;
+        1: 1237:	EXPECT_NEAR(20.0, result, 5.0e-5);
+        -: 1238:
+        1: 1239:	result = 4.0 * scalar_t(5.0);
+        1: 1240:	EXPECT_NEAR(20.0, result, 5.0e-5);
+        1: 1241:}
+        -: 1242:
+        5: 1243:TEST_F(UnitTest, unitTypeMixedUnitMultiplication)
+        -: 1244:{
+        1: 1245:	meter_t a_m(1.0);
+        1: 1246:	foot_t b_ft(3.28084);
+        1: 1247:	unit_t<inverse<meter>> i_m(2.0);
+        -: 1248:
+        -: 1249:	// resultant unit is square of leftmost unit
+        1: 1250:	auto c_m2 = a_m * b_ft;
+        1: 1251: 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
+        -: 1252:
+        1: 1253:	auto c_ft2 = b_ft * a_m;
+        1: 1254:	EXPECT_NEAR(10.7639111056, c_ft2(), 5.0e-7);
+        -: 1255:
+        -: 1256:	// you can get whatever (compatible) type you want if you ask explicitly
+        1: 1257:	square_meter_t d_m2 = b_ft * a_m;
+        1: 1258:	EXPECT_NEAR(1.0, d_m2(), 5.0e-5);
+        -: 1259:
+        -: 1260:	// a unit times a sclar ends up with the same units.
+        1: 1261:	meter_t e_m = a_m * scalar_t(3.0);
+        1: 1262:	EXPECT_NEAR(3.0, e_m(), 5.0e-5);
+        -: 1263:
+        1: 1264:	e_m = scalar_t(4.0) * a_m;
+        1: 1265:	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
+        -: 1266:
+        -: 1267:	// unit times its inverse results in a scalar
+        1: 1268:	scalar_t s = a_m * i_m;
+        1: 1269:	EXPECT_NEAR(2.0, s, 5.0e-5);
+        -: 1270: 
+        1: 1271: 	c_m2 = b_ft * meter_t(2);
+        1: 1272: 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+        -: 1273: 
+        1: 1274: 	auto e_ft2 = b_ft * meter_t(3);
+        1: 1275: 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
+        -: 1276:
+        1: 1277:	auto mps = meter_t(10.0) * unit_t<inverse<seconds>>(1.0);
+        -: 1278:
+        1: 1279:}
+        -: 1280:
+        5: 1281:TEST_F(UnitTest, unitTypeScalarMultiplication)
+        -: 1282:{
+        1: 1283:	meter_t a_m(1.0), c_m;
+        1: 1284:	foot_t b_ft(3.28084);
+        -: 1285:
+        1: 1286:	auto result_m = scalar_t(3.0) * a_m;
+        1: 1287:	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
+        -: 1288:
+        1: 1289:	result_m = a_m * scalar_t(4.0);
+        1: 1290:	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
+        -: 1291:
+        1: 1292:	result_m = 3.0 * a_m;
+        1: 1293:	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
+        -: 1294:
+        1: 1295:	result_m = a_m * 4.0;
+        1: 1296:	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
+        -: 1297:
+        1: 1298:	bool isSame = std::is_same<decltype(result_m), meter_t>::value;
+        1: 1299:	EXPECT_TRUE(isSame);
+        1: 1300:}
+        -: 1301:
+        5: 1302:TEST_F(UnitTest, unitTypeDivision)
+        -: 1303:{
+        1: 1304:	meter_t a_m(1.0), b_m(2.0);
+        1: 1305:	foot_t a_ft(3.28084);
+        1: 1306:	second_t a_sec(10.0);
+        -: 1307:	bool isSame;
+        -: 1308:
+        1: 1309:	auto c = a_m / a_ft;
+        1: 1310:	EXPECT_NEAR(1.0, c, 5.0e-5);
+        1: 1311:	isSame = std::is_same<decltype(c), scalar_t>::value;
+        1: 1312:	EXPECT_TRUE(isSame);
+        -: 1313:
+        1: 1314:	c = a_m / b_m;
+        1: 1315:	EXPECT_NEAR(0.5, c, 5.0e-5);
+        1: 1316:	isSame = std::is_same<decltype(c), scalar_t>::value;
+        1: 1317:	EXPECT_TRUE(isSame);
+        -: 1318:
+        1: 1319:	c = a_ft / a_m;
+        1: 1320:	EXPECT_NEAR(1.0, c, 5.0e-5);
+        1: 1321:	isSame = std::is_same<decltype(c), scalar_t>::value;
+        1: 1322:	EXPECT_TRUE(isSame);
+        -: 1323:
+        1: 1324:	c = scalar_t(1.0) / 2.0;
+        1: 1325:	EXPECT_NEAR(0.5, c, 5.0e-5);
+        1: 1326:	isSame = std::is_same<decltype(c), scalar_t>::value;
+        1: 1327:	EXPECT_TRUE(isSame);
+        -: 1328:
+        1: 1329:	c = 1.0 / scalar_t(2.0);
+        1: 1330:	EXPECT_NEAR(0.5, c, 5.0e-5);
+        1: 1331:	isSame = std::is_same<decltype(c), scalar_t>::value;
+        1: 1332:	EXPECT_TRUE(isSame);
+        -: 1333:
+        1: 1334:	double d = scalar_t(1.0) / 2.0;
+        1: 1335:	EXPECT_NEAR(0.5, d, 5.0e-5);
+        -: 1336:
+        1: 1337:	auto e = a_m / a_sec;
+        1: 1338:	EXPECT_NEAR(0.1, e(), 5.0e-5);
+        1: 1339:	isSame = std::is_same<decltype(e), meters_per_second_t>::value;
+        1: 1340:	EXPECT_TRUE(isSame);
+        -: 1341:
+        1: 1342:	auto f = a_m / 8.0;
+        1: 1343:	EXPECT_NEAR(0.125, f(), 5.0e-5);
+        1: 1344:	isSame = std::is_same<decltype(f), meter_t>::value;
+        1: 1345:	EXPECT_TRUE(isSame);
+        -: 1346:
+        1: 1347:	auto g = 4.0 / b_m;
+        1: 1348:	EXPECT_NEAR(2.0, g(), 5.0e-5);
+        1: 1349:	isSame = std::is_same<decltype(g), unit_t<inverse<meters>>>::value;
+        1: 1350:	EXPECT_TRUE(isSame);
+        -: 1351:
+        1: 1352:	auto mph = mile_t(60.0) / hour_t(1.0);
+        1: 1353:	meters_per_second_t mps = mph;
+        1: 1354:	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
+        1: 1355:}
+        -: 1356:
+        5: 1357:TEST_F(UnitTest, scalarTypeImplicitConversion)
+        -: 1358:{
+        1: 1359:	double test = scalar_t(3.0);
+        1: 1360:	EXPECT_DOUBLE_EQ(3.0, test);
+        -: 1361:
+        1: 1362:	scalar_t testS = 3.0;
+        1: 1363:	EXPECT_DOUBLE_EQ(3.0, test);
+        1: 1364:}
+        -: 1365:
+        5: 1366:TEST_F(UnitTest, valueMethod)
+        -: 1367:{
+        1: 1368:	double test = meter_t(3.0).value();
+        1: 1369:	EXPECT_DOUBLE_EQ(3.0, test);
+        1: 1370:}
+        -: 1371:
+        5: 1372:TEST_F(UnitTest, convertMethod)
+        -: 1373:{
+        1: 1374:	double test = meter_t(3.0).convert<feet>().value();
+        1: 1375:	EXPECT_NEAR(9.84252, test, 5.0e-6);
+        1: 1376:}
+        -: 1377:
+        5: 1378:TEST_F(UnitTest, unitPowers)
+        -: 1379:{
+        -: 1380:	bool isSame;
+        1: 1381:	meter_t value(10.0);
+        -: 1382:
+        1: 1383:	auto sq = units::pow<2>(value);
+        1: 1384:	EXPECT_NEAR(100.0, sq(), 5.0e-2);
+        1: 1385:	isSame = std::is_same<decltype(sq), square_meter_t>::value;
+        1: 1386:	EXPECT_TRUE(isSame);
+        -: 1387:
+        1: 1388:	auto cube = units::pow<3>(value);
+        1: 1389:	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
+        1: 1390:	isSame = std::is_same<decltype(cube), unit_t<cubed<meter>>>::value;
+        1: 1391:	EXPECT_TRUE(isSame);
+        -: 1392:
+        1: 1393:	auto fourth = units::pow<4>(value);
+        1: 1394:	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
+        1: 1395:	isSame = std::is_same<decltype(fourth), unit_t<compound_unit<squared<meter>, squared<meter>>>>::value;
+        1: 1396:	EXPECT_TRUE(isSame);
+        1: 1397:}
+        -: 1398:
+        5: 1399:TEST_F(UnitTest, dBConversion)
+        -: 1400:{
+        1: 1401:	dBW_t a_dbw(23.1);
+        1: 1402:	watt_t a_w = a_dbw;
+        1: 1403:	dBm_t a_dbm = a_dbw;
+        -: 1404:
+        1: 1405:	EXPECT_NEAR(204.173794, a_w(), 5.0e-7);
+        1: 1406:	EXPECT_NEAR(53.1, a_dbm(), 5.0e-7);
+        -: 1407:
+        1: 1408:	milliwatt_t b_mw(100000.0);
+        1: 1409:	watt_t b_w = b_mw;
+        1: 1410:	dBm_t b_dbm = b_mw;
+        1: 1411:	dBW_t b_dbw = b_mw;
+        -: 1412:
+        1: 1413:	EXPECT_NEAR(100.0, b_w(), 5.0e-7);
+        1: 1414:	EXPECT_NEAR(50.0, b_dbm(), 5.0e-7);
+        1: 1415:	EXPECT_NEAR(20.0, b_dbw(), 5.0e-7);
+        1: 1416:}
+        -: 1417:
+        5: 1418:TEST_F(UnitTest, dBAddition)
+        -: 1419:{
+        -: 1420:	bool isSame;
+        -: 1421:
+        1: 1422:	auto result_dbw = dBW_t(10.0) + dB_t(30.0);
+        1: 1423:	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
+        1: 1424:	result_dbw = dB_t(12.0) + dBW_t(30.0);
+        1: 1425:	EXPECT_NEAR(42.0, result_dbw(), 5.0e-5);
+        1: 1426:	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
+        1: 1427:	EXPECT_TRUE(isSame);
+        -: 1428:
+        1: 1429:	auto result_dbm = dB_t(30.0) + dBm_t(20.0);
+        1: 1430:	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
+        -: 1431:
+        -: 1432:	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
+        1: 1433:	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
+        1: 1434:	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
+        1: 1435:	isSame = std::is_same<decltype(result_dBW2), unit_t<squared<watts>, double, decibel_scale>>::value;
+        1: 1436:	EXPECT_TRUE(isSame);
+        1: 1437:}
+        -: 1438:
+        5: 1439:TEST_F(UnitTest, dBSubtraction)
+        -: 1440:{
+        -: 1441:	bool isSame;
+        -: 1442:
+        1: 1443:	auto result_dbw = dBW_t(10.0) - dB_t(30.0);
+        1: 1444:	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
+        1: 1445:	isSame = std::is_same<decltype(result_dbw), dBW_t>::value;
+        1: 1446:	EXPECT_TRUE(isSame);
+        -: 1447:
+        1: 1448:	auto result_dbm = dBm_t(100.0) - dB_t(30.0);
+        1: 1449:	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
+        1: 1450:	isSame = std::is_same<decltype(result_dbm), dBm_t>::value;
+        1: 1451:	EXPECT_TRUE(isSame);
+        -: 1452:
+        1: 1453:	auto result_db = dBW_t(100.0) - dBW_t(80.0);
+        1: 1454:	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+        1: 1455:	isSame = std::is_same<decltype(result_db), dB_t>::value;
+        1: 1456:	EXPECT_TRUE(isSame);
+        -: 1457:
+        1: 1458:	result_db = dB_t(100.0) - dB_t(80.0);
+        1: 1459:	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+        1: 1460:	isSame = std::is_same<decltype(result_db), dB_t>::value;
+        1: 1461:	EXPECT_TRUE(isSame);
+        1: 1462:}
+        -: 1463:
+        5: 1464:TEST_F(UnitTest, lengthConversion)
+        -: 1465:{
+        -: 1466:	double test;
+        1: 1467:	test = convert<meters, nanometers>(0.000000001);
+        1: 1468:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1469:	test = convert<meters, micrometers>(0.000001);
+        1: 1470:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1471:	test = convert<meters, millimeters>(0.001);
+        1: 1472:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1473:	test = convert<meters, centimeters>(0.01);
+        1: 1474:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1475:	test = convert<meters, kilometers>(1000.0);
+        1: 1476:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1477:	test = convert<meters, meters>(1.0);
+        1: 1478:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1479:	test = convert<meters, feet>(0.3048);
+        1: 1480:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1481:	test = convert<meters, miles>(1609.344);
+        1: 1482:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1483:	test = convert<meters, inches>(0.0254);
+        1: 1484:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1485:	test = convert<meters, nauticalMiles>(1852.0);
+        1: 1486:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1487:	test = convert<meters, astronicalUnits>(149597870700.0);
+        1: 1488:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1489:	test = convert<meters, lightyears>(9460730472580800.0);
+        1: 1490:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1491:	test = convert<meters, parsec>(3.08567758e16);
+        1: 1492:	EXPECT_NEAR(1.0, test, 5.0e7);
+        -: 1493:
+        1: 1494:	test = convert<feet, feet>(6.3);
+        1: 1495:	EXPECT_NEAR(6.3, test, 5.0e-5);
+        1: 1496:	test = convert<feet, inches>(6.0);
+        1: 1497:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1498:	test = convert<inches, feet>(6.0);
+        1: 1499:	EXPECT_NEAR(0.5, test, 5.0e-5);
+        1: 1500:	test = convert<meter, feet>(1.0);
+        1: 1501:	EXPECT_NEAR(3.28084, test, 5.0e-5);
+        1: 1502:	test = convert<miles, nauticalMiles>(6.3);
+        1: 1503:	EXPECT_NEAR(5.47455, test, 5.0e-6);
+        1: 1504:	test = convert<miles, meters>(11.0);
+        1: 1505:	EXPECT_NEAR(17702.8, test, 5.0e-2);
+        1: 1506:	test = convert<meters, chains>(1.0);
+        1: 1507:	EXPECT_NEAR(0.0497097, test, 5.0e-7);
+        -: 1508:
+        1: 1509:}
+        -: 1510:
+        5: 1511:TEST_F(UnitTest, massConversion)
+        -: 1512:{
+        -: 1513:	double test;
+        -: 1514:
+        1: 1515:	test = convert<kilograms, grams>(1.0e-3);
+        1: 1516:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1517:	test = convert<kilograms, micrograms>(1.0e-9);
+        1: 1518:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1519:	test = convert<kilograms, milligrams>(1.0e-6);
+        1: 1520:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1521:	test = convert<kilograms, kilograms>(1.0);
+        1: 1522:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1523:	test = convert<kilograms, metric_tons>(1000.0);
+        1: 1524:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1525:	test = convert<kilograms, pounds>(0.453592);
+        1: 1526:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1527:	test = convert<kilograms, imperial_tons>(1016.05);
+        1: 1528:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1529:	test = convert<kilograms, us_tons>(907.185);
+        1: 1530:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1531:	test = convert<kilograms, mass::ounces>(0.0283495);
+        1: 1532:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1533:	test = convert<kilograms, carats>(0.0002);
+        1: 1534:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1535:	test = convert<slugs, kilograms>(1.0);
+        1: 1536:	EXPECT_NEAR(14.593903, test, 5.0e-7);
+        -: 1537:
+        1: 1538:	test = convert<pounds, carats>(6.3);
+        1: 1539:	EXPECT_NEAR(14288.2, test, 5.0e-2);
+        1: 1540:}
+        -: 1541:
+        5: 1542:TEST_F(UnitTest, timeConversion)
+        -: 1543:{
+        -: 1544:	double test;
+        -: 1545:
+        1: 1546:	test = convert<seconds, seconds>(1.0);
+        1: 1547:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1548:	test = convert<seconds, nanoseconds>(1.0e-9);
+        1: 1549:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1550:	test = convert<seconds, microseconds>(1.0e-6);
+        1: 1551:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1552:	test = convert<seconds, millseconds>(1.0e-3);
+        1: 1553:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1554:	test = convert<seconds, minutes>(60.0);
+        1: 1555:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1556:	test = convert<seconds, hours>(3600.0);
+        1: 1557:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1558:	test = convert<seconds, days>(86400.0);
+        1: 1559:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1560:	test = convert<seconds, weeks>(604800.0);
+        1: 1561:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1562:	test = convert<seconds, years>(3.154e7);
+        1: 1563:	EXPECT_NEAR(1.0, test, 5.0e3);
+        -: 1564:
+        1: 1565:	test = convert<years, weeks>(2.0);
+        1: 1566:	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
+        1: 1567:	test = convert<hours, minutes>(4.0);
+        1: 1568:	EXPECT_NEAR(240.0, test, 5.0e-14);
+        1: 1569:}
+        -: 1570:
+        5: 1571:TEST_F(UnitTest, angleConversionFactors)
+        -: 1572:{
+        -: 1573:	double test;
+        -: 1574:
+        1: 1575:	test = convert<angle::radians, angle::radians>(1.0);
+        1: 1576:	EXPECT_NEAR(1.0, test, 5.0e-20);
+        1: 1577:	test = convert<angle::radians, angle::milliradians>(0.001);
+        1: 1578:	EXPECT_NEAR(1.0, test, 5.0e-4);
+        1: 1579:	test = convert<angle::radians, angle::degrees>(0.0174533);
+        1: 1580:	EXPECT_NEAR(1.0, test, 5.0e-7);
+        1: 1581:	test = convert<angle::radians, angle::arcminutes>(0.000290888);
+        1: 1582:	EXPECT_NEAR(0.99999928265913, test, 5.0e-8);
+        1: 1583:	test = convert<angle::radians, angle::arcseconds>(4.8481e-6);
+        1: 1584:	EXPECT_NEAR(0.999992407, test, 5.0e-10);
+        1: 1585:	test = convert<angle::radians, angle::turns>(6.28319);
+        1: 1586:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        1: 1587:	test = convert<angle::radians, angle::mils>(0.00015625);
+        1: 1588:	EXPECT_NEAR(1.0, test, 5.0e-9);
+        1: 1589:	test = convert<angle::radians, angle::gradians>(0.015708);
+        1: 1590:	EXPECT_NEAR(1.0, test, 5.0e-6);
+        -: 1591:
+        1: 1592:	test = convert<angle::radians, angle::radians>(2.1);
+        1: 1593:	EXPECT_NEAR(2.1, test, 5.0e-6);
+        1: 1594:	test = convert<angle::arcseconds, angle::gradians>(2.1);
+        1: 1595:	EXPECT_NEAR(0.000648148, test, 5.0e-6);
+        1: 1596:	test = convert<angle::radians, angle::degrees>(units::constants::PI);
+        1: 1597:	EXPECT_NEAR(180.0, test, 5.0e-6);
+        1: 1598:	test = convert<angle::degrees, angle::radians>(90.0);
+        1: 1599:	EXPECT_NEAR(constants::PI / 2, test, 5.0e-6);
+        1: 1600:	test = convert<angle::degrees, angle::mils>(47.0);
+        1: 1601:	EXPECT_NEAR(5249.95039, test, 5.0e-6);
+        -: 1602:
+        1: 1603:}
+        -: 1604:
+        5: 1605:TEST_F(UnitTest, currentConversion)
+        -: 1606:{
+        -: 1607:	double test;
+        -: 1608:
+        1: 1609:	test = convert<current::A, current::mA>(2.1);
+        1: 1610:	EXPECT_NEAR(2100.0, test, 5.0e-6);
+        1: 1611:}
+        -: 1612:
+        5: 1613:TEST_F(UnitTest, temperature)
+        -: 1614:{
+        -: 1615:	// temp conversion are weird/hard since they involve translations AND scaling.
+        -: 1616:	double test;
+        -: 1617:
+        1: 1618:	test = convert<kelvin, kelvin>(72.0);
+        1: 1619:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1620:	test = convert<fahrenheit, fahrenheit>(72.0);
+        1: 1621:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1622:	test = convert<kelvin, fahrenheit>(300.0);
+        1: 1623:	EXPECT_NEAR(80.33, test, 5.0e-5);
+        1: 1624:	test = convert<fahrenheit, kelvin>(451.0);
+        1: 1625:	EXPECT_NEAR(505.928, test, 5.0e-4);
+        1: 1626:	test = convert<kelvin, celsius>(300.0);
+        1: 1627:	EXPECT_NEAR(26.85, test, 5.0e-3);
+        1: 1628:	test = convert<celsius, kelvin>(451.0);
+        1: 1629:	EXPECT_NEAR(724.15, test, 5.0e-3);
+        1: 1630:	test = convert<fahrenheit, celsius>(72.0);
+        1: 1631:	EXPECT_NEAR(22.2222, test, 5.0e-5);
+        1: 1632:	test = convert<celsius, fahrenheit>(100.0);
+        1: 1633:	EXPECT_NEAR(212.0, test, 5.0e-5);
+        1: 1634:	test = convert<fahrenheit, celsius>(32.0);
+        1: 1635:	EXPECT_NEAR(0.0, test, 5.0e-5);
+        1: 1636:	test = convert<celsius, fahrenheit>(0.0);
+        1: 1637:	EXPECT_NEAR(32.0, test, 5.0e-5);
+        1: 1638:	test = convert<rankine, kelvin>(100.0);
+        1: 1639:	EXPECT_NEAR(55.5556, test, 5.0e-5);
+        1: 1640:	test = convert<kelvin, rankine>(100.0);
+        1: 1641:	EXPECT_NEAR(180.0, test, 5.0e-5);
+        1: 1642:	test = convert<fahrenheit, rankine>(100.0);
+        1: 1643:	EXPECT_NEAR(559.67, test, 5.0e-5);
+        1: 1644:	test = convert<rankine, fahrenheit>(72.0);
+        1: 1645:	EXPECT_NEAR(-387.67, test, 5.0e-5);
+        1: 1646:	test = convert<reaumur, kelvin>(100.0);
+        1: 1647:	EXPECT_NEAR(398.0, test, 5.0e-1);
+        1: 1648:	test = convert<reaumur, celsius>(80.0);
+        1: 1649:	EXPECT_NEAR(100.0, test, 5.0e-5);
+        1: 1650:	test = convert<celsius, reaumur>(212.0);
+        1: 1651:	EXPECT_NEAR(169.6, test, 5.0e-2);
+        1: 1652:	test = convert<reaumur, fahrenheit>(80.0);
+        1: 1653:	EXPECT_NEAR(212.0, test, 5.0e-5);
+        1: 1654:	test = convert<fahrenheit, reaumur>(37.0);
+        1: 1655:	EXPECT_NEAR(2.222, test, 5.0e-3);
+        1: 1656:}
+        -: 1657:
+        5: 1658:TEST_F(UnitTest, luminousIntensityConversion)
+        -: 1659:{
+        -: 1660:	double test;
+        -: 1661:
+        1: 1662:	test = convert<candela, millicandela>(72.0);
+        1: 1663:	EXPECT_NEAR(72000.0, test, 5.0e-5);
+        1: 1664:	test = convert<millicandela, candela>(376.0);
+        1: 1665:	EXPECT_NEAR(0.376, test, 5.0e-5);
+        1: 1666:}
+        -: 1667:
+        5: 1668:TEST_F(UnitTest, solidAngleConversion)
+        -: 1669:{
+        -: 1670:	double test;
+        -: 1671:	bool same;
+        -: 1672:
+        1: 1673:	same = std::is_same<base_unit_of<steradians>, base_unit_of<degrees_squared>>::value;
+        1: 1674:	EXPECT_TRUE(same);
+        -: 1675:
+        1: 1676:	test = convert<steradians, steradians>(72.0);
+        1: 1677:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1678:	test = convert<steradians, degrees_squared>(1.0);
+        1: 1679:	EXPECT_NEAR(3282.8, test, 5.0e-2);
+        1: 1680:	test = convert<steradians, spats>(8.0);
+        1: 1681:	EXPECT_NEAR(0.636619772367582, test, 5.0e-14);
+        1: 1682:	test = convert<degrees_squared, steradians>(3282.8);
+        1: 1683:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1684:	test = convert<degrees_squared, degrees_squared>(72.0);
+        1: 1685:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1686:	test = convert<degrees_squared, spats>(3282.8);
+        1: 1687:	EXPECT_NEAR(1.0 / (4 * constants::PI), test, 5.0e-5);
+        1: 1688:	test = convert<spats, steradians>(1.0 / (4 * constants::PI));
+        1: 1689:	EXPECT_NEAR(1.0, test, 5.0e-14);
+        1: 1690:	test = convert<spats, degrees_squared>(1.0 / (4 * constants::PI));
+        1: 1691:	EXPECT_NEAR(3282.8, test, 5.0e-2);
+        1: 1692:	test = convert<spats, spats>(72.0);
+        1: 1693:	EXPECT_NEAR(72.0, test, 5.0e-5);
+        1: 1694:}
+        -: 1695:
+        5: 1696:TEST_F(UnitTest, frequencyConversion)
+        -: 1697:{
+        -: 1698:	double test;
+        -: 1699:
+        1: 1700:	test = convert<hertz, kilohertz>(63000.0);
+        1: 1701:	EXPECT_NEAR(63.0, test, 5.0e-5);
+        1: 1702:	test = convert<hertz, hertz>(6.3);
+        1: 1703:	EXPECT_NEAR(6.3, test, 5.0e-5);
+        1: 1704:	test = convert<kilohertz, hertz>(5.0);
+        1: 1705:	EXPECT_NEAR(5000.0, test, 5.0e-5);
+        1: 1706:	test = convert<megahertz, hertz>(1.0);
+        1: 1707:	EXPECT_NEAR(1.0e6, test, 5.0e-5);
+        1: 1708:}
+        -: 1709:
+        5: 1710:TEST_F(UnitTest, velocityConversion)
+        -: 1711:{
+        -: 1712:	double test;
+        -: 1713:	bool same;
+        -: 1714:
+        1: 1715:	same = std::is_same<meters_per_second, unit<std::ratio<1>, category::velocity_unit>>::value;
+        1: 1716:	EXPECT_TRUE(same);
+        1: 1717:	same = units::is_convertible_unit<miles_per_hour, meters_per_second>::value;
+        1: 1718:	EXPECT_TRUE(same);
+        -: 1719:
+        1: 1720:	test = convert<meters_per_second, miles_per_hour>(1250.0);
+        1: 1721:	EXPECT_NEAR(2796.17, test, 5.0e-3);
+        1: 1722:	test = convert<feet_per_second, kilometers_per_hour>(2796.17);
+        1: 1723:	EXPECT_NEAR(3068.181418, test, 5.0e-7);
+        1: 1724:	test = convert<knots, miles_per_hour>(600.0);
+        1: 1725:	EXPECT_NEAR(690.468, test, 5.0e-4);
+        1: 1726:	test = convert<miles_per_hour, feet_per_second>(120.0);
+        1: 1727:	EXPECT_NEAR(176.0, test, 5.0e-5);
+        1: 1728:	test = convert<feet_per_second, meters_per_second>(10.0);
+        1: 1729:	EXPECT_NEAR(3.048, test, 5.0e-5);
+        1: 1730:}
+        -: 1731:
+        5: 1732:TEST_F(UnitTest, angularVelocityConversion)
+        -: 1733:{
+        -: 1734:	double test;
+        -: 1735:	bool same;
+        -: 1736:
+        1: 1737:	same = std::is_same<radians_per_second, unit<std::ratio<1>, category::angular_velocity_unit>>::value;
+        1: 1738:	EXPECT_TRUE(same);
+        1: 1739:	same = units::is_convertible_unit<rpm, radians_per_second>::value;
+        1: 1740:	EXPECT_TRUE(same);
+        -: 1741:
+        1: 1742:	test = convert<radians_per_second, milliarcseconds_per_year>(1.0);
+        1: 1743:	EXPECT_NEAR(6.504e15, test, 1.0e12);
+        1: 1744:	test = convert<degrees_per_second, radians_per_second>(1.0);
+        1: 1745:	EXPECT_NEAR(0.0174533, test, 5.0e-8);
+        1: 1746:	test = convert<rpm, radians_per_second>(1.0);
+        1: 1747:	EXPECT_NEAR(0.10471975512, test, 5.0e-13);
+        1: 1748:	test = convert<milliarcseconds_per_year, radians_per_second>(1.0);
+        1: 1749:	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
+        1: 1750:}
+        -: 1751:
+        5: 1752:TEST_F(UnitTest, accelerationConversion)
+        -: 1753:{
+        -: 1754:	double test;
+        -: 1755:
+        1: 1756:	test = convert<standard_gravity, meters_per_second_squared>(1.0);
+        1: 1757:	EXPECT_NEAR(9.80665, test, 5.0e-10);
+        1: 1758:}
+        5: 1759:TEST_F(UnitTest, forceConversion)
+        -: 1760:{
+        -: 1761:	double test;
+        -: 1762:
+        1: 1763:	test = convert<force::newton, force::newton>(1.0);
+        1: 1764:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1765:	test = convert<force::newton, force::pounds>(6.3);
+        1: 1766:	EXPECT_NEAR(1.4163, test, 5.0e-5);
+        1: 1767:	test = convert<force::newton, force::dynes>(5.0);
+        1: 1768:	EXPECT_NEAR(500000.0, test, 5.0e-5);
+        1: 1769:	test = convert<force::newtons, force::poundals>(2.1);
+        1: 1770:	EXPECT_NEAR(15.1893, test, 5.0e-5);
+        1: 1771:	test = convert<force::newtons, force::kiloponds>(173.0);
+        1: 1772:	EXPECT_NEAR(17.6411, test, 5.0e-5);
+        1: 1773:	test = convert<force::poundals, force::kiloponds>(21.879);
+        1: 1774:	EXPECT_NEAR(0.308451933, test, 5.0e-10);
+        1: 1775:}
+        -: 1776:
+        5: 1777:TEST_F(UnitTest, areaConversionFactors)
+        -: 1778:{
+        -: 1779:	double test;
+        -: 1780:
+        1: 1781:	test = convert<hectares, acres>(6.3);
+        1: 1782:	EXPECT_NEAR(15.5676, test, 5.0e-5);
+        1: 1783:	test = convert<square_miles, square_kilometers>(10.0);
+        1: 1784:	EXPECT_NEAR(25.8999, test, 5.0e-5);
+        1: 1785:	test = convert<square_inch, square_meter>(4.0);
+        1: 1786:	EXPECT_NEAR(0.00258064, test, 5.0e-9);
+        1: 1787:	test = convert<acre, square_foot>(5.0);
+        1: 1788:	EXPECT_NEAR(217800.0, test, 5.0e-5);
+        1: 1789:	test = convert<square_meter, square_foot>(1.0);
+        1: 1790:	EXPECT_NEAR(10.7639, test, 5.0e-5);
+        1: 1791:}
+        -: 1792:
+        5: 1793:TEST_F(UnitTest, pressureConversion)
+        -: 1794:{
+        -: 1795:	double test;
+        -: 1796:
+        1: 1797:	test = convert<pascals, torr>(1.0);
+        1: 1798:	EXPECT_NEAR(0.00750062, test, 5.0e-5);
+        1: 1799:	test = convert<bar, psi>(2.2);
+        1: 1800:	EXPECT_NEAR(31.9083, test, 5.0e-5);
+        1: 1801:	test = convert<atmospheres, bar>(4.0);
+        1: 1802:	EXPECT_NEAR(4.053, test, 5.0e-5);
+        1: 1803:	test = convert<torr, pascals>(800.0);
+        1: 1804:	EXPECT_NEAR(106657.89474, test, 5.0e-5);
+        1: 1805:	test = convert<psi, atmospheres>(38.0);
+        1: 1806:	EXPECT_NEAR(2.58575, test, 5.0e-5);
+        1: 1807:	test = convert<psi, pascals>(1.0);
+        1: 1808:	EXPECT_NEAR(6894.76, test, 5.0e-3);
+        1: 1809:	test = convert<pascals, bar>(0.25);
+        1: 1810:	EXPECT_NEAR(2.5e-6, test, 5.0e-5);
+        1: 1811:	test = convert<torr, atmospheres>(9.0);
+        1: 1812:	EXPECT_NEAR(0.0118421, test, 5.0e-8);
+        1: 1813:	test = convert<bar, torr>(12.0);
+        1: 1814:	EXPECT_NEAR(9000.74, test, 5.0e-3);
+        1: 1815:	test = convert<atmospheres, psi>(1.0);
+        1: 1816:	EXPECT_NEAR(14.6959, test, 5.0e-5);
+        1: 1817:}
+        -: 1818:	
+        5: 1819:TEST_F(UnitTest, chargeConversion)
+        -: 1820:{
+        -: 1821:	double test;
+        -: 1822:
+        1: 1823:	test = convert<coulombs, ampere_hours>(4.0);
+        1: 1824:	EXPECT_NEAR(0.00111111, test, 5.0e-9);
+        1: 1825:	test = convert<ampere_hours, coulombs>(1.0);
+        1: 1826:	EXPECT_NEAR(3600.0, test, 5.0e-6);
+        1: 1827:}
+        -: 1828:
+        5: 1829:TEST_F(UnitTest, energyConversion)
+        -: 1830:{
+        -: 1831:	double test;
+        -: 1832:
+        1: 1833:	test = convert<joules, calories>(8000.000464);
+        1: 1834:	EXPECT_NEAR(1912.046, test, 5.0e-4);
+        1: 1835:	test = convert<therms, joules>(12.0);
+        1: 1836:	EXPECT_NEAR(1.266e+9, test, 5.0e5);
+        1: 1837:	test = convert<megajoules, watt_hours>(100.0);
+        1: 1838:	EXPECT_NEAR(27777.778, test, 5.0e-4);
+        1: 1839:	test = convert<kilocalories, megajoules>(56.0);
+        1: 1840:	EXPECT_NEAR(0.234304, test, 5.0e-7);
+        1: 1841:	test = convert<kilojoules, therms>(56.0);
+        1: 1842:	EXPECT_NEAR(0.000530904, test, 5.0e-5);
+        1: 1843:	test = convert<british_thermal_units, kilojoules>(18.56399995447);
+        1: 1844:	EXPECT_NEAR(19.5860568, test, 5.0e-5);
+        1: 1845:	test = convert<calories, energy::foot_pounds>(18.56399995447);
+        1: 1846:	EXPECT_NEAR(57.28776190423856, test, 5.0e-5);
+        1: 1847:	test = convert<megajoules, calories>(1.0);
+        1: 1848:	EXPECT_NEAR(239006.0, test, 5.0e-1);
+        1: 1849:	test = convert<kilocalories, kilowatt_hours>(2.0);
+        1: 1850:	EXPECT_NEAR(0.00232444, test, 5.0e-9);
+        1: 1851:	test = convert<therms, kilocalories>(0.1);
+        1: 1852:	EXPECT_NEAR(2521.04, test, 5.0e-3);
+        1: 1853:	test = convert<watt_hours, megajoules>(67.0);
+        1: 1854:	EXPECT_NEAR(0.2412, test, 5.0e-5);
+        1: 1855:	test = convert<british_thermal_units, watt_hours>(100.0);
+        1: 1856:	EXPECT_NEAR(29.3071, test, 5.0e-5);
+        1: 1857:	test = convert<calories, BTU>(100.0);
+        1: 1858:	EXPECT_NEAR(0.396567, test, 5.0e-5);
+        1: 1859:}
+        -: 1860:
+        5: 1861:TEST_F(UnitTest, powerConversion)
+        -: 1862:{
+        -: 1863:	double test;
+        -: 1864:
+        1: 1865:	test = convert<compound_unit<energy::foot_pounds, inverse<seconds>>, watts>(550.0);
+        1: 1866:	EXPECT_NEAR(745.7, test, 5.0e-2);
+        1: 1867:	test = convert<watts, gigawatts>(1000000000.0);
+        1: 1868:	EXPECT_NEAR(1.0, test, 5.0e-4);
+        1: 1869:	test = convert<microwatts, watts>(200000.0);
+        1: 1870:	EXPECT_NEAR(0.2, test, 5.0e-4);
+        1: 1871:	test = convert<horsepower, watts>(100.0);
+        1: 1872:	EXPECT_NEAR(74570.0, test, 5.0e-1);
+        1: 1873:	test = convert<horsepower, megawatts>(5.0);
+        1: 1874:	EXPECT_NEAR(0.0037284994, test, 5.0e-7);
+        1: 1875:	test = convert<kilowatts, horsepower>(232.0);
+        1: 1876:	EXPECT_NEAR(311.117, test, 5.0e-4);
+        1: 1877:	test = convert<milliwatts, horsepower>(1001.0);
+        1: 1878:	EXPECT_NEAR(0.001342363, test, 5.0e-9);
+        1: 1879:}
+        -: 1880:
+        5: 1881:TEST_F(UnitTest, voltageConversion)
+        -: 1882:{
+        -: 1883:	double test;
+        -: 1884:
+        1: 1885:	test = convert<volts, millivolts>(10.0);
+        1: 1886:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 1887:	test = convert<picovolts, volts>(1000000000000.0);
+        1: 1888:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1889:	test = convert<nanovolts, volts>(1000000000.0);
+        1: 1890:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1891:	test = convert<microvolts, volts>(1000000.0);
+        1: 1892:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1893:	test = convert<millivolts, volts>(1000.0);
+        1: 1894:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1895:	test = convert<kilovolts, volts>(0.001);
+        1: 1896:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1897:	test = convert<megavolts, volts>(0.000001);
+        1: 1898:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1899:	test = convert<gigavolts, volts>(0.000000001);
+        1: 1900:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1901:	test = convert<statvolts, volts>(299.792458);
+        1: 1902:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1903:	test = convert<millivolts, statvolts>(1000.0);
+        1: 1904:	EXPECT_NEAR(299.792458, test, 5.0e-5);
+        1: 1905:	test = convert<abvolts, nanovolts>(0.1);
+        1: 1906:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1907:	test = convert<microvolts, abvolts>(0.01);
+        1: 1908:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1909:}
+        -: 1910:
+        5: 1911:TEST_F(UnitTest, capacitanceConversion)
+        -: 1912:{
+        -: 1913:	double test;
+        -: 1914:
+        1: 1915:	test = convert<farads, millifarads>(10.0);
+        1: 1916:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 1917:	test = convert<picofarads, farads>(1000000000000.0);
+        1: 1918:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1919:	test = convert<nanofarads, farads>(1000000000.0);
+        1: 1920:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1921:	test = convert<microfarads, farads>(1000000.0);
+        1: 1922:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1923:	test = convert<millifarads, farads>(1000.0);
+        1: 1924:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1925:	test = convert<kilofarads, farads>(0.001);
+        1: 1926:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1927:	test = convert<megafarads, farads>(0.000001);
+        1: 1928:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1929:	test = convert<gigafarads, farads>(0.000000001);
+        1: 1930:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1931:}
+        -: 1932:
+        5: 1933:TEST_F(UnitTest, impedanceConversion)
+        -: 1934:{
+        -: 1935:	double test;
+        -: 1936:
+        1: 1937:	test = convert<ohms, milliohms>(10.0);
+        1: 1938:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 1939:	test = convert<picoohms, ohms>(1000000000000.0);
+        1: 1940:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1941:	test = convert<nanoohms, ohms>(1000000000.0);
+        1: 1942:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1943:	test = convert<microohms, ohms>(1000000.0);
+        1: 1944:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1945:	test = convert<milliohms, ohms>(1000.0);
+        1: 1946:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1947:	test = convert<kiloohms, ohms>(0.001);
+        1: 1948:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1949:	test = convert<megaohms, ohms>(0.000001);
+        1: 1950:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1951:	test = convert<gigaohms, ohms>(0.000000001);
+        1: 1952:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1953:}
+        -: 1954:
+        5: 1955:TEST_F(UnitTest, conductanceConversion)
+        -: 1956:{
+        -: 1957:	double test;
+        -: 1958:
+        1: 1959:	test = convert<siemens, millisiemens>(10.0);
+        1: 1960:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 1961:	test = convert<picosiemens, siemens>(1000000000000.0);
+        1: 1962:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1963:	test = convert<nanosiemens, siemens>(1000000000.0);
+        1: 1964:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1965:	test = convert<microsiemens, siemens>(1000000.0);
+        1: 1966:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1967:	test = convert<millisiemens, siemens>(1000.0);
+        1: 1968:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1969:	test = convert<kilosiemens, siemens>(0.001);
+        1: 1970:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1971:	test = convert<megasiemens, siemens>(0.000001);
+        1: 1972:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1973:	test = convert<gigasiemens, siemens>(0.000000001);
+        1: 1974:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1975:}
+        -: 1976:
+        5: 1977:TEST_F(UnitTest, magneticFluxConversion)
+        -: 1978:{
+        -: 1979:	double test;
+        -: 1980:
+        1: 1981:	test = convert<webers, milliwebers>(10.0);
+        1: 1982:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 1983:	test = convert<picowebers, webers>(1000000000000.0);
+        1: 1984:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1985:	test = convert<nanowebers, webers>(1000000000.0);
+        1: 1986:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1987:	test = convert<microwebers, webers>(1000000.0);
+        1: 1988:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1989:	test = convert<milliwebers, webers>(1000.0);
+        1: 1990:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1991:	test = convert<kilowebers, webers>(0.001);
+        1: 1992:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1993:	test = convert<megawebers, webers>(0.000001);
+        1: 1994:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1995:	test = convert<gigawebers, webers>(0.000000001);
+        1: 1996:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1997:	test = convert<maxwells, webers>(100000000.0);
+        1: 1998:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 1999:	test = convert<nanowebers, maxwells>(10.0);
+        1: 2000:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2001:}
+        -: 2002:
+        5: 2003:TEST_F(UnitTest, magneticFieldStrengthConversion)
+        -: 2004:{
+        -: 2005:	double test;
+        -: 2006:
+        1: 2007:	test = convert<teslas, milliteslas>(10.0);
+        1: 2008:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2009:	test = convert<picoteslas, teslas>(1000000000000.0);
+        1: 2010:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2011:	test = convert<nanoteslas, teslas>(1000000000.0);
+        1: 2012:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2013:	test = convert<microteslas, teslas>(1000000.0);
+        1: 2014:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2015:	test = convert<milliteslas, teslas>(1000.0);
+        1: 2016:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2017:	test = convert<kiloteslas, teslas>(0.001);
+        1: 2018:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2019:	test = convert<megateslas, teslas>(0.000001);
+        1: 2020:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2021:	test = convert<gigateslas, teslas>(0.000000001);
+        1: 2022:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2023:	test = convert<gauss, teslas>(10000.0);
+        1: 2024:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2025:	test = convert<nanoteslas, gauss>(100000.0);
+        1: 2026:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2027:}
+        -: 2028:
+        5: 2029:TEST_F(UnitTest, inductanceConversion)
+        -: 2030:{
+        -: 2031:	double test;
+        -: 2032:
+        1: 2033:	test = convert<henrys, millihenrys>(10.0);
+        1: 2034:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2035:	test = convert<picohenrys, henrys>(1000000000000.0);
+        1: 2036:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2037:	test = convert<nanohenrys, henrys>(1000000000.0);
+        1: 2038:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2039:	test = convert<microhenrys, henrys>(1000000.0);
+        1: 2040:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2041:	test = convert<millihenrys, henrys>(1000.0);
+        1: 2042:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2043:	test = convert<kilohenrys, henrys>(0.001);
+        1: 2044:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2045:	test = convert<megahenrys, henrys>(0.000001);
+        1: 2046:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2047:	test = convert<gigahenrys, henrys>(0.000000001);
+        1: 2048:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2049:}
+        -: 2050:
+        5: 2051:TEST_F(UnitTest, luminousFluxConversion)
+        -: 2052:{
+        -: 2053:	double test;
+        -: 2054:
+        1: 2055:	test = convert<lumens, millilumens>(10.0);
+        1: 2056:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2057:	test = convert<picolumens, lumens>(1000000000000.0);
+        1: 2058:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2059:	test = convert<nanolumens, lumens>(1000000000.0);
+        1: 2060:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2061:	test = convert<microlumens, lumens>(1000000.0);
+        1: 2062:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2063:	test = convert<millilumens, lumens>(1000.0);
+        1: 2064:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2065:	test = convert<kilolumens, lumens>(0.001);
+        1: 2066:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2067:	test = convert<megalumens, lumens>(0.000001);
+        1: 2068:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2069:	test = convert<gigalumens, lumens>(0.000000001);
+        1: 2070:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2071:}
+        -: 2072:
+        5: 2073:TEST_F(UnitTest, illuminanceConversion)
+        -: 2074:{
+        -: 2075:	double test;
+        -: 2076:
+        1: 2077:	test = convert<luxes, milliluxes>(10.0);
+        1: 2078:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2079:	test = convert<picoluxes, luxes>(1000000000000.0);
+        1: 2080:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2081:	test = convert<nanoluxes, luxes>(1000000000.0);
+        1: 2082:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2083:	test = convert<microluxes, luxes>(1000000.0);
+        1: 2084:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2085:	test = convert<milliluxes, luxes>(1000.0);
+        1: 2086:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2087:	test = convert<kiloluxes, luxes>(0.001);
+        1: 2088:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2089:	test = convert<megaluxes, luxes>(0.000001);
+        1: 2090:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2091:	test = convert<gigaluxes, luxes>(0.000000001);
+        1: 2092:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        -: 2093:
+        1: 2094:	test = convert<footcandles, luxes>(0.092903);
+        1: 2095:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2096:	test = convert<lux, lumens_per_square_inch>(1550.0031000062);
+        1: 2097:	EXPECT_NEAR(1.0, test, 5.0e-13);
+        1: 2098:	test = convert<phots, luxes>(0.0001);
+        1: 2099:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2100:}
+        -: 2101:
+        5: 2102:TEST_F(UnitTest, radiationConversion)
+        -: 2103:{
+        -: 2104:	double test;
+        -: 2105:
+        1: 2106:	test = convert<becquerels, millibecquerels>(10.0);
+        1: 2107:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2108:	test = convert<picobecquerels, becquerels>(1000000000000.0);
+        1: 2109:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2110:	test = convert<nanobecquerels, becquerels>(1000000000.0);
+        1: 2111:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2112:	test = convert<microbecquerels, becquerels>(1000000.0);
+        1: 2113:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2114:	test = convert<millibecquerels, becquerels>(1000.0);
+        1: 2115:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2116:	test = convert<kilobecquerels, becquerels>(0.001);
+        1: 2117:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2118:	test = convert<megabecquerels, becquerels>(0.000001);
+        1: 2119:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2120:	test = convert<gigabecquerels, becquerels>(0.000000001);
+        1: 2121:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        -: 2122:
+        1: 2123:	test = convert<grays, milligrays>(10.0);
+        1: 2124:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2125:	test = convert<picograys, grays>(1000000000000.0);
+        1: 2126:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2127:	test = convert<nanograys, grays>(1000000000.0);
+        1: 2128:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2129:	test = convert<micrograys, grays>(1000000.0);
+        1: 2130:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2131:	test = convert<milligrays, grays>(1000.0);
+        1: 2132:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2133:	test = convert<kilograys, grays>(0.001);
+        1: 2134:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2135:	test = convert<megagrays, grays>(0.000001);
+        1: 2136:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2137:	test = convert<gigagrays, grays>(0.000000001);
+        1: 2138:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        -: 2139:
+        1: 2140:	test = convert<sieverts, millisieverts>(10.0);
+        1: 2141:	EXPECT_NEAR(10000.0, test, 5.0e-5);
+        1: 2142:	test = convert<picosieverts, sieverts>(1000000000000.0);
+        1: 2143:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2144:	test = convert<nanosieverts, sieverts>(1000000000.0);
+        1: 2145:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2146:	test = convert<microsieverts, sieverts>(1000000.0);
+        1: 2147:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2148:	test = convert<millisieverts, sieverts>(1000.0);
+        1: 2149:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2150:	test = convert<kilosieverts, sieverts>(0.001);
+        1: 2151:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2152:	test = convert<megasieverts, sieverts>(0.000001);
+        1: 2153:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2154:	test = convert<gigasieverts, sieverts>(0.000000001);
+        1: 2155:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        -: 2156:
+        1: 2157:	test = convert<becquerels, curies>(37.0e9);
+        1: 2158:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2159:	test = convert<becquerels, rutherfords>(1000000.0);
+        1: 2160:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2161:	test = convert<rads, grays>(100.0);
+        1: 2162:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2163:}
+        -: 2164:
+        5: 2165:TEST_F(UnitTest, torqueConversions)
+        -: 2166:{
+        -: 2167:	double test;
+        -: 2168:
+        1: 2169:	test = convert<torque::foot_pounds, newton_meter>(1.0);
+        1: 2170:	EXPECT_NEAR(1.355817948, test, 5.0e-5);
+        1: 2171:	test = convert<inch_pounds, newton_meter>(1.0);
+        1: 2172:	EXPECT_NEAR(0.112984829, test, 5.0e-5);
+        1: 2173:	test = convert<foot_poundals, newton_meter>(1.0);
+        1: 2174:	EXPECT_NEAR(4.214011009e-2, test, 5.0e-5);
+        1: 2175:	test = convert<meter_kilograms, newton_meter>(1.0);
+        1: 2176:	EXPECT_NEAR(9.80665, test, 5.0e-5);
+        1: 2177:	test = convert<inch_pound, meter_kilogram>(86.79616930855788);
+        1: 2178:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2179:	test = convert<foot_poundals, inch_pound>(2.681170713);
+        1: 2180:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        -: 2181:
+        1: 2182:}
+        -: 2183:
+        5: 2184:TEST_F(UnitTest, volumeConversion)
+        -: 2185:{
+        -: 2186:	double test;
+        -: 2187:
+        1: 2188:	test = convert<cubic_meters, cubic_meter>(1.0);
+        1: 2189:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2190:	test = convert<cubic_millimeters, cubic_meter>(1.0);
+        1: 2191:	EXPECT_NEAR(1.0e-9, test, 5.0e-5);
+        1: 2192:	test = convert<cubic_kilometers, cubic_meter>(1.0);
+        1: 2193:	EXPECT_NEAR(1.0e9, test, 5.0e-5);
+        1: 2194:	test = convert<liters, cubic_meter>(1.0);
+        1: 2195:	EXPECT_NEAR(0.001, test, 5.0e-5);
+        1: 2196:	test = convert<milliliters, cubic_meter>(1.0);
+        1: 2197:	EXPECT_NEAR(1.0e-6, test, 5.0e-5);
+        1: 2198:	test = convert<cubic_inches, cubic_meter>(1.0);
+        1: 2199:	EXPECT_NEAR(1.6387e-5, test, 5.0e-10);
+        1: 2200:	test = convert<cubic_feet, cubic_meter>(1.0);
+        1: 2201:	EXPECT_NEAR(0.0283168, test, 5.0e-8);
+        1: 2202:	test = convert<cubic_yards, cubic_meter>(1.0);
+        1: 2203:	EXPECT_NEAR(0.764555, test, 5.0e-7);
+        1: 2204:	test = convert<cubic_miles, cubic_meter>(1.0);
+        1: 2205:	EXPECT_NEAR(4.168e+9, test, 5.0e5);
+        1: 2206:	test = convert<gallons, cubic_meter>(1.0);
+        1: 2207:	EXPECT_NEAR(0.00378541, test, 5.0e-8);
+        1: 2208:	test = convert<quarts, cubic_meter>(1.0);
+        1: 2209:	EXPECT_NEAR(0.000946353, test, 5.0e-10);
+        1: 2210:	test = convert<pints, cubic_meter>(1.0);
+        1: 2211:	EXPECT_NEAR(0.000473176, test, 5.0e-10);
+        1: 2212:	test = convert<cups, cubic_meter>(1.0);
+        1: 2213:	EXPECT_NEAR(0.00024, test, 5.0e-6);
+        1: 2214:	test = convert<volume::ounces, cubic_meter>(1.0);
+        1: 2215:	EXPECT_NEAR(2.9574e-5, test, 5.0e-5);
+        1: 2216:	test = convert<barrels, cubic_meter>(1.0);
+        1: 2217:	EXPECT_NEAR(0.158987294928, test, 5.0e-13);
+        1: 2218:	test = convert<bushels, cubic_meter>(1.0);
+        1: 2219:	EXPECT_NEAR(0.0352391, test, 5.0e-8);
+        1: 2220:	test = convert<cords, cubic_meter>(1.0);
+        1: 2221:	EXPECT_NEAR(3.62456, test, 5.0e-6);
+        1: 2222:	test = convert<cubic_fathoms, cubic_meter>(1.0);
+        1: 2223:	EXPECT_NEAR(6.11644, test, 5.0e-6);
+        1: 2224:	test = convert<tablespoons, cubic_meter>(1.0);
+        1: 2225:	EXPECT_NEAR(1.4787e-5, test, 5.0e-10);
+        1: 2226:	test = convert<teaspoons, cubic_meter>(1.0);
+        1: 2227:	EXPECT_NEAR(4.9289e-6, test, 5.0e-11);
+        1: 2228:	test = convert<pinches, cubic_meter>(1.0);
+        1: 2229:	EXPECT_NEAR(616.11519921875e-9, test, 5.0e-20);
+        1: 2230:	test = convert<dashes, cubic_meter>(1.0);
+        1: 2231:	EXPECT_NEAR(308.057599609375e-9, test, 5.0e-20);
+        1: 2232:	test = convert<drops, cubic_meter>(1.0);
+        1: 2233:	EXPECT_NEAR(82.14869322916e-9, test, 5.0e-9);
+        1: 2234:	test = convert<fifths, cubic_meter>(1.0);
+        1: 2235:	EXPECT_NEAR(0.00075708236, test, 5.0e-12);
+        1: 2236:	test = convert<drams, cubic_meter>(1.0);
+        1: 2237:	EXPECT_NEAR(3.69669e-6, test, 5.0e-12);
+        1: 2238:	test = convert<gills, cubic_meter>(1.0);
+        1: 2239:	EXPECT_NEAR(0.000118294, test, 5.0e-10);
+        1: 2240:	test = convert<pecks, cubic_meter>(1.0);
+        1: 2241:	EXPECT_NEAR(0.00880977, test, 5.0e-9);
+        1: 2242:	test = convert<sacks, cubic_meter>(9.4591978);
+        1: 2243:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2244:	test = convert<shots, cubic_meter>(1.0);
+        1: 2245:	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
+        1: 2246:	test = convert<strikes, cubic_meter>(1.0);
+        1: 2247:	EXPECT_NEAR(0.07047814033376 , test, 5.0e-5);
+        1: 2248:	test = convert<volume::ounces, milliliters>(1.0);
+        1: 2249:	EXPECT_NEAR(29.5735, test, 5.0e-5);
+        1: 2250:}
+        -: 2251:
+        5: 2252:TEST_F(UnitTest, densityConversion)
+        -: 2253:{
+        -: 2254:	double test;
+        -: 2255:
+        1: 2256:	test = convert<kilogram_per_cubic_meter, kilograms_per_cubic_meter>(1.0);
+        1: 2257:	EXPECT_NEAR(1.0, test, 5.0e-5);
+        1: 2258:	test = convert<gram_per_milliliter, kilograms_per_cubic_meter>(1.0);
+        1: 2259:	EXPECT_NEAR(1000.0, test, 5.0e-5);
+        1: 2260:	test = convert<kilogram_per_liter, kilograms_per_cubic_meter>(1.0);
+        1: 2261:	EXPECT_NEAR(1000.0, test, 5.0e-5);
+        1: 2262:	test = convert<ounce_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+        1: 2263:	EXPECT_NEAR(1.001153961, test, 5.0e-10);
+        1: 2264:	test = convert<ounce_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+        1: 2265:	EXPECT_NEAR(1.729994044e3, test, 5.0e-7);
+        1: 2266:	test = convert<ounce_per_gallon, kilograms_per_cubic_meter>(1.0);
+        1: 2267:	EXPECT_NEAR(7.489151707, test, 5.0e-10);
+        1: 2268:	test = convert<pound_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+        1: 2269:	EXPECT_NEAR(16.01846337, test, 5.0e-9);
+        1: 2270:	test = convert<pound_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+        1: 2271:	EXPECT_NEAR(2.767990471e4, test, 5.0e-6);
+        1: 2272:	test = convert<pound_per_gallon, kilograms_per_cubic_meter>(1.0);
+        1: 2273:	EXPECT_NEAR(119.8264273, test, 5.0e-8);
+        1: 2274:	test = convert<slug_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+        1: 2275:	EXPECT_NEAR(515.3788184, test, 5.0e-6);
+        1: 2276:}
+        -: 2277:
+        5: 2278:TEST_F(UnitTest, concentrationConversion)
+        -: 2279:{
+        -: 2280:	double test;
+        -: 2281:
+        1: 2282:	test = ppm_t(1.0);
+        1: 2283:	EXPECT_NEAR(1.0e-6, test, 5.0e-12);
+        1: 2284:	test = ppb_t(1.0);
+        1: 2285:	EXPECT_NEAR(1.0e-9, test, 5.0e-12);
+        1: 2286:	test = ppt_t(1.0);
+        1: 2287:	EXPECT_NEAR(1.0e-12, test, 5.0e-12);
+        1: 2288:	test = percent_t(18.0);
+        1: 2289:	EXPECT_NEAR(0.18, test, 5.0e-12);
+        1: 2290:}
+        -: 2291:
+        5: 2292:TEST_F(UnitTest, testConstants)
+        -: 2293:{
+        -: 2294:	// scalar constants
+        1: 2295:	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
+        -: 2296:
+        -: 2297:	// constants with units
+        1: 2298:	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
+        1: 2299:	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
+        1: 2300:	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
+        1: 2301:	EXPECT_NEAR(1.256637061e-6, constants::mu0(), 5.0e-16);
+        1: 2302:	EXPECT_NEAR(8.854187817e-12, constants::epsilon0(), 5.0e-21);
+        1: 2303:	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12);
+        1: 2304:	EXPECT_NEAR(8.987551787e9, constants::k_e(), 5.0e-1);
+        1: 2305:	EXPECT_NEAR(1.602176565e-19, constants::e(), 5.0e-29);
+        1: 2306:	EXPECT_NEAR(9.10938291e-31, constants::m_e(), 5.0e-40);
+        1: 2307:	EXPECT_NEAR(1.672621777e-27, constants::m_p(), 5.0e-37);
+        1: 2308:	EXPECT_NEAR(9.27400968e-24, constants::mu_B(), 5.0e-30);
+        1: 2309:	EXPECT_NEAR(6.02214129e23, constants::N_A(), 5.0e14);
+        1: 2310:	EXPECT_NEAR(8.3144621, constants::R(), 5.0e-8);
+        1: 2311:	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
+        1: 2312:	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
+        1: 2313:	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
+        1: 2314:}
+        -: 2315:
+        5: 2316:TEST_F(UnitTest, cout)
+        -: 2317:{
+        1: 2318:	angle::degree_t test1(349.87);
+        1: 2319:	meter_t test2(1.0);
+        1: 2320:	dB_t test3(31.0);
+        -: 2321:
+        1: 2322:	testing::internal::CaptureStdout();
+        1: 2323:	std::cout << test1;
+        2: 2324:	std::string output1 = testing::internal::GetCapturedStdout();
+        1: 2325:	EXPECT_STREQ("349.87", output1.c_str());
+        -: 2326:
+        1: 2327:	testing::internal::CaptureStdout();
+        1: 2328:	std::cout << test2;
+        2: 2329:	std::string output2 = testing::internal::GetCapturedStdout();
+        1: 2330:	EXPECT_STREQ("1", output2.c_str());
+        -: 2331:
+        1: 2332:	testing::internal::CaptureStdout();
+        1: 2333:	std::cout << test3;
+        2: 2334:	std::string output3 = testing::internal::GetCapturedStdout();
+        1: 2335:	EXPECT_STREQ("31", output3.c_str());
+        1: 2336:}
+        -: 2337:
+        5: 2338:TEST_F(UnitTest, radarRangeEquation)
+        -: 2339:{
+        -: 2340:
+        1: 2341:	watt_t			P_t;				// transmit power
+        1: 2342:	scalar_t		G;					// gain
+        1: 2343:	meter_t			lambda;				// wavelength
+        1: 2344:	square_meter_t	sigma;				// radar cross section
+        1: 2345:	meter_t			R;					// range
+        1: 2346:	kelvin_t		T_s;				// system noise temp
+        1: 2347:	hertz_t			B_n;				// bandwidth
+        1: 2348:	scalar_t		L;					// loss
+        -: 2349:
+        1: 2350:	P_t = megawatt_t(1.4);
+        1: 2351:	G = dB_t(33.0);
+        1: 2352:	lambda = constants::c / megahertz_t(2800);
+        1: 2353:	sigma = square_meter_t(1.0);
+        1: 2354:	R = meter_t(111000.0);
+        1: 2355:	T_s = kelvin_t(950.0);
+        1: 2356:	B_n = megahertz_t(1.67);
+        1: 2357:	L = dB_t(8.0);
+        -: 2358:
+        2: 2359:	scalar_t SNR =	(P_t * units::pow<2>(G) * units::pow<2>(lambda) * sigma) / 
+        3: 2360:					(units::pow<3>(4 * constants::pi) * units::pow<4>(R) * constants::k_B * T_s * B_n * L);
+        -: 2361:
+        1: 2362:	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
+        1: 2363:}
+        1: 2364:int main(int argc, char* argv[])
+        -: 2365:{
+        1: 2366:	::testing::InitGoogleTest(&argc, argv);
+        1: 2367:	return RUN_ALL_TESTS();
+        3: 2368:}

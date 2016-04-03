@@ -1,0 +1,196 @@
+.TH "units::math" 3 "Sun Apr 3 2016" "Version 2.0.0" "Unit Conversion and Dimensional Analysis Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+units::math \- namespace for unit-enabled versions of the \fC<cmath>\fP library  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "template<int power, class UnitType , class  = typename std::enable_if<traits::has_linear_scale<UnitType>::value, int>> auto \fBpow\fP (const UnitType &value) -> \fBunit_t\fP< typename detail::power_of_unit< power, typename \fBtraits::unit_t_traits\fP< UnitType >::unit_type >::type, typename \fBtraits::unit_t_traits\fP< UnitType >::underlying_type, \fBlinear_scale\fP >"
+.br
+.RI "\fIcomputes the value of \fIvalue\fP raised to the \fIpower\fP \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBcos\fP (AngleUnit angle)"
+.br
+.RI "\fICompute cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBsin\fP (AngleUnit angle)"
+.br
+.RI "\fICompute sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBtan\fP (AngleUnit angle)"
+.br
+.RI "\fICompute tangent\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBacos\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc cosine\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBasin\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc sine\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBatan\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc tangent\&. \fP"
+.ti -1c
+.RI "template<class Y , class X > \fBangle::radian_t\fP \fBatan2\fP (Y y, X x)"
+.br
+.RI "\fICompute arc tangent with two parameters\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBcosh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBsinh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic sine\&. \fP"
+.ti -1c
+.RI "template<class AngleUnit > \fBdimensionless::scalar_t\fP \fBtanh\fP (AngleUnit angle)"
+.br
+.RI "\fICompute hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBacosh\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc hyperbolic cosine\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBasinh\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc hyperbolic sine\&. \fP"
+.ti -1c
+.RI "\fBangle::radian_t\fP \fBatanh\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute arc hyperbolic tangent\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBexp\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute exponential function\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBlog\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute natural logarithm\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBlog10\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute common logarithm\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBmodf\fP (\fBdimensionless::scalar_t\fP x, \fBdimensionless::scalar_t\fP *intpart)"
+.br
+.RI "\fIBreak into fractional and integral parts\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBexp2\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute binary exponential function\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBexpm1\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute exponential minus one\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBlog1p\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute logarithm plus one\&. \fP"
+.ti -1c
+.RI "\fBdimensionless::scalar_t\fP \fBlog2\fP (\fBdimensionless::scalar_t\fP x)"
+.br
+.RI "\fICompute binary logarithm\&. \fP"
+.ti -1c
+.RI "template<class UnitType , typename std::enable_if< traits::has_linear_scale< UnitType >::value, int >::type  = 0> auto \fBsqrt\fP (const UnitType &value) -> \fBunit_t\fP< \fBsquare_root\fP< typename \fBtraits::unit_t_traits\fP< UnitType >::unit_type >, typename \fBtraits::unit_t_traits\fP< UnitType >::underlying_type, \fBlinear_scale\fP >"
+.br
+.RI "\fIcomputes the square root of \fIvalue\fP \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBceil\fP (UnitType x)"
+.br
+.RI "\fIRound up value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBfloor\fP (UnitType x)"
+.br
+.RI "\fIRound down value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBfmod\fP (UnitType numer, UnitType denom)"
+.br
+.RI "\fICompute remainder of division\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBtrunc\fP (UnitType x)"
+.br
+.RI "\fITruncate value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBround\fP (UnitType x)"
+.br
+.RI "\fIRound to nearest\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBcopysign\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fICopy sign\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value>::type> UnitTypeLhs \fBcopysign\fP (UnitTypeLhs x, double y)"
+.br
+.RI "\fIOverload to copy the sign from a raw double\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBfdim\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIPositive difference\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBfmax\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMaximum value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitTypeRhs , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type> UnitTypeLhs \fBfmin\fP (UnitTypeLhs x, UnitTypeRhs y)"
+.br
+.RI "\fIMinimum value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBfabs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitType , class  = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type> UnitType \fBabs\fP (UnitType x)"
+.br
+.RI "\fICompute absolute value\&. \fP"
+.ti -1c
+.RI "template<class UnitTypeLhs , class UnitMultiply , class UnitAdd , class  = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitMultiply>::value && traits::is_unit_t<UnitAdd>::value>::type> auto \fBfma\fP (UnitTypeLhs x, UnitMultiply y, UnitAdd z) -> decltype(x *y)"
+.br
+.RI "\fIMultiply-add\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+namespace for unit-enabled versions of the \fC<cmath>\fP library 
+
+Includes trigonometric functions, exponential/log functions, rounding functions, etc\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+See \fC\fBunit_t\fP\fP for more information on \fBunit\fP type containers\&. 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "template<int power, class UnitType , class  = typename std::enable_if<traits::has_linear_scale<UnitType>::value, int>> auto units::math::pow (const UnitType & value) -> \fBunit_t\fP<typename detail::power_of_unit<power, typename \fBtraits::unit_t_traits\fP<UnitType>::unit_type>::type, typename \fBtraits::unit_t_traits\fP<UnitType>::underlying_type, \fBlinear_scale\fP>
+		\fC [inline]\fP"
+
+.PP
+computes the value of \fIvalue\fP raised to the \fIpower\fP Only implemented for \fBlinear_scale\fP units\&. \fIPower\fP must be known at compile time, so the resulting unit type can be deduced\&. 
+.PP
+\fBTemplate Parameters:\fP
+.RS 4
+\fIpower\fP exponential power to raise \fIvalue\fP by\&. 
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP \fC\fBunit_t\fP\fP derived type to raise to the given \fIpower\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+new \fBunit_t\fP, raised to the given exponent 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Unit Conversion and Dimensional Analysis Library from the source code\&.
