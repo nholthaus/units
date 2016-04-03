@@ -100,6 +100,16 @@ namespace {
 		virtual ~CaseStudies() {};
 		virtual void SetUp() {};
 		virtual void TearDown() {};
+
+		struct RightTriangle
+		{
+			using a = unit_value_t<meters, 3>;
+			using b = unit_value_t<meters, 4>;
+			using a2 = unit_value_power<a, 2>;
+			using b2 = unit_value_power<b, 2>;
+			using c2 = unit_value_add<a2, b2>;
+			using c = unit_value_sqrt<c2>;
+		};
 	};
 }
 
@@ -1663,11 +1673,24 @@ TEST_F(UnitConversion, mass)
 
 TEST_F(UnitConversion, time)
 {
+	double result = 0;
+	double daysPerYear = 365;
+	double hoursPerDay = 24;
+	double minsPerHour = 60;
+	double secsPerMin = 60;
+	double daysPerWeek = 7;
+	
+	result = 2 * daysPerYear * hoursPerDay * minsPerHour * secsPerMin * 
+		(1 / minsPerHour) * (1 / secsPerMin) * (1 / hoursPerDay) * (1 / daysPerWeek);
+	EXPECT_NEAR(104.286, result, 5.0e-4);
+
 	year_t twoYears(2.0);
 	week_t twoYearsInWeeks = twoYears;
 	EXPECT_NEAR(week_t(104.286).toDouble(), twoYearsInWeeks.toDouble(), 5.0e-4);
 
 	double test;
+
+	
 
 	test = convert<seconds, seconds>(1.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
@@ -2922,7 +2945,6 @@ TEST_F(CompileTimeArithmetic, unit_value_sqrt)
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-
 	watt_t			P_t;				// transmit power
 	scalar_t		G;					// gain
 	meter_t			lambda;				// wavelength
@@ -2945,6 +2967,19 @@ TEST_F(CaseStudies, radarRangeEquation)
 					(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
+}
+
+TEST_F(CaseStudies, pythagoreanTheorum)
+{
+	using rt1 = unit_value_sqrt<unit_value_multiply<RightTriangle::a, RightTriangle::a>>;
+	EXPECT_DOUBLE_EQ(2.0, rt1::value().toDouble());
+	using rt2 = unit_value_sqrt<unit_value_add<RightTriangle::a, RightTriangle::a>>;
+	EXPECT_DOUBLE_EQ(2.0, rt2::value().toDouble());
+	auto a2 = pow<2>(RightTriangle::a::value());
+	auto b2 = pow<2>(RightTriangle::b::value());
+	auto c2 = RightTriangle::c::value();
+//  	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value()) 
+//  		== pow<2>(RightTriangle::c::value()));
 }
 int main(int argc, char* argv[])
 {
