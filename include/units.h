@@ -234,7 +234,8 @@ namespace units
 
 	template<bool... Args>
 	using all_true = typename all_true_impl<Args...>::type;
-
+	/** @endcond */	// DOXYGEN IGNORE
+	
 	/** 
 	 * @brief namespace representing type traits which can access the properties of types provided by the units library.
 	 */
@@ -2195,7 +2196,7 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is a unit_value_t representing the given unit type.
-		 * @details		e.g. is_unit_value_t<meters, myType>::value` would test that `myType` is a 
+		 * @details		e.g. `is_unit_value_t<meters, myType>::value` would test that `myType` is a 
 		 *				`unit_value_t<meters>`.
 		 * @tparam		Units	units that the `unit_value_t` is supposed to have.
 		 * @tparam		T		type to test.
@@ -3533,7 +3534,7 @@ namespace units
 
 		/**
 		* @name Unit Containers
-		* @anchor angular_velocityContainers
+		* @anchor angularVelocityContainers
 		* @{
 		*/
 		using radians_per_second_t = unit_t<radians_per_second>;
