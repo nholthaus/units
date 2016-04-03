@@ -45,8 +45,8 @@ _Example_: the defintions of some common length units are:
 
 	namespace length
 	{
-		using meters = unit<std::ratio<1>, category::length_unit>;		// meters are (1) unit of length in the SI system.
-		using feet = unit<std::ratio<381, 1250>, meters>;				// feet are 3.28084 meters.
+		using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
+		using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
 	}
 
 Unit containers
@@ -56,11 +56,11 @@ Unit containers are the workhorse of the units libary, and the primary classes w
 
 Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
 
-    using meter_t = unit_t<length::meter, double, linear_scale>
+    using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
 
 or simply 
 
-    using meter_t = unit_t<length::meter>
+    using meter_t = units::unit_t<units::length::meter>
 
 since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
 
@@ -70,16 +70,16 @@ Units are constructed from built-in types, and the `toDouble()` method (or `oper
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
-    auto objectVelocity = meter_t(100.0) / second_t(2.0);
+    auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
 
 The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system wll verify that the units are compatible. For example, the following will fail to compile:
 
-    velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: Unit types are not compatible.`
+    units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
 
 Unit containers can (and should!) be used to perform implicit conversions:
 
-	second_t a;
-	minute_t b(1.0);
+	units::time::second_t a;
+	units::time::minute_t b(1.0);
 	
 	a = b;	// a == 60.0
 
@@ -133,17 +133,13 @@ Exponentials and Square Roots
 
 Many functions require units to be raised to some power. This can be accomplished using the `units::math::pow` function:
 
-	using units::math;
-	
-	square_meter_t m2 = pow<2>(meter_t(5.0));	// m2 == 25.0
+	square_meter_t m2 = units::math::pow<2>(meter_t(5.0));	// m2 == 25.0
 		
 The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the `<cmath> pow` implementation, which takes exponent values at runtime.
 
 Square roots are also provided with the `units::math::sqrt` function. Due to the nature of the `sqrt` operation, the units library can often provide exact conversions for square root operations, but _not in every case_. The rest of the time, the `sqrt` unit will be a _rational_approximation_ of the real value. These are guaranteed to be accurate to at least 10 decimal places.
 
-	using units::math;
-	
-	meter_t m = sqrt(square_meter_t(4.0));		// m == 2.0
+	meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
 	
 Efficiency
 ----------
@@ -189,12 +185,12 @@ The definition above is perfectly efficient, as it generates _no run-time code_ 
 	auto c = RightTriangle::c::value();	// c is `meter_t(5)`
 	
 The available compile-time operations are:
- - `unit_value_add`
- - `unit_value_subtract`
- - `unit_value_multiply`
- - `unit_value_divide`
- - `unit_value_power`
- - `unit_value_sqrt`
+ - `units::unit_value_add`
+ - `units::unit_value_subtract`
+ - `units::unit_value_multiply`
+ - `units::unit_value_divide`
+ - `units::unit_value_power`
+ - `units::unit_value_sqrt`
  
 Conversion without unit containers
 ----------------------------------
@@ -260,12 +256,12 @@ Defining new units is simple, as they can be recursively defined as ratio of pre
 
 	namespace time
 	{
-		using seconds = unit<std::ratio<1>, category::time_unit>;
-		using minutes = unit<std::ratio<60>, seconds>;
-		using hours = unit<std::ratio<60>, minutes>;
-		using days = unit<std::ratio<24>, hours>;
-		using weeks = unit<std::ratio<7>, days>;
-		using years = unit<std::ratio<365>, days>;
+		using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
+		using minutes = units::unit<std::ratio<60>,  seconds>;
+		using hours   = units::unit<std::ratio<60>,  minutes>;
+		using days    = units::unit<std::ratio<24>,  hours>;
+		using weeks   = units::unit<std::ratio<7>,   days>;
+		using years   = units::unit<std::ratio<365>, days>;
 	}
 
 Units are defined in the form: `using [unit] = unit<std::ratio<[number of base units per unit]>, [base unit]>;`, where:
@@ -278,11 +274,11 @@ Compound units are defined in a similar manner, with additional helper functions
 	using acceleration = compound_unit<meters, inverse<squared<seconds>>>;		// (m / s^2)
 	
 The available helpers are:
- - `inverse<...>`     (inverts the unit, e.g. meters becomes meters^-1, or 1 / meters)
- - `squared<...>`     (squares the unit, e.g. meters becomes meters^2)
- - `cubed<...>`       (cubes the unit, e.g. meters becomes meters^3)
- - `square_root<...>` (takes the square root of the unit, e.g meters^2 becomes meters)
- - `atto<...>` through `exa<...>` metric prefixes
+ - `units::inverse<...>`     (inverts the unit, e.g. meters becomes meters^-1, or 1 / meters)
+ - `units::squared<...>`     (squares the unit, e.g. meters becomes meters^2)
+ - `units::cubed<...>`       (cubes the unit, e.g. meters becomes meters^3)
+ - `units::square_root<...>` (takes the square root of the unit, e.g meters^2 becomes meters)
+ - `units::atto<...>` through `units::exa<...>` metric prefixes
 	
 Build Instructions
 ------------------
