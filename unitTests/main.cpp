@@ -185,27 +185,16 @@ TEST_F(TypeTraits, all_true)
 
 TEST_F(TypeTraits, areConvertibleUnitsLength)
 {
-	bool test1 = traits::is_convertible_unit<meters, meters>::value;
-	bool test2 = traits::is_convertible_unit<meters, astronicalUnits>::value;
-	bool test3 = traits::is_convertible_unit<meters, parsecs>::value;
-	
-	bool test4 = traits::is_convertible_unit<meters, meters>::value;
-	bool test5 = traits::is_convertible_unit<astronicalUnits, meters>::value;
-	bool test6 = traits::is_convertible_unit<parsecs, meters>::value;
+	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<meters, astronicalUnits>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<meters, parsecs>::value));
 
-	bool test7 = traits::is_convertible_unit<meters, seconds>::value;
-	bool test8 = traits::is_convertible_unit<seconds, meters>::value;
+	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<astronicalUnits, meters>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<parsecs, meters>::value));
 
-	EXPECT_TRUE(test1);
-	EXPECT_TRUE(test2);
-	EXPECT_TRUE(test3);
-
-	EXPECT_TRUE(test4);
-	EXPECT_TRUE(test5);
-	EXPECT_TRUE(test6);
-
-	EXPECT_FALSE(test7);
-	EXPECT_FALSE(test8);
+	EXPECT_FALSE((traits::is_convertible_unit<meters, seconds>::value));
+	EXPECT_FALSE((traits::is_convertible_unit<seconds, meters>::value));
 }
 
 TEST_F(TypeTraits, areConvertibleUnitsTime)
