@@ -17,6 +17,11 @@ Tested on:
 
 <a href="https://github.com/nholthaus/units/releases/tag/v2.0.0" target="_blank">Download units v2.0.0</a>
 
+Documentation
+-------------
+
+The full documentation is available *[here](http://nholthaus.github.io/units)*.
+
 Description
 -----------
 
@@ -280,6 +285,30 @@ The available helpers are:
  - `units::square_root<...>` (takes the square root of the unit, e.g meters^2 becomes meters)
  - `units::atto<...>` through `units::exa<...>` metric prefixes
 	
+Unit Type Traits
+----------------
+
+The units library provides a comprehensive set of type-traits, which can be used in templated user code to enforce that the unit types have certain properties.
+
+For example, let's say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance. 
+
+    template<typename Units>
+	bool isMinimumSize(Units x)
+	{
+		return x >= square_feet_t(80.0);
+	}
+	
+This function will fail to compile if `Units` is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand tempalte errors. Type traits could be used to make the error message more friendly:
+
+    template<typename Units>
+	bool isMinimumSize(Units x)
+	{
+		static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
+		return x >= square_feet_t(80.0);
+	}
+	
+See the `units::traits` namespace for a list of all the suported traits.
+
 Build Instructions
 ------------------
 

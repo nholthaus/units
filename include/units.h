@@ -232,24 +232,30 @@ namespace units
 	};
 	/** @endcond */	// END DOXYGEN IGNORE
 
-	/**
-	 * @ingroup		TypeTraits
-	 * @brief		Traits class defining the properties of units.
-	 * @details
+	/** 
+	 * @brief namespace representing type traits which can access the properties of types provided by the units library.
 	 */
-	template<class T>
-	struct unit_traits
-		<T, typename void_t<
-		typename T::base_unit_type,
-		typename T::conversion_ratio,
-		typename T::pi_exponent_ratio,
-		typename T::translation_ratio>::type>
+	namespace traits
 	{
-		typedef typename T::base_unit_type base_unit_type;											///< Unit type that the unit was derived from. May be a `base_unit` or another `unit`. Use the `base_unit_of` trait to find the SI base unit type. 
-		typedef typename T::conversion_ratio conversion_ratio;										///< std::ratio representing the conversion factor to the `base_unit_type`.
-		typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< std::ratio representing the exponent of pi to be used in the conversion.
-		typedef typename T::translation_ratio translation_ratio;									///< std::ratio representing a datum translation to the base unit (i.e. degrees C to degrees F conversion).
-	};
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Traits class defining the properties of units.
+		 * @details
+		 */
+		template<class T>
+		struct unit_traits
+			<T, typename void_t<
+			typename T::base_unit_type,
+			typename T::conversion_ratio,
+			typename T::pi_exponent_ratio,
+			typename T::translation_ratio>::type>
+		{
+			typedef typename T::base_unit_type base_unit_type;											///< Unit type that the unit was derived from. May be a `base_unit` or another `unit`. Use the `base_unit_of` trait to find the SI base unit type. 
+			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `base_unit_type`.
+			typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion.
+			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the base unit (i.e. degrees C to degrees F conversion).
+		};
+	}
 
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
@@ -262,14 +268,17 @@ namespace units
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
-	/**
-	 * @ingroup		TypeTraits
-	 * @brief		Traits which tests if a class is a `base_unit` type.
-	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_base_unit<T>::value` to test
-	 *				whether `class T` implements a `base_unit`.
-	 */
-	template<class T>
-	struct is_base_unit : std::is_base_of<detail::_base_unit_t, T> {};
+	namespace traits
+	{
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Traits which tests if a class is a `base_unit` type.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_base_unit<T>::value` to test
+		 *				whether `class T` implements a `base_unit`.
+		 */
+		template<class T>
+		struct is_base_unit : std::is_base_of<detail::_base_unit_t, T> {};
+	}
 
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
@@ -282,14 +291,17 @@ namespace units
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
-	/**
-	 * @ingroup		TypeTraits
-	 * @brief		Traits which tests if a class is a `unit`
-	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
-	 *				whether `class T` implements a `unit`.
-	 */
-	template<class T>
-	struct is_unit : std::is_base_of<detail::_unit, T>::type {};
+	namespace traits
+	{
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Traits which tests if a class is a `unit`
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
+		 *				whether `class T` implements a `unit`.
+		 */
+		template<class T>
+		struct is_unit : std::is_base_of<detail::_unit, T>::type {};
+	}
 
 	/** @} */ // end of TypeTraits
 
@@ -344,46 +356,46 @@ namespace units
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar_unit = base_unit<>;
-		using dimensionless_unit = base_unit<>;
+		using scalar_unit = base_unit<>;			///< Represents a quantity with no dimension.
+		using dimensionless_unit = base_unit<>;		///< Represents a quantity with no dimension.
 
 		// SI BASE UNIT TYPES	--------------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using length_unit = base_unit<std::ratio<1>>;
-		using mass_unit = base_unit<std::ratio<0>, std::ratio<1>>;
-		using time_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using current_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using temperature_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using substance_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using luminous_intensity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
+		using	length_unit						=	base_unit<std::ratio<1>>;																														///< Represents an SI base unit of length
+		using	mass_unit						=	base_unit<std::ratio<0>,	std::ratio<1>>;																										///< Represents an SI base unit of mass
+		using	time_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;																						///< Represents an SI base unit of time
+		using	angle_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;																		///< Represents an SI base unit of angle
+		using	current_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;														///< Represents an SI base unit of current
+		using	temperature_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;										///< Represents an SI base unit of temperature
+		using	substance_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;						///< Represents an SI base unit of amount of substance
+		using	luminous_intensity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI base unit of luminous intensity
 
-		// SI DERIVED UNIT TYPES	---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using solid_angle_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>>;
-		using frequency_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
-		using velocity_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-1>>;
-		using angular_velocity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>, std::ratio<1>>;
-		using acceleration_unit = base_unit<std::ratio<1>, std::ratio<0>, std::ratio<-2>>;
-		using force_unit = base_unit<std::ratio<1>, std::ratio<1>, std::ratio<-2>>;
-		using pressure_unit = base_unit<std::ratio<-1>, std::ratio<1>, std::ratio<-2>>;
-		using charge_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<1>>;
-		using energy_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
-		using power_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>>;
-		using voltage_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-1>>;
-		using capacitance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<4>, std::ratio<0>, std::ratio<2>>;
-		using impedance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-3>, std::ratio<0>, std::ratio<-2>>;
-		using conductance_unit = base_unit<std::ratio<-2>, std::ratio<-1>, std::ratio<3>, std::ratio<0>, std::ratio<2>>;
-		using magnetic_flux_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
-		using magnetic_field_strength_unit = base_unit<std::ratio<0>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-1>>;
-		using inductance_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>, std::ratio<0>, std::ratio<-2>>;
-		using luminous_flux_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using illuminance_unit = base_unit<std::ratio<-2>, std::ratio<0>, std::ratio<0>, std::ratio<2>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>;
-		using radioactivity_unit = base_unit<std::ratio<0>, std::ratio<0>, std::ratio<-1>>;
+		// SI DERIVED UNIT TYPES	---------------				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using	solid_angle_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;		///< Represents an SI derived unit of	
+		using	frequency_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of	
+		using	velocity_unit					=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of	
+		using	angular_velocity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>;																		///< Represents an SI derived unit of	
+		using	acceleration_unit				=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;																					///< Represents an SI derived unit of	
+		using	force_unit						=	base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of	
+		using	pressure_unit					=	base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of	
+		using	charge_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;														///< Represents an SI derived unit of	
+		using	energy_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of	
+		using	power_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;																					///< Represents an SI derived unit of	
+		using	voltage_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of	
+		using	capacitance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;														///< Represents an SI derived unit of	
+		using	impedance_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;													///< Represents an SI derived unit of	
+		using	conductance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;														///< Represents an SI derived unit of	
+		using	magnetic_flux_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of	
+		using	magnetic_field_strength_unit	=	base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of	
+		using	inductance_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;													///< Represents an SI derived unit of	
+		using	luminous_flux_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI derived unit of	
+		using	illuminance_unit				=	base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI derived unit of	
+		using	radioactivity_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of 
 
-		// OTHER UNIT TYPES			---------------			METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	torque_unit = base_unit<std::ratio<2>, std::ratio<1>, std::ratio<-2>>;
-		using	area_unit = base_unit<std::ratio<2>>;
-		using	volume_unit = base_unit<std::ratio<3>>;
-		using	density_unit = base_unit<std::ratio<-3>, std::ratio<1>>;
+		// OTHER UNIT TYPES			---------------				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
+		using	torque_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;
+		using	area_unit						=	base_unit<std::ratio<2>>;
+		using	volume_unit						=	base_unit<std::ratio<3>>;
+		using	density_unit					=	base_unit<std::ratio<-3>,	std::ratio<1>>;
 	}
 
 	//------------------------------
