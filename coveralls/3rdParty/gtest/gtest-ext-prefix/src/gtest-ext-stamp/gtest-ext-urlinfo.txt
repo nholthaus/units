@@ -1,3 +1,0 @@
-repository='external project URL'
-module='/home/nholthaus/workspace/units/3rdParty/gtest/gtest-1.7.0.zip'
-tag=''

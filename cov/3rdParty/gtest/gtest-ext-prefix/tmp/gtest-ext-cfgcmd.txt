@@ -1,1 +1,0 @@
-cmd='/opt/cmake-3.5.0/bin/cmake;-GUnix Makefiles;/home/nholthaus/workspace/units/cov/3rdParty/gtest/src'

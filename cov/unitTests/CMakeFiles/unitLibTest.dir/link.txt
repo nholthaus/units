@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=c++14 -g -O0 -fprofile-arcs -ftest-coverage -g   CMakeFiles/unitLibTest.dir/main.cpp.o  -o unitLibTest -rdynamic ../3rdParty/gtest/src/libgtest.a -pthread 
