@@ -52,7 +52,7 @@ _Example_: the defintions of some common length units are:
 Unit containers
 ---------------
 
-Unit containers are the workhorse of the libary, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t`. Containers are effectively doubles with associated unit type tags.
+Unit containers are the workhorse of the units libary, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
 
 Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
 
@@ -66,7 +66,7 @@ since the underlying type and scale parameters default to `double` and `linear_s
 
 Units of compatible types (e.g length units) can be implicitely converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitely converted to/from built-in types, such as `double`. 
 
-Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of many `<cmath>` functions are provided to enable operating soly in the `unit_t` domain. 
+Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating soly in the `unit_t` domain. 
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
@@ -83,9 +83,10 @@ Unit containers can (and should!) be used to perform implicit conversions:
 	
 	a = b;	// a == 60.0
 
-However, unsupported arithmetic, or improper return types will result in compiler errors:
+Arithmetic can be performed on unit containers the same way it can for built-in types. However, unlike built-in types, the return value of unit-type arithmetic will be the proper unit to represent the resulting quantity.
 
 	using namespace units::length;
+	using namespace units::area;
 	
 	meter_t a_m(1.0), b_m(2.0), c_m;
 	foot_t	a_ft(1.0), b_ft(2.0), c_ft;
@@ -94,14 +95,20 @@ However, unsupported arithmetic, or improper return types will result in compile
 	c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
 	auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
 	
-	c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
-	c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
-	auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
+	auto result_sm = a_m * b_m;					// OK. result_sm is `square_meter_t`.
+	auto result_s = a_m / b_m;					// OK. result_s is `dimensionless_t`.
+	auto result = a_m * b_ft;					// OK. result is `square_meter_t` (left-most unit)
 	
 	auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
 	auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
 	
-By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors (Mars rover anybody? Too soon?!?).
+Unsupported arithmetic, or improper return types will result in compiler errors:
+
+	c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
+	c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
+	auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
+	
+By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
 
 `<cmath>` Functions
 -------------------
@@ -118,8 +125,8 @@ In _rare_ cases, the overload resolution for a given type may be ambiguous. If s
 	square_meter_t result;
 	
 	result = fma(x, y, z);												// Error: ambiguous
-	double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// <cmath> option. Bad. This works, but is type-unsafe and cumbersome!
-	result = math::fma(x, y, z);										// units::math option. OK. Simple and type-safe. 
+	double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// Warning: Unsafe!
+	result = math::fma(x, y, z);										// OK.
 	
 Exponentials and Square Roots
 -----------------------------
@@ -162,7 +169,33 @@ Unit conversions between equivalent types are optimized away completely, and gen
 Compile-time Unit Manipulation
 ------------------------------
 
+In many cases, unit equations are used to determine derived values from a set of values which are known at comile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
 
+The `unit_value_t` class is the mechanism in the units library to perform compule-time arithmetic. The `unit_value_t` class functions exactly the same way as `std::ratio`, but with an associated unit tag and the ensuing type safety.
+
+For a simple example, let's define a right triangle whose hypotnuse is the sum of the squares of its side (a pythagorean triple)
+
+	struct RightTriangle
+	{
+		using a = unit_value_t<meters, 3>;
+		using b = unit_value_t<meters, 4>;
+		using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
+	};
+	
+The definition above is perfectly efficient, as it generates _no run-time code_ whatsoever, and still provides all the type safety of unit containers. The values of `a`, `b`, and `c` can be accessed at runtime using the static `value()` method of `unit_value_t`
+
+	auto a = RightTriangle::a::value();	// a is `meter_t(3)`
+	auto b = RightTriangle::b::value();	// b is `meter_t(4)`
+	auto c = RightTriangle::c::value();	// c is `meter_t(5)`
+	
+The available compile-time operations are:
+ - `unit_value_add`
+ - `unit_value_subtract`
+ - `unit_value_multiply`
+ - `unit_value_divide`
+ - `unit_value_power`
+ - `unit_value_sqrt`
+ 
 Conversion without unit containers
 ----------------------------------
 
