@@ -555,12 +555,12 @@ TEST_F(TypeTraits, is_capacitance_unit)
 	EXPECT_FALSE((traits::is_capacitance_unit<ohm>::value));
 	EXPECT_FALSE((traits::is_capacitance_unit<double>::value));
 
-	EXPECT_TRUE((traits::is_capacitance_unit_t<farad_t>::value));
-	EXPECT_TRUE((traits::is_capacitance_unit_t<const farad_t>::value));
-	EXPECT_TRUE((traits::is_capacitance_unit_t<const farad_t&>::value));
-	EXPECT_FALSE((traits::is_capacitance_unit_t<ohm_t>::value));
-	EXPECT_TRUE((traits::is_capacitance_unit_t<const farad_t&, millifarad_t>::value));
-	EXPECT_FALSE((traits::is_capacitance_unit_t<ohm_t, farad_t>::value));
+	EXPECT_TRUE((traits::is_capacitance_unit<farad_t>::value));
+	EXPECT_TRUE((traits::is_capacitance_unit<const farad_t>::value));
+	EXPECT_TRUE((traits::is_capacitance_unit<const farad_t&>::value));
+	EXPECT_FALSE((traits::is_capacitance_unit<ohm_t>::value));
+	EXPECT_TRUE((traits::is_capacitance_unit<const farad_t&, millifarad_t>::value));
+	EXPECT_FALSE((traits::is_capacitance_unit<ohm_t, farad_t>::value));
 }
 
 TEST_F(TypeTraits, is_impedance_unit)

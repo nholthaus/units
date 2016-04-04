@@ -4237,10 +4237,8 @@ namespace units
 			template<typename T> struct is_capacitance_unit_impl : std::false_type {};
 			template<typename C, typename U, typename P, typename T>
 			struct is_capacitance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::capacitance_unit>::type{};
-			
-			template<typename T> struct is_capacitance_unit_t_impl : std::false_type {};
 			template<typename U, typename S, template<typename> class N>
-			struct is_capacitance_unit_t_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::capacitance_unit>::type{};
+			struct is_capacitance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::capacitance_unit>::type{};
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 
@@ -4252,16 +4250,6 @@ namespace units
 		 * @tparam		T	one or more types to test
 		 */
 		template<typename... T> struct is_capacitance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_capacitance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-	
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a `unit_t` type represents a unit of capacitance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_capacitance_unit<T>::value` to test
-		 *				the unit represents a capacitance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-		template<typename... T> struct is_capacitance_unit_t : std::integral_constant<bool, units::all_true<units::traits::detail::is_capacitance_unit_t_impl<typename std::decay<T>::type>::value...>::value> {};
-
 	}
 
 	//------------------------------
