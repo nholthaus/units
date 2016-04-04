@@ -226,24 +226,22 @@ namespace units
 	 * @brief		Trait which tests that a set of other traits are all true.
 	 */
 	template<bool... Args>
-	struct all_true : std::is_same<units::bool_pack<true, Args...>, units::bool_pack<Args..., true>> {};
-// 	template<bool... Args>
-// 	struct units::all_true_impl;
-// 
-// 	template<bool First, bool... Args>
-// 	struct units::all_true_impl<First, Args...>
-// 	{
-// 		using type = typename std::integral_constant<bool, First && units::all_true_impl<Args...>::type::value>::type;
-// 	};
-// 
-// 	template<bool Last>
-// 	struct units::all_true_impl<Last>
-// 	{
-// 		using type = typename std::integral_constant<bool, Last>::type;
-// 	};
-// 
-// 	template<bool... Args>
-// 	using units::all_true = typename units::all_true_impl<Args...>::type;
+	struct units::all_true_impl;
+
+	template<bool First, bool... Args>
+	struct units::all_true_impl<First, Args...>
+	{
+		using type = typename std::integral_constant<bool, First && units::all_true_impl<Args...>::type::value>::type;
+	};
+
+	template<bool Last>
+	struct units::all_true_impl<Last>
+	{
+		using type = typename std::integral_constant<bool, Last>::type;
+	};
+
+	template<bool... Args>
+	using units::all_true = typename units::all_true_impl<Args...>::type;
 	/** @endcond */	// DOXYGEN IGNORE
 	
 	/** 
