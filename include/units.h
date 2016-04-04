@@ -217,31 +217,29 @@ namespace units
 	template<class ...>
 	struct void_t { typedef void type; };
 
-	/**
-	 * @brief		parameter pack for boolean arguments.
-	 */
-	template<bool...> struct bool_pack {};
-
-	/**
-	 * @brief		Trait which tests that a set of other traits are all true.
-	 */
-	template<bool... Args>
-	struct units::all_true_impl;
-
-	template<bool First, bool... Args>
-	struct units::all_true_impl<First, Args...>
+	namespace detail
 	{
-		using type = typename std::integral_constant<bool, First && units::all_true_impl<Args...>::type::value>::type;
-	};
-
-	template<bool Last>
-	struct units::all_true_impl<Last>
-	{
-		using type = typename std::integral_constant<bool, Last>::type;
-	};
+	/**
+		 * @brief		Trait which tests that a set of other traits are all true.
+		 */
+		template<bool... Args>
+		struct all_true_impl;
+	
+		template<bool First, bool... Args>
+		struct all_true_impl<First, Args...>
+		{
+			using type = typename std::integral_constant<bool, First && all_true_impl<Args...>::type::value>::type;
+		};
+	
+		template<bool Last>
+		struct all_true_impl<Last>
+		{
+			using type = typename std::integral_constant<bool, Last>::type;
+		};
+	}
 
 	template<bool... Args>
-	using units::all_true = typename units::all_true_impl<Args...>::type;
+	using all_true = typename units::detail::all_true_impl<Args...>::type;
 	/** @endcond */	// DOXYGEN IGNORE
 	
 	/** 
