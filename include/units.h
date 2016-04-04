@@ -1672,7 +1672,7 @@ namespace units
 		 */
 		template<typename... T>
 		struct has_linear_scale : std::integral_constant<bool,
-			all_true<std::is_base_of<linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value >
+			units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value >
 		{};
 	
 		/**
@@ -1684,7 +1684,7 @@ namespace units
 		 */
 		template<typename... T>
 		struct has_decibel_scale : std::integral_constant<bool,
-			all_true<std::is_base_of<decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value>
+			units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value>
 		{};
 	
 		/**
@@ -5978,7 +5978,7 @@ namespace units
 		 *				In some cases, _both_ the returned value _and_ conversion factor of the returned
 		 *				unit type may have errors no larger than `1e-10`.
 		 */
-		template<class UnitType, typename std::enable_if<traits::has_linear_scale<UnitType>::value, int>::type = 0>
+		template<class UnitType, typename std::enable_if<units::traits::has_linear_scale<UnitType>::value, int>::type = 0>
 		inline auto sqrt(const UnitType& value) -> unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
 		{
 			return unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
