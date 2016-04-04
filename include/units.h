@@ -1894,62 +1894,74 @@ namespace units
 	//	SCALAR COMPARISONS
 	//----------------------------------
 
-	bool operator==(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator==(double lhs, const Units& rhs)
 	{
 		return lhs == rhs.toDouble();
 	}
 
-	bool operator==(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator==(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() == rhs;
 	}
 
-	bool operator!=(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator!=(double lhs, const Units& rhs)
 	{
 		return lhs != rhs.toDouble();
 	}
 
-	bool operator!=(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator!=(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() != rhs;
 	}
 
-	bool operator>=(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator>=(double lhs, const Units& rhs)
 	{
 		return lhs >= rhs.toDouble();
 	}
 
-	bool operator>=(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator>=(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() >= rhs;
 	}
 
-	bool operator>(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator>(double lhs, const Units& rhs)
 	{
 		return lhs > rhs.toDouble();
 	}
 
-	bool operator>(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator>(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() > rhs;
 	}
 
-	bool operator<=(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator<=(double lhs, const Units& rhs)
 	{
 		return lhs <= rhs.toDouble();
 	}
 
-	bool operator<=(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator<=(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() <= rhs;
 	}
 
-	bool operator<(double lhs, const dimensionless::scalar_t& rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator<(double lhs, const Units& rhs)
 	{
 		return lhs < rhs.toDouble();
 	}
 
-	bool operator<(const dimensionless::scalar_t& lhs, double rhs)
+	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
+	bool operator<(const Units& lhs, double rhs)
 	{
 		return lhs.toDouble() < rhs;
 	}
@@ -5703,8 +5715,10 @@ namespace units
 		 * @param[in]	x		Value whose arc cosine is computed, in the interval [-1,+1].
 		 * @returns		Principal arc cosine of x, in the interval [0,pi] radians.
 		 */
-		angle::radian_t acos(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t acos(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acos(x.toDouble()));
 		}
 
@@ -5715,8 +5729,10 @@ namespace units
 		 * @param[in]	x		Value whose arc sine is computed, in the interval [-1,+1].
 		 * @returns		Principal arc sine of x, in the interval [-pi/2,+pi/2] radians.
 		 */
-		angle::radian_t asin(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t asin(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asin(x.toDouble()));
 		}
 
@@ -5731,8 +5747,10 @@ namespace units
 		 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
 		 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 		 */
-		angle::radian_t atan(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t atan(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atan(x.toDouble()));
 		}
 
@@ -5810,8 +5828,10 @@ namespace units
 		 *					than 1, a domain error occurs.
 		 * @returns		Nonnegative arc hyperbolic cosine of x, in the interval [0,+INFINITY] radians.
 		 */
-		angle::radian_t acosh(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t acosh(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acosh(x.toDouble()));
 		}
 
@@ -5822,8 +5842,10 @@ namespace units
 		 * @param[in]	x	Value whose arc hyperbolic sine is computed.
 		 * @returns		Arc hyperbolic sine of x, in radians.
 		 */
-		angle::radian_t asinh(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t asinh(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asinh(x.toDouble()));
 		}
 
@@ -5836,8 +5858,10 @@ namespace units
 		 *					values of -1 and +1, a pole error may occur.
 		 * @returns		units::angle::radian_t
 		 */
-		angle::radian_t atanh(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		angle::radian_t atanh(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atanh(x.toDouble()));
 		}
 
@@ -5857,8 +5881,10 @@ namespace units
 		 *				If the magnitude of the result is too large to be represented by a value of the return type, the
 		 *				function returns HUGE_VAL (or HUGE_VALF or HUGE_VALL) with the proper sign, and an overflow range error occurs
 		 */
-		dimensionless::scalar_t exp(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t exp(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::exp(x.toDouble()));
 		}
 
@@ -5871,8 +5897,10 @@ namespace units
 		 * @sa			log10 for more common base-10 logarithms
 		 * @returns		Natural logarithm of x.
 		 */
-		dimensionless::scalar_t log(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t log(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log(x.toDouble()));
 		}
 
@@ -5884,8 +5912,10 @@ namespace units
 		 *					domain error occurs.
 		 * @returns		Common logarithm of x.
 		 */
-		dimensionless::scalar_t log10(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t log10(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log10(x.toDouble()));
 		}
 
@@ -5900,8 +5930,11 @@ namespace units
 		 *				is stored with the same sign as x.
 		 * @returns		The fractional part of x, with the same sign.
 		 */
-		dimensionless::scalar_t modf(dimensionless::scalar_t x, dimensionless::scalar_t* intpart)
+		template<class ScalarUnit>
+		dimensionless::scalar_t modf(ScalarUnit x, ScalarUnit* intpart)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+
 			double intp;
 			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x.toDouble(), &intp));
 			*intpart = intp;
@@ -5915,8 +5948,10 @@ namespace units
 		 * 2param[in]	x	Value of the exponent.
 		 * @returns		2 raised to the power of x.
 		 */
-		dimensionless::scalar_t exp2(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t exp2(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::exp2(x.toDouble()));
 		}
 
@@ -5928,8 +5963,10 @@ namespace units
 		 * @param[in]	x	Value of the exponent.
 		 * @returns		e raised to the power of x, minus one.
 		 */
-		dimensionless::scalar_t expm1(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t expm1(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::expm1(x.toDouble()));
 		}
 
@@ -5942,8 +5979,10 @@ namespace units
 		 *					domain error occurs.
 		 * @returns		The natural logarithm of (1+x).
 		 */
-		dimensionless::scalar_t log1p(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t log1p(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log1p(x.toDouble()));
 		}
 		
@@ -5955,8 +5994,10 @@ namespace units
 		 *					domain error occurs.
 		 * @returns		The binary logarithm of x: log2x.
 		 */
-		dimensionless::scalar_t log2(dimensionless::scalar_t x)
+		template<class ScalarUnit>
+		dimensionless::scalar_t log2(ScalarUnit x)
 		{
+			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log2(x.toDouble()));
 		}
 
