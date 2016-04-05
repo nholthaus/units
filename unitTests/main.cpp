@@ -230,6 +230,7 @@ TEST_F(TypeTraits, has_linear_scale)
 	EXPECT_TRUE((traits::has_linear_scale<scalar_t, meter_t>::value));
 	EXPECT_TRUE((traits::has_linear_scale<meters_per_second_t>::value));
 	EXPECT_FALSE((traits::has_linear_scale<dB_t>::value));
+	EXPECT_FALSE((traits::has_linear_scale<dB_t, meters_per_second_t>::value));
 }
 
 TEST_F(TypeTraits, has_decibel_scale)
@@ -262,8 +263,10 @@ TEST_F(TypeTraits, is_scalar_unit)
 	EXPECT_TRUE((traits::is_scalar_unit<const scalar_t&>::value));
 	EXPECT_TRUE((traits::is_scalar_unit<dimensionless_t>::value));
 	EXPECT_TRUE((traits::is_scalar_unit<dB_t>::value));
+	EXPECT_TRUE((traits::is_scalar_unit<dB_t, scalar_t>::value));
 	EXPECT_FALSE((traits::is_scalar_unit<meter_t>::value));
 	EXPECT_FALSE((traits::is_scalar_unit<dBW_t>::value));
+	EXPECT_FALSE((traits::is_scalar_unit<dBW_t, scalar_t>::value));
 }
 
 TEST_F(TypeTraits, is_length_unit)
@@ -377,6 +380,7 @@ TEST_F(TypeTraits, is_substance_unit)
 	EXPECT_TRUE((traits::is_substance_unit<const substance::mole_t>::value));
 	EXPECT_TRUE((traits::is_substance_unit<const substance::mole_t&>::value));
 	EXPECT_FALSE((traits::is_substance_unit<year_t>::value));
+	EXPECT_TRUE((traits::is_substance_unit<substance::mole_t, substance::mole_t>::value));
 	EXPECT_FALSE((traits::is_substance_unit<year_t, substance::mole_t>::value));
 }
 
@@ -391,6 +395,7 @@ TEST_F(TypeTraits, is_luminous_intensity_unit)
 	EXPECT_TRUE((traits::is_luminous_intensity_unit<const candela_t>::value));
 	EXPECT_TRUE((traits::is_luminous_intensity_unit<const candela_t&>::value));
 	EXPECT_FALSE((traits::is_luminous_intensity_unit<rad_t>::value));
+	EXPECT_TRUE((traits::is_luminous_intensity_unit<candela_t, candela_t>::value));
 	EXPECT_FALSE((traits::is_luminous_intensity_unit<rad_t, candela_t>::value));
 }
 
