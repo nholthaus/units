@@ -1653,11 +1653,17 @@ namespace units
 		 *				one or more types to see if they represent unit_t's whose scale is linear.
 		 * @tparam		T	one or more types to test.
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800	// bug in VS2013 prevents this from working
 		template<typename... T>
-		struct has_linear_scale : std::integral_constant<bool,
-			units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value >
-		{};
-	
+		struct has_linear_scale : std::integral_constant<bool, units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value > {};
+#else
+		template<typename T1, typename T2 = units::linear_scale<double>, typename T3 = units::linear_scale<double>>
+		struct has_linear_scale : std::integral_constant<bool, 
+			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
+			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
+			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T3>::value> {};
+#endif
+
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is inherited from a decibel scale.
@@ -1665,11 +1671,17 @@ namespace units
 		 *				one or more types to see if they represent unit_t's whose scale is in decibels.
 		 * @tparam		T	one or more types to test.
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800	// bug in VS2013 prevents this from working
 		template<typename... T>
+		struct has_decibel_scale : std::integral_constant<bool,	units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::decibel_scale<double>, typename T3 = units::decibel_scale<double>>
 		struct has_decibel_scale : std::integral_constant<bool,
-			units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value>
-		{};
-	
+			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
+			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
+			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T3>::value> {};
+#endif
+
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether two types has the same non-linear scale.
@@ -1748,8 +1760,12 @@ namespace units
 		 *				dimensions (e.g. PI).
 		 * @tparam		T	one or more types to test.
 		 */
-		template<class... T>
-		struct is_scalar_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_scalar_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
+		template<typename... T> struct is_scalar_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_scalar_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::dimensionless::scalar , typename T3 = units::dimensionless::scalar> 
+		struct is_scalar_unit : std::integral_constant<bool, units::traits::detail::is_scalar_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_scalar_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_scalar_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -2684,7 +2700,12 @@ namespace units
 		 *				the unit represents a length quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_length_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_length_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::length::meter , typename T3 = units::length::meter> 
+		struct is_length_unit : std::integral_constant<bool, units::traits::detail::is_length_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -2791,7 +2812,12 @@ namespace units
 		 *				the unit represents a mass quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_mass_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_mass_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::mass::kg , typename T3 = units::mass::kg> 
+		struct is_mass_unit : std::integral_constant<bool, units::traits::detail::is_mass_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_mass_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_mass_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -2888,7 +2914,12 @@ namespace units
 		 *				the unit represents a time quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_time_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_time_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::time::s , typename T3 = units::time::s> 
+		struct is_time_unit : std::integral_constant<bool, units::traits::detail::is_time_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_time_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_time_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -2984,7 +3015,12 @@ namespace units
 		 *				the unit represents a angle quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_angle_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::angle::radian, typename T3 = units::angle::radian> 
+		struct is_angle_unit : std::integral_constant<bool, units::traits::detail::is_angle_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_angle_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_angle_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3064,7 +3100,12 @@ namespace units
 		 *				the unit represents a current quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_current_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_current_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::current::A , typename T3 = units::current::A> 
+		struct is_current_unit : std::integral_constant<bool, units::traits::detail::is_current_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_current_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_current_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3145,7 +3186,12 @@ namespace units
 		 *				the unit represents a temperature quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_temperature_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_temperature_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::temperature::K , typename T3 = units::temperature::K> 
+		struct is_temperature_unit : std::integral_constant<bool, units::traits::detail::is_temperature_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_temperature_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_temperature_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3210,7 +3256,12 @@ namespace units
 		 *				the unit represents a substance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_substance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_substance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::substance::mol, typename T3 = units::substance::mol> 
+		struct is_substance_unit : std::integral_constant<bool, units::traits::detail::is_substance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_substance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_substance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3279,7 +3330,12 @@ namespace units
 		 *				the unit represents a luminous_intensity quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_luminous_intensity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::luminous_intensity::candela , typename T3 = units::luminous_intensity::candela> 
+		struct is_luminous_intensity_unit : std::integral_constant<bool, units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3352,7 +3408,12 @@ namespace units
 		 *				the unit represents a solid_angle quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_solid_angle_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::solid_angle::steradian , typename T3 = units::solid_angle::steradian> 
+		struct is_solid_angle_unit : std::integral_constant<bool, units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3419,7 +3480,12 @@ namespace units
 		 *				the unit represents a frequency quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_frequency_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_frequency_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::frequency::Hz , typename T3 = units::frequency::Hz> 
+		struct is_frequency_unit : std::integral_constant<bool, units::traits::detail::is_frequency_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_frequency_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_frequency_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3495,7 +3561,12 @@ namespace units
 		 *				the unit represents a velocity quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_velocity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::velocity::mps , typename T3 = units::velocity::mps> 
+		struct is_velocity_unit : std::integral_constant<bool, units::traits::detail::is_velocity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_velocity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_velocity_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3569,7 +3640,12 @@ namespace units
 		 *				the unit represents a angular_velocity quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_angular_velocity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::angular_velocity::radians_per_second , typename T3 = units::angular_velocity::radians_per_second> 
+		struct is_angular_velocity_unit : std::integral_constant<bool, units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3624,7 +3700,12 @@ namespace units
 		 *				the unit represents a acceleration quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_acceleration_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_acceleration_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::acceleration::meters_per_second_squared , typename T3 = units::acceleration::meters_per_second_squared> 
+		struct is_acceleration_unit : std::integral_constant<bool, units::traits::detail::is_acceleration_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_acceleration_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_acceleration_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3705,7 +3786,12 @@ namespace units
 		 *				the unit represents a force quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_force_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_force_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::force::newton , typename T3 = units::force::newton> 
+		struct is_force_unit : std::integral_constant<bool, units::traits::detail::is_force_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_force_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_force_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3784,7 +3870,12 @@ namespace units
 		 *				the unit represents a pressure quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_pressure_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_pressure_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::pressure::atm , typename T3 = units::pressure::atm> 
+		struct is_pressure_unit : std::integral_constant<bool, units::traits::detail::is_pressure_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_pressure_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_pressure_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3853,7 +3944,12 @@ namespace units
 		 *				the unit represents a charge quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_charge_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_charge_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::charge::coulomb , typename T3 = units::charge::coulomb> 
+		struct is_charge_unit : std::integral_constant<bool, units::traits::detail::is_charge_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_charge_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_charge_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -3956,7 +4052,12 @@ namespace units
 		 *				the unit represents a energy quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_energy_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_energy_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::energy::joule , typename T3 = units::energy::joule> 
+		struct is_energy_unit : std::integral_constant<bool, units::traits::detail::is_energy_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_energy_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_energy_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4050,7 +4151,12 @@ namespace units
 		 *				the unit represents a power quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_power_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_power_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::power::watt , typename T3 = units::power::watt> 
+		struct is_power_unit : std::integral_constant<bool, units::traits::detail::is_power_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_power_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_power_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4151,7 +4257,12 @@ namespace units
 		 *				the unit represents a voltage quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_voltage_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_voltage_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::voltage::volt , typename T3 = units::voltage::volt> 
+		struct is_voltage_unit : std::integral_constant<bool, units::traits::detail::is_voltage_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_voltage_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_voltage_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4244,7 +4355,12 @@ namespace units
 		 *				the unit represents a capacitance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_capacitance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_capacitance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::capacitance::farad , typename T3 = units::capacitance::farad> 
+		struct is_capacitance_unit : std::integral_constant<bool, units::traits::detail::is_capacitance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_capacitance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_capacitance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4337,7 +4453,12 @@ namespace units
 		 *				the unit represents a impedance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_impedance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_impedance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::impedance::ohm , typename T3 = units::impedance::ohm> 
+		struct is_impedance_unit : std::integral_constant<bool, units::traits::detail::is_impedance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_impedance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_impedance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4430,7 +4551,12 @@ namespace units
 		 *				the unit represents a conductance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_conductance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_conductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::conductance::siemen , typename T3 = units::conductance::siemen> 
+		struct is_conductance_unit : std::integral_constant<bool, units::traits::detail::is_conductance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_conductance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_conductance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4527,7 +4653,12 @@ namespace units
 		 *				the unit represents a magnetic_flux quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_magnetic_flux_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::magnetic_flux::weber , typename T3 = units::magnetic_flux::weber> 
+		struct is_magnetic_flux_unit : std::integral_constant<bool, units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//----------------------------------------
@@ -4623,7 +4754,12 @@ namespace units
 		 *				the unit represents a magnetic_field_strength quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_magnetic_field_strength_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::magnetic_field_strength::gauss , typename T3 = units::magnetic_field_strength::gauss> 
+		struct is_magnetic_field_strength_unit : std::integral_constant<bool, units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4730,7 +4866,12 @@ namespace units
 		 *				the unit represents a inductance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_inductance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_inductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::inductance::henry , typename T3 = units::inductance::henry> 
+		struct is_inductance_unit : std::integral_constant<bool, units::traits::detail::is_inductance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_inductance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_inductance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4823,7 +4964,12 @@ namespace units
 		 *				the unit represents a luminous_flux quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_luminous_flux_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::luminous_flux::lumen , typename T3 = units::luminous_flux::lumen> 
+		struct is_luminous_flux_unit : std::integral_constant<bool, units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -4926,7 +5072,12 @@ namespace units
 		 *				the unit represents a illuminance quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_illuminance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_illuminance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::illuminance::lux , typename T3 = units::illuminance::lux> 
+		struct is_illuminance_unit : std::integral_constant<bool, units::traits::detail::is_illuminance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_illuminance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_illuminance_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -5096,7 +5247,12 @@ namespace units
 		 *				the unit represents a radiation quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_radioactivity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::radiation::becquerel, typename T3 = units::radiation::becquerel>
+		struct is_radioactivity_unit : std::integral_constant<bool, units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -5177,7 +5333,12 @@ namespace units
 		 *				the unit represents a torque quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_torque_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_torque_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::torque::foot_pound , typename T3 = units::torque::foot_pound> 
+		struct is_torque_unit : std::integral_constant<bool, units::traits::detail::is_torque_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_torque_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_torque_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -5260,7 +5421,12 @@ namespace units
 		 *				the unit represents a area quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_area_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_area_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::area::square_meters, typename T3 = units::area::square_meters>
+		struct is_area_unit : std::integral_constant<bool, units::traits::detail::is_area_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_area_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_area_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -5441,7 +5607,12 @@ namespace units
 		 *				the unit represents a volume quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_volume_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_volume_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::volume::liter, typename T3 = units::volume::liter>
+		struct is_volume_unit : std::integral_constant<bool, units::traits::detail::is_volume_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_volume_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_volume_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
@@ -5526,7 +5697,12 @@ namespace units
 		 *				the unit represents a density quantity.
 		 * @tparam		T	one or more types to test
 		 */
+#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_density_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_density_unit_impl<typename std::decay<T>::type>::value...>::value> {};
+#else
+		template<typename T1, typename T2 = units::density::gram_per_milliliter, typename T3 = units::density::gram_per_milliliter >
+		struct is_density_unit : std::integral_constant<bool, units::traits::detail::is_density_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_density_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_density_unit_impl<typename std::decay<T3>::type>::value> {};
+#endif
 	}
 
 	//------------------------------
