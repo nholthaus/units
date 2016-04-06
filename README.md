@@ -1,7 +1,7 @@
 # units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true"/></a>
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
-Latest Release - v2.0.0
+Latest Release - v2.0.1
 --------
 
 New features:
@@ -15,7 +15,7 @@ Tested on:
  - msvc2013
  - msvc2015
 
-<a href="https://github.com/nholthaus/units/releases/tag/v2.0.0" target="_blank">Download units v2.0.0</a>
+<a href="https://github.com/nholthaus/units/releases/tag/v2.0.1" target="_blank">Download units v2.0.1</a>
 
 Documentation
 -------------
