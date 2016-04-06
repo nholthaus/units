@@ -245,7 +245,7 @@ TEST_F(TypeTraits, has_decibel_scale)
 	EXPECT_TRUE((traits::has_decibel_scale<dBW_t, dBm_t>::value));
 	EXPECT_TRUE((traits::has_decibel_scale<dB_t, dB_t>::value));
 	EXPECT_TRUE((traits::has_decibel_scale<dB_t, dB_t, dB_t>::value));
-	EXPECT_FALSE((traits::has_decibel_scale<dB_t, dB_t, dB_t, meter_t>::value));
+	EXPECT_FALSE((traits::has_decibel_scale<dB_t, dB_t, meter_t>::value));
 	EXPECT_FALSE((traits::has_decibel_scale<meter_t, dB_t>::value));
 }
 
