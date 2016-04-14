@@ -1451,18 +1451,18 @@ namespace units
 		 * @ingroup		Constructors
 		 * @brief		default constructor.
 		 */
-		inline unit_t() : NonLinearScale<T>(0) {};
-
+		unit_t() = default;
 
 		/**
 		 * @brief		constructor
 		 * @details		constructs a new unit_t using the non-linear scale's constructor.
-		 * @param[in]	args	constructor arguments are forwarded to the non-linear scale constructor. Which
-		 *				args are required depends on which scale is used. For the default (linear) scale,
-		 *				a single double-type value should be given.
+		 * @param[in]	value	unit value magnitude.
+		 * @param[in]	args	additional constructor arguments are forwarded to the non-linear scale constructor. Which
+		 *						args are required depends on which scale is used. For the default (linear) scale,
+		 *						no additional args are necessary.
 		 */
 		template<class... Args>
-		inline explicit unit_t(const Args&... args) : nls(args...) {};
+		inline explicit unit_t(T value, const Args&... args) : nls(value, args...) {};
 
 		/**
 		 * @brief		constructor
@@ -1718,7 +1718,7 @@ namespace units
 	template<typename T>
 	struct linear_scale
 	{
-		inline linear_scale() : m_value(0) {}														///< default constructor.
+		inline linear_scale() = default;															///< default constructor.
 		inline linear_scale(T value) : m_value(value) {}											///< constructor.
 		inline T operator()() const { return m_value; }												///< returns value.
 

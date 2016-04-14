@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <string>
+#include <type_traits>
 
 using namespace units;
 using namespace units::dimensionless;
@@ -826,6 +827,24 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
+#ifdef _MSC_VER 
+#if (_MSC_VER >= 1900)
+TEST_F(UnitContainer, trivial)
+{
+	EXPECT_TRUE((std::is_trivial<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_assignable<meter_t, meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_constructible<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_copy_assignable<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_copy_constructible<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_copyable<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_default_constructible<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_destructible<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_move_assignable<meter_t>::value));
+	EXPECT_TRUE((std::is_trivially_move_constructible<meter_t>::value));
+}
+#endif
+#endif
+
 TEST_F(UnitContainer, has_value_member)
 {
 	EXPECT_TRUE((traits::has_value_member<linear_scale<double>, double>::value));
@@ -983,7 +1002,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 
 TEST_F(UnitContainer, unitTypeScalarMultiplication)
 {
-	meter_t a_m(1.0), c_m;
+	meter_t a_m(1.0);
 	foot_t b_ft(3.28084);
 
 	auto result_m = scalar_t(3.0) * a_m;
