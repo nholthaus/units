@@ -841,6 +841,17 @@ TEST_F(UnitContainer, trivial)
 	EXPECT_TRUE((std::is_trivially_destructible<meter_t>::value));
 	EXPECT_TRUE((std::is_trivially_move_assignable<meter_t>::value));
 	EXPECT_TRUE((std::is_trivially_move_constructible<meter_t>::value));
+
+	EXPECT_TRUE((std::is_trivial<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_assignable<dB_t, dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_constructible<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_copy_assignable<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_copy_constructible<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_copyable<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_default_constructible<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_destructible<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_move_assignable<dB_t>::value));
+	EXPECT_TRUE((std::is_trivially_move_constructible<dB_t>::value));
 }
 #endif
 #endif

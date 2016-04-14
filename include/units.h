@@ -1269,7 +1269,8 @@ namespace units
 		struct is_nonlinear_scale : std::integral_constant<bool,
 			std::is_default_constructible<T>::value &&
 			has_operator_parenthesis<T, Ret>::value &&
-			has_value_member<T, Ret>::value>
+			has_value_member<T, Ret>::value &&
+			std::is_trivial<T>::value>
 		{};
 	}
 
@@ -2030,7 +2031,7 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
-		inline decibel_scale() : m_value(1) {}
+		inline decibel_scale() = default;
 		inline decibel_scale(T value) { m_value = std::pow(10, value / 10); }
 		inline T operator()() const { return 10 * std::log10(m_value); }
 
