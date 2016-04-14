@@ -6,7 +6,7 @@ Latest Release - v2.0.3
 
 New features:
  - `unit_t` types are now trivial types.
- -  `unit_t` types support the unary minus (nagation) operator.
+ -  `unit_t` types support the unary minus (negation) operator.
  - Compile-time unit arithmetic via `unit_value_t`.
  - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
  - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
