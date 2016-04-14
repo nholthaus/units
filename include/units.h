@@ -1638,6 +1638,12 @@ namespace units
 		return os;
 	}
 
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val)
+	{
+		return unit_t<Units, T, NonLinearScale>(-val.toDouble());
+	}
+
 	//------------------------------
 	//	NON-LINEAR SCALE TRAITS
 	//------------------------------

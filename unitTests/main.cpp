@@ -1130,6 +1130,21 @@ TEST_F(UnitContainer, cout)
 	EXPECT_STREQ("31", output3.c_str());
 }
 
+TEST_F(UnitContainer, negative)
+{
+	meter_t a(5.3);
+	meter_t b(-5.3);
+	EXPECT_TRUE(a == -b);
+	EXPECT_TRUE(b == -a);
+
+	dB_t c(2.87);
+	dB_t d(-2.87);
+	EXPECT_TRUE(c == -d);
+	EXPECT_TRUE(d == -c);
+
+	EXPECT_TRUE(-d == 2.87);
+}
+
 TEST_F(UnitContainer, dBConversion)
 {
 	dBW_t a_dbw(23.1);
