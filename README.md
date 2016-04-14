@@ -1,22 +1,23 @@
 # units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true"/></a>
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
-Latest Release - v2.0.2
+Latest Release - v2.0.3
 --------
 
 New features:
  - `unit_t` types are now trivial types.
- - Compile-time unit arithmetic via `unit_value_t`
+ -  `unit_t` types support the unary minus (nagation) operator.
+ - Compile-time unit arithmetic via `unit_value_t`.
  - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
- - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`
- - Improved documentation
+ - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
+ - Improved documentation.
 
 Tested on:
  - gcc -4.9
  - msvc2013
  - msvc2015
 
-<a href="https://github.com/nholthaus/units/releases/tag/v2.0.2" target="_blank">Download units v2.0.2</a>
+<a href="https://github.com/nholthaus/units/releases/tag/v2.0.3" target="_blank">Download units v2.0.3</a>
 
 Documentation
 -------------
