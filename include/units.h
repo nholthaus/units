@@ -129,7 +129,7 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace constants
 	{
-		static const double PI = 3.14159265358979323846264338327950288419716939937510;
+		static const long double PI = 3.14159265358979323846264338327950288419716939937510;
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -1125,7 +1125,7 @@ namespace units
 		static inline T convert(const T& value, std::false_type, std::false_type, std::false_type)
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-			return (double(Ratio::num) * value / Ratio::den);
+			return (long double(Ratio::num) * value / Ratio::den);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI
@@ -1134,7 +1134,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)));
+			return ((long double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (long double(PiRatio::num) / PiRatio::den)));
 		}
 
 		/// convert dispatch for units of different types with a translation, but no PI
@@ -1143,7 +1143,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-			return ((double(Ratio::num) * value / Ratio::den) + (double(Translation::num) / Translation::den));
+			return ((long double(Ratio::num) * value / Ratio::den) + (long double(Translation::num) / Translation::den));
 		}
 
 		/// convert dispatch for units of different types with a translation AND PI
@@ -1153,7 +1153,7 @@ namespace units
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return ((double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (double(PiRatio::num) / PiRatio::den)) + (double(Translation::num) / Translation::den));
+			return ((long double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (long double(PiRatio::num) / PiRatio::den)) + (long double(Translation::num) / Translation::den));
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1163,7 +1163,7 @@ namespace units
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from one type to another.
 	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. This does not change
-	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
+	 *				the type of <i>value</i>, only what it contains. E.g. @code long double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
 	 * @sa			unit_t	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
 	 *				and must be convertible to `UnitTo` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
@@ -1174,7 +1174,7 @@ namespace units
 	 *				a quantity in units of `UnitFrom`.
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitFrom, class UnitTo, typename T = double>
+	template<class UnitFrom, class UnitTo, typename T = long double>
 	static inline T convert(const T& value)
 	{
 		static_assert(traits::is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
@@ -1291,7 +1291,7 @@ namespace units
 		struct unit_t_traits
 		{
 			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logatirhmic arithmetic functions.
-			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `double`.
+			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `long double`.
 			typedef typename T::unit_type unit_type;							///< Type of unit the `unit_t` represents, e.g. `meters`
 		};
 #endif
@@ -1390,9 +1390,9 @@ namespace units
 	 *				from another `unit_t` type. If necessary, the underlying value can be accessed
 	 *				using `operator()`: @code
 	 *				meter_t m(5.0);
-	 *				double val = m(); // val == 5.0	@endcode.
+	 *				long double val = m(); // val == 5.0	@endcode.
 	 * @tparam		Units unit tag for which type of units the `unit_t` represents (e.g. meters)
-	 * @tparam		T underlying type of the storage. Defaults to double.
+	 * @tparam		T underlying type of the storage. Defaults to long double.
 	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
 	 *				not scale the unit value). Examples of non-linear scales could be logarithmic,
 	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
@@ -1432,7 +1432,7 @@ namespace units
 	 *				- \ref concentrationContainers "concentration unit containers"
 	 *				- \ref constantContainers "constant unit containers"
 	 */
-	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
+	template<class Units, typename T = long double, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>, units::detail::_unit_t
 	{
 		static_assert(traits::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
@@ -1445,7 +1445,7 @@ namespace units
 	public:
 
 		typedef NonLinearScale<T> non_linear_scale_type;											///< Type of the non-linear scale of the unit_t (e.g. linear_scale)
-		typedef T underlying_type;																	///< Type of the underlying storage of the unit_t (e.g. double)
+		typedef T underlying_type;																	///< Type of the underlying storage of the unit_t (e.g. long double)
 		typedef Units unit_type;																	///< Type of `unit` the `unit_t` represents (e.g. meters)
 
 		/**
@@ -1561,7 +1561,7 @@ namespace units
 		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
-		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
+		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a long double.
 		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
@@ -1574,7 +1574,7 @@ namespace units
 		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
-		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
+		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a long double.
 		 */
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline bool operator!=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
@@ -1586,9 +1586,10 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		inline T toDouble() const
+		template<typename T, class = typename std::enable_if<std::is_arithmetic<T>::value>::type>
+		inline T to() const
 		{
-			return (*this)();
+			return (T)(*this)();
 		}
 
 		/**
@@ -1634,14 +1635,14 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj)
 	{
-		os << obj.toDouble();
+		os << obj();
 		return os;
 	}
 
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val)
 	{
-		return unit_t<Units, T, NonLinearScale>(-val.toDouble());
+		return unit_t<Units, T, NonLinearScale>(-val());
 	}
 
 	//------------------------------
@@ -1664,7 +1665,7 @@ namespace units
 		template<typename... T>
 		struct has_linear_scale : std::integral_constant<bool, units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value > {};
 #else
-		template<typename T1, typename T2 = units::linear_scale<double>, typename T3 = units::linear_scale<double>>
+		template<typename T1, typename T2 = units::linear_scale<long double>, typename T3 = units::linear_scale<long double>>
 		struct has_linear_scale : std::integral_constant<bool, 
 			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
 			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
@@ -1682,7 +1683,7 @@ namespace units
 		template<typename... T>
 		struct has_decibel_scale : std::integral_constant<bool,	units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value> {};
 #else
-		template<typename T1, typename T2 = units::decibel_scale<double>, typename T3 = units::decibel_scale<double>>
+		template<typename T1, typename T2 = units::decibel_scale<long double>, typename T3 = units::decibel_scale<long double>>
 		struct has_decibel_scale : std::integral_constant<bool,
 			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
 			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
@@ -1790,42 +1791,42 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.toDouble() + convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
+		return UnitTypeLhs(lhs() + convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.toDouble() + rhs);
+		return dimensionless::scalar_t(lhs() + rhs);
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator+(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs + rhs.toDouble());
+		return dimensionless::scalar_t(lhs + rhs());
 	}
 
 	/// Subtraction operator for unit_t types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeLhs(lhs.toDouble() - convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
+		return UnitTypeLhs(lhs() - convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(const dimensionless::scalar_t& lhs, T rhs)
 	{
-		return dimensionless::scalar_t(lhs.toDouble() - rhs);
+		return dimensionless::scalar_t(lhs() - rhs);
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
 	template<typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 	inline dimensionless::scalar_t operator-(T lhs, const dimensionless::scalar_t& rhs)
 	{
-		return dimensionless::scalar_t(lhs - rhs.toDouble());
+		return dimensionless::scalar_t(lhs - rhs());
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
@@ -1834,7 +1835,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
 		return  unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
-			(lhs.toDouble() * convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
+			(lhs() * convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -1843,7 +1844,7 @@ namespace units
 		inline auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs.toDouble() * rhs.toDouble());
+			(lhs() * rhs());
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1851,7 +1852,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && traits::has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.toDouble() * rhs);
+		return UnitTypeLhs(lhs() * rhs);
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -1859,7 +1860,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && traits::has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs)
 	{
-		return UnitTypeRhs(lhs * rhs.toDouble());
+		return UnitTypeRhs(lhs * rhs());
 	}
 
 	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a scalar
@@ -1867,7 +1868,7 @@ namespace units
 		typename std::enable_if<traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		return dimensionless::scalar_t(lhs.toDouble() / convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs.toDouble()));
+		return dimensionless::scalar_t(lhs() / convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
 	}
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -1876,7 +1877,7 @@ namespace units
 		inline auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) ->  unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
 		return unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>>
-			(lhs.toDouble() / rhs.toDouble());
+			(lhs() / rhs());
 	}
 
 	/// Division by a scalar for unit_t types with a linear scale
@@ -1884,7 +1885,7 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && traits::has_linear_scale<UnitTypeLhs>::value, int>::type = 0>
 		inline UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs)
 	{
-		return UnitTypeLhs(lhs.toDouble() / rhs);
+		return UnitTypeLhs(lhs() / rhs);
 	}
 
 	/// Division of a scalar  by a unit_t type with a linear scale
@@ -1893,7 +1894,7 @@ namespace units
 		inline auto operator/(T lhs, const UnitTypeRhs& rhs) -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
-			(lhs / rhs.toDouble());
+			(lhs / rhs());
 	}
 
 	//----------------------------------
@@ -1901,75 +1902,75 @@ namespace units
 	//----------------------------------
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator==(double lhs, const Units& rhs)
+	bool operator==(long double lhs, const Units& rhs)
 	{
-		return lhs == rhs.toDouble();
+		return lhs == rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator==(const Units& lhs, double rhs)
+	bool operator==(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() == rhs;
+		return lhs() == rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator!=(double lhs, const Units& rhs)
+	bool operator!=(long double lhs, const Units& rhs)
 	{
-		return lhs != rhs.toDouble();
+		return lhs != rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator!=(const Units& lhs, double rhs)
+	bool operator!=(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() != rhs;
+		return lhs() != rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>=(double lhs, const Units& rhs)
+	bool operator>=(long double lhs, const Units& rhs)
 	{
-		return lhs >= rhs.toDouble();
+		return lhs >= rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>=(const Units& lhs, double rhs)
+	bool operator>=(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() >= rhs;
+		return lhs() >= rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>(double lhs, const Units& rhs)
+	bool operator>(long double lhs, const Units& rhs)
 	{
-		return lhs > rhs.toDouble();
+		return lhs > rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>(const Units& lhs, double rhs)
+	bool operator>(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() > rhs;
+		return lhs() > rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<=(double lhs, const Units& rhs)
+	bool operator<=(long double lhs, const Units& rhs)
 	{
-		return lhs <= rhs.toDouble();
+		return lhs <= rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<=(const Units& lhs, double rhs)
+	bool operator<=(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() <= rhs;
+		return lhs() <= rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<(double lhs, const Units& rhs)
+	bool operator<(long double lhs, const Units& rhs)
 	{
-		return lhs < rhs.toDouble();
+		return lhs < rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<(const Units& lhs, double rhs)
+	bool operator<(const Units& lhs, long double rhs)
 	{
-		return lhs.toDouble() < rhs;
+		return lhs() < rhs;
 	}
 
 	//----------------------------------
@@ -2054,7 +2055,7 @@ namespace units
 	 */
 	namespace dimensionless
 	{
-		using dB_t = unit_t<scalar, double, decibel_scale>;
+		using dB_t = unit_t<scalar, long double, decibel_scale>;
 		using dBi_t = dB_t;
 	}
 
@@ -2216,7 +2217,7 @@ namespace units
 		typedef std::ratio<Num, Denom> ratio;
 
 		static_assert(traits::is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
-		static const unit_t<Units> value() { return unit_t<Units>((double)ratio::num / ratio::den); }
+		static const unit_t<Units> value() { return unit_t<Units>((long double)ratio::num / ratio::den); }
 	};
 
 	namespace traits
@@ -2307,14 +2308,14 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type) 
 		{ 
-			return unit_t<unit_type>((double)ratio::num / ratio::den); 
+			return unit_t<unit_type>((long double)ratio::num / ratio::den); 
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) + 
-			((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((long double)Base::_RATIO1::num / Base::_RATIO1::den) + 
+			((long double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((long double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2357,14 +2358,14 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((long double)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) - ((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den)
-				* std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((long double)Base::_RATIO1::num / Base::_RATIO1::den) - ((long double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den)
+				* std::pow(units::constants::PI, ((long double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE	};
 	};
@@ -2408,13 +2409,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((long double)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((long double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((long double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2458,13 +2459,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((long double)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((long double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((long double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2505,13 +2506,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((long double)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+			return unit_t<unit_type>(((long double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((long double)pi_exponent::num / pi_exponent::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE	};
 	};
@@ -2552,13 +2553,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((long double)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+			return unit_t<unit_type>(((long double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((long double)pi_exponent::num / pi_exponent::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -4133,8 +4134,8 @@ namespace units
 		using megawatt_t = unit_t<megawatt>;
 		using gigawatt_t = unit_t<gigawatt>;
 
-		using dBW_t = unit_t<watt, double, decibel_scale>;
-		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
+		using dBW_t = unit_t<watt, long double, decibel_scale>;
+		using dBm_t = unit_t<milliwatt, long double, decibel_scale>;
 		/** @} */
 	}
 
@@ -5841,7 +5842,7 @@ namespace units
 		dimensionless::scalar_t cos(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::cos(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::cos(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5856,7 +5857,7 @@ namespace units
 		dimensionless::scalar_t sin(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::sin(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::sin(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5871,7 +5872,7 @@ namespace units
 		dimensionless::scalar_t tan(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::tan(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::tan(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5885,7 +5886,7 @@ namespace units
 		angle::radian_t acos(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::acos(x.toDouble()));
+			return angle::radian_t(std::acos(x()));
 		}
 
 		/**
@@ -5899,7 +5900,7 @@ namespace units
 		angle::radian_t asin(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::asin(x.toDouble()));
+			return angle::radian_t(std::asin(x()));
 		}
 
 		/**
@@ -5917,7 +5918,7 @@ namespace units
 		angle::radian_t atan(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::atan(x.toDouble()));
+			return angle::radian_t(std::atan(x()));
 		}
 
 		/**
@@ -5934,7 +5935,7 @@ namespace units
 			static_assert(traits::is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
-			return angle::radian_t(std::atan2(y.convert<typename units::traits::unit_t_traits<X>::unit_type>().toDouble(), x.toDouble()));
+			return angle::radian_t(std::atan2(y.convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
 		}
 
 		//----------------------------------
@@ -5953,7 +5954,7 @@ namespace units
 		dimensionless::scalar_t cosh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::cosh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::cosh(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5968,7 +5969,7 @@ namespace units
 		dimensionless::scalar_t sinh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::sinh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::sinh(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5983,7 +5984,7 @@ namespace units
 		dimensionless::scalar_t tanh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::tanh(angle.convert<angle::radian>().toDouble()));
+			return dimensionless::scalar_t(std::tanh(angle.convert<angle::radian>()()));
 		}
 
 		/**
@@ -5998,7 +5999,7 @@ namespace units
 		angle::radian_t acosh(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::acosh(x.toDouble()));
+			return angle::radian_t(std::acosh(x()));
 		}
 
 		/**
@@ -6012,7 +6013,7 @@ namespace units
 		angle::radian_t asinh(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::asinh(x.toDouble()));
+			return angle::radian_t(std::asinh(x()));
 		}
 
 		/**
@@ -6028,7 +6029,7 @@ namespace units
 		angle::radian_t atanh(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::atanh(x.toDouble()));
+			return angle::radian_t(std::atanh(x()));
 		}
 
 		//----------------------------------
@@ -6051,7 +6052,7 @@ namespace units
 		dimensionless::scalar_t exp(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::exp(x.toDouble()));
+			return dimensionless::scalar_t(std::exp(x()));
 		}
 
 		/**
@@ -6067,7 +6068,7 @@ namespace units
 		dimensionless::scalar_t log(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log(x.toDouble()));
+			return dimensionless::scalar_t(std::log(x()));
 		}
 
 		/**
@@ -6082,7 +6083,7 @@ namespace units
 		dimensionless::scalar_t log10(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log10(x.toDouble()));
+			return dimensionless::scalar_t(std::log10(x()));
 		}
 
 		/**
@@ -6101,8 +6102,8 @@ namespace units
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 
-			double intp;
-			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x.toDouble(), &intp));
+			long double intp;
+			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x(), &intp));
 			*intpart = intp;
 			return fracpart;
 		}
@@ -6118,7 +6119,7 @@ namespace units
 		dimensionless::scalar_t exp2(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::exp2(x.toDouble()));
+			return dimensionless::scalar_t(std::exp2(x()));
 		}
 
 		/**
@@ -6133,7 +6134,7 @@ namespace units
 		dimensionless::scalar_t expm1(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::expm1(x.toDouble()));
+			return dimensionless::scalar_t(std::expm1(x()));
 		}
 
 		/**
@@ -6149,7 +6150,7 @@ namespace units
 		dimensionless::scalar_t log1p(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log1p(x.toDouble()));
+			return dimensionless::scalar_t(std::log1p(x()));
 		}
 		
 		/**
@@ -6164,7 +6165,7 @@ namespace units
 		dimensionless::scalar_t log2(ScalarUnit x)
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log2(x.toDouble()));
+			return dimensionless::scalar_t(std::log2(x()));
 		}
 
 		//----------------------------------
@@ -6189,7 +6190,7 @@ namespace units
 		inline auto sqrt(const UnitType& value) -> unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
 		{
 			return unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
-				(std::sqrt(value.toDouble()));
+				(std::sqrt(value()));
 		}
 
 		//----------------------------------
@@ -6206,7 +6207,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType ceil(UnitType x)
 		{
-			return UnitType(std::ceil(x.toDouble()));
+			return UnitType(std::ceil(x()));
 		}
 
 		/**
@@ -6219,7 +6220,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType floor(UnitType x)
 		{
-			return UnitType(std::floor(x.toDouble()));
+			return UnitType(std::floor(x()));
 		}
 
 		/**
@@ -6233,7 +6234,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType fmod(UnitType numer, UnitType denom)
 		{
-			return UnitType(std::fmod(numer.toDouble(), denom.toDouble()));
+			return UnitType(std::fmod(numer(), denom()));
 		}
 
 		/**
@@ -6247,7 +6248,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType trunc(UnitType x)
 		{
-			return UnitType(std::trunc(x.toDouble()));
+			return UnitType(std::trunc(x()));
 		}
 
 
@@ -6262,7 +6263,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType round(UnitType x)
 		{
-			return UnitType(std::round(x.toDouble()));
+			return UnitType(std::round(x()));
 		}
 
 		//----------------------------------
@@ -6281,14 +6282,14 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs copysign(UnitTypeLhs x, UnitTypeRhs y)
 		{
-			return UnitTypeLhs(std::copysign(x.toDouble(), y.toDouble()));
+			return UnitTypeLhs(std::copysign(x(), y()));
 		}
 
-		/// Overload to copy the sign from a raw double
+		/// Overload to copy the sign from a raw long double
 		template<class UnitTypeLhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value>::type>
-		UnitTypeLhs copysign(UnitTypeLhs x, double y)
+		UnitTypeLhs copysign(UnitTypeLhs x, long double y)
 		{
-			return UnitTypeLhs(std::copysign(x.toDouble(), y));
+			return UnitTypeLhs(std::copysign(x(), y));
 		}
 
 		//----------------------------------
@@ -6309,7 +6310,7 @@ namespace units
 		UnitTypeLhs fdim(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fdim(x.toDouble(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+			return UnitTypeLhs(std::fdim(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -6326,7 +6327,7 @@ namespace units
 		UnitTypeLhs fmax(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fmax(x.toDouble(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+			return UnitTypeLhs(std::fmax(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -6344,7 +6345,7 @@ namespace units
 		UnitTypeLhs fmin(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fmin(x.toDouble(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>().toDouble()));
+			return UnitTypeLhs(std::fmin(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		//----------------------------------
@@ -6361,7 +6362,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType fabs(UnitType x)
 		{
-			return UnitType(std::fabs(x.toDouble()));
+			return UnitType(std::fabs(x()));
 		}
 
 		/**
@@ -6374,7 +6375,7 @@ namespace units
 		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
 		UnitType abs(UnitType x)
 		{
-			return UnitType(std::fabs(x.toDouble()));
+			return UnitType(std::fabs(x()));
 		}
 
 		/**
@@ -6392,7 +6393,7 @@ namespace units
 		{
 			using resultType = decltype(x * y);
 			static_assert(traits::is_convertible_unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitMultiply>::unit_type>, typename units::traits::unit_t_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
-			return resultType(std::fma(x.toDouble(), y.toDouble(), resultType(z).toDouble()));
+			return resultType(std::fma(x(), y(), resultType(z)()));
 		}
 
 	}	// end namespace math
