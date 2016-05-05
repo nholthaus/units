@@ -1134,15 +1134,13 @@ TEST_F(UnitContainer, negative)
 {
 	meter_t a(5.3);
 	meter_t b(-5.3);
-	EXPECT_TRUE(a == -b);
-	EXPECT_TRUE(b == -a);
+	EXPECT_NEAR(a.to<long double>(),-b.to<long double>(), 5.0e-320);
+	EXPECT_NEAR(b.to<long double>(),-a.to<long double>(), 5.0e-320);
 
 	dB_t c(2.87);
 	dB_t d(-2.87);
-	EXPECT_TRUE(c == -d);
-	EXPECT_TRUE(d == -c);
-
-	EXPECT_TRUE(-d == 2.87);
+	EXPECT_NEAR(c.to<long double>(), -d.to<long double>(), 5.0e-320);
+	EXPECT_NEAR(d.to<long double>(), -c.to<long double>(), 5.0e-320);
 }
 
 TEST_F(UnitContainer, dBConversion)
