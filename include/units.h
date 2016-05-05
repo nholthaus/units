@@ -1125,7 +1125,7 @@ namespace units
 		static inline T convert(const T& value, std::false_type, std::false_type, std::false_type)
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-			return (long double(Ratio::num) * value / Ratio::den);
+			return ((long double)(Ratio::num) * value / Ratio::den);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI
@@ -1134,7 +1134,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return ((long double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (long double(PiRatio::num) / PiRatio::den)));
+			return (((long double)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((long double)(PiRatio::num) / PiRatio::den)));
 		}
 
 		/// convert dispatch for units of different types with a translation, but no PI
@@ -1143,7 +1143,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-			return ((long double(Ratio::num) * value / Ratio::den) + (long double(Translation::num) / Translation::den));
+			return (((long double)(Ratio::num) * value / Ratio::den) + ((long double)(Translation::num) / Translation::den));
 		}
 
 		/// convert dispatch for units of different types with a translation AND PI
@@ -1153,7 +1153,7 @@ namespace units
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return ((long double(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, (long double(PiRatio::num) / PiRatio::den)) + (long double(Translation::num) / Translation::den));
+			return (((long double)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((long double)(PiRatio::num) / PiRatio::den)) + ((long double)(Translation::num) / Translation::den));
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1572,7 +1572,7 @@ namespace units
 		/**
 		 * @brief		inequality
 		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
-		 * @param[in]	rhs right-hand side unit for the comparison
+		 * @param[in]		rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a long double.
 		 */
@@ -1586,20 +1586,21 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		template<typename T, class = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-		inline T to() const
+		template<typename Ty, class = typename std::enable_if<std::is_arithmetic<Ty>::value>::type>
+		inline Ty to() const
 		{
-			return (T)(*this)();
+			return (Ty)(*this)();
 		}
 
 		/**
 		 * @brief		linearized unit value
 		 * @returns		linearized value of unit which has a non-linear scale. For `unit_t` types with
-		 *				linear scales, this is equivalent to `value`.
+		 *			linear scales, this is equivalent to `value`.
 		 */
-		inline T toLinearizedDouble() const
+		template<typename Ty, class = typename std::enable_if<std::is_arithmetic<Ty>::value>::type>
+		inline Ty toLinearized() const
 		{
-			return m_value;
+			return (Ty)m_value;
 		}
 
 		/**
@@ -2073,7 +2074,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * convert<RhsUnits, LhsUnits>(rhs.toLinearizedDouble());
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>());
 		return ret;
 	}
 
@@ -2084,7 +2085,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * rhs.toLinearizedDouble();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>();
 		return ret;
 	}
 
@@ -2095,7 +2096,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type;
 
 		UnitTypeRhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() * rhs.toLinearizedDouble();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>();
 		return ret;
 	}
 
@@ -2108,7 +2109,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / convert<RhsUnits, LhsUnits>(rhs.toLinearizedDouble());
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>());
 		return ret;
 	}
 
@@ -2119,7 +2120,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
 		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / rhs.toLinearizedDouble();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>();
 		return ret;
 	}
 
@@ -2131,7 +2132,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<RhsUnits>::underlying_type;
 
 		unit_t<inverse<RhsUnits>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.toLinearizedDouble() / rhs.linearizedValue();
+		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>();
 		return ret;
 	}
 
