@@ -1134,13 +1134,13 @@ TEST_F(UnitContainer, negative)
 {
 	meter_t a(5.3);
 	meter_t b(-5.3);
-	EXPECT_NEAR(a.to<long double>(),-b.to<long double>(), 5.0e-320);
-	EXPECT_NEAR(b.to<long double>(),-a.to<long double>(), 5.0e-320);
+	EXPECT_NEAR(a.to<double>(),-b.to<double>(), 5.0e-320);
+	EXPECT_NEAR(b.to<double>(),-a.to<double>(), 5.0e-320);
 
 	dB_t c(2.87);
 	dB_t d(-2.87);
-	EXPECT_NEAR(c.to<long double>(), -d.to<long double>(), 5.0e-320);
-	EXPECT_NEAR(d.to<long double>(), -c.to<long double>(), 5.0e-320);
+	EXPECT_NEAR(c.to<double>(), -d.to<double>(), 5.0e-320);
+	EXPECT_NEAR(d.to<double>(), -c.to<double>(), 5.0e-320);
 }
 
 TEST_F(UnitContainer, dBConversion)
@@ -1179,7 +1179,7 @@ TEST_F(UnitContainer, dBAddition)
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
 	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
-	isSame = std::is_same<decltype(result_dBW2), unit_t<squared<watts>, long double, decibel_scale>>::value;
+	isSame = std::is_same<decltype(result_dBW2), unit_t<squared<watts>, double, decibel_scale>>::value;
 	EXPECT_TRUE(isSame);
 }
 
@@ -2177,26 +2177,26 @@ TEST_F(UnitMath, atanh)
 
 TEST_F(UnitMath, exp)
 {
-	long double val = 10.0;
+	double val = 10.0;
 	EXPECT_EQ(std::exp(val), exp(scalar_t(val)));
 }
 
 TEST_F(UnitMath, log)
 {
-	long double val = 100.0;
+	double val = 100.0;
 	EXPECT_EQ(std::log(val), log(scalar_t(val)));
 }
 
 TEST_F(UnitMath, log10)
 {
-	long double val = 100.0;
+	double val = 100.0;
 	EXPECT_EQ(std::log10(val), log10(scalar_t(val)));
 }
 
 TEST_F(UnitMath, modf)
 {
-	long double val = 100.0;
-	long double modfr1;
+	double val = 100.0;
+	double modfr1;
 	scalar_t modfr2;
 	EXPECT_EQ(std::modf(val, &modfr1), modf(scalar_t(val), &modfr2));
 	EXPECT_EQ(modfr1, modfr2);
@@ -2204,25 +2204,25 @@ TEST_F(UnitMath, modf)
 
 TEST_F(UnitMath, exp2)
 {
-	long double val = 10.0;
+	double val = 10.0;
 	EXPECT_EQ(std::exp2(val), exp2(scalar_t(val)));
 }
 
 TEST_F(UnitMath, expm1)
 {
-	long double val = 10.0;
+	double val = 10.0;
 	EXPECT_EQ(std::expm1(val), expm1(scalar_t(val)));
 }
 
 TEST_F(UnitMath, log1p)
 {
-	long double val = 10.0;
+	double val = 10.0;
 	EXPECT_EQ(std::log1p(val), log1p(scalar_t(val)));
 }
 
 TEST_F(UnitMath, log2)
 {
-	long double val = 10.0;
+	double val = 10.0;
 	EXPECT_EQ(std::log2(val), log2(scalar_t(val)));
 }
 
@@ -2266,14 +2266,14 @@ TEST_F(UnitMath, sqrt)
 
 TEST_F(UnitMath, ceil)
 {
-	long double val = 101.1;
+	double val = 101.1;
 	EXPECT_EQ(ceil(val), ceil(meter_t(val)).to<double>());
 	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(ceil(meter_t(val)))>::type>::value));
 }
 
 TEST_F(UnitMath, floor)
 {
-	long double val = 101.1;
+	double val = 101.1;
 	EXPECT_EQ(floor(val), floor(scalar_t(val)));
 }
 
@@ -2306,7 +2306,7 @@ TEST_F(UnitMath, fdim)
 {
 	EXPECT_EQ(meter_t(0.0), fdim(meter_t(8.0), meter_t(10.0)));
 	EXPECT_EQ(meter_t(2.0), fdim(meter_t(10.0), meter_t(8.0)));
-	EXPECT_NEAR(meter_t(9.3904).to<long double>(), fdim(meter_t(10.0), foot_t(2.0)).to<long double>(), 5.0e-320);	// not sure why they aren't comparing exactly equal, but clearly they are.
+	EXPECT_NEAR(meter_t(9.3904).to<double>(), fdim(meter_t(10.0), foot_t(2.0)).to<double>(), 5.0e-320);	// not sure why they aren't comparing exactly equal, but clearly they are.
 }
 
 TEST_F(UnitMath, fmin)
