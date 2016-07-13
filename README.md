@@ -120,7 +120,7 @@ By providing explicit return types for unit functions, the compiler can be used 
 `<cmath>` Functions
 -------------------
 
-The `units` library include type-safe unit_t container wrappers for almost all of the <cmath> functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with those of <cmath>, and it's possible to use both libraries in the same code. 
+The `units` library include type-safe unit_t container wrappers for almost all of the `<cmath>` functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code. 
 
 The overloaded functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to result to the type-unsafe `toDouble()` member.
 
