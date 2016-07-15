@@ -66,6 +66,32 @@
 #include <iostream>
 #include <limits>
 
+//------------------------------
+//	MACROS
+//------------------------------
+
+/** 
+ * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+ * @brief	Macro for generating the boiler-plate code needed for a new unit.
+ * @details	This macro should be used within an appropriate namespace for the unit
+ *			category. The macro generates singular, plural, and abbreviated forms
+ *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+ *			appropriately named unit container (e.g. `meter_t`).
+ * @param	nameSingular singular version of the unit name, e.g. 'meter'
+ * @param	namePlural - plural version of the unit name, e.g. 'meters'
+ * @param	abbreviation - abbreviated unit name, e.g. 'm'
+ * @param	definition - the variadic parameter is used for the definition of the unit 
+ *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note	a variadic template is used for the definition to allow templates with
+ *			commas to be easily expanded. All the variadic 'arguments' should together
+ *			comprise the unit definition.
+ */
+#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
+	/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+	/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+	/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
+	/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */
+
 //--------------------
 //	UNITS NAMESPACE
 //--------------------
@@ -2583,120 +2609,34 @@ namespace units
 	 * @brief		namespace for unit types and containers representing length values
 	 * @details		The SI unit for length is `meters`, and the corresponding `base_unit` category is
 	 *				`length_unit`.
+	 * @anchor		lengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
  	namespace length
 	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using meters = unit<std::ratio<1>, units::category::length_unit>;
-		using nanometers = nano<meters>;
-		using micrometers = micro<meters>;
-		using millimeters = milli<meters>;
-		using centimeters = centi<meters>;
-		using kilometers = kilo<meters>;
-		using feet = unit<std::ratio<381, 1250>, meters>;
-		using mils = unit<std::ratio<1000>, feet>;
-		using inches = unit<std::ratio<1, 12>, feet>;
-		using miles = unit<std::ratio<5280>, feet>;
-		using nauticalMiles = unit<std::ratio<1852>, meters>;
-		using astronicalUnits = unit<std::ratio<149597870700>, meters>;
-		using lightyears = unit<std::ratio<9460730472580800>, meters>;
-		using parsecs = unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>;
-		using angstroms = unit<std::ratio<1, 10>, nanometers>;
-		using cubits = unit<std::ratio<18>, inches>;
-		using fathoms = unit<std::ratio<6>, feet>;
-		using chains = unit<std::ratio<66>, feet>;
-		using furlongs = unit<std::ratio<10>, chains>;
-		using hands = unit<std::ratio<4>, inches>;
-		using leagues = unit<std::ratio<3>, miles>;
-		using nauticalLeagues = unit<std::ratio<3>, nauticalMiles>;
-		using yards = unit<std::ratio<3>, feet>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using meter = meters;
-		using nanometer = nanometers;
-		using micrometer = micrometers;
-		using millimeter = millimeters;
-		using centimeter = centimeters;
-		using kilometer = kilometers;
-		using foot = feet;
-		using inch = inches;
-		using mile = miles;
-		using nauticalMile = nauticalMiles;
-		using astronicalUnit = astronicalUnits;
-		using lightyear = lightyears;
-		using parsec = parsecs;
-		using angstrom = angstroms;
-		using cubit = cubits;
-		using fathom = fathoms;
-		using chain = chains;
-		using furlong = furlongs;
-		using hand = hands;
-		using league = leagues;
-		using nauticalLeague = nauticalLeagues;
-		using yard = yards;
-		/** @} */
-
-		/**
-		* @name Units (abbreviated names)
-		* @{
-		*/
-		using m = meters;
-		using nm = nanometers;
-		using um = micrometers;
-		using mm = millimeters;
-		using cm = centimeters;
-		using km = kilometers;
-		using ft = feet;
-		using inc = inches;
-		using mi = miles;
-		using nmi = nauticalMiles;
-		using au = astronicalUnits;
-		using ly = lightyears;
-		using pc = parsecs;
-		using ftm = fathoms;
-		using ch = chains;
-		using fur = furlongs;
-		using lea = leagues;
-		using nl = nauticalLeagues;
-		using yd = yards;
-		/** @} */
-
-		/**
-		 * @anchor		lengthContainers
-		 * @name		Unit Containers
-		 * @{
-		 */
-		using meter_t = unit_t<meter>;
-		using nanometer_t = unit_t<nanometer>;
-		using micrometer_t = unit_t<micrometer>;
-		using millimeter_t = unit_t<millimeter>;
-		using centimeter_t = unit_t<centimeter>;
-		using kilometer_t = unit_t<kilometer>;
-		using foot_t = unit_t<foot>;
-		using inch_t = unit_t<inch>;
-		using mile_t = unit_t<mile>;
-		using nauticalMile_t = unit_t<nauticalMile>;
-		using astronicalUnit_t = unit_t<astronicalUnit>;
-		using lightyear_t = unit_t<lightyear>;
-		using parsec_t = unit_t<parsec>;
-		using angstrom_t = unit_t<angstrom>;
-		using cubit_t = unit_t<cubit>;
-		using fathom_t = unit_t<fathom>;
-		using chain_t = unit_t<chain>;
-		using furlong_t = unit_t<furlong>;
-		using hand_t = unit_t<hand>;
-		using league_t = unit_t<league>;
-		using nauticalLeague_t = unit_t<nauticalLeague>;
-		using yard_t = unit_t<yard>;
-		/** @} */
+		ADD_UNIT(meter,				meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
+		ADD_UNIT(nanometer,			nanometers,			nm,				nano<meters>)
+		ADD_UNIT(micrometer,		micrometers,		um,				micro<meters>)
+		ADD_UNIT(millimeter,		millimeters,		mm,				milli<meters>)
+		ADD_UNIT(centimeter,		centimeters,		cm,				centi<meters>)
+		ADD_UNIT(kilometer,			kilometers,			km,				kilo<meters>)
+		ADD_UNIT(foot,				feet,				ft,				unit<std::ratio<381, 1250>, meters>)
+		ADD_UNIT(mil,				mils,				mil,			unit<std::ratio<1000>, feet>)
+		ADD_UNIT(inch,				inches,				inch,			unit<std::ratio<1, 12>, feet>)
+		ADD_UNIT(mile,				miles,				mi,				unit<std::ratio<5280>, feet>)
+		ADD_UNIT(nauticalMile,		nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
+		ADD_UNIT(astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
+		ADD_UNIT(lightyear,			lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
+		ADD_UNIT(parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
+		ADD_UNIT(angstrom,			angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
+		ADD_UNIT(cubit,				cubits,				cbt,			unit<std::ratio<18>, inches>)
+		ADD_UNIT(fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
+		ADD_UNIT(chain,				chains,				ch,				unit<std::ratio<66>, feet>)
+		ADD_UNIT(furlong,			furlongs,			fur,			unit<std::ratio<10>, chains>)
+		ADD_UNIT(hand,				hands,				hand,			unit<std::ratio<4>, inches>)
+		ADD_UNIT(league,			leagues,			lea,			unit<std::ratio<3>, miles>)
+		ADD_UNIT(nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
+		ADD_UNIT(yard,				yards,				yd,				unit<std::ratio<3>, feet>)
 	}
 
 	namespace traits
