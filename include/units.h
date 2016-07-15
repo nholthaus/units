@@ -70,27 +70,64 @@
 //	MACROS
 //------------------------------
 
-/** 
- * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
- * @brief	Macro for generating the boiler-plate code needed for a new unit.
- * @details	This macro should be used within an appropriate namespace for the unit
- *			category. The macro generates singular, plural, and abbreviated forms
- *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
- *			appropriately named unit container (e.g. `meter_t`).
- * @param	nameSingular singular version of the unit name, e.g. 'meter'
- * @param	namePlural - plural version of the unit name, e.g. 'meters'
- * @param	abbreviation - abbreviated unit name, e.g. 'm'
- * @param	definition - the variadic parameter is used for the definition of the unit 
- *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
- * @note	a variadic template is used for the definition to allow templates with
- *			commas to be easily expanded. All the variadic 'arguments' should together
- *			comprise the unit definition.
- */
-#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
-	/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
-	/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
-	/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
-	/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */
+#if !defined(_MSC_VER) || _MSC_VER > 1800
+
+	/** 
+	 * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
+	 * @details	This macro should be used within an appropriate namespace for the unit
+	 *			category. The macro generates singular, plural, and abbreviated forms
+	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+	 *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+	 *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+	 *			cout function which prints both the value and abbreviation of the unit when invoked.
+	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
+	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
+	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
+	 * @param	definition - the variadic parameter is used for the definition of the unit 
+	 *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+	 * @note	a variadic template is used for the definition to allow templates with
+	 *			commas to be easily expanded. All the variadic 'arguments' should together
+	 *			comprise the unit definition.
+	 */
+	#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
+		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
+		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
+		std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
+		nameSingular ## _t operator""_ ## abbreviation (long double d) { return nameSingular ## _t(d); }\
+
+//------------------------------
+//	MACROS (VS2013)
+//------------------------------
+
+#else
+
+	 /**
+	  * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+	  * @brief	Macro for generating the boiler-plate code needed for a new unit.
+	  * @details	This macro should be used within an appropriate namespace for the unit
+	  *			category. The macro generates singular, plural, and abbreviated forms
+	  *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+	  *			appropriately named unit container (e.g. `meter_t`). It also defines a class-specific
+	  *			cout function which prints both the value and abbreviation of the unit when invoked.
+	  * @param	nameSingular singular version of the unit name, e.g. 'meter'
+	  * @param	namePlural - plural version of the unit name, e.g. 'meters'
+	  * @param	abbreviation - abbreviated unit name, e.g. 'm'
+	  * @param	definition - the variadic parameter is used for the definition of the unit
+	  *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+	  * @note	a variadic template is used for the definition to allow templates with
+	  *			commas to be easily expanded. All the variadic 'arguments' should together
+	  *			comprise the unit definition.
+	  */
+	#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
+			/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+			/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+			/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
+			/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
+			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }
+#endif
 
 //--------------------
 //	UNITS NAMESPACE
@@ -148,6 +185,12 @@ namespace units
 	 * @defgroup	TypeTraits Type Traits
 	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
 	 */
+
+	//------------------------------
+	//	LIBRARY TYPEDEFS
+	//------------------------------
+
+	typedef double UNIT_LIB_DEFAULT_TYPE;
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -1152,7 +1195,7 @@ namespace units
 		static inline T convert(const T& value, std::false_type, std::false_type, std::false_type)
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-			return ((double)(Ratio::num) * value / Ratio::den);
+			return ((UNIT_LIB_DEFAULT_TYPE)(Ratio::num) * value / Ratio::den);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI
@@ -1161,7 +1204,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return (((double)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((double)(PiRatio::num) / PiRatio::den)));
+			return (((UNIT_LIB_DEFAULT_TYPE)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((UNIT_LIB_DEFAULT_TYPE)(PiRatio::num) / PiRatio::den)));
 		}
 
 		/// convert dispatch for units of different types with a translation, but no PI
@@ -1170,7 +1213,7 @@ namespace units
 		{
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
-			return (((double)(Ratio::num) * value / Ratio::den) + ((double)(Translation::num) / Translation::den));
+			return (((UNIT_LIB_DEFAULT_TYPE)(Ratio::num) * value / Ratio::den) + ((UNIT_LIB_DEFAULT_TYPE)(Translation::num) / Translation::den));
 		}
 
 		/// convert dispatch for units of different types with a translation AND PI
@@ -1180,7 +1223,7 @@ namespace units
 			using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 			using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 			using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-			return (((double)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((double)(PiRatio::num) / PiRatio::den)) + ((double)(Translation::num) / Translation::den));
+			return (((UNIT_LIB_DEFAULT_TYPE)(Ratio::num) * value / Ratio::den) * std::pow(constants::PI, ((UNIT_LIB_DEFAULT_TYPE)(PiRatio::num) / PiRatio::den)) + ((UNIT_LIB_DEFAULT_TYPE)(Translation::num) / Translation::den));
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1201,7 +1244,7 @@ namespace units
 	 *				a quantity in units of `UnitFrom`.
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitFrom, class UnitTo, typename T = double>
+	template<class UnitFrom, class UnitTo, typename T = UNIT_LIB_DEFAULT_TYPE>
 	static inline T convert(const T& value)
 	{
 		static_assert(traits::is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
@@ -1459,7 +1502,7 @@ namespace units
 	 *				- \ref concentrationContainers "concentration unit containers"
 	 *				- \ref constantContainers "constant unit containers"
 	 */
-	template<class Units, typename T = double, template<typename> class NonLinearScale = linear_scale>
+	template<class Units, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>, units::detail::_unit_t
 	{
 		static_assert(traits::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
@@ -1696,7 +1739,7 @@ namespace units
 		template<typename... T>
 		struct has_linear_scale : std::integral_constant<bool, units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value > {};
 #else
-		template<typename T1, typename T2 = units::linear_scale<double>, typename T3 = units::linear_scale<double>>
+		template<typename T1, typename T2 = units::linear_scale<UNIT_LIB_DEFAULT_TYPE>, typename T3 = units::linear_scale<UNIT_LIB_DEFAULT_TYPE>>
 		struct has_linear_scale : std::integral_constant<bool, 
 			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
 			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
@@ -1714,7 +1757,7 @@ namespace units
 		template<typename... T>
 		struct has_decibel_scale : std::integral_constant<bool,	units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value> {};
 #else
-		template<typename T1, typename T2 = units::decibel_scale<double>, typename T3 = units::decibel_scale<double>>
+		template<typename T1, typename T2 = units::decibel_scale<UNIT_LIB_DEFAULT_TYPE>, typename T3 = units::decibel_scale<UNIT_LIB_DEFAULT_TYPE>>
 		struct has_decibel_scale : std::integral_constant<bool,
 			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
 			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
@@ -1933,79 +1976,79 @@ namespace units
 	//----------------------------------
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator==(double lhs, const Units& rhs)
+	bool operator==(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		auto x = lhs;
 		auto y = rhs();
-		return std::abs(x-y) < std::numeric_limits<double>::epsilon() * std::abs(x+y) || 
-			std::abs(x-y) < std::numeric_limits<double>::min();
+		return std::abs(x-y) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * std::abs(x+y) ||
+			std::abs(x-y) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator==(const Units& lhs, double rhs)
+	bool operator==(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		auto x = lhs();
 		auto y = rhs;
-		return std::abs(x-y) < std::numeric_limits<double>::epsilon() * std::abs(x+y) || 
-			std::abs(x-y) < std::numeric_limits<double>::min();
+		return std::abs(x-y) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * std::abs(x+y) ||
+			std::abs(x-y) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator!=(double lhs, const Units& rhs)
+	bool operator!=(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		return!(lhs == rhs);
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator!=(const Units& lhs, double rhs)
+	bool operator!=(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		return !(lhs == rhs);
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>=(double lhs, const Units& rhs)
+	bool operator>=(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		return std::isgreaterequal(lhs, rhs());
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>=(const Units& lhs, double rhs)
+	bool operator>=(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		return std::isgreaterequal(lhs(), rhs);
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>(double lhs, const Units& rhs)
+	bool operator>(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		return lhs > rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator>(const Units& lhs, double rhs)
+	bool operator>(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		return lhs() > rhs;
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<=(double lhs, const Units& rhs)
+	bool operator<=(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		return std::islessequal(lhs, rhs());
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<=(const Units& lhs, double rhs)
+	bool operator<=(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		return std::islessequal(lhs(), rhs);
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<(double lhs, const Units& rhs)
+	bool operator<(UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs)
 	{
 		return lhs < rhs();
 	}
 
 	template<typename Units, class = typename std::enable_if<units::traits::is_scalar_unit<Units>::value>::type>
-	bool operator<(const Units& lhs, double rhs)
+	bool operator<(const Units& lhs, UNIT_LIB_DEFAULT_TYPE rhs)
 	{
 		return lhs() < rhs;
 	}
@@ -2092,7 +2135,9 @@ namespace units
 	 */
 	namespace dimensionless
 	{
-		using dB_t = unit_t<scalar, double, decibel_scale>;
+		using dB_t = unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
+		std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
+
 		using dBi_t = dB_t;
 	}
 
@@ -2254,7 +2299,7 @@ namespace units
 		typedef std::ratio<Num, Denom> ratio;
 
 		static_assert(traits::is_unit<Units>::value, "Template parameter `Units` must be a unit type.");
-		static const unit_t<Units> value() { return unit_t<Units>((double)ratio::num / ratio::den); }
+		static const unit_t<Units> value() { return unit_t<Units>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den); }
 	};
 
 	namespace traits
@@ -2345,14 +2390,14 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type) 
 		{ 
-			return unit_t<unit_type>((double)ratio::num / ratio::den); 
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) + 
-			((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)Base::_RATIO1::num / Base::_RATIO1::den) +
+			((UNIT_LIB_DEFAULT_TYPE)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den) * std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2395,14 +2440,14 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)Base::_RATIO1::num / Base::_RATIO1::den) - ((double)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den)
-				* std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)Base::_RATIO1::num / Base::_RATIO1::den) - ((UNIT_LIB_DEFAULT_TYPE)Base::_RATIO2CONV::num / Base::_RATIO2CONV::den)
+				* std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE	};
 	};
@@ -2446,13 +2491,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den) * std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2496,13 +2541,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)Base::_PI_EXP::num / Base::_PI_EXP::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den) * std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)Base::_PI_EXP::num / Base::_PI_EXP::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -2543,13 +2588,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den) * std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)pi_exponent::num / pi_exponent::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE	};
 	};
@@ -2590,13 +2635,13 @@ namespace units
 		// value if PI isn't involved
 		static const unit_t<unit_type> value(std::false_type)
 		{
-			return unit_t<unit_type>((double)ratio::num / ratio::den);
+			return unit_t<unit_type>((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den);
 		}
 
 		// value if PI *is* involved
 		static const unit_t<unit_type> value(std::true_type)
 		{
-			return unit_t<unit_type>(((double)ratio::num / ratio::den) * std::pow(units::constants::PI, ((double)pi_exponent::num / pi_exponent::den)));
+			return unit_t<unit_type>(((UNIT_LIB_DEFAULT_TYPE)ratio::num / ratio::den) * std::pow(units::constants::PI, ((UNIT_LIB_DEFAULT_TYPE)pi_exponent::num / pi_exponent::den)));
 		}
 		/** @endcond */	// END DOXYGEN IGNORE
 	};
@@ -4085,8 +4130,8 @@ namespace units
 		using megawatt_t = unit_t<megawatt>;
 		using gigawatt_t = unit_t<gigawatt>;
 
-		using dBW_t = unit_t<watt, double, decibel_scale>;
-		using dBm_t = unit_t<milliwatt, double, decibel_scale>;
+		using dBW_t = unit_t<watt, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
+		using dBm_t = unit_t<milliwatt, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
 		/** @} */
 	}
 
@@ -6053,7 +6098,7 @@ namespace units
 		{
 			static_assert(traits::is_scalar_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 
-			double intp;
+			UNIT_LIB_DEFAULT_TYPE intp;
 			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x(), &intp));
 			*intpart = intp;
 			return fracpart;
@@ -6238,7 +6283,7 @@ namespace units
 
 		/// Overload to copy the sign from a raw double
 		template<class UnitTypeLhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value>::type>
-		UnitTypeLhs copysign(UnitTypeLhs x, double y)
+		UnitTypeLhs copysign(UnitTypeLhs x, UNIT_LIB_DEFAULT_TYPE y)
 		{
 			return UnitTypeLhs(std::copysign(x(), y));
 		}

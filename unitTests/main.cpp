@@ -1113,21 +1113,39 @@ TEST_F(UnitContainer, cout)
 	angle::degree_t test1(349.87);
 	meter_t test2(1.0);
 	dB_t test3(31.0);
+	volt_t test4(21.79);
+	dBW_t test5(12.0);
+	dBm_t test6(120.0);
 
 	testing::internal::CaptureStdout();
 	std::cout << test1;
 	std::string output1 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("349.87", output1.c_str());
+	EXPECT_STREQ("349.87 deg", output1.c_str());
 
 	testing::internal::CaptureStdout();
 	std::cout << test2;
 	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1", output2.c_str());
+	EXPECT_STREQ("1 m", output2.c_str());
 
 	testing::internal::CaptureStdout();
 	std::cout << test3;
 	std::string output3 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("31", output3.c_str());
+	EXPECT_STREQ("31 dB", output3.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << test4;
+	std::string output4 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("21.79 V", output4.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << test5;
+	std::string output5 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("12 dBW", output5.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << test6;
+	std::string output6 = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("120 dBm", output6.c_str());
 }
 
 TEST_F(UnitContainer, negative)
