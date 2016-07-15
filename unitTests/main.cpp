@@ -1226,6 +1226,31 @@ TEST_F(UnitContainer, dBSubtraction)
 	EXPECT_TRUE(isSame);
 }
 
+// literal syntax is only supported in GCC 4.7+ and MSVC2015+
+#if !defined(_MSC_VER) || _MSC_VER > 1800
+TEST_F(UnitContainer, literalSyntax)
+{
+	// basic functionality testing
+	EXPECT_TRUE((std::is_same<decltype(16.2_m), meter_t>::value));
+	EXPECT_TRUE(meter_t(16.2) == 16.2_m);
+	EXPECT_TRUE(meter_t(16) == 16_m);
+
+	EXPECT_TRUE((std::is_same<decltype(11.2_ft), foot_t>::value));
+	EXPECT_TRUE(foot_t(11.2) == 11.2_ft);
+	EXPECT_TRUE(foot_t(11) == 11_ft);
+
+	// auto using literal syntax
+	auto a = 10.0_m;
+	EXPECT_TRUE((std::is_same<decltype(a), meter_t>::value));
+	EXPECT_TRUE(meter_t(10) == a);
+
+	// conversion using literal syntax
+	foot_t b = 0.3048_m;
+	EXPECT_TRUE(1_ft == b);
+	std::cout << b;
+}
+#endif
+
 TEST_F(UnitConversion, length)
 {
 	double test;

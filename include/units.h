@@ -97,6 +97,39 @@
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 		std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
 		nameSingular ## _t operator""_ ## abbreviation (long double d) { return nameSingular ## _t(d); }\
+		nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return nameSingular ## _t((long double)d); }	// may want to think of something better than this cast.
+
+	/** 
+	 * @def		ADD_UNIT_CATEGORY_TRAIT
+	 * @brief	Macro to create the `is_category_unit` type trait.
+	 * @details	This trait allows users to test whether a given type matches
+	 *			an intended category. This macro comprises all the boiler-plate
+	 *			code necessary to do so.
+	 * @param	unitCategory The name of the category of unit, e.g. length or mass.
+	 * @param	baseUnit The categories base unit (typically SI base unit). This is
+	 *			necessary for compatibility with compilers which are not fully c++11
+	 *			compliant.
+	 */
+	#define ADD_UNIT_CATEGORY_TRAIT(unitCategory, baseUnit)\
+	namespace traits\
+	{\
+		/** @cond */\
+		namespace detail\
+		{\
+			template<typename T> struct is_ ## unitCategory ## _unit_impl : std::false_type {};\
+			template<typename C, typename U, typename P, typename T>\
+			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			template<typename U, typename S, template<typename> class N>\
+			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+		}\
+		/** @endcond */\
+		\
+		/** @ingroup	TypeTraits*/\
+		/** @brief		Trait which tests whether a type represents a unit of unitCategory*/\
+		/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitCategory ## _unit<T>::value` to test the unit represents a unitCategory quantity.*/\
+		/** @tparam		T	one or more types to test*/\
+		template<typename... T> struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T>::type>::value...>::value> {};\
+	}
 
 //------------------------------
 //	MACROS (VS2013)
@@ -104,29 +137,65 @@
 
 #else
 
-	 /**
-	  * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
-	  * @brief	Macro for generating the boiler-plate code needed for a new unit.
-	  * @details	This macro should be used within an appropriate namespace for the unit
-	  *			category. The macro generates singular, plural, and abbreviated forms
-	  *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
-	  *			appropriately named unit container (e.g. `meter_t`). It also defines a class-specific
-	  *			cout function which prints both the value and abbreviation of the unit when invoked.
-	  * @param	nameSingular singular version of the unit name, e.g. 'meter'
-	  * @param	namePlural - plural version of the unit name, e.g. 'meters'
-	  * @param	abbreviation - abbreviated unit name, e.g. 'm'
-	  * @param	definition - the variadic parameter is used for the definition of the unit
-	  *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-	  * @note	a variadic template is used for the definition to allow templates with
-	  *			commas to be easily expanded. All the variadic 'arguments' should together
-	  *			comprise the unit definition.
-	  */
+	/**
+	 * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
+	 * @details	This macro should be used within an appropriate namespace for the unit
+	 *			category. The macro generates singular, plural, and abbreviated forms
+	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+	 *			appropriately named unit container (e.g. `meter_t`). It also defines a class-specific
+	 *			cout function which prints both the value and abbreviation of the unit when invoked.
+	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
+	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
+	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
+	 * @param	definition - the variadic parameter is used for the definition of the unit
+	 *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+	 * @note	a variadic template is used for the definition to allow templates with
+	 *			commas to be easily expanded. All the variadic 'arguments' should together
+	 *			comprise the unit definition.
+	 */
 	#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
 			/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
 			/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
 			/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 			/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }
+
+	/**
+	 * @def		ADD_UNIT_CATEGORY_TRAIT
+	 * @brief	Macro to create the `is_category_unit` type trait.
+	 * @details	This trait allows users to test whether a given type matches
+	 *			an intended category. This macro comprises all the boiler-plate
+	 *			code necessary to do so.
+	 * @param	unitCategory The name of the category of unit, e.g. length or mass.
+	 * @param	baseUnit The categories base unit (typically SI base unit). This is
+	 *			necessary for compatibility with compilers which are not fully c++11
+	 *			compliant.
+	 */
+	#define ADD_UNIT_CATEGORY_TRAIT(unitCategory, baseUnit)\
+	namespace traits\
+	{\
+		/** @cond */\
+		namespace detail\
+		{\
+			template<typename T> struct is_ ## unitCategory ## _unit_impl : std::false_type {};\
+			template<typename C, typename U, typename P, typename T>\
+			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			template<typename U, typename S, template<typename> class N>\
+			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+		}\
+		/** @endcond */\
+		\
+		/**\
+	  		 * @ingroup		TypeTraits\
+	  		 * @brief		Trait which tests whether a type represents a unit of #unitCategory\
+	  		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test\
+	  		 *				the unit represents a  #unitCategory quantity.\
+	  		 * @tparam		T	one or more types to test\
+	  		 */\
+			template<typename T1, typename T2 = units::length:: ## baseUnit , typename T3 = units::length:: ## baseUnit> 
+	  		struct is_length_unit : std::integral_constant<bool, units::traits::detail::is_length_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T3>::type>::value> {};
+	}
 #endif
 
 //--------------------
@@ -2684,33 +2753,7 @@ namespace units
 		ADD_UNIT(yard,				yards,				yd,				unit<std::ratio<3>, feet>)
 	}
 
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_length_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_length_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::length_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_length_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::length_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of length
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_length_unit<T>::value` to test
-		 *				the unit represents a length quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_length_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_length_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::length::meter , typename T3 = units::length::meter> 
-		struct is_length_unit : std::integral_constant<bool, units::traits::detail::is_length_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	ADD_UNIT_CATEGORY_TRAIT(length, meter)
 
 	//------------------------------
 	//	MASS UNITS
