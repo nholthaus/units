@@ -1,4 +1,4 @@
-# units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true"/></a>
+# units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a>
 a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
 
 Latest Release - v2.0.3
@@ -29,7 +29,7 @@ Description
 
 The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
 
-The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidently misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
+The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
 The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
 
@@ -48,7 +48,7 @@ Units are defined in terms of
 
  All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), which is not _exactly_ the same as dimensionless/scalar units for practical purposes (and probably why the SI didn't define them as simple scalar units), and so in this library they are treated as a basic unit type.
  
-_Example_: the defintions of some common length units are:
+_Example_: the definitions of some common length units are:
 
 	namespace length
 	{
@@ -59,7 +59,7 @@ _Example_: the defintions of some common length units are:
 Unit containers
 ---------------
 
-Unit containers are the workhorse of the units libary, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
+Unit containers are the workhorse of the units library, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
 
 Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
 
@@ -71,7 +71,7 @@ or simply
 
 since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
 
-Units of compatible types (e.g length units) can be implicitely converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitely converted to/from built-in types, such as `double`. 
+Units of compatible types (e.g length units) can be implicitly converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitly converted to/from built-in types, such as `double`. 
 
 Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating soly in the `unit_t` domain. 
 
@@ -79,7 +79,7 @@ The primary purpose of unit containers is to provide type safety and dimensional
 
     auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
 
-The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system wll verify that the units are compatible. For example, the following will fail to compile:
+The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:
 
     units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
 
@@ -120,11 +120,11 @@ By providing explicit return types for unit functions, the compiler can be used 
 `<cmath>` Functions
 -------------------
 
-The `units` library include type-safe unit_t container wrappers for almost all of the <cmath> functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with <cmath>, and it's possible to use both libraries in the same code. 
+The `units` library include type-safe unit_t container wrappers for almost all of the `<cmath>` functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code. 
 
 The overloaded functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to result to the type-unsafe `toDouble()` member.
 
-In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply preprend the function with the fully-qualified `units::math` prefix, e.g.
+In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply prepend the function with the fully-qualified `units::math` prefix, e.g.
 
     meter_t x(2.0);
 	meter_t y(3.0);
@@ -172,11 +172,11 @@ Unit conversions between equivalent types are optimized away completely, and gen
 Compile-time Unit Manipulation
 ------------------------------
 
-In many cases, unit equations are used to determine derived values from a set of values which are known at comile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
+In many cases, unit equations are used to determine derived values from a set of values which are known at compile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
 
-The `unit_value_t` class is the mechanism in the units library to perform compule-time arithmetic. The `unit_value_t` class functions exactly the same way as `std::ratio`, but with an associated unit tag and the ensuing type safety.
+The `unit_value_t` class is the mechanism in the units library to perform compile-time arithmetic. The `unit_value_t` class functions exactly the same way as `std::ratio`, but with an associated unit tag and the ensuing type safety.
 
-For a simple example, let's define a right triangle whose hypotnuse is the sum of the squares of its side (a pythagorean triple)
+For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a pythagorean triple)
 
 	struct RightTriangle
 	{
@@ -246,7 +246,7 @@ Unit tag and unit_t container definitions are defined in the following namespace
  - units::volume
  - units::density
  - units::concentration
- - units::constants (scalar and non-scalar physical constants like Avagadro's number)
+ - units::constants (scalar and non-scalar physical constants like Avogadro's number)
  
 Mathematical operations like `sin`, `log`, `floor`, etc are defined in the following namespaces:
  - units::math
@@ -257,7 +257,7 @@ Type traits that you can use to test unit types are defined in the following nam
 Defining new units
 ------------------
 
-The units library strives to provide built-in types for every conceievable unit, and before defing your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.
+The units library strives to provide built-in types for every conceivable unit, and before defining your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.
 
 Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
 
@@ -300,7 +300,7 @@ For example, let's say you want to write a function that validates that the squa
 		return x >= square_feet_t(80.0);
 	}
 	
-This function will fail to compile if `Units` is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand tempalte errors. Type traits could be used to make the error message more friendly:
+This function will fail to compile if `Units` is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand template errors. Type traits could be used to make the error message more friendly:
 
     template<typename Units>
 	bool isMinimumSize(Units x)
@@ -309,7 +309,7 @@ This function will fail to compile if `Units` is not a unit of area (since incom
 		return x >= square_feet_t(80.0);
 	}
 	
-See the `units::traits` namespace for a list of all the suported traits.
+See the `units::traits` namespace for a list of all the supported traits.
 
 Build Instructions
 ------------------
