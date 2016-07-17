@@ -2763,109 +2763,26 @@ namespace units
 	 * @brief		namespace for unit types and containers representing mass values
 	 * @details		The SI unit for mass is `kilograms`, and the corresponding `base_unit` category is
 	 *				`mass_unit`.
+	 * @anchor	massContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	namespace mass
 	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using kilograms = unit<std::ratio<1>, units::category::mass_unit>;
-		using grams = unit<std::ratio<1, 1000>, kilograms>;
-		using micrograms = micro<grams>;
-		using milligrams = milli<grams>;
-		using metric_tons = unit<std::ratio<1000>, kilograms>;
-		using pounds = unit<std::ratio<45359237, 100000000>, kilograms>;
-		using imperial_tons = unit<std::ratio<2240>, pounds>;
-		using us_tons = unit<std::ratio<2000>, pounds>;
-		using stone = unit<std::ratio<14>, pounds>;
-		using ounces = unit<std::ratio<1, 16>, pounds>;
-		using carats = unit<std::ratio<200>, milligrams>;
-		using slugs = unit<std::ratio<145939029, 10000000>, kilograms>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using gram = grams;
-		using microgram = micrograms;
-		using milligram = milligrams;
-		using kilogram = kilograms;
-		using metric_ton = metric_tons;
-		using pound = pounds;
-		using imperial_ton = imperial_tons;
-		using us_ton = us_tons;
-		using ounce = ounces;
-		using carat = carats;
-		using slug = slugs;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using g = grams;
-		using ug = micrograms;
-		using mg = milligrams;
-		using kg = kilograms;
-		using mt = metric_tons;
-		using t = us_tons;
-		using Ib = pounds;
-		using Ibs = pounds;
-		using st = stone;
-		using oz = ounces;
-		using ct = carats;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor massContainers
-		 * @{
-		 */
-		using gram_t = unit_t<gram>;
-		using microgram_t = unit_t<microgram>;
-		using milligram_t = unit_t<milligram>;
-		using kilogram_t = unit_t<kilogram>;
-		using metric_ton_t = unit_t<metric_ton>;
-		using pound_t = unit_t<pound>;
-		using imperial_ton_t = unit_t<imperial_ton>;
-		using us_ton_t = unit_t<us_ton>;
-		using stone_t = unit_t<stone>;
-		using ounce_t = unit_t<ounce>;
-		using carat_t = unit_t<carat>;
-		using slug_t = unit_t<slug>;
-		/** @} */
+		ADD_UNIT(kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
+		ADD_UNIT(gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
+		ADD_UNIT(microgram, micrograms, ug, micro<grams>)
+		ADD_UNIT(milligram, milligrams, mg, milli<grams>)
+		ADD_UNIT(metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
+		ADD_UNIT(pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
+		ADD_UNIT(long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
+		ADD_UNIT(short_ton, short_tons, sh_t, unit<std::ratio<2000>, pounds>)
+		ADD_UNIT(stone, stone, st, unit<std::ratio<14>, pounds>)
+		ADD_UNIT(ounce, ounces, oz, unit<std::ratio<1, 16>, pounds>)
+		ADD_UNIT(carat, carats, ct, unit<std::ratio<200>, milligrams>)
+		ADD_UNIT(slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 	}
 
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_mass_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_mass_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::mass_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_mass_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::mass_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of mass
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_mass_unit<T>::value` to test
-		 *				the unit represents a mass quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_mass_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_mass_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::mass::kg , typename T3 = units::mass::kg> 
-		struct is_mass_unit : std::integral_constant<bool, units::traits::detail::is_mass_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_mass_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_mass_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	ADD_UNIT_CATEGORY_TRAIT(mass, kilogram)
 
 	//------------------------------
 	//	TIME UNITS
@@ -2875,99 +2792,23 @@ namespace units
 	 * @brief		namespace for unit types and containers representing time values
 	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` category is
 	 *				`time_unit`.
+	 * @anchor		timeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	namespace time
 	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using seconds = unit<std::ratio<1>, units::category::time_unit>;
-		using nanoseconds = nano<seconds>;
-		using microseconds = micro<seconds>;
-		using millseconds = milli<seconds>;
-		using minutes = unit<std::ratio<60>, seconds>;
-		using hours = unit<std::ratio<60>, minutes>;
-		using days = unit<std::ratio<24>, hours>;
-		using weeks = unit<std::ratio<7>, days>;
-		using years = unit<std::ratio<365>, days>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using second = seconds;
-		using nanosecond = nanoseconds;
-		using microsecond = microseconds;
-		using millsecond = millseconds;
-		using minute = minutes;
-		using hour = hours;
-		using day = days;
-		using week = weeks;
-		using year = years;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using s = seconds;
-		using ns = nanoseconds;
-		using us = microseconds;
-		using ms = millseconds;
-		using m = minutes;
-		using hr = hours;
-		using d = days;
-		using wk = weeks;
-		using yr = years;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor timeContainers
-		 * @{
-		 */
-		using second_t = unit_t<second>;
-		using nanosecond_t = unit_t<nanosecond>;
-		using microsecond_t = unit_t<microsecond>;
-		using millsecond_t = unit_t<millsecond>;
-		using minute_t = unit_t<minute>;
-		using hour_t = unit_t<hour>;
-		using day_t = unit_t<day>;
-		using week_t = unit_t<week>;
-		using year_t = unit_t<year>;
-		/** @} */
+		ADD_UNIT(second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
+		ADD_UNIT(nanosecond, nanoseconds, ns, nano<seconds>)
+		ADD_UNIT(microsecond, microseconds, us, micro<seconds>)
+		ADD_UNIT(millsecond, millseconds, ms, milli<seconds>)
+		ADD_UNIT(minute, minutes, min, unit<std::ratio<60>, seconds>)
+		ADD_UNIT(hour, hours, hr, unit<std::ratio<60>, minutes>)
+		ADD_UNIT(day, days, d, unit<std::ratio<24>, hours>)
+		ADD_UNIT(week, weeks, wk, unit<std::ratio<7>, days>)
+		ADD_UNIT(year, years, yr, unit<std::ratio<365>, days>)
 	}
 
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_time_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_time_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::time_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_time_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::time_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of time
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_time_unit<T>::value` to test
-		 *				the unit represents a time quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_time_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_time_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::time::s , typename T3 = units::time::s> 
-		struct is_time_unit : std::integral_constant<bool, units::traits::detail::is_time_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_time_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_time_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	ADD_UNIT_CATEGORY_TRAIT(time, second)
 
 	//------------------------------
 	//	ANGLE UNITS
@@ -2977,98 +2818,22 @@ namespace units
 	 * @brief		namespace for unit types and containers representing angle values
 	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` category is
 	 *				`angle_unit`.
+	 * @anchor		angleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	namespace angle
 	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using radians = unit<std::ratio<1>, units::category::angle_unit>;
-		using milliradians = milli<radians>;
-		using degrees = unit<std::ratio<1, 180>, radians, std::ratio<1>>;
-		using arcminutes = unit<std::ratio<1, 60>, degrees>;
-		using arcseconds = unit<std::ratio<1, 60>, arcminutes>;
-		using milliarcseconds = milli<arcseconds>;
-		using turns = unit<std::ratio<2>, radians, std::ratio<1>>;
-		using mils = unit<std::ratio<1, 6400>, radians>;	// 1/6400 of a circle
-		using gradians = unit<std::ratio<1, 400>, turns>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using radian = radians;
-		using milliradian = milliradians;
-		using degree = degrees;
-		using arcminute = arcminutes;
-		using arcsecond = arcseconds;
-		using milliarcsecond = milliarcseconds;
-		using turn = turns;
-		using mil = mils;
-		using gradian = gradians;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using rad = radians;
-		using mrad = milliradians;
-		using deg = degrees;
-		using min = arcminutes;
-		using sec = arcseconds;
-		using mas = milliarcseconds;
-		using tr = turn;
-		using gon = gradians;
-		using grad = gradians;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor angleContainers
-		 * @{
-		 */
-		using radian_t = unit_t<radian>;
-		using milliradian_t = unit_t<milliradian>;
-		using degree_t = unit_t<degree>;
-		using minute_t = unit_t<arcminute>;
-		using second_t = unit_t<arcsecond>;
-		using turn_t = unit_t<turn>;
-		using mil_t = unit_t<mil>;
-		using gradian_t = unit_t<gradian>;
-		/** @} */
+		ADD_UNIT(radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
+		ADD_UNIT(milliradian, milliradians, mrad, milli<radians>)
+		ADD_UNIT(degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
+		ADD_UNIT(arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
+		ADD_UNIT(arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
+		ADD_UNIT(milliarcsecond, milliarcseconds, mas, milli<arcseconds>)
+		ADD_UNIT(turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
+		ADD_UNIT(gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 	}
 
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_angle_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_angle_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::angle_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_angle_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::angle_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of angle
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angle_unit<T>::value` to test
-		 *				the unit represents a angle quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_angle_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::angle::radian, typename T3 = units::angle::radian> 
-		struct is_angle_unit : std::integral_constant<bool, units::traits::detail::is_angle_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_angle_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_angle_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	ADD_UNIT_CATEGORY_TRAIT(angle, radian)
 
 	//------------------------------
 	//	UNITS OF CURRENT

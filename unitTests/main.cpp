@@ -8,6 +8,7 @@ using namespace units;
 using namespace units::dimensionless;
 using namespace units::length;
 using namespace units::mass;
+using namespace units::angle;
 using namespace units::time;
 using namespace units::frequency;
 using namespace units::area;
@@ -1110,7 +1111,7 @@ TEST_F(UnitContainer, convertMethod)
 
 TEST_F(UnitContainer, cout)
 {
-	angle::degree_t test1(349.87);
+	degree_t test1(349.87);
 	meter_t test2(1.0);
 	dB_t test3(31.0);
 	volt_t test4(21.79);
@@ -1247,7 +1248,6 @@ TEST_F(UnitContainer, literalSyntax)
 	// conversion using literal syntax
 	foot_t b = 0.3048_m;
 	EXPECT_TRUE(1_ft == b);
-	std::cout << b;
 }
 #endif
 
@@ -1314,9 +1314,9 @@ TEST_F(UnitConversion, mass)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, pounds>(0.453592);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<kilograms, imperial_tons>(1016.05);
+	test = convert<kilograms, long_tons>(1016.05);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<kilograms, us_tons>(907.185);
+	test = convert<kilograms, short_tons>(907.185);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = convert<kilograms, mass::ounces>(0.0283495);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
@@ -1395,8 +1395,6 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(0.999992407, test, 5.0e-10);
 	test = convert<angle::radians, angle::turns>(6.28319);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<angle::radians, angle::mils>(0.00015625);
-	EXPECT_NEAR(1.0, test, 5.0e-9);
 	test = convert<angle::radians, angle::gradians>(0.015708);
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 
@@ -1408,8 +1406,6 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(180.0, test, 5.0e-6);
 	test = convert<angle::degrees, angle::radians>(90.0);
 	EXPECT_NEAR(constants::PI / 2, test, 5.0e-6);
-	test = convert<angle::degrees, angle::mils>(47.0);
-	EXPECT_NEAR(5249.95039, test, 5.0e-6);
 }
 
 TEST_F(UnitConversion, current)
