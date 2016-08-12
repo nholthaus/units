@@ -1816,11 +1816,11 @@ namespace units
 		template<typename... T>
 		struct has_linear_scale : std::integral_constant<bool, units::all_true<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value > {};
 #else
-		template<typename T1, typename T2 = units::linear_scale<UNIT_LIB_DEFAULT_TYPE>, typename T3 = units::linear_scale<UNIT_LIB_DEFAULT_TYPE>>
-		struct has_linear_scale : std::integral_constant<bool, 
+		template<typename T1, typename T2 = T1, typename T3 = T1>
+		struct has_linear_scale : std::integral_constant<bool,
 			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
-			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
-			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T3>::value> {};
+			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T2>::underlying_type>, T2>::value &&
+			std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T3>::underlying_type>, T3>::value> {};
 #endif
 
 		/**
@@ -1834,11 +1834,11 @@ namespace units
 		template<typename... T>
 		struct has_decibel_scale : std::integral_constant<bool,	units::all_true<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>::value...>::value> {};
 #else
-		template<typename T1, typename T2 = units::decibel_scale<UNIT_LIB_DEFAULT_TYPE>, typename T3 = units::decibel_scale<UNIT_LIB_DEFAULT_TYPE>>
+		template<typename T1, typename T2 = T1, typename T3 = T1>
 		struct has_decibel_scale : std::integral_constant<bool,
 			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T1>::value &&
-			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T2>::value &&
-			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T1>::underlying_type>, T3>::value> {};
+			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T2>::underlying_type>, T2>::value &&
+			std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T2>::underlying_type>, T3>::value> {};
 #endif
 
 		/**
