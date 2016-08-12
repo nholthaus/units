@@ -1356,7 +1356,7 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = convert<seconds, microseconds>(1.0e-6);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<seconds, millseconds>(1.0e-3);
+	test = convert<seconds, milliseconds>(1.0e-3);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = convert<seconds, minutes>(60.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);

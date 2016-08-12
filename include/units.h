@@ -1506,6 +1506,13 @@ namespace units
 
 	namespace traits
 	{
+		// forward declaration
+		#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
+		template<typename... T> struct is_scalar_unit;
+		#else
+		template<typename, typename, typename> struct is_scalar_unit;
+		#endif
+
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Traits which tests if a class is a `unit`
@@ -1574,6 +1581,7 @@ namespace units
 	template<class Units, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>, units::detail::_unit_t
 	{
+		static_assert(traits::is_unit<Units>::value, "Template parameter `Units` must be a unit tag. Check that you aren't using a unit type (_t).");
 		static_assert(traits::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	protected:
@@ -1609,7 +1617,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear scalar units
 		 * @param[in]	value value of the unit_t
 		 */
-		template<class Ty, class = typename std::enable_if<std::is_same<units::traits::base_unit_of<Units>, units::category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_scalar_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
 		inline unit_t(Ty value) : nls(value) {};
 
 		/**
@@ -1640,7 +1648,7 @@ namespace units
 		* @details		performs implicit conversions from built-in types ONLY for scalar units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = typename std::enable_if<std::is_same<units::traits::base_unit_of<Units>, units::category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_scalar_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
 		inline unit_t& operator=(Ty rhs)
 		{
 			nls::m_value = rhs;
@@ -1765,7 +1773,7 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for scalar unit types.
 		 */
-		template<class Ty, class = typename std::enable_if<std::is_same<units::traits::base_unit_of<Units>, units::category::scalar_unit>::value && std::is_arithmetic<Ty>::value>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_scalar_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
 		operator Ty() const { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>(nls::m_value); }
 
 	public:
@@ -2800,7 +2808,7 @@ namespace units
 		ADD_UNIT(second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
 		ADD_UNIT(nanosecond, nanoseconds, ns, nano<seconds>)
 		ADD_UNIT(microsecond, microseconds, us, micro<seconds>)
-		ADD_UNIT(millsecond, millseconds, ms, milli<seconds>)
+		ADD_UNIT(millisecond, milliseconds, ms, milli<seconds>)
 		ADD_UNIT(minute, minutes, min, unit<std::ratio<60>, seconds>)
 		ADD_UNIT(hour, hours, hr, unit<std::ratio<60>, minutes>)
 		ADD_UNIT(day, days, d, unit<std::ratio<24>, hours>)
