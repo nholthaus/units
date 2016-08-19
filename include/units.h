@@ -159,7 +159,7 @@
 			/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
 			/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 			/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
-			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }
+			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
 
 	/**
 	 * @def		ADD_UNIT_CATEGORY_TRAIT
@@ -186,15 +186,13 @@
 		}\
 		/** @endcond */\
 		\
-		/**\
-	  		 * @ingroup		TypeTraits\
-	  		 * @brief		Trait which tests whether a type represents a unit of #unitCategory\
-	  		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test\
-	  		 *				the unit represents a  #unitCategory quantity.\
-	  		 * @tparam		T	one or more types to test\
-	  		 */\
-			template<typename T1, typename T2 = units::length:: ## baseUnit , typename T3 = units::length:: ## baseUnit> 
-	  		struct is_length_unit : std::integral_constant<bool, units::traits::detail::is_length_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_length_unit_impl<typename std::decay<T3>::type>::value> {};
+	  		 /** @ingroup		TypeTraits*/\
+	  		 /** @brief			Trait which tests whether a type represents a unit of #unitCategory*/\
+	  		 /** @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test*/\
+	  		 /**				the unit represents a  #unitCategory quantity.*/\
+	  		 /** @tparam		T	one or more types to test*/\
+			template<typename T1, typename T2 = units:: ## unitCategory ## :: ## baseUnit , typename T3 = units:: ## unitCategory ## :: ## baseUnit>\
+			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
 
@@ -1710,13 +1708,21 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, typename std::enable_if<std::is_floating_point<T>::value || std::is_floating_point<Ty>::value, int>::type = 0>
 		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
 		{
 			auto x = nls::m_value;
 			auto y = units::convert<UnitsRhs, Units>(rhs.m_value);
-			return std::abs(x-y) < std::numeric_limits<T>::epsilon() * std::abs(x+y) || 
-				std::abs(x-y) < std::numeric_limits<T>::min();
+			return std::abs(x - y) < std::numeric_limits<T>::epsilon() * std::abs(x + y) ||
+				std::abs(x - y) < std::numeric_limits<T>::min();
+		}
+
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, typename std::enable_if<std::is_integral<T>::value && std::is_integral<Ty>::value, int>::type = 0>
+		inline bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const
+		{
+			auto x = nls::m_value;
+			auto y = units::convert<UnitsRhs, Units>(rhs.m_value);
+			return x == y;
 		}
 
 		/**
