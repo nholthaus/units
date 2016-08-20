@@ -81,6 +81,8 @@
 	 *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
 	 *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
 	 *			cout function which prints both the value and abbreviation of the unit when invoked.
+	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+	 *			are placed in the `units::literals` namespace.
 	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
 	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
 	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
@@ -90,14 +92,20 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	#define UNIT_ADD(nameSingular, namePlural, abbreviation, /*definition*/...)\
+	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	namespace namespaceName\
+	{\
 		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
 		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
-		std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
-		nameSingular ## _t operator""_ ## abbreviation (long double d) { return nameSingular ## _t(d); }\
-		nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return nameSingular ## _t((long double)d); }	// may want to think of something better than this cast.
+	}\
+	std::ostream& operator<<(std::ostream& os, const namespaceName ## :: ## nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	namespace literals\
+	{\
+		namespaceName ## :: ## nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName ## :: ## nameSingular ## _t(d); };\
+		namespaceName ## :: ## nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName ## :: ## nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+	}
 
 	/** 
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -145,6 +153,8 @@
 	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
 	 *			appropriately named unit container (e.g. `meter_t`). It also defines a class-specific
 	 *			cout function which prints both the value and abbreviation of the unit when invoked.
+	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+	 *			are placed in the `units::literals` namespace.
 	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
 	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
 	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
@@ -154,12 +164,14 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	#define UNIT_ADD(nameSingular, namePlural, abbreviation, /*definition*/...)\
-			/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
-			/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
-			/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
-			/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
-			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
+	namespace namespaceName\
+	{\
+		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
+		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
+	}\
+	std::ostream& operator<<(std::ostream& os, const namespaceName ## :: ## nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
 
 	/**
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -2730,42 +2742,55 @@ namespace units
 	};
 
 	//------------------------------
+	//	LITERALS
+	//------------------------------
+
+	/**
+	 * @namespace	units::literals
+	 * @brief		namespace for unit literal definitions of all categories.
+	 * @details		Literals allow for declaring unit types using suffix values. For example, a type
+	 *				of `meter_t(6.2)` could be declared as `6.2_m`. All literals use an underscore
+	 *				followed by the abbreviation for the unit. To enable literal syntax in your code,
+	 *				include the statement `using namespace units::literals`.
+	 * @anchor		unitLiterals
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
+
+	//------------------------------
 	//	LENGTH UNITS
 	//------------------------------
 
 	/**
+	 * @namespace	units::length
 	 * @brief		namespace for unit types and containers representing length values
 	 * @details		The SI unit for length is `meters`, and the corresponding `base_unit` category is
 	 *				`length_unit`.
 	 * @anchor		lengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
- 	namespace length
-	{
-		UNIT_ADD(meter,				meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
-		UNIT_ADD(nanometer,			nanometers,			nm,				nano<meters>)
-		UNIT_ADD(micrometer,		micrometers,		um,				micro<meters>)
-		UNIT_ADD(millimeter,		millimeters,		mm,				milli<meters>)
-		UNIT_ADD(centimeter,		centimeters,		cm,				centi<meters>)
-		UNIT_ADD(kilometer,			kilometers,			km,				kilo<meters>)
-		UNIT_ADD(foot,				feet,				ft,				unit<std::ratio<381, 1250>, meters>)
-		UNIT_ADD(mil,				mils,				mil,			unit<std::ratio<1000>, feet>)
-		UNIT_ADD(inch,				inches,				inch,			unit<std::ratio<1, 12>, feet>)
-		UNIT_ADD(mile,				miles,				mi,				unit<std::ratio<5280>, feet>)
-		UNIT_ADD(nauticalMile,		nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
-		UNIT_ADD(astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
-		UNIT_ADD(lightyear,			lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
-		UNIT_ADD(parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
-		UNIT_ADD(angstrom,			angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
-		UNIT_ADD(cubit,				cubits,				cbt,			unit<std::ratio<18>, inches>)
-		UNIT_ADD(fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
-		UNIT_ADD(chain,				chains,				ch,				unit<std::ratio<66>, feet>)
-		UNIT_ADD(furlong,			furlongs,			fur,			unit<std::ratio<10>, chains>)
-		UNIT_ADD(hand,				hands,				hand,			unit<std::ratio<4>, inches>)
-		UNIT_ADD(league,			leagues,			lea,			unit<std::ratio<3>, miles>)
-		UNIT_ADD(nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
-		UNIT_ADD(yard,				yards,				yd,				unit<std::ratio<3>, feet>)
-	}
+	UNIT_ADD(length,	meter,			meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
+	UNIT_ADD(length,	nanometer,		nanometers,			nm,				nano<meters>)
+	UNIT_ADD(length,	micrometer,		micrometers,		um,				micro<meters>)
+	UNIT_ADD(length,	millimeter,		millimeters,		mm,				milli<meters>)
+	UNIT_ADD(length,	centimeter,		centimeters,		cm,				centi<meters>)
+	UNIT_ADD(length,	kilometer,		kilometers,			km,				kilo<meters>)
+	UNIT_ADD(length,	foot,			feet,				ft,				unit<std::ratio<381, 1250>, meters>)
+	UNIT_ADD(length,	mil,			mils,				mil,			unit<std::ratio<1000>, feet>)
+	UNIT_ADD(length,	inch,			inches,				inch,			unit<std::ratio<1, 12>, feet>)
+	UNIT_ADD(length,	mile,			miles,				mi,				unit<std::ratio<5280>, feet>)
+	UNIT_ADD(length,	nauticalMile,	nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
+	UNIT_ADD(length,	astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
+	UNIT_ADD(length,	lightyear,		lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
+	UNIT_ADD(length,	parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
+	UNIT_ADD(length,	angstrom,		angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
+	UNIT_ADD(length,	cubit,			cubits,				cbt,			unit<std::ratio<18>, inches>)
+	UNIT_ADD(length,	fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
+	UNIT_ADD(length,	chain,			chains,				ch,				unit<std::ratio<66>, feet>)
+	UNIT_ADD(length,	furlong,		furlongs,			fur,			unit<std::ratio<10>, chains>)
+	UNIT_ADD(length,	hand,			hands,				hand,			unit<std::ratio<4>, inches>)
+	UNIT_ADD(length,	league,			leagues,			lea,			unit<std::ratio<3>, miles>)
+	UNIT_ADD(length,	nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
+	UNIT_ADD(length,	yard,			yards,				yd,				unit<std::ratio<3>, feet>)
 
 	UNIT_ADD_CATEGORY_TRAIT(length, meter)
 
@@ -2774,27 +2799,25 @@ namespace units
 	//------------------------------
 
 	/**
+	 * @namespace	units::mass
 	 * @brief		namespace for unit types and containers representing mass values
 	 * @details		The SI unit for mass is `kilograms`, and the corresponding `base_unit` category is
 	 *				`mass_unit`.
-	 * @anchor	massContainers
+	 * @anchor		massContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace mass
-	{
-		UNIT_ADD(kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
-		UNIT_ADD(gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
-		UNIT_ADD(microgram, micrograms, ug, micro<grams>)
-		UNIT_ADD(milligram, milligrams, mg, milli<grams>)
-		UNIT_ADD(metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
-		UNIT_ADD(pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
-		UNIT_ADD(long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
-		UNIT_ADD(short_ton, short_tons, sh_t, unit<std::ratio<2000>, pounds>)
-		UNIT_ADD(stone, stone, st, unit<std::ratio<14>, pounds>)
-		UNIT_ADD(ounce, ounces, oz, unit<std::ratio<1, 16>, pounds>)
-		UNIT_ADD(carat, carats, ct, unit<std::ratio<200>, milligrams>)
-		UNIT_ADD(slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
-	}
+	UNIT_ADD(mass, kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
+	UNIT_ADD(mass, gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
+	UNIT_ADD(mass, microgram, micrograms, ug, micro<grams>)
+	UNIT_ADD(mass, milligram, milligrams, mg, milli<grams>)
+	UNIT_ADD(mass, metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
+	UNIT_ADD(mass, pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
+	UNIT_ADD(mass, long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
+	UNIT_ADD(mass, short_ton, short_tons, sh_t, unit<std::ratio<2000>, pounds>)
+	UNIT_ADD(mass, stone, stone, st, unit<std::ratio<14>, pounds>)
+	UNIT_ADD(mass, ounce, ounces, oz, unit<std::ratio<1, 16>, pounds>)
+	UNIT_ADD(mass, carat, carats, ct, unit<std::ratio<200>, milligrams>)
+	UNIT_ADD(mass, slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 
 	UNIT_ADD_CATEGORY_TRAIT(mass, kilogram)
 
@@ -2803,24 +2826,22 @@ namespace units
 	//------------------------------
 
 	/**
+	 * @namespace	units::time
 	 * @brief		namespace for unit types and containers representing time values
 	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` category is
 	 *				`time_unit`.
 	 * @anchor		timeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace time
-	{
-		UNIT_ADD(second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
-		UNIT_ADD(nanosecond, nanoseconds, ns, nano<seconds>)
-		UNIT_ADD(microsecond, microseconds, us, micro<seconds>)
-		UNIT_ADD(millisecond, milliseconds, ms, milli<seconds>)
-		UNIT_ADD(minute, minutes, min, unit<std::ratio<60>, seconds>)
-		UNIT_ADD(hour, hours, hr, unit<std::ratio<60>, minutes>)
-		UNIT_ADD(day, days, d, unit<std::ratio<24>, hours>)
-		UNIT_ADD(week, weeks, wk, unit<std::ratio<7>, days>)
-		UNIT_ADD(year, years, yr, unit<std::ratio<365>, days>)
-	}
+	UNIT_ADD(time, second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
+	UNIT_ADD(time, nanosecond, nanoseconds, ns, nano<seconds>)
+	UNIT_ADD(time, microsecond, microseconds, us, micro<seconds>)
+	UNIT_ADD(time, millisecond, milliseconds, ms, milli<seconds>)
+	UNIT_ADD(time, minute, minutes, min, unit<std::ratio<60>, seconds>)
+	UNIT_ADD(time, hour, hours, hr, unit<std::ratio<60>, minutes>)
+	UNIT_ADD(time, day, days, d, unit<std::ratio<24>, hours>)
+	UNIT_ADD(time, week, weeks, wk, unit<std::ratio<7>, days>)
+	UNIT_ADD(time, year, years, yr, unit<std::ratio<365>, days>)
 
 	UNIT_ADD_CATEGORY_TRAIT(time, second)
 
@@ -2829,23 +2850,21 @@ namespace units
 	//------------------------------
 
 	/**
+	 * @namespace	units::angle
 	 * @brief		namespace for unit types and containers representing angle values
 	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` category is
 	 *				`angle_unit`.
 	 * @anchor		angleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace angle
-	{
-		UNIT_ADD(radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
-		UNIT_ADD(milliradian, milliradians, mrad, milli<radians>)
-		UNIT_ADD(degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
-		UNIT_ADD(arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
-		UNIT_ADD(arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
-		UNIT_ADD(milliarcsecond, milliarcseconds, mas, milli<arcseconds>)
-		UNIT_ADD(turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
-		UNIT_ADD(gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
-	}
+	UNIT_ADD(angle, radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
+	UNIT_ADD(angle, milliradian, milliradians, mrad, milli<radians>)
+	UNIT_ADD(angle, degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
+	UNIT_ADD(angle, arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
+	UNIT_ADD(angle, arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
+	UNIT_ADD(angle, milliarcsecond, milliarcseconds, mas, milli<arcseconds>)
+	UNIT_ADD(angle, turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
+	UNIT_ADD(angle, gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 
 	UNIT_ADD_CATEGORY_TRAIT(angle, radian)
 

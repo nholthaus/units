@@ -39,6 +39,10 @@ using namespace units::density;
 using namespace units::concentration;
 using namespace units::math;
 
+#if !defined(_MSC_VER) || _MSC_VER > 1800
+using namespace units::literals;
+#endif
+
 namespace {
 
 	class TypeTraits : public ::testing::Test {
