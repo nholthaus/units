@@ -700,7 +700,7 @@ TEST_F(TypeTraits, is_radioactivity_unit)
 
 TEST_F(TypeTraits, is_torque_unit)
 {
-		EXPECT_TRUE((traits::is_torque_unit<torque::newton_meter>::value));
+	EXPECT_TRUE((traits::is_torque_unit<torque::newton_meter>::value));
 	EXPECT_TRUE((traits::is_torque_unit<torque::foot_pound>::value));
 	EXPECT_FALSE((traits::is_torque_unit<volume::cubic_meter>::value));
 	EXPECT_FALSE((traits::is_torque_unit<double>::value));
@@ -755,13 +755,13 @@ TEST_F(TypeTraits, is_density_unit)
 	EXPECT_FALSE((traits::is_density_unit<year>::value));
 	EXPECT_FALSE((traits::is_density_unit<double>::value));
 
-	EXPECT_TRUE((traits::is_density_unit<kilogram_per_cubic_meter_t>::value));
-	EXPECT_TRUE((traits::is_density_unit<const kilogram_per_cubic_meter_t>::value));
-	EXPECT_TRUE((traits::is_density_unit<const kilogram_per_cubic_meter_t&>::value));
-	EXPECT_TRUE((traits::is_density_unit<ounce_per_cubic_foot_t>::value));
+	EXPECT_TRUE((traits::is_density_unit<kilograms_per_cubic_meter_t>::value));
+	EXPECT_TRUE((traits::is_density_unit<const kilograms_per_cubic_meter_t>::value));
+	EXPECT_TRUE((traits::is_density_unit<const kilograms_per_cubic_meter_t&>::value));
+	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot_t>::value));
 	EXPECT_FALSE((traits::is_density_unit<year_t>::value));
-	EXPECT_TRUE((traits::is_density_unit<ounce_per_cubic_foot_t, kilogram_per_cubic_meter_t>::value));
-	EXPECT_FALSE((traits::is_density_unit<year_t, kilogram_per_cubic_meter_t>::value));
+	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot_t, kilograms_per_cubic_meter_t>::value));
+	EXPECT_FALSE((traits::is_density_unit<year_t, kilograms_per_cubic_meter_t>::value));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -2021,7 +2021,7 @@ TEST_F(UnitConversion, volume)
 	EXPECT_NEAR(0.000473176, test, 5.0e-10);
 	test = convert<cups, cubic_meter>(1.0);
 	EXPECT_NEAR(0.00024, test, 5.0e-6);
-	test = convert<volume::ounces, cubic_meter>(1.0);
+	test = convert<volume::fluid_ounces, cubic_meter>(1.0);
 	EXPECT_NEAR(2.9574e-5, test, 5.0e-5);
 	test = convert<barrels, cubic_meter>(1.0);
 	EXPECT_NEAR(0.158987294928, test, 5.0e-13);
@@ -2055,7 +2055,7 @@ TEST_F(UnitConversion, volume)
 	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
 	test = convert<strikes, cubic_meter>(1.0);
 	EXPECT_NEAR(0.07047814033376 , test, 5.0e-5);
-	test = convert<volume::ounces, milliliters>(1.0);
+	test = convert<volume::fluid_ounces, milliliters>(1.0);
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
@@ -2063,25 +2063,25 @@ TEST_F(UnitConversion, density)
 {
 	double test;
 
-	test = convert<kilogram_per_cubic_meter, kilograms_per_cubic_meter>(1.0);
+	test = convert<kilograms_per_cubic_meter, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gram_per_milliliter, kilograms_per_cubic_meter>(1.0);
+	test = convert<grams_per_milliliter, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = convert<kilogram_per_liter, kilograms_per_cubic_meter>(1.0);
+	test = convert<kilograms_per_liter, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = convert<ounce_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	test = convert<ounces_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(1.001153961, test, 5.0e-10);
-	test = convert<ounce_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+	test = convert<ounces_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(1.729994044e3, test, 5.0e-7);
-	test = convert<ounce_per_gallon, kilograms_per_cubic_meter>(1.0);
+	test = convert<ounces_per_gallon, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(7.489151707, test, 5.0e-10);
-	test = convert<pound_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	test = convert<pounds_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(16.01846337, test, 5.0e-9);
-	test = convert<pound_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
+	test = convert<pounds_per_cubic_inch, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(2.767990471e4, test, 5.0e-6);
-	test = convert<pound_per_gallon, kilograms_per_cubic_meter>(1.0);
+	test = convert<pounds_per_gallon, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
-	test = convert<slug_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
+	test = convert<slugs_per_cubic_foot, kilograms_per_cubic_meter>(1.0);
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 

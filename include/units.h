@@ -56,7 +56,6 @@
 #endif
 
 #define UNIT_LIB_DEFAULT_TYPE double
-#undef _T
 
 //--------------------
 //	INCLUDES
@@ -169,7 +168,7 @@
 #else
 
 	/**
-	 * @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
+	 * @def		UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
 	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
 	 * @details	This macro should be used within an appropriate namespace for the unit
 	 *			category. The macro generates singular, plural, and abbreviated forms
@@ -187,6 +186,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
+	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
 	namespace namespaceName\
 	{\
 		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
@@ -640,6 +640,7 @@ namespace units
 		using	area_unit						=	base_unit<std::ratio<2>>;																														///< Represents an SI derived unit of area
 		using	volume_unit						=	base_unit<std::ratio<3>>;																														///< Represents an SI derived unit of volume
 		using	density_unit					=	base_unit<std::ratio<-3>,	std::ratio<1>>;																										///< Represents an SI derived unit of density
+		using	concentration_unit				=	base_unit<>;
 	}
 
 	//------------------------------
@@ -3289,212 +3290,40 @@ namespace units
 	//------------------------------
 
 	/**
+	 * @namespace	units::luminous_flux
 	 * @brief		namespace for unit types and containers representing luminous_flux values
 	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` category is
 	 *				`luminous_flux_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace luminous_flux
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using lumens = unit<std::ratio<1>, units::category::luminous_flux_unit>;
-		using picolumens = pico<lumens>;
-		using nanolumens = nano<lumens>;
-		using microlumens = micro<lumens>;
-		using millilumens = milli<lumens>;
-		using kilolumens = kilo<lumens>;
-		using megalumens = mega<lumens>;
-		using gigalumens = giga<lumens>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using lumen = lumens;
-		using picolumen = picolumens;
-		using nanolumen = nanolumens;
-		using microlumen = microlumens;
-		using millilumen = millilumens;
-		using kilolumen = kilolumens;
-		using megalumen = megalumens;
-		using gigalumen = gigalumens;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor luminousFluxContainers
-		 * @{
-		 */
-		using lumen_t = unit_t<lumen>;
-		using picolumen_t = unit_t<picolumen>;
-		using nanolumen_t = unit_t<nanolumen>;
-		using microlumen_t = unit_t<microlumen>;
-		using millilumen_t = unit_t<millilumen>;
-		using kilolumen_t = unit_t<kilolumen>;
-		using megalumen_t = unit_t<megalumen>;
-		using gigalumen_t = unit_t<gigalumen>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using lm = lumens;
-		using plm = picolumens;
-		using nlm = nanolumens;
-		using ulm = microlumens;
-		using mlm = millilumens;
-		using klm = kilolumens;
-		using Mlm = megalumens;
-		using Glm = gigalumens;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_luminous_flux_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_luminous_flux_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::luminous_flux_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_luminous_flux_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::luminous_flux_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of luminous_flux
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_flux_unit<T>::value` to test
-		 *				the unit represents a luminous_flux quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_luminous_flux_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::luminous_flux::lumen , typename T3 = units::luminous_flux::lumen> 
-		struct is_luminous_flux_unit : std::integral_constant<bool, units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_luminous_flux_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit<std::ratio<1>, units::category::luminous_flux_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(luminous_flux, lumen)
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::illuminance
 	 * @brief		namespace for unit types and containers representing illuminance values
 	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` category is
 	 *				`illuminance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace illuminance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using luxes = unit<std::ratio<1>, units::category::illuminance_unit>;
-		using picoluxes = pico<luxes>;
-		using nanoluxes = nano<luxes>;
-		using microluxes = micro<luxes>;
-		using milliluxes = milli<luxes>;
-		using kiloluxes = kilo<luxes>;
-		using megaluxes = mega<luxes>;
-		using gigaluxes = giga<luxes>;
-		using footcandles = compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>;
-		using lumens_per_square_inch = compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>;
-		using phots = compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>;
-		/** @} */
-
-		/**
-		 * @name  Units (full names singular)
-		 * @{
-		 */
-		using lux = luxes;
-		using picolux = picoluxes;
-		using nanolux = nanoluxes;
-		using microlux = microluxes;
-		using millilux = milliluxes;
-		using kilolux = kiloluxes;
-		using megalux = megaluxes;
-		using gigalux = gigaluxes;
-		using footcandle = footcandles;
-		using phot = phots;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor illuminanceContainers
-		 * @{
-		 */
-		using lux_t = unit_t<lux>;
-		using picolux_t = unit_t<picolux>;
-		using nanolux_t = unit_t<nanolux>;
-		using microlux_t = unit_t<microlux>;
-		using millilux_t = unit_t<millilux>;
-		using kilolux_t = unit_t<kilolux>;
-		using megalux_t = unit_t<megalux>;
-		using gigalux_t = unit_t<gigalux>;
-		using footcandle_t = unit_t<footcandle>;
-		using lumens_per_square_inch_t = unit_t<lumens_per_square_inch>;
-		using phot_t = unit_t<phot>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using lx = luxes;
-		using plx = picoluxes;
-		using nlx = nanoluxes;
-		using ulx = microluxes;
-		using mlx = milliluxes;
-		using klx = kiloluxes;
-		using Mlx = megaluxes;
-		using Glx = gigaluxes;
-		using fc = footcandles;
-		using ph = phots;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_illuminance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_illuminance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::illuminance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_illuminance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::illuminance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of illuminance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_illuminance_unit<T>::value` to test
-		 *				the unit represents a illuminance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_illuminance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_illuminance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::illuminance::lux , typename T3 = units::illuminance::lux> 
-		struct is_illuminance_unit : std::integral_constant<bool, units::traits::detail::is_illuminance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_illuminance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_illuminance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, luxes, lx, unit<std::ratio<1>, units::category::illuminance_unit>)
+	UNIT_ADD(illuminance, footcandle, footcandles, fc, compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>)
+	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in2, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
+	UNIT_ADD(illuminance, phot, phots, ph, compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(illuminance, lux)
 
 	//------------------------------
 	//	UNITS OF RADIATION
 	//------------------------------
 
 	/**
+	 * @namepsace	units::radiation
 	 * @brief		namespace for unit types and containers representing radiation values
 	 * @details		The SI units for radiation are:
 	 *				- source activity:	becquerel
@@ -3502,684 +3331,139 @@ namespace units
 	 *				- equivalent dose:	sievert
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace radiation
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using becquerels = inverse<time::seconds>;
-		using picobecquerels = pico<becquerels>;
-		using nanobecquerels = nano<becquerels>;
-		using microbecquerels = micro<becquerels>;
-		using millibecquerels = milli<becquerels>;
-		using kilobecquerels = kilo<becquerels>;
-		using megabecquerels = mega<becquerels>;
-		using gigabecquerels = giga<becquerels>;
-		using grays = compound_unit<energy::joules, inverse<mass::kilogram>>;
-		using picograys = pico<grays>;
-		using nanograys = nano<grays>;
-		using micrograys = micro<grays>;
-		using milligrays = milli<grays>;
-		using kilograys = kilo<grays>;
-		using megagrays = mega<grays>;
-		using gigagrays = giga<grays>;
-		using sieverts = compound_unit<energy::joules, inverse<mass::kilogram>>;
-		using picosieverts = pico<sieverts>;
-		using nanosieverts = nano<sieverts>;
-		using microsieverts = micro<sieverts>;
-		using millisieverts = milli<sieverts>;
-		using kilosieverts = kilo<sieverts>;
-		using megasieverts = mega<sieverts>;
-		using gigasieverts = giga<sieverts>;
-		using curies = unit<std::ratio<37>, gigabecquerels>;
-		using rutherfords = megabecquerels;
-		using rads = unit<std::ratio<1, 100>, grays>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerel, becquerels, Bq, unit<std::ratio<1>, units::frequency::hertz>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, gray, grays, Gy, compound_unit<energy::joules, inverse<mass::kilogram>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, unit<std::ratio<1>, grays>)
+	UNIT_ADD(radiation, curie, curies, Ci, unit<std::ratio<37>, gigabecquerels>)
+	UNIT_ADD(radiation, rutherford, rutherfords, rd, unit<std::ratio<1>, megabecquerels>)
+	UNIT_ADD(radiation, rad, rads, rads, unit<std::ratio<1>, centigrays>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using becquerel = becquerels;
-		using picobecquerel = picobecquerels;
-		using nanobecquerel = nanobecquerels;
-		using microbecquerel = microbecquerels;
-		using millibecquerel = millibecquerels;
-		using kilobecquerel = kilobecquerels;
-		using megabecquerel = megabecquerels;
-		using gigabecquerel = gigabecquerels;
-		using gray = grays;
-		using picogray = picograys;
-		using nanogray = nanograys;
-		using microgray = micrograys;
-		using milligray = milligrays;
-		using kilogray = kilograys;
-		using megagray = megagrays;
-		using gigagray = gigagrays;
-		using sievert = sieverts;
-		using picosievert = picosieverts;
-		using nanosievert = nanosieverts;
-		using microsievert = microsieverts;
-		using millisievert = millisieverts;
-		using kilosievert = kilosieverts;
-		using megasievert = megasieverts;
-		using gigasievert = gigasieverts;
-		using curie = curies;
-		using rutherford = rutherfords;
-		using rad = rads;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor radiationContainers
-		 * @{
-		 */
-		using becquerel_t = unit_t<becquerel>;
-		using picobecquerel_t = unit_t<picobecquerel>;
-		using nanobecquerel_t = unit_t<nanobecquerel>;
-		using microbecquerel_t = unit_t<microbecquerel>;
-		using millibecquerel_t = unit_t<millibecquerel>;
-		using kilobecquerel_t = unit_t<kilobecquerel>;
-		using megabecquerel_t = unit_t<megabecquerel>;
-		using gigabecquerel_t = unit_t<gigabecquerel>;
-		using gray_t = unit_t<gray>;
-		using picogray_t = unit_t<picogray>;
-		using nanogray_t = unit_t<nanogray>;
-		using microgray_t = unit_t<microgray>;
-		using milligray_t = unit_t<milligray>;
-		using kilogray_t = unit_t<kilogray>;
-		using megagray_t = unit_t<megagray>;
-		using gigagray_t = unit_t<gigagray>;
-		using sievert_t = unit_t<sievert>;
-		using picosievert_t = unit_t<picosievert>;
-		using nanosievert_t = unit_t<nanosievert>;
-		using microsievert_t = unit_t<microsievert>;
-		using millisievert_t = unit_t<millisievert>;
-		using kilosievert_t = unit_t<kilosievert>;
-		using megasievert_t = unit_t<megasievert>;
-		using gigasievert_t = unit_t<gigasievert>;
-		using curie_t = unit_t<curie>;
-		using rutherford_t = unit_t<rutherford>;
-		using rad_t = unit_t<rad>;
-		/** @} */
-
-		/**
-		 * @name  Units (abbreviated names)
-		 * @{
-		 */
-		using Bq = becquerels;
-		using pBq = picobecquerels;
-		using nBq = nanobecquerels;
-		using uBq = microbecquerels;
-		using mBq = millibecquerels;
-		using kBq = kilobecquerels;
-		using MBq = megabecquerels;
-		using GBq = gigabecquerels;
-		using Gy = grays;
-		using pGy = picograys;
-		using nGy = nanograys;
-		using uGy = micrograys;
-		using mGy = milligrays;
-		using kGy = kilograys;
-		using MGy = megagrays;
-		using GGy = gigagrays;
-		using Sv = sieverts;
-		using pSv = picosieverts;
-		using nSv = nanosieverts;
-		using uSv = microsieverts;
-		using mSv = millisieverts;
-		using kSv = kilosieverts;
-		using MSv = megasieverts;
-		using GSv = gigasieverts;
-		using Ci = curies;
-		using rd = rutherfords;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_radioactivity_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_radioactivity_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::radioactivity_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_radioactivity_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::radioactivity_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of radiation
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_radioactivity_unit<T>::value` to test
-		 *				the unit represents a radiation quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_radioactivity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::radiation::becquerel, typename T3 = units::radiation::becquerel>
-		struct is_radioactivity_unit : std::integral_constant<bool, units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_radioactivity_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(radioactivity, becquerels)
 
 	//------------------------------
 	//	UNITS OF TORQUE
 	//------------------------------
 
 	/**
+	 * @namespace	units::torque
 	 * @brief		namespace for unit types and containers representing torque values
 	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` category is
 	 *				`torque_units`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace torque
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using newton_meters = unit<std::ratio<1>, units::category::torque_unit>;
-		using foot_pounds = compound_unit<length::foot, force::pounds>;
-		using foot_poundals = compound_unit<length::foot, force::poundal>;
-		using inch_pounds = compound_unit<length::inch, force::pounds>;
-		using meter_kilograms = compound_unit<length::meter, force::kiloponds>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using newton_meter = newton_meters;
-		using foot_pound = foot_pounds;
-		using foot_poundal = foot_poundals;
-		using inch_pound = inch_pounds;
-		using meter_kilogram = meter_kilograms;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor torqueContainers
-		 * @{
-		 */
-		using newton_meter_t = unit_t<newton_meter>;
-		using foot_pound_t = unit_t<foot_pound>;
-		using foot_poundal_t = unit_t<foot_poundal>;
-		using inch_pound_t = unit_t<inch_pound>;
-		using meter_kilogram_t = unit_t<meter_kilogram>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using Nm = newton_meters;
-		using ftlbf = foot_pounds;
-		using ftpdl = foot_poundals;
-		using inlbf = inch_pounds;
-		using mkgf = meter_kilograms;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_torque_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_torque_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::torque_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_torque_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::torque_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of torque
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_torque_unit<T>::value` to test
-		 *				the unit represents a torque quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_torque_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_torque_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::torque::foot_pound , typename T3 = units::torque::foot_pound> 
-		struct is_torque_unit : std::integral_constant<bool, units::traits::detail::is_torque_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_torque_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_torque_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD(torque, newton_meter, newton_meters, Nm, unit<std::ratio<1>, units::energy::joule>)
+	UNIT_ADD(torque, foot_pound, foot_pounds, ftlb, compound_unit<length::foot, force::pounds>)
+	UNIT_ADD(torque, foot_poundal, foot_poundals, ftpdl, compound_unit<length::foot, force::poundal>)
+	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_unit<length::inch, force::pounds>)
+	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit<length::meter, force::kiloponds>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(torque, newton_meter)
 
 	//------------------------------
 	//	AREA UNITS
 	//------------------------------
 
 	/**
+	 * @namespace	units::area
 	 * @brief		namespace for unit types and containers representing area values
 	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` category is
 	 *				`area_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace area
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using square_meters = unit<std::ratio<1>, units::category::area_unit>;
-		using square_feet = squared<length::feet>;
-		using square_inches = squared<length::inch>;
-		using square_miles = squared<length::miles>;
-		using square_kilometers = squared<length::kilometers>;
-		using hectares = unit<std::ratio<10000>, square_meters>;
-		using acres = unit<std::ratio<43560>, square_feet>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using square_meter = square_meters;
-		using square_foot = square_feet;
-		using square_inch = square_inches;
-		using square_mile = square_miles;
-		using square_kilometer = square_kilometers;
-		using hectare = hectares;
-		using acre = acres;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using ha = hectares;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor areaContainers
-		 * @{
-		 */
-		using square_meter_t = unit_t<square_meter>;
-		using square_foot_t = unit_t<square_foot>;
-		using square_inch_t = unit_t<square_inch>;
-		using square_mile_t = unit_t<square_mile>;
-		using square_kilometer_t = unit_t<square_kilometer>;
-		using hectare_t = unit_t<hectare>;
-		using acre_t = unit_t<acre>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_area_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_area_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::area_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_area_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::area_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of area
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_area_unit<T>::value` to test
-		 *				the unit represents a area quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_area_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_area_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::area::square_meters, typename T3 = units::area::square_meters>
-		struct is_area_unit : std::integral_constant<bool, units::traits::detail::is_area_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_area_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_area_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD(area, square_meter, square_meters, sq_m, unit<std::ratio<1>, units::category::area_unit>)
+	UNIT_ADD(area, square_foot, square_feet, sq_ft, squared<length::feet>)
+	UNIT_ADD(area, square_inch, square_inches, sq_in, squared<length::inch>)
+	UNIT_ADD(area, square_mile, square_miles, sq_mi, squared<length::miles>)
+	UNIT_ADD(area, square_kilometer, square_kilometers, sq_km, squared<length::kilometers>)
+	UNIT_ADD(area, hectare, hectares, ha, unit<std::ratio<10000>, square_meters>)
+	UNIT_ADD(area, acre, acres, acre, unit<std::ratio<43560>, square_feet>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(area, square_meters)
 
 	//------------------------------
 	//	UNITS OF VOLUME
 	//------------------------------
 
 	/**
+	 * @namespace	units::volume
 	 * @brief		namespace for unit types and containers representing volume values
 	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` category is
 	 *				`volume_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace volume
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using cubic_meters = unit<std::ratio<1>, units::category::volume_unit>;
-		using cubic_millimeters = cubed<length::millimeter>;
-		using cubic_kilometers = cubed<length::kilometer>;
-		using liters = cubed<deci<length::meter>>;
-		using milliliters = milli<liters>;
-		using cubic_inches = cubed<length::inches>;
-		using cubic_feet = cubed<length::feet>;
-		using cubic_yards = cubed<length::yards>;
-		using cubic_miles = cubed<length::miles>;
-		using gallons = unit<std::ratio<231>, cubic_inches>;
-		using quarts = unit<std::ratio<1, 4>, gallons>;
-		using pints = unit<std::ratio<1, 2>, quarts>;
-		using cups = unit<std::ratio<1, 2>, pints>;
-		using ounces = unit<std::ratio<1, 8>, cups>;
-		using barrels = unit<std::ratio<42>, gallons>;
-		using bushels = unit<std::ratio<215042, 100>, cubic_inches>;
-		using cords = unit<std::ratio<128>, cubic_feet>;
-		using cubic_fathoms = cubed<length::fathom>;
-		using tablespoons = unit<std::ratio<1, 2>, ounces>;
-		using teaspoons = unit<std::ratio<1, 6>, ounces>;
-		using pinches = unit<std::ratio<1, 8>, teaspoons>;
-		using dashes = unit<std::ratio<1, 2>, pinches>;
-		using drops = unit<std::ratio<1, 360>, ounces>;
-		using fifths = unit<std::ratio<1, 5>, gallons>;
-		using drams = unit<std::ratio<1, 8>, ounces>;
-		using gills = unit<std::ratio<4>, ounces>;
-		using pecks = unit<std::ratio<1, 4>, bushels>;
-		using sacks = unit<std::ratio<3>, bushels>;
-		using shots = unit<std::ratio<3, 2>, ounces>;
-		using strikes = unit<std::ratio<2>, bushels>;
-		/** @} */
+	UNIT_ADD(volume, cubic_meter, cubic_meters, cu_m, unit<std::ratio<1>, units::category::volume_unit>)
+	UNIT_ADD(volume, cubic_millimeter, cubic_millimeters, cu_mm, cubed<length::millimeter>)
+	UNIT_ADD(volume, cubic_kilometer, cubic_kilometers, cu_km, cubed<length::kilometer>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(volume, liter, liters, L, cubed<deci<length::meter>>)
+	UNIT_ADD(volume, cubic_inch, cubic_inches, cu_in, cubed<length::inches>)
+	UNIT_ADD(volume, cubic_foot, cubic_feet, cu_ft, cubed<length::feet>)
+	UNIT_ADD(volume, cubic_yard, cubic_yards, cu_yd, cubed<length::yards>)
+	UNIT_ADD(volume, cubic_mile, cubic_miles, cu_mi, cubed<length::miles>)
+	UNIT_ADD(volume, gallon, gallons, gal, unit<std::ratio<231>, cubic_inches>)
+	UNIT_ADD(volume, quart, quarts, qt, unit<std::ratio<1, 4>, gallons>)
+	UNIT_ADD(volume, pint, pints, pt, unit<std::ratio<1, 2>, quarts>)
+	UNIT_ADD(volume, cup, cups, c, unit<std::ratio<1, 2>, pints>)
+	UNIT_ADD(volume, fluid_ounce, fluid_ounces, fl_oz, unit<std::ratio<1, 8>, cups>)
+	UNIT_ADD(volume, barrel, barrels, bl, unit<std::ratio<42>, gallons>)
+	UNIT_ADD(volume, bushel, bushels, bu, unit<std::ratio<215042, 100>, cubic_inches>)
+	UNIT_ADD(volume, cord, cords, cord, unit<std::ratio<128>, cubic_feet>)
+	UNIT_ADD(volume, cubic_fathom, cubic_fathoms, cu_fm, cubed<length::fathom>)
+	UNIT_ADD(volume, tablespoon, tablespoons, tbsp, unit<std::ratio<1, 2>, fluid_ounces>)
+	UNIT_ADD(volume, teaspoon, teaspoons, tsp, unit<std::ratio<1, 6>, fluid_ounces>)
+	UNIT_ADD(volume, pinch, pinches, pinch, unit<std::ratio<1, 8>, teaspoons>)
+	UNIT_ADD(volume, dash, dashes, dash, unit<std::ratio<1, 2>, pinches>)
+	UNIT_ADD(volume, drop, drops, drop, unit<std::ratio<1, 360>, fluid_ounces>)
+	UNIT_ADD(volume, fifth, fifths, fifth, unit<std::ratio<1, 5>, gallons>)
+	UNIT_ADD(volume, dram, drams, dr, unit<std::ratio<1, 8>, fluid_ounces>)
+	UNIT_ADD(volume, gill, gills, gi, unit<std::ratio<4>, fluid_ounces>)
+	UNIT_ADD(volume, peck, pecks, pk, unit<std::ratio<1, 4>, bushels>)
+	UNIT_ADD(volume, sack, sacks, sacks, unit<std::ratio<3>, bushels>)
+	UNIT_ADD(volume, shot, shots, shots, unit<std::ratio<3, 2>, fluid_ounces>)
+	UNIT_ADD(volume, strike, strikes, strikes, unit<std::ratio<2>, bushels>)
 
-		/**
-		 * @name Units (alternate names)
-		 * @{
-		 */
-		using fluidOunces = ounces;
-		/** @} */
-
-		/**
-		 * @name  Units (full names singular)
-		 * @{
-		 */
-		using cubic_meter = cubic_meters;
-		using cubic_millimeter = cubic_millimeters;
-		using cubic_kilometer = cubic_kilometers;
-		using liter = liters;
-		using milliliter = milliliters;
-		using cubic_inch = cubic_inches;
-		using cubic_foot = cubic_feet;
-		using cubic_yard = cubic_yards;
-		using cubic_mile = cubic_miles;
-		using gallon = gallons;
-		using quart = quarts;
-		using pint = pints;
-		using cup = cups;
-		using ounce = ounces;
-		using barrel = barrels;
-		using bushel = bushels;
-		using cord = cords;
-		using cubic_fathom = cubic_fathoms;
-		using tablespoon = tablespoons;
-		using teaspoon = teaspoons;
-		using pinch = pinches;
-		using dash = dashes;
-		using drop = drops;
-		using fifth = fifths;
-		using dram = drams;
-		using gill = gills;
-		using peck = pecks;
-		using sack = sacks;
-		using shot = shots;
-		using strike = strikes;
-		using fluidOunce = fluidOunces;
-		/** @} */
-
-		/**
-		 * @name  Unit Containers
-		 * @anchor volumeContainers
-		 * @{
-		 */
-		using cubic_meter_t = unit_t<cubic_meter>;
-		using cubic_millimeter_t = unit_t<cubic_millimeter>;
-		using cubic_kilometer_t = unit_t<cubic_kilometer>;
-		using liter_t = unit_t<liter>;
-		using milliliter_t = unit_t<milliliter>;
-		using cubic_inch_t = unit_t<cubic_inch>;
-		using cubic_foot_t = unit_t<cubic_foot>;
-		using cubic_yard_t = unit_t<cubic_yard>;
-		using cubic_mile_t = unit_t<cubic_mile>;
-		using gallon_t = unit_t<gallon>;
-		using quart_t = unit_t<quart>;
-		using pint_t = unit_t<pint>;
-		using cup_t = unit_t<cup>;
-		using ounce_t = unit_t<ounce>;
-		using barrel_t = unit_t<barrel>;
-		using bushel_t = unit_t<bushel>;
-		using cord_t = unit_t<cord>;
-		using cubic_fathom_t = unit_t<cubic_fathom>;
-		using tablespoon_t = unit_t<tablespoon>;
-		using teaspoon_t = unit_t<teaspoon>;
-		using pinch_t = unit_t<pinch>;
-		using dash_t = unit_t<dash>;
-		using drop_t = unit_t<drop>;
-		using fifth_t = unit_t<fifth>;
-		using dram_t = unit_t<dram>;
-		using gill_t = unit_t<gill>;
-		using peck_t = unit_t<peck>;
-		using sack_t = unit_t<sack>;
-		using shot_t = unit_t<shot>;
-		using strike_t = unit_t<strike>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using m3 = cubic_meters;
-		using mm3 = cubic_millimeters;
-		using km3 = cubic_kilometers;
-		using L = liters;
-		using mL = milliliters;
-		using cu_in = cubic_inches;
-		using cu_ft = cubic_feet;
-		using cu_yd = cubic_yards;
-		using cu_mi = cubic_miles;
-		using gal = gallons;
-		using qt = quarts;
-		using pt = pints;
-		using c = cups;
-		using oz = ounces;
-		using bl = barrels;
-		using bu = bushels;
-		using cu_fm = cubic_fathoms;
-		using tbsp = tablespoons;
-		using tsp = teaspoons;
-		using dr = drams;
-		using gi = gills;
-		using pk = pecks;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_volume_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_volume_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::volume_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_volume_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::volume_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of volume
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_volume_unit<T>::value` to test
-		 *				the unit represents a volume quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_volume_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_volume_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::volume::liter, typename T3 = units::volume::liter>
-		struct is_volume_unit : std::integral_constant<bool, units::traits::detail::is_volume_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_volume_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_volume_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(volume, cubic_meter)
 
 	//------------------------------
 	//	UNITS OF DENSITY
 	//------------------------------
 
 	/**
+	 * @namespace	units::density
 	 * @brief		namespace for unit types and containers representing density values
 	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` category is
 	 *				`density_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace density
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using kilograms_per_cubic_meter = unit<std::ratio<1>, units::category::density_unit>;
-		using grams_per_milliliter = compound_unit<mass::grams, inverse<volume::milliliter>>;
-		using kilograms_per_liter = compound_unit<mass::kilograms, inverse<volume::liter>>;
-		using ounces_per_cubic_foot = compound_unit<mass::ounces, inverse<volume::cubic_foot>>;
-		using ounces_per_cubic_inch = compound_unit<mass::ounces, inverse<volume::cubic_inch>>;
-		using ounces_per_gallon = compound_unit<mass::ounces, inverse<volume::gallon>>;
-		using pounds_per_cubic_foot = compound_unit<mass::pounds, inverse<volume::cubic_foot>>;
-		using pounds_per_cubic_inch = compound_unit<mass::pounds, inverse<volume::cubic_inch>>;
-		using pounds_per_gallon = compound_unit<mass::pounds, inverse<volume::gallon>>;
-		using slugs_per_cubic_foot = compound_unit<mass::slugs, inverse<volume::cubic_foot>>;
-		/** @} */
+	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m, unit<std::ratio<1>, units::category::density_unit>)
+	UNIT_ADD(density, grams_per_milliliter, grams_per_milliliter, g_per_mL, compound_unit<mass::grams, inverse<volume::milliliter>>)
+	UNIT_ADD(density, kilograms_per_liter, kilograms_per_liter, kg_per_L, unit<std::ratio<1>, compound_unit<mass::grams, inverse<volume::milliliter>>>)
+	UNIT_ADD(density, ounces_per_cubic_foot, ounces_per_cubic_foot, oz_per_cu_ft, compound_unit<mass::ounces, inverse<volume::cubic_foot>>)
+	UNIT_ADD(density, ounces_per_cubic_inch, ounces_per_cubic_inch, oz_per_cu_in, compound_unit<mass::ounces, inverse<volume::cubic_inch>>)
+	UNIT_ADD(density, ounces_per_gallon, ounces_per_gallon, oz_per_gal, compound_unit<mass::ounces, inverse<volume::gallon>>)
+	UNIT_ADD(density, pounds_per_cubic_foot, pounds_per_cubic_foot, lb_per_cu_ft, compound_unit<mass::pounds, inverse<volume::cubic_foot>>)
+	UNIT_ADD(density, pounds_per_cubic_inch, pounds_per_cubic_inch, lb_per_cu_in, compound_unit<mass::pounds, inverse<volume::cubic_inch>>)
+	UNIT_ADD(density, pounds_per_gallon, pounds_per_gallon, lb_per_gal, compound_unit<mass::pounds, inverse<volume::gallon>>)
+	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft, compound_unit<mass::slugs, inverse<volume::cubic_foot>>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using kilogram_per_cubic_meter = kilograms_per_cubic_meter;
-		using gram_per_milliliter = grams_per_milliliter;
-		using kilogram_per_liter = kilograms_per_liter;
-		using ounce_per_cubic_foot = ounces_per_cubic_foot;
-		using ounce_per_cubic_inch = ounces_per_cubic_inch;
-		using ounce_per_gallon = ounces_per_gallon;
-		using pound_per_cubic_foot = pounds_per_cubic_foot;
-		using pound_per_cubic_inch = pounds_per_cubic_inch;
-		using pound_per_gallon = pounds_per_gallon;
-		using slug_per_cubic_foot = slugs_per_cubic_foot;
-		/** @} */
-
-		/**
-		 * @name  Unit Containers
-		 * @anchor densityContainers
-		 * @{
-		 */
-		using kilogram_per_cubic_meter_t = unit_t<kilogram_per_cubic_meter>;
-		using gram_per_milliliter_t = unit_t<gram_per_milliliter>;
-		using kilogram_per_liter_t = unit_t<kilogram_per_liter>;
-		using ounce_per_cubic_foot_t = unit_t<ounce_per_cubic_foot>;
-		using ounce_per_cubic_inch_t = unit_t<ounce_per_cubic_inch>;
-		using ounce_per_gallon_t = unit_t<ounce_per_gallon>;
-		using pound_per_cubic_foot_t = unit_t<pound_per_cubic_foot>;
-		using pound_per_cubic_inch_t = unit_t<pound_per_cubic_inch>;
-		using pound_per_gallon_t = unit_t<pound_per_gallon>;
-		using slug_per_cubic_foot_t = unit_t<slug_per_cubic_foot>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_density_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_density_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::density_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_density_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::density_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of density
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_density_unit<T>::value` to test
-		 *				the unit represents a density quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_density_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_density_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::density::gram_per_milliliter, typename T3 = units::density::gram_per_milliliter >
-		struct is_density_unit : std::integral_constant<bool, units::traits::detail::is_density_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_density_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_density_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(density, kilograms_per_cubic_meter)
 
 	//------------------------------
 	//	UNITS OF CONCENTRATION
 	//------------------------------
 
 	/**
+	 * @namespace	units::concentration
 	 * @brief		namespace for unit types and containers representing concentration values
 	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` category is
 	 *				`scalar_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace concentration
-	{
-		/**
-		 * @name  Units (full names plural)
-		 * @{
-		 */
-		using parts_per_million = unit<std::ratio<1, 1000000>, units::category::scalar_unit>;
-		using parts_per_billion = unit<std::ratio<1, 1000>, parts_per_million>;
-		using parts_per_trillion = unit<std::ratio<1, 1000>, parts_per_billion>;
-		using percent = unit<std::ratio<1, 100>, units::category::scalar_unit>;
-		/** @} */
+	UNIT_ADD(concentration, ppm, parts_per_million, ppm, unit<std::ratio<1, 1000000>, units::category::scalar_unit>)
+	UNIT_ADD(concentration, ppb, parts_per_billion, ppb, unit<std::ratio<1, 1000>, parts_per_million>)
+	UNIT_ADD(concentration, ppt, parts_per_trillion, ppt, unit<std::ratio<1, 1000>, parts_per_billion>)
+	UNIT_ADD(concentration, percent, percent, pct, unit<std::ratio<1, 100>, units::category::scalar_unit>)
 
-		/**
-		 * @name  Units (full names singular)
-		 * @{
-		 */
-		using ppm = parts_per_million;
-		using ppb = parts_per_billion;
-		using ppt = parts_per_trillion;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor concentrationContainers
-		 * @{
-		 */
-		using ppm_t = unit_t<ppm>;
-		using ppb_t = unit_t<ppb>;
-		using ppt_t = unit_t<ppt>;
-		using percent_t = unit_t<percent>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_concentration_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_concentration_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::scalar_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_concentration_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::scalar_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of concentration
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_concentration_unit<T>::value` to test
-		 *				the unit represents a concentration quantity.
-		 * @tparam		T	one or more types to test
-		 */
-		template<typename T> struct is_concentration_unit : traits::detail::is_concentration_unit_impl <typename std::decay<T>::type> {};
-	}
+	UNIT_ADD_CATEGORY_TRAIT(concentration, parts_per_million)
 
 	//------------------------------
 	//	CONSTANTS
