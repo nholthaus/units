@@ -354,7 +354,7 @@ TEST_F(TypeTraits, is_current_unit)
 	EXPECT_TRUE((traits::is_current_unit<const current::ampere_t>::value));
 	EXPECT_TRUE((traits::is_current_unit<const current::ampere_t&>::value));
 	EXPECT_FALSE((traits::is_current_unit<volt_t>::value));
-	EXPECT_TRUE((traits::is_current_unit<current::ampere_t, current::milliamp_t>::value));
+	EXPECT_TRUE((traits::is_current_unit<current::ampere_t, current::milliampere_t>::value));
 	EXPECT_FALSE((traits::is_current_unit<current::ampere_t, volt_t>::value));
 }
 

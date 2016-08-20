@@ -107,6 +107,23 @@
 		namespaceName ## :: ## nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName ## :: ## nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
+	#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
+	UNIT_ADD(namespaceName, femto ## nameSingular, femto ## namePlural, f ## abbreviation, femto<namePlural>)\
+	UNIT_ADD(namespaceName, pico ## nameSingular, pico ## namePlural, p ## abbreviation, pico<namePlural>)\
+	UNIT_ADD(namespaceName, nano ## nameSingular, nano ## namePlural, n ## abbreviation, nano<namePlural>)\
+	UNIT_ADD(namespaceName, micro ## nameSingular, micro ## namePlural, u ## abbreviation, micro<namePlural>)\
+	UNIT_ADD(namespaceName, milli ## nameSingular, milli ## namePlural, m ## abbreviation, milli<namePlural>)\
+	UNIT_ADD(namespaceName, centi ## nameSingular, centi ## namePlural, c ## abbreviation, centi<namePlural>)\
+	UNIT_ADD(namespaceName, deci ## nameSingular, deci ## namePlural, d ## abbreviation, deci<namePlural>)\
+	UNIT_ADD(namespaceName, deca ## nameSingular, deca ## namePlural, da ## abbreviation, deca<namePlural>)\
+	UNIT_ADD(namespaceName, hecto ## nameSingular, hecto ## namePlural, h ## abbreviation, hecto<namePlural>)\
+	UNIT_ADD(namespaceName, kilo ## nameSingular, kilo ## namePlural, k ## abbreviation, kilo<namePlural>)\
+	UNIT_ADD(namespaceName, mega ## nameSingular, mega ## namePlural, M ## abbreviation, mega<namePlural>)\
+	UNIT_ADD(namespaceName, giga ## nameSingular, giga ## namePlural, G ## abbreviation, giga<namePlural>)\
+	UNIT_ADD(namespaceName, tera ## nameSingular, tera ## namePlural, T ## abbreviation, tera<namePlural>)\
+	UNIT_ADD(namespaceName, peta ## nameSingular, peta ## namePlural, P ## abbreviation, peta<namePlural>)\
+
 	/** 
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
 	 * @brief	Macro to create the `is_category_unit` type trait.
@@ -2768,29 +2785,24 @@ namespace units
 	 * @anchor		lengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(length,	meter,			meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
-	UNIT_ADD(length,	nanometer,		nanometers,			nm,				nano<meters>)
-	UNIT_ADD(length,	micrometer,		micrometers,		um,				micro<meters>)
-	UNIT_ADD(length,	millimeter,		millimeters,		mm,				milli<meters>)
-	UNIT_ADD(length,	centimeter,		centimeters,		cm,				centi<meters>)
-	UNIT_ADD(length,	kilometer,		kilometers,			km,				kilo<meters>)
-	UNIT_ADD(length,	foot,			feet,				ft,				unit<std::ratio<381, 1250>, meters>)
-	UNIT_ADD(length,	mil,			mils,				mil,			unit<std::ratio<1000>, feet>)
-	UNIT_ADD(length,	inch,			inches,				inch,			unit<std::ratio<1, 12>, feet>)
-	UNIT_ADD(length,	mile,			miles,				mi,				unit<std::ratio<5280>, feet>)
-	UNIT_ADD(length,	nauticalMile,	nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
-	UNIT_ADD(length,	astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
-	UNIT_ADD(length,	lightyear,		lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
-	UNIT_ADD(length,	parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
-	UNIT_ADD(length,	angstrom,		angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
-	UNIT_ADD(length,	cubit,			cubits,				cbt,			unit<std::ratio<18>, inches>)
-	UNIT_ADD(length,	fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
-	UNIT_ADD(length,	chain,			chains,				ch,				unit<std::ratio<66>, feet>)
-	UNIT_ADD(length,	furlong,		furlongs,			fur,			unit<std::ratio<10>, chains>)
-	UNIT_ADD(length,	hand,			hands,				hand,			unit<std::ratio<4>, inches>)
-	UNIT_ADD(length,	league,			leagues,			lea,			unit<std::ratio<3>, miles>)
-	UNIT_ADD(length,	nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
-	UNIT_ADD(length,	yard,			yards,				yd,				unit<std::ratio<3>, feet>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(length, meter, meters, m, unit<std::ratio<1>, units::category::length_unit>)
+	UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
+	UNIT_ADD(length, mil, mils, mil, unit<std::ratio<1000>, feet>)
+	UNIT_ADD(length, inch, inches, inch, unit<std::ratio<1, 12>, feet>)
+	UNIT_ADD(length, mile,   miles,    mi,    unit<std::ratio<5280>, feet>)
+	UNIT_ADD(length, nauticalMile, nauticalMiles, nmi, unit<std::ratio<1852>, meters>)
+	UNIT_ADD(length, astronicalUnit, astronicalUnits, au, unit<std::ratio<149597870700>, meters>)
+	UNIT_ADD(length, lightyear, lightyears, ly, unit<std::ratio<9460730472580800>, meters>)
+	UNIT_ADD(length, parsec, parsecs, pc, unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
+	UNIT_ADD(length, angstrom, angstroms, angstrom, unit<std::ratio<1, 10>, nanometers>)
+	UNIT_ADD(length, cubit, cubits, cbt, unit<std::ratio<18>, inches>)
+	UNIT_ADD(length, fathom, fathoms, ftm, unit<std::ratio<6>, feet>)
+	UNIT_ADD(length, chain, chains, ch, unit<std::ratio<66>, feet>)
+	UNIT_ADD(length, furlong, furlongs, fur, unit<std::ratio<10>, chains>)
+	UNIT_ADD(length, hand, hands, hand, unit<std::ratio<4>, inches>)
+	UNIT_ADD(length, league, leagues, lea, unit<std::ratio<3>, miles>)
+	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, unit<std::ratio<3>, nauticalMiles>)
+	UNIT_ADD(length, yard, yards, yd, unit<std::ratio<3>, feet>)
 
 	UNIT_ADD_CATEGORY_TRAIT(length, meter)
 
@@ -2806,10 +2818,7 @@ namespace units
 	 * @anchor		massContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(mass, kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
-	UNIT_ADD(mass, gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
-	UNIT_ADD(mass, microgram, micrograms, ug, micro<grams>)
-	UNIT_ADD(mass, milligram, milligrams, mg, milli<grams>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(mass, gram, grams, g, unit<std::ratio<1, 1000>, units::category::mass_unit>)
 	UNIT_ADD(mass, metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
 	UNIT_ADD(mass, pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
 	UNIT_ADD(mass, long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
@@ -2833,10 +2842,7 @@ namespace units
 	 * @anchor		timeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(time, second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
-	UNIT_ADD(time, nanosecond, nanoseconds, ns, nano<seconds>)
-	UNIT_ADD(time, microsecond, microseconds, us, micro<seconds>)
-	UNIT_ADD(time, millisecond, milliseconds, ms, milli<seconds>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
 	UNIT_ADD(time, minute, minutes, min, unit<std::ratio<60>, seconds>)
 	UNIT_ADD(time, hour, hours, hr, unit<std::ratio<60>, minutes>)
 	UNIT_ADD(time, day, days, d, unit<std::ratio<24>, hours>)
@@ -2857,8 +2863,7 @@ namespace units
 	 * @anchor		angleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(angle, radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
-	UNIT_ADD(angle, milliradian, milliradians, mrad, milli<radians>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(angle, radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
 	UNIT_ADD(angle, degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
 	UNIT_ADD(angle, arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
 	UNIT_ADD(angle, arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
@@ -2872,86 +2877,15 @@ namespace units
 	//	UNITS OF CURRENT
 	//------------------------------
 	/**
+	 * @namespace	units::current
 	 * @brief		namespace for unit types and containers representing current values
 	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` category is
 	 *				`current_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace current
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using amperes = unit<std::ratio<1>, units::category::current_unit>;
-		using milliamps = milli<amperes>;
-		using microamps = micro<amperes>;
-		using nanoamps = nano<amperes>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using ampere = amperes;
-		using amps = amperes;
-		using amp = amperes;
-		using milliamp = milliamps;
-		using microamp = microamps;
-		using nanoamp = nanoamps;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using A = amperes;
-		using mA = milliamps;
-		using uA = microamps;
-		using nA = nanoamps;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor currentContainers
-		 * @{
-		 */
-		using ampere_t = unit_t<ampere>;
-		using amps_t = unit_t<amps>;
-		using amp_t = unit_t<amp>;
-		using milliamp_t = unit_t<milliamp>;
-		using microamp_t = unit_t<microamp>;
-		using nanoamp_t = unit_t<nanoamp>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_current_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_current_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::current_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_current_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::current_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of current
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_current_unit<T>::value` to test
-		 *				the unit represents a current quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_current_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_current_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::current::A , typename T3 = units::current::A> 
-		struct is_current_unit : std::integral_constant<bool, units::traits::detail::is_current_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_current_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_current_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit<std::ratio<1>, units::category::current_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(current, ampere)
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
@@ -2961,841 +2895,189 @@ namespace units
 	// require translations and aren't a reversible transform.
 
 	/**
+	 * @namespace	units::temperature
 	 * @brief		namespace for unit types and containers representing temperature values
 	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` category is
 	 *				`temperature_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace temperature
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using kelvin = unit<std::ratio<1>, units::category::temperature_unit>;
-		using celsius = unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>;
-		using fahrenheit = unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>;
-		using reaumur = unit<std::ratio<10, 8>, celsius>;
-		using rankine = unit<std::ratio<5, 9>, kelvin>;
-		/** @} */
+	UNIT_ADD(temperature, kelvin, kelvin, K, unit<std::ratio<1>, units::category::temperature_unit>)
+	UNIT_ADD(temperature, celsius, celsius, degC, unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>)
+	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF, unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>)
+	UNIT_ADD(temperature, reaumur, reaumur, Re, unit<std::ratio<10, 8>, celsius>)
+	UNIT_ADD(temperature, rankine, rankine, Ra, unit<std::ratio<5, 9>, kelvin>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using centigrade = celsius;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using K = kelvin;
-		using F = fahrenheit;
-		using C = celsius;
-		using Ra = rankine;
-		using Re = reaumur;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor temperatureContainers
-		 * @{
-		 */
-		using kelvin_t = unit_t<kelvin>;
-		using celsius_t = unit_t<celsius>;
-		using fahrenheit_t = unit_t<fahrenheit>;
-		using reaumur_t = unit_t<reaumur>;
-		using rankine_t = unit_t<rankine>;
-		using centigrade_t = unit_t<centigrade>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_temperature_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_temperature_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::temperature_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_temperature_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::temperature_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of temperature
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_temperature_unit<T>::value` to test
-		 *				the unit represents a temperature quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_temperature_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_temperature_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::temperature::K , typename T3 = units::temperature::K> 
-		struct is_temperature_unit : std::integral_constant<bool, units::traits::detail::is_temperature_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_temperature_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_temperature_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(temperature, kelvin)
 
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::substance
 	 * @brief		namespace for unit types and containers representing substance values
 	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` category is
 	 *				`substance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace substance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using moles = unit<std::ratio<1>, units::category::substance_unit>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using mole = moles;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using mol = mole;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor substanceContainers
-		 * @{
-		 */
-		using mole_t = unit_t<mole>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_substance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_substance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::substance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_substance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::substance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of substance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_substance_unit<T>::value` to test
-		 *				the unit represents a substance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_substance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_substance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::substance::mol, typename T3 = units::substance::mol> 
-		struct is_substance_unit : std::integral_constant<bool, units::traits::detail::is_substance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_substance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_substance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD(substance, mole, moles, mol, unit<std::ratio<1>, units::category::substance_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(substance, mole)
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
 	//------------------------------
 
 	/**
+	 * @namespace	units::luminous_intensity
 	 * @brief		namespace for unit types and containers representing luminous_intensity values
 	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` category is
 	 *				`luminous_intensity_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace luminous_intensity
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using candelas = unit<std::ratio<1>, units::category::luminous_intensity_unit>;
-		using millicandelas = milli<candelas>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using candela = candelas;
-		using millicandela = millicandelas;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using cd = candela;
-		using mcd = millicandela;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor luminousIntensityContainers
-		 * @{
-		 */
-		using candela_t = unit_t<candela>;
-		using millicandela_t = unit_t<millicandela>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_luminous_intensity_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_luminous_intensity_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::luminous_intensity_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_luminous_intensity_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::luminous_intensity_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of luminous_intensity
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_luminous_intensity_unit<T>::value` to test
-		 *				the unit represents a luminous_intensity quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_luminous_intensity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::luminous_intensity::candela , typename T3 = units::luminous_intensity::candela> 
-		struct is_luminous_intensity_unit : std::integral_constant<bool, units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_luminous_intensity_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit<std::ratio<1>, units::category::luminous_intensity_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(luminous_intensity, candela)
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
 	//------------------------------
 
 	/**
+	 * @namespace	units::solid_angle
 	 * @brief		namespace for unit types and containers representing solid_angle values
 	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` category is
 	 *				`solid_angle_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace solid_angle
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using steradians = unit<std::ratio<1>, units::category::solid_angle_unit>;
-		using degrees_squared = squared<angle::degrees>;
-		using spats = unit<std::ratio<4>, steradians, std::ratio<1>>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(solid_angle, steradian, steradians, sr, unit<std::ratio<1>, units::category::solid_angle_unit>)
+	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degrees>)
+	UNIT_ADD(solid_angle, spat, spats, sp, unit<std::ratio<4>, steradians, std::ratio<1>>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using steradian = steradians;
-		using degree_squared = degrees_squared;
-		using spat = spats;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using sr = steradians;
-		using sq_deg = degrees_squared;
-		using sp = spat;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor solidAngleContainers
-		 * @{
-		 */
-		using steradian_t = unit_t<steradian>;
-		using degree_squared_t = unit_t<degree_squared>;
-		using spat_t = unit_t<spat>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_solid_angle_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_solid_angle_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::solid_angle_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_solid_angle_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::solid_angle_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of solid_angle
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_solid_angle_unit<T>::value` to test
-		 *				the unit represents a solid_angle quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_solid_angle_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::solid_angle::steradian , typename T3 = units::solid_angle::steradian> 
-		struct is_solid_angle_unit : std::integral_constant<bool, units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_solid_angle_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(solid_angle, steradian)
 
 	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
 
 	/**
+	 * @namespace	units::frequency
 	 * @brief		namespace for unit types and containers representing frequency values
 	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` category is
 	 *				`frequency_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace frequency
-	{
-		/**
-		 * @name Units (full names)
-		 * @{
-		 */
-		using hertz = unit<std::ratio<1>, units::category::frequency_unit>;
-		using kilohertz = kilo<hertz>;
-		using megahertz = mega<hertz>;
-		using gigahertz = giga<hertz>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit<std::ratio<1>, units::category::frequency_unit>)
 
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using Hz = hertz;
-		using kHz = kilohertz;
-		using MHz = megahertz;
-		using GHz = gigahertz;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor frequencyContainers
-		 * @{
-		 */
-		using hertz_t = unit_t<hertz>;
-		using kilohertz_t = unit_t<kilohertz>;
-		using megahertz_t = unit_t<megahertz>;
-		using gigahertz_t = unit_t<gigahertz>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_frequency_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_frequency_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::frequency_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_frequency_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::frequency_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of frequency
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_frequency_unit<T>::value` to test
-		 *				the unit represents a frequency quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_frequency_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_frequency_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::frequency::Hz , typename T3 = units::frequency::Hz> 
-		struct is_frequency_unit : std::integral_constant<bool, units::traits::detail::is_frequency_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_frequency_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_frequency_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(frequency, hertz)
 
 	//------------------------------
 	//	VELOCITY UNITS
 	//------------------------------
 
 	/**
+	 * @namespace	units::velocity
 	 * @brief		namespace for unit types and containers representing velocity values
 	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` category is
 	 *				`velocity_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace velocity
-	{
-		/**
-		 * @name  Units (full names plural)
-		 * @{
-		 */
-		using meters_per_second = unit<std::ratio<1>, units::category::velocity_unit>;
-		using feet_per_second = compound_unit<length::feet, inverse<time::seconds>>;
-		using miles_per_hour = compound_unit<length::miles, inverse<time::hour>>;
-		using kilometers_per_hour = compound_unit<length::kilometers, inverse<time::hour>>;
-		using knots = compound_unit<length::nauticalMiles, inverse<time::hour>>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using knot = knots;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using mps = meters_per_second;
-		using mph = miles_per_hour;
-		using fps = feet_per_second;
-		using kmph = kilometers_per_hour;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor velocityContainers
-		 * @{
-		 */
-		using meters_per_second_t = unit_t<meters_per_second>;
-		using feet_per_second_t = unit_t<feet_per_second>;
-		using miles_per_hour_t = unit_t<miles_per_hour>;
-		using kilometers_per_hour_t = unit_t<kilometers_per_hour>;
-		using knot_t = unit_t<knot>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_velocity_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_velocity_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::velocity_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_velocity_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::velocity_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of velocity
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_velocity_unit<T>::value` to test
-		 *				the unit represents a velocity quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_velocity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::velocity::mps , typename T3 = units::velocity::mps> 
-		struct is_velocity_unit : std::integral_constant<bool, units::traits::detail::is_velocity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_velocity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_velocity_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD(velocity, meters_per_second, meters_per_second, mps, unit<std::ratio<1>, units::category::velocity_unit>)
+	UNIT_ADD(velocity, feet_per_second, feet_per_second, fps, compound_unit<length::feet, inverse<time::seconds>>)
+	UNIT_ADD(velocity, miles_per_hour, miles_per_hour, mph, compound_unit<length::miles, inverse<time::hour>>)
+	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph, compound_unit<length::kilometers, inverse<time::hour>>)
+	UNIT_ADD(velocity, knot, knots, kts, compound_unit<length::nauticalMiles, inverse<time::hour>>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(velocity, meters_per_second)
 
 	//------------------------------
 	//	ANGULAR VELOCITY UNITS
 	//------------------------------
 
 	/**
-	* @brief		namespace for unit types and containers representing angular velocity values
-	* @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` category is
-	*				`angular_velocity_unit`.
-	* @sa			See unit_t for more information on unit type containers.
-	*/
-	namespace angular_velocity
-	{
-		/**
-		* @name  Units (full names plural)
-		* @{
-		*/
-		using radians_per_second = unit<std::ratio<1>, units::category::angular_velocity_unit>;
-		using degrees_per_second = compound_unit<angle::degrees, inverse<time::seconds>>;
-		using revolutions_per_minute = unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>;
-		using milliarcseconds_per_year = compound_unit<angle::milliarcseconds, inverse<time::year>>;
-		/** @} */
+	 * @namespace	angular_velocity
+	 * @brief		namespace for unit types and containers representing angular velocity values
+	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` category is
+	 *				`angular_velocity_unit`.
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
+	UNIT_ADD(angular_velocity, radians_per_second, radians_per_second, rad_per_s, unit<std::ratio<1>, units::category::angular_velocity_unit>)
+	UNIT_ADD(angular_velocity, degrees_per_second, degrees_per_second, deg_per_s, compound_unit<angle::degrees, inverse<time::seconds>>)
+	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm, unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
+	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr, compound_unit<angle::milliarcseconds, inverse<time::year>>)
 
-		/**
-		* @name Units (full names singular)
-		* @{
-		*/
-		using radian_per_second = radians_per_second;
-		using degree_per_second = degrees_per_second;
-		using revolution_per_minute = revolutions_per_minute;
-		using milliarcsecond_per_year = milliarcseconds_per_year;
-		/** @} */
-
-		/**
-		* @name Units (abbreviated names)
-		* @{
-		*/
-		using rpm = revolutions_per_minute;
-		/** @} */
-
-		/**
-		* @name Unit Containers
-		* @anchor angularVelocityContainers
-		* @{
-		*/
-		using radians_per_second_t = unit_t<radians_per_second>;
-		using degrees_per_second_t = unit_t<degrees_per_second>;
-		using revolutions_per_minute_t = unit_t<revolutions_per_minute>;
-		using milliarcseconds_per_year_t = unit_t<milliarcseconds_per_year>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_angular_velocity_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_angular_velocity_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::angular_velocity_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_angular_velocity_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::angular_velocity_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of angular_velocity
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_angular_velocity_unit<T>::value` to test
-		 *				the unit represents a angular_velocity quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_angular_velocity_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::angular_velocity::radians_per_second , typename T3 = units::angular_velocity::radians_per_second> 
-		struct is_angular_velocity_unit : std::integral_constant<bool, units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_angular_velocity_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(angular_velocity, radians_per_second)
 
 	//------------------------------
 	//	UNITS OF ACCELERATION
 	//------------------------------
 
 	/**
+	 * @namespace	units::acceleration
 	 * @brief		namespace for unit types and containers representing acceleration values
 	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` category is
 	 *				`acceleration_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace acceleration
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using meters_per_second_squared = unit<std::ratio<1>, units::category::acceleration_unit>;
-		using feet_per_second_squared = compound_unit<length::feet, inverse<squared<time::seconds>>>;
-		using standard_gravity = unit<std::ratio<980665, 100000>, meters_per_second_squared>;
-		/** @} */
+	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps2, unit<std::ratio<1>, units::category::acceleration_unit>)
+	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps2, compound_unit<length::feet, inverse<squared<time::seconds>>>)
+	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
-		/**
-		 * @name Unit Containers
-		 * @anchor accelerationContainers
-		 * @{
-		 */
-		using meters_per_second_squared_t = unit_t<meters_per_second_squared>;
-		using feet_per_second_squared_t = unit_t<feet_per_second_squared>;
-		using standard_gravity_t = unit_t<standard_gravity>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_acceleration_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_acceleration_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::acceleration_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_acceleration_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::acceleration_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of acceleration
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_acceleration_unit<T>::value` to test
-		 *				the unit represents a acceleration quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_acceleration_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_acceleration_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::acceleration::meters_per_second_squared , typename T3 = units::acceleration::meters_per_second_squared> 
-		struct is_acceleration_unit : std::integral_constant<bool, units::traits::detail::is_acceleration_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_acceleration_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_acceleration_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(acceleration, meters_per_second_squared)
 
 	//------------------------------
 	//	UNITS OF FORCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::force
 	 * @brief		namespace for unit types and containers representing force values
 	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` category is
 	 *				`force_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace force
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using newtons = unit<std::ratio<1>, units::category::force_unit>;
-		using pounds = compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>;
-		using dynes = unit<std::ratio<1, 100000>, newtons>;
-		using kiloponds = compound_unit<acceleration::standard_gravity, mass::kilograms>;
-		using poundals = compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(force, newton, newtons, N, unit<std::ratio<1>, units::category::force_unit>)
+	UNIT_ADD(force, pound, pounds, lbf, compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>)
+	UNIT_ADD(force, dyne, dynes, dyn, unit<std::ratio<1, 100000>, newtons>)
+	UNIT_ADD(force, kilopond, kiloponds, kp, compound_unit<acceleration::standard_gravity, mass::kilograms>)
+	UNIT_ADD(force, poundal, poundals, pdl, compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using newton = newtons;
-		using pound = pounds;
-		using dyne = dynes;
-		using kilopond = kiloponds;
-		using poundal = poundals;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using N = newtons;
-		using lbf = pounds;
-		using dyn = dynes;
-		using kp = kiloponds;
-		using pdl = poundals;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor forceContainers
-		 * @{
-		 */
-		using newton_t = unit_t<newton>;
-		using pound_t = unit_t<pound>;
-		using dyne_t = unit_t<dyne>;
-		using kilopond_t = unit_t<kilopond>;
-		using poundal_t = unit_t<poundal>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_force_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_force_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::force_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_force_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::force_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of force
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_force_unit<T>::value` to test
-		 *				the unit represents a force quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_force_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_force_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::force::newton , typename T3 = units::force::newton> 
-		struct is_force_unit : std::integral_constant<bool, units::traits::detail::is_force_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_force_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_force_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(force, newton)
 
 	//------------------------------
 	//	UNITS OF PRESSURE
 	//------------------------------
 
 	/**
+	 * @namespace	units::pressure
 	 * @brief		namespace for unit types and containers representing pressure values
 	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` category is
 	 *				`pressure_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace pressure
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using pascals = unit<std::ratio<1>, units::category::pressure_unit>;
-		using bars = unit<std::ratio<100>, kilo<pascals>>;
-		using atmospheres = unit<std::ratio<101325>, pascals>;
-		using pounds_per_square_inch = compound_unit<force::pounds, inverse<squared<length::inch>>>;
-		using torrs = unit<std::ratio<1, 760>, atmospheres>;
-		/** @} */
-
-		/**
-		 * @name  Units (full names singular)
-		 * @{
-		 */
-		using pascal = pascals;
-		using bar = bars;
-		using atmosphere = atmospheres;
-		using pound_per_square_inch = pounds_per_square_inch;
-		using torr = torrs;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using Pa = pascals;
-		using atm = atmospheres;
-		using psi = pound_per_square_inch;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor pressureContainers
-		 * @{
-		 */
-		using pascal_t = unit_t<pascal>;
-		using bar_t = unit_t<bar>;
-		using atmosphere_t = unit_t<atmosphere>;
-		using pound_per_square_inch_t = unit_t<pound_per_square_inch>;
-		using torr_t = unit_t<torr>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_pressure_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_pressure_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::pressure_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_pressure_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::pressure_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of pressure
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_pressure_unit<T>::value` to test
-		 *				the unit represents a pressure quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_pressure_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_pressure_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::pressure::atm , typename T3 = units::pressure::atm> 
-		struct is_pressure_unit : std::integral_constant<bool, units::traits::detail::is_pressure_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_pressure_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_pressure_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascal, pascals, Pa, unit<std::ratio<1>, units::category::pressure_unit>)
+	UNIT_ADD(pressure, bar, bars, bar, unit<std::ratio<100>, kilo<pascals>>)
+	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit<std::ratio<101325>, pascals>)
+	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit<force::pounds, inverse<squared<length::inch>>>)
+	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(pressure, pascals)
 
 	//------------------------------
 	//	UNITS OF CHARGE
 	//------------------------------
 
 	/**
+	 * @namespace	units::charge
 	 * @brief		namespace for unit types and containers representing charge values
 	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` category is
 	 *				`charge_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace charge
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using coulombs = unit<std::ratio<1>, units::category::charge_unit>;
-		using ampere_hours = compound_unit<current::ampere, time::hours>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulomb, coulombs, C, unit<std::ratio<1>, units::category::charge_unit>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hour, ampere_hours, Ah, compound_unit<current::ampere, time::hours>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using coulomb = coulombs;
-		using ampere_hour = ampere_hours;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using C = coulombs;
-		using Ah = ampere_hours;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor chargeContainers
-		 * @{
-		 */
-		using coulomb_t = unit_t<coulomb>;
-		using ampere_hour_t = unit_t<ampere_hour>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_charge_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_charge_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::charge_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_charge_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::charge_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of charge
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_charge_unit<T>::value` to test
-		 *				the unit represents a charge quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_charge_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_charge_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::charge::coulomb , typename T3 = units::charge::coulomb> 
-		struct is_charge_unit : std::integral_constant<bool, units::traits::detail::is_charge_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_charge_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_charge_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(charge, coulombs)
 
 	//------------------------------
 	//	UNITS OF ENERGY
