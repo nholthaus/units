@@ -186,7 +186,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
+	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
 	namespace namespaceName\
 	{\
 		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
