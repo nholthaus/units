@@ -55,6 +55,9 @@
 #	pragma warning(disable : 4520)
 #endif
 
+#define UNIT_LIB_DEFAULT_TYPE double
+#undef _T
+
 //--------------------
 //	INCLUDES
 //--------------------
@@ -75,8 +78,7 @@
 	/** 
 	 * @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
 	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
-	 * @details	This macro should be used within an appropriate namespace for the unit
-	 *			category. The macro generates singular, plural, and abbreviated forms
+	 * @details	The macro generates singular, plural, and abbreviated forms
 	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
 	 *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
 	 *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
@@ -107,22 +109,26 @@
 		namespaceName ## :: ## nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName ## :: ## nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
-	#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
-	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
-	UNIT_ADD(namespaceName, femto ## nameSingular, femto ## namePlural, f ## abbreviation, femto<namePlural>)\
-	UNIT_ADD(namespaceName, pico ## nameSingular, pico ## namePlural, p ## abbreviation, pico<namePlural>)\
-	UNIT_ADD(namespaceName, nano ## nameSingular, nano ## namePlural, n ## abbreviation, nano<namePlural>)\
-	UNIT_ADD(namespaceName, micro ## nameSingular, micro ## namePlural, u ## abbreviation, micro<namePlural>)\
-	UNIT_ADD(namespaceName, milli ## nameSingular, milli ## namePlural, m ## abbreviation, milli<namePlural>)\
-	UNIT_ADD(namespaceName, centi ## nameSingular, centi ## namePlural, c ## abbreviation, centi<namePlural>)\
-	UNIT_ADD(namespaceName, deci ## nameSingular, deci ## namePlural, d ## abbreviation, deci<namePlural>)\
-	UNIT_ADD(namespaceName, deca ## nameSingular, deca ## namePlural, da ## abbreviation, deca<namePlural>)\
-	UNIT_ADD(namespaceName, hecto ## nameSingular, hecto ## namePlural, h ## abbreviation, hecto<namePlural>)\
-	UNIT_ADD(namespaceName, kilo ## nameSingular, kilo ## namePlural, k ## abbreviation, kilo<namePlural>)\
-	UNIT_ADD(namespaceName, mega ## nameSingular, mega ## namePlural, M ## abbreviation, mega<namePlural>)\
-	UNIT_ADD(namespaceName, giga ## nameSingular, giga ## namePlural, G ## abbreviation, giga<namePlural>)\
-	UNIT_ADD(namespaceName, tera ## nameSingular, tera ## namePlural, T ## abbreviation, tera<namePlural>)\
-	UNIT_ADD(namespaceName, peta ## nameSingular, peta ## namePlural, P ## abbreviation, peta<namePlural>)\
+	/** 
+	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
+	 * @brief	Macro to create decibel container and literals for an existing unit type.
+	 * @details	This macro generates the decibel unit container, cout overload, and literal definitions.
+	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+	 *			are placed in the `units::literals` namespace.
+	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
+	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
+	 */
+	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
+	namespace namespaceName\
+	{\
+		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+	}\
+	std::ostream& operator<<(std::ostream& os, const namespaceName ## :: ## abbreviation ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	namespace literals\
+	{\
+		namespaceName ## :: ## abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName ## :: ## abbreviation ## _t(d); };\
+		namespaceName ## :: ## abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName ## :: ## abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+	}
 
 	/** 
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -191,6 +197,22 @@
 	std::ostream& operator<<(std::ostream& os, const namespaceName ## :: ## nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
 
 	/**
+	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
+	 * @brief	Macro to create decibel container and literals for an existing unit type.
+	 * @details	This macro generates the decibel unit container, cout overload, and literal definitions.
+	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+	 *			are placed in the `units::literals` namespace.
+	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
+	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
+	 */
+	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
+	namespace namespaceName\
+	{\
+		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+	}\
+	std::ostream& operator<<(std::ostream& os, const namespaceName ## :: ## abbreviation ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+
+	/**
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
 	 * @brief	Macro to create the `is_category_unit` type trait.
 	 * @details	This trait allows users to test whether a given type matches
@@ -224,6 +246,44 @@
 			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
+
+/**
+ * @def		UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
+ * @brief	Macro for generating the boiler-plate code needed for a new unit, including its metric
+ *			prefixes from fempto to peta.
+ * @details	This macro should be used within an appropriate namespace for the unit
+ *			category. The macro generates singular, plural, and abbreviated forms
+ *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+ *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+ *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+ *			cout function which prints both the value and abbreviation of the unit when invoked.
+ * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+ *			are placed in the `units::literals` namespace.
+ * @param	nameSingular singular version of the unit name, e.g. 'meter'
+ * @param	namePlural - plural version of the unit name, e.g. 'meters'
+ * @param	abbreviation - abbreviated unit name, e.g. 'm'
+ * @param	definition - the variadic parameter is used for the definition of the unit
+ *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note	a variadic template is used for the definition to allow templates with
+ *			commas to be easily expanded. All the variadic 'arguments' should together
+ *			comprise the unit definition.
+ */
+#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
+	UNIT_ADD(namespaceName, femto ## nameSingular, femto ## namePlural, f ## abbreviation, femto<namePlural>)\
+	UNIT_ADD(namespaceName, pico ## nameSingular, pico ## namePlural, p ## abbreviation, pico<namePlural>)\
+	UNIT_ADD(namespaceName, nano ## nameSingular, nano ## namePlural, n ## abbreviation, nano<namePlural>)\
+	UNIT_ADD(namespaceName, micro ## nameSingular, micro ## namePlural, u ## abbreviation, micro<namePlural>)\
+	UNIT_ADD(namespaceName, milli ## nameSingular, milli ## namePlural, m ## abbreviation, milli<namePlural>)\
+	UNIT_ADD(namespaceName, centi ## nameSingular, centi ## namePlural, c ## abbreviation, centi<namePlural>)\
+	UNIT_ADD(namespaceName, deci ## nameSingular, deci ## namePlural, d ## abbreviation, deci<namePlural>)\
+	UNIT_ADD(namespaceName, deca ## nameSingular, deca ## namePlural, da ## abbreviation, deca<namePlural>)\
+	UNIT_ADD(namespaceName, hecto ## nameSingular, hecto ## namePlural, h ## abbreviation, hecto<namePlural>)\
+	UNIT_ADD(namespaceName, kilo ## nameSingular, kilo ## namePlural, k ## abbreviation, kilo<namePlural>)\
+	UNIT_ADD(namespaceName, mega ## nameSingular, mega ## namePlural, M ## abbreviation, mega<namePlural>)\
+	UNIT_ADD(namespaceName, giga ## nameSingular, giga ## namePlural, G ## abbreviation, giga<namePlural>)\
+	UNIT_ADD(namespaceName, tera ## nameSingular, tera ## namePlural, T ## abbreviation, tera<namePlural>)\
+	UNIT_ADD(namespaceName, peta ## nameSingular, peta ## namePlural, P ## abbreviation, peta<namePlural>)
 
 //--------------------
 //	UNITS NAMESPACE
@@ -281,12 +341,6 @@ namespace units
 	 * @defgroup	TypeTraits Type Traits
 	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
 	 */
-
-	//------------------------------
-	//	LIBRARY TYPEDEFS
-	//------------------------------
-
-	typedef double UNIT_LIB_DEFAULT_TYPE;
 
 	//------------------------------
 	//	FORWARD DECLARATIONS
@@ -2995,7 +3049,7 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @namespace	angular_velocity
+	 * @namespace	units::angular_velocity
 	 * @brief		namespace for unit types and containers representing angular velocity values
 	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` category is
 	 *				`angular_velocity_unit`.
@@ -3084,922 +3138,151 @@ namespace units
 	//------------------------------
 
 	/**
+	 * @namespace	units::energy
 	 * @brief		namespace for unit types and containers representing energy values
 	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` category is
 	 *				`energy_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace energy
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using joules = unit<std::ratio<1>, units::category::energy_unit>;
-		using megajoules = mega<joules>;
-		using kilojoules = kilo<joules>;
-		using calories = unit<std::ratio<4184, 1000>, joules>;
-		using kilocalories = kilo<calories>;
-		using kilowatt_hours = unit<std::ratio<36, 10>, megajoules>;
-		using watt_hours = unit<std::ratio<1, 1000>, kilowatt_hours>;
-		using british_thermal_units = unit<std::ratio<105505585262, 100000000>, joules>;
-		using british_thermal_units_iso = unit<std::ratio<1055056, 1000>, joules>;
-		using british_thermal_units_59 = unit<std::ratio<1054804, 1000>, joules>;
-		using therms = unit<std::ratio<100000>, british_thermal_units_59>;
-		using foot_pounds = unit<std::ratio<13558179483314004, 10000000000000000>, joules>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joule, joules, J, unit<std::ratio<1>, units::category::energy_unit>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calorie, calories, cal, unit<std::ratio<4184, 1000>, joules>)
+	UNIT_ADD(energy, kilowatt_hour, kilowatt_hours, kWh, unit<std::ratio<36, 10>, megajoules>)
+	UNIT_ADD(energy, watt_hour, watt_hours, Wh, unit<std::ratio<1, 1000>, kilowatt_hours>)
+	UNIT_ADD(energy, british_thermal_unit, british_thermal_units, BTU, unit<std::ratio<105505585262, 100000000>, joules>)
+	UNIT_ADD(energy, british_thermal_unit_iso, british_thermal_units_iso, BTU_iso, unit<std::ratio<1055056, 1000>, joules>)
+	UNIT_ADD(energy, british_thermal_unit_59, british_thermal_units_59, BTU59, unit<std::ratio<1054804, 1000>, joules>)
+	UNIT_ADD(energy, therm, therms, thm, unit<std::ratio<100000>, british_thermal_units_59>)
+	UNIT_ADD(energy, foot_pound, foot_pounds, ftlbf, unit<std::ratio<13558179483314004, 10000000000000000>, joules>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using joule = joules;
-		using megajoule = megajoules;
-		using kilojoule = kilojoules;
-		using calorie = calories;
-		using kilocalorie = kilocalories;
-		using watt_hour = watt_hours;
-		using kilowatt_hour = kilowatt_hours;
-		using british_thermal_unit = british_thermal_units;
-		using therm = therms;
-		using foot_pound = foot_pounds;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using J = joules;
-		using MJ = megajoules;
-		using kJ = kilojoules;
-		using cal = calories;
-		using kcal = kilocalories;
-		using Wh = watt_hours;
-		using kWh = kilowatt_hours;
-		using BTU = british_thermal_units;
-		using thm = therms;
-		using ftlbf = foot_pounds;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor energyContainers
-		 * @{
-		 */
-		using joule_t = unit_t<joule>;
-		using megajoule_t = unit_t<megajoule>;
-		using kilojoule_t = unit_t<kilojoule>;
-		using calorie_t = unit_t<calorie>;
-		using kilocalorie_t = unit_t<kilocalorie>;
-		using watt_hour_t = unit_t<watt_hour>;
-		using kilowatt_hour_t = unit_t<kilowatt_hour>;
-		using british_thermal_unit_t = unit_t<british_thermal_unit>;
-		using therm_t = unit_t<therm>;
-		using foot_pound_t = unit_t<foot_pound>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_energy_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_energy_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::energy_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_energy_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::energy_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of energy
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_energy_unit<T>::value` to test
-		 *				the unit represents a energy quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_energy_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_energy_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::energy::joule , typename T3 = units::energy::joule> 
-		struct is_energy_unit : std::integral_constant<bool, units::traits::detail::is_energy_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_energy_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_energy_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(energy, joule)
 
 	//------------------------------
 	//	UNITS OF POWER
 	//------------------------------
 
 	/**
+	 * @namespace	units::power
 	 * @brief		namespace for unit types and containers representing power values
 	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` category is
 	 *				`power_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace power
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using watts = unit<std::ratio<1>, units::category::power_unit>;
-		using nanowatts = nano<watts>;
-		using microwatts = micro<watts>;
-		using milliwatts = milli<watts>;
-		using kilowatts = kilo<watts>;
-		using megawatts = mega<watts>;
-		using gigawatts = giga<watts>;
-		using horsepower = unit<std::ratio<7457, 10>, watts>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using watt = watts;
-		using nanowatt = nanowatts;
-		using microwatt = microwatts;
-		using milliwatt = milliwatts;
-		using kilwatt = kilowatts;
-		using megawatt = megawatts;
-		using gigawatt = gigawatts;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using W = watts;
-		using nW = nanowatts;
-		using uW = microwatts;
-		using mW = milliwatts;
-		using kW = kilowatts;
-		using MW = megawatts;
-		using GW = gigawatts;
-		using hp = horsepower;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor powerContainers
-		 * @{
-		 */
-		using watt_t = unit_t<watt>;
-		using nanowatt_t = unit_t<nanowatt>;
-		using microwatt_t = unit_t<microwatt>;
-		using milliwatt_t = unit_t<milliwatt>;
-		using kilwatt_t = unit_t<kilwatt>;
-		using megawatt_t = unit_t<megawatt>;
-		using gigawatt_t = unit_t<gigawatt>;
-
-		using dBW_t = unit_t<watt, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
-		using dBm_t = unit_t<milliwatt, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_power_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_power_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::power_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_power_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::power_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of power
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_power_unit<T>::value` to test
-		 *				the unit represents a power quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_power_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_power_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::power::watt , typename T3 = units::power::watt> 
-		struct is_power_unit : std::integral_constant<bool, units::traits::detail::is_power_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_power_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_power_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(power, watt, watts, W, unit<std::ratio<1>, units::category::power_unit>)
+	UNIT_ADD(power, horsepower, horsepower, hp, unit<std::ratio<7457, 10>, watts>)
+	UNIT_ADD_DECIBEL(power, watt, dBW)
+	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
+	
+	UNIT_ADD_CATEGORY_TRAIT(power, watt)
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
 	//------------------------------
 
 	/**
+	 * @namespace	units::voltage
 	 * @brief		namespace for unit types and containers representing voltage values
 	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` category is
 	 *				`voltage_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace voltage
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using volts = unit<std::ratio<1>, units::category::voltage_unit>;
-		using picovolts = pico<volts>;
-		using nanovolts = nano<volts>;
-		using microvolts = micro<volts>;
-		using millivolts = milli<volts>;
-		using kilovolts = kilo<volts>;
-		using megavolts = mega<volts>;
-		using gigavolts = giga<volts>;
-		using statvolts = unit<std::ratio<1000000, 299792458>, volts>;
-		using abvolts = unit<std::ratio<1, 100000000>, volts>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using volt = volts;
-		using picovolt = picovolts;
-		using nanovolt = nanovolts;
-		using microvolt = microvolts;
-		using millivolt = millivolts;
-		using kilovolt = kilovolts;
-		using megavolt = megavolts;
-		using gigavolt = gigavolts;
-		using statvolt = statvolts;
-		using abvolt = abvolts;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using volt_t = unit_t<volt>;
-		using picovolt_t = unit_t<picovolt>;
-		using nanovolt_t = unit_t<nanovolt>;
-		using microvolt_t = unit_t<microvolt>;
-		using millivolt_t = unit_t<millivolt>;
-		using kilovolt_t = unit_t<kilovolt>;
-		using megavolt_t = unit_t<megavolt>;
-		using gigavolt_t = unit_t<gigavolt>;
-		using statvolt_t = unit_t<statvolt>;
-		using abvolt_t = unit_t<abvolt>;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor voltageContainers
-		 * @{
-		 */
-		using V = volts;
-		using pV = picovolts;
-		using nV = nanovolts;
-		using uV = microvolts;
-		using mV = millivolts;
-		using kV = kilovolts;
-		using MV = megavolts;
-		using GV = gigavolts;
-		using statV = statvolts;
-		using abV = abvolts;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_voltage_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_voltage_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::voltage_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_voltage_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::voltage_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of voltage
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_voltage_unit<T>::value` to test
-		 *				the unit represents a voltage quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_voltage_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_voltage_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::voltage::volt , typename T3 = units::voltage::volt> 
-		struct is_voltage_unit : std::integral_constant<bool, units::traits::detail::is_voltage_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_voltage_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_voltage_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, unit<std::ratio<1>, units::category::voltage_unit>)
+	UNIT_ADD(voltage, statvolt, statvolts, statV, unit<std::ratio<1000000, 299792458>, volts>)
+	UNIT_ADD(voltage, abvolt, abvolts, abV, unit<std::ratio<1, 100000000>, volts>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(voltage, volts)
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::capacitance
 	 * @brief		namespace for unit types and containers representing capacitance values
 	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` category is
 	 *				`capacitance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace capacitance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using farads = unit<std::ratio<1>, units::category::capacitance_unit>;
-		using picofarads = pico<farads>;
-		using nanofarads = nano<farads>;
-		using microfarads = micro<farads>;
-		using millifarads = milli<farads>;
-		using kilofarads = kilo<farads>;
-		using megafarads = mega<farads>;
-		using gigafarads = giga<farads>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using farad = farads;
-		using picofarad = picofarads;
-		using nanofarad = nanofarads;
-		using microfarad = microfarads;
-		using millifarad = millifarads;
-		using kilofarad = kilofarads;
-		using megafarad = megafarads;
-		using gigafarad = gigafarads;
-		/** @} */
-
-		/**
-		 * @name  Units (abbreviated names)
-		 * @{
-		 */
-		using F = farads;
-		using pF = picofarads;
-		using nF = nanofarads;
-		using uF = microfarads;
-		using mF = millifarads;
-		using kF = kilofarads;
-		using MF = megafarads;
-		using GF = gigafarads;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor capacitanceContainers
-		 * @{
-		 */
-		using farad_t = unit_t<farad>;
-		using picofarad_t = unit_t<picofarad>;
-		using nanofarad_t = unit_t<nanofarad>;
-		using microfarad_t = unit_t<microfarad>;
-		using millifarad_t = unit_t<millifarad>;
-		using kilofarad_t = unit_t<kilofarad>;
-		using megafarad_t = unit_t<megafarad>;
-		using gigafarad_t = unit_t<gigafarad>;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_capacitance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_capacitance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::capacitance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_capacitance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::capacitance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of capacitance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_capacitance_unit<T>::value` to test
-		 *				the unit represents a capacitance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_capacitance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_capacitance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::capacitance::farad , typename T3 = units::capacitance::farad> 
-		struct is_capacitance_unit : std::integral_constant<bool, units::traits::detail::is_capacitance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_capacitance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_capacitance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit<std::ratio<1>, units::category::capacitance_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(capacitance, farad)
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::impedance
 	 * @brief		namespace for unit types and containers representing impedance values
 	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` category is
 	 *				`impedance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace impedance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using ohms = unit<std::ratio<1>, units::category::impedance_unit>;
-		using picoohms = pico<ohms>;
-		using nanoohms = nano<ohms>;
-		using microohms = micro<ohms>;
-		using milliohms = milli<ohms>;
-		using kiloohms = kilo<ohms>;
-		using megaohms = mega<ohms>;
-		using gigaohms = giga<ohms>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using ohm = ohms;
-		using picoohm = picoohms;
-		using nanoohm = nanoohms;
-		using microohm = microohms;
-		using milliohm = milliohms;
-		using kiloohm = kiloohms;
-		using megaohm = megaohms;
-		using gigaohm = gigaohms;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor impedanceContainers
-		 * @{
-		 */
-		using ohm_t = unit_t<ohm>;
-		using picoohm_t = unit_t<picoohm>;
-		using nanoohm_t = unit_t<nanoohm>;
-		using microohm_t = unit_t<microohm>;
-		using milliohm_t = unit_t<milliohm>;
-		using kiloohm_t = unit_t<kiloohm>;
-		using megaohm_t = unit_t<megaohm>;
-		using gigaohm_t = unit_t<gigaohm>;
-		/** @} */
-
-		/**
-		 * @name  Units (abbreviated names)
-		 * @{
-		 */
-		using Ohm = ohms;
-		using pOhm = picoohms;
-		using nOhm = nanoohms;
-		using uOhm = microohms;
-		using mOhm = milliohms;
-		using kOhm = kiloohms;
-		using MOhm = megaohms;
-		using GOhm = gigaohms;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_impedance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_impedance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::impedance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_impedance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::impedance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of impedance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_impedance_unit<T>::value` to test
-		 *				the unit represents a impedance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_impedance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_impedance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::impedance::ohm , typename T3 = units::impedance::ohm> 
-		struct is_impedance_unit : std::integral_constant<bool, units::traits::detail::is_impedance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_impedance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_impedance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit<std::ratio<1>, units::category::impedance_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(impedance, ohm)
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::conductance
 	 * @brief		namespace for unit types and containers representing conductance values
 	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` category is
 	 *				`conductance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace conductance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using siemens = unit<std::ratio<1>, units::category::conductance_unit>;
-		using picosiemens = pico<siemens>;
-		using nanosiemens = nano<siemens>;
-		using microsiemens = micro<siemens>;
-		using millisiemens = milli<siemens>;
-		using kilosiemens = kilo<siemens>;
-		using megasiemens = mega<siemens>;
-		using gigasiemens = giga<siemens>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using siemen = siemens;
-		using picosiemen = picosiemens;
-		using nanosiemen = nanosiemens;
-		using microsiemen = microsiemens;
-		using millisiemen = millisiemens;
-		using kilosiemen = kilosiemens;
-		using megasiemen = megasiemens;
-		using gigasiemen = gigasiemens;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor conductanceContainers
-		 * @{
-		 */
-		using siemen_t = unit_t<siemen>;
-		using picosiemen_t = unit_t<picosiemen>;
-		using nanosiemen_t = unit_t<nanosiemen>;
-		using microsiemen_t = unit_t<microsiemen>;
-		using millisiemen_t = unit_t<millisiemen>;
-		using kilosiemen_t = unit_t<kilosiemen>;
-		using megasiemen_t = unit_t<megasiemen>;
-		using gigasiemen_t = unit_t<gigasiemen>;
-		/** @} */
-
-		/**
-		 * @name  Units (abbreviated names)
-		 * @{
-		 */
-		using S = siemens;
-		using pS = picosiemens;
-		using nS = nanosiemens;
-		using uS = microsiemens;
-		using mS = millisiemens;
-		using kS = kilosiemens;
-		using MS = megasiemens;
-		using GS = gigasiemens;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_conductance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_conductance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::conductance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_conductance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::conductance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of conductance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conductance_unit<T>::value` to test
-		 *				the unit represents a conductance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_conductance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_conductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::conductance::siemen , typename T3 = units::conductance::siemen> 
-		struct is_conductance_unit : std::integral_constant<bool, units::traits::detail::is_conductance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_conductance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_conductance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemen, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
+	
+	UNIT_ADD_CATEGORY_TRAIT(conductance, siemens)
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
 	//------------------------------
 
 	/**
+	 * @namespace	units::magnetic_flux
 	 * @brief		namespace for unit types and containers representing magnetic_flux values
 	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` category is
 	 *				`magnetic_flux_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace magnetic_flux
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using webers = unit<std::ratio<1>, units::category::magnetic_flux_unit>;
-		using picowebers = pico<webers>;
-		using nanowebers = nano<webers>;
-		using microwebers = micro<webers>;
-		using milliwebers = milli<webers>;
-		using kilowebers = kilo<webers>;
-		using megawebers = mega<webers>;
-		using gigawebers = giga<webers>;
-		using maxwells = unit<std::ratio<1, 100000000>, webers>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit<std::ratio<1>, units::category::magnetic_flux_unit>)
+	UNIT_ADD(magnetic_flux, maxwell, maxwells, Mx, unit<std::ratio<1, 100000000>, webers>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using weber = webers;
-		using picoweber = picowebers;
-		using nanoweber = nanowebers;
-		using microweber = microwebers;
-		using milliweber = milliwebers;
-		using kiloweber = kilowebers;
-		using megaweber = megawebers;
-		using gigaweber = gigawebers;
-		using maxwell = maxwells;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor magneticFluxContainers
-		 * @{
-		 */
-		using weber_t = unit_t<weber>;
-		using picoweber_t = unit_t<picoweber>;
-		using nanoweber_t = unit_t<nanoweber>;
-		using microweber_t = unit_t<microweber>;
-		using milliweber_t = unit_t<milliweber>;
-		using kiloweber_t = unit_t<kiloweber>;
-		using megaweber_t = unit_t<megaweber>;
-		using gigaweber_t = unit_t<gigaweber>;
-		using maxwell_t = unit_t<maxwell>;
-		/** @} */
-
-		/**
-		 * @name  Units (abbreviated names)
-		 * @{
-		 */
-		using Wb = webers;
-		using pWb = picowebers;
-		using nWb = nanowebers;
-		using uWb = microwebers;
-		using mWb = milliwebers;
-		using kWb = kilowebers;
-		using MWb = megawebers;
-		using GWb = gigawebers;
-		using Mx = maxwells;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_magnetic_flux_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_magnetic_flux_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::magnetic_flux_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_magnetic_flux_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::magnetic_flux_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of magnetic_flux
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_flux_unit<T>::value` to test
-		 *				the unit represents a magnetic_flux quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_magnetic_flux_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::magnetic_flux::weber , typename T3 = units::magnetic_flux::weber> 
-		struct is_magnetic_flux_unit : std::integral_constant<bool, units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_magnetic_flux_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(magnetic_flux, webers)
 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
 	//----------------------------------------
 
 	/**
+	 * @namespace	units::magnetic_field_strength
 	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
 	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` category is
 	 *				`magnetic_field_strength_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace magnetic_field_strength
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using teslas = unit<std::ratio<1>, units::category::magnetic_field_strength_unit>;
-		using picoteslas = pico<teslas>;
-		using nanoteslas = nano<teslas>;
-		using microteslas = micro<teslas>;
-		using milliteslas = milli<teslas>;
-		using kiloteslas = kilo<teslas>;
-		using megateslas = mega<teslas>;
-		using gigateslas = giga<teslas>;
-		using gauss = compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>;
-		/** @} */
-
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using tesla = teslas;
-		using picotesla = picoteslas;
-		using nanotesla = nanoteslas;
-		using microtesla = microteslas;
-		using millitesla = milliteslas;
-		using kilotesla = kiloteslas;
-		using megatesla = megateslas;
-		using gigatesla = gigateslas;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor magneticFieldStrengthContainers
-		 * @{
-		 */
-		using tesla_t = unit_t<tesla>;
-		using picotesla_t = unit_t<picotesla>;
-		using nanotesla_t = unit_t<nanotesla>;
-		using microtesla_t = unit_t<microtesla>;
-		using millitesla_t = unit_t<millitesla>;
-		using kilotesla_t = unit_t<kilotesla>;
-		using megatesla_t = unit_t<megatesla>;
-		using gigatesla_t = unit_t<gigatesla>;
-		using gauss_t = unit_t<gauss>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using T = teslas;
-		using pT = picoteslas;
-		using nT = nanoteslas;
-		using uT = microteslas;
-		using mT = milliteslas;
-		using kT = kiloteslas;
-		using MT = megateslas;
-		using GT = gigateslas;
-		using G = gauss;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_magnetic_field_strength_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_magnetic_field_strength_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::magnetic_field_strength_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_magnetic_field_strength_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::magnetic_field_strength_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of magnetic_field_strength
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_magnetic_field_strength_unit<T>::value` to test
-		 *				the unit represents a magnetic_field_strength quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_magnetic_field_strength_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::magnetic_field_strength::gauss , typename T3 = units::magnetic_field_strength::gauss> 
-		struct is_magnetic_field_strength_unit : std::integral_constant<bool, units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_magnetic_field_strength_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	// Unfortunately `_T` is a WINAPI macro, so we have to use `_Te` as the tesla abbreviation.
+	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit<std::ratio<1>, units::category::magnetic_field_strength_unit>)
+	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
+		
+	UNIT_ADD_CATEGORY_TRAIT(magnetic_field_strength, tesla)
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
 	//------------------------------
 
 	/**
+	 * @namespace	units::inductance
 	 * @brief		namespace for unit types and containers representing inductance values
 	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` category is
 	 *				`inductance_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	namespace inductance
-	{
-		/**
-		 * @name Units (full names plural)
-		 * @{
-		 */
-		using henrys = unit<std::ratio<1>, units::category::inductance_unit>;
-		using picohenrys = pico<henrys>;
-		using nanohenrys = nano<henrys>;
-		using microhenrys = micro<henrys>;
-		using millihenrys = milli<henrys>;
-		using kilohenrys = kilo<henrys>;
-		using megahenrys = mega<henrys>;
-		using gigahenrys = giga<henrys>;
-		/** @} */
+	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit<std::ratio<1>, units::category::inductance_unit>)
 
-		/**
-		 * @name Units (full names singular)
-		 * @{
-		 */
-		using henry = henrys;
-		using picohenry = picohenrys;
-		using nanohenry = nanohenrys;
-		using microhenry = microhenrys;
-		using millihenry = millihenrys;
-		using kilohenry = kilohenrys;
-		using megahenry = megahenrys;
-		using gigahenry = gigahenrys;
-		/** @} */
-
-		/**
-		 * @name Units (alternate spellings)
-		 * @{
-		 */
-		using henries = henrys;
-		using picohenries = picohenrys;
-		using nanohenries = nanohenrys;
-		using microhenries = microhenrys;
-		using millihenries = millihenrys;
-		using kilohenries = kilohenrys;
-		using megahenries = megahenrys;
-		using gigahenries = gigahenrys;
-		/** @} */
-
-		/**
-		 * @name Unit Containers
-		 * @anchor inductanceContainers
-		 * @{
-		 */
-		using henry_t = unit_t<henry>;
-		using picohenry_t = unit_t<picohenry>;
-		using nanohenry_t = unit_t<nanohenry>;
-		using microhenry_t = unit_t<microhenry>;
-		using millihenry_t = unit_t<millihenry>;
-		using kilohenry_t = unit_t<kilohenry>;
-		using megahenry_t = unit_t<megahenry>;
-		using gigahenry_t = unit_t<gigahenry>;
-		/** @} */
-
-		/**
-		 * @name Units (abbreviated names)
-		 * @{
-		 */
-		using H = henrys;
-		using pH = picohenrys;
-		using nH = nanohenrys;
-		using uH = microhenrys;
-		using mH = millihenrys;
-		using kH = kilohenrys;
-		using MH = megahenrys;
-		using GH = gigahenrys;
-		/** @} */
-	}
-
-	namespace traits
-	{
-		/** @cond */	// DOXYGEN IGNORE
-		namespace detail
-		{
-			template<typename T> struct is_inductance_unit_impl : std::false_type {};
-			template<typename C, typename U, typename P, typename T>
-			struct is_inductance_unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::inductance_unit>::type{};
-			template<typename U, typename S, template<typename> class N>
-			struct is_inductance_unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::inductance_unit>::type{};
-		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether a type represents a unit of inductance
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_inductance_unit<T>::value` to test
-		 *				the unit represents a inductance quantity.
-		 * @tparam		T	one or more types to test
-		 */
-#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
-		template<typename... T> struct is_inductance_unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_inductance_unit_impl<typename std::decay<T>::type>::value...>::value> {};
-#else
-		template<typename T1, typename T2 = units::inductance::henry , typename T3 = units::inductance::henry> 
-		struct is_inductance_unit : std::integral_constant<bool, units::traits::detail::is_inductance_unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_inductance_unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_inductance_unit_impl<typename std::decay<T3>::type>::value> {};
-#endif
-	}
+	UNIT_ADD_CATEGORY_TRAIT(inductance, henry)
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX

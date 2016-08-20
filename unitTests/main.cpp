@@ -1840,21 +1840,21 @@ TEST_F(UnitConversion, inductance)
 {
 	double test;
 
-	test = convert<henrys, millihenrys>(10.0);
+	test = convert<henries, millihenries>(10.0);
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<picohenrys, henrys>(1000000000000.0);
+	test = convert<picohenries, henries>(1000000000000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<nanohenrys, henrys>(1000000000.0);
+	test = convert<nanohenries, henries>(1000000000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<microhenrys, henrys>(1000000.0);
+	test = convert<microhenries, henries>(1000000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<millihenrys, henrys>(1000.0);
+	test = convert<millihenries, henries>(1000.0);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<kilohenrys, henrys>(0.001);
+	test = convert<kilohenries, henries>(0.001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<megahenrys, henrys>(0.000001);
+	test = convert<megahenries, henries>(0.000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gigahenrys, henrys>(0.000000001);
+	test = convert<gigahenries, henries>(0.000000001);
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
