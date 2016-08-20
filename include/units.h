@@ -73,7 +73,7 @@
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 
 	/** 
-	 * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+	 * @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
 	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
 	 * @details	This macro should be used within an appropriate namespace for the unit
 	 *			category. The macro generates singular, plural, and abbreviated forms
@@ -90,7 +90,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
+	#define UNIT_ADD(nameSingular, namePlural, abbreviation, /*definition*/...)\
 		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
 		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
@@ -100,7 +100,7 @@
 		nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return nameSingular ## _t((long double)d); }	// may want to think of something better than this cast.
 
 	/** 
-	 * @def		ADD_UNIT_CATEGORY_TRAIT
+	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
 	 * @brief	Macro to create the `is_category_unit` type trait.
 	 * @details	This trait allows users to test whether a given type matches
 	 *			an intended category. This macro comprises all the boiler-plate
@@ -110,7 +110,7 @@
 	 *			necessary for compatibility with compilers which are not fully c++11
 	 *			compliant.
 	 */
-	#define ADD_UNIT_CATEGORY_TRAIT(unitCategory, baseUnit)\
+	#define UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)\
 	namespace traits\
 	{\
 		/** @cond */\
@@ -138,7 +138,7 @@
 #else
 
 	/**
-	 * @def		ADD_UNIT(nameSingular, namePlural, abbreviation, definition)
+	 * @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
 	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
 	 * @details	This macro should be used within an appropriate namespace for the unit
 	 *			category. The macro generates singular, plural, and abbreviated forms
@@ -154,7 +154,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	#define ADD_UNIT(nameSingular, namePlural, abbreviation, /*definition*/...)\
+	#define UNIT_ADD(nameSingular, namePlural, abbreviation, /*definition*/...)\
 			/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
 			/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
 			/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
@@ -162,7 +162,7 @@
 			std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; }\
 
 	/**
-	 * @def		ADD_UNIT_CATEGORY_TRAIT
+	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
 	 * @brief	Macro to create the `is_category_unit` type trait.
 	 * @details	This trait allows users to test whether a given type matches
 	 *			an intended category. This macro comprises all the boiler-plate
@@ -172,7 +172,7 @@
 	 *			necessary for compatibility with compilers which are not fully c++11
 	 *			compliant.
 	 */
-	#define ADD_UNIT_CATEGORY_TRAIT(unitCategory, baseUnit)\
+	#define UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)\
 	namespace traits\
 	{\
 		/** @cond */\
@@ -2742,32 +2742,32 @@ namespace units
 	 */
  	namespace length
 	{
-		ADD_UNIT(meter,				meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
-		ADD_UNIT(nanometer,			nanometers,			nm,				nano<meters>)
-		ADD_UNIT(micrometer,		micrometers,		um,				micro<meters>)
-		ADD_UNIT(millimeter,		millimeters,		mm,				milli<meters>)
-		ADD_UNIT(centimeter,		centimeters,		cm,				centi<meters>)
-		ADD_UNIT(kilometer,			kilometers,			km,				kilo<meters>)
-		ADD_UNIT(foot,				feet,				ft,				unit<std::ratio<381, 1250>, meters>)
-		ADD_UNIT(mil,				mils,				mil,			unit<std::ratio<1000>, feet>)
-		ADD_UNIT(inch,				inches,				inch,			unit<std::ratio<1, 12>, feet>)
-		ADD_UNIT(mile,				miles,				mi,				unit<std::ratio<5280>, feet>)
-		ADD_UNIT(nauticalMile,		nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
-		ADD_UNIT(astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
-		ADD_UNIT(lightyear,			lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
-		ADD_UNIT(parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
-		ADD_UNIT(angstrom,			angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
-		ADD_UNIT(cubit,				cubits,				cbt,			unit<std::ratio<18>, inches>)
-		ADD_UNIT(fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
-		ADD_UNIT(chain,				chains,				ch,				unit<std::ratio<66>, feet>)
-		ADD_UNIT(furlong,			furlongs,			fur,			unit<std::ratio<10>, chains>)
-		ADD_UNIT(hand,				hands,				hand,			unit<std::ratio<4>, inches>)
-		ADD_UNIT(league,			leagues,			lea,			unit<std::ratio<3>, miles>)
-		ADD_UNIT(nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
-		ADD_UNIT(yard,				yards,				yd,				unit<std::ratio<3>, feet>)
+		UNIT_ADD(meter,				meters,				m,				unit<std::ratio<1>, units::category::length_unit>)
+		UNIT_ADD(nanometer,			nanometers,			nm,				nano<meters>)
+		UNIT_ADD(micrometer,		micrometers,		um,				micro<meters>)
+		UNIT_ADD(millimeter,		millimeters,		mm,				milli<meters>)
+		UNIT_ADD(centimeter,		centimeters,		cm,				centi<meters>)
+		UNIT_ADD(kilometer,			kilometers,			km,				kilo<meters>)
+		UNIT_ADD(foot,				feet,				ft,				unit<std::ratio<381, 1250>, meters>)
+		UNIT_ADD(mil,				mils,				mil,			unit<std::ratio<1000>, feet>)
+		UNIT_ADD(inch,				inches,				inch,			unit<std::ratio<1, 12>, feet>)
+		UNIT_ADD(mile,				miles,				mi,				unit<std::ratio<5280>, feet>)
+		UNIT_ADD(nauticalMile,		nauticalMiles,		nmi,			unit<std::ratio<1852>, meters>)
+		UNIT_ADD(astronicalUnit,	astronicalUnits,	au,				unit<std::ratio<149597870700>, meters>)
+		UNIT_ADD(lightyear,			lightyears,			ly,				unit<std::ratio<9460730472580800>, meters>)
+		UNIT_ADD(parsec,			parsecs,			pc,				unit<std::ratio<648000>, astronicalUnits, std::ratio<-1>>)
+		UNIT_ADD(angstrom,			angstroms,			angstrom,		unit<std::ratio<1, 10>, nanometers>)
+		UNIT_ADD(cubit,				cubits,				cbt,			unit<std::ratio<18>, inches>)
+		UNIT_ADD(fathom,			fathoms,			ftm,			unit<std::ratio<6>, feet>)
+		UNIT_ADD(chain,				chains,				ch,				unit<std::ratio<66>, feet>)
+		UNIT_ADD(furlong,			furlongs,			fur,			unit<std::ratio<10>, chains>)
+		UNIT_ADD(hand,				hands,				hand,			unit<std::ratio<4>, inches>)
+		UNIT_ADD(league,			leagues,			lea,			unit<std::ratio<3>, miles>)
+		UNIT_ADD(nauticalLeague,	nauticalLeagues,	nl,				unit<std::ratio<3>, nauticalMiles>)
+		UNIT_ADD(yard,				yards,				yd,				unit<std::ratio<3>, feet>)
 	}
 
-	ADD_UNIT_CATEGORY_TRAIT(length, meter)
+	UNIT_ADD_CATEGORY_TRAIT(length, meter)
 
 	//------------------------------
 	//	MASS UNITS
@@ -2782,21 +2782,21 @@ namespace units
 	 */
 	namespace mass
 	{
-		ADD_UNIT(kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
-		ADD_UNIT(gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
-		ADD_UNIT(microgram, micrograms, ug, micro<grams>)
-		ADD_UNIT(milligram, milligrams, mg, milli<grams>)
-		ADD_UNIT(metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
-		ADD_UNIT(pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
-		ADD_UNIT(long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
-		ADD_UNIT(short_ton, short_tons, sh_t, unit<std::ratio<2000>, pounds>)
-		ADD_UNIT(stone, stone, st, unit<std::ratio<14>, pounds>)
-		ADD_UNIT(ounce, ounces, oz, unit<std::ratio<1, 16>, pounds>)
-		ADD_UNIT(carat, carats, ct, unit<std::ratio<200>, milligrams>)
-		ADD_UNIT(slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
+		UNIT_ADD(kilogram, kilograms, kg, unit<std::ratio<1>, units::category::mass_unit>)
+		UNIT_ADD(gram, grams, g, unit<std::ratio<1, 1000>, kilograms>)
+		UNIT_ADD(microgram, micrograms, ug, micro<grams>)
+		UNIT_ADD(milligram, milligrams, mg, milli<grams>)
+		UNIT_ADD(metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
+		UNIT_ADD(pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
+		UNIT_ADD(long_ton, long_tons, ln_t, unit<std::ratio<2240>, pounds>)
+		UNIT_ADD(short_ton, short_tons, sh_t, unit<std::ratio<2000>, pounds>)
+		UNIT_ADD(stone, stone, st, unit<std::ratio<14>, pounds>)
+		UNIT_ADD(ounce, ounces, oz, unit<std::ratio<1, 16>, pounds>)
+		UNIT_ADD(carat, carats, ct, unit<std::ratio<200>, milligrams>)
+		UNIT_ADD(slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 	}
 
-	ADD_UNIT_CATEGORY_TRAIT(mass, kilogram)
+	UNIT_ADD_CATEGORY_TRAIT(mass, kilogram)
 
 	//------------------------------
 	//	TIME UNITS
@@ -2811,18 +2811,18 @@ namespace units
 	 */
 	namespace time
 	{
-		ADD_UNIT(second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
-		ADD_UNIT(nanosecond, nanoseconds, ns, nano<seconds>)
-		ADD_UNIT(microsecond, microseconds, us, micro<seconds>)
-		ADD_UNIT(millisecond, milliseconds, ms, milli<seconds>)
-		ADD_UNIT(minute, minutes, min, unit<std::ratio<60>, seconds>)
-		ADD_UNIT(hour, hours, hr, unit<std::ratio<60>, minutes>)
-		ADD_UNIT(day, days, d, unit<std::ratio<24>, hours>)
-		ADD_UNIT(week, weeks, wk, unit<std::ratio<7>, days>)
-		ADD_UNIT(year, years, yr, unit<std::ratio<365>, days>)
+		UNIT_ADD(second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
+		UNIT_ADD(nanosecond, nanoseconds, ns, nano<seconds>)
+		UNIT_ADD(microsecond, microseconds, us, micro<seconds>)
+		UNIT_ADD(millisecond, milliseconds, ms, milli<seconds>)
+		UNIT_ADD(minute, minutes, min, unit<std::ratio<60>, seconds>)
+		UNIT_ADD(hour, hours, hr, unit<std::ratio<60>, minutes>)
+		UNIT_ADD(day, days, d, unit<std::ratio<24>, hours>)
+		UNIT_ADD(week, weeks, wk, unit<std::ratio<7>, days>)
+		UNIT_ADD(year, years, yr, unit<std::ratio<365>, days>)
 	}
 
-	ADD_UNIT_CATEGORY_TRAIT(time, second)
+	UNIT_ADD_CATEGORY_TRAIT(time, second)
 
 	//------------------------------
 	//	ANGLE UNITS
@@ -2837,17 +2837,17 @@ namespace units
 	 */
 	namespace angle
 	{
-		ADD_UNIT(radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
-		ADD_UNIT(milliradian, milliradians, mrad, milli<radians>)
-		ADD_UNIT(degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
-		ADD_UNIT(arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
-		ADD_UNIT(arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
-		ADD_UNIT(milliarcsecond, milliarcseconds, mas, milli<arcseconds>)
-		ADD_UNIT(turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
-		ADD_UNIT(gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
+		UNIT_ADD(radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
+		UNIT_ADD(milliradian, milliradians, mrad, milli<radians>)
+		UNIT_ADD(degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
+		UNIT_ADD(arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
+		UNIT_ADD(arcsecond, arcseconds, arcsec, unit<std::ratio<1, 60>, arcminutes>)
+		UNIT_ADD(milliarcsecond, milliarcseconds, mas, milli<arcseconds>)
+		UNIT_ADD(turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
+		UNIT_ADD(gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 	}
 
-	ADD_UNIT_CATEGORY_TRAIT(angle, radian)
+	UNIT_ADD_CATEGORY_TRAIT(angle, radian)
 
 	//------------------------------
 	//	UNITS OF CURRENT
