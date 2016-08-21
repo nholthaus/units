@@ -1887,6 +1887,29 @@ namespace units
 	}
 
 	//------------------------------
+	//	UNIT_CAST
+	//------------------------------	
+	
+	/** 
+	 * @ingroup		Conversion
+	 * @brief		Casts a unit container to an arithmetic type.
+	 * @details		unit_cast can be used to remove the strong typing from a unit class, and convert it
+	 *				to a built-in arithmetic type. This may be useful for compatibility with libraries
+	 *				and legacy code that don't support `unit_t` types. E.g 
+	 * @code		meter_t unitVal(5);
+	 *  double value = units::unit_cast<double>(unitVal);	// value = 5.0 
+	 * @endcode
+	 * @tparam		T		Type to cast the unit type to. Must be a built-in arithmetic type.
+	 * @param		value	Unit value to cast.
+	 * @sa			unit_t::to
+	 */
+	template<typename T, typename Units, class = typename std::enable_if<std::is_arithmetic<T>::value && traits::is_unit_t<Units>::value>::type>
+	inline T unit_cast(const Units& value)
+	{
+		return static_cast<T>(value());
+	}
+
+	//------------------------------
 	//	NON-LINEAR SCALE TRAITS
 	//------------------------------
 

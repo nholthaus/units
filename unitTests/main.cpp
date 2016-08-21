@@ -1231,6 +1231,24 @@ TEST_F(UnitContainer, dBSubtraction)
 	EXPECT_TRUE(isSame);
 }
 
+TEST_F(UnitContainer, unit_cast)
+{
+	meter_t		test1(5.7);
+	hectare_t	test2(16);
+
+	double		dResult1 = 5.7;
+
+	double		dResult2 = 16;
+	int			iResult2 = 16;
+
+	EXPECT_EQ(dResult1, unit_cast<double>(test1));
+	EXPECT_EQ(dResult2, unit_cast<double>(test2));
+	EXPECT_EQ(iResult2, unit_cast<int>(test2));
+
+	EXPECT_TRUE((std::is_same<double, decltype(unit_cast<double>(test1))>::value));
+	EXPECT_TRUE((std::is_same<int, decltype(unit_cast<int>(test2))>::value));
+}
+
 // literal syntax is only supported in GCC 4.7+ and MSVC2015+
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 TEST_F(UnitContainer, literalSyntax)
