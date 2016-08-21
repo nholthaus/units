@@ -47,12 +47,12 @@ Latest Release - v2.1.0
 Documentation
 -------------
 
-The full documentation is available *[here](http://nholthaus.github.io/units)*.
+[The full documentation is available ***here***](http://nholthaus.github.io/units).
 
 Description
 -----------
 
-The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
+The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
 
 The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
@@ -86,9 +86,9 @@ namespace length
 Unit containers
 ---------------
 
-Unit containers are the workhorse of the units library, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
+Unit containers are the primary classes which will be instantiated in user code.  They can be thought of as essentially equivalent to a `double`, except that they have unit type tags associated with them. They can be used wherever a double would be used to store a dimensioned quantity. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`.
 
-Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
+Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or Richter scale). For example, `meter_t` would be defined: 
 
 ```cpp
 using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
