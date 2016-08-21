@@ -186,7 +186,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
+	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
 		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
@@ -242,7 +242,7 @@
 	  		 /** @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test*/\
 	  		 /**				the unit represents a  #unitCategory quantity.*/\
 	  		 /** @tparam		T	one or more types to test*/\
-			template<typename T1, typename T2 = units:: ## unitCategory::baseUnit , typename T3 = units:: ## unitCategory::baseUnit>\
+			template<typename T1, typename T2 = T1, typename T3 = T1>\
 			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
