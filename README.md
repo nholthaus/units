@@ -11,20 +11,20 @@ New features:
 
 - Literal suffixes for instantiating unit containers.
 
-    ```c
+    ```cpp
     auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0);
     ```
 
 - `std::cout` output now includes the unit abbreviations.
 
-    ```c
+    ```cpp
     mile_t distance(26.2);
     std::cout << distance;	// result: 26.2 mi
     ```
 
 - Unit-to-builtin conversions using `to<>` or `unit_cast`.
     
-    ```c
+    ```cpp
     mile_t distance(26.2);
     double result = unit_cast<double>(distance); // result == 26.2` - Unit definition macros.
     ```
