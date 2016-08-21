@@ -4,23 +4,39 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a> [![license](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg)
 
 
-Latest Release - v2.0.3
+Latest Release - v2.1.0
 --------
 
 New features:
- - `unit_t` types are now trivial types.
- -  `unit_t` types support the unary minus (negation) operator.
- - Compile-time unit arithmetic via `unit_value_t`.
- - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
- - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
- - Improved documentation.
 
+ - Literal suffixes for instantiating unit containers.<br>
+ ```
+ auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0);
+ ```
+ - `std::cout` output now includes the unit abbreviations.<br>
+ ```
+ mile_t distance(26.2);
+ std::cout << distance;	// result: 26.2 mi
+ ```
+ - Unit-to-builtin conversions using `to<>` or `unit_cast`.
+ ```
+ mile_t distance(26.2);
+ double result = unit_cast<double>(distance); // result == 26.2
+ ```
+ - Unit definition macros.
+ - Improvements for integral unit types.
+
+Notes:
+
+ - Due to incompatibilites with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ 
 Tested on:
- - gcc -4.9
+
+ - gcc-4.9.3
  - msvc2013
  - msvc2015
 
-<a href="https://github.com/nholthaus/units/releases/tag/v2.0.3" target="_blank">Download units v2.0.3</a>
+###<a href="https://github.com/nholthaus/units/releases/tag/v2.1.0" target="_blank">Download units v2.1.0</a>
 
 Documentation
 -------------
@@ -349,8 +365,21 @@ Linux:
 Previous Releases
 --------
 
- - v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1
- - v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.0.0 - Initial release. Tested with msvc2015
+ - v2.0.3  
+   - `unit_t` types are now trivial types.
+   - `unit_t` types support the unary minus (negation) operator.
+   - Compile-time unit arithmetic via `unit_value_t`.
+   - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
+   - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
+   - Improved documentation.
+ - v1.3.0 
+   - Adds ostream support. 
+   - bug fixes.
+ - v1.2.2 
+   - Bug fixes (#1) and namespace cleanup.
+ - v1.2.0 
+   - Adds angular velocity units.
+ - v1.1.1 
+   - Adds Doxygen and additional type traits.
+ - v1.0.0 
+   - Initial release.
