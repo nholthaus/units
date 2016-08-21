@@ -374,14 +374,14 @@ See the `units::traits` namespace for a list of all the supported traits.
 Build Instructions
 ------------------
 
-The library itself consists of a single header (include/units.h), and can be included into your project without being built. 
+The library itself consists of a single header [units.h](include/units.h), and can be included into your project without being built. 
 
 The unit tests and documentation can be built with CMake. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.
 
 To build the tests:
 
-Windows:
- 1. Ensure cmake is installed, and that the `bin` directory is in your %PATH% variable, and that a compiler like `Visual Studio 2015 Community Edition` is installed.
+###Windows:
+ 1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
  3. Open a `cmd` terminal and navigate to the source directory.
  4. Type the following commands:
@@ -391,7 +391,7 @@ Windows:
    - `cmake --build . --config Release`
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
    
-Linux:
+###Linux:
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 4.9 or greater. You can verify this with `gcc --version`.
  3. clone the repository or download the `.tar.gz` package.
