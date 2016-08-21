@@ -9,22 +9,27 @@ Latest Release - v2.1.0
 
 New features:
 
- - Literal suffixes for instantiating unit containers.<br>
- ```
- auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0);
- ```
- - `std::cout` output now includes the unit abbreviations.<br>
- ```
- mile_t distance(26.2);
- std::cout << distance;	// result: 26.2 mi
- ```
- - Unit-to-builtin conversions using `to<>` or `unit_cast`.
- ```
- mile_t distance(26.2);
- double result = unit_cast<double>(distance); // result == 26.2
- ```
- - Unit definition macros.
- - Improvements for integral unit types.
+- Literal suffixes for instantiating unit containers.
+
+    ```c++
+    auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0);
+    ```
+
+- `std::cout` output now includes the unit abbreviations.
+
+    ```c++
+    mile_t distance(26.2);
+    std::cout << distance;	// result: 26.2 mi
+    ```
+
+- Unit-to-builtin conversions using `to<>` or `unit_cast`.
+    
+    ```c++
+    mile_t distance(26.2);
+    double result = unit_cast<double>(distance); // result == 26.2` - Unit definition macros.
+    ```
+
+- Improvements for integral unit types.
 
 Notes:
 
