@@ -406,21 +406,21 @@ To build the tests:
 Previous Releases
 --------
 
- - v2.0.3  
+ - [`v2.0.3`](https://github.com/nholthaus/units/releases/tag/v2.0.3)  
    - `unit_t` types are now trivial types.
    - `unit_t` types support the unary minus (negation) operator.
    - Compile-time unit arithmetic via `unit_value_t`.
    - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
    - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
    - Improved documentation.
- - v1.3.0 
+ - [`v1.3.0`](https://github.com/nholthaus/units/releases/tag/v1.3.0)  
    - Adds ostream support. 
    - bug fixes.
- - v1.2.2 
+ - [`v1.2.2`](https://github.com/nholthaus/units/releases/tag/v1.2.2)  
    - Bug fixes (#1) and namespace cleanup.
- - v1.2.0 
+ - [`v1.2.0`](https://github.com/nholthaus/units/releases/tag/v1.2.0)  
    - Adds angular velocity units.
- - v1.1.1 
+ - [`v1.1.1`](https://github.com/nholthaus/units/releases/tag/v1.1.1)   
    - Adds Doxygen and additional type traits.
- - v1.0.0 
+ - [`v1.0.0`](https://github.com/nholthaus/units/releases/tag/v1.0.0)  
    - Initial release.
