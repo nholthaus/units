@@ -7,22 +7,25 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 Latest Release - v2.1.0
 --------
 
-New features:
+### Get it:
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.0)
 
-- Literal suffixes for instantiating unit containers.
+### New features:
+
+- Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
 
     ```cpp
-    auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0);
+    auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0) == 12_sq_m;
     ```
 
 - `std::cout` output now includes the unit abbreviations.
 
     ```cpp
     mile_t distance(26.2);
-    std::cout << distance;	// result: 26.2 mi
+    std::cout << distance;	// printed: 26.2 mi
     ```
 
-- Unit-to-builtin conversions using `to<>` or `unit_cast`.
+- Unit-to-built-in conversions using `to<>` or `unit_cast`.
     
     ```cpp
     mile_t distance(26.2);
@@ -31,17 +34,15 @@ New features:
 
 - Improvements for integral unit types.
 
-Notes:
+### Notes:
 
  - Due to incompatibilites with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
  
-Tested on:
+### Tested on:
 
  - gcc-4.9.3
  - msvc2013
  - msvc2015
-
-###<a href="https://github.com/nholthaus/units/releases/tag/v2.1.0" target="_blank">Download units v2.1.0</a>
 
 Documentation
 -------------
@@ -74,11 +75,13 @@ Units are defined in terms of
  
 _Example_: the definitions of some common length units are:
 
-	namespace length
-	{
-		using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
-		using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
-	}
+```cpp
+namespace length
+{
+	using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
+	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
+}
+```
 
 Unit containers
 ---------------
@@ -87,11 +90,15 @@ Unit containers are the workhorse of the units library, and the primary classes 
 
 Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
 
-    using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
+```cpp
+using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
+```
 
 or simply 
 
-    using meter_t = units::unit_t<units::length::meter>
+```cpp
+using meter_t = units::unit_t<units::length::meter>
+```
 
 since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
 
@@ -101,44 +108,54 @@ Units are constructed from built-in types, and the `toDouble()` method (or `oper
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
-    auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+```cpp
+auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+```
 
 The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:
 
-    units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+```cpp
+units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+```
 
 Unit containers can (and should!) be used to perform implicit conversions:
 
-	units::time::second_t a;
-	units::time::minute_t b(1.0);
-	
-	a = b;	// a == 60.0
+```cpp
+units::time::second_t a;
+units::time::minute_t b(1.0);
+
+a = b;	// a == 60.0
+```
 
 Arithmetic can be performed on unit containers the same way it can for built-in types. However, unlike built-in types, the return value of unit-type arithmetic will be the proper unit to represent the resulting quantity.
 
-	using namespace units::length;
-	using namespace units::area;
-	
-	meter_t a_m(1.0), b_m(2.0), c_m;
-	foot_t	a_ft(1.0), b_ft(2.0), c_ft;
-	
-	c_m = a_m + b_m;							// OK. c == 3m
-	c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
-	auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
-	
-	auto result_sm = a_m * b_m;					// OK. result_sm is `square_meter_t`.
-	auto result_s = a_m / b_m;					// OK. result_s is `dimensionless_t`.
-	auto result = a_m * b_ft;					// OK. result is `square_meter_t` (left-most unit)
-	
-	auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
-	auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
+```cpp
+using namespace units::length;
+using namespace units::area;
+
+meter_t a_m(1.0), b_m(2.0), c_m;
+foot_t	a_ft(1.0), b_ft(2.0), c_ft;
+
+c_m = a_m + b_m;							// OK. c == 3m
+c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
+auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
+
+auto result_sm = a_m * b_m;					// OK. result_sm is `square_meter_t`.
+auto result_s = a_m / b_m;					// OK. result_s is `dimensionless_t`.
+auto result = a_m * b_ft;					// OK. result is `square_meter_t` (left-most unit)
+
+auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
+auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
+```
 	
 Unsupported arithmetic, or improper return types will result in compiler errors:
 
-	c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
-	c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
-	auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
-	
+```cpp
+c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
+c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
+auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
+```
+
 By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
 
 `<cmath>` Functions
@@ -150,28 +167,34 @@ The overloaded functions ensure that only the proper unit types are accepted int
 
 In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply prepend the function with the fully-qualified `units::math` prefix, e.g.
 
-    meter_t x(2.0);
-	meter_t y(3.0);
-	square_meter_t z(1.0);
-	square_meter_t result;
-	
-	result = fma(x, y, z);												// Error: ambiguous
-	double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// Warning: Unsafe!
-	result = math::fma(x, y, z);										// OK.
-	
+```cpp
+meter_t x(2.0);
+meter_t y(3.0);
+square_meter_t z(1.0);
+square_meter_t result;
+
+result = fma(x, y, z);												// Error: ambiguous
+double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// Warning: Unsafe!
+result = math::fma(x, y, z);										// OK.
+```
+
 Exponentials and Square Roots
 -----------------------------
 
 Many functions require units to be raised to some power. This can be accomplished using the `units::math::pow` function:
 
-	square_meter_t m2 = units::math::pow<2>(meter_t(5.0));	// m2 == 25.0
-		
+```cpp
+square_meter_t m2 = units::math::pow<2>(meter_t(5.0));	// m2 == 25.0
+```
+
 The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the `<cmath> pow` implementation, which takes exponent values at runtime.
 
 Square roots are also provided with the `units::math::sqrt` function. Due to the nature of the `sqrt` operation, the units library can often provide exact conversions for square root operations, but _not in every case_. The rest of the time, the `sqrt` unit will be a _rational_approximation_ of the real value. These are guaranteed to be accurate to at least 10 decimal places.
 
-	meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
-	
+```cpp
+meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
+```
+
 Efficiency
 ----------
 
@@ -193,7 +216,7 @@ but the total conversion ratio is computed at compile-time and the math is optim
 
 Unit conversions between equivalent types are optimized away completely, and generate _no machine code_.
 
-Compile-time Unit Manipulation
+Pure Compile-time Unit Manipulation
 ------------------------------
 
 In many cases, unit equations are used to determine derived values from a set of values which are known at compile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
@@ -202,20 +225,25 @@ The `unit_value_t` class is the mechanism in the units library to perform compil
 
 For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a pythagorean triple)
 
-	struct RightTriangle
-	{
-		using a = unit_value_t<meters, 3>;
-		using b = unit_value_t<meters, 4>;
-		using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
-	};
+```cpp
+struct RightTriangle
+{
+	using a = unit_value_t<meters, 3>;
+	using b = unit_value_t<meters, 4>;
+	using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
+};
+```
 	
 The definition above is perfectly efficient, as it generates _no run-time code_ whatsoever, and still provides all the type safety of unit containers. The values of `a`, `b`, and `c` can be accessed at runtime using the static `value()` method of `unit_value_t`
 
-	auto a = RightTriangle::a::value();	// a is `meter_t(3)`
-	auto b = RightTriangle::b::value();	// b is `meter_t(4)`
-	auto c = RightTriangle::c::value();	// c is `meter_t(5)`
-	
+```cpp
+auto a = RightTriangle::a::value();	// a is `meter_t(3)`
+auto b = RightTriangle::b::value();	// b is `meter_t(4)`
+auto c = RightTriangle::c::value();	// c is `meter_t(5)`
+```
+
 The available compile-time operations are:
+
  - `units::unit_value_add`
  - `units::unit_value_subtract`
  - `units::unit_value_multiply`
@@ -228,7 +256,9 @@ Conversion without unit containers
 
 The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using `units::convert` for arithmetic types:
 
-	double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+```cpp
+double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+```
 	
 For type-safe conversion, prefer implicit conversion via unit_t type containers..
 
@@ -285,15 +315,17 @@ The units library strives to provide built-in types for every conceivable unit, 
 
 Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
 
-	namespace time
-	{
-		using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
-		using minutes = units::unit<std::ratio<60>,  seconds>;
-		using hours   = units::unit<std::ratio<60>,  minutes>;
-		using days    = units::unit<std::ratio<24>,  hours>;
-		using weeks   = units::unit<std::ratio<7>,   days>;
-		using years   = units::unit<std::ratio<365>, days>;
-	}
+```cpp
+namespace time
+{
+	using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
+	using minutes = units::unit<std::ratio<60>,  seconds>;
+	using hours   = units::unit<std::ratio<60>,  minutes>;
+	using days    = units::unit<std::ratio<24>,  hours>;
+	using weeks   = units::unit<std::ratio<7>,   days>;
+	using years   = units::unit<std::ratio<365>, days>;
+}
+```
 
 Units are defined in the form: `using [unit] = unit<std::ratio<[number of base units per unit]>, [base unit]>;`, where:
  - the `[unit]` is what you are defining.
@@ -318,21 +350,25 @@ The units library provides a comprehensive set of type-traits, which can be used
 
 For example, let's say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance. 
 
-    template<typename Units>
-	bool isMinimumSize(Units x)
-	{
-		return x >= square_feet_t(80.0);
-	}
+```cpp
+template<typename Units>
+bool isMinimumSize(Units x)
+{
+	return x >= square_feet_t(80.0);
+}
+```
 	
 This function will fail to compile if `Units` is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand template errors. Type traits could be used to make the error message more friendly:
 
-    template<typename Units>
-	bool isMinimumSize(Units x)
-	{
-		static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
-		return x >= square_feet_t(80.0);
-	}
-	
+```cpp
+template<typename Units>
+bool isMinimumSize(Units x)
+{
+	static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
+	return x >= square_feet_t(80.0);
+}
+```
+
 See the `units::traits` namespace for a list of all the supported traits.
 
 Build Instructions
