@@ -1,5 +1,8 @@
-# units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a>
-a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
+# UNITS 
+A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
+
+<a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a> [![license](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg)
+
 
 Latest Release - v2.0.3
 --------
