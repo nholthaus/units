@@ -101,7 +101,7 @@
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
 		namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
@@ -122,7 +122,7 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
 		namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
@@ -148,9 +148,9 @@
 		{\
 			template<typename T> struct is_ ## unitCategory ## _unit_impl : std::false_type {};\
 			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::unitCategory ## _unit>::type {};\
 			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::unitCategory ## _unit>::type {};\
 		}\
 		/** @endcond */\
 		\
@@ -194,7 +194,7 @@
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
 	/**
 	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
@@ -210,7 +210,7 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " " ## #abbreviation; return os; };\
+	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
 	/**
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -231,9 +231,9 @@
 		{\
 			template<typename T> struct is_ ## unitCategory ## _unit_impl : std::false_type {};\
 			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::unitCategory ## _unit>::type {};\
 			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category:: ## unitCategory ## _unit>::type {};\
+			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::unitCategory ## _unit>::type {};\
 		}\
 		/** @endcond */\
 		\
@@ -242,7 +242,7 @@
 	  		 /** @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test*/\
 	  		 /**				the unit represents a  #unitCategory quantity.*/\
 	  		 /** @tparam		T	one or more types to test*/\
-			template<typename T1, typename T2 = units:: ## unitCategory::baseUnit , typename T3 = units:: ## unitCategory::baseUnit>\
+			template<typename T1, typename T2 = units::unitCategory::baseUnit , typename T3 = units::unitCategory::baseUnit>\
 			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
