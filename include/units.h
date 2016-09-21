@@ -101,11 +101,11 @@
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
-		namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
-		namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -122,7 +122,7 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
 		namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
@@ -194,7 +194,7 @@
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
 	/**
 	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
@@ -210,7 +210,7 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
 	}\
-	std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
 	/**
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -1874,7 +1874,7 @@ namespace units
 	};
 
 	template<class Units, typename T, template<typename> class NonLinearScale>
-	std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj)
+	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj)
 	{
 		os << obj();
 		return os;
@@ -2326,7 +2326,7 @@ namespace units
 	namespace dimensionless
 	{
 		using dB_t = unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
-		std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
+		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
 
 		using dBi_t = dB_t;
 	}
