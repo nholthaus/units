@@ -55,7 +55,9 @@
 #	pragma warning(disable : 4520)
 #endif
 
+#ifndef UNIT_LIB_DEFAULT_TYPE
 #define UNIT_LIB_DEFAULT_TYPE double
+#endif
 
 //--------------------
 //	INCLUDES
