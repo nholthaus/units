@@ -3940,10 +3940,10 @@ namespace units
 		 * @param[in]	denom	Value of the quotient denominator.
 		 * @returns		The remainder of dividing the arguments.
 		 */
-		template<class UnitType, class = typename std::enable_if<traits::is_unit_t<UnitType>::value>::type>
-		UnitType fmod(UnitType numer, UnitType denom)
+		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
+		UnitTypeLhs fmod(UnitTypeLhs numer, UnitTypeRhs denom)
 		{
-			return UnitType(std::fmod(numer(), denom()));
+			return UnitTypeLhs(std::fmod(numer(), denom.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -3991,7 +3991,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs copysign(UnitTypeLhs x, UnitTypeRhs y)
 		{
-			return UnitTypeLhs(std::copysign(x(), y()));
+			return UnitTypeLhs(std::copysign(x(), y()));	// no need for conversion to get the correct sign.
 		}
 
 		/// Overload to copy the sign from a raw double
