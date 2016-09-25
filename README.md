@@ -1,40 +1,159 @@
-# units <a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a>
-a compile-time, header-only, unit conversion library built on c++14 with no dependencies.
+# UNITS 
+A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
-Latest Release - v2.0.3
---------
+[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC_(min)-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC_(min)-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg)
 
-New features:
- - `unit_t` types are now trivial types.
- -  `unit_t` types support the unary minus (negation) operator.
- - Compile-time unit arithmetic via `unit_value_t`.
- - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
- - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
- - Improved documentation.
 
-Tested on:
- - gcc -4.9
+# Latest Release - v2.1.0
+
+### Get it:
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.0)
+
+### New features:
+
+- Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
+
+  ```cpp
+  auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0) ==   12_sq_m;
+  ```
+
+- `std::cout` output now includes the unit abbreviations.
+
+  ```cpp
+  mile_t distance(26.2);
+  std::cout << distance;	// printed: 26.2 mi
+  ```
+
+- Unit-to-built-in-type conversions using `to<>` or `unit_cast`.
+    
+  ```cpp
+  mile_t distance(26.2);
+  double result = unit_cast<double>(distance); // result == 26.2
+  ```
+
+- Unit definition macros.
+
+  ```cpp
+  UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
+  ```
+  
+- Improvements for integral unit types.
+
+### Notes:
+
+ - Due to incompatibilites with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ 
+### Tested on:
+
+ - gcc-4.9.3
+ - gcc-5.4.0
  - msvc2013
  - msvc2015
 
-<a href="https://github.com/nholthaus/units/releases/tag/v2.0.3" target="_blank">Download units v2.0.3</a>
+Does this library work on your compiler? If so, let me know!
 
-Documentation
--------------
+# Contents
 
-The full documentation is available *[here](http://nholthaus.github.io/units)*.
 
-Description
------------
+- [Documentation](#documentation)
+- [Description](#description)
+- [Getting started guide](#getting-started-guide)
+- [Unit tags](#unit-tags)
+- [Unit containers](#unit-containers)
+- [Unit literals](#unit-literals)
+- [`<cmath>` functions](#cmath-functions)
+- [Exponentials and square roots](#exponentials-and-square-roots)
+- [Removing type safety](#removing-type-safety)
+- [Efficiency](#efficiency)
+- [Pure compile-time unit manipulation](#pure-compile-time-unit-manipulation)
+- [Conversion without unit containers](#conversion-without-unit-containers)
+- [Namespaces](#namespaces)
+- [Defining new units](#defining-new-units)
+- [Unit definition macros](#unit-definition-macros)
+- [Unit type traits](#unit-type-traits)
+- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit-t)
+- [Build instructions](#build-instructions)
+- [Previous releases](#previous-releases)
 
-The library consists of a single file (include/units.h), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
+# Documentation
+
+[The full documentation is available ***here***](http://nholthaus.github.io/units).
+
+# Description
+
+The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
 
 The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
 The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
 
-Unit tags
----------
+# Getting started guide
+
+Add `units.h` to your project, along with the `using` directive for literals
+
+```cpp
+#include <units.h>
+
+using namespace units::literals;
+```
+
+Each "dimension" of unit is defined in its own namespace. See [the namespaces section](#namespaces) for a complete list. The rest of the guide assumes you've included the namespaces you plan to use:
+
+```cpp
+using namespace units;
+using namespace units::length;
+using namespace units::time;
+using namespace units::area;
+using namespace units::velocity;
+```
+
+**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typicaly the units' non-plural name with the suffix `_t` (for type), e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
+
+Units can (_and should!_) be used anywhere `double` values can be used:
+
+```cpp
+double          area = 15 * 5 + 10 * 10;                // 175 m^2?
+square_meter_t  area = 15_m * 5_m + 10_m * 10_m;        // 175 m^2
+```
+
+What makes unit types special is that unit conversions happen implicitely and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with _no runtime penalty_.
+
+```cpp
+foot_t              len   = 5_m;                            // simple implicit conversion
+meters_per_second_t speed = 60_mi / 1_hr;                   // more complex implicit conversion
+square_meter_t      area  = 15_m * 5_m + 1000_cm * 1000_cm; // previous example with mixed units
+```
+
+Note the return type has the correct dimensions of area, even though the source types were all units of length. `units.h` has powerful dimensional analysis capabilities. But what happens if we get the return type wrong?
+
+```cpp
+meter_t  area = 15_m * 5_m + 10_m * 10_m;               // oops, m * m = m^2
+```
+
+> E:/workspace/units/include/units.h(1405): error C2338: Units are not compatible.
+
+Your compiler will produce an "incompatible units" error if your dimensional analysis is incorrect. If your resulting unit types are complex, you could use `auto` for simplicity:
+
+```cpp
+auto result = 15_m * 5_m + 10_m * 10_m;                 //  m^2
+auto speed  = 60_mi / 1_hr;                             //  60 mph
+```
+
+***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
+
+More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
+
+```cpp
+using namespace units::math;
+
+meter_t a = 3_m;
+meter_t b = 4_m;
+meter_t c = sqrt(pow<2>(a) + pow<2>(b));    // Pythagorean threorem.
+
+std::cout << c << std::endl;                // prints: "5 m"
+```
+
+# Unit tags
 
 Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-information about different units, including how to convert between them, and how to determine their compatibility for conversion.
 
@@ -46,28 +165,33 @@ Units are defined in terms of
  3. [optionally] a scale factor of `pi`
  4. [optionally] a datum translation (such as the +/- 32 required to convert between `fahrenheit` and `celsius`)
 
- All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), which is not _exactly_ the same as dimensionless/scalar units for practical purposes (and probably why the SI didn't define them as simple scalar units), and so in this library they are treated as a basic unit type.
+ All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), and in this library they are treated as a basic unit type because of their important engineering applications.
  
 _Example_: the definitions of some common length units are:
 
-	namespace length
-	{
-		using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
-		using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
-	}
+```cpp
+namespace length
+{
+	using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
+	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
+}
+```
 
-Unit containers
----------------
+# Unit containers
 
-Unit containers are the workhorse of the units library, and the primary classes which will be instantiated in user code. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.
+Unit containers are the primary classes which will be instantiated in user code.  They can be thought of as essentially equivalent to a `double`, except that they have unit type tags associated with them. They can be used wherever a double would be used to store a dimensioned quantity. Containers are derived from the `unit_t` class, and have the form `[unitname]_t`, e.g. `meter_t` or `radian_t`.
 
-Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, `meter_t` would be defined: 
+Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or Richter scale). For example, `meter_t` would be defined: 
 
-    using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
+```cpp
+using meter_t = units::unit_t<units::length::meter, double, units::linear_scale>
+```
 
 or simply 
 
-    using meter_t = units::unit_t<units::length::meter>
+```cpp
+using meter_t = units::unit_t<units::length::meter>
+```
 
 since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
 
@@ -77,48 +201,81 @@ Units are constructed from built-in types, and the `toDouble()` method (or `oper
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
-    auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+```cpp
+auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+```
 
 The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:
 
-    units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+```cpp
+units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+```
 
 Unit containers can (and should!) be used to perform implicit conversions:
 
-	units::time::second_t a;
-	units::time::minute_t b(1.0);
-	
-	a = b;	// a == 60.0
+```cpp
+units::time::second_t a;
+units::time::minute_t b(1.0);
+
+a = b;	// a == 60.0
+```
 
 Arithmetic can be performed on unit containers the same way it can for built-in types. However, unlike built-in types, the return value of unit-type arithmetic will be the proper unit to represent the resulting quantity.
 
-	using namespace units::length;
-	using namespace units::area;
-	
-	meter_t a_m(1.0), b_m(2.0), c_m;
-	foot_t	a_ft(1.0), b_ft(2.0), c_ft;
-	
-	c_m = a_m + b_m;							// OK. c == 3m
-	c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
-	auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
-	
-	auto result_sm = a_m * b_m;					// OK. result_sm is `square_meter_t`.
-	auto result_s = a_m / b_m;					// OK. result_s is `dimensionless_t`.
-	auto result = a_m * b_ft;					// OK. result is `square_meter_t` (left-most unit)
-	
-	auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
-	auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
+```cpp
+using namespace units::length;
+using namespace units::area;
+
+meter_t a_m(1.0), b_m(2.0), c_m;
+foot_t	a_ft(1.0), b_ft(2.0), c_ft;
+
+c_m = a_m + b_m;                            // OK. c == 3m
+c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
+auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
+
+auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
+auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
+auto result = a_m * b_ft;                   // OK. result is `square_meter_t` (left-most unit)
+
+auto result = a_m * square_meter_t(1.0);    // OK. units can always be multiplied. Result is `cubed<meter_t>`.
+auto result = a_m * scalar_t(1.0);          // OK. units can always be multiplied. Result is `meter_t`.
+```
 	
 Unsupported arithmetic, or improper return types will result in compiler errors:
 
-	c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
-	c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
-	auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
-	
+```cpp
+c_m = a_m + 5.0;                            // Error. can't add scalars to dimensioned units.
+c_m = a_m + scalar_t(5.0);                  // Error. can't add scalars to dimensioned units.
+auto result = a_m + square_meter_t(1.0);    // Error. Incompatible units.
+```
+
 By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
 
-`<cmath>` Functions
--------------------
+# Unit Literals
+
+If you are using a compiler which supports user-defined literals (e.g. not Visual Studio 2013), then unit literals can be a convenient way to initialize and work with unit values:
+
+```cpp
+using namespace units::literals;
+
+meter_t dist	= 10_m;		// 10 m
+meter_t dist2	= 1_km;		// 1000 m
+```
+
+Literals can also be used for any temporary values in calculations, making them more readable:
+
+```cpp
+auto area = units::length::meter_t(5) * units::length::meter_t(10);	// without literals
+auto area = 5_m * 10_m;							// with literals
+```
+
+All literals* are defined by their SI abbreviation preceeded by an underscore, e.g. `_m` for meter. "Square" units are preceeded by `_sq`, e.g. `_sq_m` for square meters. Non SI units use their most common abbreviations.
+
+All literals are defined in the `units::literals` namespace, and in order to use literals in your code ***you must include the line `using units::literals`*** (since there is no way to put a namespace on an operator).
+
+_* with the exception of `Teslas`, which use `_Te` for compatibility with the windows API._
+
+# `<cmath>` Functions
 
 The `units` library include type-safe unit_t container wrappers for almost all of the `<cmath>` functions, _including_ the c++11 extensions. These functions can be found in the `units::math` namespace. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code. 
 
@@ -126,30 +283,56 @@ The overloaded functions ensure that only the proper unit types are accepted int
 
 In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply prepend the function with the fully-qualified `units::math` prefix, e.g.
 
-    meter_t x(2.0);
-	meter_t y(3.0);
-	square_meter_t z(1.0);
-	square_meter_t result;
-	
-	result = fma(x, y, z);												// Error: ambiguous
-	double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// Warning: Unsafe!
-	result = math::fma(x, y, z);										// OK.
-	
-Exponentials and Square Roots
------------------------------
+```cpp
+meter_t x(2.0);
+meter_t y(3.0);
+square_meter_t z(1.0);
+square_meter_t result;
+
+result = fma(x, y, z);												// Error: ambiguous
+double result = fma(x.toDouble(), y.toDouble(), z.toDouble());		// Warning: Unsafe!
+result = math::fma(x, y, z);										// OK.
+```
+
+# Exponentials and Square Roots
 
 Many functions require units to be raised to some power. This can be accomplished using the `units::math::pow` function:
 
-	square_meter_t m2 = units::math::pow<2>(meter_t(5.0));	// m2 == 25.0
-		
+```cpp
+square_meter_t m2 = units::math::pow<2>(meter_t(5.0));	// m2 == 25.0
+```
+
 The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the `<cmath> pow` implementation, which takes exponent values at runtime.
 
 Square roots are also provided with the `units::math::sqrt` function. Due to the nature of the `sqrt` operation, the units library can often provide exact conversions for square root operations, but _not in every case_. The rest of the time, the `sqrt` unit will be a _rational_approximation_ of the real value. These are guaranteed to be accurate to at least 10 decimal places.
 
-	meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
-	
-Efficiency
-----------
+```cpp
+meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
+```
+
+# Removing type safety
+
+When interfacing with APIs, libraries, and frameworks which aren't `unit` enabled, it may be necessary (if regrettable) to remove the type-safety of a unit container and expose its underlying type. This is possible using the `unit_cast` funtion, or the `to<>` member function.
+
+```cpp
+using namespace units;
+using namespace units::length;
+
+// Get double value from a unit container (double is the default underlying type of the units library)
+meter_t dist(10);
+double dval = unit_cast<double>(dist);
+double dval2 = dist.to<double>();
+
+// Get integer value (potentially narrowing, be careful!)
+int ival = unit_cast<int>(dist);
+int ival2 = dist.to<int>();
+```
+
+Both functions produce the same results, the choice of syntax is simply a user preference.
+
+To determine the underlying type of the unit container, the (verbose) trait `units::traits::unit_t_traits<decltype(dist)>::underlying_type` could be used.
+
+# Efficiency
 
 Complex, recurively-defined conversions are performed in just 5 instructions:
 
@@ -169,8 +352,7 @@ but the total conversion ratio is computed at compile-time and the math is optim
 
 Unit conversions between equivalent types are optimized away completely, and generate _no machine code_.
 
-Compile-time Unit Manipulation
-------------------------------
+# Pure Compile-time Unit Manipulation
 
 In many cases, unit equations are used to determine derived values from a set of values which are known at compile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
 
@@ -178,20 +360,25 @@ The `unit_value_t` class is the mechanism in the units library to perform compil
 
 For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a pythagorean triple)
 
-	struct RightTriangle
-	{
-		using a = unit_value_t<meters, 3>;
-		using b = unit_value_t<meters, 4>;
-		using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
-	};
+```cpp
+struct RightTriangle
+{
+	using a = unit_value_t<meters, 3>;
+	using b = unit_value_t<meters, 4>;
+	using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
+};
+```
 	
 The definition above is perfectly efficient, as it generates _no run-time code_ whatsoever, and still provides all the type safety of unit containers. The values of `a`, `b`, and `c` can be accessed at runtime using the static `value()` method of `unit_value_t`
 
-	auto a = RightTriangle::a::value();	// a is `meter_t(3)`
-	auto b = RightTriangle::b::value();	// b is `meter_t(4)`
-	auto c = RightTriangle::c::value();	// c is `meter_t(5)`
-	
+```cpp
+auto a = RightTriangle::a::value();	// a is `meter_t(3)`
+auto b = RightTriangle::b::value();	// b is `meter_t(4)`
+auto c = RightTriangle::c::value();	// c is `meter_t(5)`
+```
+
 The available compile-time operations are:
+
  - `units::unit_value_add`
  - `units::unit_value_subtract`
  - `units::unit_value_multiply`
@@ -199,21 +386,21 @@ The available compile-time operations are:
  - `units::unit_value_power`
  - `units::unit_value_sqrt`
  
-Conversion without unit containers
-----------------------------------
+# Conversion without unit containers
 
 The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using `units::convert` for arithmetic types:
 
-	double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+```cpp
+double val_in = convert<feet, inches>(1.0);	// val_in == 12.0
+```
 	
 For type-safe conversion, prefer implicit conversion via unit_t type containers..
 
-Namespaces
-----------
+# Namespaces
 
 Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities.
 
-Unit tag and unit_t container definitions are defined in the following namespaces:
+Unit tag and `unit_t` container definitions are defined in the following namespaces:
  - units::length
  - units::mass
  - units::time
@@ -248,28 +435,32 @@ Unit tag and unit_t container definitions are defined in the following namespace
  - units::concentration
  - units::constants (scalar and non-scalar physical constants like Avogadro's number)
  
+Literal values for unit containers are defined in the `literals` namespace
+- units::literals
+
 Mathematical operations like `sin`, `log`, `floor`, etc are defined in the following namespaces:
  - units::math
  
 Type traits that you can use to test unit types are defined in the following namespaces:
  - units::traits
 
-Defining new units
-------------------
+# Defining new units
 
 The units library strives to provide built-in types for every conceivable unit, and before defining your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.
 
 Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:
 
-	namespace time
-	{
-		using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
-		using minutes = units::unit<std::ratio<60>,  seconds>;
-		using hours   = units::unit<std::ratio<60>,  minutes>;
-		using days    = units::unit<std::ratio<24>,  hours>;
-		using weeks   = units::unit<std::ratio<7>,   days>;
-		using years   = units::unit<std::ratio<365>, days>;
-	}
+```cpp
+namespace time
+{
+	using seconds = units::unit<std::ratio<1>,   units::category::time_unit>;
+	using minutes = units::unit<std::ratio<60>,  seconds>;
+	using hours   = units::unit<std::ratio<60>,  minutes>;
+	using days    = units::unit<std::ratio<24>,  hours>;
+	using weeks   = units::unit<std::ratio<7>,   days>;
+	using years   = units::unit<std::ratio<365>, days>;
+}
+```
 
 Units are defined in the form: `using [unit] = unit<std::ratio<[number of base units per unit]>, [base unit]>;`, where:
  - the `[unit]` is what you are defining.
@@ -287,41 +478,92 @@ The available helpers are:
  - `units::square_root<...>` (takes the square root of the unit, e.g meters^2 becomes meters)
  - `units::atto<...>` through `units::exa<...>` metric prefixes
 	
-Unit Type Traits
-----------------
+# Unit definition macros
+
+Version `2.1.0` of the units library simplifies the task of adding new units by introducing a set of macros for unit definitions:
+
+- `UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)`
+
+  This macro adds a single new unit to the given namespace, as well as a literal definition and `cout` support based on the given `abbreviation`. e.g.
+
+  ```cpp
+  UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
+  ```
+
+  Would create the `units::length::feet` tag, the `units::length::foot_t` container type, and the `_ft` literal.
+
+- `UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, definition)`
+  
+  This macro has the same functionality as `UNIT_ADD`, but additionally adds unit types with all metric prefixes from `fempto` to `peta` (larger and smaller prefixes mostly result in arithmetic overflow).
+
+- `UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)`
+
+  Adds the decibel representation for a previously-defined unit. e.g.
+
+  ```cpp
+  UNIT_ADD_DECIBEL(power, watt, dBW)
+  ```
+
+  Adds the `dBW_t` container, and the `_dBW` literal.
+
+- `UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)`
+
+  This macro creates a type-trait to check whether a unit is of a certain category, e.g. length. This is only necessary if defining new categories of units which are not included in `units.h` at all. e.g.
+
+  ```cpp
+  UNIT_ADD_CATEGORY_TRAIT(length, meter)
+  ```
+
+  Adds the `units::traits::is_length_unit` trait.
+
+# Unit Type Traits
 
 The units library provides a comprehensive set of type-traits, which can be used in templated user code to enforce that the unit types have certain properties.
 
 For example, let's say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance. 
 
-    template<typename Units>
-	bool isMinimumSize(Units x)
-	{
-		return x >= square_feet_t(80.0);
-	}
+```cpp
+template<typename Units>
+bool isMinimumSize(Units x)
+{
+	return x >= square_feet_t(80.0);
+}
+```
 	
 This function will fail to compile if `Units` is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand template errors. Type traits could be used to make the error message more friendly:
 
-    template<typename Units>
-	bool isMinimumSize(Units x)
-	{
-		static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
-		return x >= square_feet_t(80.0);
-	}
-	
+```cpp
+template<typename Units>
+bool isMinimumSize(Units x)
+{
+	static_assert(units::traits::is_area_unit<Units>::value, "Input value x must represent an area quantity.");
+	return x >= square_feet_t(80.0);
+}
+```
+
 See the `units::traits` namespace for a list of all the supported traits.
 
-Build Instructions
-------------------
+# Changing the underlying type of `unit_t`
 
-The library itself consists of a single header (include/units.h), and can be included into your project without being built. 
+The default underlying type for all unit containers is `double`. However, this can be overriden by providing a definition for `UNIT_LIB_DEFAULT_TYPE`, e.g.
+
+```cpp
+// Use 64-bit integers as the underlying unit type
+#define UNIT_LIB_DEFAULT_TYPE int64_t
+```
+
+**_NOTE:_ changing the underlying type may result in unexpected behavior.** Unit conversion makes heavy use of division, which may make integral types unsuitable except for niche embedded applications. Using excessivly large types may increase the number of arithmetic overflow errors.
+
+# Build Instructions
+
+The library itself consists of a single header [units.h](include/units.h), and can be included into your project without being built. 
 
 The unit tests and documentation can be built with CMake. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.
 
 To build the tests:
 
-Windows:
- 1. Ensure cmake is installed, and that the `bin` directory is in your %PATH% variable, and that a compiler like `Visual Studio 2015 Community Edition` is installed.
+###Windows:
+ 1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
  3. Open a `cmd` terminal and navigate to the source directory.
  4. Type the following commands:
@@ -331,7 +573,7 @@ Windows:
    - `cmake --build . --config Release`
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
    
-Linux:
+###Linux:
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 4.9 or greater. You can verify this with `gcc --version`.
  3. clone the repository or download the `.tar.gz` package.
@@ -343,11 +585,23 @@ Linux:
    - `cmake --build . --config Release`
  6. The tests will be created in an executable called `unitLibTest` in the folder `build/unitTests`.
 
-Previous Releases
---------
+# Previous Releases
 
- - v1.3.0 - Adds ostream support. bug fixes.  Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1
- - v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.
- - v1.0.0 - Initial release. Tested with msvc2015
+ - [`v2.0.3`](https://github.com/nholthaus/units/releases/tag/v2.0.3)  
+   - `unit_t` types are now trivial types.
+   - `unit_t` types support the unary minus (negation) operator.
+   - Compile-time unit arithmetic via `unit_value_t`.
+   - Unit-enabled ports of most `<cmath>` functions, including c++11 extensions.
+   - Square-root manipulators for `unit`, `unit_t`, and `unit_value_t`.
+   - Improved documentation.
+ - [`v1.3.0`](https://github.com/nholthaus/units/releases/tag/v1.3.0)  
+   - Adds ostream support. 
+   - bug fixes.
+ - [`v1.2.2`](https://github.com/nholthaus/units/releases/tag/v1.2.2)  
+   - Bug fixes (#1) and namespace cleanup.
+ - [`v1.2.0`](https://github.com/nholthaus/units/releases/tag/v1.2.0)  
+   - Adds angular velocity units.
+ - [`v1.1.1`](https://github.com/nholthaus/units/releases/tag/v1.1.1)   
+   - Adds Doxygen and additional type traits.
+ - [`v1.0.0`](https://github.com/nholthaus/units/releases/tag/v1.0.0)  
+   - Initial release.
