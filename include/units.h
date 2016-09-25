@@ -2961,6 +2961,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing current values
 	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` category is
 	 *				`current_unit`.
+	 * @anchor		currentContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit<std::ratio<1>, units::category::current_unit>)
@@ -2979,6 +2980,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing temperature values
 	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` category is
 	 *				`temperature_unit`.
+	 * @anchor		temperatureContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(temperature, kelvin, kelvin, K, unit<std::ratio<1>, units::category::temperature_unit>)
@@ -2998,6 +3000,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing substance values
 	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` category is
 	 *				`substance_unit`.
+	 * @anchor		substanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(substance, mole, moles, mol, unit<std::ratio<1>, units::category::substance_unit>)
@@ -3013,6 +3016,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing luminous_intensity values
 	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` category is
 	 *				`luminous_intensity_unit`.
+	 * @anchor		luminousIntensityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit<std::ratio<1>, units::category::luminous_intensity_unit>)
@@ -3028,6 +3032,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing solid_angle values
 	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` category is
 	 *				`solid_angle_unit`.
+	 * @anchor		solidAngleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(solid_angle, steradian, steradians, sr, unit<std::ratio<1>, units::category::solid_angle_unit>)
@@ -3045,6 +3050,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing frequency values
 	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` category is
 	 *				`frequency_unit`.
+	 * @anchor		frequencyContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit<std::ratio<1>, units::category::frequency_unit>)
@@ -3060,6 +3066,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing velocity values
 	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` category is
 	 *				`velocity_unit`.
+	 * @anchor		velocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(velocity, meters_per_second, meters_per_second, mps, unit<std::ratio<1>, units::category::velocity_unit>)
@@ -3079,6 +3086,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing angular velocity values
 	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` category is
 	 *				`angular_velocity_unit`.
+	 * @anchor		angularVelocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(angular_velocity, radians_per_second, radians_per_second, rad_per_s, unit<std::ratio<1>, units::category::angular_velocity_unit>)
@@ -3097,6 +3105,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing acceleration values
 	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` category is
 	 *				`acceleration_unit`.
+	 * @anchor		accelerationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps_sq, unit<std::ratio<1>, units::category::acceleration_unit>)
@@ -3114,6 +3123,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing force values
 	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` category is
 	 *				`force_unit`.
+	 * @anchor		forceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(force, newton, newtons, N, unit<std::ratio<1>, units::category::force_unit>)
@@ -3133,6 +3143,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing pressure values
 	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` category is
 	 *				`pressure_unit`.
+	 * @anchor		pressureContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascal, pascals, Pa, unit<std::ratio<1>, units::category::pressure_unit>)
@@ -3152,6 +3163,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing charge values
 	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` category is
 	 *				`charge_unit`.
+	 * @anchor		chargeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulomb, coulombs, C, unit<std::ratio<1>, units::category::charge_unit>)
@@ -3168,6 +3180,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing energy values
 	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` category is
 	 *				`energy_unit`.
+	 * @anchor		energyContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joule, joules, J, unit<std::ratio<1>, units::category::energy_unit>)
@@ -3191,6 +3204,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing power values
 	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` category is
 	 *				`power_unit`.
+	 * @anchor		powerContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(power, watt, watts, W, unit<std::ratio<1>, units::category::power_unit>)
@@ -3209,6 +3223,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing voltage values
 	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` category is
 	 *				`voltage_unit`.
+	 * @anchor		voltageContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, unit<std::ratio<1>, units::category::voltage_unit>)
@@ -3226,6 +3241,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing capacitance values
 	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` category is
 	 *				`capacitance_unit`.
+	 * @anchor		capacitanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit<std::ratio<1>, units::category::capacitance_unit>)
@@ -3241,6 +3257,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing impedance values
 	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` category is
 	 *				`impedance_unit`.
+	 * @anchor		impedanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit<std::ratio<1>, units::category::impedance_unit>)
@@ -3256,6 +3273,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing conductance values
 	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` category is
 	 *				`conductance_unit`.
+	 * @anchor		conductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemen, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
@@ -3271,6 +3289,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing magnetic_flux values
 	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` category is
 	 *				`magnetic_flux_unit`.
+	 * @anchor		magneticFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit<std::ratio<1>, units::category::magnetic_flux_unit>)
@@ -3287,6 +3306,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
 	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` category is
 	 *				`magnetic_field_strength_unit`.
+	 * @anchor		magneticFieldStrengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	// Unfortunately `_T` is a WINAPI macro, so we have to use `_Te` as the tesla abbreviation.
@@ -3304,6 +3324,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing inductance values
 	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` category is
 	 *				`inductance_unit`.
+	 * @anchor		inductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit<std::ratio<1>, units::category::inductance_unit>)
@@ -3319,6 +3340,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing luminous_flux values
 	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` category is
 	 *				`luminous_flux_unit`.
+	 * @anchor		luminousFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit<std::ratio<1>, units::category::luminous_flux_unit>)
@@ -3334,6 +3356,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing illuminance values
 	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` category is
 	 *				`illuminance_unit`.
+	 * @anchor		illuminanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, luxes, lx, unit<std::ratio<1>, units::category::illuminance_unit>)
@@ -3348,12 +3371,13 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @namepsace	units::radiation
+	 * @namespace	units::radiation
 	 * @brief		namespace for unit types and containers representing radiation values
 	 * @details		The SI units for radiation are:
 	 *				- source activity:	becquerel
 	 *				- absorbed dose:	gray
 	 *				- equivalent dose:	sievert
+	 * @anchor		radiationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerel, becquerels, Bq, unit<std::ratio<1>, units::frequency::hertz>)
@@ -3374,6 +3398,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing torque values
 	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` category is
 	 *				`torque_units`.
+	 * @anchor		torqueContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(torque, newton_meter, newton_meters, Nm, unit<std::ratio<1>, units::energy::joule>)
@@ -3393,6 +3418,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing area values
 	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` category is
 	 *				`area_unit`.
+	 * @anchor		areaContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(area, square_meter, square_meters, sq_m, unit<std::ratio<1>, units::category::area_unit>)
@@ -3414,6 +3440,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing volume values
 	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` category is
 	 *				`volume_unit`.
+	 * @anchor		volumeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(volume, cubic_meter, cubic_meters, cu_m, unit<std::ratio<1>, units::category::volume_unit>)
@@ -3457,6 +3484,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing density values
 	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` category is
 	 *				`density_unit`.
+	 * @anchor		densityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m, unit<std::ratio<1>, units::category::density_unit>)
@@ -3481,6 +3509,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing concentration values
 	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` category is
 	 *				`scalar_unit`.
+	 * @anchor		concentrationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	UNIT_ADD(concentration, ppm, parts_per_million, ppm, unit<std::ratio<1, 1000000>, units::category::scalar_unit>)
