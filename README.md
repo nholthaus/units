@@ -229,24 +229,24 @@ using namespace units::area;
 meter_t a_m(1.0), b_m(2.0), c_m;
 foot_t	a_ft(1.0), b_ft(2.0), c_ft;
 
-c_m = a_m + b_m;							// OK. c == 3m
-c_ft = a_m + b_m;							// OK. resulting 3m is converted to ft.
-auto result = a_m * b_ft;					// OK. result is `meter_t` (left-most unit)
+c_m = a_m + b_m;                            // OK. c == 3m
+c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
+auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
 
-auto result_sm = a_m * b_m;					// OK. result_sm is `square_meter_t`.
-auto result_s = a_m / b_m;					// OK. result_s is `dimensionless_t`.
-auto result = a_m * b_ft;					// OK. result is `square_meter_t` (left-most unit)
+auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
+auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
+auto result = a_m * b_ft;                   // OK. result is `square_meter_t` (left-most unit)
 
-auto result = a_m * square_meter_t(1.0);	// OK. units can always be multiplied. Result is `cubed<meter_t>`.
-auto result = a_m * scalar_t(1.0); 			// OK. units can always be multiplied. Result is `meter_t`.
+auto result = a_m * square_meter_t(1.0);    // OK. units can always be multiplied. Result is `cubed<meter_t>`.
+auto result = a_m * scalar_t(1.0);          // OK. units can always be multiplied. Result is `meter_t`.
 ```
 	
 Unsupported arithmetic, or improper return types will result in compiler errors:
 
 ```cpp
-c_m = a_m + 5.0;							// Error. can't add scalars to dimensioned units.
-c_m = a_m + scalar_t(5.0);					// Error. can't add scalars to dimensioned units.
-auto result = a_m + square_meter_t(1.0);	// Error. Incompatible units.
+c_m = a_m + 5.0;                            // Error. can't add scalars to dimensioned units.
+c_m = a_m + scalar_t(5.0);                  // Error. can't add scalars to dimensioned units.
+auto result = a_m + square_meter_t(1.0);    // Error. Incompatible units.
 ```
 
 By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
