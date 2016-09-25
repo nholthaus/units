@@ -107,7 +107,7 @@ using namespace units::area;
 using namespace units::velocity;
 ```
 
-**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typicaly the units non-plural name with the suffix `_t` for type, e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
+**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typicaly the units' non-plural name with the suffix `_t` (for type), e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
 
 Units can (_and should!_) be used anywhere `double` values can be used:
 
@@ -119,9 +119,9 @@ square_meter_t  area = 15_m * 5_m + 10_m * 10_m;        // 175 m^2
 What makes unit types special is that unit conversions happen implicitely and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with _no runtime penalty_.
 
 ```cpp
-foot_t len = 5_m;                                       // simple implicit conversion
-meters_per_second_t = 60_mi / 1_hr;                     // more complex implicit conversion
-square_meter_t  area = 15_m * 5_m + 1000_cm * 1000_cm;  // previous example with mixed units
+foot_t              len   = 5_m;                            // simple implicit conversion
+meters_per_second_t speed = 60_mi / 1_hr;                   // more complex implicit conversion
+square_meter_t      area  = 15_m * 5_m + 1000_cm * 1000_cm; // previous example with mixed units
 ```
 
 Note the return type has the correct dimensions of area, even though the source types were all units of length. `units.h` has powerful dimensional analysis capabilities. But what happens if we get the return type wrong?
@@ -139,7 +139,7 @@ auto result = 15_m * 5_m + 10_m * 10_m;                 //  m^2
 auto speed  = 60_mi / 1_hr;                             //  60 mph
 ```
 
-***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that the right-hand side, whatever is results to, is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
+***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
 More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
 
