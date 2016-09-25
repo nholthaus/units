@@ -3099,8 +3099,8 @@ namespace units
 	 *				`acceleration_unit`.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps2, unit<std::ratio<1>, units::category::acceleration_unit>)
-	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps2, compound_unit<length::feet, inverse<squared<time::seconds>>>)
+	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps_sq, unit<std::ratio<1>, units::category::acceleration_unit>)
+	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq, compound_unit<length::feet, inverse<squared<time::seconds>>>)
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
 	UNIT_ADD_CATEGORY_TRAIT(acceleration, meters_per_second_squared)
@@ -3338,7 +3338,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, luxes, lx, unit<std::ratio<1>, units::category::illuminance_unit>)
 	UNIT_ADD(illuminance, footcandle, footcandles, fc, compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>)
-	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in2, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
+	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
 	UNIT_ADD(illuminance, phot, phots, ph, compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(illuminance, lux)

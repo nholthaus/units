@@ -1,7 +1,7 @@
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
-<a href="https://travis-ci.org/nholthaus/units" target="_blank"><img src="https://travis-ci.org/nholthaus/units.svg?branch=master"/></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master"/></a> [![license](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg)
+[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC_(min)-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC_(min)-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg)
 
 
 # Latest Release - v2.1.0
@@ -13,24 +13,30 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 - Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
 
-    ```cpp
-    auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0) == 12_sq_m;
-    ```
+  ```cpp
+  auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0) ==   12_sq_m;
+  ```
 
 - `std::cout` output now includes the unit abbreviations.
 
-    ```cpp
-    mile_t distance(26.2);
-    std::cout << distance;	// printed: 26.2 mi
-    ```
+  ```cpp
+  mile_t distance(26.2);
+  std::cout << distance;	// printed: 26.2 mi
+  ```
 
 - Unit-to-built-in-type conversions using `to<>` or `unit_cast`.
     
-    ```cpp
-    mile_t distance(26.2);
-    double result = unit_cast<double>(distance); // result == 26.2` - Unit definition macros.
-    ```
+  ```cpp
+  mile_t distance(26.2);
+  double result = unit_cast<double>(distance); // result == 26.2
+  ```
 
+- Unit definition macros.
+
+  ```cpp
+  UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
+  ```
+  
 - Improvements for integral unit types.
 
 ### Notes:
@@ -80,10 +86,57 @@ The unit test file `unitTests/main.cpp` contains example usage of every type, tr
 
 # Getting started guide
 
-The easiest way to get started with the `units` library is to think of unit containers as `double` values. 
+Add `units.h` to your project, along with the `using` directive for literals
+
+```cpp
+#include <units.h>
+
+using namespace units::literals;
+```
+
+Each "dimension" of unit is defined in its own namespace. See [the namespaces section](#namespaces) for a complete list. The rest of the guide assumes you've included the namespaces you plan to use:
+
+```cpp
+using namespace units;
+using namespace units::length;
+using namespace units::time;
+using namespace units::area;
+using namespace units::velocity;
+```
+
+**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typicaly the units non-plural name with the suffix `_t` for type, e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
+
+Units can (_and should!_) be used anywhere `double` values can be used:
+
+```cpp
+double          area = 15 * 5 + 10 * 10;                // 175 m^2?
+square_meter_t  area = 15_m * 5_m + 10_m * 10_m;        // 175 m^2
+```
+
+What makes unit types special is that unit conversions happen implicitely and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with _no runtime penalty_.
+
+```cpp
+foot_t len = 5_m;                                       // simple implicit conversion
+square_meter_t  area = 15_m * 5_m + 1000_cm * 1000_cm;  // previous example with mixed units
+```
+
+Note the return type has the correct dimensions of area, even though the source types were all units of length. `units.h` has powerful dimensional analysis capabilities. But what happens if we get the return type wrong?
+
+```cpp
+meter_t  area = 15_m * 5_m + 10_m * 10_m;               // oops, m * m = m^2
+```
+
+> E:/workspace/units/include/units.h(1405): error C2338: Units are not compatible.
+
+Your compiler will produce an "incompatible units" error if your dimensional analysis is incorrect. If your resulting unit types are complex, you could use `auto` for simplicity:
+
+```cpp
+auto result = 15_m * 5_m + 10_m * 10_m;                 //  m^2
+```
+
+***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that the right-hand side, whatever is results to, is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
 
-Each "dimension" of unit is defined in its own namespace. See [the namespaces section](#namespaces) for a complete list.
 
 # Unit tags
 
@@ -97,7 +150,7 @@ Units are defined in terms of
  3. [optionally] a scale factor of `pi`
  4. [optionally] a datum translation (such as the +/- 32 required to convert between `fahrenheit` and `celsius`)
 
- All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), which is not _exactly_ the same as dimensionless/scalar units for practical purposes (and probably why the SI didn't define them as simple scalar units), and so in this library they are treated as a basic unit type.
+ All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), and in this library they are treated as a basic unit type because of their important engineering applications.
  
 _Example_: the definitions of some common length units are:
 
