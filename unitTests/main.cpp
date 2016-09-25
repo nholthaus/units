@@ -1263,13 +1263,19 @@ TEST_F(UnitContainer, literalSyntax)
 	EXPECT_TRUE(foot_t(11) == 11_ft);
 
 	// auto using literal syntax
-	auto a = 10.0_m;
-	EXPECT_TRUE((std::is_same<decltype(a), meter_t>::value));
-	EXPECT_TRUE(meter_t(10) == a);
+	auto x = 10.0_m;
+	EXPECT_TRUE((std::is_same<decltype(x), meter_t>::value));
+	EXPECT_TRUE(meter_t(10) == x);
 
 	// conversion using literal syntax
-	foot_t b = 0.3048_m;
-	EXPECT_TRUE(1_ft == b);
+	foot_t y = 0.3048_m;
+	EXPECT_TRUE(1_ft == y);
+
+	// Pythagorean theorem
+	meter_t a = 3_m;
+	meter_t b = 4_m;
+	meter_t c = sqrt(pow<2>(a) + pow<2>(b));
+	EXPECT_TRUE(c == 5_m);
 }
 #endif
 

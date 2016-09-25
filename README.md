@@ -46,8 +46,11 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 ### Tested on:
 
  - gcc-4.9.3
+ - gcc-5.4.0
  - msvc2013
  - msvc2015
+
+Does this library work on your compiler? If so, let me know!
 
 # Contents
 
@@ -117,6 +120,7 @@ What makes unit types special is that unit conversions happen implicitely and au
 
 ```cpp
 foot_t len = 5_m;                                       // simple implicit conversion
+meters_per_second_t = 60_mi / 1_hr;                     // more complex implicit conversion
 square_meter_t  area = 15_m * 5_m + 1000_cm * 1000_cm;  // previous example with mixed units
 ```
 
@@ -132,11 +136,22 @@ Your compiler will produce an "incompatible units" error if your dimensional ana
 
 ```cpp
 auto result = 15_m * 5_m + 10_m * 10_m;                 //  m^2
+auto speed  = 60_mi / 1_hr;                             //  60 mph
 ```
 
 ***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that the right-hand side, whatever is results to, is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
+More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
 
+```cpp
+using namespace units::math;
+
+meter_t a = 3_m;
+meter_t b = 4_m;
+meter_t c = sqrt(pow<2>(a) + pow<2>(b));    // Pythagorean threorem.
+
+std::cout << c << std::endl;                // prints: "5 m"
+```
 
 # Unit tags
 
