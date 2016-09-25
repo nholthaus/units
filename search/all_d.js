@@ -10,7 +10,7 @@ var searchData=
   ['operator_3c',['operator&lt;',['../classunits_1_1unit__t.html#a246440e86277356cd105f9052782fc88',1,'units::unit_t']]],
   ['operator_3c_3d',['operator&lt;=',['../classunits_1_1unit__t.html#a503fdec1595b8d546eb21f8316d6cba7',1,'units::unit_t']]],
   ['operator_3d',['operator=',['../classunits_1_1unit__t.html#a181a9e81f77b4237eeb60be8e51de0e6',1,'units::unit_t::operator=(const unit_t&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs)'],['../classunits_1_1unit__t.html#a8719ce4da20bef60f02bc7014fec462f',1,'units::unit_t::operator=(Ty rhs)']]],
-  ['operator_3d_3d',['operator==',['../classunits_1_1unit__t.html#aaa6589b34df6163f45055c9df2214629',1,'units::unit_t']]],
+  ['operator_3d_3d',['operator==',['../classunits_1_1unit__t.html#a6faba3028b9f7f08f5740dc12508a186',1,'units::unit_t']]],
   ['operator_3e',['operator&gt;',['../classunits_1_1unit__t.html#affcb90859d439607fd1d7d95405d0e33',1,'units::unit_t']]],
   ['operator_3e_3d',['operator&gt;=',['../classunits_1_1unit__t.html#ae3a3d9bc32509317487fa1852520420a',1,'units::unit_t']]]
 ];

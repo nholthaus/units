@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Unit Conversion and Dimensional Analysis Library
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">2.1.0</span>
    </div>
    <div id="projectbrief">A compile-time c++14 unit conversion library</div>
   </td>
@@ -102,40 +102,374 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a44bf62c064d0a608c5154ea2be886382"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a44bf62c064d0a608c5154ea2be886382"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>coulombs</b> = <a class="el" href="structunits_1_1unit.html">unit</a>&lt; std::ratio&lt; 1 &gt;, <a class="el" href="namespaceunits_1_1category.html#a2402ebbd5f61c597bf6120629a2582e7">units::category::charge_unit</a> &gt;</td></tr>
 <tr class="separator:a44bf62c064d0a608c5154ea2be886382"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48aaf4fa43aea653067c3293764d2ef6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a48aaf4fa43aea653067c3293764d2ef6"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtocoulombs</b> = <a class="el" href="group___unit_manipulators.html#gad3c0a87809bff5cd9fdb2863082d9f7f">femto</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a48aaf4fa43aea653067c3293764d2ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55fb19e09c01c18e03019cda01675ed3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a55fb19e09c01c18e03019cda01675ed3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picocoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga85526b34ae64aa914711e963006c2ac7">pico</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a55fb19e09c01c18e03019cda01675ed3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3e858c9b6ebf22b26907c26562d1f58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3e858c9b6ebf22b26907c26562d1f58"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanocoulombs</b> = <a class="el" href="group___unit_manipulators.html#gae66a8996b06be0e044209702a4ff9aac">nano</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:ac3e858c9b6ebf22b26907c26562d1f58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b4a3f4d5f93a0813f9e4f34196e9883"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b4a3f4d5f93a0813f9e4f34196e9883"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microcoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga5266808e7ad1882baac351dba6c443d7">micro</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a3b4a3f4d5f93a0813f9e4f34196e9883"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2b4bd6687e2a5b675eff0a103658c47"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af2b4bd6687e2a5b675eff0a103658c47"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>millicoulombs</b> = <a class="el" href="group___unit_manipulators.html#gace59b4cdcdae38d875f55f9d62945a4b">milli</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:af2b4bd6687e2a5b675eff0a103658c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af61322897847dd544a741b8c5af206d3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af61322897847dd544a741b8c5af206d3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centicoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga1247489aac9ea51d13a9065d8bb66ccd">centi</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:af61322897847dd544a741b8c5af206d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4212e984811848fe422f0789fac67a9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4212e984811848fe422f0789fac67a9"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decicoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga3af81695b9701ebe2db4f058f082a615">deci</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:ac4212e984811848fe422f0789fac67a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c04230bb4c0ae29691d20d48c88e97"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46c04230bb4c0ae29691d20d48c88e97"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decacoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga38a0917f3f85a5eac09b31f774931490">deca</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a46c04230bb4c0ae29691d20d48c88e97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac93aa6aacddae4d17bbe5a02fa140e01"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac93aa6aacddae4d17bbe5a02fa140e01"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectocoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga6ac60b79fb1908be8f5a27b43ca7a32f">hecto</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:ac93aa6aacddae4d17bbe5a02fa140e01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d213bab5748cf61386a64e3e1b52eeb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d213bab5748cf61386a64e3e1b52eeb"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kilocoulombs</b> = <a class="el" href="group___unit_manipulators.html#gaf1b5108a86458a17f2a28245e52018ca">kilo</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a3d213bab5748cf61386a64e3e1b52eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b7e96382a3770be468bf3363310895e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b7e96382a3770be468bf3363310895e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megacoulombs</b> = <a class="el" href="group___unit_manipulators.html#gaee8f573df6e966667e59aef6be3d1ac3">mega</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a1b7e96382a3770be468bf3363310895e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb7016e29a778a9a99b42665ef65310e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb7016e29a778a9a99b42665ef65310e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigacoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga33f0f9ced3598a431c4e2c91ded7ad24">giga</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:aeb7016e29a778a9a99b42665ef65310e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3b090bc420a34b1783010bd9e82816a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae3b090bc420a34b1783010bd9e82816a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teracoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga86f4dc14b9068dd50b2f3a51219139f1">tera</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:ae3b090bc420a34b1783010bd9e82816a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1245860bf0c47177be6abb3d6a568103"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1245860bf0c47177be6abb3d6a568103"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petacoulombs</b> = <a class="el" href="group___unit_manipulators.html#ga0161cd30954b20e7c7bc5043d428acf2">peta</a>&lt; <a class="el" href="structunits_1_1unit.html">coulombs</a> &gt;</td></tr>
+<tr class="separator:a1245860bf0c47177be6abb3d6a568103"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a430023a3f4f9c664fb4c5cf085dd1c06"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a430023a3f4f9c664fb4c5cf085dd1c06"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>ampere_hours</b> = <a class="el" href="group___unit_types.html#ga36d8b8cf508bd5ac7854d15f6eaf2d7c">compound_unit</a>&lt; <a class="el" href="structunits_1_1unit.html">current::ampere</a>, <a class="el" href="structunits_1_1unit.html">time::hours</a> &gt;</td></tr>
 <tr class="separator:a430023a3f4f9c664fb4c5cf085dd1c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1d813e7fe3c49144636b5957376b714"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac1d813e7fe3c49144636b5957376b714"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtoampere_hours</b> = <a class="el" href="group___unit_manipulators.html#gad3c0a87809bff5cd9fdb2863082d9f7f">femto</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:ac1d813e7fe3c49144636b5957376b714"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae68c22c05e20b8cfd72f6a831234531"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae68c22c05e20b8cfd72f6a831234531"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picoampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga85526b34ae64aa914711e963006c2ac7">pico</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:aae68c22c05e20b8cfd72f6a831234531"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f2fbb073c56b2be98c5c298b696c965"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8f2fbb073c56b2be98c5c298b696c965"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanoampere_hours</b> = <a class="el" href="group___unit_manipulators.html#gae66a8996b06be0e044209702a4ff9aac">nano</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a8f2fbb073c56b2be98c5c298b696c965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30b81254cdf1a0726f21d79289e50ade"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a30b81254cdf1a0726f21d79289e50ade"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga5266808e7ad1882baac351dba6c443d7">micro</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a30b81254cdf1a0726f21d79289e50ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25573247413b852d7c537916a1b86bf8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a25573247413b852d7c537916a1b86bf8"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>milliampere_hours</b> = <a class="el" href="group___unit_manipulators.html#gace59b4cdcdae38d875f55f9d62945a4b">milli</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a25573247413b852d7c537916a1b86bf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeea74b53f34f3cb3d08554f4ba6010fd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeea74b53f34f3cb3d08554f4ba6010fd"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centiampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga1247489aac9ea51d13a9065d8bb66ccd">centi</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:aeea74b53f34f3cb3d08554f4ba6010fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20989be5f3008336b6abe6669c636e99"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a20989be5f3008336b6abe6669c636e99"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>deciampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga3af81695b9701ebe2db4f058f082a615">deci</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a20989be5f3008336b6abe6669c636e99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57dbfa9b18dd6de193ae5944ecd21b44"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a57dbfa9b18dd6de193ae5944ecd21b44"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decaampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga38a0917f3f85a5eac09b31f774931490">deca</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a57dbfa9b18dd6de193ae5944ecd21b44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa73baf27e643bb43c3a5f588136da9aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa73baf27e643bb43c3a5f588136da9aa"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectoampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga6ac60b79fb1908be8f5a27b43ca7a32f">hecto</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:aa73baf27e643bb43c3a5f588136da9aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af96bdd8e4e9c65984fc6206675c996f4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af96bdd8e4e9c65984fc6206675c996f4"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kiloampere_hours</b> = <a class="el" href="group___unit_manipulators.html#gaf1b5108a86458a17f2a28245e52018ca">kilo</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:af96bdd8e4e9c65984fc6206675c996f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec04075f6360540d65193539996bbb8f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aec04075f6360540d65193539996bbb8f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megaampere_hours</b> = <a class="el" href="group___unit_manipulators.html#gaee8f573df6e966667e59aef6be3d1ac3">mega</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:aec04075f6360540d65193539996bbb8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc721771771f3effd456be63a6380154"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc721771771f3effd456be63a6380154"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigaampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga33f0f9ced3598a431c4e2c91ded7ad24">giga</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:acc721771771f3effd456be63a6380154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7c7b0f7a23d7459846a3768ab9bcf07"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae7c7b0f7a23d7459846a3768ab9bcf07"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teraampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga86f4dc14b9068dd50b2f3a51219139f1">tera</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:ae7c7b0f7a23d7459846a3768ab9bcf07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bf5e10f32a9ec3e805bf6607abf549e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8bf5e10f32a9ec3e805bf6607abf549e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petaampere_hours</b> = <a class="el" href="group___unit_manipulators.html#ga0161cd30954b20e7c7bc5043d428acf2">peta</a>&lt; ampere_hours &gt;</td></tr>
+<tr class="separator:a8bf5e10f32a9ec3e805bf6607abf549e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Units (full names singular)</div></td></tr>
 <tr class="memitem:aae539946f4f29c961527254237b7f784"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae539946f4f29c961527254237b7f784"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>coulomb</b> = <a class="el" href="structunits_1_1unit.html">coulombs</a></td></tr>
 <tr class="separator:aae539946f4f29c961527254237b7f784"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a045d7a0861aa6f77f0e9408d6fa9ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a045d7a0861aa6f77f0e9408d6fa9ba"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtocoulomb</b> = femtocoulombs</td></tr>
+<tr class="separator:a9a045d7a0861aa6f77f0e9408d6fa9ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a601fdb620cc7c7d65a99f6716a383fc0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a601fdb620cc7c7d65a99f6716a383fc0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picocoulomb</b> = picocoulombs</td></tr>
+<tr class="separator:a601fdb620cc7c7d65a99f6716a383fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a039df295061a957c2d14360daadf2232"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a039df295061a957c2d14360daadf2232"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanocoulomb</b> = nanocoulombs</td></tr>
+<tr class="separator:a039df295061a957c2d14360daadf2232"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c07f781f92166340a47fd499ed06881"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4c07f781f92166340a47fd499ed06881"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microcoulomb</b> = microcoulombs</td></tr>
+<tr class="separator:a4c07f781f92166340a47fd499ed06881"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4648c932e557731ff8f7a5309d4de263"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4648c932e557731ff8f7a5309d4de263"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>millicoulomb</b> = millicoulombs</td></tr>
+<tr class="separator:a4648c932e557731ff8f7a5309d4de263"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b36c6f823d796040fe74e5ea1a3d303"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b36c6f823d796040fe74e5ea1a3d303"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centicoulomb</b> = centicoulombs</td></tr>
+<tr class="separator:a2b36c6f823d796040fe74e5ea1a3d303"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad44d4ca30f77be92cae65cc777e24d52"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad44d4ca30f77be92cae65cc777e24d52"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decicoulomb</b> = decicoulombs</td></tr>
+<tr class="separator:ad44d4ca30f77be92cae65cc777e24d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0eb39edd15045704db683b5d78dc4eab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0eb39edd15045704db683b5d78dc4eab"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decacoulomb</b> = decacoulombs</td></tr>
+<tr class="separator:a0eb39edd15045704db683b5d78dc4eab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a074ebad59edf80057f415f279f2f0d78"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a074ebad59edf80057f415f279f2f0d78"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectocoulomb</b> = hectocoulombs</td></tr>
+<tr class="separator:a074ebad59edf80057f415f279f2f0d78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47e7770e1d9185b7b7c55e70810fca90"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47e7770e1d9185b7b7c55e70810fca90"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kilocoulomb</b> = kilocoulombs</td></tr>
+<tr class="separator:a47e7770e1d9185b7b7c55e70810fca90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2b3b8d19bd04499d1a9865386d35db5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2b3b8d19bd04499d1a9865386d35db5"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megacoulomb</b> = megacoulombs</td></tr>
+<tr class="separator:ad2b3b8d19bd04499d1a9865386d35db5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89b3a95a7127d667cc66a1a827b57c6f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a89b3a95a7127d667cc66a1a827b57c6f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigacoulomb</b> = gigacoulombs</td></tr>
+<tr class="separator:a89b3a95a7127d667cc66a1a827b57c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d53f0f0aa8338fe964efaec5a990f08"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8d53f0f0aa8338fe964efaec5a990f08"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teracoulomb</b> = teracoulombs</td></tr>
+<tr class="separator:a8d53f0f0aa8338fe964efaec5a990f08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37155c0077c641d7c7f50da088489dfc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a37155c0077c641d7c7f50da088489dfc"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petacoulomb</b> = petacoulombs</td></tr>
+<tr class="separator:a37155c0077c641d7c7f50da088489dfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5644148dd6833b1cb8a3041505186af"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5644148dd6833b1cb8a3041505186af"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>ampere_hour</b> = ampere_hours</td></tr>
 <tr class="separator:aa5644148dd6833b1cb8a3041505186af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">Units (abbreviated names)</div></td></tr>
+<tr class="memitem:ae8fdea3ee7c29f4bac3337307ab67ce1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae8fdea3ee7c29f4bac3337307ab67ce1"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtoampere_hour</b> = femtoampere_hours</td></tr>
+<tr class="separator:ae8fdea3ee7c29f4bac3337307ab67ce1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a1b31db538a409a631fcadc8fd9457a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a1b31db538a409a631fcadc8fd9457a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picoampere_hour</b> = picoampere_hours</td></tr>
+<tr class="separator:a0a1b31db538a409a631fcadc8fd9457a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a495734be1a6f1500508559cd1625700e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a495734be1a6f1500508559cd1625700e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanoampere_hour</b> = nanoampere_hours</td></tr>
+<tr class="separator:a495734be1a6f1500508559cd1625700e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acde36b130649da402c8a89ca31ecab2e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acde36b130649da402c8a89ca31ecab2e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microampere_hour</b> = microampere_hours</td></tr>
+<tr class="separator:acde36b130649da402c8a89ca31ecab2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace15e810456e68a7d5dc41b85cc9db15"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ace15e810456e68a7d5dc41b85cc9db15"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>milliampere_hour</b> = milliampere_hours</td></tr>
+<tr class="separator:ace15e810456e68a7d5dc41b85cc9db15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76da56b7cdb4c295d8e3c567cf55baec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76da56b7cdb4c295d8e3c567cf55baec"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centiampere_hour</b> = centiampere_hours</td></tr>
+<tr class="separator:a76da56b7cdb4c295d8e3c567cf55baec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49f4606588100fe90e563afc018ddd34"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a49f4606588100fe90e563afc018ddd34"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>deciampere_hour</b> = deciampere_hours</td></tr>
+<tr class="separator:a49f4606588100fe90e563afc018ddd34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6c8a2b10105c087c78f00f68a0edab0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae6c8a2b10105c087c78f00f68a0edab0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decaampere_hour</b> = decaampere_hours</td></tr>
+<tr class="separator:ae6c8a2b10105c087c78f00f68a0edab0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4675d29994d77bb1a9ffb89a0a54292c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4675d29994d77bb1a9ffb89a0a54292c"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectoampere_hour</b> = hectoampere_hours</td></tr>
+<tr class="separator:a4675d29994d77bb1a9ffb89a0a54292c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b2f398b084c1d3695cfe3d8b00409a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b2f398b084c1d3695cfe3d8b00409a3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kiloampere_hour</b> = kiloampere_hours</td></tr>
+<tr class="separator:a1b2f398b084c1d3695cfe3d8b00409a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09ad735435fa3ddaaa372248981e4828"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09ad735435fa3ddaaa372248981e4828"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megaampere_hour</b> = megaampere_hours</td></tr>
+<tr class="separator:a09ad735435fa3ddaaa372248981e4828"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d4241aa569dfb2921a64395a1e27d78"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8d4241aa569dfb2921a64395a1e27d78"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigaampere_hour</b> = gigaampere_hours</td></tr>
+<tr class="separator:a8d4241aa569dfb2921a64395a1e27d78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60a9bccdffdb2615e7f0499d255241fc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60a9bccdffdb2615e7f0499d255241fc"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teraampere_hour</b> = teraampere_hours</td></tr>
+<tr class="separator:a60a9bccdffdb2615e7f0499d255241fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ca238e7f7f8e1ae5875ecf076eae5be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ca238e7f7f8e1ae5875ecf076eae5be"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petaampere_hour</b> = petaampere_hours</td></tr>
+<tr class="separator:a4ca238e7f7f8e1ae5875ecf076eae5be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Units (abbreviated)</div></td></tr>
 <tr class="memitem:a0fe0ee65845c206753e26aafdc047252"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fe0ee65845c206753e26aafdc047252"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>C</b> = <a class="el" href="structunits_1_1unit.html">coulombs</a></td></tr>
 <tr class="separator:a0fe0ee65845c206753e26aafdc047252"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0090900c2e74d521574a75e745adb12"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab0090900c2e74d521574a75e745adb12"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>fC</b> = femtocoulombs</td></tr>
+<tr class="separator:ab0090900c2e74d521574a75e745adb12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d4ccfbe1306cb3298a09883139b73d8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8d4ccfbe1306cb3298a09883139b73d8"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>pC</b> = picocoulombs</td></tr>
+<tr class="separator:a8d4ccfbe1306cb3298a09883139b73d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a923072b7b24a31a670e6d6ace485eb34"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a923072b7b24a31a670e6d6ace485eb34"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nC</b> = nanocoulombs</td></tr>
+<tr class="separator:a923072b7b24a31a670e6d6ace485eb34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22c2261710ee91fb4762d5f2a5eb511e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a22c2261710ee91fb4762d5f2a5eb511e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>uC</b> = microcoulombs</td></tr>
+<tr class="separator:a22c2261710ee91fb4762d5f2a5eb511e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7678e516e34a3a1755bbd7d4461f21bc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7678e516e34a3a1755bbd7d4461f21bc"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>mC</b> = millicoulombs</td></tr>
+<tr class="separator:a7678e516e34a3a1755bbd7d4461f21bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33a704da853bed2d56b8623a393173a9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33a704da853bed2d56b8623a393173a9"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>cC</b> = centicoulombs</td></tr>
+<tr class="separator:a33a704da853bed2d56b8623a393173a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afce21a36bf5c2045a8738cef9a8c51af"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afce21a36bf5c2045a8738cef9a8c51af"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>dC</b> = decicoulombs</td></tr>
+<tr class="separator:afce21a36bf5c2045a8738cef9a8c51af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac17755d4dd1df65e71fcccfe31d78875"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac17755d4dd1df65e71fcccfe31d78875"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>daC</b> = decacoulombs</td></tr>
+<tr class="separator:ac17755d4dd1df65e71fcccfe31d78875"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad09fbbea4832ec87707cdb9f128db6e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aad09fbbea4832ec87707cdb9f128db6e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hC</b> = hectocoulombs</td></tr>
+<tr class="separator:aad09fbbea4832ec87707cdb9f128db6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a257d2dd212b5ecfc38712cd531e4109c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a257d2dd212b5ecfc38712cd531e4109c"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kC</b> = kilocoulombs</td></tr>
+<tr class="separator:a257d2dd212b5ecfc38712cd531e4109c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a366a8ec24b7d428859a36b5eacdac51f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a366a8ec24b7d428859a36b5eacdac51f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>MC</b> = megacoulombs</td></tr>
+<tr class="separator:a366a8ec24b7d428859a36b5eacdac51f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb30c5c0bd48bc69311b1ff8b0b99c87"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb30c5c0bd48bc69311b1ff8b0b99c87"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>GC</b> = gigacoulombs</td></tr>
+<tr class="separator:acb30c5c0bd48bc69311b1ff8b0b99c87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a438101f5cbf81967924f2885471a5522"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a438101f5cbf81967924f2885471a5522"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>TC</b> = teracoulombs</td></tr>
+<tr class="separator:a438101f5cbf81967924f2885471a5522"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65981dd3f0cee112860f5deb40551b9a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a65981dd3f0cee112860f5deb40551b9a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>PC</b> = petacoulombs</td></tr>
+<tr class="separator:a65981dd3f0cee112860f5deb40551b9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee4d36215f3375c9d20596d65ed63d34"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aee4d36215f3375c9d20596d65ed63d34"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Ah</b> = ampere_hours</td></tr>
 <tr class="separator:aee4d36215f3375c9d20596d65ed63d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0aa1f965e12158f76cf3d8e303e843d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab0aa1f965e12158f76cf3d8e303e843d"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>fAh</b> = femtoampere_hours</td></tr>
+<tr class="separator:ab0aa1f965e12158f76cf3d8e303e843d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4bcde3d20357732bdfe3b442260c40c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4bcde3d20357732bdfe3b442260c40c"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>pAh</b> = picoampere_hours</td></tr>
+<tr class="separator:ac4bcde3d20357732bdfe3b442260c40c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade1124ac8de3391c8655cf728466421e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ade1124ac8de3391c8655cf728466421e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nAh</b> = nanoampere_hours</td></tr>
+<tr class="separator:ade1124ac8de3391c8655cf728466421e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae9e61a7929b474c95879cdc8438b512"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae9e61a7929b474c95879cdc8438b512"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>uAh</b> = microampere_hours</td></tr>
+<tr class="separator:aae9e61a7929b474c95879cdc8438b512"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fdbd4022fae87cfc1f6ed7d1fe7b062"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7fdbd4022fae87cfc1f6ed7d1fe7b062"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>mAh</b> = milliampere_hours</td></tr>
+<tr class="separator:a7fdbd4022fae87cfc1f6ed7d1fe7b062"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca65a8de9995d038d873f3fb31018c79"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aca65a8de9995d038d873f3fb31018c79"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>cAh</b> = centiampere_hours</td></tr>
+<tr class="separator:aca65a8de9995d038d873f3fb31018c79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e28d8a89d3d7b29abc426231de08367"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e28d8a89d3d7b29abc426231de08367"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>dAh</b> = deciampere_hours</td></tr>
+<tr class="separator:a4e28d8a89d3d7b29abc426231de08367"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6746e8dd94b62233b93e510f9cf8371"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6746e8dd94b62233b93e510f9cf8371"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>daAh</b> = decaampere_hours</td></tr>
+<tr class="separator:af6746e8dd94b62233b93e510f9cf8371"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac5e5484e4395e98bd98306af397d3ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aac5e5484e4395e98bd98306af397d3ed"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hAh</b> = hectoampere_hours</td></tr>
+<tr class="separator:aac5e5484e4395e98bd98306af397d3ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a602e7c19c8ebaac050745614f6dfc154"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a602e7c19c8ebaac050745614f6dfc154"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kAh</b> = kiloampere_hours</td></tr>
+<tr class="separator:a602e7c19c8ebaac050745614f6dfc154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ce6683e02b890a9ed1c2c5c7c1ec8c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2ce6683e02b890a9ed1c2c5c7c1ec8c7"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>MAh</b> = megaampere_hours</td></tr>
+<tr class="separator:a2ce6683e02b890a9ed1c2c5c7c1ec8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a574e4b3a241a12d1b3a6d6801a8d46aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a574e4b3a241a12d1b3a6d6801a8d46aa"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>GAh</b> = gigaampere_hours</td></tr>
+<tr class="separator:a574e4b3a241a12d1b3a6d6801a8d46aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae544247c18a68e580ca1f2a402163394"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae544247c18a68e580ca1f2a402163394"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>TAh</b> = teraampere_hours</td></tr>
+<tr class="separator:ae544247c18a68e580ca1f2a402163394"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa67ab901641d5156bae88b6680b23175"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa67ab901641d5156bae88b6680b23175"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>PAh</b> = petaampere_hours</td></tr>
+<tr class="separator:aa67ab901641d5156bae88b6680b23175"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Unit Containers</div></td></tr>
-<tr><td colspan="2"><div class="groupText"><p><a class="anchor" id="chargeContainers"></a></p>
-</div></td></tr>
-<tr class="memitem:a7a7c9b00f4d13e37fbf4ba2b2ac1d08c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7a7c9b00f4d13e37fbf4ba2b2ac1d08c"></a>
+<tr class="memitem:a597d44c5b5e91ce52db28d2d2f368cf1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a597d44c5b5e91ce52db28d2d2f368cf1"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>coulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; <a class="el" href="structunits_1_1unit.html">coulomb</a> &gt;</td></tr>
-<tr class="separator:a7a7c9b00f4d13e37fbf4ba2b2ac1d08c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5673c6a90dabfe7926daaf26afbd600"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5673c6a90dabfe7926daaf26afbd600"></a>
+<tr class="separator:a597d44c5b5e91ce52db28d2d2f368cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b33cb18dc519a1cd99f04356d4f3876"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b33cb18dc519a1cd99f04356d4f3876"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtocoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; femtocoulomb &gt;</td></tr>
+<tr class="separator:a6b33cb18dc519a1cd99f04356d4f3876"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae443f1ddfad2e80a87bf7e8273957273"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae443f1ddfad2e80a87bf7e8273957273"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picocoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; picocoulomb &gt;</td></tr>
+<tr class="separator:ae443f1ddfad2e80a87bf7e8273957273"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd92e1e97fe28f79d6bfa9af421d3001"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abd92e1e97fe28f79d6bfa9af421d3001"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanocoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; nanocoulomb &gt;</td></tr>
+<tr class="separator:abd92e1e97fe28f79d6bfa9af421d3001"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae061a8ba939a80054523f3bd22733eda"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae061a8ba939a80054523f3bd22733eda"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microcoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; microcoulomb &gt;</td></tr>
+<tr class="separator:ae061a8ba939a80054523f3bd22733eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69d3a753e1bb163c5d2fc7e34d320e5c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69d3a753e1bb163c5d2fc7e34d320e5c"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>millicoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; millicoulomb &gt;</td></tr>
+<tr class="separator:a69d3a753e1bb163c5d2fc7e34d320e5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adae561eaebded03286839733b8a0863b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adae561eaebded03286839733b8a0863b"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centicoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; centicoulomb &gt;</td></tr>
+<tr class="separator:adae561eaebded03286839733b8a0863b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97acd3e4d3aae5956d8e12ff84fb326a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97acd3e4d3aae5956d8e12ff84fb326a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decicoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; decicoulomb &gt;</td></tr>
+<tr class="separator:a97acd3e4d3aae5956d8e12ff84fb326a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a499e4dfb369177caafdfc6f02557450e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a499e4dfb369177caafdfc6f02557450e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decacoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; decacoulomb &gt;</td></tr>
+<tr class="separator:a499e4dfb369177caafdfc6f02557450e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a79d706a9b8db54565b6db0a059e3ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a79d706a9b8db54565b6db0a059e3ec"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectocoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; hectocoulomb &gt;</td></tr>
+<tr class="separator:a3a79d706a9b8db54565b6db0a059e3ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a037bd3f26ca2b212a033fa9888c0f6bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a037bd3f26ca2b212a033fa9888c0f6bd"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kilocoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; kilocoulomb &gt;</td></tr>
+<tr class="separator:a037bd3f26ca2b212a033fa9888c0f6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4742bdf421559ba4f7dc48b9844a257"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa4742bdf421559ba4f7dc48b9844a257"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megacoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; megacoulomb &gt;</td></tr>
+<tr class="separator:aa4742bdf421559ba4f7dc48b9844a257"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b7f254664387d77635ded7e22f6c15a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0b7f254664387d77635ded7e22f6c15a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigacoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; gigacoulomb &gt;</td></tr>
+<tr class="separator:a0b7f254664387d77635ded7e22f6c15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b31bca2f03d73e74be942a547de7343"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b31bca2f03d73e74be942a547de7343"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teracoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; teracoulomb &gt;</td></tr>
+<tr class="separator:a3b31bca2f03d73e74be942a547de7343"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a086538b0f6981836f0ca022a33d3bace"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a086538b0f6981836f0ca022a33d3bace"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petacoulomb_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; petacoulomb &gt;</td></tr>
+<tr class="separator:a086538b0f6981836f0ca022a33d3bace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a013694613a2c4d85aff9086210a53ae5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a013694613a2c4d85aff9086210a53ae5"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>ampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; ampere_hour &gt;</td></tr>
-<tr class="separator:aa5673c6a90dabfe7926daaf26afbd600"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a013694613a2c4d85aff9086210a53ae5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b8680daec333de1e7a7d4936e20a328"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b8680daec333de1e7a7d4936e20a328"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>femtoampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; femtoampere_hour &gt;</td></tr>
+<tr class="separator:a2b8680daec333de1e7a7d4936e20a328"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a687ce8d12d7aa3d49e53f82ed5c09e9e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a687ce8d12d7aa3d49e53f82ed5c09e9e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>picoampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; picoampere_hour &gt;</td></tr>
+<tr class="separator:a687ce8d12d7aa3d49e53f82ed5c09e9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d166d51b8c2b17a50333f3bffe077e1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2d166d51b8c2b17a50333f3bffe077e1"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>nanoampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; nanoampere_hour &gt;</td></tr>
+<tr class="separator:a2d166d51b8c2b17a50333f3bffe077e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2021479c79ce5230c4559b8369636bc3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2021479c79ce5230c4559b8369636bc3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>microampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; microampere_hour &gt;</td></tr>
+<tr class="separator:a2021479c79ce5230c4559b8369636bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a753906b36adaa5b80dd995f8b0c7deb7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a753906b36adaa5b80dd995f8b0c7deb7"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>milliampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; milliampere_hour &gt;</td></tr>
+<tr class="separator:a753906b36adaa5b80dd995f8b0c7deb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27b4e14414aeaad65446789acb7c492d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a27b4e14414aeaad65446789acb7c492d"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>centiampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; centiampere_hour &gt;</td></tr>
+<tr class="separator:a27b4e14414aeaad65446789acb7c492d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a116d886b04063a9e5585e81f587f88db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a116d886b04063a9e5585e81f587f88db"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>deciampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; deciampere_hour &gt;</td></tr>
+<tr class="separator:a116d886b04063a9e5585e81f587f88db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac53ae10be9a666a522d1376559ce154"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aac53ae10be9a666a522d1376559ce154"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>decaampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; decaampere_hour &gt;</td></tr>
+<tr class="separator:aac53ae10be9a666a522d1376559ce154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59d1efedd3be2a2a6a38aadc774f8857"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59d1efedd3be2a2a6a38aadc774f8857"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>hectoampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; hectoampere_hour &gt;</td></tr>
+<tr class="separator:a59d1efedd3be2a2a6a38aadc774f8857"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f2663aae16f67c237b4d4e954245028"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5f2663aae16f67c237b4d4e954245028"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>kiloampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; kiloampere_hour &gt;</td></tr>
+<tr class="separator:a5f2663aae16f67c237b4d4e954245028"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a068060f2904a6f3fc4dcd07431c62ff4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a068060f2904a6f3fc4dcd07431c62ff4"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>megaampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; megaampere_hour &gt;</td></tr>
+<tr class="separator:a068060f2904a6f3fc4dcd07431c62ff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abba24a20b4c9e8c92cf6c194f16dfbfd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abba24a20b4c9e8c92cf6c194f16dfbfd"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>gigaampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; gigaampere_hour &gt;</td></tr>
+<tr class="separator:abba24a20b4c9e8c92cf6c194f16dfbfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3be3eb3935470f370946e9ebcbae1702"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3be3eb3935470f370946e9ebcbae1702"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>teraampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; teraampere_hour &gt;</td></tr>
+<tr class="separator:a3be3eb3935470f370946e9ebcbae1702"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a725cfeaff243a5a8728e67976d61661d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a725cfeaff243a5a8728e67976d61661d"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>petaampere_hour_t</b> = <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; petaampere_hour &gt;</td></tr>
+<tr class="separator:a725cfeaff243a5a8728e67976d61661d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>namespace for unit types and containers representing charge values </p>
-<p>The SI unit for charge is <code>coulombs</code>, and the corresponding <code><a class="el" href="structunits_1_1base__unit.html" title="Class representing SI base unit types. ">base_unit</a></code> category is <code>charge_unit</code>. </p><dl class="section see"><dt>See also</dt><dd>See <a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a> for more information on <a class="el" href="structunits_1_1unit.html" title="Type representing an arbitrary unit. ">unit</a> type containers. </dd></dl>
+<p>The SI unit for charge is <code>coulombs</code>, and the corresponding <code><a class="el" href="structunits_1_1base__unit.html" title="Class representing SI base unit types. ">base_unit</a></code> category is <code>charge_unit</code>. <a class="anchor" id="chargeContainers"></a></p><dl class="section see"><dt>See also</dt><dd>See <a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a> for more information on <a class="el" href="structunits_1_1unit.html" title="Type representing an arbitrary unit. ">unit</a> type containers. </dd></dl>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 15 2016 16:49:19 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Sep 25 2016 09:42:58 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

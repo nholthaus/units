@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Unit Conversion and Dimensional Analysis Library
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">2.1.0</span>
    </div>
    <div id="projectbrief">A compile-time c++14 unit conversion library</div>
   </td>
@@ -139,7 +139,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa4a3c6a0723a72c27255362ec27a4a25"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aa4a3c6a0723a72c27255362ec27a4a25">unit_t</a> (T value, const Args &amp;...args)</td></tr>
 <tr class="memdesc:aa4a3c6a0723a72c27255362ec27a4a25"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#aa4a3c6a0723a72c27255362ec27a4a25">More...</a><br /></td></tr>
 <tr class="separator:aa4a3c6a0723a72c27255362ec27a4a25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
 <tr class="memitem:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a240aa805d5149ebcf2c90f72c0d6561d">unit_t</a> (Ty value)</td></tr>
 <tr class="memdesc:a240aa805d5149ebcf2c90f72c0d6561d"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#a240aa805d5149ebcf2c90f72c0d6561d">More...</a><br /></td></tr>
 <tr class="separator:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,7 +151,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a181a9e81f77b4237eeb60be8e51de0e6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a181a9e81f77b4237eeb60be8e51de0e6">operator=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs)</td></tr>
 <tr class="memdesc:a181a9e81f77b4237eeb60be8e51de0e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a181a9e81f77b4237eeb60be8e51de0e6">More...</a><br /></td></tr>
 <tr class="separator:a181a9e81f77b4237eeb60be8e51de0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8719ce4da20bef60f02bc7014fec462f"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a8719ce4da20bef60f02bc7014fec462f"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
 <tr class="memitem:a8719ce4da20bef60f02bc7014fec462f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a8719ce4da20bef60f02bc7014fec462f">operator=</a> (Ty rhs)</td></tr>
 <tr class="memdesc:a8719ce4da20bef60f02bc7014fec462f"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a8719ce4da20bef60f02bc7014fec462f">More...</a><br /></td></tr>
 <tr class="separator:a8719ce4da20bef60f02bc7014fec462f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -171,25 +171,31 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae3a3d9bc32509317487fa1852520420a"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ae3a3d9bc32509317487fa1852520420a">operator&gt;=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
 <tr class="memdesc:ae3a3d9bc32509317487fa1852520420a"><td class="mdescLeft">&#160;</td><td class="mdescRight">greater-than or equal  <a href="#ae3a3d9bc32509317487fa1852520420a">More...</a><br /></td></tr>
 <tr class="separator:ae3a3d9bc32509317487fa1852520420a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa6589b34df6163f45055c9df2214629"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:aaa6589b34df6163f45055c9df2214629"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aaa6589b34df6163f45055c9df2214629">operator==</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:aaa6589b34df6163f45055c9df2214629"><td class="mdescLeft">&#160;</td><td class="mdescRight">equality  <a href="#aaa6589b34df6163f45055c9df2214629">More...</a><br /></td></tr>
-<tr class="separator:aaa6589b34df6163f45055c9df2214629"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </td></tr>
+<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a6faba3028b9f7f08f5740dc12508a186">operator==</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
+<tr class="memdesc:a6faba3028b9f7f08f5740dc12508a186"><td class="mdescLeft">&#160;</td><td class="mdescRight">equality  <a href="#a6faba3028b9f7f08f5740dc12508a186">More...</a><br /></td></tr>
+<tr class="separator:a6faba3028b9f7f08f5740dc12508a186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplParams" colspan="2"><a class="anchor" id="a6faba3028b9f7f08f5740dc12508a186"></a>
+template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_integral&lt; T &gt;::value &amp;&amp;std::is_integral&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </td></tr>
+<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
+<tr class="separator:a6faba3028b9f7f08f5740dc12508a186"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
 <tr class="memitem:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ab9b140f6141ea78e5304b088d6bb81b5">operator!=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
 <tr class="memdesc:ab9b140f6141ea78e5304b088d6bb81b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">inequality  <a href="#ab9b140f6141ea78e5304b088d6bb81b5">More...</a><br /></td></tr>
 <tr class="separator:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfc0a8abeee60499832e10f24ab5654b"><td class="memItemLeft" align="right" valign="top">T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#abfc0a8abeee60499832e10f24ab5654b">toDouble</a> () const </td></tr>
-<tr class="memdesc:abfc0a8abeee60499832e10f24ab5654b"><td class="mdescLeft">&#160;</td><td class="mdescRight">unit value  <a href="#abfc0a8abeee60499832e10f24ab5654b">More...</a><br /></td></tr>
-<tr class="separator:abfc0a8abeee60499832e10f24ab5654b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a331e19510321235c844ecb880fea6afd"><td class="memItemLeft" align="right" valign="top">T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a331e19510321235c844ecb880fea6afd">toLinearizedDouble</a> () const </td></tr>
-<tr class="memdesc:a331e19510321235c844ecb880fea6afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">linearized unit value  <a href="#a331e19510321235c844ecb880fea6afd">More...</a><br /></td></tr>
-<tr class="separator:a331e19510321235c844ecb880fea6afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1211e0d1c137202162f524f8b28b9119"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a1211e0d1c137202162f524f8b28b9119"><td class="memTemplItemLeft" align="right" valign="top">Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1211e0d1c137202162f524f8b28b9119">to</a> () const </td></tr>
+<tr class="memdesc:a1211e0d1c137202162f524f8b28b9119"><td class="mdescLeft">&#160;</td><td class="mdescRight">unit value  <a href="#a1211e0d1c137202162f524f8b28b9119">More...</a><br /></td></tr>
+<tr class="separator:a1211e0d1c137202162f524f8b28b9119"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71f1afbcca304af54e02c70377fffb7f"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a71f1afbcca304af54e02c70377fffb7f"><td class="memTemplItemLeft" align="right" valign="top">Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a71f1afbcca304af54e02c70377fffb7f">toLinearized</a> () const </td></tr>
+<tr class="memdesc:a71f1afbcca304af54e02c70377fffb7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">linearized unit value  <a href="#a71f1afbcca304af54e02c70377fffb7f">More...</a><br /></td></tr>
+<tr class="separator:a71f1afbcca304af54e02c70377fffb7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memTemplParams" colspan="2">template&lt;class U &gt; </td></tr>
 <tr class="memitem:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1956c48e6da4587a5fa075bf25cc8a4c">convert</a> () const  -&gt; <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; U &gt;</td></tr>
 <tr class="memdesc:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">conversion  <a href="#a1956c48e6da4587a5fa075bf25cc8a4c">More...</a><br /></td></tr>
 <tr class="separator:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66df18f075362a72034f14056422af4c"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a66df18f075362a72034f14056422af4c"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
 <tr class="memitem:a66df18f075362a72034f14056422af4c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a66df18f075362a72034f14056422af4c">operator Ty</a> () const </td></tr>
 <tr class="memdesc:a66df18f075362a72034f14056422af4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">implicit type conversion.  <a href="#a66df18f075362a72034f14056422af4c">More...</a><br /></td></tr>
 <tr class="separator:a66df18f075362a72034f14056422af4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -311,7 +317,7 @@ template&lt;class... Args&gt; </div>
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -421,7 +427,7 @@ template&lt;class U &gt; </div>
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -599,7 +605,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units::traits::base_unit_of&lt;Units&gt;, units::category::scalar_unit&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -629,13 +635,13 @@ template&lt;class Ty , class  = typename std::enable_if&lt;std::is_same&lt;units
 
 </div>
 </div>
-<a class="anchor" id="aaa6589b34df6163f45055c9df2214629"></a>
+<a class="anchor" id="a6faba3028b9f7f08f5740dc12508a186"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </div>
+template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -741,17 +747,19 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="abfc0a8abeee60499832e10f24ab5654b"></a>
+<a class="anchor" id="a1211e0d1c137202162f524f8b28b9119"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<div class="memtemplate">
+template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">T <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::toDouble </td>
+          <td class="memname">Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::to </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -769,17 +777,19 @@ template&lt;class Units, typename T = double, template&lt; typename &gt; class N
 
 </div>
 </div>
-<a class="anchor" id="a331e19510321235c844ecb880fea6afd"></a>
+<a class="anchor" id="a71f1afbcca304af54e02c70377fffb7f"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<div class="memtemplate">
+template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">T <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::toLinearizedDouble </td>
+          <td class="memname">Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::toLinearized </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -798,12 +808,12 @@ template&lt;class Units, typename T = double, template&lt; typename &gt; class N
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>C:/workspace/units/include/<a class="el" href="units_8h_source.html">units.h</a></li>
+<li>E:/workspace/units/include/<a class="el" href="units_8h_source.html">units.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 15 2016 16:49:15 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Sep 25 2016 09:42:55 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

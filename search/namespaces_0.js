@@ -20,6 +20,7 @@ var searchData=
   ['impedance',['impedance',['../namespaceunits_1_1impedance.html',1,'units']]],
   ['inductance',['inductance',['../namespaceunits_1_1inductance.html',1,'units']]],
   ['length',['length',['../namespaceunits_1_1length.html',1,'units']]],
+  ['literals',['literals',['../namespaceunits_1_1literals.html',1,'units']]],
   ['luminous_5fflux',['luminous_flux',['../namespaceunits_1_1luminous__flux.html',1,'units']]],
   ['luminous_5fintensity',['luminous_intensity',['../namespaceunits_1_1luminous__intensity.html',1,'units']]],
   ['magnetic_5ffield_5fstrength',['magnetic_field_strength',['../namespaceunits_1_1magnetic__field__strength.html',1,'units']]],

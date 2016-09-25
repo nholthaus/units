@@ -7,5 +7,5 @@ var searchData=
   ['fma',['fma',['../group___unit_math.html#ga066f349d20b18931b3d3af81d2199a87',1,'units::math']]],
   ['fmax',['fmax',['../group___unit_math.html#ga3d09f87ec3b994b8030925816e2741fe',1,'units::math']]],
   ['fmin',['fmin',['../group___unit_math.html#gad0e605e80e01d7c415a65a51299ede67',1,'units::math']]],
-  ['fmod',['fmod',['../group___unit_math.html#ga1184575106fc9286c1f3d5f8b1754b80',1,'units::math']]]
+  ['fmod',['fmod',['../group___unit_math.html#gaaf723135df5542058491847f02ac5f4d',1,'units::math']]]
 ];

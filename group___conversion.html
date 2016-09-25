@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Unit Conversion and Dimensional Analysis Library
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">2.1.0</span>
    </div>
    <div id="projectbrief">A compile-time c++14 unit conversion library</div>
   </td>
@@ -94,6 +94,10 @@ Functions</h2></td></tr>
 <tr class="memitem:gae7541dbcd66420e011c82ac58ef7723c"><td class="memTemplItemLeft" align="right" valign="top">static T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___conversion.html#gae7541dbcd66420e011c82ac58ef7723c">units::convert</a> (const T &amp;value)</td></tr>
 <tr class="memdesc:gae7541dbcd66420e011c82ac58ef7723c"><td class="mdescLeft">&#160;</td><td class="mdescRight">converts a <em>value</em> from one type to another.  <a href="group___conversion.html#gae7541dbcd66420e011c82ac58ef7723c">More...</a><br /></td></tr>
 <tr class="separator:gae7541dbcd66420e011c82ac58ef7723c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3ea066c681ad34e66986653768706f3"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Units , class  = typename std::enable_if&lt;std::is_arithmetic&lt;T&gt;::value &amp;&amp; traits::is_unit_t&lt;Units&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:gaf3ea066c681ad34e66986653768706f3"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">units::unit_cast</a> (const Units &amp;value)</td></tr>
+<tr class="memdesc:gaf3ea066c681ad34e66986653768706f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Casts a unit container to an arithmetic type.  <a href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">More...</a><br /></td></tr>
+<tr class="separator:gaf3ea066c681ad34e66986653768706f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Functions used to convert values of one logical type to another. </p>
@@ -142,10 +146,51 @@ template&lt;class UnitFrom , class UnitTo , typename T  = double&gt; </div>
 
 </div>
 </div>
+<a class="anchor" id="gaf3ea066c681ad34e66986653768706f3"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T , typename Units , class  = typename std::enable_if&lt;std::is_arithmetic&lt;T&gt;::value &amp;&amp; traits::is_unit_t&lt;Units&gt;::value&gt;::type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T units::unit_cast </td>
+          <td>(</td>
+          <td class="paramtype">const Units &amp;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Casts a unit container to an arithmetic type. </p>
+<p>unit_cast can be used to remove the strong typing from a unit class, and convert it to a built-in arithmetic type. This may be useful for compatibility with libraries and legacy code that don't support <code><a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a></code> types. E.g </p><div class="fragment"><div class="line">meter_t unitVal(5);</div><div class="line"><span class="keywordtype">double</span> value = <a class="code" href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">units::unit_cast</a>&lt;<span class="keywordtype">double</span>&gt;(unitVal);  <span class="comment">// value = 5.0 </span></div></div><!-- fragment --> <dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>Type to cast the unit type to. Must be a built-in arithmetic type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>Unit value to cast. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classunits_1_1unit__t.html#a1211e0d1c137202162f524f8b28b9119" title="unit value ">unit_t::to</a> </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 15 2016 16:49:14 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Sep 25 2016 09:42:54 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Unit Conversion and Dimensional Analysis Library: units &lt;a href=&quot;https://travis-ci.org/nholthaus/units&quot; target=&quot;_blank&quot;&gt;&lt;img src=&quot;https://travis-ci.org/nholthaus/units.svg?branch=master&quot;/&gt;&lt;/a&gt; &lt;a href=&quot;https://ci.appveyor.com/project/nholthaus/units&quot; target=&quot;_blank&quot;&gt;&lt;img src=&quot;https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&quot;/&gt;&lt;/a&gt;</title>
+<title>Unit Conversion and Dimensional Analysis Library: UNITS</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Unit Conversion and Dimensional Analysis Library
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">2.1.0</span>
    </div>
    <div id="projectbrief">A compile-time c++14 unit conversion library</div>
   </td>
@@ -79,32 +79,107 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="headertitle">
-<div class="title">units <a href="https://travis-ci.org/nholthaus/units" target="_blank"></a> <a href="https://ci.appveyor.com/project/nholthaus/units" target="_blank"></a> </div>  </div>
+<div class="title">UNITS </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>a compile-time, header-only, unit conversion library built on c++14 with no dependencies.</p>
-<h2>Latest Release - v2.0.3 </h2>
-<p>New features:</p><ul>
-<li><code>unit_t</code> types are now trivial types.</li>
-<li><code>unit_t</code> types support the unary minus (negation) operator.</li>
-<li>Compile-time unit arithmetic via <code>unit_value_t</code>.</li>
-<li>Unit-enabled ports of most <code>&lt;cmath&gt;</code> functions, including c++11 extensions.</li>
-<li>Square-root manipulators for <code>unit</code>, <code>unit_t</code>, and <code>unit_value_t</code>.</li>
-<li>Improved documentation.</li>
+<div class="textblock"><p>A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.</p>
+<p><a href="https://travis-ci.org/nholthaus/units"></a> <a href="https://ci.appveyor.com/project/nholthaus/units"></a> </p><div class="image">
+<img src="https://img.shields.io/badge/license-MIT-orange.svg"  alt="license"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg"  alt="copyright"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/language-c++-blue.svg"  alt="language"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/std-c++14-blue.svg"  alt="c++"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/MSVC_(min)-2013-ff69b4.svg"  alt="msvc2013"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/MSVC-2015-ff69b4.svg"  alt="msvc2015"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/GCC_(min)-4.9.3-ff69b4.svg"  alt="gcc-4.9.3"/>
+</div>
+ <div class="image">
+<img src="https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg"  alt="gcc-5.4.0"/>
+</div>
+<h1>Latest Release - v2.1.0</h1>
+<h3>Get it:</h3>
+<p><a href="https://github.com/nholthaus/units/releases/tag/v2.1.0"></a></p>
+<h3>New features:</h3>
+<ul>
+<li>Literal suffixes for instantiating unit containers (c++14 compliant compiler required).</li>
 </ul>
-<p>Tested on:</p><ul>
-<li>gcc -4.9</li>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> area = 3.0_m * 4.0_m;    <span class="comment">// area == square_meter_t(12.0) ==   12_sq_m;</span></div></div><!-- fragment --><ul>
+<li><code>std::cout</code> output now includes the unit abbreviations.</li>
+</ul>
+<div class="fragment"><div class="line">mile_t distance(26.2);</div><div class="line">std::cout &lt;&lt; distance;    <span class="comment">// printed: 26.2 mi</span></div></div><!-- fragment --><ul>
+<li>Unit-to-built-in-type conversions using <code>to&lt;&gt;</code> or <code>unit_cast</code>.</li>
+</ul>
+<div class="fragment"><div class="line">mile_t distance(26.2);</div><div class="line"><span class="keywordtype">double</span> result = <a class="code" href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">unit_cast</a>&lt;<span class="keywordtype">double</span>&gt;(distance); <span class="comment">// result == 26.2</span></div></div><!-- fragment --><ul>
+<li>Unit definition macros.</li>
+</ul>
+<div class="fragment"><div class="line"><a class="code" href="units_8h.html#a39906c4d2537c6d904d8d44ffb6a4dec">UNIT_ADD</a>(length, foot, feet, ft, unit&lt;std::ratio&lt;381, 1250&gt;, meters&gt;)</div></div><!-- fragment --><ul>
+<li>Improvements for integral unit types.</li>
+</ul>
+<h3>Notes:</h3>
+<ul>
+<li>Due to incompatibilites with the <code>WINAPI</code>, the literal abbreviation for <code>tesla</code> units are <code>_Te</code>, instead of the SI standard <code>_T</code>.</li>
+</ul>
+<h3>Tested on:</h3>
+<ul>
+<li>gcc-4.9.3</li>
+<li>gcc-5.4.0</li>
 <li>msvc2013</li>
 <li>msvc2015</li>
 </ul>
-<p><a href="https://github.com/nholthaus/units/releases/tag/v2.0.3" target="_blank">Download units v2.0.3</a></p>
-<h2>Documentation </h2>
-<p>The full documentation is available <em><a href="http://nholthaus.github.io/units">here</a></em>.</p>
-<h2>Description </h2>
-<p>The library consists of a single file (<a class="el" href="units_8h.html" title="Complete implementation of units - a compile-time, header-only, unit conversion library built on c++1...">include/units.h</a>), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.</p>
-<p>The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library <em>incredibly</em> fast. Additionally, specifying units as <em>types</em>, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidently misuses units or which has errors in the dimensional analysis <em>will fail at compile-time, not at run-time</em>.</p>
+<p>Does this library work on your compiler? If so, let me know!</p>
+<h1>Contents</h1>
+<ul>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#description">Description</a></li>
+<li><a href="#getting-started-guide">Getting started guide</a></li>
+<li><a href="#unit-tags">Unit tags</a></li>
+<li><a href="#unit-containers">Unit containers</a></li>
+<li><a href="#unit-literals">Unit literals</a></li>
+<li><a href="#cmath-functions"><code>&lt;cmath&gt;</code> functions</a></li>
+<li><a href="#exponentials-and-square-roots">Exponentials and square roots</a></li>
+<li><a href="#removing-type-safety">Removing type safety</a></li>
+<li><a href="#efficiency">Efficiency</a></li>
+<li><a href="#pure-compile-time-unit-manipulation">Pure compile-time unit manipulation</a></li>
+<li><a href="#conversion-without-unit-containers">Conversion without unit containers</a></li>
+<li><a href="#namespaces">Namespaces</a></li>
+<li><a href="#defining-new-units">Defining new units</a></li>
+<li><a href="#unit-definition-macros">Unit definition macros</a></li>
+<li><a href="#unit-type-traits">Unit type traits</a></li>
+<li><a href="#changing-the-underlying-type-of-unit-t">Changing the underlying type of <code>unit_t</code></a></li>
+<li><a href="#build-instructions">Build instructions</a></li>
+<li><a href="#previous-releases">Previous releases</a></li>
+</ul>
+<h1>Documentation</h1>
+<p><a href="http://nholthaus.github.io/units">The full documentation is available ***here***</a>.</p>
+<h1>Description</h1>
+<p>The library consists of a single file (<a href="include/units.h">units.h</a>), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.</p>
+<p>The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library <em>incredibly</em> fast. Additionally, specifying units as <em>types</em>, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis <em>will fail at compile-time, not at run-time</em>.</p>
 <p>The unit test file <code>unitTests/main.cpp</code> contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.</p>
-<h2>Unit tags </h2>
+<h1>Getting started guide</h1>
+<p>Add <code><a class="el" href="units_8h.html" title="Complete implementation of units - a compile-time, header-only, unit conversion library built on c++1...">units.h</a></code> to your project, along with the <code>using</code> directive for literals</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="units_8h.html">units.h</a>&gt;</span></div><div class="line"></div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1literals.html">units::literals</a>;</div></div><!-- fragment --><p>Each "dimension" of unit is defined in its own namespace. See <a href="#namespaces">the namespaces section</a> for a complete list. The rest of the guide assumes you've included the namespaces you plan to use:</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits.html">units</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1length.html">units::length</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1time.html">units::time</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1area.html">units::area</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1velocity.html">units::velocity</a>;</div></div><!-- fragment --><p><b>The easiest way to get started with the <code>units</code> library is to think of unit containers as <code>double</code> values.</b> Unit containers are typicaly the units' non-plural name with the suffix <code>_t</code> (for type), e.g. <code>meter_t</code>. See <a href="http://nholthaus.github.io/units/namespaces.html">the documentation</a> for a complete list.</p>
+<p>Units can (<em>and should!</em>) be used anywhere <code>double</code> values can be used:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">double</span>          area = 15 * 5 + 10 * 10;                <span class="comment">// 175 m^2?</span></div><div class="line">square_meter_t  area = 15_m * 5_m + 10_m * 10_m;        <span class="comment">// 175 m^2</span></div></div><!-- fragment --><p>What makes unit types special is that unit conversions happen implicitely and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with <em>no runtime penalty</em>.</p>
+<div class="fragment"><div class="line">foot_t              len   = 5_m;                            <span class="comment">// simple implicit conversion</span></div><div class="line">meters_per_second_t speed = 60_mi / 1_hr;                   <span class="comment">// more complex implicit conversion</span></div><div class="line">square_meter_t      area  = 15_m * 5_m + 1000_cm * 1000_cm; <span class="comment">// previous example with mixed units</span></div></div><!-- fragment --><p>Note the return type has the correct dimensions of area, even though the source types were all units of length. <code><a class="el" href="units_8h.html" title="Complete implementation of units - a compile-time, header-only, unit conversion library built on c++1...">units.h</a></code> has powerful dimensional analysis capabilities. But what happens if we get the return type wrong?</p>
+<div class="fragment"><div class="line">meter_t  area = 15_m * 5_m + 10_m * 10_m;               <span class="comment">// oops, m * m = m^2</span></div></div><!-- fragment --><blockquote class="doxtable">
+<p>E:/workspace/units/include/units.h(1405): error C2338: Units are not compatible. </p>
+</blockquote>
+<p>Your compiler will produce an "incompatible units" error if your dimensional analysis is incorrect. If your resulting unit types are complex, you could use <code>auto</code> for simplicity:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> result = 15_m * 5_m + 10_m * 10_m;                 <span class="comment">//  m^2</span></div><div class="line"><span class="keyword">auto</span> speed  = 60_mi / 1_hr;                             <span class="comment">//  60 mph</span></div></div><!-- fragment --><p>***NOTE: Think carefully about using <code>auto</code> for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using <code>auto</code>, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using <code>auto</code> because a complex unit type is not available in the library, try <a href="#defining-new-units">defining a new unit</a> as a better alternative.</p>
+<p>More complex mathematical operations (<a href="http://nholthaus.github.io/units/namespaceunits_1_1math.html">almost every <code>&lt;cmath&gt;</code> operation actually</a>), including exponentials and square roots are possibe by using the <code><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></code> namespace .</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1math.html">units::math</a>;</div><div class="line"></div><div class="line">meter_t a = 3_m;</div><div class="line">meter_t b = 4_m;</div><div class="line">meter_t c = <a class="code" href="group___unit_math.html#ga2a5bbcf55af038592c62ac4b8c37f7a6">sqrt</a>(pow&lt;2&gt;(a) + pow&lt;2&gt;(b));    <span class="comment">// Pythagorean threorem.</span></div><div class="line"></div><div class="line">std::cout &lt;&lt; c &lt;&lt; std::endl;                <span class="comment">// prints: &quot;5 m&quot;</span></div></div><!-- fragment --><h1>Unit tags</h1>
 <p>Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-information about different units, including how to convert between them, and how to determine their compatibility for conversion.</p>
 <p>All unit tags are defined in namespaces under the <code>units</code> namespace, such as <code><a class="el" href="namespaceunits_1_1length.html" title="namespace for unit types and containers representing length values ">units::length</a></code> or <code><a class="el" href="namespaceunits_1_1angle.html" title="namespace for unit types and containers representing angle values ">units::angle</a></code>, to avoid name clashes between units of different physical quantities which share the same names (like pounds). SI base units are defined as "categories" in the <code>unit</code> namespace.</p>
 <p>Units are defined in terms of</p><ol type="1">
@@ -113,61 +188,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>[optionally] a scale factor of <code>pi</code></li>
 <li>[optionally] a datum translation (such as the +/- 32 required to convert between <code>fahrenheit</code> and <code>celsius</code>)</li>
 </ol>
-<p>All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), which is not <em>exactly</em> the same as dimensionless/scalar units for practical purposes (and probably why the SI didn't define them as simple scalar units), and so in this library they are treated as a basic unit type.</p>
-<p><em>Example</em>: the defintions of some common length units are: </p><pre class="fragment">namespace length
-{
-    using meters = units::unit&lt;std::ratio&lt;1&gt;, units::category::length_unit&gt;;    // meters are (1) unit of length in the SI system.
-    using feet = units::unit&lt;std::ratio&lt;381, 1250&gt;, meters&gt;;                    // feet are 3.28084 meters.
-}
-</pre><h2>Unit containers </h2>
-<p>Unit containers are the workhorse of the units libary, and the primary classes which will be instantiated in user code. Containers are derived from the <code>unit_t</code> class, and have the form <code>[unitname]_t</code>, e.g. <code>meter_t</code> or <code>radian_t</code>. Containers are effectively doubles with associated unit type tags, and can be used wherever a double would be used to store a dimensioned quantity.</p>
-<p>Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or richter scale). For example, <code>meter_t</code> would be defined: </p><pre class="fragment">using meter_t = units::unit_t&lt;units::length::meter, double, units::linear_scale&gt;
-</pre><p>or simply </p><pre class="fragment">using meter_t = units::unit_t&lt;units::length::meter&gt;
-</pre><p>since the underlying type and scale parameters default to <code>double</code> and <code>linear_scale</code> respectively.</p>
-<p>Units of compatible types (e.g length units) can be implicitely converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitely converted to/from built-in types, such as <code>double</code>.</p>
+<p>All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), and in this library they are treated as a basic unit type because of their important engineering applications.</p>
+<p><em>Example</em>: the definitions of some common length units are:</p>
+<div class="fragment"><div class="line"><span class="keyword">namespace </span>length</div><div class="line">{</div><div class="line">    <span class="keyword">using</span> meters = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;1&gt;</a>, <a class="code" href="structunits_1_1base__unit.html">units::category::length_unit</a>&gt;;    <span class="comment">// meters are (1) unit of length in the SI system.</span></div><div class="line">    <span class="keyword">using</span> feet = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;381, 1250&gt;</a>, meters&gt;;                    <span class="comment">// feet are 3.28084 meters.</span></div><div class="line">}</div></div><!-- fragment --><h1>Unit containers</h1>
+<p>Unit containers are the primary classes which will be instantiated in user code. They can be thought of as essentially equivalent to a <code>double</code>, except that they have unit type tags associated with them. They can be used wherever a double would be used to store a dimensioned quantity. Containers are derived from the <code>unit_t</code> class, and have the form <code>[unitname]_t</code>, e.g. <code>meter_t</code> or <code>radian_t</code>.</p>
+<p>Unit containers are defined in terms of the units they represent, their underlying type, and an optional non-linear scale (think decibels or Richter scale). For example, <code>meter_t</code> would be defined:</p>
+<div class="fragment"><div class="line"><span class="keyword">using</span> meter_t = <a class="code" href="classunits_1_1unit__t.html">units::unit_t&lt;units::length::meter, double, units::linear_scale&gt;</a></div></div><!-- fragment --><p>or simply</p>
+<div class="fragment"><div class="line"><span class="keyword">using</span> meter_t = <a class="code" href="classunits_1_1unit__t.html">units::unit_t&lt;units::length::meter&gt;</a></div></div><!-- fragment --><p>since the underlying type and scale parameters default to <code>double</code> and <code>linear_scale</code> respectively.</p>
+<p>Units of compatible types (e.g length units) can be implicitly converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitly converted to/from built-in types, such as <code>double</code>.</p>
 <p>Units are constructed from built-in types, and the <code>toDouble()</code> method (or <code>operator()</code>) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most <code>&lt;cmath&gt;</code> functions are provided to enable operating soly in the <code>unit_t</code> domain.</p>
-<p>The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated: </p><pre class="fragment">auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
-</pre><p>The resulting velocity type will be deduced to be <code>velocity::meters_per_second</code> with a value of 50.0. Additionally, if the return type if specified, the type system wll verify that the units are compatible. For example, the following will fail to compile: </p><pre class="fragment">units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
-</pre><p>Unit containers can (and should!) be used to perform implicit conversions: </p><pre class="fragment">units::time::second_t a;
-units::time::minute_t b(1.0);
-
-a = b;  // a == 60.0
-</pre><p>Arithmetic can be performed on unit containers the same way it can for built-in types. However, unlike built-in types, the return value of unit-type arithmetic will be the proper unit to represent the resulting quantity. </p><pre class="fragment">using namespace units::length;
-using namespace units::area;
-
-meter_t a_m(1.0), b_m(2.0), c_m;
-foot_t  a_ft(1.0), b_ft(2.0), c_ft;
-
-c_m = a_m + b_m;                            // OK. c == 3m
-c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
-auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
-
-auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
-auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
-auto result = a_m * b_ft;                   // OK. result is `square_meter_t` (left-most unit)
-
-auto result = a_m * square_meter_t(1.0);    // OK. units can always be multiplied. Result is `cubed&lt;meter_t&gt;`.
-auto result = a_m * scalar_t(1.0);          // OK. units can always be multiplied. Result is `meter_t`.
-</pre><p>Unsupported arithmetic, or improper return types will result in compiler errors: </p><pre class="fragment">c_m = a_m + 5.0;                            // Error. can't add scalars to dimensioned units.
-c_m = a_m + scalar_t(5.0);                  // Error. can't add scalars to dimensioned units.
-auto result = a_m + square_meter_t(1.0);    // Error. Incompatible units.
-</pre><p>By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.</p>
-<h2><code>&lt;cmath&gt;</code> Functions </h2>
-<p>The <code>units</code> library include type-safe unit_t container wrappers for almost all of the &lt;cmath&gt; functions, <em>including</em> the c++11 extensions. These functions can be found in the <code><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></code> namespace. The <code>units</code> library versions don't conflict with &lt;cmath&gt;, and it's possible to use both libraries in the same code.</p>
+<p>The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> objectVelocity = units::meter_t(100.0) / units::second_t(2.0);</div></div><!-- fragment --><p>The resulting velocity type will be deduced to be <code>velocity::meters_per_second</code> with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:</p>
+<p>``<code>cpp units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.</code> </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;Unit containers can (and should!) be used to perform implicit conversions:</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;```cpp</div><div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;units::time::second_t a;</div><div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;units::time::minute_t b(1.0);</div><div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;</div><div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;a = b;  // a == 60.0</div></div><!-- fragment --><p>Arithmetic can be performed on unit containers the same way it can for built-in types. However, unlike built-in types, the return value of unit-type arithmetic will be the proper unit to represent the resulting quantity.</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1length.html">units::length</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1area.html">units::area</a>;</div><div class="line"></div><div class="line">meter_t a_m(1.0), b_m(2.0), c_m;</div><div class="line"><a class="code" href="classunits_1_1unit__t.html">foot_t</a>  a_ft(1.0), b_ft(2.0), c_ft;</div><div class="line"></div><div class="line">c_m = a_m + b_m;                            <span class="comment">// OK. c == 3m</span></div><div class="line">c_ft = a_m + b_m;                           <span class="comment">// OK. resulting 3m is converted to ft.</span></div><div class="line"><span class="keyword">auto</span> result = a_m * b_ft;                   <span class="comment">// OK. result is `meter_t` (left-most unit)</span></div><div class="line"></div><div class="line"><span class="keyword">auto</span> result_sm = a_m * b_m;                 <span class="comment">// OK. result_sm is `square_meter_t`.</span></div><div class="line"><span class="keyword">auto</span> result_s = a_m / b_m;                  <span class="comment">// OK. result_s is `dimensionless_t`.</span></div><div class="line"><span class="keyword">auto</span> result = a_m * b_ft;                   <span class="comment">// OK. result is `square_meter_t` (left-most unit)</span></div><div class="line"></div><div class="line"><span class="keyword">auto</span> result = a_m * <a class="code" href="classunits_1_1unit__t.html">square_meter_t</a>(1.0);    <span class="comment">// OK. units can always be multiplied. Result is `cubed&lt;meter_t&gt;`.</span></div><div class="line"><span class="keyword">auto</span> result = a_m * scalar_t(1.0);          <span class="comment">// OK. units can always be multiplied. Result is `meter_t`.</span></div></div><!-- fragment --><p>Unsupported arithmetic, or improper return types will result in compiler errors:</p>
+<div class="fragment"><div class="line">c_m = a_m + 5.0;                            <span class="comment">// Error. can&#39;t add scalars to dimensioned units.</span></div><div class="line">c_m = a_m + scalar_t(5.0);                  <span class="comment">// Error. can&#39;t add scalars to dimensioned units.</span></div><div class="line"><span class="keyword">auto</span> result = a_m + square_meter_t(1.0);    <span class="comment">// Error. Incompatible units.</span></div></div><!-- fragment --><p>By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.</p>
+<h1>Unit Literals</h1>
+<p>If you are using a compiler which supports user-defined literals (e.g. not Visual Studio 2013), then unit literals can be a convenient way to initialize and work with unit values:</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1literals.html">units::literals</a>;</div><div class="line"></div><div class="line">meter_t dist    = 10_m;     <span class="comment">// 10 m</span></div><div class="line">meter_t dist2   = 1_km;     <span class="comment">// 1000 m</span></div></div><!-- fragment --><p>Literals can also be used for any temporary values in calculations, making them more readable:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> area = <a class="code" href="classunits_1_1unit__t.html">units::length::meter_t</a>(5) * <a class="code" href="classunits_1_1unit__t.html">units::length::meter_t</a>(10); <span class="comment">// without literals</span></div><div class="line"><span class="keyword">auto</span> area = 5_m * 10_m;                         <span class="comment">// with literals</span></div></div><!-- fragment --><p>All literals* are defined by their SI abbreviation preceeded by an underscore, e.g. <code>_m</code> for meter. "Square" units are preceeded by <code>_sq</code>, e.g. <code>_sq_m</code> for square meters. Non SI units use their most common abbreviations.</p>
+<p>All literals are defined in the <code><a class="el" href="namespaceunits_1_1literals.html" title="namespace for unit literal definitions of all categories. ">units::literals</a></code> namespace, and in order to use literals in your code ***you must include the line <code>using <a class="el" href="namespaceunits_1_1literals.html" title="namespace for unit literal definitions of all categories. ">units::literals</a></code>*** (since there is no way to put a namespace on an operator).</p>
+<p>_* with the exception of <code>Teslas</code>, which use <code>_Te</code> for compatibility with the windows API._</p>
+<h1><code>&lt;cmath&gt;</code> Functions</h1>
+<p>The <code>units</code> library include type-safe unit_t container wrappers for almost all of the <code>&lt;cmath&gt;</code> functions, <em>including</em> the c++11 extensions. These functions can be found in the <code><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></code> namespace. The <code>units</code> library versions don't conflict with <code>&lt;cmath&gt;</code>, and it's possible to use both libraries in the same code.</p>
 <p>The overloaded functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to result to the type-unsafe <code>toDouble()</code> member.</p>
-<p>In <em>rare</em> cases, the overload resolution for a given type may be ambiguous. If so, simply preprend the function with the fully-qualified <code><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></code> prefix, e.g. </p><pre class="fragment">meter_t x(2.0);
-meter_t y(3.0);
-square_meter_t z(1.0);
-square_meter_t result;
-
-result = fma(x, y, z);                                              // Error: ambiguous
-double result = fma(x.toDouble(), y.toDouble(), z.toDouble());      // Warning: Unsafe!
-result = math::fma(x, y, z);                                        // OK.
-</pre><h2>Exponentials and Square Roots </h2>
-<p>Many functions require units to be raised to some power. This can be accomplished using the <code><a class="el" href="namespaceunits_1_1math.html#a364b8618e8f764ebe6aa44db45e61023" title="computes the value of value raised to the power ">units::math::pow</a></code> function: </p><pre class="fragment">square_meter_t m2 = units::math::pow&lt;2&gt;(meter_t(5.0));  // m2 == 25.0
-</pre><p>The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the <code>&lt;cmath&gt; pow</code> implementation, which takes exponent values at runtime.</p>
-<p>Square roots are also provided with the <code><a class="el" href="group___unit_math.html#ga2a5bbcf55af038592c62ac4b8c37f7a6" title="computes the square root of value ">units::math::sqrt</a></code> function. Due to the nature of the <code>sqrt</code> operation, the units library can often provide exact conversions for square root operations, but <em>not in every case</em>. The rest of the time, the <code>sqrt</code> unit will be a <em>rational_approximation</em> of the real value. These are guaranteed to be accurate to at least 10 decimal places. </p><pre class="fragment">meter_t m = units::math::sqrt(square_meter_t(4.0));     // m == 2.0
-</pre><h2>Efficiency </h2>
+<p>In <em>rare</em> cases, the overload resolution for a given type may be ambiguous. If so, simply prepend the function with the fully-qualified <code><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></code> prefix, e.g.</p>
+<div class="fragment"><div class="line">meter_t x(2.0);</div><div class="line">meter_t y(3.0);</div><div class="line">square_meter_t z(1.0);</div><div class="line">square_meter_t result;</div><div class="line"></div><div class="line">result = <a class="code" href="group___unit_math.html#ga066f349d20b18931b3d3af81d2199a87">fma</a>(x, y, z);                                              <span class="comment">// Error: ambiguous</span></div><div class="line"><span class="keywordtype">double</span> result = <a class="code" href="group___unit_math.html#ga066f349d20b18931b3d3af81d2199a87">fma</a>(x.toDouble(), y.toDouble(), z.toDouble());      <span class="comment">// Warning: Unsafe!</span></div><div class="line">result = <a class="code" href="group___unit_math.html#ga066f349d20b18931b3d3af81d2199a87">math::fma</a>(x, y, z);                                        <span class="comment">// OK.</span></div></div><!-- fragment --><h1>Exponentials and Square Roots</h1>
+<p>Many functions require units to be raised to some power. This can be accomplished using the <code><a class="el" href="namespaceunits_1_1math.html#a364b8618e8f764ebe6aa44db45e61023" title="computes the value of value raised to the power ">units::math::pow</a></code> function:</p>
+<div class="fragment"><div class="line">square_meter_t m2 = units::math::pow&lt;2&gt;(meter_t(5.0));  <span class="comment">// m2 == 25.0</span></div></div><!-- fragment --><p>The only constraint is that the exponential power (given in the template argument) must be known at compile time, so that the type system can deduce the output type. This differs from the <code>&lt;cmath&gt; pow</code> implementation, which takes exponent values at runtime.</p>
+<p>Square roots are also provided with the <code><a class="el" href="group___unit_math.html#ga2a5bbcf55af038592c62ac4b8c37f7a6" title="computes the square root of value ">units::math::sqrt</a></code> function. Due to the nature of the <code>sqrt</code> operation, the units library can often provide exact conversions for square root operations, but <em>not in every case</em>. The rest of the time, the <code>sqrt</code> unit will be a <em>rational_approximation</em> of the real value. These are guaranteed to be accurate to at least 10 decimal places.</p>
+<div class="fragment"><div class="line">meter_t m = <a class="code" href="group___unit_math.html#ga2a5bbcf55af038592c62ac4b8c37f7a6">units::math::sqrt</a>(square_meter_t(4.0));     <span class="comment">// m == 2.0</span></div></div><!-- fragment --><h1>Removing type safety</h1>
+<p>When interfacing with APIs, libraries, and frameworks which aren't <code>unit</code> enabled, it may be necessary (if regrettable) to remove the type-safety of a unit container and expose its underlying type. This is possible using the <code>unit_cast</code> funtion, or the <code>to&lt;&gt;</code> member function.</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits.html">units</a>;</div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespaceunits_1_1length.html">units::length</a>;</div><div class="line"></div><div class="line"><span class="comment">// Get double value from a unit container (double is the default underlying type of the units library)</span></div><div class="line">meter_t dist(10);</div><div class="line"><span class="keywordtype">double</span> dval = <a class="code" href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">unit_cast</a>&lt;<span class="keywordtype">double</span>&gt;(dist);</div><div class="line"><span class="keywordtype">double</span> dval2 = dist.to&lt;<span class="keywordtype">double</span>&gt;();</div><div class="line"></div><div class="line"><span class="comment">// Get integer value (potentially narrowing, be careful!)</span></div><div class="line"><span class="keywordtype">int</span> ival = <a class="code" href="group___conversion.html#gaf3ea066c681ad34e66986653768706f3">unit_cast</a>&lt;<span class="keywordtype">int</span>&gt;(dist);</div><div class="line"><span class="keywordtype">int</span> ival2 = dist.to&lt;<span class="keywordtype">int</span>&gt;();</div></div><!-- fragment --><p>Both functions produce the same results, the choice of syntax is simply a user preference.</p>
+<p>To determine the underlying type of the unit container, the (verbose) trait <code>units::traits::unit_t_traits&lt;decltype(dist)&gt;::underlying_type</code> could be used.</p>
+<h1>Efficiency</h1>
 <p>Complex, recurively-defined conversions are performed in just 5 instructions: </p><pre class="fragment">    year_t twoYears(2.0);
     week_t twoYearsInWeeks = twoYears;
 00007FF7BDB57FF6  xorps       xmm9,xmm9  
@@ -179,19 +232,14 @@ result = math::fma(x, y, z);                                        // OK.
 00007FF7BDB58017  ...
 </pre><p>In the library, the year to week conversion is defined in terms of <code>years -&gt; days -&gt; hours -&gt; minutes -&gt; seconds -&gt; minutes -&gt; hours -&gt; days -&gt; weeks</code> but the total conversion ratio is computed at compile-time and the math is optimized to two floating-point operations.</p>
 <p>Unit conversions between equivalent types are optimized away completely, and generate <em>no machine code</em>.</p>
-<h2>Compile-time Unit Manipulation </h2>
-<p>In many cases, unit equations are used to determine derived values from a set of values which are known at comile-time. In these situations, it would be optimal to pre-compute the derived values <em>at compile time</em>, thus generating no machine code and incurring no run-time penalty.</p>
-<p>The <code>unit_value_t</code> class is the mechanism in the units library to perform compule-time arithmetic. The <code>unit_value_t</code> class functions exactly the same way as <code>std::ratio</code>, but with an associated unit tag and the ensuing type safety.</p>
-<p>For a simple example, let's define a right triangle whose hypotnuse is the sum of the squares of its side (a pythagorean triple) </p><pre class="fragment">struct RightTriangle
-{
-    using a = unit_value_t&lt;meters, 3&gt;;
-    using b = unit_value_t&lt;meters, 4&gt;;
-    using c = unit_value_sqrt&lt;unit_value_add&lt;unit_value_power&lt;a, 2&gt;, unit_value_power&lt;b, 2&gt;&gt;&gt;;
-};
-</pre><p>The definition above is perfectly efficient, as it generates <em>no run-time code</em> whatsoever, and still provides all the type safety of unit containers. The values of <code>a</code>, <code>b</code>, and <code>c</code> can be accessed at runtime using the static <code>value()</code> method of <code>unit_value_t</code> </p><pre class="fragment">auto a = RightTriangle::a::value(); // a is `meter_t(3)`
-auto b = RightTriangle::b::value(); // b is `meter_t(4)`
-auto c = RightTriangle::c::value(); // c is `meter_t(5)`
-</pre><p>The available compile-time operations are:</p><ul>
+<h1>Pure Compile-time Unit Manipulation</h1>
+<p>In many cases, unit equations are used to determine derived values from a set of values which are known at compile-time. In these situations, it would be optimal to pre-compute the derived values <em>at compile time</em>, thus generating no machine code and incurring no run-time penalty.</p>
+<p>The <code>unit_value_t</code> class is the mechanism in the units library to perform compile-time arithmetic. The <code>unit_value_t</code> class functions exactly the same way as <code>std::ratio</code>, but with an associated unit tag and the ensuing type safety.</p>
+<p>For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a pythagorean triple)</p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>RightTriangle</div><div class="line">{</div><div class="line">    <span class="keyword">using</span> a = unit_value_t&lt;meters, 3&gt;;</div><div class="line">    <span class="keyword">using</span> b = unit_value_t&lt;meters, 4&gt;;</div><div class="line">    <span class="keyword">using</span> c = unit_value_sqrt&lt;unit_value_add&lt;unit_value_power&lt;a, 2&gt;, unit_value_power&lt;b, 2&gt;&gt;&gt;;</div><div class="line">};</div></div><!-- fragment --><p>The definition above is perfectly efficient, as it generates <em>no run-time code</em> whatsoever, and still provides all the type safety of unit containers. The values of <code>a</code>, <code>b</code>, and <code>c</code> can be accessed at runtime using the static <code>value()</code> method of <code>unit_value_t</code></p>
+<p>``<code>cpp auto a = RightTriangle::a::value(); // a is</code>meter_t(3)<code> auto b = RightTriangle::b::value(); // b is</code>meter_t(4)<code> auto c = RightTriangle::c::value(); // c is</code>meter_t(5)<code> </code>``</p>
+<p>The available compile-time operations are:</p>
+<ul>
 <li><code><a class="el" href="structunits_1_1unit__value__add.html" title="adds two unit_value_t types at compile-time ">units::unit_value_add</a></code></li>
 <li><code><a class="el" href="structunits_1_1unit__value__subtract.html" title="subtracts two unit_value_t types at compile-time ">units::unit_value_subtract</a></code></li>
 <li><code><a class="el" href="structunits_1_1unit__value__multiply.html" title="multiplies two unit_value_t types at compile-time ">units::unit_value_multiply</a></code></li>
@@ -199,12 +247,12 @@ auto c = RightTriangle::c::value(); // c is `meter_t(5)`
 <li><code><a class="el" href="structunits_1_1unit__value__power.html" title="raises unit_value_to a power at compile-time ">units::unit_value_power</a></code></li>
 <li><code><a class="el" href="structunits_1_1unit__value__sqrt.html" title="calculates square root of unit_value_t at compile-time ">units::unit_value_sqrt</a></code></li>
 </ul>
-<h2>Conversion without unit containers </h2>
-<p>The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using <code><a class="el" href="group___conversion.html#gae7541dbcd66420e011c82ac58ef7723c" title="converts a value from one type to another. ">units::convert</a></code> for arithmetic types: </p><pre class="fragment">double val_in = convert&lt;feet, inches&gt;(1.0); // val_in == 12.0
-</pre><p>For type-safe conversion, prefer implicit conversion via unit_t type containers..</p>
-<h2>Namespaces </h2>
+<h1>Conversion without unit containers</h1>
+<p>The preferred method of conversion is implicitly though the use of unit containers, however unit conversion can be accomplished using <code><a class="el" href="group___conversion.html#gae7541dbcd66420e011c82ac58ef7723c" title="converts a value from one type to another. ">units::convert</a></code> for arithmetic types:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">double</span> val_in = convert&lt;feet, inches&gt;(1.0); <span class="comment">// val_in == 12.0</span></div></div><!-- fragment --><p>For type-safe conversion, prefer implicit conversion via unit_t type containers..</p>
+<h1>Namespaces</h1>
 <p>Unit tags and containers are split into separate namespaces to avoid conflicting unit names which represent different physical quantities.</p>
-<p>Unit tag and unit_t container definitions are defined in the following namespaces:</p><ul>
+<p>Unit tag and <code>unit_t</code> container definitions are defined in the following namespaces:</p><ul>
 <li><a class="el" href="namespaceunits_1_1length.html" title="namespace for unit types and containers representing length values ">units::length</a></li>
 <li><a class="el" href="namespaceunits_1_1mass.html" title="namespace for unit types and containers representing mass values ">units::mass</a></li>
 <li><a class="el" href="namespaceunits_1_1time.html" title="namespace for unit types and containers representing time values ">units::time</a></li>
@@ -237,7 +285,10 @@ auto c = RightTriangle::c::value(); // c is `meter_t(5)`
 <li><a class="el" href="namespaceunits_1_1volume.html" title="namespace for unit types and containers representing volume values ">units::volume</a></li>
 <li><a class="el" href="namespaceunits_1_1density.html" title="namespace for unit types and containers representing density values ">units::density</a></li>
 <li><a class="el" href="namespaceunits_1_1concentration.html" title="namespace for unit types and containers representing concentration values ">units::concentration</a></li>
-<li><a class="el" href="namespaceunits_1_1constants.html" title="namespace for physical constants like PI and Avogadro&#39;s Number. ">units::constants</a> (scalar and non-scalar physical constants like Avagadro's number)</li>
+<li><a class="el" href="namespaceunits_1_1constants.html" title="namespace for physical constants like PI and Avogadro&#39;s Number. ">units::constants</a> (scalar and non-scalar physical constants like Avogadro's number)</li>
+</ul>
+<p>Literal values for unit containers are defined in the <code>literals</code> namespace</p><ul>
+<li><a class="el" href="namespaceunits_1_1literals.html" title="namespace for unit literal definitions of all categories. ">units::literals</a></li>
 </ul>
 <p>Mathematical operations like <code>sin</code>, <code>log</code>, <code>floor</code>, etc are defined in the following namespaces:</p><ul>
 <li><a class="el" href="namespaceunits_1_1math.html" title="namespace for unit-enabled versions of the &lt;cmath&gt; library ">units::math</a></li>
@@ -245,18 +296,10 @@ auto c = RightTriangle::c::value(); // c is `meter_t(5)`
 <p>Type traits that you can use to test unit types are defined in the following namespaces:</p><ul>
 <li><a class="el" href="namespaceunits_1_1traits.html" title="namespace representing type traits which can access the properties of types provided by the units lib...">units::traits</a></li>
 </ul>
-<h2>Defining new units </h2>
-<p>The units library strives to provide built-in types for every conceievable unit, and before defing your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.</p>
-<p>Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable: </p><pre class="fragment">namespace time
-{
-    using seconds = units::unit&lt;std::ratio&lt;1&gt;,   units::category::time_unit&gt;;
-    using minutes = units::unit&lt;std::ratio&lt;60&gt;,  seconds&gt;;
-    using hours   = units::unit&lt;std::ratio&lt;60&gt;,  minutes&gt;;
-    using days    = units::unit&lt;std::ratio&lt;24&gt;,  hours&gt;;
-    using weeks   = units::unit&lt;std::ratio&lt;7&gt;,   days&gt;;
-    using years   = units::unit&lt;std::ratio&lt;365&gt;, days&gt;;
-}
-</pre><p>Units are defined in the form: <code>using [unit] = unit&lt;std::ratio&lt;[number of base units per unit]&gt;, [base unit]&gt;;</code>, where:</p><ul>
+<h1>Defining new units</h1>
+<p>The units library strives to provide built-in types for every conceivable unit, and before defining your own units you should double-check the namespaces to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.</p>
+<p>Defining new units is simple, as they can be recursively defined as ratio of previously-defined units in a way that mimics natural language and is highly readable:</p>
+<div class="fragment"><div class="line"><span class="keyword">namespace </span>time</div><div class="line">{</div><div class="line">    <span class="keyword">using</span> seconds = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;1&gt;</a>,   <a class="code" href="structunits_1_1base__unit.html">units::category::time_unit</a>&gt;;</div><div class="line">    <span class="keyword">using</span> minutes = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;60&gt;</a>,  seconds&gt;;</div><div class="line">    <span class="keyword">using</span> hours   = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;60&gt;</a>,  minutes&gt;;</div><div class="line">    <span class="keyword">using</span> days    = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;24&gt;</a>,  hours&gt;;</div><div class="line">    <span class="keyword">using</span> weeks   = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;7&gt;</a>,   days&gt;;</div><div class="line">    <span class="keyword">using</span> years   = <a class="code" href="structunits_1_1unit.html">units::unit&lt;std::ratio&lt;365&gt;</a>, days&gt;;</div><div class="line">}</div></div><!-- fragment --><p>Units are defined in the form: <code>using [unit] = unit&lt;std::ratio&lt;[number of base units per unit]&gt;, [base unit]&gt;;</code>, where:</p><ul>
 <li>the <code>[unit]</code> is what you are defining.</li>
 <li>the <code>[base unit]</code> is the unit that <code>[unit]</code> will be defined in terms of, and</li>
 <li>the <code>[number of base units per unit]</code> is the conversion ratio between the two, expressed as a <code>std::ratio</code> type.</li>
@@ -269,26 +312,44 @@ auto c = RightTriangle::c::value(); // c is `meter_t(5)`
 <li><code><a class="el" href="group___unit_manipulators.html#gad6fb385c468a9f9956d23ebc7c38523a" title="represents the square root of type class U. ">units::square_root</a>&lt;...&gt;</code> (takes the square root of the unit, e.g meters^2 becomes meters)</li>
 <li><code><a class="el" href="group___unit_manipulators.html#gaae513fa68478da5ffc6dd1b739da560f" title="Represents the type of class U with the metric &#39;atto&#39; prefix appended. ">units::atto</a>&lt;...&gt;</code> through <code><a class="el" href="group___unit_manipulators.html#gace72ca1410a8c171eafe012f152e8926" title="Represents the type of class U with the metric &#39;peta&#39; prefix appended. ">units::exa</a>&lt;...&gt;</code> metric prefixes</li>
 </ul>
-<h2>Unit Type Traits </h2>
+<h1>Unit definition macros</h1>
+<p>Version <code>2.1.0</code> of the units library simplifies the task of adding new units by introducing a set of macros for unit definitions:</p>
+<ul>
+<li><p class="startli"><code><a class="el" href="units_8h.html#a39906c4d2537c6d904d8d44ffb6a4dec" title="Macro for generating the boiler-plate code needed for a new unit. ">UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)</a></code></p>
+<p class="startli">This macro adds a single new unit to the given namespace, as well as a literal definition and <code>cout</code> support based on the given <code>abbreviation</code>. e.g.</p>
+</li>
+</ul>
+<div class="fragment"><div class="line"><a class="code" href="units_8h.html#a39906c4d2537c6d904d8d44ffb6a4dec">UNIT_ADD</a>(length, foot, feet, ft, unit&lt;std::ratio&lt;381, 1250&gt;, meters&gt;)</div></div><!-- fragment --><p>Would create the <code>units::length::feet</code> tag, the <code>units::length::foot_t</code> container type, and the <code>_ft</code> literal.</p>
+<ul>
+<li><p class="startli"><code><a class="el" href="units_8h.html#afefa09c81bf9352744e7e31164a07d2e" title="Macro for generating the boiler-plate code needed for a new unit, including its metric prefixes from ...">UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, definition)</a></code></p>
+<p class="startli">This macro has the same functionality as <code>UNIT_ADD</code>, but additionally adds unit types with all metric prefixes from <code>fempto</code> to <code>peta</code> (larger and smaller prefixes mostly result in arithmetic overflow).</p>
+</li>
+<li><p class="startli"><code><a class="el" href="units_8h.html#aacbc20cfef3586d1c51b51c998679b99" title="Macro to create decibel container and literals for an existing unit type. ">UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)</a></code></p>
+<p class="startli">Adds the decibel representation for a previously-defined unit. e.g.</p>
+</li>
+</ul>
+<div class="fragment"><div class="line"><a class="code" href="units_8h.html#aacbc20cfef3586d1c51b51c998679b99">UNIT_ADD_DECIBEL</a>(power, watt, dBW)</div></div><!-- fragment --><p>Adds the <code>dBW_t</code> container, and the <code>_dBW</code> literal.</p>
+<ul>
+<li><p class="startli"><code><a class="el" href="units_8h.html#afa74f22f57c25181c45bd4d204cb9b97" title="Macro to create the is_category_unit type trait. ">UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)</a></code></p>
+<p class="startli">This macro creates a type-trait to check whether a unit is of a certain category, e.g. length. This is only necessary if defining new categories of units which are not included in <code><a class="el" href="units_8h.html" title="Complete implementation of units - a compile-time, header-only, unit conversion library built on c++1...">units.h</a></code> at all. e.g.</p>
+</li>
+</ul>
+<div class="fragment"><div class="line"><a class="code" href="units_8h.html#afa74f22f57c25181c45bd4d204cb9b97">UNIT_ADD_CATEGORY_TRAIT</a>(length, meter)</div></div><!-- fragment --><p>Adds the <code><a class="el" href="structunits_1_1traits_1_1is__length__unit.html" title="Trait which tests whether a type represents a unit of length. ">units::traits::is_length_unit</a></code> trait.</p>
+<h1>Unit Type Traits</h1>
 <p>The units library provides a comprehensive set of type-traits, which can be used in templated user code to enforce that the unit types have certain properties.</p>
-<p>For example, let's say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance. </p><pre class="fragment">template&lt;typename Units&gt;
-bool isMinimumSize(Units x)
-{
-    return x &gt;= square_feet_t(80.0);
-}
-</pre><p>This function will fail to compile if <code>Units</code> is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand tempalte errors. Type traits could be used to make the error message more friendly: </p><pre class="fragment">template&lt;typename Units&gt;
-bool isMinimumSize(Units x)
-{
-    static_assert(units::traits::is_area_unit&lt;Units&gt;::value, "Input value x must represent an area quantity.");
-    return x &gt;= square_feet_t(80.0);
-}
-</pre><p>See the <code><a class="el" href="namespaceunits_1_1traits.html" title="namespace representing type traits which can access the properties of types provided by the units lib...">units::traits</a></code> namespace for a list of all the suported traits.</p>
-<h2>Build Instructions </h2>
-<p>The library itself consists of a single header (<a class="el" href="units_8h.html" title="Complete implementation of units - a compile-time, header-only, unit conversion library built on c++1...">include/units.h</a>), and can be included into your project without being built.</p>
+<p>For example, let's say you want to write a function that validates that the square footage of an office (given in any units), meets the minimum size required by local ordinance.</p>
+<div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Units&gt;</div><div class="line"><span class="keywordtype">bool</span> isMinimumSize(Units x)</div><div class="line">{</div><div class="line">    <span class="keywordflow">return</span> x &gt;= square_feet_t(80.0);</div><div class="line">}</div></div><!-- fragment --><p>This function will fail to compile if <code>Units</code> is not a unit of area (since incompatible unit types are not comparable), but it will produce a series difficult-to-understand template errors. Type traits could be used to make the error message more friendly:</p>
+<div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Units&gt;</div><div class="line"><span class="keywordtype">bool</span> isMinimumSize(Units x)</div><div class="line">{</div><div class="line">    static_assert(<a class="code" href="structunits_1_1traits_1_1is__area__unit.html">units::traits::is_area_unit&lt;Units&gt;::value</a>, <span class="stringliteral">&quot;Input value x must represent an area quantity.&quot;</span>);</div><div class="line">    <span class="keywordflow">return</span> x &gt;= square_feet_t(80.0);</div><div class="line">}</div></div><!-- fragment --><p>See the <code><a class="el" href="namespaceunits_1_1traits.html" title="namespace representing type traits which can access the properties of types provided by the units lib...">units::traits</a></code> namespace for a list of all the supported traits.</p>
+<h1>Changing the underlying type of <code>unit_t</code></h1>
+<p>The default underlying type for all unit containers is <code>double</code>. However, this can be overriden by providing a definition for <code>UNIT_LIB_DEFAULT_TYPE</code>, e.g.</p>
+<div class="fragment"><div class="line"><span class="comment">// Use 64-bit integers as the underlying unit type</span></div><div class="line"><span class="preprocessor">#define UNIT_LIB_DEFAULT_TYPE int64_t</span></div></div><!-- fragment --><p>**_NOTE:_ changing the underlying type may result in unexpected behavior.** Unit conversion makes heavy use of division, which may make integral types unsuitable except for niche embedded applications. Using excessivly large types may increase the number of arithmetic overflow errors.</p>
+<h1>Build Instructions</h1>
+<p>The library itself consists of a single header <a href="include/units.h">units.h</a>, and can be included into your project without being built.</p>
 <p>The unit tests and documentation can be built with CMake. A doxygen installation is required to generate the documentation, and a Tex install is needed if pdf documentation is desired.</p>
 <p>To build the tests:</p>
-<p>Windows:</p><ol type="1">
-<li>Ensure cmake is installed, and that the <code>bin</code> directory is in your PATH% variable, and that a compiler like <code>Visual Studio 2015 Community Edition</code> is installed.</li>
+<h3>Windows:</h3>
+<ol type="1">
+<li>Ensure <a href="https://cmake.org/download/"><code>cmake</code></a> is installed, and that the <code>bin</code> directory is in your <code>PATH%</code> variable, and that a compiler like <a href="https://www.visualstudio.com/post-download-vs?sku=community&amp;clcid=0x409&amp;downloadrename=true#"><code>Visual Studio 2015 Community Edition</code></a> is installed.</li>
 <li>clone the repository or download the <code>.zip</code> package.</li>
 <li>Open a <code>cmd</code> terminal and navigate to the source directory.</li>
 <li>Type the following commands:<ul>
@@ -300,7 +361,8 @@ bool isMinimumSize(Units x)
 </li>
 <li>The tests will be created in an executable called <code>unitLibTest.exe</code> in the folder <code>build/unitTests/Release</code>.</li>
 </ol>
-<p>Linux:</p><ol type="1">
+<h3>Linux:</h3>
+<ol type="1">
 <li>Ensure you are using cmake 3.2 or later. You can verify this with <code>cmake --version</code>.</li>
 <li>Ensure you are using gcc version 4.9 or greater. You can verify this with <code>gcc --version</code>.</li>
 <li>clone the repository or download the <code>.tar.gz</code> package.</li>
@@ -314,18 +376,43 @@ bool isMinimumSize(Units x)
 </li>
 <li>The tests will be created in an executable called <code>unitLibTest</code> in the folder <code>build/unitTests</code>.</li>
 </ol>
-<h2>Previous Releases </h2>
+<h1>Previous Releases</h1>
 <ul>
-<li>v1.3.0 - Adds ostream support. bug fixes. Tested with gcc-4.9.2, msvc2013, msvc2015.</li>
-<li>v1.2.2 - Bug fixes (#1) and namespace cleanup. Tested with msvc2015, gcc 5.2.1</li>
-<li>v1.2.0 - Adds angular velocity units. Tested with gcc-4.9.2, msvc2013, msvc2015.</li>
-<li>v1.1.1 - Adds Doxygen and additional type traits. Tested with gcc-4.9.2, msvc2013, msvc2015.</li>
-<li>v1.0.0 - Initial release. Tested with msvc2015 </li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v2.0.3"><code>v2.0.3</code></a><ul>
+<li><code>unit_t</code> types are now trivial types.</li>
+<li><code>unit_t</code> types support the unary minus (negation) operator.</li>
+<li>Compile-time unit arithmetic via <code>unit_value_t</code>.</li>
+<li>Unit-enabled ports of most <code>&lt;cmath&gt;</code> functions, including c++11 extensions.</li>
+<li>Square-root manipulators for <code>unit</code>, <code>unit_t</code>, and <code>unit_value_t</code>.</li>
+<li>Improved documentation.</li>
+</ul>
+</li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v1.3.0"><code>v1.3.0</code></a><ul>
+<li>Adds ostream support.</li>
+<li>bug fixes.</li>
+</ul>
+</li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v1.2.2"><code>v1.2.2</code></a><ul>
+<li>Bug fixes (#1) and namespace cleanup.</li>
+</ul>
+</li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v1.2.0"><code>v1.2.0</code></a><ul>
+<li>Adds angular velocity units.</li>
+</ul>
+</li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v1.1.1"><code>v1.1.1</code></a><ul>
+<li>Adds Doxygen and additional type traits.</li>
+</ul>
+</li>
+<li><a href="https://github.com/nholthaus/units/releases/tag/v1.0.0"><code>v1.0.0</code></a><ul>
+<li>Initial release. </li>
+</ul>
+</li>
 </ul>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 15 2016 16:49:38 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Sep 25 2016 09:43:16 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>
