@@ -19,11 +19,6 @@ LIST(APPEND LIBRARIES
 ${GTEST_LIBRARIES}
 )
 
-if(WIN32)
-else(WIN32)
-#	LIST(APPEND LIBRARIES m libc++)
-endif(WIN32)
-
 # coveralls support
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
 option(COVERALLS "Generate coveralls data" OFF)

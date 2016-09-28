@@ -7,9 +7,7 @@ SET(TARGET_NAME ${BRANCH})
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#	add_compile_options(-std=c++14 -stdlib=libstdc++)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set( ENV{CL} /MP )
 endif()
 
