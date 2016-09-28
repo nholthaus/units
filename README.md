@@ -1,13 +1,13 @@
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
-[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg) ![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg)
+[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 
-# Latest Release - v2.1.0
+# Latest Release - v2.1.1
 
 ### Get it:
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.0)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.1-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.1)
 
 ### New features:
 
@@ -36,8 +36,8 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
   ```cpp
   UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
   ```
-  
 - Improvements for integral unit types.
+- Clang support
 
 ### Notes:
 
@@ -47,6 +47,7 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
  - gcc-4.9.3
  - gcc-5.4.0
+ - clang-3.4
  - msvc2013
  - msvc2015
 
