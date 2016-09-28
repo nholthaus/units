@@ -3582,7 +3582,7 @@ namespace units
 		dimensionless::scalar_t cos(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::cos(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::cos(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3597,7 +3597,7 @@ namespace units
 		dimensionless::scalar_t sin(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::sin(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::sin(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3612,7 +3612,7 @@ namespace units
 		dimensionless::scalar_t tan(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::tan(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::tan(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3675,7 +3675,7 @@ namespace units
 			static_assert(traits::is_scalar_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
-			return angle::radian_t(std::atan2(y.convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
+			return angle::radian_t(std::atan2(y.template convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
 		}
 
 		//----------------------------------
@@ -3694,7 +3694,7 @@ namespace units
 		dimensionless::scalar_t cosh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::cosh(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::cosh(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3709,7 +3709,7 @@ namespace units
 		dimensionless::scalar_t sinh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::sinh(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::sinh(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3724,7 +3724,7 @@ namespace units
 		dimensionless::scalar_t tanh(AngleUnit angle)
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
-			return dimensionless::scalar_t(std::tanh(angle.convert<angle::radian>()()));
+			return dimensionless::scalar_t(std::tanh(angle.template convert<angle::radian>()()));
 		}
 
 		/**
@@ -3974,7 +3974,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmod(UnitTypeLhs numer, UnitTypeRhs denom)
 		{
-			return UnitTypeLhs(std::fmod(numer(), denom.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+			return UnitTypeLhs(std::fmod(numer(), denom.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -4050,7 +4050,7 @@ namespace units
 		UnitTypeLhs fdim(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fdim(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+			return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -4067,7 +4067,7 @@ namespace units
 		UnitTypeLhs fmax(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fmax(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+			return UnitTypeLhs(std::fmax(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		/**
@@ -4085,7 +4085,7 @@ namespace units
 		UnitTypeLhs fmin(UnitTypeLhs x, UnitTypeRhs y)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return UnitTypeLhs(std::fmin(x(), y.convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+			return UnitTypeLhs(std::fmin(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
 		//----------------------------------

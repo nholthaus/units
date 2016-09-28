@@ -21,7 +21,7 @@ ${GTEST_LIBRARIES}
 
 if(WIN32)
 else(WIN32)
-	LIST(APPEND CMAKE_CXX_FLAGS -std=c++14)
+#	LIST(APPEND LIBRARIES m libc++)
 endif(WIN32)
 
 # coveralls support
