@@ -41,7 +41,7 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 ### Notes:
 
- - Due to incompatibilites with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ - Due to incompatibilities with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
  
 ### Tested on:
 
@@ -108,7 +108,7 @@ using namespace units::area;
 using namespace units::velocity;
 ```
 
-**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typicaly the units' non-plural name with the suffix `_t` (for type), e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
+**The easiest way to get started with the `units` library is to think of unit containers as `double` values.** Unit containers are typically the units' non-plural name with the suffix `_t` (for type), e.g. `meter_t`. See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
 
 Units can (_and should!_) be used anywhere `double` values can be used:
 
@@ -117,7 +117,7 @@ double          area = 15 * 5 + 10 * 10;                // 175 m^2?
 square_meter_t  area = 15_m * 5_m + 10_m * 10_m;        // 175 m^2
 ```
 
-What makes unit types special is that unit conversions happen implicitely and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with _no runtime penalty_.
+What makes unit types special is that unit conversions happen implicitly and automatically. Since unit conversions are evaluated at compile time, this means you can mix and match all the unit types you want with _no runtime penalty_.
 
 ```cpp
 foot_t              len   = 5_m;                            // simple implicit conversion
@@ -140,7 +140,7 @@ auto result = 15_m * 5_m + 10_m * 10_m;                 //  m^2
 auto speed  = 60_mi / 1_hr;                             //  60 mph
 ```
 
-***NOTE: Think carefully about using `auto` for return types.*** When you explicitely declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
+***NOTE: Think carefully about using `auto` for return types.*** When you explicitly declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
 More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
 
@@ -198,7 +198,7 @@ since the underlying type and scale parameters default to `double` and `linear_s
 
 Units of compatible types (e.g length units) can be implicitly converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitly converted to/from built-in types, such as `double`. 
 
-Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating soly in the `unit_t` domain. 
+Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit_t` domain. 
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
@@ -270,7 +270,7 @@ auto area = units::length::meter_t(5) * units::length::meter_t(10);	// without l
 auto area = 5_m * 10_m;							// with literals
 ```
 
-All literals* are defined by their SI abbreviation preceeded by an underscore, e.g. `_m` for meter. "Square" units are preceeded by `_sq`, e.g. `_sq_m` for square meters. Non SI units use their most common abbreviations.
+All literals* are defined by their SI abbreviation preceded by an underscore, e.g. `_m` for meter. "Square" units are preceded by `_sq`, e.g. `_sq_m` for square meters. Non SI units use their most common abbreviations.
 
 All literals are defined in the `units::literals` namespace, and in order to use literals in your code ***you must include the line `using units::literals`*** (since there is no way to put a namespace on an operator).
 
@@ -313,7 +313,7 @@ meter_t m = units::math::sqrt(square_meter_t(4.0));		// m == 2.0
 
 # Removing type safety
 
-When interfacing with APIs, libraries, and frameworks which aren't `unit` enabled, it may be necessary (if regrettable) to remove the type-safety of a unit container and expose its underlying type. This is possible using the `unit_cast` funtion, or the `to<>` member function.
+When interfacing with APIs, libraries, and frameworks which aren't `unit` enabled, it may be necessary (if regrettable) to remove the type-safety of a unit container and expose its underlying type. This is possible using the `unit_cast` function, or the `to<>` member function.
 
 ```cpp
 using namespace units;
@@ -359,7 +359,7 @@ In many cases, unit equations are used to determine derived values from a set of
 
 The `unit_value_t` class is the mechanism in the units library to perform compile-time arithmetic. The `unit_value_t` class functions exactly the same way as `std::ratio`, but with an associated unit tag and the ensuing type safety.
 
-For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a pythagorean triple)
+For a simple example, let's define a right triangle whose hypotenuse is the sum of the squares of its side (a Pythagorean triple)
 
 ```cpp
 struct RightTriangle
@@ -546,14 +546,14 @@ See the `units::traits` namespace for a list of all the supported traits.
 
 # Changing the underlying type of `unit_t`
 
-The default underlying type for all unit containers is `double`. However, this can be overriden by providing a definition for `UNIT_LIB_DEFAULT_TYPE`, e.g.
+The default underlying type for all unit containers is `double`. However, this can be overridden by providing a definition for `UNIT_LIB_DEFAULT_TYPE`, e.g.
 
 ```cpp
 // Use 64-bit integers as the underlying unit type
 #define UNIT_LIB_DEFAULT_TYPE int64_t
 ```
 
-**_NOTE:_ changing the underlying type may result in unexpected behavior.** Unit conversion makes heavy use of division, which may make integral types unsuitable except for niche embedded applications. Using excessivly large types may increase the number of arithmetic overflow errors.
+**_NOTE:_ changing the underlying type may result in unexpected behavior.** Unit conversion makes heavy use of division, which may make integral types unsuitable except for niche embedded applications. Using excessively large types may increase the number of arithmetic overflow errors.
 
 # Build Instructions
 
