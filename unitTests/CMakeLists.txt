@@ -12,11 +12,10 @@ ${INC}
 
 LIST(APPEND INCLUDE_DIRS
 ../include
-${GTEST_INCLUDE_DIRS}
 )
 
 LIST(APPEND LIBRARIES
-${GTEST_LIBRARIES}
+gtest
 )
 
 # coveralls support
