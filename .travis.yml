@@ -3,7 +3,7 @@ dist: trusty
 language: cpp
 
 cache: 
-  - ccache
+  ccache: true
   directories:
     - cmake-3.4.3-Linux-x86_64
 
