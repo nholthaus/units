@@ -35,6 +35,8 @@ install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq lcov curl
   - if [[ "$CXX" = "g++" ]]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - pwd
+  - ls
   - if [[ ! -d "cmake-3.4.3-Linux-x86_64" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz && tar xf cmake-3.4.3-Linux-x86_64.tar.gz && cmake ./cmake-3.4.3-Linux-x86_64 && make; fi
   
 script:
