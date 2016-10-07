@@ -2,6 +2,13 @@ sudo: required
 dist: trusty
 language: cpp
 
+cache: 
+  ccache: true
+  directories:
+    - cmake-3.4.3-Linux-x86_64/bin
+    - cmake-3.4.3-Linux-x86_64/plugins
+    - cmake-3.4.3-Linux-x86_64/share
+
 os:
   - linux
 compiler:
@@ -29,9 +36,10 @@ env:
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq lcov curl
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz ;fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar -xzf cmake-3.4.3-Linux-x86_64.tar.gz ;fi
+  - if [[ "$CXX" = "g++" ]]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - pwd
+  - ls
+  - if [[ ! -f "cmake-3.4.3-Linux-x86_64/bin/cmake" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz && tar -xvf cmake-3.4.3-Linux-x86_64.tar.gz; fi
   
 script:
   - mkdir build && cd build
