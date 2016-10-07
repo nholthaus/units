@@ -5,7 +5,9 @@ language: cpp
 cache: 
   ccache: true
   directories:
-    - cmake-3.4.3-Linux-x86_64
+    - cmake-3.4.3-Linux-x86_64/bin
+    - cmake-3.4.3-Linux-x86_64/plugins
+    - cmake-3.4.3-Linux-x86_64/share
 
 os:
   - linux
@@ -37,7 +39,7 @@ install:
   - if [[ "$CXX" = "g++" ]]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - pwd
   - ls
-  - if [[ ! -d "cmake-3.4.3-Linux-x86_64/bin" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz && tar xf cmake-3.4.3-Linux-x86_64.tar.gz && cmake ./cmake-3.4.3-Linux-x86_64 && make; fi
+  - if [[ ! -d "cmake-3.4.3-Linux-x86_64/bin" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz && tar -xvf cmake-3.4.3-Linux-x86_64.tar.gz && cmake ./cmake-3.4.3-Linux-x86_64 && make; fi
   
 script:
   - mkdir build && cd build
