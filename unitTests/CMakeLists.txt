@@ -1,5 +1,4 @@
-SET(TARGET_NAME unitLibTest)
-PROJECT(${TARGET_NAME})	# it's a pun, GET IT!?!?
+PROJECT(unitLibTest)
 
 # use absolute paths to help coveralls
 get_filename_component(MAIN main.cpp ABSOLUTE)
@@ -30,10 +29,10 @@ if (COVERALLS)
 endif()
 
 include_directories(${INCLUDE_DIRS})
-ADD_EXECUTABLE(${TARGET_NAME} ${SOURCE_CODE})
-ADD_TEST(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
-TARGET_LINK_LIBRARIES(${TARGET_NAME} ${LIBRARIES})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_CODE})
+ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
 
 IF(WIN32)
-	set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "/machine:x64")
+	set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/machine:x64")
 ENDIF(WIN32)
