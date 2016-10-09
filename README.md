@@ -1,13 +1,14 @@
+
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 
-# Latest Release - v2.1.2
+# Latest Release - v2.1.3
 
 ### Get it:
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.2-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.2)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.3-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.3)
 
 ### New features:
 
@@ -37,7 +38,8 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
   UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
   ```
 - Improvements for integral unit types.
-- Clang support
+- Adds CMake `INTERFACE` project.
+- Clang support.
 
 ### Notes:
 
