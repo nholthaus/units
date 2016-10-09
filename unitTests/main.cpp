@@ -2144,9 +2144,6 @@ TEST_F(UnitConversion, pi)
 
 TEST_F(UnitConversion, constants)
 {
-	std::cout << 4 * constants::pi * constants::epsilon0 << std::endl;
-	std::cout << 1.0 / (4 * constants::pi * constants::epsilon0) << std::endl;
-	std::cout << (1.0 / (4 * constants::pi * constants::epsilon0)) / constants::detail::PI_VAL << std::endl;
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
 	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
 	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
@@ -2653,28 +2650,28 @@ TEST_F(CompileTimeArithmetic, unit_value_sqrt)
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-// 	watt_t			P_t;				// transmit power
-// 	scalar_t		G;					// gain
-// 	meter_t			lambda;				// wavelength
-// 	square_meter_t	sigma;				// radar cross section
-// 	meter_t			R;					// range
-// 	kelvin_t		T_s;				// system noise temp
-// 	hertz_t			B_n;				// bandwidth
-// 	scalar_t		L;					// loss
-// 
-// 	P_t = megawatt_t(1.4);
-// 	G = dB_t(33.0);
-// 	lambda = constants::c / megahertz_t(2800);
-// 	sigma = square_meter_t(1.0);
-// 	R = meter_t(111000.0);
-// 	T_s = kelvin_t(950.0);
-// 	B_n = megahertz_t(1.67);
-// 	L = dB_t(8.0);
-// 
-// 	scalar_t SNR =	(P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) / 
-// 					(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
-// 
-// 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
+	watt_t			P_t;				// transmit power
+	scalar_t		G;					// gain
+	meter_t			lambda;				// wavelength
+	square_meter_t	sigma;				// radar cross section
+	meter_t			R;					// range
+	kelvin_t		T_s;				// system noise temp
+	hertz_t			B_n;				// bandwidth
+	scalar_t		L;					// loss
+
+	P_t = megawatt_t(1.4);
+	G = dB_t(33.0);
+	lambda = constants::c / megahertz_t(2800);
+	sigma = square_meter_t(1.0);
+	R = meter_t(111000.0);
+	T_s = kelvin_t(950.0);
+	B_n = megahertz_t(1.67);
+	L = dB_t(8.0);
+
+	scalar_t SNR =	(P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) / 
+					(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
+
+	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
 
 TEST_F(CaseStudies, pythagoreanTheorum)

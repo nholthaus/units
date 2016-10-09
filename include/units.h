@@ -381,9 +381,9 @@ namespace units
 		struct has_num_impl
 		{
 			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::num)>;
+			static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; };
 			template<typename>
-			static constexpr std::false_type test(...);
+			static constexpr std::false_type test(...) { return std::false_type{}; }; 
 
 			using type = decltype(test<T>(0));
 		};
@@ -404,9 +404,9 @@ namespace units
 		struct has_den_impl
 		{
 			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::den)>;
+			static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; };
 			template<typename>
-			static constexpr std::false_type test(...);
+			static constexpr std::false_type test(...) { return std::false_type{}; };
 
 			using type = decltype(test<T>(0));
 		};
@@ -1324,6 +1324,11 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
+		constexpr double pow(double x, unsigned long long y)
+		{
+			return y == 0 ? 1.0 : x * pow(x, y - 1);
+		}
+
 		/// convert dispatch for units which are both the same
 		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, std::true_type, std::false_type, std::false_type) noexcept
@@ -1366,8 +1371,7 @@ namespace units
 		typename std::enable_if<(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0), T>::type
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
 		{
-			std::cout << "pi num" << std::endl;
-			return ((value * math::detail::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
+			return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in denominator
@@ -1377,8 +1381,7 @@ namespace units
 		typename std::enable_if<(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0), T>::type
  		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
  		{
-			std::cout << "pi den" << std::endl;
- 			return (value * Ratio::num) / (Ratio::den * math::detail::pow(constants::detail::PI_VAL, std::abs(PiRatio::num / PiRatio::den)));
+ 			return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
  		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
@@ -1388,7 +1391,6 @@ namespace units
 		typename std::enable_if<(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1), T>::type
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
 		{
-			std::cout << "pi std::pow" << std::endl;
 			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
 		}
 
@@ -1459,9 +1461,9 @@ namespace units
 			struct has_operator_parenthesis_impl
 			{
 				template<class U>
-				static constexpr auto test(U*) -> decltype(std::declval<U>()());
+				static constexpr auto test(U*) -> decltype(std::declval<U>()()) { return decltype(std::declval<U>()()){}; };
 				template<typename>
-				static constexpr std::false_type test(...);
+				static constexpr std::false_type test(...) { return std::false_type{}; };
 
 				using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
 			};
@@ -1487,9 +1489,9 @@ namespace units
 			struct has_value_member_impl
 			{
 				template<class U>
-				static constexpr auto test(U* p) -> decltype(p->m_value);
+				static constexpr auto test(U* p) -> decltype(p->m_value) { return p->m_value; };
 				template<typename>
-				static constexpr auto test(...)->std::false_type;
+				static constexpr auto test(...)->std::false_type { return std::false_type{}; };
 
 				using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
 			};
@@ -1606,6 +1608,7 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	// forward declaration
 	template<typename T> struct linear_scale;
+	template<typename T> struct decibel_scale;
 
 	namespace detail
 	{
@@ -1744,10 +1747,11 @@ namespace units
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, typename = typename std::enable_if<!traits::is_dimensionless_unit<unit_t<UnitsRhs, Ty, NlsRhs>>::value>::type>
-		inline constexpr unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) noexcept
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, class = typename std::enable_if<!units::traits::is_dimensionless_unit<unit_t<UnitsRhs, Ty, NlsRhs>>::value>::type>
+		inline constexpr unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) noexcept :
+		nls(units::convert<UnitsRhs, Units, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
-			nls::m_value = units::convert<UnitsRhs, Units, T>(rhs.m_value);
+
 		};
 
 		/**
@@ -1898,7 +1902,7 @@ namespace units
 		 * @details		only enabled for scalar unit types.
 		 */
 		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
-		constexpr operator Ty() const noexcept { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit, traits::unit_traits<Units>::pi_exponent_ratio>>(nls::m_value); }
+		constexpr operator Ty() const noexcept { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit/*, typename traits::unit_traits<Units>::pi_exponent_ratio*/>>(nls::m_value); }
 
 	public:
 
@@ -2024,8 +2028,14 @@ namespace units
 	template<typename T>
 	struct linear_scale
 	{
-		inline constexpr linear_scale() noexcept = default;											///< default constructor.
-		inline constexpr linear_scale(const T& value) noexcept : m_value(value) {}					///< constructor.
+		inline constexpr linear_scale() = default;													///< default constructor.		
+		inline constexpr linear_scale(const linear_scale&) = default;
+		inline ~linear_scale() = default;
+		inline linear_scale& operator=(const linear_scale&) = default;
+		inline constexpr linear_scale(linear_scale&&) = default;
+		inline linear_scale& operator=(linear_scale&&) = default;
+		template<class... Args>
+		inline constexpr linear_scale(const T& value, Args&&... args) noexcept : m_value(value) {}	///< constructor.
 		inline constexpr T operator()() const noexcept { return m_value; }							///< returns value.
 
 		T m_value;																					///< linearized value.	
@@ -2284,14 +2294,6 @@ namespace units
 
 	namespace math
 	{
-		namespace detail
-		{
-			constexpr double pow(double x, unsigned long long y)
-			{
-				return y == 0 ? 1.0 : x * pow(x, y - 1);
-			}
-		}
-
 		/**
 		 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
 		 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
@@ -2336,8 +2338,15 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
-		inline constexpr decibel_scale() = default;
+		inline constexpr decibel_scale() noexcept = default;
+		inline constexpr decibel_scale(const decibel_scale&) = default;
+		inline ~decibel_scale() = default;
+		inline decibel_scale& operator=(const decibel_scale&) = default;
+		inline constexpr decibel_scale(decibel_scale&&) = default;
+		inline decibel_scale& operator=(decibel_scale&&) = default;
 		inline constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
+		template<class... Args>
+		inline constexpr decibel_scale(const T value, std::true_type linearValue, Args&&... args) noexcept : m_value(value) {}
 		inline constexpr T operator()() const noexcept { return 10 * std::log10(m_value); }
 
 		T m_value;	///< linearized value	
@@ -3560,11 +3569,11 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
-		static constexpr const unit_t<PI>													pi(/*1*/detail::PI_VAL);										///< Ratio of a circle's circumference to its diameter.
+		static constexpr const unit_t<PI>																											pi(1);											///< Ratio of a circle's circumference to its diameter.
 		static constexpr const velocity::meters_per_second_t																						c(299792458.0);									///< Speed of light in vacuum.
 		static constexpr const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
 		static constexpr const unit_t<compound_unit<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
-		static constexpr const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(pi * 4.0e-7);								///< vacuum permeability.
+		static constexpr const unit_t<compound_unit<force::newtons, inverse<squared<current::ampere>>>>												mu0(pi * 4.0e-7 * force::newton_t(1) / units::math::cpow<2>(current::ampere_t(1)));										///< vacuum permeability.
 		static constexpr const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * math::cpow<2>(c)));		///< vacuum permitivity.
 		static constexpr const impedance::ohm_t																										Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		static constexpr const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.

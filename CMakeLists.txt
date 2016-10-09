@@ -8,8 +8,12 @@ OPTION(BUILD_DOCS "Build the documentation" OFF)
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	# enable parallel build
 	set( ENV{CL} /MP )
+else()
+	# turn off undefined inline function errors (occur in the traits classes)
+	add_compile_options(-Wundefined-inline)
 endif()
 
 # header-only library target. To use this project as a subdirectory,
