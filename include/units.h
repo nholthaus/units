@@ -112,8 +112,8 @@
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
-		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
-		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
+		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -133,8 +133,8 @@
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
 	{\
-		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
-		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
+		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 

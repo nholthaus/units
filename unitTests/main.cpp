@@ -99,6 +99,15 @@ namespace {
 		virtual void TearDown() {};
 	};
 
+	class Constexpr : public ::testing::Test {
+	protected:
+
+		Constexpr() {};
+		virtual ~Constexpr() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
+
 	class CaseStudies : public ::testing::Test {
 	protected:
 
@@ -2422,9 +2431,58 @@ TEST_F(UnitMath, fma)
 	meter_t x(2.0);
 	meter_t y(3.0);
 	square_meter_t z(1.0);
-	math::fma(x, y, z);
-//	EXPECT_EQ(square_meter_t(7.0), );
+	EXPECT_EQ(square_meter_t(7.0), (math::fma(x, y, z)));
 }
+
+#if !defined(_MSC_VER) || _MSC_VER > 1800
+TEST_F(Constexpr, constants)
+{
+	EXPECT_TRUE(noexcept(constants::c()));
+	EXPECT_TRUE(noexcept(constants::G()));
+	EXPECT_TRUE(noexcept(constants::h()));
+	EXPECT_TRUE(noexcept(constants::mu0()));
+	EXPECT_TRUE(noexcept(constants::epsilon0()));
+	EXPECT_TRUE(noexcept(constants::Z0()));
+	EXPECT_TRUE(noexcept(constants::k_e()));
+	EXPECT_TRUE(noexcept(constants::e()));
+	EXPECT_TRUE(noexcept(constants::m_e()));
+	EXPECT_TRUE(noexcept(constants::m_p()));
+	EXPECT_TRUE(noexcept(constants::mu_B()));
+	EXPECT_TRUE(noexcept(constants::N_A()));
+	EXPECT_TRUE(noexcept(constants::R()));
+	EXPECT_TRUE(noexcept(constants::k_B()));
+	EXPECT_TRUE(noexcept(constants::F()));
+	EXPECT_TRUE(noexcept(constants::sigma()));
+}
+
+TEST_F(Constexpr, arithmetic)
+{
+	constexpr auto result0(1_m + 1_m);
+	constexpr auto result1(1_m - 1_m);
+	constexpr auto result2(1_m * 1_m);
+	constexpr auto result3(1_m / 1_m);
+	constexpr auto result4(meter_t(1) + meter_t(1));
+	constexpr auto result5(meter_t(1) - meter_t(1));
+	constexpr auto result6(meter_t(1) * meter_t(1));
+	constexpr auto result7(meter_t(1) / meter_t(1));
+
+	EXPECT_TRUE(noexcept(result0));
+	EXPECT_TRUE(noexcept(result1));
+	EXPECT_TRUE(noexcept(result2));
+	EXPECT_TRUE(noexcept(result3));
+	EXPECT_TRUE(noexcept(result4));
+	EXPECT_TRUE(noexcept(result5));
+	EXPECT_TRUE(noexcept(result6));
+	EXPECT_TRUE(noexcept(result7));
+}
+
+TEST_F(Constexpr, cmath)
+{
+	constexpr auto result0(units::math::sin(45_deg));
+
+	EXPECT_TRUE(noexcept(result0));
+}
+#endif
 
 TEST_F(CompileTimeArithmetic, unit_value_t)
 {
