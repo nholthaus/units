@@ -2418,73 +2418,61 @@ namespace units
 	/// Addition for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-		inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
 		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
-		unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>());
-		return ret;
+		return unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale>
+			(lhs.template toLinearized<underlying_type>() * convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs, typename std::enable_if<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int>::type = 0>
-	inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs) noexcept
+	constexpr inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
-
-		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>();
-		return ret;
+		return UnitTypeLhs(lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, typename std::enable_if<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
-	inline UnitTypeRhs operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr inline UnitTypeRhs operator+(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type;
-
-		UnitTypeRhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>();
-		return ret;
+		return UnitTypeRhs(lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Subtraction for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
 		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
 
-		unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>());
-		return ret;
+		return unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale>
+			(lhs.template toLinearized<underlying_type>() / convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs, typename std::enable_if<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int>::type = 0>
-	inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs) noexcept
+	constexpr inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dimensionless::dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
-
-		UnitTypeLhs ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>();
-		return ret;
+		return UnitTypeLhs(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, typename std::enable_if<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
-	inline auto operator-(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator-(const dimensionless::dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
 		using underlying_type = typename units::traits::unit_t_traits<RhsUnits>::underlying_type;
 
-		unit_t<inverse<RhsUnits>, underlying_type, decibel_scale> ret;
-		reinterpret_cast<decibel_scale<underlying_type>&>(ret).m_value = lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>();
-		return ret;
+		return unit_t<inverse<RhsUnits>, underlying_type, decibel_scale>
+			(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type);
 	}
 
 	//----------------------------------
