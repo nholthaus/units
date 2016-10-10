@@ -1861,7 +1861,7 @@ namespace units
 		template<typename Ty, class = typename std::enable_if<std::is_arithmetic<Ty>::value>::type>
 		inline constexpr Ty to() const noexcept
 		{
-			return (Ty)(*this)();
+			return static_cast<Ty>((*this)());
 		}
 
 		/**
@@ -1872,7 +1872,7 @@ namespace units
 		template<typename Ty, class = typename std::enable_if<std::is_arithmetic<Ty>::value>::type>
 		inline constexpr Ty toLinearized() const noexcept
 		{
-			return (Ty)m_value;
+			return static_cast<Ty>(m_value);
 		}
 
 		/**
@@ -1896,7 +1896,7 @@ namespace units
 		 * @details		only enabled for scalar unit types.
 		 */
 		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
-		constexpr operator Ty() const noexcept { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit/*, typename traits::unit_traits<Units>::pi_exponent_ratio*/>>(nls::m_value); }
+		constexpr operator Ty() const noexcept { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>(nls::m_value); }
 
 	public:
 
@@ -2116,11 +2116,27 @@ namespace units
 	
 	/// Multiplication type for non-convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		typename std::enable_if<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
+		typename std::enable_if<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 			(lhs() * rhs());
+	}
+
+	/// Multiplication by a dimensionless unit for unit_t types with a linear scale.
+	template<class UnitTypeLhs, typename UnitTypeRhs,
+		typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
+		inline constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeLhs(lhs() * static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
+	}
+
+	/// Multiplication by a dimensionless unit for unit_t types with a linear scale.
+	template<class UnitTypeLhs, typename UnitTypeRhs,
+		typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value && traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
+		inline constexpr UnitTypeRhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeRhs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) * rhs());
 	}
 
 	/// Multiplication by a scalar for unit_t types with a linear scale.
@@ -3555,7 +3571,6 @@ namespace units
 	 * @brief		namespace for physical constants like PI and Avogadro's Number.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD(constants, PI, PI, PI, unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>)
 	namespace constants
 	{
 		/**
@@ -3563,6 +3578,8 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
+		using PI = unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>;
+
 		static constexpr const unit_t<PI>																											pi(1);											///< Ratio of a circle's circumference to its diameter.
 		static constexpr const velocity::meters_per_second_t																						c(299792458.0);									///< Speed of light in vacuum.
 		static constexpr const unit_t<compound_unit<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
