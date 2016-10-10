@@ -41,11 +41,14 @@
 //
 //--------------------------------------------------------------------------------------------------
 
+#pragma once
+
 #ifndef units_h__
 #define units_h__
 
 #ifdef _MSC_VER
-#	if _MSC_VER < 1800
+#	if _MSC_VER <= 1800
+#		define _ALLOW_KEYWORD_MACROS
 #		pragma warning(push)
 #		pragma warning(disable : 4520)
 #		pragma push_macro("constexpr")
@@ -1620,7 +1623,7 @@ namespace units
 		#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_dimensionless_unit;
 		#else
-		template<typename, typename, typename> struct is_dimensionless_unit;
+		template<typename T1, typename T2 = T1, typename T3 = T1> struct is_dimensionless_unit;
 		#endif
 
 		/**
@@ -2040,8 +2043,10 @@ namespace units
 		inline constexpr linear_scale(const linear_scale&) = default;
 		inline ~linear_scale() = default;
 		inline linear_scale& operator=(const linear_scale&) = default;
+#if defined(_MSC_VER) && (_MSC_VER > 1800)
 		inline constexpr linear_scale(linear_scale&&) = default;
 		inline linear_scale& operator=(linear_scale&&) = default;
+#endif
 		template<class... Args>
 		inline constexpr linear_scale(const T& value, Args&&... args) noexcept : m_value(value) {}	///< constructor.
 		inline constexpr T operator()() const noexcept { return m_value; }							///< returns value.
@@ -2063,8 +2068,12 @@ namespace units
 		using dimensionless_t = scalar_t;
 	}
 
+// ignore the redeclaration of the default template parameters
+#pragma warning(push)
+#pragma warning(disable : 4348)
 	UNIT_ADD_CATEGORY_TRAIT(scalar, scalar);
 	UNIT_ADD_CATEGORY_TRAIT(dimensionless, scalar);
+#pragma warning(pop)
 
 	//------------------------------
 	//	LINEAR ARITHMETIC
@@ -2381,12 +2390,14 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
-		inline constexpr decibel_scale() noexcept = default;
+		inline constexpr decibel_scale() = default;
 		inline constexpr decibel_scale(const decibel_scale&) = default;
 		inline ~decibel_scale() = default;
 		inline decibel_scale& operator=(const decibel_scale&) = default;
+#if defined(_MSC_VER) && (_MSC_VER > 1800)
 		inline constexpr decibel_scale(decibel_scale&&) = default;
 		inline decibel_scale& operator=(decibel_scale&&) = default;
+#endif
 		inline constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
 		template<class... Args>
 		inline constexpr decibel_scale(const T value, std::true_type linearValue, Args&&... args) noexcept : m_value(value) {}
@@ -4208,12 +4219,13 @@ namespace units
 };	// end namespace units
 
 #ifdef _MSC_VER
-#	if _MSC_VER < 1800
+#	if _MSC_VER <= 1800
 #		pragma warning(pop)
 #		undef constexpr
 #		pragma pop_macro("constexpr")
 #		undef noexcept
 #		pragma pop_macro("noexcept")
+#		undef _ALLOW_KEYWORD_MACROS
 #	endif // _MSC_VER < 1800
 #endif // _MSC_VER
 
