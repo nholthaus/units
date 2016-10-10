@@ -2135,6 +2135,7 @@ TEST_F(UnitConversion, concentration)
 TEST_F(UnitConversion, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit<decltype(constants::pi)>::value);
+	EXPECT_TRUE(units::traits::is_dimensionless_unit<constants::PI>::value);
 
 	// implicit conversion
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);

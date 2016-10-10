@@ -1861,7 +1861,7 @@ namespace units
 		template<typename Ty, class = typename std::enable_if<std::is_arithmetic<Ty>::value>::type>
 		inline constexpr Ty to() const noexcept
 		{
-			return static_cast<Ty>((*this)());
+			return static_cast<Ty>(*this);
 		}
 
 		/**
@@ -1895,8 +1895,22 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for scalar unit types.
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
-		constexpr operator Ty() const noexcept { return  units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>(nls::m_value); }
+		template<class Ty, typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int>::type = 0>
+		constexpr operator Ty() const noexcept 
+		{ 
+			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
+			return units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>(nls::m_value); 
+		}
+
+		/**
+		* @brief		explicit type conversion.
+		* @details		only enabled for non-dimensionless unit types.
+		*/
+		template<class Ty, typename std::enable_if<!traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int>::type = 0>
+		constexpr explicit operator Ty() const noexcept
+		{
+			return static_cast<Ty>((*this)());
+		}
 
 	public:
 
