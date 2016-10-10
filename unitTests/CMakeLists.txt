@@ -33,7 +33,7 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_CODE})
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
 
-# use gtags if present on the system
+# use gtags if present on the system to populate the vscode intellisense
 find_program(GTAGS name gtags HINTS /usr/local/bin DOC "Path to gtags parser")
 if(GTAGS)
 	add_custom_target(gtags COMMAND gtags WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} COMMENT "Generating intellisense data...")

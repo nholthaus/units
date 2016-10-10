@@ -22,6 +22,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //--------------------------------------------------------------------------------------------------
+// 
+// Copyright (c) 2016 Nic Holthaus
+// 
+//--------------------------------------------------------------------------------------------------
 //
 // ATTRIBUTION:
 // Parts of this work have been adapted from: 
@@ -35,16 +39,6 @@
 /// @brief	Complete implementation of `units` - a compile-time, header-only, unit conversion 
 ///			library built on c++14 with no dependencies.
 //
-//--------------------------------------------------------------------------------------------------
-//
-// CHANGE LOG:
-//
-// - v2.0.0 (04/03/2016): Initial
-//
-//--------------------------------------------------------------------------------------------------
-// 
-// Copyright (c) 2016 Nic Holthaus
-// 
 //--------------------------------------------------------------------------------------------------
 
 #ifndef units_h__
@@ -2119,8 +2113,8 @@ namespace units
 		return  unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
 			(lhs() * convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
 	}
-
-	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
+	
+	/// Multiplication type for non-convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		typename std::enable_if<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>

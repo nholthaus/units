@@ -2476,12 +2476,6 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(result7));
 }
 
-TEST_F(Constexpr, cmath)
-{
-//	constexpr auto result0(units::math::sin(45_deg));
-
-//	EXPECT_TRUE(noexcept(result0));
-}
 #endif
 
 TEST_F(CompileTimeArithmetic, unit_value_t)
