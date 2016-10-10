@@ -2149,6 +2149,12 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi * meter_t(1)).to<double>(), 5.0e-10);
 	EXPECT_NEAR(constants::detail::PI_VAL, (meter_t(1) * constants::pi).to<double>(), 5.0e-10);
 	EXPECT_NEAR(constants::detail::PI_VAL, meter_t(constants::pi).to<double>(), 5.0e-10);
+
+	meter_t a = constants::pi * meter_t(1);
+	meter_t b = meter_t(1) * constants::pi;
+
+	EXPECT_NEAR(constants::detail::PI_VAL, a.to<double>(), 5.0e-10);
+	EXPECT_NEAR(constants::detail::PI_VAL, b.to<double>(), 5.0e-10);
 }
 
 TEST_F(UnitConversion, constants)
