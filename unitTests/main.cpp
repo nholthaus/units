@@ -1276,9 +1276,6 @@ TEST_F(UnitContainer, literals)
 	EXPECT_TRUE((std::is_same<decltype(x), meter_t>::value));
 	EXPECT_TRUE(meter_t(10) == x);
 
-	// pi
-	EXPECT_EQ(constants::detail::PI_VAL, 1_PI);
-
 	// conversion using literal syntax
 	foot_t y = 0.3048_m;
 	EXPECT_TRUE(1_ft == y);
@@ -2137,24 +2134,57 @@ TEST_F(UnitConversion, concentration)
 
 TEST_F(UnitConversion, pi)
 {
+	EXPECT_TRUE(units::traits::is_dimensionless_unit<decltype(constants::pi)>::value);
+	EXPECT_TRUE(units::traits::is_dimensionless_unit<constants::PI>::value);
+
+	// implicit conversion/arithmetic
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
 	EXPECT_NEAR(6.28318531, (2 * constants::pi), 5.0e-9);
+	EXPECT_NEAR(6.28318531, (constants::pi + constants::pi), 5.0e-9);
+	EXPECT_NEAR(0.0, (constants::pi - constants::pi), 5.0e-9);
 	EXPECT_NEAR(31.00627668, units::math::cpow<3>(constants::pi), 5.0e-10);
 	EXPECT_NEAR(0.0322515344, (1.0 / units::math::cpow<3>(constants::pi)), 5.0e-11);
+	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
+	EXPECT_TRUE(1.0 != constants::pi);
+	EXPECT_TRUE(4.0 > constants::pi);
+	EXPECT_TRUE(3.0 < constants::pi);
+	EXPECT_TRUE(constants::pi > 3.0);
+	EXPECT_TRUE(constants::pi < 4.0);
 
+	// explicit conversion
+	EXPECT_NEAR(3.14159, constants::pi.to<double>(), 5.0e-6);
+
+	// unit initialization
+	EXPECT_TRUE((std::is_same<meter_t, decltype(meter_t(constants::pi))>::value));
+	EXPECT_NEAR(constants::detail::PI_VAL, meter_t(constants::pi).to<double>(), 5.0e-10);
+
+	// auto multiplication
 	EXPECT_TRUE((std::is_same<meter_t, decltype(constants::pi * meter_t(1))>::value));
 	EXPECT_TRUE((std::is_same<meter_t, decltype(meter_t(1) * constants::pi)>::value));
-	EXPECT_TRUE((std::is_same<meter_t, decltype(meter_t(constants::pi))>::value));
 
 	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi * meter_t(1)).to<double>(), 5.0e-10);
 	EXPECT_NEAR(constants::detail::PI_VAL, (meter_t(1) * constants::pi).to<double>(), 5.0e-10);
-	EXPECT_NEAR(constants::detail::PI_VAL, meter_t(constants::pi).to<double>(), 5.0e-10);
-
+	
+	// explicit multiplication
 	meter_t a = constants::pi * meter_t(1);
 	meter_t b = meter_t(1) * constants::pi;
 
 	EXPECT_NEAR(constants::detail::PI_VAL, a.to<double>(), 5.0e-10);
 	EXPECT_NEAR(constants::detail::PI_VAL, b.to<double>(), 5.0e-10);
+
+	// auto division
+	EXPECT_TRUE((std::is_same<hertz_t, decltype(constants::pi / second_t(1))>::value));
+	EXPECT_TRUE((std::is_same<second_t, decltype(second_t(1) / constants::pi)>::value));
+
+	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi / second_t(1)).to<double>(), 5.0e-10);
+	EXPECT_NEAR(1.0 / constants::detail::PI_VAL, (second_t(1) / constants::pi).to<double>(), 5.0e-10);
+
+	// explicit
+	hertz_t c = constants::pi / second_t(1);
+	second_t d = second_t(1) / constants::pi;
+
+	EXPECT_NEAR(constants::detail::PI_VAL, c.to<double>(), 5.0e-10);
+	EXPECT_NEAR(1.0 / constants::detail::PI_VAL, d.to<double>(), 5.0e-10);
 }
 
 TEST_F(UnitConversion, constants)
