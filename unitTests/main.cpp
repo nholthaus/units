@@ -2137,11 +2137,19 @@ TEST_F(UnitConversion, pi)
 	EXPECT_TRUE(units::traits::is_dimensionless_unit<decltype(constants::pi)>::value);
 	EXPECT_TRUE(units::traits::is_dimensionless_unit<constants::PI>::value);
 
-	// implicit conversion
+	// implicit conversion/arithmetic
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
 	EXPECT_NEAR(6.28318531, (2 * constants::pi), 5.0e-9);
+	EXPECT_NEAR(6.28318531, (constants::pi + constants::pi), 5.0e-9);
+	EXPECT_NEAR(0.0, (constants::pi - constants::pi), 5.0e-9);
 	EXPECT_NEAR(31.00627668, units::math::cpow<3>(constants::pi), 5.0e-10);
 	EXPECT_NEAR(0.0322515344, (1.0 / units::math::cpow<3>(constants::pi)), 5.0e-11);
+	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
+	EXPECT_TRUE(1 != constants::pi);
+	EXPECT_TRUE(4 > constants::pi);
+	EXPECT_TRUE(3 < constants::pi);
+	EXPECT_TRUE(constants::pi > 3);
+	EXPECT_TRUE(constants::pi < 4);
 
 	// explicit conversion
 	EXPECT_NEAR(3.14159, constants::pi.to<double>(), 5.0e-6);
@@ -2177,7 +2185,6 @@ TEST_F(UnitConversion, pi)
 
 	EXPECT_NEAR(constants::detail::PI_VAL, c.to<double>(), 5.0e-10);
 	EXPECT_NEAR(1.0 / constants::detail::PI_VAL, d.to<double>(), 5.0e-10);
-
 }
 
 TEST_F(UnitConversion, constants)
