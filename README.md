@@ -55,26 +55,38 @@ Does this library work on your compiler? If so, let me know!
 
 # Contents
 
+<!-- TOC -->
 
+- [UNITS](#units)
+- [Latest Release - v2.1.2](#latest-release-v212)
+    - [Get it](#get-it)
+    - [New features](#new-features)
+    - [Notes](#notes)
+    - [Tested on](#tested-on)
+- [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
 - [Getting started guide](#getting-started-guide)
 - [Unit tags](#unit-tags)
 - [Unit containers](#unit-containers)
-- [Unit literals](#unit-literals)
-- [`<cmath>` functions](#cmath-functions)
-- [Exponentials and square roots](#exponentials-and-square-roots)
+- [Unit Literals](#unit-literals)
+- [`<cmath>` Functions](#cmath-functions)
+- [Exponentials and Square Roots](#exponentials-and-square-roots)
 - [Removing type safety](#removing-type-safety)
 - [Efficiency](#efficiency)
-- [Pure compile-time unit manipulation](#pure-compile-time-unit-manipulation)
+- [Pure Compile-time Unit Manipulation](#pure-compile-time-unit-manipulation)
 - [Conversion without unit containers](#conversion-without-unit-containers)
 - [Namespaces](#namespaces)
 - [Defining new units](#defining-new-units)
 - [Unit definition macros](#unit-definition-macros)
-- [Unit type traits](#unit-type-traits)
-- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit-t)
-- [Build instructions](#build-instructions)
-- [Previous releases](#previous-releases)
+- [Unit Type Traits](#unit-type-traits)
+- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unitt)
+- [Build Instructions](#build-instructions)
+    - [Windows](#windows)
+    - [Linux](#linux)
+- [Previous Releases](#previous-releases)
+
+<!-- /TOC -->
 
 # Documentation
 
