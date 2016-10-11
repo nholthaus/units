@@ -66,6 +66,7 @@
 //	INCLUDES
 //--------------------
 
+#include <chrono>
 #include <ratio>
 #include <type_traits>
 #include <cstdint>
@@ -101,10 +102,10 @@
 	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
-		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
-		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
-		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
-		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
+		/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
+		/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
+		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}\
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
@@ -125,7 +126,7 @@
 	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
 	namespace namespaceName\
 	{\
-		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
 	}\
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 	namespace literals\
@@ -194,10 +195,10 @@
 	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
-		/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
-		/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
-		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
-		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
+		/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
+		/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
+		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}\
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
@@ -213,7 +214,7 @@
 	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
 	namespace namespaceName\
 	{\
-		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
 	}\
 	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
 
@@ -608,47 +609,50 @@ namespace units
 	namespace category
 	{
 		// SCALAR (DIMENSIONLESS) TYPES
-		using scalar_unit = base_unit<>;			///< Represents a quantity with no dimension.
-		using dimensionless_unit = base_unit<>;		///< Represents a quantity with no dimension.
+		typedef base_unit<> scalar_unit;			///< Represents a quantity with no dimension.
+		typedef base_unit<> dimensionless_unit;	///< Represents a quantity with no dimension.
 
-		// SI BASE UNIT TYPES	--------------------		METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	length_unit						=	base_unit<std::ratio<1>>;																														///< Represents an SI base unit of length
-		using	mass_unit						=	base_unit<std::ratio<0>,	std::ratio<1>>;																										///< Represents an SI base unit of mass
-		using	time_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;																						///< Represents an SI base unit of time
-		using	angle_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;																		///< Represents an SI base unit of angle
-		using	current_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;														///< Represents an SI base unit of current
-		using	temperature_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;										///< Represents an SI base unit of temperature
-		using	substance_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;						///< Represents an SI base unit of amount of substance
-		using	luminous_intensity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI base unit of luminous intensity
+		// SI BASE UNIT TYPES
+		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA		---		CATEGORY
+		typedef base_unit<std::ratio<1>>																														length_unit;			 		///< Represents an SI base unit of length
+		typedef base_unit<std::ratio<0>,	std::ratio<1>>																										mass_unit;				 		///< Represents an SI base unit of mass
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																						time_unit;				 		///< Represents an SI base unit of time
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																		angle_unit;				 		///< Represents an SI base unit of angle
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>														current_unit;			 		///< Represents an SI base unit of current
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>										temperature_unit;		 		///< Represents an SI base unit of temperature
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>						substance_unit;			 		///< Represents an SI base unit of amount of substance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		luminous_intensity_unit; 		///< Represents an SI base unit of luminous intensity
 
-		// SI DERIVED UNIT TYPES	---------------				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	solid_angle_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>;		///< Represents an SI derived unit of solid angle
-		using	frequency_unit					=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of frequency
-		using	velocity_unit					=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of velocity
-		using	angular_velocity_unit			=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>;																		///< Represents an SI derived unit of angular velocity
-		using	acceleration_unit				=	base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>;																					///< Represents an SI derived unit of acceleration
-		using	force_unit						=	base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of force
-		using	pressure_unit					=	base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of pressure
-		using	charge_unit						=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>;														///< Represents an SI derived unit of charge
-		using	energy_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of energy
-		using	power_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>;																					///< Represents an SI derived unit of power
-		using	voltage_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of voltage
-		using	capacitance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>;														///< Represents an SI derived unit of capacitance
-		using	impedance_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>;													///< Represents an SI derived unit of impedance
-		using	conductance_unit				=	base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>;														///< Represents an SI derived unit of conductance
-		using	magnetic_flux_unit				=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of magnetic flux
-		using	magnetic_field_strength_unit	=	base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>;													///< Represents an SI derived unit of magnetic field strength
-		using	inductance_unit					=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>;													///< Represents an SI derived unit of inductance
-		using	luminous_flux_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI derived unit of luminous flux
-		using	illuminance_unit				=	base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>;		///< Represents an SI derived unit of illuminance
-		using	radioactivity_unit				=	base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>;																					///< Represents an SI derived unit of radioactivity
+		// SI DERIVED UNIT TYPES
+		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA		---		CATEGORY	
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>		solid_angle_unit;				///< Represents an SI derived unit of solid angle
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																						frequency_unit;					///< Represents an SI derived unit of frequency
+		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>																						velocity_unit;					///< Represents an SI derived unit of velocity
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>																		angular_velocity_unit;			///< Represents an SI derived unit of angular velocity
+		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>																						acceleration_unit;				///< Represents an SI derived unit of acceleration
+		typedef base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>																						force_unit;						///< Represents an SI derived unit of force
+		typedef base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>																						pressure_unit;					///< Represents an SI derived unit of pressure
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>														charge_unit;					///< Represents an SI derived unit of charge
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																						energy_unit;					///< Represents an SI derived unit of energy
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>																						power_unit;						///< Represents an SI derived unit of power
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>														voltage_unit;					///< Represents an SI derived unit of voltage
+		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>														capacitance_unit;				///< Represents an SI derived unit of capacitance
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>														impedance_unit;					///< Represents an SI derived unit of impedance
+		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>														conductance_unit;				///< Represents an SI derived unit of conductance
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>														magnetic_flux_unit;				///< Represents an SI derived unit of magnetic flux
+		typedef base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>														magnetic_field_strength_unit;	///< Represents an SI derived unit of magnetic field strength
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>														inductance_unit;				///< Represents an SI derived unit of inductance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		luminous_flux_unit;				///< Represents an SI derived unit of luminous flux
+		typedef base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		illuminance_unit;				///< Represents an SI derived unit of illuminance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																						radioactivity_unit;				///< Represents an SI derived unit of radioactivity
 
-		// OTHER UNIT TYPES			---------------				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			
-		using	torque_unit						=	base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>;																					///< Represents an SI derived unit of torque
-		using	area_unit						=	base_unit<std::ratio<2>>;																														///< Represents an SI derived unit of area
-		using	volume_unit						=	base_unit<std::ratio<3>>;																														///< Represents an SI derived unit of volume
-		using	density_unit					=	base_unit<std::ratio<-3>,	std::ratio<1>>;																										///< Represents an SI derived unit of density
-		using	concentration_unit				=	base_unit<>;
+		// OTHER UNIT TYPES
+		//				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			---		CATEGORY			
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																						torque_unit;					///< Represents an SI derived unit of torque
+		typedef base_unit<std::ratio<2>>																														area_unit;						///< Represents an SI derived unit of area
+		typedef base_unit<std::ratio<3>>																														volume_unit;					///< Represents an SI derived unit of volume
+		typedef base_unit<std::ratio<-3>,	std::ratio<1>>																										density_unit;					///< Represents an SI derived unit of density
+		typedef base_unit<>																																		concentration_unit;				///< Represents a unit of concentration
 	}
 
 	//------------------------------
@@ -1740,6 +1744,17 @@ namespace units
 		};
 
 		/**
+		 * @brief		chrono constructor
+		 * @details		enable implicit conversions from std::chrono::duration types ONLY for time units
+		 * @param[in]	value value of the unit_t
+		 */
+		template<class Rep, class Period, class = typename std::enable_if<std::is_arithmetic<Rep>::value && traits::is_ratio<Period>::value>::type>
+		inline constexpr unit_t(const std::chrono::duration<Rep, Period>& value) noexcept : nls(units::convert<unit<std::ratio<1,1000000000>, category::time_unit>, Units>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())) 
+		{
+
+		};
+
+		/**
 		 * @brief		copy constructor
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
@@ -1899,20 +1914,30 @@ namespace units
 		 * @details		only enabled for scalar unit types.
 		 */
 		template<class Ty, typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int>::type = 0>
-		constexpr operator Ty() const noexcept 
+		inline constexpr operator Ty() const noexcept 
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
 			return units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>((*this)());
 		}
 
 		/**
-		* @brief		explicit type conversion.
-		* @details		only enabled for non-dimensionless unit types.
-		*/
+		 * @brief		explicit type conversion.
+		 * @details		only enabled for non-dimensionless unit types.
+		 */
 		template<class Ty, typename std::enable_if<!traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int>::type = 0>
-		constexpr explicit operator Ty() const noexcept
+		inline constexpr explicit operator Ty() const noexcept
 		{
 			return static_cast<Ty>((*this)());
+		}
+
+		/**
+		 * @brief		chrono implicit type conversion.
+		 * @details		only enabled for time unit types.
+		 */
+		template<typename U = Units, typename std::enable_if<units::traits::is_convertible_unit<U, unit<std::ratio<1>, category::time_unit>>::value, int>::type = 0>
+		inline constexpr operator std::chrono::nanoseconds() const noexcept
+		{
+			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<Units, unit<std::ratio<1,1000000000>, category::time_unit>>((*this)())));
 		}
 
 	public:
@@ -1955,7 +1980,7 @@ namespace units
 	template<typename T, typename Units, class = typename std::enable_if<std::is_arithmetic<T>::value && traits::is_unit_t<Units>::value>::type>
 	inline constexpr T unit_cast(const Units& value) noexcept
 	{
-		return static_cast<T>(value());
+		return static_cast<T>(value);
 	}
 
 	//------------------------------
@@ -2061,11 +2086,11 @@ namespace units
 	// Scalar units are the *ONLY* units implicitly convertible to/from built-in types.
 	namespace dimensionless
 	{
-		using scalar = unit<std::ratio<1>, units::category::scalar_unit>;
-		using dimensionless = unit<std::ratio<1>, units::category::dimensionless_unit>;
+		typedef unit<std::ratio<1>, units::category::scalar_unit> scalar;
+		typedef unit<std::ratio<1>, units::category::dimensionless_unit> dimensionless;
 
-		using scalar_t = unit_t<scalar>;
-		using dimensionless_t = scalar_t;
+		typedef unit_t<scalar> scalar_t;
+		typedef scalar_t dimensionless_t;
 	}
 
 // ignore the redeclaration of the default template parameters
@@ -2090,7 +2115,9 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() + convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return UnitTypeLhs(lhs() + convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
 	/// Addition operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
@@ -2111,7 +2138,9 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 	inline constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() - convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return UnitTypeLhs(lhs() - convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
 	/// Subtraction operator for scalar unit_t types with a linear_scale. Scalar types can be implicitly converted to built-in types.
@@ -2133,8 +2162,10 @@ namespace units
 		typename std::enable_if<traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
 	{
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
 		return  unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
-			(lhs() * convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
+			(lhs() * convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 	
 	/// Multiplication type for non-convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -2142,7 +2173,9 @@ namespace units
 		typename std::enable_if<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
-		return unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return unit_t<compound_unit<UnitsLhs, UnitsRhs>>
 			(lhs() * rhs());
 	}
 
@@ -2185,7 +2218,9 @@ namespace units
 		typename std::enable_if<traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr dimensionless::scalar_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return dimensionless::scalar_t(lhs() / convert<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>(rhs()));
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return dimensionless::scalar_t(lhs() / convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -2193,7 +2228,9 @@ namespace units
 		typename std::enable_if<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>>
 	{
-		return unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>>
+		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return unit_t<compound_unit<UnitsLhs, inverse<UnitsRhs>>>
 			(lhs() / rhs());
 	}
 
@@ -2227,7 +2264,8 @@ namespace units
 		typename std::enable_if<std::is_arithmetic<T>::value && traits::has_linear_scale<UnitTypeRhs>::value, int>::type = 0>
 		inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
 	{
-		return unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		return unit_t<inverse<UnitsRhs>>
 			(lhs / rhs());
 	}
 
@@ -2416,10 +2454,10 @@ namespace units
 	 */
 	namespace dimensionless
 	{
-		using dB_t = unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
+		typedef unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale> dB_t;
 		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
 
-		using dBi_t = dB_t;
+		typedef dB_t dBi_t;
 	}
 
 	//------------------------------
@@ -2483,7 +2521,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_t_traits<RhsUnits>::underlying_type;
 
 		return unit_t<inverse<RhsUnits>, underlying_type, decibel_scale>
-			(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type);
+			(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	//----------------------------------

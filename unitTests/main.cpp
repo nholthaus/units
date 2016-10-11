@@ -2145,11 +2145,11 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(31.00627668, units::math::cpow<3>(constants::pi), 5.0e-10);
 	EXPECT_NEAR(0.0322515344, (1.0 / units::math::cpow<3>(constants::pi)), 5.0e-11);
 	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
-	EXPECT_TRUE(1 != constants::pi);
-	EXPECT_TRUE(4 > constants::pi);
-	EXPECT_TRUE(3 < constants::pi);
-	EXPECT_TRUE(constants::pi > 3);
-	EXPECT_TRUE(constants::pi < 4);
+	EXPECT_TRUE(1.0 != constants::pi);
+	EXPECT_TRUE(4.0 > constants::pi);
+	EXPECT_TRUE(3.0 < constants::pi);
+	EXPECT_TRUE(constants::pi > 3.0);
+	EXPECT_TRUE(constants::pi < 4.0);
 
 	// explicit conversion
 	EXPECT_NEAR(3.14159, constants::pi.to<double>(), 5.0e-6);
@@ -2205,6 +2205,35 @@ TEST_F(UnitConversion, constants)
 	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
 	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
 	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
+}
+
+TEST_F(UnitConversion, std_chrono)
+{
+	nanosecond_t a = std::chrono::nanoseconds(10);
+	EXPECT_EQ(nanosecond_t(10), a);
+	microsecond_t b = std::chrono::microseconds(10);
+	EXPECT_EQ(microsecond_t(10), b);
+	millisecond_t c = std::chrono::milliseconds(10);
+	EXPECT_EQ(millisecond_t(10), c);
+	second_t d = std::chrono::seconds(1);
+	EXPECT_EQ(second_t(1), d);
+	minute_t e = std::chrono::minutes(120);
+	EXPECT_EQ(minute_t(120), e);
+	hour_t f = std::chrono::hours(2);
+	EXPECT_EQ(hour_t(2), f);
+
+	std::chrono::nanoseconds g = nanosecond_t(100);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(g).count(), 100);
+	std::chrono::nanoseconds h = microsecond_t(2);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(h).count(), 2000);
+	std::chrono::nanoseconds i = millisecond_t(1);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(i).count(), 1000000);
+	std::chrono::nanoseconds j = second_t(1);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(j).count(), 1000000000);
+	std::chrono::nanoseconds k = minute_t(1);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(k).count(), 60000000000);
+	std::chrono::nanoseconds l = hour_t(1);
+	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 
 TEST_F(UnitMath, cos)
