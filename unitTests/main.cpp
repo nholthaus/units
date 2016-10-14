@@ -279,6 +279,7 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 	EXPECT_TRUE((traits::is_dimensionless_unit<dimensionless_t>::value));
 	EXPECT_TRUE((traits::is_dimensionless_unit<dB_t>::value));
 	EXPECT_TRUE((traits::is_dimensionless_unit<dB_t, scalar_t>::value));
+	EXPECT_TRUE((traits::is_dimensionless_unit<ppm_t>::value));
 	EXPECT_FALSE((traits::is_dimensionless_unit<meter_t>::value));
 	EXPECT_FALSE((traits::is_dimensionless_unit<dBW_t>::value));
 	EXPECT_FALSE((traits::is_dimensionless_unit<dBW_t, scalar_t>::value));
@@ -290,7 +291,7 @@ TEST_F(TypeTraits, is_length_unit)
 	EXPECT_TRUE((traits::is_length_unit<cubit>::value));
 	EXPECT_FALSE((traits::is_length_unit<year>::value));
 	EXPECT_FALSE((traits::is_length_unit<double>::value));
-	
+
 	EXPECT_TRUE((traits::is_length_unit<meter_t>::value));
 	EXPECT_TRUE((traits::is_length_unit<const meter_t>::value));
 	EXPECT_TRUE((traits::is_length_unit<const meter_t&>::value));
@@ -302,7 +303,7 @@ TEST_F(TypeTraits, is_length_unit)
 
 TEST_F(TypeTraits, is_mass_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_mass_unit<kilogram>::value));
 	EXPECT_TRUE((traits::is_mass_unit<stone>::value));
 	EXPECT_FALSE((traits::is_mass_unit<meter>::value));
@@ -320,7 +321,7 @@ TEST_F(TypeTraits, is_mass_unit)
 
 TEST_F(TypeTraits, is_time_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_time_unit<second>::value));
 	EXPECT_TRUE((traits::is_time_unit<year>::value));
 	EXPECT_FALSE((traits::is_time_unit<meter>::value));
@@ -337,7 +338,7 @@ TEST_F(TypeTraits, is_time_unit)
 
 TEST_F(TypeTraits, is_angle_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_angle_unit<angle::radian>::value));
 	EXPECT_TRUE((traits::is_angle_unit<angle::degree>::value));
 	EXPECT_FALSE((traits::is_angle_unit<watt>::value));
@@ -354,7 +355,7 @@ TEST_F(TypeTraits, is_angle_unit)
 
 TEST_F(TypeTraits, is_current_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_current_unit<current::ampere>::value));
 	EXPECT_FALSE((traits::is_current_unit<volt>::value));
 	EXPECT_FALSE((traits::is_current_unit<double>::value));
@@ -369,7 +370,7 @@ TEST_F(TypeTraits, is_current_unit)
 
 TEST_F(TypeTraits, is_temperature_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_temperature_unit<fahrenheit>::value));
 	EXPECT_TRUE((traits::is_temperature_unit<kelvin>::value));
 	EXPECT_FALSE((traits::is_temperature_unit<cubit>::value));
@@ -386,7 +387,7 @@ TEST_F(TypeTraits, is_temperature_unit)
 
 TEST_F(TypeTraits, is_substance_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_substance_unit<substance::mol>::value));
 	EXPECT_FALSE((traits::is_substance_unit<year>::value));
 	EXPECT_FALSE((traits::is_substance_unit<double>::value));
@@ -401,7 +402,7 @@ TEST_F(TypeTraits, is_substance_unit)
 
 TEST_F(TypeTraits, is_luminous_intensity_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_luminous_intensity_unit<candela>::value));
 	EXPECT_FALSE((traits::is_luminous_intensity_unit<units::radiation::rad>::value));
 	EXPECT_FALSE((traits::is_luminous_intensity_unit<double>::value));
@@ -416,7 +417,7 @@ TEST_F(TypeTraits, is_luminous_intensity_unit)
 
 TEST_F(TypeTraits, is_solid_angle_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_solid_angle_unit<steradian>::value));
 	EXPECT_TRUE((traits::is_solid_angle_unit<degree_squared>::value));
 	EXPECT_FALSE((traits::is_solid_angle_unit<angle::degree>::value));
@@ -432,7 +433,7 @@ TEST_F(TypeTraits, is_solid_angle_unit)
 
 TEST_F(TypeTraits, is_frequency_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_frequency_unit<hertz>::value));
 	EXPECT_FALSE((traits::is_frequency_unit<second>::value));
 	EXPECT_FALSE((traits::is_frequency_unit<double>::value));
@@ -447,7 +448,7 @@ TEST_F(TypeTraits, is_frequency_unit)
 
 TEST_F(TypeTraits, is_velocity_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_velocity_unit<meters_per_second>::value));
 	EXPECT_TRUE((traits::is_velocity_unit<miles_per_hour>::value));
 	EXPECT_FALSE((traits::is_velocity_unit<meters_per_second_squared>::value));
@@ -480,7 +481,7 @@ TEST_F(TypeTraits, is_acceleration_unit)
 
 TEST_F(TypeTraits, is_force_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_force_unit<units::force::newton>::value));
 	EXPECT_TRUE((traits::is_force_unit<units::force::dynes>::value));
 	EXPECT_FALSE((traits::is_force_unit<meter>::value));
@@ -527,7 +528,7 @@ TEST_F(TypeTraits, is_charge_unit)
 
 TEST_F(TypeTraits, is_energy_unit)
 {
-		EXPECT_TRUE((traits::is_energy_unit<joule>::value));
+	EXPECT_TRUE((traits::is_energy_unit<joule>::value));
 	EXPECT_TRUE((traits::is_energy_unit<calorie>::value));
 	EXPECT_FALSE((traits::is_energy_unit<watt>::value));
 	EXPECT_FALSE((traits::is_energy_unit<double>::value));
@@ -543,7 +544,7 @@ TEST_F(TypeTraits, is_energy_unit)
 
 TEST_F(TypeTraits, is_power_unit)
 {
-		EXPECT_TRUE((traits::is_power_unit<watt>::value));
+	EXPECT_TRUE((traits::is_power_unit<watt>::value));
 	EXPECT_FALSE((traits::is_power_unit<henry>::value));
 	EXPECT_FALSE((traits::is_power_unit<double>::value));
 
@@ -557,7 +558,7 @@ TEST_F(TypeTraits, is_power_unit)
 
 TEST_F(TypeTraits, is_voltage_unit)
 {
-		EXPECT_TRUE((traits::is_voltage_unit<volt>::value));
+	EXPECT_TRUE((traits::is_voltage_unit<volt>::value));
 	EXPECT_FALSE((traits::is_voltage_unit<henry>::value));
 	EXPECT_FALSE((traits::is_voltage_unit<double>::value));
 
@@ -585,7 +586,7 @@ TEST_F(TypeTraits, is_capacitance_unit)
 
 TEST_F(TypeTraits, is_impedance_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_impedance_unit<ohm>::value));
 	EXPECT_FALSE((traits::is_impedance_unit<farad>::value));
 	EXPECT_FALSE((traits::is_impedance_unit<double>::value));
@@ -600,7 +601,7 @@ TEST_F(TypeTraits, is_impedance_unit)
 
 TEST_F(TypeTraits, is_conductance_unit)
 {
-		EXPECT_TRUE((traits::is_conductance_unit<siemen>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<siemen>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<volt>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<double>::value));
 
@@ -614,7 +615,7 @@ TEST_F(TypeTraits, is_conductance_unit)
 
 TEST_F(TypeTraits, is_magnetic_flux_unit)
 {
-		EXPECT_TRUE((traits::is_magnetic_flux_unit<weber>::value));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit<weber>::value));
 	EXPECT_TRUE((traits::is_magnetic_flux_unit<maxwell>::value));
 	EXPECT_FALSE((traits::is_magnetic_flux_unit<inch>::value));
 	EXPECT_FALSE((traits::is_magnetic_flux_unit<double>::value));
@@ -630,7 +631,7 @@ TEST_F(TypeTraits, is_magnetic_flux_unit)
 
 TEST_F(TypeTraits, is_magnetic_field_strength_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit<units::magnetic_field_strength::tesla>::value));
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit<gauss>::value));
 	EXPECT_FALSE((traits::is_magnetic_field_strength_unit<volt>::value));
@@ -647,7 +648,7 @@ TEST_F(TypeTraits, is_magnetic_field_strength_unit)
 
 TEST_F(TypeTraits, is_inductance_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_inductance_unit<henry>::value));
 	EXPECT_FALSE((traits::is_inductance_unit<farad>::value));
 	EXPECT_FALSE((traits::is_inductance_unit<double>::value));
@@ -662,7 +663,7 @@ TEST_F(TypeTraits, is_inductance_unit)
 
 TEST_F(TypeTraits, is_luminous_flux_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_luminous_flux_unit<lumen>::value));
 	EXPECT_FALSE((traits::is_luminous_flux_unit<pound>::value));
 	EXPECT_FALSE((traits::is_luminous_flux_unit<double>::value));
@@ -677,7 +678,7 @@ TEST_F(TypeTraits, is_luminous_flux_unit)
 
 TEST_F(TypeTraits, is_illuminance_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_illuminance_unit<illuminance::footcandle>::value));
 	EXPECT_TRUE((traits::is_illuminance_unit<illuminance::lux>::value));
 	EXPECT_FALSE((traits::is_illuminance_unit<meter>::value));
@@ -694,7 +695,7 @@ TEST_F(TypeTraits, is_illuminance_unit)
 
 TEST_F(TypeTraits, is_radioactivity_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_radioactivity_unit<becquerel>::value));
 	EXPECT_FALSE((traits::is_radioactivity_unit<year>::value));
 	EXPECT_FALSE((traits::is_radioactivity_unit<double>::value));
@@ -725,7 +726,7 @@ TEST_F(TypeTraits, is_torque_unit)
 
 TEST_F(TypeTraits, is_area_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_area_unit<square_meter>::value));
 	EXPECT_TRUE((traits::is_area_unit<hectare>::value));
 	EXPECT_FALSE((traits::is_area_unit<astronicalUnit>::value));
@@ -742,7 +743,7 @@ TEST_F(TypeTraits, is_area_unit)
 
 TEST_F(TypeTraits, is_volume_unit)
 {
-		EXPECT_TRUE((traits::is_volume_unit<cubic_meter>::value));
+	EXPECT_TRUE((traits::is_volume_unit<cubic_meter>::value));
 	EXPECT_TRUE((traits::is_volume_unit<cubic_foot>::value));
 	EXPECT_FALSE((traits::is_volume_unit<square_feet>::value));
 	EXPECT_FALSE((traits::is_volume_unit<double>::value));
@@ -758,7 +759,7 @@ TEST_F(TypeTraits, is_volume_unit)
 
 TEST_F(TypeTraits, is_density_unit)
 {
-	
+
 	EXPECT_TRUE((traits::is_density_unit<kilograms_per_cubic_meter>::value));
 	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot>::value));
 	EXPECT_FALSE((traits::is_density_unit<year>::value));
@@ -967,18 +968,18 @@ TEST_F(UnitContainer, unitTypeMultiplication)
 
 	double convert = scalar_t(3.14);
 	EXPECT_NEAR(3.14, convert, 5.0e-5);
-	
- 	scalar_t sresult = scalar_t(5.0) * scalar_t(4.0);
- 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
- 
+
+	scalar_t sresult = scalar_t(5.0) * scalar_t(4.0);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+
 	sresult = scalar_t(5.0) * 4.0;
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 
 	sresult = 4.0 * scalar_t(5.0);
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 
- 	double result = scalar_t(5.0) * scalar_t(4.0);
- 	EXPECT_NEAR(20.0, result, 5.0e-5);
+	double result = scalar_t(5.0) * scalar_t(4.0);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
 
 	result = scalar_t(5.0) * 4.0;
 	EXPECT_NEAR(20.0, result, 5.0e-5);
@@ -995,7 +996,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 
 	// resultant unit is square of leftmost unit
 	auto c_m2 = a_m * b_ft;
- 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
+	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
 
 	auto c_ft2 = b_ft * a_m;
 	EXPECT_NEAR(10.7639111056, c_ft2(), 5.0e-7);
@@ -1014,12 +1015,12 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	// unit times its inverse results in a scalar
 	scalar_t s = a_m * i_m;
 	EXPECT_NEAR(2.0, s, 5.0e-5);
- 
- 	c_m2 = b_ft * meter_t(2);
- 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
- 
- 	auto e_ft2 = b_ft * meter_t(3);
- 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
+
+	c_m2 = b_ft * meter_t(2);
+	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
+
+	auto e_ft2 = b_ft * meter_t(3);
+	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 
 	auto mps = meter_t(10.0) * unit_t<inverse<seconds>>(1.0);
 
@@ -1108,6 +1109,13 @@ TEST_F(UnitContainer, scalarTypeImplicitConversion)
 
 	scalar_t testS = 3.0;
 	EXPECT_DOUBLE_EQ(3.0, test);
+
+	scalar_t test3(ppm_t(10));
+	EXPECT_DOUBLE_EQ(0.00001, test3);
+
+	scalar_t test4;
+	test4 = ppm_t(1);
+	EXPECT_DOUBLE_EQ(0.000001, test4);
 }
 
 TEST_F(UnitContainer, valueMethod)
@@ -1166,13 +1174,17 @@ TEST_F(UnitContainer, negative)
 {
 	meter_t a(5.3);
 	meter_t b(-5.3);
-	EXPECT_NEAR(a.to<double>(),-b.to<double>(), 5.0e-320);
-	EXPECT_NEAR(b.to<double>(),-a.to<double>(), 5.0e-320);
+	EXPECT_NEAR(a.to<double>(), -b.to<double>(), 5.0e-320);
+	EXPECT_NEAR(b.to<double>(), -a.to<double>(), 5.0e-320);
 
 	dB_t c(2.87);
 	dB_t d(-2.87);
 	EXPECT_NEAR(c.to<double>(), -d.to<double>(), 5.0e-320);
 	EXPECT_NEAR(d.to<double>(), -c.to<double>(), 5.0e-320);
+
+	ppm_t e = -1 * ppm_t(10);
+	EXPECT_EQ(e, -ppm_t(10));
+	EXPECT_NEAR(-0.00001, e, 5.0e-10);
 }
 
 TEST_F(UnitContainer, dBConversion)
@@ -1374,8 +1386,8 @@ TEST_F(UnitConversion, time)
 	double minsPerHour = 60;
 	double secsPerMin = 60;
 	double daysPerWeek = 7;
-	
-	result = 2 * daysPerYear * hoursPerDay * minsPerHour * secsPerMin * 
+
+	result = 2 * daysPerYear * hoursPerDay * minsPerHour * secsPerMin *
 		(1 / minsPerHour) * (1 / secsPerMin) * (1 / hoursPerDay) * (1 / daysPerWeek);
 	EXPECT_NEAR(104.286, result, 5.0e-4);
 
@@ -1385,7 +1397,7 @@ TEST_F(UnitConversion, time)
 
 	double test;
 
-	
+
 
 	test = convert<seconds, seconds>(1.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
@@ -1658,7 +1670,7 @@ TEST_F(UnitConversion, pressure)
 	test = convert<atmospheres, psi>(1.0);
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 }
-	
+
 TEST_F(UnitConversion, charge)
 {
 	double test;
@@ -2087,7 +2099,7 @@ TEST_F(UnitConversion, volume)
 	test = convert<shots, cubic_meter>(1.0);
 	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
 	test = convert<strikes, cubic_meter>(1.0);
-	EXPECT_NEAR(0.07047814033376 , test, 5.0e-5);
+	EXPECT_NEAR(0.07047814033376, test, 5.0e-5);
 	test = convert<volume::fluid_ounces, milliliters>(1.0);
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
@@ -2164,7 +2176,7 @@ TEST_F(UnitConversion, pi)
 
 	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi * meter_t(1)).to<double>(), 5.0e-10);
 	EXPECT_NEAR(constants::detail::PI_VAL, (meter_t(1) * constants::pi).to<double>(), 5.0e-10);
-	
+
 	// explicit multiplication
 	meter_t a = constants::pi * meter_t(1);
 	meter_t b = meter_t(1) * constants::pi;
@@ -2647,7 +2659,7 @@ TEST_F(CompileTimeArithmetic, unit_value_multiply)
 	EXPECT_TRUE((traits::is_unit_value_t_category<category::area_unit, product>::value));
 
 	using productM = unit_value_multiply<mRatio, ftRatio>;
-	
+
 	EXPECT_TRUE((std::is_same<typename std::decay<square_meter_t>::type, typename std::decay<decltype(productM::value())>::type>::value));
 	EXPECT_NEAR(4.0, productM::value().to<double>(), 5.0e-7);
 	EXPECT_TRUE((traits::is_unit_value_t_category<category::area_unit, productM>::value));
@@ -2662,10 +2674,10 @@ TEST_F(CompileTimeArithmetic, unit_value_multiply)
 	EXPECT_NEAR(43.0556444224, productF2::value().to<double>(), 5.0e-8);
 	EXPECT_TRUE((traits::is_unit_value_t_category<category::area_unit, productF2>::value));
 
- 	typedef unit_value_t<units::force::newton, 5> nRatio;
+	typedef unit_value_t<units::force::newton, 5> nRatio;
 
- 	using productN = unit_value_multiply<nRatio, ftRatio>;
- 	EXPECT_FALSE((std::is_same<typename std::decay<torque::newton_meter_t>::type, typename std::decay<decltype(productN::value())>::type>::value));
+	using productN = unit_value_multiply<nRatio, ftRatio>;
+	EXPECT_FALSE((std::is_same<typename std::decay<torque::newton_meter_t>::type, typename std::decay<decltype(productN::value())>::type>::value));
 	EXPECT_TRUE((std::is_convertible<typename std::decay<torque::newton_meter_t>::type, typename std::decay<decltype(productN::value())>::type>::value));
 	EXPECT_NEAR(32.8084, productN::value().to<double>(), 5.0e-8);
 	EXPECT_NEAR(10.0, (productN::value().convert<newton_meter>().to<double>()), 5.0e-7);
@@ -2787,8 +2799,8 @@ TEST_F(CaseStudies, radarRangeEquation)
 	B_n = megahertz_t(1.67);
 	L = dB_t(8.0);
 
-	scalar_t SNR =	(P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) / 
-					(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
+	scalar_t SNR = (P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) /
+		(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
@@ -2798,8 +2810,8 @@ TEST_F(CaseStudies, pythagoreanTheorum)
 	EXPECT_EQ(meter_t(3), RightTriangle::a::value());
 	EXPECT_EQ(meter_t(4), RightTriangle::b::value());
 	EXPECT_EQ(meter_t(5), RightTriangle::c::value());
-  	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value()) 
-  		== pow<2>(RightTriangle::c::value()));
+	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value())
+		== pow<2>(RightTriangle::c::value()));
 }
 int main(int argc, char* argv[])
 {
