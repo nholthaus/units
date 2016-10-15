@@ -1749,17 +1749,18 @@ namespace units
 		 * @param[in]	value value of the unit_t
 		 */
 		template<class Rep, class Period, class = typename std::enable_if<std::is_arithmetic<Rep>::value && traits::is_ratio<Period>::value>::type>
-		inline constexpr unit_t(const std::chrono::duration<Rep, Period>& value) noexcept : nls(units::convert<unit<std::ratio<1,1000000000>, category::time_unit>, Units>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())) 
+		inline constexpr unit_t(const std::chrono::duration<Rep, Period>& value) noexcept : 
+		nls(units::convert<unit<std::ratio<1,1000000000>, category::time_unit>, Units>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count()))) 
 		{
 
 		};
 
 		/**
-		 * @brief		copy constructor
+		 * @brief		copy constructor (converting)
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, class = typename std::enable_if<!units::traits::is_dimensionless_unit<unit_t<UnitsRhs, Ty, NlsRhs>>::value>::type>
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) noexcept :
 		nls(units::convert<UnitsRhs, Units, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
@@ -1917,7 +1918,7 @@ namespace units
 		inline constexpr operator Ty() const noexcept 
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
-			return units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>((*this)());
+			return static_cast<Ty>(units::convert<Units, unit<std::ratio<1>, units::category::scalar_unit>>((*this)()));
 		}
 
 		/**

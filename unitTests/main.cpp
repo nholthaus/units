@@ -1110,6 +1110,7 @@ TEST_F(UnitContainer, scalarTypeImplicitConversion)
 	scalar_t testS = 3.0;
 	EXPECT_DOUBLE_EQ(3.0, test);
 
+
 	scalar_t test3(ppm_t(10));
 	EXPECT_DOUBLE_EQ(0.00001, test3);
 
@@ -1185,6 +1186,20 @@ TEST_F(UnitContainer, negative)
 	ppm_t e = -1 * ppm_t(10);
 	EXPECT_EQ(e, -ppm_t(10));
 	EXPECT_NEAR(-0.00001, e, 5.0e-10);
+}
+
+TEST_F(UnitContainer, concentration)
+{
+	ppb_t a(ppm_t(1));
+	EXPECT_EQ(ppb_t(1000), a);
+	EXPECT_EQ(0.000001, a);
+	EXPECT_EQ(0.000001, a.to<double>());
+
+	scalar_t b(ppm_t(1));
+	EXPECT_EQ(0.000001, b);
+
+	scalar_t c = ppb_t(1);
+	EXPECT_EQ(0.000000001, c);
 }
 
 TEST_F(UnitContainer, dBConversion)
@@ -2165,10 +2180,6 @@ TEST_F(UnitConversion, pi)
 
 	// explicit conversion
 	EXPECT_NEAR(3.14159, constants::pi.to<double>(), 5.0e-6);
-
-	// unit initialization
-	EXPECT_TRUE((std::is_same<meter_t, decltype(meter_t(constants::pi))>::value));
-	EXPECT_NEAR(constants::detail::PI_VAL, meter_t(constants::pi).to<double>(), 5.0e-10);
 
 	// auto multiplication
 	EXPECT_TRUE((std::is_same<meter_t, decltype(constants::pi * meter_t(1))>::value));
