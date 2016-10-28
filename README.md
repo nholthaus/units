@@ -146,8 +146,7 @@ auto speed  = 60_mi / 1_hr;                             //  60 mph
 
 More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
 
-```cpp
-using namespace units::math;
+```cppusing namespace units::math;
 
 meter_t a = 3_m;
 meter_t b = 4_m;
@@ -157,7 +156,6 @@ std::cout << c << std::endl;                // prints: "5 m"
 ```
 
 # Unit tags
-
 Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-information about different units, including how to convert between them, and how to determine their compatibility for conversion.
 
 All unit tags are defined in namespaces under the `units` namespace, such as `units::length` or `units::angle`, to avoid name clashes between units of different physical quantities which share the same names (like pounds). SI base units are defined as "categories" in the `unit` namespace.
@@ -200,7 +198,7 @@ since the underlying type and scale parameters default to `double` and `linear_s
 
 Units of compatible types (e.g length units) can be implicitly converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitly converted to/from built-in types, such as `double`. 
 
-Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit_t` domain. 
+Units are constructed from built-in types, and the `toDoubl()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit_t` domain. 
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
@@ -234,7 +232,7 @@ foot_t	a_ft(1.0), b_ft(2.0), c_ft;
 
 c_m = a_m + b_m;                            // OK. c == 3m
 c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
-auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
+auto result = a_m + b_ft;                   // OK. result is `meter_t` (left-most unit)
 
 auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
 auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
