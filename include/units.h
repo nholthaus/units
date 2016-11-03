@@ -62,6 +62,9 @@
 #define UNIT_LIB_DEFAULT_TYPE double
 #endif
 
+// Comment out to disable iostream printing support
+#define UNITS_LIB_ENABLE_IOSTREAM
+
 //--------------------
 //	INCLUDES
 //--------------------
@@ -71,7 +74,9 @@
 #include <type_traits>
 #include <cstdint>
 #include <cmath>
+#ifdef UNITS_LIB_ENABLE_IOSTREAM
 #include <iostream>
+#endif
 #include <limits>
 
 //------------------------------
@@ -99,6 +104,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
+#ifdef UNITS_LIB_ENABLE_IOSTREAM
 	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
@@ -113,7 +119,21 @@
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
-
+#else
+	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	namespace namespaceName\
+	{\
+		/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
+		/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
+		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
+	}\
+	namespace literals\
+	{\
+		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
+		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+	}
+#endif//UNITS_LIB_ENABLE_IOSTREAM
 	/** 
 	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
 	 * @brief	Macro to create decibel container and literals for an existing unit type.
@@ -123,6 +143,7 @@
 	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
 	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
 	 */
+#ifdef UNITS_LIB_ENABLE_IOSTREAM
 	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
 	namespace namespaceName\
 	{\
@@ -134,6 +155,18 @@
 		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
 		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
+#else
+	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
+	namespace namespaceName\
+	{\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
+	}\
+	namespace literals\
+	{\
+		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
+		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+	}
+#endif//UNITS_LIB_ENABLE_IOSTREAM
 
 	/** 
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -1947,13 +1980,15 @@ namespace units
 		friend class unit_t;
 
 	};
-
+  
+#ifdef UNITS_LIB_ENABLE_IOSTREAM
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
 		os << obj();
 		return os;
 	}
+#endif
 
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	constexpr unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val) noexcept
@@ -2456,8 +2491,9 @@ namespace units
 	namespace dimensionless
 	{
 		typedef unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale> dB_t;
+#ifdef UNITS_LIB_ENABLE_IOSTREAM
 		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
-
+#endif
 		typedef dB_t dBi_t;
 	}
 
