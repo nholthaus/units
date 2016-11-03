@@ -357,7 +357,7 @@ namespace units
 	{
 		namespace detail
 		{
-			static constexpr const double PI_VAL = 3.14159265358979323846264338327950288419716939937510;
+			static constexpr const long double PI_VAL = 3.14159265358979323846264338327950288419716939937510;
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
