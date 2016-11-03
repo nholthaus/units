@@ -50,7 +50,7 @@
 #ifndef units_h__
 #define units_h__
 
-#if _MCS_VER < 1800
+#if defined(_MSC_VER) && _MSC_VER < 1800
 #	pragma warning(push)
 #	pragma warning(disable : 4520)
 #endif
@@ -4140,7 +4140,7 @@ namespace units
 
 };	// end namespace units
 
-#if _MCS_VER < 1800
+#if defined(_MSC_VER) && _MSC_VER < 1800
 #	pragma warning(pop)
 #endif
 
