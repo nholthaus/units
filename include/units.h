@@ -62,8 +62,8 @@
 #define UNIT_LIB_DEFAULT_TYPE double
 #endif
 
-// Comment out to disable iostream printing support
-#define UNITS_LIB_ENABLE_IOSTREAM
+// Unomment to disable iostream support
+//#define UNIT_LIB_DISABLE_IOSTREAM
 
 //--------------------
 //	INCLUDES
@@ -74,7 +74,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <cmath>
-#ifdef UNITS_LIB_ENABLE_IOSTREAM
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 #include <iostream>
 #endif
 #include <limits>
@@ -104,7 +104,7 @@
 	 *			commas to be easily expanded. All the variadic 'arguments' should together
 	 *			comprise the unit definition.
 	 */
-#ifdef UNITS_LIB_ENABLE_IOSTREAM
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
@@ -133,7 +133,7 @@
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
-#endif//UNITS_LIB_ENABLE_IOSTREAM
+#endif//UNIT_LIB_DISABLE_IOSTREAM
 	/** 
 	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
 	 * @brief	Macro to create decibel container and literals for an existing unit type.
@@ -143,7 +143,7 @@
 	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
 	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
 	 */
-#ifdef UNITS_LIB_ENABLE_IOSTREAM
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
 	namespace namespaceName\
 	{\
@@ -166,7 +166,7 @@
 		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
 		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
-#endif//UNITS_LIB_ENABLE_IOSTREAM
+#endif//UNIT_LIB_DISABLE_IOSTREAM
 
 	/** 
 	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
@@ -1981,7 +1981,7 @@ namespace units
 
 	};
   
-#ifdef UNITS_LIB_ENABLE_IOSTREAM
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
@@ -2491,7 +2491,7 @@ namespace units
 	namespace dimensionless
 	{
 		typedef unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale> dB_t;
-#ifdef UNITS_LIB_ENABLE_IOSTREAM
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
 #endif
 		typedef dB_t dBi_t;
