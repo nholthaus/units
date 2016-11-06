@@ -174,7 +174,7 @@ _Example_: the definitions of some common length units are:
 namespace length
 {
 	using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
-	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
+	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 0.3048 meters.
 }
 ```
 
