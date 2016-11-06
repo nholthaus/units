@@ -203,13 +203,13 @@ Units are constructed from built-in types, and the `toDoubl()` method (or `opera
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
 ```cpp
-auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+auto objectVelocity = meter_t(100.0) / second_t(2.0);
 ```
 
 The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:
 
 ```cpp
-units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+units::velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: Unit types are not compatible.`
 ```
 
 Unit containers can (and should!) be used to perform implicit conversions:
