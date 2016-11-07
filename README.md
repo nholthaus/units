@@ -146,7 +146,8 @@ auto speed  = 60_mi / 1_hr;                             //  60 mph
 
 More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
 
-```cppusing namespace units::math;
+```cpp
+using namespace units::math;
 
 meter_t a = 3_m;
 meter_t b = 4_m;
