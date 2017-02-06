@@ -58,6 +58,11 @@
 #	endif // _MSC_VER < 1800
 #endif // _MSC_VER
 
+#if !defined(_MSC_VER) || _MSC_VER > 1800
+#define UNIT_HAS_LITERAL_SUPPORT
+#define UNIT_HAS_VARIADIC_TEMPLATE_SUPPORT
+#endif
+
 #ifndef UNIT_LIB_DEFAULT_TYPE
 #define UNIT_LIB_DEFAULT_TYPE double
 #endif
@@ -71,82 +76,135 @@
 #include <type_traits>
 #include <cstdint>
 #include <cmath>
-#include <iostream>
 #include <limits>
+
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+#include <iostream>
+#endif
 
 //------------------------------
 //	MACROS
 //------------------------------
 
-#if !defined(_MSC_VER) || _MSC_VER > 1800
-
-	/** 
-	 * @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
-	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
-	 * @details	The macro generates singular, plural, and abbreviated forms
-	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
-	 *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
-	 *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
-	 *			cout function which prints both the value and abbreviation of the unit when invoked.
-	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-	 *			are placed in the `units::literals` namespace.
-	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
-	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
-	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
-	 * @param	definition - the variadic parameter is used for the definition of the unit 
-	 *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-	 * @note	a variadic template is used for the definition to allow templates with
-	 *			commas to be easily expanded. All the variadic 'arguments' should together
-	 *			comprise the unit definition.
-	 */
-	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+#define UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
 		/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
 		/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
 		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
-		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
-	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
-	namespace literals\
-	{\
-		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
-		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
 	}
 
-	/** 
-	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
-	 * @brief	Macro to create decibel container and literals for an existing unit type.
-	 * @details	This macro generates the decibel unit container, cout overload, and literal definitions.
-	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-	 *			are placed in the `units::literals` namespace.
-	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
-	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
-	 */
-	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
+#define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular)\
 	namespace namespaceName\
 	{\
-		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
-	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
-	namespace literals\
-	{\
-		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
-		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}
 
-	/** 
-	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
-	 * @brief	Macro to create the `is_category_unit` type trait.
-	 * @details	This trait allows users to test whether a given type matches
-	 *			an intended category. This macro comprises all the boiler-plate
-	 *			code necessary to do so.
-	 * @param	unitCategory The name of the category of unit, e.g. length or mass.
-	 * @param	baseUnit The categories base unit (typically SI base unit). This is
-	 *			necessary for compatibility with compilers which are not fully c++11
-	 *			compliant.
-	 */
-	#define UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)\
+#define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular, underlyingType)\
+	namespace namespaceName\
+	{\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular,underlyingType> nameSingular ## _t; /** @} */\
+	}
+
+#if defined(UNIT_LIB_DISABLE_IOSTREAM)
+	#define UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)
+#else
+	#define UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) \
+	{\
+		os << obj() << " "#abbreviation; return os; \
+	}
+#endif
+
+#if defined(UNIT_HAS_LITERAL_SUPPORT)
+	#define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)\
+	namespace literals\
+	{\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d) { return make_unit<namespaceName::nameSingular ## _t>(d); }; \
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long l) { return make_unit<namespaceName::nameSingular ## _t>(l); };\
+	}
+#else
+	#define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
+#endif
+
+/**
+* @def		UNIT_ADD(nameSingular, namePlural, abbreviation, definition)
+* @brief	Macro for generating the boiler-plate code needed for a new unit.
+* @details	The macro generates singular, plural, and abbreviated forms
+*			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+*			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+*			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+*			cout function which prints both the value and abbreviation of the unit when invoked.
+* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+*			are placed in the `units::literals` namespace.
+* @param	nameSingular singular version of the unit name, e.g. 'meter'
+* @param	namePlural - plural version of the unit name, e.g. 'meters'
+* @param	abbreviation - abbreviated unit name, e.g. 'm'
+* @param	definition - the variadic parameter is used for the definition of the unit
+*			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+* @note	a variadic template is used for the definition to allow templates with
+*			commas to be easily expanded. All the variadic 'arguments' should together
+*			comprise the unit definition.
+*/
+#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular)\
+	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)\
+	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
+
+/**
+* @def		UNIT_ADD_WITH_CUSTOM_TYPE(nameSingular, namePlural, abbreviation, underlyingType, definition)
+* @brief	Macro for generating the boiler-plate code needed for a new unit with a non-default underlying type.
+* @details	The macro generates singular, plural, and abbreviated forms
+*			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+*			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+*			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+*			cout function which prints both the value and abbreviation of the unit when invoked.
+* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+*			are placed in the `units::literals` namespace.
+* @param	nameSingular singular version of the unit name, e.g. 'meter'
+* @param	namePlural - plural version of the unit name, e.g. 'meters'
+* @param	abbreviation - abbreviated unit name, e.g. 'm'
+* @param	underlyingType - the underlying type, e.g. 'int' or 'float'
+* @param	definition - the variadic parameter is used for the definition of the unit
+*			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+* @note	a variadic template is used for the definition to allow templates with
+*			commas to be easily expanded. All the variadic 'arguments' should together
+*			comprise the unit definition.
+*/
+#define UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName, nameSingular, namePlural, abbreviation, underlyingType, /*definition*/...)\
+	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
+	UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular,underlyingType)\
+	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)\
+	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
+
+/**
+* @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
+* @brief	Macro to create decibel container and literals for an existing unit type.
+* @details	This macro generates the decibel unit container, cout overload, and literal definitions.
+* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
+*			are placed in the `units::literals` namespace.
+* @param	nameSingular singular version of the base unit name, e.g. 'watt'
+* @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
+*/
+#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
+	namespace namespaceName\
+	{\
+		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+	}\
+	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation)\
+	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
+
+/**
+* @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
+* @brief	Macro to create the `is_category_unit` type trait.
+* @details	This trait allows users to test whether a given type matches
+*			an intended category. This macro comprises all the boiler-plate
+*			code necessary to do so.
+* @param	unitCategory The name of the category of unit, e.g. length or mass.
+*/
+
+#define UNIT_ADD_CATEGORY_TRAIT_DETAIL(unitCategory)\
 	namespace traits\
 	{\
 		/** @cond */\
@@ -159,99 +217,30 @@
 			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::unitCategory ## _unit>::type {};\
 		}\
 		/** @endcond */\
-		\
-		/** @ingroup	TypeTraits*/\
-		/** @brief		Trait which tests whether a type represents a unit of unitCategory*/\
-		/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitCategory ## _unit<T>::value` to test the unit represents a unitCategory quantity.*/\
-		/** @tparam		T	one or more types to test*/\
+	}
+
+#if defined(UNIT_HAS_VARIADIC_TEMPLATE_SUPPORT)
+#define UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)\
+	namespace traits\
+	{\
 		template<typename... T> struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T>::type>::value...>::value> {};\
 	}
-
-//------------------------------
-//	MACROS (VS2013)
-//------------------------------
-
 #else
-
-	/**
-	 * @def		UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, definition)
-	 * @brief	Macro for generating the boiler-plate code needed for a new unit.
-	 * @details	This macro should be used within an appropriate namespace for the unit
-	 *			category. The macro generates singular, plural, and abbreviated forms
-	 *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
-	 *			appropriately named unit container (e.g. `meter_t`). It also defines a class-specific
-	 *			cout function which prints both the value and abbreviation of the unit when invoked.
-	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-	 *			are placed in the `units::literals` namespace.
-	 * @param	nameSingular singular version of the unit name, e.g. 'meter'
-	 * @param	namePlural - plural version of the unit name, e.g. 'meters'
-	 * @param	abbreviation - abbreviated unit name, e.g. 'm'
-	 * @param	definition - the variadic parameter is used for the definition of the unit
-	 *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-	 * @note	a variadic template is used for the definition to allow templates with
-	 *			commas to be easily expanded. All the variadic 'arguments' should together
-	 *			comprise the unit definition.
-	 */
-	#define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
-	namespace namespaceName\
-	{\
-		/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
-		/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
-		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
-		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
-	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
-
-	/**
-	 * @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
-	 * @brief	Macro to create decibel container and literals for an existing unit type.
-	 * @details	This macro generates the decibel unit container, cout overload, and literal definitions.
-	 * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-	 *			are placed in the `units::literals` namespace.
-	 * @param	nameSingular singular version of the base unit name, e.g. 'watt'
-	 * @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
-	 */
-	#define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
-	namespace namespaceName\
-	{\
-		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
-	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
-
-	/**
-	 * @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
-	 * @brief	Macro to create the `is_category_unit` type trait.
-	 * @details	This trait allows users to test whether a given type matches
-	 *			an intended category. This macro comprises all the boiler-plate
-	 *			code necessary to do so.
-	 * @param	unitCategory The name of the category of unit, e.g. length or mass.
-	 * @param	baseUnit The categories base unit (typically SI base unit). This is
-	 *			necessary for compatibility with compilers which are not fully c++11
-	 *			compliant.
-	 */
-	#define UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)\
+#define UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)\
 	namespace traits\
 	{\
-		/** @cond */\
-		namespace detail\
-		{\
-			template<typename T> struct is_ ## unitCategory ## _unit_impl : std::false_type {};\
-			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::category::unitCategory ## _unit>::type {};\
-			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitCategory ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::category::unitCategory ## _unit>::type {};\
-		}\
-		/** @endcond */\
-		\
-	  		 /** @ingroup		TypeTraits*/\
-	  		 /** @brief			Trait which tests whether a type represents a unit of #unitCategory*/\
-	  		 /** @details		Inherits from `std::true_type` or `std::false_type`. Use `is_#unitCategory_unit<T>::value` to test*/\
-	  		 /**				the unit represents a  #unitCategory quantity.*/\
-	  		 /** @tparam		T	one or more types to test*/\
 			template<typename T1, typename T2 = T1, typename T3 = T1>\
 			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
+
+#define UNIT_ADD_CATEGORY_TRAIT(unitCategory)\
+	UNIT_ADD_CATEGORY_TRAIT_DETAIL(unitCategory)\
+   /** @ingroup	TypeTraits*/\
+	/** @brief		Trait which tests whether a type represents a unit of unitCategory*/\
+	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitCategory ## _unit<T>::value` to test the unit represents a unitCategory quantity.*/\
+	/** @tparam		T	one or more types to test*/\
+	UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -1946,7 +1935,21 @@ namespace units
 		template<class U, typename Ty, template<typename> class Nlt>
 		friend class unit_t;
 
+		template<class UnitType, typename T>
+		friend UnitType make_unit(const T d);
 	};
+
+	template<class UnitType, typename T>
+	UnitType
+	make_unit(const T d)
+	{
+		static_assert(traits::is_unit_t<UnitType>::value, "Template parameter `UnitType` must be a unit type (_t).");
+		UnitType Unit;
+		Unit.m_value = static_cast<typename UnitType::underlying_type>(d);
+		return Unit;
+	}
+
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
@@ -1954,6 +1957,7 @@ namespace units
 		os << obj();
 		return os;
 	}
+#endif
 
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	constexpr unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val) noexcept
@@ -2097,8 +2101,8 @@ namespace units
 // ignore the redeclaration of the default template parameters
 #pragma warning(push)
 #pragma warning(disable : 4348)
-	UNIT_ADD_CATEGORY_TRAIT(scalar, scalar);
-	UNIT_ADD_CATEGORY_TRAIT(dimensionless, scalar);
+	UNIT_ADD_CATEGORY_TRAIT(scalar);
+	UNIT_ADD_CATEGORY_TRAIT(dimensionless);
 #pragma warning(pop)
 
 	//------------------------------
@@ -2456,8 +2460,9 @@ namespace units
 	namespace dimensionless
 	{
 		typedef unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale> dB_t;
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
-
+#endif
 		typedef dB_t dBi_t;
 	}
 
@@ -2999,7 +3004,7 @@ namespace units
 	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, unit<std::ratio<3>, nauticalMiles>)
 	UNIT_ADD(length, yard, yards, yd, unit<std::ratio<3>, feet>)
 
-	UNIT_ADD_CATEGORY_TRAIT(length, meter)
+	UNIT_ADD_CATEGORY_TRAIT(length)
 
 	//------------------------------
 	//	MASS UNITS
@@ -3023,7 +3028,7 @@ namespace units
 	UNIT_ADD(mass, carat, carats, ct, unit<std::ratio<200>, milligrams>)
 	UNIT_ADD(mass, slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 
-	UNIT_ADD_CATEGORY_TRAIT(mass, kilogram)
+	UNIT_ADD_CATEGORY_TRAIT(mass)
 
 	//------------------------------
 	//	TIME UNITS
@@ -3044,7 +3049,7 @@ namespace units
 	UNIT_ADD(time, week, weeks, wk, unit<std::ratio<7>, days>)
 	UNIT_ADD(time, year, years, yr, unit<std::ratio<365>, days>)
 
-	UNIT_ADD_CATEGORY_TRAIT(time, second)
+	UNIT_ADD_CATEGORY_TRAIT(time)
 
 	//------------------------------
 	//	ANGLE UNITS
@@ -3066,7 +3071,7 @@ namespace units
 	UNIT_ADD(angle, turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
 	UNIT_ADD(angle, gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 
-	UNIT_ADD_CATEGORY_TRAIT(angle, radian)
+	UNIT_ADD_CATEGORY_TRAIT(angle)
 
 	//------------------------------
 	//	UNITS OF CURRENT
@@ -3081,7 +3086,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit<std::ratio<1>, units::category::current_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(current, ampere)
+	UNIT_ADD_CATEGORY_TRAIT(current)
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
@@ -3104,7 +3109,7 @@ namespace units
 	UNIT_ADD(temperature, reaumur, reaumur, Re, unit<std::ratio<10, 8>, celsius>)
 	UNIT_ADD(temperature, rankine, rankine, Ra, unit<std::ratio<5, 9>, kelvin>)
 
-	UNIT_ADD_CATEGORY_TRAIT(temperature, kelvin)
+	UNIT_ADD_CATEGORY_TRAIT(temperature)
 
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
@@ -3120,7 +3125,7 @@ namespace units
 	 */
 	UNIT_ADD(substance, mole, moles, mol, unit<std::ratio<1>, units::category::substance_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(substance, mole)
+	UNIT_ADD_CATEGORY_TRAIT(substance)
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
@@ -3136,7 +3141,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit<std::ratio<1>, units::category::luminous_intensity_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(luminous_intensity, candela)
+	UNIT_ADD_CATEGORY_TRAIT(luminous_intensity)
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
@@ -3154,7 +3159,7 @@ namespace units
 	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degrees>)
 	UNIT_ADD(solid_angle, spat, spats, sp, unit<std::ratio<4>, steradians, std::ratio<1>>)
 
-	UNIT_ADD_CATEGORY_TRAIT(solid_angle, steradian)
+	UNIT_ADD_CATEGORY_TRAIT(solid_angle)
 
 	//------------------------------
 	//	FREQUENCY UNITS
@@ -3170,7 +3175,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit<std::ratio<1>, units::category::frequency_unit>)
 
-	UNIT_ADD_CATEGORY_TRAIT(frequency, hertz)
+	UNIT_ADD_CATEGORY_TRAIT(frequency)
 
 	//------------------------------
 	//	VELOCITY UNITS
@@ -3190,7 +3195,7 @@ namespace units
 	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph, compound_unit<length::kilometers, inverse<time::hour>>)
 	UNIT_ADD(velocity, knot, knots, kts, compound_unit<length::nauticalMiles, inverse<time::hour>>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(velocity, meters_per_second)
+	UNIT_ADD_CATEGORY_TRAIT(velocity)
 
 	//------------------------------
 	//	ANGULAR VELOCITY UNITS
@@ -3209,7 +3214,7 @@ namespace units
 	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm, unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
 	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr, compound_unit<angle::milliarcseconds, inverse<time::year>>)
 
-	UNIT_ADD_CATEGORY_TRAIT(angular_velocity, radians_per_second)
+	UNIT_ADD_CATEGORY_TRAIT(angular_velocity)
 
 	//------------------------------
 	//	UNITS OF ACCELERATION
@@ -3227,7 +3232,7 @@ namespace units
 	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq, compound_unit<length::feet, inverse<squared<time::seconds>>>)
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
-	UNIT_ADD_CATEGORY_TRAIT(acceleration, meters_per_second_squared)
+	UNIT_ADD_CATEGORY_TRAIT(acceleration)
 
 	//------------------------------
 	//	UNITS OF FORCE
@@ -3247,7 +3252,7 @@ namespace units
 	UNIT_ADD(force, kilopond, kiloponds, kp, compound_unit<acceleration::standard_gravity, mass::kilograms>)
 	UNIT_ADD(force, poundal, poundals, pdl, compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>)
 
-	UNIT_ADD_CATEGORY_TRAIT(force, newton)
+	UNIT_ADD_CATEGORY_TRAIT(force)
 
 	//------------------------------
 	//	UNITS OF PRESSURE
@@ -3267,7 +3272,7 @@ namespace units
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(pressure, pascals)
+	UNIT_ADD_CATEGORY_TRAIT(pressure)
 
 	//------------------------------
 	//	UNITS OF CHARGE
@@ -3284,7 +3289,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulomb, coulombs, C, unit<std::ratio<1>, units::category::charge_unit>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hour, ampere_hours, Ah, compound_unit<current::ampere, time::hours>)
 
-	UNIT_ADD_CATEGORY_TRAIT(charge, coulombs)
+	UNIT_ADD_CATEGORY_TRAIT(charge)
 
 	//------------------------------
 	//	UNITS OF ENERGY
@@ -3308,7 +3313,7 @@ namespace units
 	UNIT_ADD(energy, therm, therms, thm, unit<std::ratio<100000>, british_thermal_units_59>)
 	UNIT_ADD(energy, foot_pound, foot_pounds, ftlbf, unit<std::ratio<13558179483314004, 10000000000000000>, joules>)
 
-	UNIT_ADD_CATEGORY_TRAIT(energy, joule)
+	UNIT_ADD_CATEGORY_TRAIT(energy)
 
 	//------------------------------
 	//	UNITS OF POWER
@@ -3327,7 +3332,7 @@ namespace units
 	UNIT_ADD_DECIBEL(power, watt, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
 	
-	UNIT_ADD_CATEGORY_TRAIT(power, watt)
+	UNIT_ADD_CATEGORY_TRAIT(power)
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
@@ -3345,7 +3350,7 @@ namespace units
 	UNIT_ADD(voltage, statvolt, statvolts, statV, unit<std::ratio<1000000, 299792458>, volts>)
 	UNIT_ADD(voltage, abvolt, abvolts, abV, unit<std::ratio<1, 100000000>, volts>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(voltage, volts)
+	UNIT_ADD_CATEGORY_TRAIT(voltage)
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
@@ -3361,7 +3366,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit<std::ratio<1>, units::category::capacitance_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(capacitance, farad)
+	UNIT_ADD_CATEGORY_TRAIT(capacitance)
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
@@ -3377,7 +3382,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit<std::ratio<1>, units::category::impedance_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(impedance, ohm)
+	UNIT_ADD_CATEGORY_TRAIT(impedance)
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
@@ -3393,7 +3398,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemen, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(conductance, siemens)
+	UNIT_ADD_CATEGORY_TRAIT(conductance)
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
@@ -3410,7 +3415,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit<std::ratio<1>, units::category::magnetic_flux_unit>)
 	UNIT_ADD(magnetic_flux, maxwell, maxwells, Mx, unit<std::ratio<1, 100000000>, webers>)
 
-	UNIT_ADD_CATEGORY_TRAIT(magnetic_flux, webers)
+	UNIT_ADD_CATEGORY_TRAIT(magnetic_flux)
 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
@@ -3428,7 +3433,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit<std::ratio<1>, units::category::magnetic_field_strength_unit>)
 	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
 		
-	UNIT_ADD_CATEGORY_TRAIT(magnetic_field_strength, tesla)
+	UNIT_ADD_CATEGORY_TRAIT(magnetic_field_strength)
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
@@ -3444,7 +3449,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit<std::ratio<1>, units::category::inductance_unit>)
 
-	UNIT_ADD_CATEGORY_TRAIT(inductance, henry)
+	UNIT_ADD_CATEGORY_TRAIT(inductance)
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
@@ -3460,7 +3465,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit<std::ratio<1>, units::category::luminous_flux_unit>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(luminous_flux, lumen)
+	UNIT_ADD_CATEGORY_TRAIT(luminous_flux)
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
@@ -3479,7 +3484,7 @@ namespace units
 	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
 	UNIT_ADD(illuminance, phot, phots, ph, compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(illuminance, lux)
+	UNIT_ADD_CATEGORY_TRAIT(illuminance)
 
 	//------------------------------
 	//	UNITS OF RADIATION
@@ -3502,7 +3507,7 @@ namespace units
 	UNIT_ADD(radiation, rutherford, rutherfords, rd, unit<std::ratio<1>, megabecquerels>)
 	UNIT_ADD(radiation, rad, rads, rads, unit<std::ratio<1>, centigrays>)
 
-	UNIT_ADD_CATEGORY_TRAIT(radioactivity, becquerels)
+	UNIT_ADD_CATEGORY_TRAIT(radioactivity)
 
 	//------------------------------
 	//	UNITS OF TORQUE
@@ -3522,7 +3527,7 @@ namespace units
 	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_unit<length::inch, force::pounds>)
 	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit<length::meter, force::kiloponds>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(torque, newton_meter)
+	UNIT_ADD_CATEGORY_TRAIT(torque)
 
 	//------------------------------
 	//	AREA UNITS
@@ -3544,7 +3549,7 @@ namespace units
 	UNIT_ADD(area, hectare, hectares, ha, unit<std::ratio<10000>, square_meters>)
 	UNIT_ADD(area, acre, acres, acre, unit<std::ratio<43560>, square_feet>)
 	
-	UNIT_ADD_CATEGORY_TRAIT(area, square_meters)
+	UNIT_ADD_CATEGORY_TRAIT(area)
 
 	//------------------------------
 	//	UNITS OF VOLUME
@@ -3588,7 +3593,7 @@ namespace units
 	UNIT_ADD(volume, shot, shots, shots, unit<std::ratio<3, 2>, fluid_ounces>)
 	UNIT_ADD(volume, strike, strikes, strikes, unit<std::ratio<2>, bushels>)
 
-	UNIT_ADD_CATEGORY_TRAIT(volume, cubic_meter)
+	UNIT_ADD_CATEGORY_TRAIT(volume)
 
 	//------------------------------
 	//	UNITS OF DENSITY
@@ -3613,7 +3618,7 @@ namespace units
 	UNIT_ADD(density, pounds_per_gallon, pounds_per_gallon, lb_per_gal, compound_unit<mass::pounds, inverse<volume::gallon>>)
 	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft, compound_unit<mass::slugs, inverse<volume::cubic_foot>>)
 
-	UNIT_ADD_CATEGORY_TRAIT(density, kilograms_per_cubic_meter)
+	UNIT_ADD_CATEGORY_TRAIT(density)
 
 	//------------------------------
 	//	UNITS OF CONCENTRATION
@@ -3632,7 +3637,7 @@ namespace units
 	UNIT_ADD(concentration, ppt, parts_per_trillion, ppt, unit<std::ratio<1, 1000>, parts_per_billion>)
 	UNIT_ADD(concentration, percent, percent, pct, unit<std::ratio<1, 100>, units::category::scalar_unit>)
 
-	UNIT_ADD_CATEGORY_TRAIT(concentration, parts_per_million)
+	UNIT_ADD_CATEGORY_TRAIT(concentration)
 
 	//------------------------------
 	//	CONSTANTS
