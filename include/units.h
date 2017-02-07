@@ -103,11 +103,11 @@
 		/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; }\
 	namespace literals\
 	{\
-		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
-		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); }\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); }	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -124,11 +124,11 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
 	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; }\
 	namespace literals\
 	{\
-		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
-		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); }\
+		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); }	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -1411,7 +1411,7 @@ namespace units
 			std::is_same<std::ratio<0>, typename UnitTo::translation_ratio>::value)>;
 
 		return units::detail::convert<UnitFrom, UnitTo, T>(value, isSame{}, piRequired{}, translationRequired{});
-	};
+	}
 
 	//----------------------------------
 	//	NON-LINEAR SCALE TRAITS
@@ -1694,7 +1694,7 @@ namespace units
 		 *						no additional args are necessary.
 		 */
 		template<class... Args>
-		inline explicit unit_t(T value, const Args&... args) : nls(value, args...) {};
+		inline explicit unit_t(T value, const Args&... args) : nls(value, args...) {}
 
 		/**
 		 * @brief		constructor
@@ -1702,7 +1702,7 @@ namespace units
 		 * @param[in]	value value of the unit_t
 		 */
 		template<class Ty, class = typename std::enable_if<traits::is_scalar_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
-		inline unit_t(Ty value) : nls(value) {};
+		inline unit_t(Ty value) : nls(value) {}
 
 		/**
 		 * @brief		copy constructor
@@ -1713,7 +1713,7 @@ namespace units
 		inline unit_t(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs)
 		{
 			nls::m_value = units::convert<UnitsRhs, Units, T>(rhs.m_value);
-		};
+		}
 
 		/**
 		 * @brief		assignment
@@ -2328,7 +2328,7 @@ namespace units
 	namespace dimensionless
 	{
 		using dB_t = unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
-		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
+		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; }
 
 		using dBi_t = dB_t;
 	}
@@ -4138,7 +4138,7 @@ namespace units
 
 	}	// end namespace math
 
-};	// end namespace units
+}	// end namespace units
 
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #	pragma warning(pop)
