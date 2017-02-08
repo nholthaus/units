@@ -4050,6 +4050,22 @@ namespace units
 				(std::sqrt(value()));
 		}
 
+		/**
+		 * @ingroup		UnitMath
+		 * @brief		Computes the square root of the sum-of-squares of x and y.
+		 * @details		Only implemented for linear_scale units.
+		 * @param[in]	x	unit_t type value
+		 * @param[in]	y	unit_t type value
+		 * @returns		square root of the sum-of-squares of x and y in the same units
+		 *				as x.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs, typename std::enable_if<units::traits::has_linear_scale<UnitTypeLhs, UnitTypeRhs>::value, int>::type = 0>
+		inline UnitTypeLhs hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
+		{
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
+			return UnitTypeLhs(std::hypot(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		}
+
 		//----------------------------------
 		//	ROUNDING FUNCTIONS
 		//----------------------------------
@@ -4091,6 +4107,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 		{
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmod() function are not compatible units.");
 			return UnitTypeLhs(std::fmod(numer(), denom.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
@@ -4166,7 +4183,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 		{
-			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
 			return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
@@ -4183,7 +4200,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 		{
-			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmax() function are not compatible units.");
 			return UnitTypeLhs(std::fmax(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
@@ -4201,7 +4218,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 		{
-			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmin() function are not compatible units.");
 			return UnitTypeLhs(std::fmin(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 

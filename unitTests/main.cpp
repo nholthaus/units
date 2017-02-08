@@ -2443,6 +2443,15 @@ TEST_F(UnitMath, sqrt)
 	EXPECT_EQ(resultFt, sqrt(square_foot_t(10.0)));
 }
 
+TEST_F(UnitMath, hypot)
+{
+	EXPECT_TRUE((std::is_same<typename std::decay<meter_t>::type, typename std::decay<decltype(hypot(meter_t(3.0), meter_t(4.0)))>::type>::value));
+	EXPECT_NEAR(meter_t(5.0).to<double>(), (hypot(meter_t(3.0), meter_t(4.0))).to<double>(), 5.0e-9);
+
+	EXPECT_TRUE((std::is_same<typename std::decay<foot_t>::type, typename std::decay<decltype(hypot(foot_t(3.0), meter_t(1.2192)))>::type>::value));
+	EXPECT_NEAR(foot_t(5.0).to<double>(), (hypot(foot_t(3.0), meter_t(1.2192))).to<double>(), 5.0e-9);
+}
+
 TEST_F(UnitMath, ceil)
 {
 	double val = 101.1;
