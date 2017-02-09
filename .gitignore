@@ -10,6 +10,12 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# gtags
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

@@ -4,12 +4,17 @@ PROJECT(units)
 
 OPTION(BUILD_TESTS "Build unit tests" ON)
 OPTION(BUILD_DOCS "Build the documentation" OFF)
+OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	# enable parallel build
 	set( ENV{CL} /MP )
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# Increase warning levels
+	add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
 # header-only library target. To use this project as a subdirectory,
@@ -19,6 +24,11 @@ endif()
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Remove IOStream from the library (useful for embdedded development)
+if(DISABLE_IOSTREAM)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
+endif(DISABLE_IOSTREAM)
 
 # unit tests
 if(BUILD_TESTS)

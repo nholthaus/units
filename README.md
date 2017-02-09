@@ -5,17 +5,87 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 
-# Latest Release - v2.1.3
+# Latest Release - v2.2.0
 
-### Get it:
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.3-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.3)
+## Get it
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.2.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.2.0)
 
-### New features:
+## Special Thanks
+
+Thank you to the contributors who made this version possible!
+
+@dharmatech
+@JaapAap
+@martinmoene
+@Oxyd
+@pvaibhav
+
+## New feautres in v2.2.0
+
+ - `constexpr` and `noexcept` specifiers have been added to _all_ applicable classes and functions.
+
+   ```cpp
+   constexpr auto distance = 5_m;     
+   constexpr auto area = 2_m * 2_m;   // area == 4_sq_m
+   ```
+
+ - Added a `constexpr` power function.
+
+   ```cpp
+   constexpr auto volume(units::math::cpow<3>(2_m));  // volume == 8_cu_m 
+   ```
+
+- Added a dimensionless `PI` constant. The new constant is more intuitive and can be used in all places where a unit type could be used.
+
+  ```cpp
+  meter_t a = constants::pi * 1_m;  // a == PI meters
+  meter_t b(constants::pi);         // b == PI meters
+  ```
+
+- Added `make_unit<...>()` factory. The syntax is familiar to `boost::units` users, and allows explicit reference to the unit type for member variable initialization.
+
+   ```cpp
+   class myClass
+   {
+     public:
+       
+       myClass() : m_speed(make_unit<miles_per_hour_t>(100)) {}
+
+     private:
+
+       miles_per_hour_t m_speed;
+   };
+   ```
+   
+   of course, explicit initializations are still supported.
+
+   ```cpp
+   meter_t distance_m(10);
+   meter_t distance(10_m);
+   ```
+
+- Added `<cmath> hypot()` function wrapper.
+
+   ```cpp
+   using namespace units::math;
+   auto hypotnuse = hypot(3_m, 4_m);  // hypotnuse == 5_m
+   ```
+- Support interoperability between `units::time` and `std::chrono`.
+
+   ```cpp
+   nanosecond_t a = std::chrono::nanoseconds(10); // a == 10_ns
+   std::chrono::nanoseconds b = hour_t(1);        // b.count() == 3600000000000
+   ```
+
+ - Allow operations which requires `<iostream>` or `operator<<` to be [disabled in embedded applications](#disabling-iostream).
+ - Eliminated gcc warnings when compiling with `-Wall -Wextra -pedantic`.
+ 
+## New features in v2.1.3
 
 - Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
 
   ```cpp
-  auto area = 3.0_m * 4.0_m;	// area == square_meter_t(12.0) ==   12_sq_m;
+  auto area = 3.0_m * 4.0_m;	// area == 12_sq_m
   ```
 
 - `std::cout` output now includes the unit abbreviations.
@@ -41,11 +111,11 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 - Adds CMake `INTERFACE` project.
 - Clang support.
 
-### Notes:
+## Notes
 
- - Due to incompatibilities with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
  
-### Tested on:
+## Tested on
 
  - gcc-4.9.3
  - gcc-5.4.0
@@ -57,26 +127,45 @@ Does this library work on your compiler? If so, let me know!
 
 # Contents
 
+<!-- TOC -->
 
+- [UNITS](#units)
+- [Latest Release - v2.2.0](#latest-release---v220)
+	- [Get it](#get-it)
+	- [Special Thanks](#special-thanks)
+	- [New feautres in v2.2.0](#new-feautres-in-v220)
+	- [New features in v2.1.3](#new-features-in-v213)
+	- [Notes](#notes)
+	- [Tested on](#tested-on)
+- [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
 - [Getting started guide](#getting-started-guide)
 - [Unit tags](#unit-tags)
 - [Unit containers](#unit-containers)
-- [Unit literals](#unit-literals)
-- [`<cmath>` functions](#cmath-functions)
-- [Exponentials and square roots](#exponentials-and-square-roots)
+- [Unit Literals](#unit-literals)
+- [`<cmath>` Functions](#cmath-functions)
+- [Exponentials and Square Roots](#exponentials-and-square-roots)
 - [Removing type safety](#removing-type-safety)
 - [Efficiency](#efficiency)
-- [Pure compile-time unit manipulation](#pure-compile-time-unit-manipulation)
+- [Pure Compile-time Unit Manipulation](#pure-compile-time-unit-manipulation)
 - [Conversion without unit containers](#conversion-without-unit-containers)
 - [Namespaces](#namespaces)
 - [Defining new units](#defining-new-units)
 - [Unit definition macros](#unit-definition-macros)
-- [Unit type traits](#unit-type-traits)
-- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit-t)
-- [Build instructions](#build-instructions)
-- [Previous releases](#previous-releases)
+- [Unit Type Traits](#unit-type-traits)
+- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
+- [Disabling IOStream](#disabling-iostream)
+- [Macro clashes](#macro-clashes)
+	- [Windows macros](#windows-macros)
+	- [ARM macros](#arm-macros)
+- [CMake Instructions](#cmake-instructions)
+- [Build Instructions](#build-instructions)
+	- [Windows](#windows)
+	- [Linux](#linux)
+- [Previous Releases](#previous-releases)
+
+<!-- /TOC -->
 
 # Documentation
 
@@ -84,7 +173,7 @@ Does this library work on your compiler? If so, let me know!
 
 # Description
 
-The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
+The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
 The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
@@ -199,7 +288,7 @@ since the underlying type and scale parameters default to `double` and `linear_s
 
 Units of compatible types (e.g length units) can be implicitly converted/assigned to one another. Units (with the exception of dimensionless types) cannot be implicitly converted to/from built-in types, such as `double`. 
 
-Units are constructed from built-in types, and the `toDoubl()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit_t` domain. 
+Units are constructed from built-in types, and the `toDouble()` method (or `operator()`) can be used to retrieve a built-in type value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit_t` domain. 
 
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
@@ -275,7 +364,7 @@ All literals* are defined by their SI abbreviation preceded by an underscore, e.
 
 All literals are defined in the `units::literals` namespace, and in order to use literals in your code ***you must include the line `using units::literals`*** (since there is no way to put a namespace on an operator).
 
-_* with the exception of `Teslas`, which use `_Te` for compatibility with the windows API._
+_* with the exception of `Teslas`, which use `_Te` for compatibility with MSVC compilers._
 
 # `<cmath>` Functions
 
@@ -498,6 +587,9 @@ Version `2.1.0` of the units library simplifies the task of adding new units by 
   
   This macro has the same functionality as `UNIT_ADD`, but additionally adds unit types with all metric prefixes from `fempto` to `peta` (larger and smaller prefixes mostly result in arithmetic overflow).
 
+- `UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName, nameSingular, namePlural, abbreviation, underlyingType, definition)`
+
+  This macro has the same functionality as `UNIT_ADD`, but additionally adds an `underlyingType` parameter, which can be used to create units with integral, or other underlying types. The library default underlying type is `double`.
 - `UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)`
 
   Adds the decibel representation for a previously-defined unit. e.g.
@@ -552,10 +644,76 @@ The default underlying type for all unit containers is `double`. However, this c
 ```cpp
 // Use 64-bit integers as the underlying unit type
 #define UNIT_LIB_DEFAULT_TYPE int64_t
+#include <units.h>
 ```
 
 **_NOTE:_ changing the underlying type may result in unexpected behavior.** Unit conversion makes heavy use of division, which may make integral types unsuitable except for niche embedded applications. Using excessively large types may increase the number of arithmetic overflow errors.
 
+# Disabling IOStream
+
+For some embedded applications, it may be [desirable to remove all references to `<iostream>` in order to reduce compiled binary size and RAM requirements](https://github.com/nholthaus/units/issues/32). There are two ways to accomplish this:
+
+1. If you are copy/pasting `units.h` into your project include directory, then simply define `UNIT_LIB_DISABLE_IOSTREAM` before including the header.
+
+   ```cpp
+   #define UNIT_LIB_DISABLE_IOSTREAM
+   #include <units.h>
+   ```
+
+2. If you are including `units` in your project as a `CMake` target (using `add_subdirectory`), then all you need to do is set the `DISABLE_IOSTREAM` cache option, either using the cmake-gui, or by adding the option to the cmake command line during configuration:
+
+   ```bash
+   cmake -DDISABLE_IOSTREAM=ON -DBUILD_TESTS=OFF ..
+   cmake --build . --config Release
+   ```
+# Macro clashes
+
+With certain compilers, it is possible that system header files like `<ctype.h>` will define macros which conflict with the unit literals, which use SI abbreviations. In these cases, it is general safe and advisable to `#undef` the offending macros.
+
+## Windows macros
+
+`_T` is known to conflict, but is hardcoded into the compiler and can't be disabled. For this reason, `tesla` units use the `_Te` abbreviation.
+
+## ARM macros
+
+The following macros may need to be undefined on the ARM platform to use `units::literals`:
+
+   ```cpp
+   #undef _U
+   #undef _L
+   #undef _N
+   #undef _S
+   #undef _P
+   #undef _C
+   #undef _X
+   #undef _B
+   #define UNIT_LIB_DISABLE_IOSTREAM // it's prudent to disable IOStream on embedded platforms as well.
+   #include <units.h>
+   ```
+
+   It's best to undefine macros on an as-needed basis.
+
+# CMake Instructions
+
+There are several ways to incorporate `units.h` into your project. The simplest is to just copy `include/units.h` into your project include directory (which the licensing allows you to do). However, you'll have to properly set up the necessary compilation flags for C++14 (`-std=c++14` on gcc).
+
+However, if you are already using CMake as your build system, the recommended way to include `units` is to copy the entire `units` project as a subdirectory within your own top-level project folder. Then, in your CMakeLists.txt file add
+
+   ```cmake
+   add_subdirectory(units)
+
+   add_executable(${PROJECT_NAME} main.cpp)
+   target_link_libraries(${PROJECT_NAME} units)
+   ```
+
+The include path properties are part of the `units` target, so adding it as a subdirectory and linking against it is all you need to do, no need to worry about additional include directories.
+
+If you don't care about the unit tests, you can minimize compile time by invoking CMake with the following option:
+
+   ```bash
+   cmake -DBUILD_TESTS=OFF ..
+   cmake -build .
+   ```
 # Build Instructions
 
 The library itself consists of a single header [units.h](include/units.h), and can be included into your project without being built. 
@@ -564,7 +722,7 @@ The unit tests and documentation can be built with CMake. A doxygen installation
 
 To build the tests:
 
-###Windows:
+## Windows
  1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
  3. Open a `cmd` terminal and navigate to the source directory.
@@ -575,7 +733,7 @@ To build the tests:
    - `cmake --build . --config Release`
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
    
-###Linux:
+## Linux
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 4.9 or greater. You can verify this with `gcc --version`.
  3. clone the repository or download the `.tar.gz` package.
