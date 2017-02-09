@@ -17,6 +17,19 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
+# header-only library target. To use this project as a subdirectory,
+# add the following to your code:
+#
+# add_subdirectory(units) # or whatever you named the directory
+# target_link_libraries(${PROJECT_NAME} units)
+add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Remove IOStream from the library (useful for embdedded development)
+if(DISABLE_IOSTREAM)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
+endif(DISABLE_IOSTREAM)
+
 # unit tests
 if(BUILD_TESTS)
 	set(VERSION_GTEST "1.8.0" CACHE STRING "Google Test framework version")
@@ -37,16 +50,3 @@ if(BUILD_DOCS)
 		)
 	endif(DOXYGEN_FOUND)
 endif(BUILD_DOCS)
-
-# Remove IOStream from the library (useful for embdedded development)
-if(DISABLE_IOSTREAM)
-	add_definitions(-DUNIT_LIB_DISABLE_IOSTREAM)
-endif(DISABLE_IOSTREAM)
-
-# header-only library target. To use this project as a subdirectory,
-# add the following to your code:
-#
-# add_subdirectory(units) # or whatever you named the directory
-# target_link_libraries(${PROJECT_NAME} units)
-add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)

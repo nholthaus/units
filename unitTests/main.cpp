@@ -843,7 +843,7 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 }
 
 #ifdef _MSC_VER 
-#if (_MSC_VER >= 1900)
+#	if (_MSC_VER >= 1900)
 TEST_F(UnitContainer, trivial)
 {
 	EXPECT_TRUE((std::is_trivial<meter_t>::value));
@@ -868,13 +868,19 @@ TEST_F(UnitContainer, trivial)
 	EXPECT_TRUE((std::is_trivially_move_assignable<dB_t>::value));
 	EXPECT_TRUE((std::is_trivially_move_constructible<dB_t>::value));
 }
-#endif
+#	endif
 #endif
 
 TEST_F(UnitContainer, has_value_member)
 {
 	EXPECT_TRUE((traits::has_value_member<linear_scale<double>, double>::value));
 	EXPECT_FALSE((traits::has_value_member<meter, double>::value));
+}
+
+TEST_F(UnitContainer, make_unit)
+{
+	auto dist = units::make_unit<meter_t>(5);
+	EXPECT_EQ(meter_t(5), dist);
 }
 
 TEST_F(UnitContainer, unitTypeAddition)
@@ -2534,6 +2540,18 @@ TEST_F(UnitMath, fma)
 }
 
 #if !defined(_MSC_VER) || _MSC_VER > 1800
+TEST_F(Constexpr, construction)
+{
+	constexpr meter_t result0(0);
+	constexpr auto result1 = make_unit<meter_t>(1);
+	
+	EXPECT_EQ(meter_t(0), result0);
+	EXPECT_EQ(meter_t(1), result1);
+
+	EXPECT_TRUE(noexcept(result0));
+	EXPECT_TRUE(noexcept(result1));
+}
+
 TEST_F(Constexpr, constants)
 {
 	EXPECT_TRUE(noexcept(constants::c()));

@@ -2001,7 +2001,7 @@ namespace units
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
 	template<class UnitType, typename T, class = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-	UnitType make_unit(const T value)
+	inline constexpr UnitType make_unit(const T value) noexcept
 	{
 		static_assert(traits::is_unit_t<UnitType>::value, "Template parameter `UnitType` must be a unit type (_t).");
 		
