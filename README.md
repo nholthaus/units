@@ -43,7 +43,7 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 ### Notes:
 
- - Due to incompatibilities with the `WINAPI`, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
  
 ### Tested on:
 
@@ -287,7 +287,7 @@ All literals* are defined by their SI abbreviation preceded by an underscore, e.
 
 All literals are defined in the `units::literals` namespace, and in order to use literals in your code ***you must include the line `using units::literals`*** (since there is no way to put a namespace on an operator).
 
-_* with the exception of `Teslas`, which use `_Te` for compatibility with the windows API._
+_* with the exception of `Teslas`, which use `_Te` for compatibility with MSVC compilers._
 
 # `<cmath>` Functions
 
