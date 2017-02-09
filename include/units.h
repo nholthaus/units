@@ -107,11 +107,11 @@
 		/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
 		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::nameSingular ## _t& obj) { os << obj() << " "#abbreviation; return os; }\
 	namespace literals\
 	{\
-		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); };\
-		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (long double d) { return namespaceName::nameSingular ## _t(d); }\
+		inline namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::nameSingular ## _t((long double)d); }	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -128,11 +128,11 @@
 	{\
 		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
 	}\
-	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; };\
+	inline std::ostream& operator<<(std::ostream& os, const namespaceName::abbreviation ## _t& obj) { os << obj() << " "#abbreviation; return os; }\
 	namespace literals\
 	{\
-		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); };\
-		inline constexpr namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); };	/* may want to think of something better than this cast.*/\
+		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (long double d) { return namespaceName::abbreviation ## _t(d); }\
+		inline namespaceName::abbreviation ## _t operator""_ ## abbreviation (unsigned long long d) { return namespaceName::abbreviation ## _t((long double)d); }	/* may want to think of something better than this cast.*/\
 	}
 
 	/** 
@@ -1443,7 +1443,7 @@ namespace units
 
 		return units::detail::convert<UnitFrom, UnitTo, Ratio, PiRatio, Translation, T>
 			(value, isSame{}, piRequired{}, translationRequired{});
-	};
+	}
 
 	//----------------------------------
 	//	NON-LINEAR SCALE TRAITS
@@ -1730,7 +1730,7 @@ namespace units
 		inline explicit constexpr unit_t(const T value, const Args&... args) noexcept : nls(value, args...) 
 		{
 
-		};
+		}
 
 		/**
 		 * @brief		constructor
@@ -1741,7 +1741,7 @@ namespace units
 		inline constexpr unit_t(const Ty value) noexcept : nls(value) 
 		{
 
-		};
+		}
 
 		/**
 		 * @brief		chrono constructor
@@ -1753,7 +1753,7 @@ namespace units
 		nls(units::convert<unit<std::ratio<1,1000000000>, category::time_unit>, Units>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count()))) 
 		{
 
-		};
+		}
 
 		/**
 		 * @brief		copy constructor (converting)
@@ -1765,7 +1765,7 @@ namespace units
 		nls(units::convert<UnitsRhs, Units, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
 
-		};
+		}
 
 		/**
 		 * @brief		assignment
@@ -2456,7 +2456,7 @@ namespace units
 	namespace dimensionless
 	{
 		typedef unit_t<scalar, UNIT_LIB_DEFAULT_TYPE, decibel_scale> dB_t;
-		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; };
+		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; }
 
 		typedef dB_t dBi_t;
 	}
@@ -4272,7 +4272,7 @@ namespace units
 
 	}	// end namespace math
 
-};	// end namespace units
+}	// end namespace units
 
 #ifdef _MSC_VER
 #	if _MSC_VER <= 1800

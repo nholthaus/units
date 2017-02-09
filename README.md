@@ -1,13 +1,14 @@
+
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 
-# Latest Release - v2.1.2
+# Latest Release - v2.1.3
 
 ### Get it:
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.2-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.2)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.3-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.3)
 
 ### New features:
 
@@ -37,7 +38,8 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
   UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
   ```
 - Improvements for integral unit types.
-- Clang support
+- Adds CMake `INTERFACE` project.
+- Clang support.
 
 ### Notes:
 
@@ -58,11 +60,11 @@ Does this library work on your compiler? If so, let me know!
 <!-- TOC -->
 
 - [UNITS](#units)
-- [Latest Release - v2.1.2](#latest-release-v212)
-    - [Get it](#get-it)
-    - [New features](#new-features)
-    - [Notes](#notes)
-    - [Tested on](#tested-on)
+- [Latest Release - v2.1.3](#latest-release---v213)
+		- [Get it:](#get-it)
+		- [New features:](#new-features)
+		- [Notes:](#notes)
+		- [Tested on:](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
@@ -80,10 +82,10 @@ Does this library work on your compiler? If so, let me know!
 - [Defining new units](#defining-new-units)
 - [Unit definition macros](#unit-definition-macros)
 - [Unit Type Traits](#unit-type-traits)
-- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unitt)
+- [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
 - [Build Instructions](#build-instructions)
-    - [Windows](#windows)
-    - [Linux](#linux)
+		- [Windows:](#windows)
+		- [Linux:](#linux)
 - [Previous Releases](#previous-releases)
 
 <!-- /TOC -->
@@ -167,7 +169,6 @@ std::cout << c << std::endl;                // prints: "5 m"
 ```
 
 # Unit tags
-
 Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-information about different units, including how to convert between them, and how to determine their compatibility for conversion.
 
 All unit tags are defined in namespaces under the `units` namespace, such as `units::length` or `units::angle`, to avoid name clashes between units of different physical quantities which share the same names (like pounds). SI base units are defined as "categories" in the `unit` namespace.
@@ -186,7 +187,7 @@ _Example_: the definitions of some common length units are:
 namespace length
 {
 	using meters = units::unit<std::ratio<1>, units::category::length_unit>;	// meters are (1) unit of length in the SI system.
-	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 3.28084 meters.
+	using feet = units::unit<std::ratio<381, 1250>, meters>;					// feet are 0.3048 meters.
 }
 ```
 
@@ -215,13 +216,13 @@ Units are constructed from built-in types, and the `toDouble()` method (or `oper
 The primary purpose of unit containers is to provide type safety and dimensional analysis for mathematical operations. for instance, the velocity of an object can be calculated:
 
 ```cpp
-auto objectVelocity = units::meter_t(100.0) / units::second_t(2.0);
+auto objectVelocity = meter_t(100.0) / second_t(2.0);
 ```
 
 The resulting velocity type will be deduced to be `velocity::meters_per_second` with a value of 50.0. Additionally, if the return type if specified, the type system will verify that the units are compatible. For example, the following will fail to compile:
 
 ```cpp
-units::velocity::meters_per_second objectVelocity = units::square_meter_t(100.0) / units::second_t(2.0); // Error: Unit types are not compatible.`
+units::velocity::meters_per_second objectVelocity = square_meter_t(100.0) / second_t(2.0); // Error: Unit types are not compatible.`
 ```
 
 Unit containers can (and should!) be used to perform implicit conversions:
@@ -244,7 +245,7 @@ foot_t	a_ft(1.0), b_ft(2.0), c_ft;
 
 c_m = a_m + b_m;                            // OK. c == 3m
 c_ft = a_m + b_m;                           // OK. resulting 3m is converted to ft.
-auto result = a_m * b_ft;                   // OK. result is `meter_t` (left-most unit)
+auto result = a_m + b_ft;                   // OK. result is `meter_t` (left-most unit)
 
 auto result_sm = a_m * b_m;                 // OK. result_sm is `square_meter_t`.
 auto result_s = a_m / b_m;                  // OK. result_s is `dimensionless_t`.
