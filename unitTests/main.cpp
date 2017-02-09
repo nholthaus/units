@@ -2546,28 +2546,28 @@ TEST_F(Constexpr, constants)
 	EXPECT_TRUE(noexcept(constants::sigma()));
 }
 
-//TEST_F(Constexpr, arithmetic)
-//{
-//	constexpr auto result0(1_m + 1_m);
-//	constexpr auto result1(1_m - 1_m);
-//	constexpr auto result2(1_m * 1_m);
-//	constexpr auto result3(1_m / 1_m);
-//	constexpr auto result4(meter_t(1) + meter_t(1));
-//	constexpr auto result5(meter_t(1) - meter_t(1));
-//	constexpr auto result6(meter_t(1) * meter_t(1));
-//	constexpr auto result7(meter_t(1) / meter_t(1));
-//	constexpr auto result8(units::math::cpow<2>(meter_t(2)));
-//
-//	EXPECT_TRUE(noexcept(result0));
-//	EXPECT_TRUE(noexcept(result1));
-//	EXPECT_TRUE(noexcept(result2));
-//	EXPECT_TRUE(noexcept(result3));
-//	EXPECT_TRUE(noexcept(result4));
-//	EXPECT_TRUE(noexcept(result5));
-//	EXPECT_TRUE(noexcept(result6));
-//	EXPECT_TRUE(noexcept(result7));
-//	EXPECT_TRUE(noexcept(result8));
-//}
+TEST_F(Constexpr, arithmetic)
+{
+	constexpr auto result0(1_m + 1_m);
+	constexpr auto result1(1_m - 1_m);
+	constexpr auto result2(1_m * 1_m);
+	constexpr auto result3(1_m / 1_m);
+	constexpr auto result4(meter_t(1) + meter_t(1));
+	constexpr auto result5(meter_t(1) - meter_t(1));
+	constexpr auto result6(meter_t(1) * meter_t(1));
+	constexpr auto result7(meter_t(1) / meter_t(1));
+	constexpr auto result8(units::math::cpow<2>(meter_t(2)));
+
+	EXPECT_TRUE(noexcept(result0));
+	EXPECT_TRUE(noexcept(result1));
+	EXPECT_TRUE(noexcept(result2));
+	EXPECT_TRUE(noexcept(result3));
+	EXPECT_TRUE(noexcept(result4));
+	EXPECT_TRUE(noexcept(result5));
+	EXPECT_TRUE(noexcept(result6));
+	EXPECT_TRUE(noexcept(result7));
+	EXPECT_TRUE(noexcept(result8));
+}
 
 #endif
 
