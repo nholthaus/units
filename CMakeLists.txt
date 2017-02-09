@@ -4,6 +4,7 @@ PROJECT(units)
 
 OPTION(BUILD_TESTS "Build unit tests" ON)
 OPTION(BUILD_DOCS "Build the documentation" OFF)
+OPTION(DISABLE_IOSTREAM "Compile with IOStream (cout) support" OFF)
 
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -15,14 +16,6 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	# Increase warning levels
 	add_compile_options(-Wall -Wextra -pedantic)
 endif()
-
-# header-only library target. To use this project as a subdirectory,
-# add the following to your code:
-#
-# add_subdirectory(units) # or whatever you named the directory
-# target_link_libraries(${PROJECT_NAME} units)
-add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # unit tests
 if(BUILD_TESTS)
@@ -44,3 +37,16 @@ if(BUILD_DOCS)
 		)
 	endif(DOXYGEN_FOUND)
 endif(BUILD_DOCS)
+
+# Remove IOStream from the library (useful for embdedded development)
+if(DISABLE_IOSTREAM)
+	add_definitions(-DUNIT_LIB_DISABLE_IOSTREAM)
+endif(DISABLE_IOSTREAM)
+
+# header-only library target. To use this project as a subdirectory,
+# add the following to your code:
+#
+# add_subdirectory(units) # or whatever you named the directory
+# target_link_libraries(${PROJECT_NAME} units)
+add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -1131,6 +1131,7 @@ TEST_F(UnitContainer, convertMethod)
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
+#ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
 	degree_t test1(349.87);
@@ -1170,6 +1171,7 @@ TEST_F(UnitContainer, cout)
 	std::string output6 = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("120 dBm", output6.c_str());
 }
+#endif
 
 TEST_F(UnitContainer, negative)
 {
