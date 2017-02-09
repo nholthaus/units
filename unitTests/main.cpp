@@ -1134,7 +1134,6 @@ TEST_F(UnitContainer, convertMethod)
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
-	#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	degree_t test1(349.87);
 	meter_t test2(1.0);
 	dB_t test3(31.0);
@@ -1171,8 +1170,6 @@ TEST_F(UnitContainer, cout)
 	std::cout << test6;
 	std::string output6 = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("120 dBm", output6.c_str());
-
-	#endif
 }
 #endif
 
@@ -2579,7 +2576,6 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(result7));
 	EXPECT_TRUE(noexcept(result8));
 }
-
 #endif
 
 TEST_F(CompileTimeArithmetic, unit_value_t)
@@ -2838,6 +2834,7 @@ TEST_F(CaseStudies, pythagoreanTheorum)
 	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value())
 		== pow<2>(RightTriangle::c::value()));
 }
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

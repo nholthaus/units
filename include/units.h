@@ -87,21 +87,21 @@
 //------------------------------
 
 /**
-* @def		UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, definition)
-* @brief	Helper macro for generating the boiler-plate code generating the tags of a new unit.
-* @details	The macro generates singular, plural, and abbreviated forms
-*			of the unit definition (e.g. `meter`, `meters`, and `m`), as aliases for the
-*			unit tag.
-* @param	namespaceName namespace in which the new units will be encapsulated.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	namePlural - plural version of the unit name, e.g. 'meters'
-* @param	abbreviation - abbreviated unit name, e.g. 'm'
-* @param	definition - the variadic parameter is used for the definition of the unit
-*			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-* @note	a variadic template is used for the definition to allow templates with
-*			commas to be easily expanded. All the variadic 'arguments' should together
-*			comprise the unit definition.
-*/
+ * @def			UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, definition)
+ * @brief		Helper macro for generating the boiler-plate code generating the tags of a new unit.
+ * @details		The macro generates singular, plural, and abbreviated forms
+ *				of the unit definition (e.g. `meter`, `meters`, and `m`), as aliases for the
+ *				unit tag.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		definition - the variadic parameter is used for the definition of the unit
+ *				(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note		a variadic template is used for the definition to allow templates with
+ *				commas to be easily expanded. All the variadic 'arguments' should together
+ *				comprise the unit definition.
+ */
 #define UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
@@ -111,12 +111,12 @@
 	}
 
 /**
-* @def		UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)
-* @brief	Macro for generating the boiler-plate code for the unit_t type definition.
-* @details	The macro generates the definition of the unit container types, e.g. `meter_t`
-* @param	namespaceName namespace in which the new units will be encapsulated.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-*/
+ * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)
+ * @brief		Macro for generating the boiler-plate code for the unit_t type definition.
+ * @details		The macro generates the definition of the unit container types, e.g. `meter_t`
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ */
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
 	namespace namespaceName\
 	{\
@@ -124,28 +124,28 @@
 	}
 
 /**
-* @def		UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular,underlyingType)
-* @brief	Macro for generating the boiler-plate code for a unit_t type definition with a non-default underlying type.
-* @details	The macro generates the definition of the unit container types, e.g. `meter_t`
-* @param	namespaceName namespace in which the new units will be encapsulated.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	underlyingType the underlying type
-*/
+ * @def			UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular,underlyingType)
+ * @brief		Macro for generating the boiler-plate code for a unit_t type definition with a non-default underlying type.
+ * @details		The macro generates the definition of the unit container types, e.g. `meter_t`
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		underlyingType the underlying type
+ */
 #define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular, underlyingType)\
 	namespace namespaceName\
 	{\
 	/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular,underlyingType> nameSingular ## _t; /** @} */\
 	}
 /**
-* @def		UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
-* @brief	Macro for generating the boiler-plate code needed for I/O for a new unit.
-* @details	The macro generates the code to insert units into an ostream. It
-*          prints both the value and abbreviation of the unit when invoked.
-* @param	namespaceName namespace in which the new units will be encapsulated.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	abbreviation - abbreviated unit name, e.g. 'm'
-* @note	When UNIT_LIB_DISABLE_IOSTREAM is defined, the macro does not generate any code
-*/
+ * @def			UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
+ * @brief		Macro for generating the boiler-plate code needed for I/O for a new unit.
+ * @details		The macro generates the code to insert units into an ostream. It
+ *				prints both the value and abbreviation of the unit when invoked.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @note		When UNIT_LIB_DISABLE_IOSTREAM is defined, the macro does not generate any code
+ */
 #if defined(UNIT_LIB_DISABLE_IOSTREAM)
 	#define UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)
 #else
@@ -157,16 +157,16 @@
 #endif
 
 /**
-* @def		UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
-* @brief	Macro for generating user-defined literals for units.
-* @details	The macro generates user-defined literals for units. A literal suffix is created
-*			using the abbreviation (e.g. `10.0_m`).
-* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-*			are placed in the `units::literals` namespace.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	abbreviation - abbreviated unit name, e.g. 'm'
-* @note	When UNIT_HAS_LITERAL_SUPPORT is not defined, the macro does not generate any code
-*/
+ * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
+ * @brief		Macro for generating user-defined literals for units.
+ * @details		The macro generates user-defined literals for units. A literal suffix is created
+ *				using the abbreviation (e.g. `10.0_m`).
+ * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+ *				are placed in the `units::literals` namespace.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @note		When UNIT_HAS_LITERAL_SUPPORT is not defined, the macro does not generate any code
+ */
 #if defined(UNIT_HAS_LITERAL_SUPPORT)
 	#define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)\
 	namespace literals\
@@ -185,24 +185,24 @@
 #endif
 
 /**
-* @def		UNIT_ADD(namespaceName,nameSingular, namePlural, abbreviation, definition)
-* @brief	Macro for generating the boiler-plate code needed for a new unit.
-* @details	The macro generates singular, plural, and abbreviated forms
-*			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
-*			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
-*			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
-*			cout function which prints both the value and abbreviation of the unit when invoked.
-* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-*			are placed in the `units::literals` namespace.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	namePlural - plural version of the unit name, e.g. 'meters'
-* @param	abbreviation - abbreviated unit name, e.g. 'm'
-* @param	definition - the variadic parameter is used for the definition of the unit
-*			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-* @note	a variadic template is used for the definition to allow templates with
-*			commas to be easily expanded. All the variadic 'arguments' should together
-*			comprise the unit definition.
-*/
+ * @def			UNIT_ADD(namespaceName,nameSingular, namePlural, abbreviation, definition)
+ * @brief		Macro for generating the boiler-plate code needed for a new unit.
+ * @details		The macro generates singular, plural, and abbreviated forms
+ *				of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+ *				appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+ *				using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+ *				cout function which prints both the value and abbreviation of the unit when invoked.
+ * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+ *				are placed in the `units::literals` namespace.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		definition - the variadic parameter is used for the definition of the unit
+ *				(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note		a variadic template is used for the definition to allow templates with
+ *				commas to be easily expanded. All the variadic 'arguments' should together
+ *				comprise the unit definition.
+ */
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, __VA_ARGS__)\
 	UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
@@ -210,25 +210,25 @@
 	UNIT_ADD_LITERALS(namespaceName,nameSingular, abbreviation)
 
 /**
-* @def		UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName,nameSingular, namePlural, abbreviation, underlyingType, definition)
-* @brief	Macro for generating the boiler-plate code needed for a new unit with a non-default underlying type.
-* @details	The macro generates singular, plural, and abbreviated forms
-*			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
-*			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
-*			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
-*			cout function which prints both the value and abbreviation of the unit when invoked.
-* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-*			are placed in the `units::literals` namespace.
-* @param	nameSingular singular version of the unit name, e.g. 'meter'
-* @param	namePlural - plural version of the unit name, e.g. 'meters'
-* @param	abbreviation - abbreviated unit name, e.g. 'm'
-* @param	underlyingType - the underlying type, e.g. 'int' or 'float'
-* @param	definition - the variadic parameter is used for the definition of the unit
-*			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
-* @note	a variadic template is used for the definition to allow templates with
-*			commas to be easily expanded. All the variadic 'arguments' should together
-*			comprise the unit definition.
-*/
+ * @def			UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName,nameSingular, namePlural, abbreviation, underlyingType, definition)
+ * @brief		Macro for generating the boiler-plate code needed for a new unit with a non-default underlying type.
+ * @details		The macro generates singular, plural, and abbreviated forms
+ *				of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
+ *				appropriately named unit container (e.g. `meter_t`). A literal suffix is created
+ *				using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
+ *				cout function which prints both the value and abbreviation of the unit when invoked.
+ * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+ *				are placed in the `units::literals` namespace.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		underlyingType - the underlying type, e.g. 'int' or 'float'
+ * @param		definition - the variadic parameter is used for the definition of the unit
+ *				(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note		a variadic template is used for the definition to allow templates with
+ *				commas to be easily expanded. All the variadic 'arguments' should together
+ *				comprise the unit definition.
+ */
 #define UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName, nameSingular, namePlural, abbreviation, underlyingType, /*definition*/...)\
 	UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, __VA_ARGS__)\
 	UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular,underlyingType)\
@@ -236,30 +236,30 @@
 	UNIT_ADD_LITERALS(namespaceName,nameSingular, abbreviation)
 
 /**
-* @def		UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
-* @brief	Macro to create decibel container and literals for an existing unit type.
-* @details	This macro generates the decibel unit container, cout overload, and literal definitions.
-* @param	namespaceName namespace in which the new units will be encapsulated. All literal values
-*			are placed in the `units::literals` namespace.
-* @param	nameSingular singular version of the base unit name, e.g. 'watt'
-* @param	abbreviation - abbreviated decibel unit name, e.g. 'dBW'
-*/
+ * @def			UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
+ * @brief		Macro to create decibel container and literals for an existing unit type.
+ * @details		This macro generates the decibel unit container, cout overload, and literal definitions.
+ * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+ *				are placed in the `units::literals` namespace.
+ * @param		nameSingular singular version of the base unit name, e.g. 'watt'
+ * @param		abbreviation - abbreviated decibel unit name, e.g. 'dBW'
+ */
 #define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
 	namespace namespaceName\
 	{\
-		/** @name Unit Containers */ /** @{ */ using abbreviation ## _t = unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale>; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> abbreviation ## _t; /** @} */\
 	}\
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation)\
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
-* @def		UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
-* @brief	Macro to create the `is_category_unit` type trait.
-* @details	This trait allows users to test whether a given type matches
-*			an intended category. This macro comprises all the boiler-plate
-*			code necessary to do so.
-* @param	unitCategory The name of the category of unit, e.g. length or mass.
-*/
+ * @def			UNIT_ADD_CATEGORY_TRAIT(unitCategory, baseUnit)
+ * @brief		Macro to create the `is_category_unit` type trait.
+ * @details		This trait allows users to test whether a given type matches
+ *				an intended category. This macro comprises all the boiler-plate
+ *				code necessary to do so.
+ * @param		unitCategory The name of the category of unit, e.g. length or mass.
+ */
 
 #define UNIT_ADD_CATEGORY_TRAIT_DETAIL(unitCategory)\
 	namespace traits\
@@ -293,29 +293,29 @@
 
 #define UNIT_ADD_CATEGORY_TRAIT(unitCategory)\
 	UNIT_ADD_CATEGORY_TRAIT_DETAIL(unitCategory)\
-   /** @ingroup	TypeTraits*/\
+    /** @ingroup	TypeTraits*/\
 	/** @brief		Trait which tests whether a type represents a unit of unitCategory*/\
 	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitCategory ## _unit<T>::value` to test the unit represents a unitCategory quantity.*/\
 	/** @tparam		T	one or more types to test*/\
 	UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)
 
 /**
- * @def		UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
- * @brief	Macro for generating the boiler-plate code needed for a new unit, including its metric
- *			prefixes from femto to peta.
- * @details	See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and 'meter_t', 
- *       it also creates corresponsing units with metric suffixesm such as `millimeters`, and `millimeter_t`), as well as the
- *			literal suffixes (e.g. `10.0_mm`).
- * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
- *			are placed in the `units::literals` namespace.
- * @param	nameSingular singular version of the unit name, e.g. 'meter'
- * @param	namePlural - plural version of the unit name, e.g. 'meters'
- * @param	abbreviation - abbreviated unit name, e.g. 'm'
- * @param	definition - the variadic parameter is used for the definition of the unit
- *			(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
- * @note	a variadic template is used for the definition to allow templates with
- *			commas to be easily expanded. All the variadic 'arguments' should together
- *			comprise the unit definition.
+ * @def			UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
+ * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
+ *				prefixes from femto to peta.
+ * @details		See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and 'meter_t',
+ *				it also creates corresponsing units with metric suffixesm such as `millimeters`, and `millimeter_t`), as well as the
+ *				literal suffixes (e.g. `10.0_mm`).
+ * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+ *				are placed in the `units::literals` namespace.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		definition - the variadic parameter is used for the definition of the unit
+ *				(e.g. `unit<std::ratio<1>, units::category::length_unit>`)
+ * @note		a variadic template is used for the definition to allow templates with
+ *				commas to be easily expanded. All the variadic 'arguments' should together
+ *				comprise the unit definition.
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
@@ -1988,33 +1988,27 @@ namespace units
 
 		template<class U, typename Ty, template<typename> class Nlt>
 		friend class unit_t;
-
-	  /**
-	  * @ingroup	???
-	  * @brief		Constructs a unit container from an arithmetic type.
-	  * @details	make_unit can be used to construct a unit container from an arithmetic type, as an alternative to
-	  *            using the explicit constructor. Unlike the explicit constructor it forces the user to explicitly 
-	  *            specify the units.
-	  * @tparam		UnitType Type to construct.
-	  * @tparam		T Arithmetic type.
-	  * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
-	  */
-		template<class UnitType, typename T>
-		friend UnitType make_unit(const T value);
 	};
 
-	template<class UnitType, typename T>
-	UnitType
-	make_unit(const T value)
+	/**
+	 * @ingroup		UnitContainers
+	 * @brief		Constructs a unit container from an arithmetic type.
+	 * @details		make_unit can be used to construct a unit container from an arithmetic type, as an alternative to
+	 *				using the explicit constructor. Unlike the explicit constructor it forces the user to explicitly
+	 *				specify the units.
+	 * @tparam		UnitType Type to construct.
+	 * @tparam		Ty		Arithmetic type.
+	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
+	 */
+	template<class UnitType, typename T, class = typename std::enable_if<std::is_arithmetic<T>::value>::type>
+	UnitType make_unit(const T value)
 	{
 		static_assert(traits::is_unit_t<UnitType>::value, "Template parameter `UnitType` must be a unit type (_t).");
-		UnitType Unit;
-		Unit.m_value = static_cast<typename UnitType::underlying_type>(value);
-		return Unit;
+		
+		return UnitType(value);
 	}
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
