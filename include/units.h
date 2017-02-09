@@ -302,13 +302,10 @@
 /**
  * @def		UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
  * @brief	Macro for generating the boiler-plate code needed for a new unit, including its metric
- *			prefixes from fempto to peta.
- * @details	This macro should be used within an appropriate namespace for the unit
- *			category. The macro generates singular, plural, and abbreviated forms
- *			of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
- *			appropriately named unit container (e.g. `meter_t`). A literal suffix is created
- *			using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
- *			cout function which prints both the value and abbreviation of the unit when invoked.
+ *			prefixes from femto to peta.
+ * @details	See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and 'meter_t', 
+ *       it also creates corresponsing units with metric suffixesm such as `millimeters`, and `millimeter_t`), as well as the
+ *			literal suffixes (e.g. `10.0_mm`).
  * @param	namespaceName namespace in which the new units will be encapsulated. All literal values
  *			are placed in the `units::literals` namespace.
  * @param	nameSingular singular version of the unit name, e.g. 'meter'
@@ -1323,22 +1320,22 @@ namespace units
 	 * @ingroup Prefixes
 	 * @{
 	 */
-	template<class U> using atto = typename units::detail::prefix<std::atto, U>::type;								///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-21	@tparam U unit type to apply the prefix to.
-	template<class U> using femto = typename units::detail::prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. femto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
-	template<class U> using pico = typename units::detail::prefix<std::pico, U>::type;								///< Represents the type of `class U` with the metric 'femto' prefix appended. @details E.g. pico<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
-	template<class U> using nano = typename units::detail::prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended.  @details E.g. nano<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
-	template<class U> using micro = typename units::detail::prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. micro<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
-	template<class U> using milli = typename units::detail::prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended. @details E.g. milli<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
-	template<class U> using centi = typename units::detail::prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. centi<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
-	template<class U> using deci = typename units::detail::prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. deci<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
-	template<class U> using deca = typename units::detail::prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended.  @details E.g. deca<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
-	template<class U> using hecto = typename units::detail::prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. hecto<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
-	template<class U> using kilo = typename units::detail::prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'hecto' prefix appended. @details E.g. kilo<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
-	template<class U> using mega = typename units::detail::prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended.  @details E.g. mega<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
-	template<class U> using giga = typename units::detail::prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. giga<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
-	template<class U> using tera = typename units::detail::prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. tera<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
-	template<class U> using peta = typename units::detail::prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. peta<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
-	template<class U> using exa = typename units::detail::prefix<std::exa, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. exa<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
+	template<class U> using atto = typename units::detail::prefix<std::atto, U>::type;								///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
+	template<class U> using femto = typename units::detail::prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended.  @details E.g. femto<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
+	template<class U> using pico = typename units::detail::prefix<std::pico, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended. @details E.g. pico<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
+	template<class U> using nano = typename units::detail::prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. nano<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
+	template<class U> using micro = typename units::detail::prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended.  @details E.g. micro<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
+	template<class U> using milli = typename units::detail::prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. milli<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
+	template<class U> using centi = typename units::detail::prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. centi<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
+	template<class U> using deci = typename units::detail::prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended. @details E.g. deci<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
+	template<class U> using deca = typename units::detail::prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. deca<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
+	template<class U> using hecto = typename units::detail::prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'hecto' prefix appended.  @details E.g. hecto<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
+	template<class U> using kilo = typename units::detail::prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended. @details E.g. kilo<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
+	template<class U> using mega = typename units::detail::prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. mega<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
+	template<class U> using giga = typename units::detail::prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. giga<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
+	template<class U> using tera = typename units::detail::prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. tera<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
+	template<class U> using peta = typename units::detail::prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. peta<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
+	template<class U> using exa = typename units::detail::prefix<std::exa, U>::type;								   ///< Represents the type of `class U` with the metric 'exa' prefix appended.  @details E.g. exa<meters> represents meters*10^18	@tparam U unit type to apply the prefix to.
 	/** @} @} */
 
 	//------------------------------
