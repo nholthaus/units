@@ -422,9 +422,9 @@ namespace units
 		struct has_num_impl
 		{
 			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; };
+			static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; }
 			template<typename>
-			static constexpr std::false_type test(...) { return std::false_type{}; }; 
+			static constexpr std::false_type test(...) { return std::false_type{}; }
 
 			using type = decltype(test<T>(0));
 		};
@@ -445,9 +445,9 @@ namespace units
 		struct has_den_impl
 		{
 			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; };
+			static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; }
 			template<typename>
-			static constexpr std::false_type test(...) { return std::false_type{}; };
+			static constexpr std::false_type test(...) { return std::false_type{}; }
 
 			using type = decltype(test<T>(0));
 		};
@@ -1505,9 +1505,9 @@ namespace units
 			struct has_operator_parenthesis_impl
 			{
 				template<class U>
-				static constexpr auto test(U*) -> decltype(std::declval<U>()()) { return decltype(std::declval<U>()()){}; };
+				static constexpr auto test(U*) -> decltype(std::declval<U>()()) { return decltype(std::declval<U>()()){}; }
 				template<typename>
-				static constexpr std::false_type test(...) { return std::false_type{}; };
+				static constexpr std::false_type test(...) { return std::false_type{}; }
 
 				using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
 			};
@@ -1533,9 +1533,9 @@ namespace units
 			struct has_value_member_impl
 			{
 				template<class U>
-				static constexpr auto test(U* p) -> decltype(p->m_value) { return p->m_value; };
+				static constexpr auto test(U* p) -> decltype(p->m_value) { return p->m_value; }
 				template<typename>
-				static constexpr auto test(...)->std::false_type { return std::false_type{}; };
+				static constexpr auto test(...)->std::false_type { return std::false_type{}; }
 
 				using type = typename std::is_same<typename std::decay<Ret>::type, typename std::decay<decltype(test<T>(0))>::type>::type;
 			};
@@ -2136,7 +2136,7 @@ namespace units
 		inline linear_scale& operator=(linear_scale&&) = default;
 #endif
 		template<class... Args>
-		inline constexpr linear_scale(const T& value, Args&&... args) noexcept : m_value(value) {}	///< constructor.
+		inline constexpr linear_scale(const T& value, Args&&...) noexcept : m_value(value) {}	///< constructor.
 		inline constexpr T operator()() const noexcept { return m_value; }							///< returns value.
 
 		T m_value;																					///< linearized value.	
@@ -2157,11 +2157,15 @@ namespace units
 	}
 
 // ignore the redeclaration of the default template parameters
-#pragma warning(push)
-#pragma warning(disable : 4348)
-	UNIT_ADD_CATEGORY_TRAIT(scalar);
-	UNIT_ADD_CATEGORY_TRAIT(dimensionless);
-#pragma warning(pop)
+#if defined(_MSC_VER) 
+#	pragma warning(push)
+#	pragma warning(disable : 4348)
+#endif
+	UNIT_ADD_CATEGORY_TRAIT(scalar)
+	UNIT_ADD_CATEGORY_TRAIT(dimensionless)
+#if defined(_MSC_VER) 
+#	pragma warning(pop)
+#endif
 
 	//------------------------------
 	//	LINEAR ARITHMETIC
@@ -2501,7 +2505,7 @@ namespace units
 #endif
 		inline constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
 		template<class... Args>
-		inline constexpr decibel_scale(const T value, std::true_type linearValue, Args&&... args) noexcept : m_value(value) {}
+		inline constexpr decibel_scale(const T value, std::true_type, Args&&...) noexcept : m_value(value) {}
 		inline constexpr T operator()() const noexcept { return 10 * std::log10(m_value); }
 
 		T m_value;	///< linearized value	

@@ -180,10 +180,8 @@ TEST_F(TypeTraits, is_unit_t)
 
 TEST_F(TypeTraits, unit_traits)
 {
-	bool isntUnit = std::is_same<void, traits::unit_traits<double>>::value;
-	bool isUnit = std::is_same<void, traits::unit_traits<meters>>::value;
-	EXPECT_TRUE(traits::is_unit<meters>::value);
-	EXPECT_TRUE(traits::is_unit<feet>::value);
+	EXPECT_TRUE((std::is_same<void, traits::unit_traits<double>::conversion_ratio>::value));
+	EXPECT_FALSE((std::is_same<void, traits::unit_traits<meters>::conversion_ratio>::value));
 }
 
 TEST_F(TypeTraits, all_true)
@@ -822,8 +820,10 @@ TEST_F(UnitManipulators, compound_unit)
 	EXPECT_TRUE(areSame45);
 
 	// test that thing with translations still compile
-	using arbitary1 = compound_unit<meters, inverse<celsius>>;
-	using arbitary2 = compound_unit<meters, celsius>;
+	using arbitrary1 = compound_unit<meters, inverse<celsius>>;
+	using arbitrary2 = compound_unit<meters, celsius>;
+	using arbitrary3 = compound_unit<arbitrary1, arbitrary2>;
+	EXPECT_TRUE((std::is_same<square_meters, arbitrary3>::value));
 }
 
 TEST_F(UnitManipulators, dimensionalAnalysis)
@@ -1023,7 +1023,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 
 	auto mps = meter_t(10.0) * unit_t<inverse<seconds>>(1.0);
-
+	EXPECT_EQ(mps, meters_per_second_t(10));
 }
 
 TEST_F(UnitContainer, unitTypeScalarMultiplication)
@@ -1108,7 +1108,7 @@ TEST_F(UnitContainer, scalarTypeImplicitConversion)
 	EXPECT_DOUBLE_EQ(3.0, test);
 
 	scalar_t testS = 3.0;
-	EXPECT_DOUBLE_EQ(3.0, test);
+	EXPECT_DOUBLE_EQ(3.0, testS);
 
 
 	scalar_t test3(ppm_t(10));
@@ -2785,7 +2785,6 @@ TEST_F(CompileTimeArithmetic, unit_value_sqrt)
 	typedef unit_value_t<hectare, 51, 7> hRatio;
 
 	using rooth = unit_value_sqrt<hRatio, 100000000>;
-	double test = rooth::value().to<double>();
 	EXPECT_TRUE((std::is_convertible<typename std::decay<mile_t>::type, typename std::decay<decltype(rooth::value())>::type>::value));
 	EXPECT_NEAR(2.69920623253, rooth::value().to<double>(), 5.0e-8);
 	EXPECT_NEAR(269.920623, rooth::value().convert<meters>().to<double>(), 5.0e-6);
