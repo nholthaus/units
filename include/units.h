@@ -1990,6 +1990,10 @@ namespace units
 		friend class unit_t;
 	};
 
+	//------------------------------
+	//	UNIT_T NON_MEMBER FUNCTIONS
+	//------------------------------
+
 	/**
 	 * @ingroup		UnitContainers
 	 * @brief		Constructs a unit container from an arithmetic type.
@@ -2021,6 +2025,48 @@ namespace units
 	constexpr unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val) noexcept
 	{
 		return unit_t<Units, T, NonLinearScale>(-val());
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	{
+		static_assert(traits::is_convertible_unit_t<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value), 
+			"parameters are not compatible units.");
+
+		lhs = lhs + rhs;
+		return lhs;
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit_t<Units, T, NonLinearScale>& operator-=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	{
+		static_assert(traits::is_convertible_unit_t<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value),
+			"parameters are not compatible units.");
+
+		lhs = lhs - rhs;
+		return lhs;
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit_t<Units, T, NonLinearScale>& operator*=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	{
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic<RhsType>::value),
+			"right-hand side parameter must be dimensionless.");
+
+		lhs = lhs * rhs;
+		return lhs;
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit_t<Units, T, NonLinearScale>& operator/=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	{
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic<RhsType>::value),
+			"right-hand side parameter must be dimensionless.");
+
+		lhs = lhs / rhs;
+		return lhs;
 	}
 
 	//------------------------------

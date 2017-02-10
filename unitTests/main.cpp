@@ -885,6 +885,7 @@ TEST_F(UnitContainer, make_unit)
 
 TEST_F(UnitContainer, unitTypeAddition)
 {
+	// units
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
 
@@ -900,6 +901,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	auto e_ft = b_ft + meter_t(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 
+	// scalar
 	scalar_t sresult = scalar_t(1.0) + scalar_t(1.0);
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 
@@ -1106,6 +1108,98 @@ TEST_F(UnitContainer, unitTypeDivision)
 	auto mph = mile_t(60.0) / hour_t(1.0);
 	meters_per_second_t mps = mph;
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
+}
+
+TEST_F(UnitContainer, compoundAssignmentAddition)
+{
+	// units
+	meter_t a(0.0);
+	a += meter_t(1.0);
+
+	EXPECT_EQ(meter_t(1.0), a);
+
+	a += foot_t(meter_t(1));
+
+	EXPECT_EQ(meter_t(2.0), a);
+
+	// scalars
+	scalar_t b(0);
+	b += scalar_t(1.0);
+
+	EXPECT_EQ(scalar_t(1.0), b);
+
+	b += 1;
+
+	EXPECT_EQ(scalar_t(2.0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentSubtraction)
+{
+	// units
+	meter_t a(2.0);
+	a -= meter_t(1.0);
+
+	EXPECT_EQ(meter_t(1.0), a);
+
+	a -= foot_t(meter_t(1));
+
+	EXPECT_EQ(meter_t(0.0), a);
+
+	// scalars
+	scalar_t b(2);
+	b -= scalar_t(1.0);
+
+	EXPECT_EQ(scalar_t(1.0), b);
+
+	b -= 1;
+
+	EXPECT_EQ(scalar_t(0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentMultiplication)
+{
+	// units
+	meter_t a(2.0);
+	a *= scalar_t(2.0);
+
+	EXPECT_EQ(meter_t(4.0), a);
+
+	a *= 2.0;
+
+	EXPECT_EQ(meter_t(8.0), a);
+
+	// scalars
+	scalar_t b(2);
+	b *= scalar_t(2.0);
+
+	EXPECT_EQ(scalar_t(4.0), b);
+
+	b *= 2;
+
+	EXPECT_EQ(scalar_t(8.0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentDivision)
+{
+	// units
+	meter_t a(8.0);
+	a /= scalar_t(2.0);
+
+	EXPECT_EQ(meter_t(4.0), a);
+
+	a /= 2.0;
+
+	EXPECT_EQ(meter_t(2.0), a);
+
+	// scalars
+	scalar_t b(8);
+	b /= scalar_t(2.0);
+
+	EXPECT_EQ(scalar_t(4.0), b);
+
+	b /= 2;
+
+	EXPECT_EQ(scalar_t(2.0), b);
 }
 
 TEST_F(UnitContainer, scalarTypeImplicitConversion)
