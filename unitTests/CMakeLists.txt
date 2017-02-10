@@ -1,10 +1,7 @@
 PROJECT(unitLibTest)
 
-# use absolute paths to help coveralls
-get_filename_component(MAIN main.cpp ABSOLUTE)
-
 SET(SOURCE_CODE 
-${MAIN}
+main.cpp
 )
 
 LIST(APPEND LIBRARIES
@@ -16,11 +13,17 @@ units
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
 option(COVERALLS "Generate coveralls data" OFF)
 if (COVERALLS)
+
+	# use absolute paths to help coveralls
+	get_filename_component(MAIN main.cpp ABSOLUTE)
+	get_filename_component(UNITS ../include/units.h ABSOLUTE)
+
 	include(Coveralls)
 	coveralls_turn_on_coverage()
-	coveralls_setup("${SOURCE_CODE}" # The source files.
+	coveralls_setup("${MAIN} ${UNITS}" # The source files.
 		ON   
 	)
+	
 endif()
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_CODE})
