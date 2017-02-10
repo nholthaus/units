@@ -674,6 +674,13 @@ With certain compilers, it is possible that system header files like `<ctype.h>`
 
 `_T` is known to conflict, but is hardcoded into the compiler and can't be disabled. For this reason, `tesla` units use the `_Te` abbreviation.
 
+The following macros may need to be undefined on the Windows platform to use `units`:
+
+   ```cpp
+   #undef pascal
+   #include <units.h>
+   ```
+   
 ## ARM macros
 
 The following macros may need to be undefined on the ARM platform to use `units::literals`:
