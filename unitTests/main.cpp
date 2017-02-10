@@ -2586,6 +2586,8 @@ TEST_F(Constexpr, arithmetic)
 	constexpr auto result6(meter_t(1) * meter_t(1));
 	constexpr auto result7(meter_t(1) / meter_t(1));
 	constexpr auto result8(units::math::cpow<2>(meter_t(2)));
+	constexpr auto result9 = units::math::cpow<3>(2_m);
+	constexpr auto result10 = 2_m * 2_m;
 
 	EXPECT_TRUE(noexcept(result0));
 	EXPECT_TRUE(noexcept(result1));
@@ -2596,6 +2598,11 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(result6));
 	EXPECT_TRUE(noexcept(result7));
 	EXPECT_TRUE(noexcept(result8));
+	EXPECT_TRUE(noexcept(result9));
+	EXPECT_TRUE(noexcept(result10));
+
+	EXPECT_EQ(8_cu_m, result9);
+	EXPECT_EQ(4_sq_m, result10);
 }
 #endif
 

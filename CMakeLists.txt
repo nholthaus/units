@@ -4,7 +4,7 @@ PROJECT(units)
 
 OPTION(BUILD_TESTS "Build unit tests" ON)
 OPTION(BUILD_DOCS "Build the documentation" OFF)
-OPTION(DISABLE_IOSTREAM "Compile with IOStream (cout) support" OFF)
+OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
