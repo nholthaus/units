@@ -12,7 +12,7 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 ## Special Thanks
 
-Thank you to the contributors who made the version possible!
+Thank you to the contributors who made this version possible!
 
 @dharmatech
 @JaapAap
@@ -34,6 +34,13 @@ Thank you to the contributors who made the version possible!
    ```cpp
    constexpr auto volume(units::math::cpow<3>(2_m));  // volume == 8_cu_m 
    ```
+
+- Added a dimensionless `PI` constant. The new constant is more intuitive and can be used in all places where a unit type could be used.
+
+  ```cpp
+  meter_t a = constants::pi * 1_m;  // a == PI meters
+  meter_t b(constants::pi);         // b == PI meters
+  ```
 
 - Added `make_unit<...>()` factory. The syntax is familiar to `boost::units` users, and allows explicit reference to the unit type for member variable initialization.
 
@@ -166,7 +173,7 @@ Does this library work on your compiler? If so, let me know!
 
 # Description
 
-The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path. A CMake project is included to build the unit tests and documentation if desired.
+The library consists of a single file ([units.h](include/units.h)), plus unit tests. To incorporate the library into your project, simply copy the header into a location in your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
 The library provides a set of types, containers, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_. 
 
