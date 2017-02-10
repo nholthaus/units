@@ -7,10 +7,10 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 # Latest Release - v2.1.3
 
-### Get it:
+## Get it
 [![DOWNLOAD](https://img.shields.io/badge/Download-v2.1.3-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.1.3)
 
-### New features:
+## New features
 
 - Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
 
@@ -41,11 +41,11 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 - Adds CMake `INTERFACE` project.
 - Clang support.
 
-### Notes:
+## Notes
 
  - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
  
-### Tested on:
+## Tested on
 
  - gcc-4.9.3
  - gcc-5.4.0
@@ -61,10 +61,10 @@ Does this library work on your compiler? If so, let me know!
 
 - [UNITS](#units)
 - [Latest Release - v2.1.3](#latest-release---v213)
-		- [Get it:](#get-it)
-		- [New features:](#new-features)
-		- [Notes:](#notes)
-		- [Tested on:](#tested-on)
+	- [Get it](#get-it)
+	- [New features](#new-features)
+	- [Notes](#notes)
+	- [Tested on](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
@@ -84,8 +84,8 @@ Does this library work on your compiler? If so, let me know!
 - [Unit Type Traits](#unit-type-traits)
 - [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
 - [Build Instructions](#build-instructions)
-		- [Windows:](#windows)
-		- [Linux:](#linux)
+	- [Windows](#windows)
+	- [Linux](#linux)
 - [Previous Releases](#previous-releases)
 
 <!-- /TOC -->
@@ -576,7 +576,7 @@ The unit tests and documentation can be built with CMake. A doxygen installation
 
 To build the tests:
 
-###Windows:
+## Windows
  1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
  3. Open a `cmd` terminal and navigate to the source directory.
@@ -587,7 +587,7 @@ To build the tests:
    - `cmake --build . --config Release`
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
    
-###Linux:
+## Linux
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 4.9 or greater. You can verify this with `gcc --version`.
  3. clone the repository or download the `.tar.gz` package.
