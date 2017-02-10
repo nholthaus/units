@@ -152,6 +152,7 @@ Does this library work on your compiler? If so, let me know!
 - [Macro clashes](#macro-clashes)
 	- [Windows macros](#windows-macros)
 	- [ARM macros](#arm-macros)
+- [CMake Instructions](#cmake-instructions)
 - [Build Instructions](#build-instructions)
 	- [Windows](#windows)
 	- [Linux](#linux)
@@ -579,6 +580,9 @@ Version `2.1.0` of the units library simplifies the task of adding new units by 
   
   This macro has the same functionality as `UNIT_ADD`, but additionally adds unit types with all metric prefixes from `fempto` to `peta` (larger and smaller prefixes mostly result in arithmetic overflow).
 
+- `UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName, nameSingular, namePlural, abbreviation, underlyingType, definition)`
+
+  This macro has the same functionality as `UNIT_ADD`, but additionally adds an `underlyingType` parameter, which can be used to create units with integral, or other underlying types. The library default underlying type is `double`.
 - `UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)`
 
   Adds the decibel representation for a previously-defined unit. e.g.
@@ -682,6 +686,27 @@ The following macros may need to be undefined on the ARM platform to use `units:
 
    It's best to undefine macros on an as-needed basis.
 
+# CMake Instructions
+
+There are several ways to incorporate `units.h` into your project. The simplest is to just copy `include/units.h` into your project include directory (which the licensing allows you to do). However, you'll have to properly set up the necessary compilation flags for C++14 (`-std=c++14` on gcc).
+
+However, if you are already using CMake as your build system, the recommended way to include `units` is to copy the entire `units` project as a subdirectory within your own top-level project folder. Then, in your CMakeLists.txt file add
+
+   ```cmake
+   add_subdirectory(units)
+
+   add_executable(${PROJECT_NAME} main.cpp)
+   target_link_libraries(${PROJECT_NAME} units)
+   ```
+
+The include path properties are part of the `units` target, so adding it as a subdirectory and linking against it is all you need to do, no need to worry about additional include directories.
+
+If you don't care about the unit tests, you can minimize compile time by invoking CMake with the following option:
+
+   ```bash
+   cmake -DBUILD_TESTS=OFF ..
+   cmake -build .
+   ```
 # Build Instructions
 
 The library itself consists of a single header [units.h](include/units.h), and can be included into your project without being built. 
