@@ -17,10 +17,11 @@ if (COVERALLS)
 	# use absolute paths to help coveralls
 	get_filename_component(MAIN main.cpp ABSOLUTE)
 	get_filename_component(UNITS ../include/units.h ABSOLUTE)
+    SET(FILES ${MAIN} ${UNITS})
 
 	include(Coveralls)
 	coveralls_turn_on_coverage()
-	coveralls_setup("${MAIN} ${UNITS}" # The source files.
+	coveralls_setup("${FILES}" # The source files.
 		ON   
 	)
 	
