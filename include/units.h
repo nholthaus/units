@@ -2713,7 +2713,7 @@ namespace units
 		struct unit_value_arithmetic
 		{
 			static_assert(traits::is_unit_value_t<U1>::value, "Template parameter `U1` must be a `unit_value_t` type.");
-			static_assert(traits::is_unit_value_t<U2>::value, "Template parameter `U1` must be a `unit_value_t` type.");
+			static_assert(traits::is_unit_value_t<U2>::value, "Template parameter `U2` must be a `unit_value_t` type.");
 
 			using _UNIT1 = typename traits::unit_value_t_traits<U1>::unit_type;
 			using _UNIT2 = typename traits::unit_value_t_traits<U2>::unit_type;
@@ -4250,7 +4250,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = typename std::enable_if<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>::type>
 		UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 		{
-			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fdim() function are not compatible units.");
 			return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
