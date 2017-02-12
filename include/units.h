@@ -525,8 +525,8 @@ namespace units
 #endif
 		/** @cond */	// DOXYGEN IGNORE
 		/**
-		* @brief		unit traits implementation for classes which are not units.
-		*/
+		 * @brief		unit traits implementation for classes which are not units.
+		 */
 		template<class T, typename = void>
 		struct unit_traits
 		{
@@ -619,6 +619,7 @@ namespace units
 	 * @tparam		Kelvin		`std::ratio` representing the exponent value for Kelvin.
 	 * @tparam		Mole		`std::ratio` representing the exponent value for moles.
 	 * @tparam		Candela		`std::ratio` representing the exponent value for candelas.
+	 * @tparam		Bit			`std::ratio` representing the exponent value for bits.
 	 * @sa			category	 for type aliases for SI base_unit types.
 	 */
 	template<class Meter = std::ratio<0>,
@@ -628,7 +629,8 @@ namespace units
 	class Ampere = std::ratio<0>,
 	class Kelvin = std::ratio<0>,
 	class Mole = std::ratio<0>,
-	class Candela = std::ratio < 0 >>
+	class Candela = std::ratio<0>,
+	class Bit = std::ratio<0>>
 	struct base_unit : units::detail::_base_unit_t
 	{
 		static_assert(traits::is_ratio<Meter>::value, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
@@ -639,6 +641,17 @@ namespace units
 		static_assert(traits::is_ratio<Candela>::value, "Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
 		static_assert(traits::is_ratio<Mole>::value, "Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
 		static_assert(traits::is_ratio<Radian>::value, "Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
+		static_assert(traits::is_ratio<Bit>::value, "Template parameter `Bit` must be a `std::ratio` representing the exponent of bits the unit has");
+
+		typedef Meter meter_ratio;
+		typedef Kilogram kilogram_ratio;
+		typedef Second second_ratio;
+		typedef Radian radian_ratio;
+		typedef Ampere ampere_ratio;
+		typedef Kelvin kelvin_ratio;
+		typedef Mole mole_ratio;
+		typedef Candela candela_ratio;
+		typedef Bit bit_ratio;
 	};
 
 	//------------------------------
@@ -647,7 +660,7 @@ namespace units
 
 	/**
 	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be needed by library users.
-	 * @sa			base_unit for the definition of the category prarameters.
+	 * @sa			base_unit for the definition of the category parameters.
 	 */
 	namespace category
 	{
@@ -1991,7 +2004,7 @@ namespace units
 	};
 
 	//------------------------------
-	//	UNIT_T NON_MEMBER FUNCTIONS
+	//	UNIT_T NON-MEMBER FUNCTIONS
 	//------------------------------
 
 	/**
@@ -2016,7 +2029,54 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
-		os << obj();
+		using BaseUnits = unit<std::ratio<1>, typename traits::unit_traits<Units>::base_unit_type>;
+		os << convert<Units, BaseUnits>(obj());
+
+		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 0) { os << " m"; }
+		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 0 && 
+			traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::meter_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<Units>::base_unit_type::meter_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 0) { os << " kg"; }
+		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::kilogram_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::second_ratio::num != 0) { os << " s"; }
+		if (traits::unit_traits<Units>::base_unit_type::second_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::second_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::second_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 0) { os << " A"; }
+		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::ampere_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::ampere_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 0) { os << " K"; }
+		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::kelvin_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 0) { os << " mol"; }
+		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 0 && 
+			traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::mole_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::mole_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 0) { os << " cd"; }
+		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::candela_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::candela_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 0) { os << " rad"; }
+		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::radian_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::radian_ratio::den; }
+
+		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 0) { os << " b"; }
+		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::bit_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::bit_ratio::den; }
+
 		return os;
 	}
 #endif
@@ -3772,14 +3832,14 @@ namespace units
 		static constexpr const unit_t<compound_unit<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * math::cpow<2>(c)));		///< vacuum permitivity.
 		static constexpr const impedance::ohm_t																										Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		static constexpr const unit_t<compound_unit<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>							k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
-		static constexpr const charge::coulomb_t																									e(1.602176565e-19);								///< elementary charge.
-		static constexpr const mass::kilogram_t																										m_e(9.10938291e-31);							///< electron mass.
-		static constexpr const mass::kilogram_t																										m_p(1.672621777e-27);							///< proton mass.
+		static constexpr const charge::coulomb_t																									e(1.6021766208e-19);							///< elementary charge.
+		static constexpr const mass::kilogram_t																										m_e(9.10938356e-31);							///< electron mass.
+		static constexpr const mass::kilogram_t																										m_p(1.672621898e-27);							///< proton mass.
 		static constexpr const unit_t<compound_unit<energy::joules, inverse<magnetic_field_strength::tesla>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
-		static constexpr const unit_t<inverse<substance::mol>>																						N_A(6.02214129e23);								///< Avagadro's Number.
-		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144621);									///< Gas constant.
+		static constexpr const unit_t<inverse<substance::mol>>																						N_A(6.022140857e23);							///< Avagadro's Number.
+		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
 		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
-		static constexpr const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constnat.
+		static constexpr const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
 		static constexpr const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::cpow<5>(pi) * math::cpow<4>(R)) / (15 * math::cpow<3>(h) * math::cpow<2>(c) * math::cpow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}

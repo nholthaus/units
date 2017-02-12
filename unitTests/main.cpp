@@ -1234,42 +1234,84 @@ TEST_F(UnitContainer, convertMethod)
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
-	degree_t test1(349.87);
-	meter_t test2(1.0);
-	dB_t test3(31.0);
-	volt_t test4(21.79);
-	dBW_t test5(12.0);
-	dBm_t test6(120.0);
+	testing::internal::CaptureStdout();
+	std::cout << degree_t(349.87);
+	std::string output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("349.87 deg", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test1;
-	std::string output1 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("349.87 deg", output1.c_str());
+	std::cout << meter_t(1.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1 m", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test2;
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1 m", output2.c_str());
+	std::cout << dB_t(31.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("31 dB", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test3;
-	std::string output3 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("31 dB", output3.c_str());
+	std::cout << volt_t(21.79);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("21.79 V", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test4;
-	std::string output4 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("21.79 V", output4.c_str());
+	std::cout << dBW_t(12.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("12 dBW", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test5;
-	std::string output5 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("12 dBW", output5.c_str());
+	std::cout << dBm_t(120.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("120 dBm", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test6;
-	std::string output6 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("120 dBm", output6.c_str());
+	std::cout << miles_per_hour_t(72.1);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("72.1 mph", output.c_str());
+
+	// undefined unit
+	testing::internal::CaptureStdout();
+	std::cout << units::math::cpow<4>(meter_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("16 m^4", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << units::math::cpow<3>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("8 cu_ft", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << units::math::cpow<4>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("0.138095597 m^4", output.c_str());
+
+	// constants
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(8) << constants::k_B;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("1.3806485e-023 m^2 kg s^-2 K^-1", output.c_str());
+#else
+	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
+#endif
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << constants::mu_B;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("9.27400999e-024 m^2 A", output.c_str());
+#else
+	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
+#endif
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(7) << constants::sigma;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("5.670367e-008 kg s^-3 K^-4", output.c_str());
+#else
+	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
+#endif
 }
 #endif
 
@@ -2314,22 +2356,23 @@ TEST_F(UnitConversion, pi)
 
 TEST_F(UnitConversion, constants)
 {
+	// Source: NIST "2014 CODATA recommended values" 
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
 	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
 	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
-	EXPECT_NEAR(1.256637061e-6, constants::mu0(), 5.0e-16);
+	EXPECT_NEAR(1.2566370614e-6, constants::mu0(), 5.0e-17);
 	EXPECT_NEAR(8.854187817e-12, constants::epsilon0(), 5.0e-21);
-	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12);
-	EXPECT_NEAR(8.987551787e9, constants::k_e(), 5.0e-1);
-	EXPECT_NEAR(1.602176565e-19, constants::e(), 5.0e-29);
-	EXPECT_NEAR(9.10938291e-31, constants::m_e(), 5.0e-40);
-	EXPECT_NEAR(1.672621777e-27, constants::m_p(), 5.0e-37);
-	EXPECT_NEAR(9.27400968e-24, constants::mu_B(), 5.0e-30);
-	EXPECT_NEAR(6.02214129e23, constants::N_A(), 5.0e14);
-	EXPECT_NEAR(8.3144621, constants::R(), 5.0e-8);
-	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
-	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
-	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
+	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12); 
+	EXPECT_NEAR(8987551787.3681764, constants::k_e(), 5.0e-6);
+	EXPECT_NEAR(1.6021766208e-19, constants::e(), 5.0e-29);
+	EXPECT_NEAR(9.10938356e-31, constants::m_e(), 5.0e-40);
+	EXPECT_NEAR(1.672621898e-27, constants::m_p(), 5.0e-37);
+	EXPECT_NEAR(9.274009994e-24, constants::mu_B(), 5.0e-32);
+	EXPECT_NEAR(6.022140857e23, constants::N_A(), 5.0e14);
+	EXPECT_NEAR(8.3144598, constants::R(), 5.0e-8);
+	EXPECT_NEAR(1.38064852e-23, constants::k_B(), 5.0e-31);
+	EXPECT_NEAR(96485.33289, constants::F(), 5.0e-5);
+	EXPECT_NEAR(5.670367e-8, constants::sigma(), 5.0e-14);
 }
 
 TEST_F(UnitConversion, std_chrono)
