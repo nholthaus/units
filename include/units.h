@@ -280,14 +280,14 @@
 #define UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)\
 	namespace traits\
 	{\
-		template<typename... T> struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay_t<T>>::value...>::value> {};\
+		template<typename... T> struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::all_true<units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T>>::value...>::value> {};\
 	}
 #else
 #define UNIT_ADD_IS_UNIT_CATEGORY_TRAIT(unitCategory)\
 	namespace traits\
 	{\
 			template<typename T1, typename T2 = T1, typename T3 = T1>\
-			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay_t<T1>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay_t<T2>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay_t<T3>>::value>{};\
+			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T1>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T2>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T3>>::value>{};\
 	}
 #endif
 
