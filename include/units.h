@@ -287,7 +287,9 @@
 	namespace traits\
 	{\
 			template<typename T1, typename T2 = T1, typename T3 = T1>\
-			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T1>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T2>>::value && units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T3>>::value>{};\
+			struct is_ ## unitCategory ## _unit : std::integral_constant<bool, units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T1>::type>::value &&\
+				units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T2>::type>::value &&\
+				units::traits::detail::is_ ## unitCategory ## _unit_impl<typename std::decay<T3>::type>::value>{};\
 	}
 #endif
 
@@ -1793,7 +1795,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear scalar units
 		 * @param[in]	value value of the unit_t
 		 */
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>>
+		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
 		inline constexpr unit_t(const Ty value) noexcept : nls(value) 
 		{
 
