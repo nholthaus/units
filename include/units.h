@@ -1076,8 +1076,8 @@ namespace units
 
 			template <intmax_t Lower, intmax_t Upper, typename Condition1 = void, typename Condition2 = void>
 			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Upper,
-				std::conditional_t<(Upper - Lower == 1), std::true_type, std::false_type>,
-				std::conditional_t<((Upper - Lower>1 && Predicate<Lower + (Upper - Lower) / 2>::value)), std::true_type, std::false_type>> {};
+				std::integral_constant<bool, (Upper - Lower == 1)>,
+				std::integral_constant<bool, ((Upper - Lower>1 && Predicate<Lower + (Upper - Lower) / 2>::value))>> {};
 
 			template <intmax_t Lower, intmax_t Upper>
 			struct DoubleSidedSearch_<Lower, Upper, std::false_type, std::false_type> : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
@@ -1089,7 +1089,7 @@ namespace units
 			struct DoubleSidedSearch_<Lower, Upper, Condition1, std::true_type> : DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
 
 			template <std::intmax_t Lower, class enabled1 = void>
-			struct SingleSidedSearch_ : SingleSidedSearch_<Lower, std::conditional_t<Predicate<SafeDouble_<Lower>::value>::value, std::true_type, std::false_type>>{};
+			struct SingleSidedSearch_ : SingleSidedSearch_<Lower, std::integral_constant<bool, Predicate<SafeDouble_<Lower>::value>::value>>{};
 
 			template <std::intmax_t Lower>
 			struct SingleSidedSearch_<Lower, std::false_type> : DoubleSidedSearch_<Lower, SafeDouble_<Lower>::value> {};
@@ -2756,7 +2756,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
@@ -2806,7 +2806,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
@@ -2857,7 +2857,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
@@ -2907,7 +2907,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
@@ -2954,7 +2954,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
@@ -3001,7 +3001,7 @@ namespace units
 		 */
 		static constexpr const unit_t<unit_type> value() noexcept
 		{
-			using UsePi = std::conditional_t<Base::_PI_EXP::num != 0, std::true_type, std::false_type>;
+			using UsePi = std::integral_constant<bool, Base::_PI_EXP::num != 0>;
 			return value(UsePi());
 		}
 
