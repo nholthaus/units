@@ -187,6 +187,14 @@ TEST_F(TypeTraits, unit_traits)
 	EXPECT_FALSE((std::is_same<void, traits::unit_traits<meters>::conversion_ratio>::value));
 }
 
+TEST_F(TypeTraits, unit_t_traits)
+{
+	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::value_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::value_type>::value));
+}
+
 TEST_F(TypeTraits, all_true)
 {
 	EXPECT_TRUE(all_true<true>::type::value);
@@ -1259,6 +1267,10 @@ TEST_F(UnitContainer, valueMethod)
 {
 	double test = meter_t(3.0).to<double>();
 	EXPECT_DOUBLE_EQ(3.0, test);
+
+	auto test2 = meter_t(4.0).value();
+	EXPECT_DOUBLE_EQ(4.0, test2);
+	EXPECT_TRUE((std::is_same<decltype(test2), double>::value));
 }
 
 TEST_F(UnitContainer, convertMethod)

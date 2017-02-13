@@ -1662,6 +1662,7 @@ namespace units
 		{
 			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logatirhmic arithmetic functions.
 			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `double`.
+			typedef typename T::value_type value_type;							///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
 			typedef typename T::unit_type unit_type;							///< Type of unit the `unit_t` represents, e.g. `meters`
 		};
 #endif
@@ -1676,6 +1677,7 @@ namespace units
 		{
 			typedef void non_linear_scale_type;
 			typedef void underlying_type;
+			typedef void value_type;
 			typedef void unit_type;
 		};
 	
@@ -1688,10 +1690,12 @@ namespace units
 		struct unit_t_traits <T, typename void_t<
 			typename T::non_linear_scale_type,
 			typename T::underlying_type,
+			typename T::value_type,
 			typename T::unit_type>::type>
 		{
 			typedef typename T::non_linear_scale_type non_linear_scale_type;
 			typedef typename T::underlying_type underlying_type;
+			typedef typename T::value_type value_type;
 			typedef typename T::unit_type unit_type;
 		};
 		/** @endcond */	// END DOXYGEN IGNORE
@@ -1825,6 +1829,7 @@ namespace units
 
 		typedef NonLinearScale<T> non_linear_scale_type;											///< Type of the non-linear scale of the unit_t (e.g. linear_scale)
 		typedef T underlying_type;																	///< Type of the underlying storage of the unit_t (e.g. double)
+		typedef T value_type;																		///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
 		typedef Units unit_type;																	///< Type of `unit` the `unit_t` represents (e.g. meters)
 
 		/**
@@ -1978,7 +1983,7 @@ namespace units
 		/**
 		 * @brief		inequality
 		 * @details		compares the linearized value of two units. Performs unit conversions if necessary.
-		 * @param[in]		rhs right-hand side unit for the comparison
+		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
 		 */
@@ -1991,6 +1996,15 @@ namespace units
 		/**
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
+		 */
+		inline constexpr underlying_type value() const noexcept
+		{
+			return static_cast<underlying_type>(*this);
+		}
+
+		/**
+		 * @brief		unit value
+		 * @returns		value of the unit converted to an arithmetic, non-safe type.
 		 */
 		template<typename Ty, class = std::enable_if_t<std::is_arithmetic<Ty>::value>>
 		inline constexpr Ty to() const noexcept
