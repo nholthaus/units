@@ -3261,6 +3261,8 @@ namespace units
 	UNIT_ADD(time, day, days, d, unit<std::ratio<24>, hours>)
 	UNIT_ADD(time, week, weeks, wk, unit<std::ratio<7>, days>)
 	UNIT_ADD(time, year, years, yr, unit<std::ratio<365>, days>)
+	UNIT_ADD(time, julian_year, julian_years, a_j,	unit<std::ratio<31557600>, seconds>)
+	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, unit<std::ratio<31556952>, seconds>)
 
 	UNIT_ADD_CATEGORY_TRAIT(time)
 

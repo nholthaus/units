@@ -1623,6 +1623,10 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 	test = convert<hours, minutes>(4.0);
 	EXPECT_NEAR(240.0, test, 5.0e-14);
+	test = convert<julian_years, days>(1.0);
+	EXPECT_NEAR(365.25, test, 5.0e-14);
+	test = convert<gregorian_years, days>(1.0);
+	EXPECT_NEAR(365.2425, test, 5.0e-14);
 }
 
 TEST_F(UnitConversion, angle)
