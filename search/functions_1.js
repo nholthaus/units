@@ -1,9 +1,10 @@
 var searchData=
 [
-  ['c',['c',['../namespaceunits_1_1constants.html#af2f6ceb36b94d17be484ab030a88073e',1,'units::constants']]],
-  ['ceil',['ceil',['../group___unit_math.html#gac69d26861d77b33df6a8bdff8e3adcf9',1,'units::math']]],
-  ['convert',['convert',['../classunits_1_1unit__t.html#a1956c48e6da4587a5fa075bf25cc8a4c',1,'units::unit_t::convert()'],['../group___conversion.html#gae7541dbcd66420e011c82ac58ef7723c',1,'units::convert()']]],
-  ['copysign',['copysign',['../group___unit_math.html#ga1006f33c11405e5cbc5a103d41df07a0',1,'units::math::copysign(UnitTypeLhs x, UnitTypeRhs y)'],['../namespaceunits_1_1math.html#aa1a36017e6e427ba1453717f1dd3558a',1,'units::math::copysign(UnitTypeLhs x, double y)']]],
-  ['cos',['cos',['../group___unit_math.html#gaef41c97ac5e4160efc18887964be0b28',1,'units::math']]],
-  ['cosh',['cosh',['../group___unit_math.html#gad2f3a2b64b638d499d840a933774422b',1,'units::math']]]
+  ['c',['c',['../namespaceunits_1_1constants.html#acfa211a9904208ac580676b5cc42b04a',1,'units::constants']]],
+  ['ceil',['ceil',['../group___unit_math.html#gafeea9aa149ff1d941ed830ec389bf7f4',1,'units::math']]],
+  ['convert',['convert',['../classunits_1_1unit__t.html#ae9464b2f8ecdb28f8bdaad3ffd399095',1,'units::unit_t::convert()'],['../group___conversion.html#gaa03816ee32bb44ddbd6bc866ef89b231',1,'units::convert()']]],
+  ['copysign',['copysign',['../group___unit_math.html#gade1a8bde53a3516371efc5b0bf026e1d',1,'units::math::copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept'],['../namespaceunits_1_1math.html#a22e6b97c78c031cd6966ccdaffffa32b',1,'units::math::copysign(const UnitTypeLhs x, const double y) noexcept']]],
+  ['cos',['cos',['../group___unit_math.html#gac2aeac09538ac3f95fff947c12522faa',1,'units::math']]],
+  ['cosh',['cosh',['../group___unit_math.html#gab0c26f165fe864ceb9f2af667b3cb66d',1,'units::math']]],
+  ['cpow',['cpow',['../namespaceunits_1_1math.html#a3bf4582fa0a12bdef4c0bf93963122b7',1,'units::math']]]
 ];

@@ -124,6 +124,10 @@ typedef NonLinearScale&lt; T &gt;&#160;</td><td class="memItemRight" valign="bot
 typedef T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#af3f88305faf59e0c71e8e616a2877ceb">underlying_type</a></td></tr>
 <tr class="memdesc:af3f88305faf59e0c71e8e616a2877ceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the underlying storage of the <a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a> (e.g. double) <br /></td></tr>
 <tr class="separator:af3f88305faf59e0c71e8e616a2877ceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab292fb5cbcd67da6f7075fac82f0bc36"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab292fb5cbcd67da6f7075fac82f0bc36"></a>
+typedef T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ab292fb5cbcd67da6f7075fac82f0bc36">value_type</a></td></tr>
+<tr class="memdesc:ab292fb5cbcd67da6f7075fac82f0bc36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synonym for underlying type. May be removed in future versions. Prefer underlying_type. <br /></td></tr>
+<tr class="separator:ab292fb5cbcd67da6f7075fac82f0bc36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97925b5862ffd961071a8060d0f036b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97925b5862ffd961071a8060d0f036b3"></a>
 typedef Units&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a97925b5862ffd961071a8060d0f036b3">unit_type</a></td></tr>
 <tr class="memdesc:a97925b5862ffd961071a8060d0f036b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of <code>unit</code> the <code><a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a></code> represents (e.g. meters) <br /></td></tr>
@@ -131,74 +135,89 @@ typedef Units&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aebd4c88e33ce27f1d406794485e03358"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aebd4c88e33ce27f1d406794485e03358"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aebd4c88e33ce27f1d406794485e03358">unit_t</a> ()=default</td></tr>
-<tr class="memdesc:aebd4c88e33ce27f1d406794485e03358"><td class="mdescLeft">&#160;</td><td class="mdescRight">default constructor. <br /></td></tr>
-<tr class="separator:aebd4c88e33ce27f1d406794485e03358"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4a3c6a0723a72c27255362ec27a4a25"><td class="memTemplParams" colspan="2">template&lt;class... Args&gt; </td></tr>
-<tr class="memitem:aa4a3c6a0723a72c27255362ec27a4a25"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aa4a3c6a0723a72c27255362ec27a4a25">unit_t</a> (T value, const Args &amp;...args)</td></tr>
-<tr class="memdesc:aa4a3c6a0723a72c27255362ec27a4a25"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#aa4a3c6a0723a72c27255362ec27a4a25">More...</a><br /></td></tr>
-<tr class="separator:aa4a3c6a0723a72c27255362ec27a4a25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
-<tr class="memitem:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a240aa805d5149ebcf2c90f72c0d6561d">unit_t</a> (Ty value)</td></tr>
-<tr class="memdesc:a240aa805d5149ebcf2c90f72c0d6561d"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#a240aa805d5149ebcf2c90f72c0d6561d">More...</a><br /></td></tr>
-<tr class="separator:a240aa805d5149ebcf2c90f72c0d6561d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa50a999bfebc187549f281de23f5afe7"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:aa50a999bfebc187549f281de23f5afe7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aa50a999bfebc187549f281de23f5afe7">unit_t</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs)</td></tr>
-<tr class="memdesc:aa50a999bfebc187549f281de23f5afe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">copy constructor  <a href="#aa50a999bfebc187549f281de23f5afe7">More...</a><br /></td></tr>
-<tr class="separator:aa50a999bfebc187549f281de23f5afe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a181a9e81f77b4237eeb60be8e51de0e6"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:a181a9e81f77b4237eeb60be8e51de0e6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a181a9e81f77b4237eeb60be8e51de0e6">operator=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs)</td></tr>
-<tr class="memdesc:a181a9e81f77b4237eeb60be8e51de0e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a181a9e81f77b4237eeb60be8e51de0e6">More...</a><br /></td></tr>
-<tr class="separator:a181a9e81f77b4237eeb60be8e51de0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8719ce4da20bef60f02bc7014fec462f"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
-<tr class="memitem:a8719ce4da20bef60f02bc7014fec462f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a8719ce4da20bef60f02bc7014fec462f">operator=</a> (Ty rhs)</td></tr>
-<tr class="memdesc:a8719ce4da20bef60f02bc7014fec462f"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a8719ce4da20bef60f02bc7014fec462f">More...</a><br /></td></tr>
-<tr class="separator:a8719ce4da20bef60f02bc7014fec462f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a246440e86277356cd105f9052782fc88"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:a246440e86277356cd105f9052782fc88"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a246440e86277356cd105f9052782fc88">operator&lt;</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:a246440e86277356cd105f9052782fc88"><td class="mdescLeft">&#160;</td><td class="mdescRight">less-than  <a href="#a246440e86277356cd105f9052782fc88">More...</a><br /></td></tr>
-<tr class="separator:a246440e86277356cd105f9052782fc88"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a503fdec1595b8d546eb21f8316d6cba7"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:a503fdec1595b8d546eb21f8316d6cba7"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a503fdec1595b8d546eb21f8316d6cba7">operator&lt;=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:a503fdec1595b8d546eb21f8316d6cba7"><td class="mdescLeft">&#160;</td><td class="mdescRight">less-than or equal  <a href="#a503fdec1595b8d546eb21f8316d6cba7">More...</a><br /></td></tr>
-<tr class="separator:a503fdec1595b8d546eb21f8316d6cba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affcb90859d439607fd1d7d95405d0e33"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:affcb90859d439607fd1d7d95405d0e33"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#affcb90859d439607fd1d7d95405d0e33">operator&gt;</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:affcb90859d439607fd1d7d95405d0e33"><td class="mdescLeft">&#160;</td><td class="mdescRight">greater-than  <a href="#affcb90859d439607fd1d7d95405d0e33">More...</a><br /></td></tr>
-<tr class="separator:affcb90859d439607fd1d7d95405d0e33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3a3d9bc32509317487fa1852520420a"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:ae3a3d9bc32509317487fa1852520420a"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ae3a3d9bc32509317487fa1852520420a">operator&gt;=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:ae3a3d9bc32509317487fa1852520420a"><td class="mdescLeft">&#160;</td><td class="mdescRight">greater-than or equal  <a href="#ae3a3d9bc32509317487fa1852520420a">More...</a><br /></td></tr>
-<tr class="separator:ae3a3d9bc32509317487fa1852520420a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </td></tr>
-<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a6faba3028b9f7f08f5740dc12508a186">operator==</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:a6faba3028b9f7f08f5740dc12508a186"><td class="mdescLeft">&#160;</td><td class="mdescRight">equality  <a href="#a6faba3028b9f7f08f5740dc12508a186">More...</a><br /></td></tr>
-<tr class="separator:a6faba3028b9f7f08f5740dc12508a186"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplParams" colspan="2"><a class="anchor" id="a6faba3028b9f7f08f5740dc12508a186"></a>
-template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_integral&lt; T &gt;::value &amp;&amp;std::is_integral&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </td></tr>
-<tr class="memitem:a6faba3028b9f7f08f5740dc12508a186"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="separator:a6faba3028b9f7f08f5740dc12508a186"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
-<tr class="memitem:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ab9b140f6141ea78e5304b088d6bb81b5">operator!=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const </td></tr>
-<tr class="memdesc:ab9b140f6141ea78e5304b088d6bb81b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">inequality  <a href="#ab9b140f6141ea78e5304b088d6bb81b5">More...</a><br /></td></tr>
-<tr class="separator:ab9b140f6141ea78e5304b088d6bb81b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1211e0d1c137202162f524f8b28b9119"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
-<tr class="memitem:a1211e0d1c137202162f524f8b28b9119"><td class="memTemplItemLeft" align="right" valign="top">Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1211e0d1c137202162f524f8b28b9119">to</a> () const </td></tr>
-<tr class="memdesc:a1211e0d1c137202162f524f8b28b9119"><td class="mdescLeft">&#160;</td><td class="mdescRight">unit value  <a href="#a1211e0d1c137202162f524f8b28b9119">More...</a><br /></td></tr>
-<tr class="separator:a1211e0d1c137202162f524f8b28b9119"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71f1afbcca304af54e02c70377fffb7f"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
-<tr class="memitem:a71f1afbcca304af54e02c70377fffb7f"><td class="memTemplItemLeft" align="right" valign="top">Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a71f1afbcca304af54e02c70377fffb7f">toLinearized</a> () const </td></tr>
-<tr class="memdesc:a71f1afbcca304af54e02c70377fffb7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">linearized unit value  <a href="#a71f1afbcca304af54e02c70377fffb7f">More...</a><br /></td></tr>
-<tr class="separator:a71f1afbcca304af54e02c70377fffb7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memTemplParams" colspan="2">template&lt;class U &gt; </td></tr>
-<tr class="memitem:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1956c48e6da4587a5fa075bf25cc8a4c">convert</a> () const  -&gt; <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; U &gt;</td></tr>
-<tr class="memdesc:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">conversion  <a href="#a1956c48e6da4587a5fa075bf25cc8a4c">More...</a><br /></td></tr>
-<tr class="separator:a1956c48e6da4587a5fa075bf25cc8a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66df18f075362a72034f14056422af4c"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
-<tr class="memitem:a66df18f075362a72034f14056422af4c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a66df18f075362a72034f14056422af4c">operator Ty</a> () const </td></tr>
-<tr class="memdesc:a66df18f075362a72034f14056422af4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">implicit type conversion.  <a href="#a66df18f075362a72034f14056422af4c">More...</a><br /></td></tr>
-<tr class="separator:a66df18f075362a72034f14056422af4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae772ed5c49f98651ff0a731633c4a079"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae772ed5c49f98651ff0a731633c4a079"></a>
+constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ae772ed5c49f98651ff0a731633c4a079">unit_t</a> ()=default</td></tr>
+<tr class="memdesc:ae772ed5c49f98651ff0a731633c4a079"><td class="mdescLeft">&#160;</td><td class="mdescRight">default constructor. <br /></td></tr>
+<tr class="separator:ae772ed5c49f98651ff0a731633c4a079"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a066f55cf78d89b22c199dcf97c608c1f"><td class="memTemplParams" colspan="2">template&lt;class... Args&gt; </td></tr>
+<tr class="memitem:a066f55cf78d89b22c199dcf97c608c1f"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a066f55cf78d89b22c199dcf97c608c1f">unit_t</a> (const T <a class="el" href="classunits_1_1unit__t.html#a77d09ca9e9fdc3547443a719b2459039">value</a>, const Args &amp;...args) noexcept</td></tr>
+<tr class="memdesc:a066f55cf78d89b22c199dcf97c608c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#a066f55cf78d89b22c199dcf97c608c1f">More...</a><br /></td></tr>
+<tr class="separator:a066f55cf78d89b22c199dcf97c608c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a687c7c408e61d4ec652f3c7b98924c27"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_dimensionless_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a687c7c408e61d4ec652f3c7b98924c27"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a687c7c408e61d4ec652f3c7b98924c27">unit_t</a> (const Ty <a class="el" href="classunits_1_1unit__t.html#a77d09ca9e9fdc3547443a719b2459039">value</a>) noexcept</td></tr>
+<tr class="memdesc:a687c7c408e61d4ec652f3c7b98924c27"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#a687c7c408e61d4ec652f3c7b98924c27">More...</a><br /></td></tr>
+<tr class="separator:a687c7c408e61d4ec652f3c7b98924c27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f31f268937a30e1b76066813d13431f"><td class="memTemplParams" colspan="2">template&lt;class Rep , class Period , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Rep&gt;::value &amp;&amp; traits::is_ratio&lt;Period&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:a1f31f268937a30e1b76066813d13431f"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1f31f268937a30e1b76066813d13431f">unit_t</a> (const std::chrono::duration&lt; Rep, Period &gt; &amp;<a class="el" href="classunits_1_1unit__t.html#a77d09ca9e9fdc3547443a719b2459039">value</a>) noexcept</td></tr>
+<tr class="memdesc:a1f31f268937a30e1b76066813d13431f"><td class="mdescLeft">&#160;</td><td class="mdescRight">chrono constructor  <a href="#a1f31f268937a30e1b76066813d13431f">More...</a><br /></td></tr>
+<tr class="separator:a1f31f268937a30e1b76066813d13431f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ae6e3aeeac10dc8d79355e881428d25"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a6ae6e3aeeac10dc8d79355e881428d25"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a6ae6e3aeeac10dc8d79355e881428d25">unit_t</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a6ae6e3aeeac10dc8d79355e881428d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">copy constructor (converting)  <a href="#a6ae6e3aeeac10dc8d79355e881428d25">More...</a><br /></td></tr>
+<tr class="separator:a6ae6e3aeeac10dc8d79355e881428d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cd356057a6c39cebe33e4ea6ef3c6f6"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a3cd356057a6c39cebe33e4ea6ef3c6f6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a3cd356057a6c39cebe33e4ea6ef3c6f6">operator=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a3cd356057a6c39cebe33e4ea6ef3c6f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a3cd356057a6c39cebe33e4ea6ef3c6f6">More...</a><br /></td></tr>
+<tr class="separator:a3cd356057a6c39cebe33e4ea6ef3c6f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ed50cb1ecc7c8fbfa6527dc96836317"><td class="memTemplParams" colspan="2">template&lt;class Ty , class  = std::enable_if_t&lt;traits::is_dimensionless_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:a0ed50cb1ecc7c8fbfa6527dc96836317"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classunits_1_1unit__t.html">unit_t</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a0ed50cb1ecc7c8fbfa6527dc96836317">operator=</a> (const Ty &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a0ed50cb1ecc7c8fbfa6527dc96836317"><td class="mdescLeft">&#160;</td><td class="mdescRight">assignment  <a href="#a0ed50cb1ecc7c8fbfa6527dc96836317">More...</a><br /></td></tr>
+<tr class="separator:a0ed50cb1ecc7c8fbfa6527dc96836317"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57dd1edb98899d1723cbdb65b7436cd4"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a57dd1edb98899d1723cbdb65b7436cd4"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a57dd1edb98899d1723cbdb65b7436cd4">operator&lt;</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:a57dd1edb98899d1723cbdb65b7436cd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">less-than  <a href="#a57dd1edb98899d1723cbdb65b7436cd4">More...</a><br /></td></tr>
+<tr class="separator:a57dd1edb98899d1723cbdb65b7436cd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d94af916a182365a3f32488f1e378f4"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a6d94af916a182365a3f32488f1e378f4"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a6d94af916a182365a3f32488f1e378f4">operator&lt;=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:a6d94af916a182365a3f32488f1e378f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">less-than or equal  <a href="#a6d94af916a182365a3f32488f1e378f4">More...</a><br /></td></tr>
+<tr class="separator:a6d94af916a182365a3f32488f1e378f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaab007cb83f781f203d449c217b3edba"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:aaab007cb83f781f203d449c217b3edba"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aaab007cb83f781f203d449c217b3edba">operator&gt;</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:aaab007cb83f781f203d449c217b3edba"><td class="mdescLeft">&#160;</td><td class="mdescRight">greater-than  <a href="#aaab007cb83f781f203d449c217b3edba">More...</a><br /></td></tr>
+<tr class="separator:aaab007cb83f781f203d449c217b3edba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0087be219515fa271f2fc0c4a5cc3102"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a0087be219515fa271f2fc0c4a5cc3102"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a0087be219515fa271f2fc0c4a5cc3102">operator&gt;=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:a0087be219515fa271f2fc0c4a5cc3102"><td class="mdescLeft">&#160;</td><td class="mdescRight">greater-than or equal  <a href="#a0087be219515fa271f2fc0c4a5cc3102">More...</a><br /></td></tr>
+<tr class="separator:a0087be219515fa271f2fc0c4a5cc3102"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, std::enable_if_t&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a0b8010ce3be9d7270f2e65c7cd205464">operator==</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:a0b8010ce3be9d7270f2e65c7cd205464"><td class="mdescLeft">&#160;</td><td class="mdescRight">equality  <a href="#a0b8010ce3be9d7270f2e65c7cd205464">More...</a><br /></td></tr>
+<tr class="separator:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0b8010ce3be9d7270f2e65c7cd205464"></a>
+template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, std::enable_if_t&lt; std::is_integral&lt; T &gt;::value &amp;&amp;std::is_integral&lt; Ty &gt;::value, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="separator:a0b8010ce3be9d7270f2e65c7cd205464"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ed4a39711d1c2be8a41bae8d4e132b2"><td class="memTemplParams" colspan="2">template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs&gt; </td></tr>
+<tr class="memitem:a1ed4a39711d1c2be8a41bae8d4e132b2"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a1ed4a39711d1c2be8a41bae8d4e132b2">operator!=</a> (const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;rhs) const  noexcept</td></tr>
+<tr class="memdesc:a1ed4a39711d1c2be8a41bae8d4e132b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">inequality  <a href="#a1ed4a39711d1c2be8a41bae8d4e132b2">More...</a><br /></td></tr>
+<tr class="separator:a1ed4a39711d1c2be8a41bae8d4e132b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77d09ca9e9fdc3547443a719b2459039"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classunits_1_1unit__t.html#af3f88305faf59e0c71e8e616a2877ceb">underlying_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a77d09ca9e9fdc3547443a719b2459039">value</a> () const  noexcept</td></tr>
+<tr class="memdesc:a77d09ca9e9fdc3547443a719b2459039"><td class="mdescLeft">&#160;</td><td class="mdescRight">unit value  <a href="#a77d09ca9e9fdc3547443a719b2459039">More...</a><br /></td></tr>
+<tr class="separator:a77d09ca9e9fdc3547443a719b2459039"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a831553f93edee0268e015bb79fdf0421"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:a831553f93edee0268e015bb79fdf0421"><td class="memTemplItemLeft" align="right" valign="top">constexpr Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a831553f93edee0268e015bb79fdf0421">to</a> () const  noexcept</td></tr>
+<tr class="memdesc:a831553f93edee0268e015bb79fdf0421"><td class="mdescLeft">&#160;</td><td class="mdescRight">unit value  <a href="#a831553f93edee0268e015bb79fdf0421">More...</a><br /></td></tr>
+<tr class="separator:a831553f93edee0268e015bb79fdf0421"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18c99c383b01a69eccd1cf6370721ba7"><td class="memTemplParams" colspan="2">template&lt;typename Ty , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:a18c99c383b01a69eccd1cf6370721ba7"><td class="memTemplItemLeft" align="right" valign="top">constexpr Ty&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a18c99c383b01a69eccd1cf6370721ba7">toLinearized</a> () const  noexcept</td></tr>
+<tr class="memdesc:a18c99c383b01a69eccd1cf6370721ba7"><td class="mdescLeft">&#160;</td><td class="mdescRight">linearized unit value  <a href="#a18c99c383b01a69eccd1cf6370721ba7">More...</a><br /></td></tr>
+<tr class="separator:a18c99c383b01a69eccd1cf6370721ba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9464b2f8ecdb28f8bdaad3ffd399095"><td class="memTemplParams" colspan="2">template&lt;class U &gt; </td></tr>
+<tr class="memitem:ae9464b2f8ecdb28f8bdaad3ffd399095"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; U &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#ae9464b2f8ecdb28f8bdaad3ffd399095">convert</a> () const  noexcept</td></tr>
+<tr class="memdesc:ae9464b2f8ecdb28f8bdaad3ffd399095"><td class="mdescLeft">&#160;</td><td class="mdescRight">conversion  <a href="#ae9464b2f8ecdb28f8bdaad3ffd399095">More...</a><br /></td></tr>
+<tr class="separator:ae9464b2f8ecdb28f8bdaad3ffd399095"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memTemplParams" colspan="2">template&lt;class Ty , std::enable_if_t&lt; traits::is_dimensionless_unit&lt; Units &gt;::value &amp;&amp;std::is_arithmetic&lt; Ty &gt;::value, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aaf02edcce34fd0528b71b9eaa563ebf3">operator Ty</a> () const  noexcept</td></tr>
+<tr class="memdesc:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">implicit type conversion.  <a href="#aaf02edcce34fd0528b71b9eaa563ebf3">More...</a><br /></td></tr>
+<tr class="separator:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memTemplParams" colspan="2">template&lt;class Ty , std::enable_if_t&lt;!traits::is_dimensionless_unit&lt; Units &gt;::value &amp;&amp;std::is_arithmetic&lt; Ty &gt;::value, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#aaf02edcce34fd0528b71b9eaa563ebf3">operator Ty</a> () const  noexcept</td></tr>
+<tr class="memdesc:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">explicit type conversion.  <a href="#aaf02edcce34fd0528b71b9eaa563ebf3">More...</a><br /></td></tr>
+<tr class="separator:aaf02edcce34fd0528b71b9eaa563ebf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d84309924c6ff32659e27a25731fd1d"><td class="memTemplParams" colspan="2">template&lt;typename U  = Units, std::enable_if_t&lt; units::traits::is_convertible_unit&lt; U, unit&lt; std::ratio&lt; 1 &gt;, category::time_unit &gt;&gt;::value, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a7d84309924c6ff32659e27a25731fd1d"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classunits_1_1unit__t.html#a7d84309924c6ff32659e27a25731fd1d">operator std::chrono::nanoseconds</a> () const  noexcept</td></tr>
+<tr class="memdesc:a7d84309924c6ff32659e27a25731fd1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">chrono implicit type conversion.  <a href="#a7d84309924c6ff32659e27a25731fd1d">More...</a><br /></td></tr>
+<tr class="separator:a7d84309924c6ff32659e27a25731fd1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-types"></a>
 Protected Types</h2></td></tr>
@@ -264,7 +283,7 @@ class units::unit_t&lt; Units, T, NonLinearScale &gt;</h3>
 </ul>
 </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="aa4a3c6a0723a72c27255362ec27a4a25"></a>
+<a class="anchor" id="a066f55cf78d89b22c199dcf97c608c1f"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -276,9 +295,9 @@ template&lt;class... Args&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
           <td>(</td>
-          <td class="paramtype">T&#160;</td>
+          <td class="paramtype">const T&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
@@ -295,7 +314,7 @@ template&lt;class... Args&gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -311,28 +330,28 @@ template&lt;class... Args&gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a240aa805d5149ebcf2c90f72c0d6561d"></a>
+<a class="anchor" id="a687c7c408e61d4ec652f3c7b98924c27"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_dimensionless_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
           <td>(</td>
-          <td class="paramtype">Ty&#160;</td>
+          <td class="paramtype">const Ty&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -347,7 +366,43 @@ template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_uni
 
 </div>
 </div>
-<a class="anchor" id="aa50a999bfebc187549f281de23f5afe7"></a>
+<a class="anchor" id="a1f31f268937a30e1b76066813d13431f"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<div class="memtemplate">
+template&lt;class Rep , class Period , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Rep&gt;::value &amp;&amp; traits::is_ratio&lt;Period&gt;::value&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
+          <td>(</td>
+          <td class="paramtype">const std::chrono::duration&lt; Rep, Period &gt; &amp;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>chrono constructor </p>
+<p>enable implicit conversions from std::chrono::duration types ONLY for time units </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>value of the <a class="el" href="classunits_1_1unit__t.html" title="Container for values which represent quantities of a given unit. ">unit_t</a> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a6ae6e3aeeac10dc8d79355e881428d25"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -359,7 +414,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::<a class="el" href="classunits_1_1unit__t.html">unit_t</a> </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -368,12 +423,12 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>copy constructor </p>
+<p>copy constructor (converting) </p>
 <p>performs implicit unit conversions if required. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">rhs</td><td>unit to copy. </td></tr>
@@ -384,7 +439,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a1956c48e6da4587a5fa075bf25cc8a4c"></a>
+<a class="anchor" id="ae9464b2f8ecdb28f8bdaad3ffd399095"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -396,16 +451,15 @@ template&lt;class U &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::convert </td>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt;U&gt; <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::convert </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt;U&gt;
-		</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -421,19 +475,19 @@ template&lt;class U &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a66df18f075362a72034f14056422af4c"></a>
+<a class="anchor" id="a7d84309924c6ff32659e27a25731fd1d"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;typename U  = Units, std::enable_if_t&lt; units::traits::is_convertible_unit&lt; U, unit&lt; std::ratio&lt; 1 &gt;, category::time_unit &gt;&gt;::value, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator Ty </td>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator std::chrono::nanoseconds </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -441,7 +495,37 @@ template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_uni
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>chrono implicit type conversion. </p>
+<p>only enabled for time unit types. </p>
+
+</div>
+</div>
+<a class="anchor" id="aaf02edcce34fd0528b71b9eaa563ebf3"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<div class="memtemplate">
+template&lt;class Ty , std::enable_if_t&lt; traits::is_dimensionless_unit&lt; Units &gt;::value &amp;&amp;std::is_arithmetic&lt; Ty &gt;::value, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator Ty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -451,7 +535,37 @@ template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_uni
 
 </div>
 </div>
-<a class="anchor" id="ab9b140f6141ea78e5304b088d6bb81b5"></a>
+<a class="anchor" id="aaf02edcce34fd0528b71b9eaa563ebf3"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<div class="memtemplate">
+template&lt;class Ty , std::enable_if_t&lt;!traits::is_dimensionless_unit&lt; Units &gt;::value &amp;&amp;std::is_arithmetic&lt; Ty &gt;::value, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator Ty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>explicit type conversion. </p>
+<p>only enabled for non-dimensionless unit types. </p>
+
+</div>
+</div>
+<a class="anchor" id="a1ed4a39711d1c2be8a41bae8d4e132b2"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -463,7 +577,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator!= </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator!= </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -472,7 +586,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -489,7 +603,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="a246440e86277356cd105f9052782fc88"></a>
+<a class="anchor" id="a57dd1edb98899d1723cbdb65b7436cd4"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -501,7 +615,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&lt; </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&lt; </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -510,7 +624,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -526,7 +640,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="a503fdec1595b8d546eb21f8316d6cba7"></a>
+<a class="anchor" id="a6d94af916a182365a3f32488f1e378f4"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -538,7 +652,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&lt;= </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&lt;= </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -547,7 +661,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -563,7 +677,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="a181a9e81f77b4237eeb60be8e51de0e6"></a>
+<a class="anchor" id="a3cd356057a6c39cebe33e4ea6ef3c6f6"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -584,7 +698,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -599,13 +713,13 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="a8719ce4da20bef60f02bc7014fec462f"></a>
+<a class="anchor" id="a0ed50cb1ecc7c8fbfa6527dc96836317"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;class Ty , class  = std::enable_if_t&lt;traits::is_dimensionless_unit&lt;Units&gt;::value &amp;&amp; std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -613,14 +727,14 @@ template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_uni
         <tr>
           <td class="memname"><a class="el" href="classunits_1_1unit__t.html">unit_t</a>&amp; <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype">Ty&#160;</td>
+          <td class="paramtype">const Ty &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -635,19 +749,19 @@ template&lt;class Ty , class  = typename std::enable_if&lt;traits::is_scalar_uni
 
 </div>
 </div>
-<a class="anchor" id="a6faba3028b9f7f08f5740dc12508a186"></a>
+<a class="anchor" id="a0b8010ce3be9d7270f2e65c7cd205464"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, typename std::enable_if&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;::type  = 0&gt; </div>
+template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsRhs, std::enable_if_t&lt; std::is_floating_point&lt; T &gt;::value||std::is_floating_point&lt; Ty &gt;::value, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator== </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator== </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -656,7 +770,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -673,7 +787,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="affcb90859d439607fd1d7d95405d0e33"></a>
+<a class="anchor" id="aaab007cb83f781f203d449c217b3edba"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -685,7 +799,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&gt; </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&gt; </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -694,7 +808,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -710,7 +824,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="ae3a3d9bc32509317487fa1852520420a"></a>
+<a class="anchor" id="a0087be219515fa271f2fc0c4a5cc3102"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -722,7 +836,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&gt;= </td>
+          <td class="memname">constexpr bool <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::operator&gt;= </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classunits_1_1unit__t.html">unit_t</a>&lt; UnitsRhs, Ty, NlsRhs &gt; &amp;&#160;</td>
           <td class="paramname"><em>rhs</em></td><td>)</td>
@@ -731,7 +845,7 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -747,19 +861,19 @@ template&lt;class UnitsRhs , typename Ty , template&lt; typename &gt; class NlsR
 
 </div>
 </div>
-<a class="anchor" id="a1211e0d1c137202162f524f8b28b9119"></a>
+<a class="anchor" id="a831553f93edee0268e015bb79fdf0421"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;typename Ty , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::to </td>
+          <td class="memname">constexpr Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::to </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -767,29 +881,29 @@ template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p>unit value </p>
-<dl class="section return"><dt>Returns</dt><dd>value of the unit in it's underlying, non-safe type. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>value of the unit converted to an arithmetic, non-safe type. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a71f1afbcca304af54e02c70377fffb7f"></a>
+<a class="anchor" id="a18c99c383b01a69eccd1cf6370721ba7"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
 <div class="memtemplate">
-template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;::type&gt; </div>
+template&lt;typename Ty , class  = std::enable_if_t&lt;std::is_arithmetic&lt;Ty&gt;::value&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::toLinearized </td>
+          <td class="memname">constexpr Ty <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::toLinearized </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -797,7 +911,7 @@ template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -807,13 +921,41 @@ template&lt;typename Ty , class  = typename std::enable_if&lt;std::is_arithmetic
 
 </div>
 </div>
+<a class="anchor" id="a77d09ca9e9fdc3547443a719b2459039"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Units, typename T = double, template&lt; typename &gt; class NonLinearScale = linear_scale&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="classunits_1_1unit__t.html#af3f88305faf59e0c71e8e616a2877ceb">underlying_type</a> <a class="el" href="classunits_1_1unit__t.html">units::unit_t</a>&lt; Units, T, NonLinearScale &gt;::value </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>unit value </p>
+<dl class="section return"><dt>Returns</dt><dd>value of the unit in it's underlying, non-safe type. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>E:/workspace/units/include/<a class="el" href="units_8h_source.html">units.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 25 2016 09:42:55 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 13 2017 14:07:11 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

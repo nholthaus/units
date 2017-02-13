@@ -11,6 +11,8 @@ var searchData=
   ['conductance',['conductance',['../namespaceunits_1_1conductance.html',1,'units']]],
   ['constants',['constants',['../namespaceunits_1_1constants.html',1,'units']]],
   ['current',['current',['../namespaceunits_1_1current.html',1,'units']]],
+  ['data',['data',['../namespaceunits_1_1data.html',1,'units']]],
+  ['data_5ftransfer_5frate',['data_transfer_rate',['../namespaceunits_1_1data__transfer__rate.html',1,'units']]],
   ['density',['density',['../namespaceunits_1_1density.html',1,'units']]],
   ['dimensionless',['dimensionless',['../namespaceunits_1_1dimensionless.html',1,'units']]],
   ['energy',['energy',['../namespaceunits_1_1energy.html',1,'units']]],

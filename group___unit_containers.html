@@ -79,7 +79,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Unit Containers</div>  </div>
 </div><!--header-->
@@ -96,14 +97,63 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunits_1_1unit__value__t.html">units::unit_value_t&lt; Units, Num, Denom &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores a rational unit value as a compile-time constant.  <a href="structunits_1_1unit__value__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga1acd69ada7a93c35850717e3c1b4d5fc"><td class="memTemplParams" colspan="2">template&lt;class UnitType , typename T , class  = std::enable_if_t&lt;std::is_arithmetic&lt;T&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:ga1acd69ada7a93c35850717e3c1b4d5fc"><td class="memTemplItemLeft" align="right" valign="top">constexpr UnitType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___unit_containers.html#ga1acd69ada7a93c35850717e3c1b4d5fc">units::make_unit</a> (const T value) noexcept</td></tr>
+<tr class="memdesc:ga1acd69ada7a93c35850717e3c1b4d5fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a unit container from an arithmetic type.  <a href="group___unit_containers.html#ga1acd69ada7a93c35850717e3c1b4d5fc">More...</a><br /></td></tr>
+<tr class="separator:ga1acd69ada7a93c35850717e3c1b4d5fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Defines a series of classes which contain dimensioned values. </p>
 <p>Unit containers store a value, and support various arithmetic operations. </p>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga1acd69ada7a93c35850717e3c1b4d5fc"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class UnitType , typename T , class  = std::enable_if_t&lt;std::is_arithmetic&lt;T&gt;::value&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr UnitType units::make_unit </td>
+          <td>(</td>
+          <td class="paramtype">const T&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructs a unit container from an arithmetic type. </p>
+<p>make_unit can be used to construct a unit container from an arithmetic type, as an alternative to using the explicit constructor. Unlike the explicit constructor it forces the user to explicitly specify the units. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">UnitType</td><td>Type to construct. </td></tr>
+    <tr><td class="paramname">Ty</td><td>Arithmetic type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>Arithmetic value that represents a quantity in units of <code>UnitType</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 25 2016 09:42:54 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 13 2017 14:07:09 for Unit Conversion and Dimensional Analysis Library by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

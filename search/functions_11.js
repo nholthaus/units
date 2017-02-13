@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['z0',['Z0',['../namespaceunits_1_1constants.html#a88f7a63095845aa01681f207047d6432',1,'units::constants']]]
+  ['z0',['Z0',['../namespaceunits_1_1constants.html#ac689418c967c239d6212c7c34885e6e7',1,'units::constants']]]
 ];

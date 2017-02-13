@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['h',['h',['../namespaceunits_1_1constants.html#a193cee77d3adc2eac3678f5c3f7ecf04',1,'units::constants']]]
+  ['h',['h',['../namespaceunits_1_1constants.html#ae7c72a21951af94023b8f27122edff1d',1,'units::constants']]],
+  ['hypot',['hypot',['../group___unit_math.html#ga3162ba1ab8f84bcd2d17cbe60769b851',1,'units::math']]]
 ];

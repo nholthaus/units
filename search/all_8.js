@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['illuminance_5funit',['illuminance_unit',['../namespaceunits_1_1category.html#aaec672317a59eeaeac88c0be6bcea12c',1,'units::category']]],
-  ['impedance_5funit',['impedance_unit',['../namespaceunits_1_1category.html#a0b9fe7547ad43633e885a8b3c8201840',1,'units::category']]],
-  ['inductance_5funit',['inductance_unit',['../namespaceunits_1_1category.html#ad0714439849450c6ad18b82777cb3884',1,'units::category']]],
+  ['illuminance_5funit',['illuminance_unit',['../namespaceunits_1_1category.html#a2e97fd125b03ce15eecb77ee2884b3bc',1,'units::category']]],
+  ['impedance_5funit',['impedance_unit',['../namespaceunits_1_1category.html#a090a0ef02fd7c34d9b8e6d1b727dbf17',1,'units::category']]],
+  ['inductance_5funit',['inductance_unit',['../namespaceunits_1_1category.html#a387c5636f0bc63f3a7737c0021ad2441',1,'units::category']]],
   ['inverse',['inverse',['../group___unit_manipulators.html#ga18b87c9f4576fb72ddc0b2a516a42d41',1,'units']]],
   ['is_5facceleration_5funit',['is_acceleration_unit',['../structunits_1_1traits_1_1is__acceleration__unit.html',1,'units::traits']]],
   ['is_5fangle_5funit',['is_angle_unit',['../structunits_1_1traits_1_1is__angle__unit.html',1,'units::traits']]],
@@ -16,7 +16,10 @@ var searchData=
   ['is_5fconvertible_5funit',['is_convertible_unit',['../structunits_1_1traits_1_1is__convertible__unit.html',1,'units::traits']]],
   ['is_5fconvertible_5funit_5ft',['is_convertible_unit_t',['../structunits_1_1traits_1_1is__convertible__unit__t.html',1,'units::traits']]],
   ['is_5fcurrent_5funit',['is_current_unit',['../structunits_1_1traits_1_1is__current__unit.html',1,'units::traits']]],
+  ['is_5fdata_5ftransfer_5frate_5funit',['is_data_transfer_rate_unit',['../structunits_1_1traits_1_1is__data__transfer__rate__unit.html',1,'units::traits']]],
+  ['is_5fdata_5funit',['is_data_unit',['../structunits_1_1traits_1_1is__data__unit.html',1,'units::traits']]],
   ['is_5fdensity_5funit',['is_density_unit',['../structunits_1_1traits_1_1is__density__unit.html',1,'units::traits']]],
+  ['is_5fdimensionless_5funit',['is_dimensionless_unit',['../structunits_1_1traits_1_1is__dimensionless__unit.html',1,'units::traits']]],
   ['is_5fenergy_5funit',['is_energy_unit',['../structunits_1_1traits_1_1is__energy__unit.html',1,'units::traits']]],
   ['is_5fforce_5funit',['is_force_unit',['../structunits_1_1traits_1_1is__force__unit.html',1,'units::traits']]],
   ['is_5ffrequency_5funit',['is_frequency_unit',['../structunits_1_1traits_1_1is__frequency__unit.html',1,'units::traits']]],
