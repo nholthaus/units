@@ -1440,9 +1440,14 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
-		constexpr double pow(double x, unsigned long long y)
+		constexpr UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 		{
 			return y == 0 ? 1.0 : x * pow(x, y - 1);
+		}
+
+		constexpr UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
+		{
+			return x < 0 ? -x : x;
 		}
 
 		/// convert dispatch for units which are both the same
@@ -1932,7 +1937,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator<=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return std::islessequal(nls::m_value, units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value <= units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1956,7 +1961,7 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator>=(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return std::isgreaterequal(nls::m_value, units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value >= units::convert<UnitsRhs, Units>(rhs.m_value));
 		}
 
 		/**
@@ -1969,9 +1974,9 @@ namespace units
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_floating_point<T>::value || std::is_floating_point<Ty>::value, int> = 0>
 		inline constexpr bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return std::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
-				std::abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
-				std::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
+			return detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
+				detail::abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
+				detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
 		}
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, int> = 0>
@@ -2522,15 +2527,15 @@ namespace units
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
 	constexpr bool operator==(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
-		return std::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * std::abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
-			std::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
+		return detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
+			detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
 	constexpr bool operator==(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
-		return std::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * std::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
-			std::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
+		return detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
+			detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>

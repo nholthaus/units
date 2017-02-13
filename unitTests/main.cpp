@@ -1505,12 +1505,6 @@ TEST_F(UnitContainer, literals)
 	meter_t c = sqrt(pow<2>(a) + pow<2>(b));
 	EXPECT_TRUE(c == 5_m);
 }
-
-TEST_F(UnitContainer, constexprStdArray)
-{
-	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
-	EXPECT_EQ(arr[3], 3_m);
-}
 #endif
 
 TEST_F(UnitConversion, length)
@@ -2820,6 +2814,7 @@ TEST_F(UnitMath, fma)
 	EXPECT_EQ(square_meter_t(7.0), (math::fma(x, y, z)));
 }
 
+// Constexpr
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 TEST_F(Constexpr, construction)
 {
@@ -2885,6 +2880,42 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_EQ(8_cu_m, result9);
 	EXPECT_EQ(4_sq_m, result10);
 }
+
+TEST_F(Constexpr, realtional)
+{
+	constexpr bool equalityTrue = (1_m == 1_m);
+	constexpr bool equalityFalse = (1_m == 2_m);
+	constexpr bool lessThanTrue = (1_m < 2_m);
+	constexpr bool lessThanFalse = (1_m < 1_m);
+	constexpr bool lessThanEqualTrue1 = (1_m <= 1_m);
+	constexpr bool lessThanEqualTrue2 = (1_m <= 2_m);
+	constexpr bool lessThanEqualFalse = (1_m < 0_m);
+	constexpr bool greaterThanTrue = (2_m > 1_m);
+	constexpr bool greaterThanFalse = (2_m > 2_m);
+	constexpr bool greaterThanEqualTrue1 = (2_m >= 1_m);
+	constexpr bool greaterThanEqualTrue2 = (2_m >= 2_m);
+	constexpr bool greaterThanEqualFalse = (2_m > 3_m);
+
+	EXPECT_TRUE(equalityTrue);
+	EXPECT_TRUE(lessThanTrue);
+	EXPECT_TRUE(lessThanEqualTrue1);
+	EXPECT_TRUE(lessThanEqualTrue2);
+	EXPECT_TRUE(greaterThanTrue);
+	EXPECT_TRUE(greaterThanEqualTrue1);
+	EXPECT_TRUE(greaterThanEqualTrue2);
+	EXPECT_FALSE(equalityFalse);
+	EXPECT_FALSE(lessThanFalse);
+	EXPECT_FALSE(lessThanEqualFalse);
+	EXPECT_FALSE(greaterThanFalse);
+	EXPECT_FALSE(greaterThanEqualFalse);
+}
+
+TEST_F(Constexpr, stdArray)
+{
+	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
+	constexpr bool equal = (arr[3] == 3_m);
+}
+
 #endif
 
 TEST_F(CompileTimeArithmetic, unit_value_t)
