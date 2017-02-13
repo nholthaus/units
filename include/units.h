@@ -306,7 +306,7 @@
  * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
  *				prefixes from femto to peta.
  * @details		See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and 'meter_t',
- *				it also creates corresponsing units with metric suffixesm such as `millimeters`, and `millimeter_t`), as well as the
+ *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as well as the
  *				literal suffixes (e.g. `10.0_mm`).
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
@@ -334,7 +334,34 @@
 	UNIT_ADD(namespaceName, mega ## nameSingular, mega ## namePlural, M ## abbreviation, mega<namePlural>)\
 	UNIT_ADD(namespaceName, giga ## nameSingular, giga ## namePlural, G ## abbreviation, giga<namePlural>)\
 	UNIT_ADD(namespaceName, tera ## nameSingular, tera ## namePlural, T ## abbreviation, tera<namePlural>)\
-	UNIT_ADD(namespaceName, peta ## nameSingular, peta ## namePlural, P ## abbreviation, peta<namePlural>)
+	UNIT_ADD(namespaceName, peta ## nameSingular, peta ## namePlural, P ## abbreviation, peta<namePlural>)\
+
+ /**
+  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(nameSingular, namePlural, abbreviation, definition)
+  * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
+  *				prefixes from femto to peta, and binary prefixes from kibi to exbi.
+  * @details	See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `bytes` and 'byte_t',
+  *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as well as the
+  *				literal suffixes (e.g. `10.0_B`).
+  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+  *				are placed in the `units::literals` namespace.
+  * @param		nameSingular singular version of the unit name, e.g. 'byte'
+  * @param		namePlural - plural version of the unit name, e.g. 'bytes'
+  * @param		abbreviation - abbreviated unit name, e.g. 'B'
+  * @param		definition - the variadic parameter is used for the definition of the unit
+  *				(e.g. `unit<std::ratio<1>, units::category::data_unit>`)
+  * @note		a variadic template is used for the definition to allow templates with
+  *				commas to be easily expanded. All the variadic 'arguments' should together
+  *				comprise the unit definition.
+  */
+#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
+	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__)\
+	UNIT_ADD(namespaceName, kibi ## nameSingular, kibi ## namePlural, Ki ## abbreviation, kibi<namePlural>)\
+	UNIT_ADD(namespaceName, mebi ## nameSingular, mebi ## namePlural, Mi ## abbreviation, mebi<namePlural>)\
+	UNIT_ADD(namespaceName, gibi ## nameSingular, gibi ## namePlural, Gi ## abbreviation, gibi<namePlural>)\
+	UNIT_ADD(namespaceName, tebi ## nameSingular, tebi ## namePlural, Ti ## abbreviation, tebi<namePlural>)\
+	UNIT_ADD(namespaceName, pebi ## nameSingular, pebi ## namePlural, Pi ## abbreviation, pebi<namePlural>)\
+	UNIT_ADD(namespaceName, exbi ## nameSingular, exbi ## namePlural, Ei ## abbreviation, exbi<namePlural>)
 
 //--------------------
 //	UNITS NAMESPACE
@@ -621,7 +648,7 @@ namespace units
 	 * @tparam		Kelvin		`std::ratio` representing the exponent value for Kelvin.
 	 * @tparam		Mole		`std::ratio` representing the exponent value for moles.
 	 * @tparam		Candela		`std::ratio` representing the exponent value for candelas.
-	 * @tparam		Bit			`std::ratio` representing the exponent value for bits.
+	 * @tparam		Byte		`std::ratio` representing the exponent value for bytes.
 	 * @sa			category	 for type aliases for SI base_unit types.
 	 */
 	template<class Meter = std::ratio<0>,
@@ -632,7 +659,7 @@ namespace units
 	class Kelvin = std::ratio<0>,
 	class Mole = std::ratio<0>,
 	class Candela = std::ratio<0>,
-	class Bit = std::ratio<0>>
+	class Byte = std::ratio<0>>
 	struct base_unit : units::detail::_base_unit_t
 	{
 		static_assert(traits::is_ratio<Meter>::value, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
@@ -643,7 +670,7 @@ namespace units
 		static_assert(traits::is_ratio<Candela>::value, "Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
 		static_assert(traits::is_ratio<Mole>::value, "Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
 		static_assert(traits::is_ratio<Radian>::value, "Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
-		static_assert(traits::is_ratio<Bit>::value, "Template parameter `Bit` must be a `std::ratio` representing the exponent of bits the unit has");
+		static_assert(traits::is_ratio<Byte>::value, "Template parameter `Byte` must be a `std::ratio` representing the exponent of bytes the unit has");
 
 		typedef Meter meter_ratio;
 		typedef Kilogram kilogram_ratio;
@@ -653,7 +680,7 @@ namespace units
 		typedef Kelvin kelvin_ratio;
 		typedef Mole mole_ratio;
 		typedef Candela candela_ratio;
-		typedef Bit bit_ratio;
+		typedef Byte byte_ratio;
 	};
 
 	//------------------------------
@@ -671,46 +698,48 @@ namespace units
 		typedef base_unit<> dimensionless_unit;	///< Represents a quantity with no dimension.
 
 		// SI BASE UNIT TYPES
-		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA		---		CATEGORY
-		typedef base_unit<std::ratio<1>>																														length_unit;			 		///< Represents an SI base unit of length
-		typedef base_unit<std::ratio<0>,	std::ratio<1>>																										mass_unit;				 		///< Represents an SI base unit of mass
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																						time_unit;				 		///< Represents an SI base unit of time
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																		angle_unit;				 		///< Represents an SI base unit of angle
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>														current_unit;			 		///< Represents an SI base unit of current
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>										temperature_unit;		 		///< Represents an SI base unit of temperature
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>						substance_unit;			 		///< Represents an SI base unit of amount of substance
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		luminous_intensity_unit; 		///< Represents an SI base unit of luminous intensity
+		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			BYTE		---		CATEGORY
+		typedef base_unit<std::ratio<1>>																																		length_unit;			 		///< Represents an SI base unit of length
+		typedef base_unit<std::ratio<0>,	std::ratio<1>>																														mass_unit;				 		///< Represents an SI base unit of mass
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																										time_unit;				 		///< Represents an SI base unit of time
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																						angle_unit;				 		///< Represents an SI base unit of angle
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>																		current_unit;			 		///< Represents an SI base unit of current
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>														temperature_unit;		 		///< Represents an SI base unit of temperature
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>										substance_unit;			 		///< Represents an SI base unit of amount of substance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>						luminous_intensity_unit; 		///< Represents an SI base unit of luminous intensity
 
 		// SI DERIVED UNIT TYPES
-		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA		---		CATEGORY	
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>		solid_angle_unit;				///< Represents an SI derived unit of solid angle
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																						frequency_unit;					///< Represents an SI derived unit of frequency
-		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>																						velocity_unit;					///< Represents an SI derived unit of velocity
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>																		angular_velocity_unit;			///< Represents an SI derived unit of angular velocity
-		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>																						acceleration_unit;				///< Represents an SI derived unit of acceleration
-		typedef base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>																						force_unit;						///< Represents an SI derived unit of force
-		typedef base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>																						pressure_unit;					///< Represents an SI derived unit of pressure
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>														charge_unit;					///< Represents an SI derived unit of charge
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																						energy_unit;					///< Represents an SI derived unit of energy
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>																						power_unit;						///< Represents an SI derived unit of power
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>														voltage_unit;					///< Represents an SI derived unit of voltage
-		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>														capacitance_unit;				///< Represents an SI derived unit of capacitance
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>														impedance_unit;					///< Represents an SI derived unit of impedance
-		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>														conductance_unit;				///< Represents an SI derived unit of conductance
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>														magnetic_flux_unit;				///< Represents an SI derived unit of magnetic flux
-		typedef base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>														magnetic_field_strength_unit;	///< Represents an SI derived unit of magnetic field strength
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>														inductance_unit;				///< Represents an SI derived unit of inductance
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		luminous_flux_unit;				///< Represents an SI derived unit of luminous flux
-		typedef base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		illuminance_unit;				///< Represents an SI derived unit of illuminance
-		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																						radioactivity_unit;				///< Represents an SI derived unit of radioactivity
+		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			BYTE		---		CATEGORY	
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>>						solid_angle_unit;				///< Represents an SI derived unit of solid angle
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																										frequency_unit;					///< Represents an SI derived unit of frequency
+		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-1>>																										velocity_unit;					///< Represents an SI derived unit of velocity
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>																						angular_velocity_unit;			///< Represents an SI derived unit of angular velocity
+		typedef base_unit<std::ratio<1>,	std::ratio<0>,	std::ratio<-2>>																										acceleration_unit;				///< Represents an SI derived unit of acceleration
+		typedef base_unit<std::ratio<1>,	std::ratio<1>,	std::ratio<-2>>																										force_unit;						///< Represents an SI derived unit of force
+		typedef base_unit<std::ratio<-1>,	std::ratio<1>,	std::ratio<-2>>																										pressure_unit;					///< Represents an SI derived unit of pressure
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>																		charge_unit;					///< Represents an SI derived unit of charge
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																										energy_unit;					///< Represents an SI derived unit of energy
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>>																										power_unit;						///< Represents an SI derived unit of power
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-1>>																		voltage_unit;					///< Represents an SI derived unit of voltage
+		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<4>,	std::ratio<0>,	std::ratio<2>>																		capacitance_unit;				///< Represents an SI derived unit of capacitance
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-3>,	std::ratio<0>,	std::ratio<-2>>																		impedance_unit;					///< Represents an SI derived unit of impedance
+		typedef base_unit<std::ratio<-2>,	std::ratio<-1>,	std::ratio<3>,	std::ratio<0>,	std::ratio<2>>																		conductance_unit;				///< Represents an SI derived unit of conductance
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>																		magnetic_flux_unit;				///< Represents an SI derived unit of magnetic flux
+		typedef base_unit<std::ratio<0>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-1>>																		magnetic_field_strength_unit;	///< Represents an SI derived unit of magnetic field strength
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>,	std::ratio<0>,	std::ratio<-2>>																		inductance_unit;				///< Represents an SI derived unit of inductance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>						luminous_flux_unit;				///< Represents an SI derived unit of luminous flux
+		typedef base_unit<std::ratio<-2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<2>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>						illuminance_unit;				///< Represents an SI derived unit of illuminance
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>>																										radioactivity_unit;				///< Represents an SI derived unit of radioactivity
 
 		// OTHER UNIT TYPES
-		//				METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			---		CATEGORY			
-		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																						torque_unit;					///< Represents an SI derived unit of torque
-		typedef base_unit<std::ratio<2>>																														area_unit;						///< Represents an SI derived unit of area
-		typedef base_unit<std::ratio<3>>																														volume_unit;					///< Represents an SI derived unit of volume
-		typedef base_unit<std::ratio<-3>,	std::ratio<1>>																										density_unit;					///< Represents an SI derived unit of density
-		typedef base_unit<>																																		concentration_unit;				///< Represents a unit of concentration
+		//					METERS			KILOGRAMS		SECONDS			RADIANS			AMPERES			KELVIN			MOLE			CANDELA			BYTE		---		CATEGORY			
+		typedef base_unit<std::ratio<2>,	std::ratio<1>,	std::ratio<-2>>																										torque_unit;					///< Represents an SI derived unit of torque
+		typedef base_unit<std::ratio<2>>																																		area_unit;						///< Represents an SI derived unit of area
+		typedef base_unit<std::ratio<3>>																																		volume_unit;					///< Represents an SI derived unit of volume
+		typedef base_unit<std::ratio<-3>,	std::ratio<1>>																														density_unit;					///< Represents an SI derived unit of density
+		typedef base_unit<>																																						concentration_unit;				///< Represents a unit of concentration
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		data_unit;						///< Represents a unit of data size
+		typedef base_unit<std::ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<0>,	std::ratio<1>>		data_transfer_rate_unit;		///< Represents a unit of data transfer rate
 	}
 
 	//------------------------------
@@ -1316,9 +1345,9 @@ namespace units
 	namespace detail
 	{
 		/**
-			 * @brief		prefix applicator.
-			 * @details		creates a unit type from a prefix and a unit
-			 */
+		 * @brief		prefix applicator.
+		 * @details		creates a unit type from a prefix and a unit
+		 */
 		template<class Ratio, class Unit>
 		struct prefix
 		{
@@ -1326,31 +1355,59 @@ namespace units
 			static_assert(traits::is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 			typedef typename units::unit<Ratio, Unit> type;
 		};
+
+		/// recursive exponential implementation
+		template <int N, class U>
+		struct power_of_ratio
+		{
+			typedef std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type> type;
+		};
+
+		/// End recursion
+		template <class U>
+		struct power_of_ratio<1, U>
+		{
+			typedef U type;
+		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup UnitManipulators
 	 * @{
-	 * @ingroup Prefixes
+	 * @ingroup Decimal Prefixes
 	 * @{
 	 */
-	template<class U> using atto = typename units::detail::prefix<std::atto, U>::type;								///< Represents the type of `class U` with the metric 'atto' prefix appended.  @details E.g. atto<meters> represents meters*10^-18	@tparam U unit type to apply the prefix to.
-	template<class U> using femto = typename units::detail::prefix<std::femto, U>::type;							///< Represents the type of `class U` with the metric 'femto' prefix appended.  @details E.g. femto<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
-	template<class U> using pico = typename units::detail::prefix<std::pico, U>::type;								///< Represents the type of `class U` with the metric 'pico' prefix appended. @details E.g. pico<meters> represents meters*10^-12	@tparam U unit type to apply the prefix to.
-	template<class U> using nano = typename units::detail::prefix<std::nano, U>::type;								///< Represents the type of `class U` with the metric 'nano' prefix appended.  @details E.g. nano<meters> represents meters*10^-9	@tparam U unit type to apply the prefix to.
-	template<class U> using micro = typename units::detail::prefix<std::micro, U>::type;							///< Represents the type of `class U` with the metric 'micro' prefix appended.  @details E.g. micro<meters> represents meters*10^-6	@tparam U unit type to apply the prefix to.
-	template<class U> using milli = typename units::detail::prefix<std::milli, U>::type;							///< Represents the type of `class U` with the metric 'milli' prefix appended. @details E.g. milli<meters> represents meters*10^-3	@tparam U unit type to apply the prefix to.
-	template<class U> using centi = typename units::detail::prefix<std::centi, U>::type;							///< Represents the type of `class U` with the metric 'centi' prefix appended. @details E.g. centi<meters> represents meters*10^-2	@tparam U unit type to apply the prefix to.
-	template<class U> using deci = typename units::detail::prefix<std::deci, U>::type;								///< Represents the type of `class U` with the metric 'deci' prefix appended. @details E.g. deci<meters> represents meters*10^-1	@tparam U unit type to apply the prefix to.
-	template<class U> using deca = typename units::detail::prefix<std::deca, U>::type;								///< Represents the type of `class U` with the metric 'deca' prefix appended.  @details E.g. deca<meters> represents meters*10^1	@tparam U unit type to apply the prefix to.
-	template<class U> using hecto = typename units::detail::prefix<std::hecto, U>::type;							///< Represents the type of `class U` with the metric 'hecto' prefix appended.  @details E.g. hecto<meters> represents meters*10^2	@tparam U unit type to apply the prefix to.
-	template<class U> using kilo = typename units::detail::prefix<std::kilo, U>::type;								///< Represents the type of `class U` with the metric 'kilo' prefix appended. @details E.g. kilo<meters> represents meters*10^3	@tparam U unit type to apply the prefix to.
-	template<class U> using mega = typename units::detail::prefix<std::mega, U>::type;								///< Represents the type of `class U` with the metric 'mega' prefix appended.  @details E.g. mega<meters> represents meters*10^6	@tparam U unit type to apply the prefix to.
-	template<class U> using giga = typename units::detail::prefix<std::giga, U>::type;								///< Represents the type of `class U` with the metric 'giga' prefix appended.  @details E.g. giga<meters> represents meters*10^9	@tparam U unit type to apply the prefix to.
-	template<class U> using tera = typename units::detail::prefix<std::tera, U>::type;								///< Represents the type of `class U` with the metric 'tera' prefix appended.  @details E.g. tera<meters> represents meters*10^12	@tparam U unit type to apply the prefix to.
-	template<class U> using peta = typename units::detail::prefix<std::peta, U>::type;								///< Represents the type of `class U` with the metric 'peta' prefix appended.  @details E.g. peta<meters> represents meters*10^15	@tparam U unit type to apply the prefix to.
-	template<class U> using exa = typename units::detail::prefix<std::exa, U>::type;								   ///< Represents the type of `class U` with the metric 'exa' prefix appended.  @details E.g. exa<meters> represents meters*10^18	@tparam U unit type to apply the prefix to.
+	template<class U> using atto	= typename units::detail::prefix<std::atto,	U>::type;			///< Represents the type of `class U` with the metric 'atto' prefix appended.	@details E.g. atto<meters> represents meters*10^-18		@tparam U unit type to apply the prefix to.
+	template<class U> using femto	= typename units::detail::prefix<std::femto,U>::type;			///< Represents the type of `class U` with the metric 'femto' prefix appended.  @details E.g. femto<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
+	template<class U> using pico	= typename units::detail::prefix<std::pico,	U>::type;			///< Represents the type of `class U` with the metric 'pico' prefix appended.	@details E.g. pico<meters> represents meters*10^-12		@tparam U unit type to apply the prefix to.
+	template<class U> using nano	= typename units::detail::prefix<std::nano,	U>::type;			///< Represents the type of `class U` with the metric 'nano' prefix appended.	@details E.g. nano<meters> represents meters*10^-9		@tparam U unit type to apply the prefix to.
+	template<class U> using micro	= typename units::detail::prefix<std::micro,U>::type;			///< Represents the type of `class U` with the metric 'micro' prefix appended.	@details E.g. micro<meters> represents meters*10^-6		@tparam U unit type to apply the prefix to.
+	template<class U> using milli	= typename units::detail::prefix<std::milli,U>::type;			///< Represents the type of `class U` with the metric 'milli' prefix appended.	@details E.g. milli<meters> represents meters*10^-3		@tparam U unit type to apply the prefix to.
+	template<class U> using centi	= typename units::detail::prefix<std::centi,U>::type;			///< Represents the type of `class U` with the metric 'centi' prefix appended.	@details E.g. centi<meters> represents meters*10^-2		@tparam U unit type to apply the prefix to.
+	template<class U> using deci	= typename units::detail::prefix<std::deci,	U>::type;			///< Represents the type of `class U` with the metric 'deci' prefix appended.	@details E.g. deci<meters> represents meters*10^-1		@tparam U unit type to apply the prefix to.
+	template<class U> using deca	= typename units::detail::prefix<std::deca,	U>::type;			///< Represents the type of `class U` with the metric 'deca' prefix appended.	@details E.g. deca<meters> represents meters*10^1		@tparam U unit type to apply the prefix to.
+	template<class U> using hecto	= typename units::detail::prefix<std::hecto,U>::type;			///< Represents the type of `class U` with the metric 'hecto' prefix appended.	@details E.g. hecto<meters> represents meters*10^2		@tparam U unit type to apply the prefix to.
+	template<class U> using kilo	= typename units::detail::prefix<std::kilo,	U>::type;			///< Represents the type of `class U` with the metric 'kilo' prefix appended.	@details E.g. kilo<meters> represents meters*10^3		@tparam U unit type to apply the prefix to.
+	template<class U> using mega	= typename units::detail::prefix<std::mega,	U>::type;			///< Represents the type of `class U` with the metric 'mega' prefix appended.	@details E.g. mega<meters> represents meters*10^6		@tparam U unit type to apply the prefix to.
+	template<class U> using giga	= typename units::detail::prefix<std::giga,	U>::type;			///< Represents the type of `class U` with the metric 'giga' prefix appended.	@details E.g. giga<meters> represents meters*10^9		@tparam U unit type to apply the prefix to.
+	template<class U> using tera	= typename units::detail::prefix<std::tera,	U>::type;			///< Represents the type of `class U` with the metric 'tera' prefix appended.	@details E.g. tera<meters> represents meters*10^12		@tparam U unit type to apply the prefix to.
+	template<class U> using peta	= typename units::detail::prefix<std::peta,	U>::type;			///< Represents the type of `class U` with the metric 'peta' prefix appended.	@details E.g. peta<meters> represents meters*10^15		@tparam U unit type to apply the prefix to.
+	template<class U> using exa		= typename units::detail::prefix<std::exa,	U>::type;			///< Represents the type of `class U` with the metric 'exa' prefix appended.	@details E.g. exa<meters> represents meters*10^18		@tparam U unit type to apply the prefix to.
+	/** @} @} */
+
+	/**
+	 * @ingroup UnitManipulators
+	 * @{
+	 * @ingroup Binary Prefixes
+	 * @{
+	 */
+	template<class U> using kibi	= typename units::detail::prefix<std::ratio<1024>,					U>::type;	///< Represents the type of `class U` with the binary 'kibi' prefix appended.	@details E.g. kibi<bytes> represents bytes*2^10	@tparam U unit type to apply the prefix to.
+	template<class U> using mebi	= typename units::detail::prefix<std::ratio<1048576>,				U>::type;	///< Represents the type of `class U` with the binary 'mibi' prefix appended.	@details E.g. mebi<bytes> represents bytes*2^20	@tparam U unit type to apply the prefix to.
+	template<class U> using gibi	= typename units::detail::prefix<std::ratio<1073741824>,			U>::type;	///< Represents the type of `class U` with the binary 'gibi' prefix appended.	@details E.g. gibi<bytes> represents bytes*2^30	@tparam U unit type to apply the prefix to.
+	template<class U> using tebi	= typename units::detail::prefix<std::ratio<1099511627776>,			U>::type;	///< Represents the type of `class U` with the binary 'tebi' prefix appended.	@details E.g. tebi<bytes> represents bytes*2^40	@tparam U unit type to apply the prefix to.
+	template<class U> using pebi	= typename units::detail::prefix<std::ratio<1125899906842624>,		U>::type;	///< Represents the type of `class U` with the binary 'pebi' prefix appended.	@details E.g. pebi<bytes> represents bytes*2^50	@tparam U unit type to apply the prefix to.
+	template<class U> using exbi	= typename units::detail::prefix<std::ratio<1152921504606846976>,	U>::type;	///< Represents the type of `class U` with the binary 'exbi' prefix appended.	@details E.g. exbi<bytes> represents bytes*2^60	@tparam U unit type to apply the prefix to.
 	/** @} @} */
 
 	//------------------------------
@@ -2074,10 +2131,10 @@ namespace units
 			traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::radian_ratio::num; }
 		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::radian_ratio::den; }
 
-		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 0) { os << " b"; }
-		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::bit_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::bit_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::bit_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::bit_ratio::den; }
+		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 0) { os << " b"; }
+		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 0 &&
+			traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::byte_ratio::num; }
+		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::byte_ratio::den; }
 
 		return os;
 	}
@@ -2529,20 +2586,6 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
-		/// recursive exponential implementation
-		template <int N, class U> 
-		struct power_of_ratio
-		{
-			typedef std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type> type;
-		};
-
-		/// End recursion
-		template <class U>
-		struct power_of_ratio<1, U>
-		{
-			typedef U type;
-		};
-
 		/// recursive exponential implementation
 		template <int N, class U> struct power_of_unit
 		{
@@ -3808,6 +3851,44 @@ namespace units
 	UNIT_ADD(concentration, percent, percent, pct, unit<std::ratio<1, 100>, units::category::scalar_unit>)
 
 	UNIT_ADD_CATEGORY_TRAIT(concentration)
+
+	//------------------------------
+	//	UNITS OF DATA
+	//------------------------------
+
+	/**
+	 * @namespace	units::data
+	 * @brief		namespace for unit types and containers representing data values
+	 * @details		The base unit for data is `bytes`, and the corresponding `base_unit` category is
+	 *				`data_unit`.
+	 * @anchor		dataContainers
+	 * @sa			See unit_t for more information on unit type containers.
+	 */
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, byte, bytes, B, unit<std::ratio<1>, units::category::data_unit>)
+	UNIT_ADD(data, exabyte, exabytes, EB, unit<std::ratio<1000>, petabytes>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, unit<std::ratio<1, 8>, byte>)
+	UNIT_ADD(data, exabit, exabits, Eb, unit<std::ratio<1000>, petabits>)
+
+	UNIT_ADD_CATEGORY_TRAIT(data)
+
+	//------------------------------
+	//	UNITS OF DATA TRANSFER
+	//------------------------------
+
+	/**
+	* @namespace	units::data_transfer_rate
+	* @brief		namespace for unit types and containers representing data values
+	* @details		The base unit for data is `bytes`, and the corresponding `base_unit` category is
+	*				`data_unit`.
+	* @anchor		dataContainers
+	* @sa			See unit_t for more information on unit type containers.
+	*/
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, bytes_per_second, Bps, unit<std::ratio<1>, units::category::data_transfer_rate_unit>)
+	UNIT_ADD(data_transfer_rate, exabytes_per_second, exabytes_per_second, EBps, unit<std::ratio<1000>, petabytes_per_second>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bits_per_second, bits_per_second, bps, unit<std::ratio<1, 8>, bytes_per_second>)
+	UNIT_ADD(data_transfer_rate, exabits_per_second, exabits_per_second, Ebps, unit<std::ratio<1000>, petabits_per_second>)
+
+	UNIT_ADD_CATEGORY_TRAIT(data_transfer_rate)
 
 	//------------------------------
 	//	CONSTANTS

@@ -37,6 +37,8 @@ using namespace units::torque;
 using namespace units::volume;
 using namespace units::density;
 using namespace units::concentration;
+using namespace units::data;
+using namespace units::data_transfer_rate;
 using namespace units::math;
 
 #if !defined(_MSC_VER) || _MSC_VER > 1800
@@ -757,7 +759,6 @@ TEST_F(TypeTraits, is_volume_unit)
 
 TEST_F(TypeTraits, is_density_unit)
 {
-
 	EXPECT_TRUE((traits::is_density_unit<kilograms_per_cubic_meter>::value));
 	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot>::value));
 	EXPECT_FALSE((traits::is_density_unit<year>::value));
@@ -770,6 +771,40 @@ TEST_F(TypeTraits, is_density_unit)
 	EXPECT_FALSE((traits::is_density_unit<year_t>::value));
 	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot_t, kilograms_per_cubic_meter_t>::value));
 	EXPECT_FALSE((traits::is_density_unit<year_t, kilograms_per_cubic_meter_t>::value));
+}
+
+TEST_F(TypeTraits, is_data_unit)
+{
+	EXPECT_TRUE((traits::is_data_unit<bit>::value));
+	EXPECT_TRUE((traits::is_data_unit<byte>::value));
+	EXPECT_TRUE((traits::is_data_unit<exabit>::value));
+	EXPECT_TRUE((traits::is_data_unit<exabyte>::value));
+	EXPECT_FALSE((traits::is_data_unit<year>::value));
+	EXPECT_FALSE((traits::is_data_unit<double>::value));
+
+	EXPECT_TRUE((traits::is_data_unit<bit_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<const bit_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<const bit_t&>::value));
+	EXPECT_TRUE((traits::is_data_unit<byte_t>::value));
+	EXPECT_FALSE((traits::is_data_unit<year_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<bit_t, byte_t>::value));
+	EXPECT_FALSE((traits::is_data_unit<year_t, byte_t>::value));
+}
+
+TEST_F(TypeTraits, is_data_transfer_rate_unit)
+{
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<Gbps>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<GBps>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<double>::value));
+
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabits_per_second_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<const gigabytes_per_second_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<const gigabytes_per_second_t&>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabytes_per_second_t>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabits_per_second_t, gigabytes_per_second_t>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year_t, gigabytes_per_second_t>::value));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -2301,6 +2336,92 @@ TEST_F(UnitConversion, concentration)
 	EXPECT_NEAR(1.0e-12, test, 5.0e-12);
 	test = percent_t(18.0);
 	EXPECT_NEAR(0.18, test, 5.0e-12);
+}
+
+TEST_F(UnitConversion, data)
+{
+	EXPECT_EQ(8, (convert<byte, bit>(1)));
+
+	EXPECT_EQ(1000, (convert<kilobytes, bytes>(1)));
+	EXPECT_EQ(1000, (convert<megabytes, kilobytes>(1)));
+	EXPECT_EQ(1000, (convert<gigabytes, megabytes>(1)));
+	EXPECT_EQ(1000, (convert<terabytes, gigabytes>(1)));
+	EXPECT_EQ(1000, (convert<petabytes, terabytes>(1)));
+	EXPECT_EQ(1000, (convert<exabytes, petabytes>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibytes, bytes>(1)));
+	EXPECT_EQ(1024, (convert<mebibytes, kibibytes>(1)));
+	EXPECT_EQ(1024, (convert<gibibytes, mebibytes>(1)));
+	EXPECT_EQ(1024, (convert<tebibytes, gibibytes>(1)));
+	EXPECT_EQ(1024, (convert<pebibytes, tebibytes>(1)));
+	EXPECT_EQ(1024, (convert<exbibytes, pebibytes>(1)));
+
+	EXPECT_EQ(93750000, (convert<gigabytes, kibibits>(12)));
+
+	EXPECT_EQ(1000, (convert<kilobits, bits>(1)));
+	EXPECT_EQ(1000, (convert<megabits, kilobits>(1)));
+	EXPECT_EQ(1000, (convert<gigabits, megabits>(1)));
+	EXPECT_EQ(1000, (convert<terabits, gigabits>(1)));
+	EXPECT_EQ(1000, (convert<petabits, terabits>(1)));
+	EXPECT_EQ(1000, (convert<exabits, petabits>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibits, bits>(1)));
+	EXPECT_EQ(1024, (convert<mebibits, kibibits>(1)));
+	EXPECT_EQ(1024, (convert<gibibits, mebibits>(1)));
+	EXPECT_EQ(1024, (convert<tebibits, gibibits>(1)));
+	EXPECT_EQ(1024, (convert<pebibits, tebibits>(1)));
+	EXPECT_EQ(1024, (convert<exbibits, pebibits>(1)));
+
+	// Source: https://en.wikipedia.org/wiki/Binary_prefix
+	EXPECT_NEAR(percent_t(2.4), kibibyte_t(1) / kilobyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(4.9), mebibyte_t(1) / megabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(7.4), gibibyte_t(1) / gigabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(10.0), tebibyte_t(1) / terabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(12.6), pebibyte_t(1) / petabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(15.3), exbibyte_t(1) / exabyte_t(1) - 1, 0.005);
+}
+
+TEST_F(UnitConversion, data_transfer_rate)
+{
+	EXPECT_EQ(8, (convert<bytes_per_second, bits_per_second>(1)));
+
+	EXPECT_EQ(1000, (convert<kilobytes_per_second, bytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<megabytes_per_second, kilobytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<gigabytes_per_second, megabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<terabytes_per_second, gigabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<petabytes_per_second, terabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<exabytes_per_second, petabytes_per_second>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibytes_per_second, bytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<mebibytes_per_second, kibibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<gibibytes_per_second, mebibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<tebibytes_per_second, gibibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<pebibytes_per_second, tebibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<exbibytes_per_second, pebibytes_per_second>(1)));
+
+	EXPECT_EQ(93750000, (convert<gigabytes_per_second, kibibits_per_second>(12)));
+
+	EXPECT_EQ(1000, (convert<kilobits_per_second, bits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<megabits_per_second, kilobits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<gigabits_per_second, megabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<terabits_per_second, gigabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<petabits_per_second, terabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<exabits_per_second, petabits_per_second>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibits_per_second, bits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<mebibits_per_second, kibibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<gibibits_per_second, mebibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<tebibits_per_second, gibibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<pebibits_per_second, tebibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<exbibits_per_second, pebibits_per_second>(1)));
+
+	// Source: https://en.wikipedia.org/wiki/Binary_prefix
+	EXPECT_NEAR(percent_t(2.4), kibibytes_per_second_t(1) / kilobytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(4.9), mebibytes_per_second_t(1) / megabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(7.4), gibibytes_per_second_t(1) / gigabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(10.0), tebibytes_per_second_t(1) / terabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(12.6), pebibytes_per_second_t(1) / petabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(15.3), exbibytes_per_second_t(1) / exabytes_per_second_t(1) - 1, 0.005);
 }
 
 TEST_F(UnitConversion, pi)
