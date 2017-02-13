@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <type_traits>
+#include <array>
 
 using namespace units;
 using namespace units::dimensionless;
@@ -1491,6 +1492,12 @@ TEST_F(UnitContainer, literals)
 	meter_t b = 4_m;
 	meter_t c = sqrt(pow<2>(a) + pow<2>(b));
 	EXPECT_TRUE(c == 5_m);
+}
+
+TEST_F(UnitContainer, constexprStdArray)
+{
+	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
+	EXPECT_EQ(arr[3], 3_m);
 }
 #endif
 
