@@ -304,7 +304,7 @@
  * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
  *				prefixes from femto to peta.
  * @details		See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and 'meter_t',
- *				it also creates corresponsing units with metric suffixesm such as `millimeters`, and `millimeter_t`), as well as the
+ *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as well as the
  *				literal suffixes (e.g. `10.0_mm`).
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
@@ -647,7 +647,7 @@ namespace units
 
 	/**
 	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be needed by library users.
-	 * @sa			base_unit for the definition of the category prarameters.
+	 * @sa			base_unit for the definition of the category parameters.
 	 */
 	namespace category
 	{
@@ -1461,9 +1461,9 @@ namespace units
 	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
 	 * @sa			unit_t	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
-	 *				and must be convertible to `UnitTo` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
 	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
-	 *				and must be convertible from `UnitFrom` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
 	 * @tparam		T type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in arithmetic type.
 	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
 	 *				a quantity in units of `UnitFrom`.
@@ -1588,7 +1588,7 @@ namespace units
 		template<typename T>
 		struct unit_t_traits
 		{
-			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logatirhmic arithmetic functions.
+			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logarithmic arithmetic functions.
 			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `double`.
 			typedef typename T::unit_type unit_type;							///< Type of unit the `unit_t` represents, e.g. `meters`
 		};
@@ -1688,7 +1688,7 @@ namespace units
 	 * @brief		Container for values which represent quantities of a given unit.
 	 * @details		Stores a value which represents a quantity in the given units. Unit containers
 	 *				(except scalar values) are *not* convertible to built-in c++ types, in order to
-	 *				provide type safety in dimensional analysis. Unit containers *are* implicitely
+	 *				provide type safety in dimensional analysis. Unit containers *are* implicitly
 	 *				convertible to other compatible unit container types. Unit containers support
 	 *				various types of arithmetic operations, depending on their scale type.
 	 *
@@ -3758,7 +3758,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute cosine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`. 
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`. 
 		 * @param[in]	angle		angle to compute the cosine of
 		 * @returns		Returns the cosine of <i>angle</i>
 		 */
@@ -3773,7 +3773,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute sine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the since of
 		 * @returns		Returns the sine of <i>angle</i>
 		 */
@@ -3788,7 +3788,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute tangent
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the tangent of
 		 * @returns		Returns the tangent of <i>angle</i>
 		 */
@@ -3834,7 +3834,7 @@ namespace units
 		 *				Notice that because of the sign ambiguity, the function cannot determine with 
 		 *				certainty in which quadrant the angle falls only by its tangent value. See 
 		 *				atan2 for an alternative that takes a fractional argument instead.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
 		 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 		 */
@@ -3870,7 +3870,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute hyperbolic cosine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the hyperbolic cosine of
 		 * @returns		Returns the hyperbolic cosine of <i>angle</i>
 		 */
@@ -3885,7 +3885,7 @@ namespace units
 		* @ingroup		UnitMath
 		* @brief		Compute hyperbolic sine
 		* @details		The input value can be in any unit of angle, including radians or degrees.
-		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		* @param[in]	angle		angle to compute the hyperbolic sine of
 		* @returns		Returns the hyperbolic sine of <i>angle</i>
 		*/
@@ -3900,7 +3900,7 @@ namespace units
 		* @ingroup		UnitMath
 		* @brief		Compute hyperbolic tangent
 		* @details		The input value can be in any unit of angle, including radians or degrees.
-		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		* @param[in]	angle		angle to compute the hyperbolic tangent of
 		* @returns		Returns the hyperbolic tangent of <i>angle</i>
 		*/
