@@ -20,7 +20,7 @@ Thank you to the contributors who made this version possible!
 @Oxyd
 @pvaibhav
 
-## New feautres in v2.2.0
+## New features in v2.2.0
 
  - `constexpr` and `noexcept` specifiers have been added to _all_ applicable classes and functions.
 
@@ -133,7 +133,7 @@ Does this library work on your compiler? If so, let me know!
 - [Latest Release - v2.2.0](#latest-release---v220)
 	- [Get it](#get-it)
 	- [Special Thanks](#special-thanks)
-	- [New feautres in v2.2.0](#new-feautres-in-v220)
+	- [New features in v2.2.0](#new-features-in-v220)
 	- [New features in v2.1.3](#new-features-in-v213)
 	- [Notes](#notes)
 	- [Tested on](#tested-on)
