@@ -113,7 +113,7 @@ Thank you to the contributors who made this version possible!
 
 ## Notes
 
- - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `tesla` units are `_Te`, instead of the SI standard `_T`.
+ - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `Tesla` units are `_Te`, instead of the SI standard `_T`.
  
 ## Tested on
 
@@ -585,7 +585,7 @@ Version `2.1.0` of the units library simplifies the task of adding new units by 
 
 - `UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, definition)`
   
-  This macro has the same functionality as `UNIT_ADD`, but additionally adds unit types with all metric prefixes from `fempto` to `peta` (larger and smaller prefixes mostly result in arithmetic overflow).
+  This macro has the same functionality as `UNIT_ADD`, but additionally adds unit types with all metric prefixes from `femto` to `peta` (smaller and larger prefixes mostly result in arithmetic overflow).
 
 - `UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName, nameSingular, namePlural, abbreviation, underlyingType, definition)`
 
@@ -672,7 +672,7 @@ With certain compilers, it is possible that system header files like `<ctype.h>`
 
 ## Windows macros
 
-`_T` is known to conflict, but is hardcoded into the compiler and can't be disabled. For this reason, `tesla` units use the `_Te` abbreviation.
+`_T` is known to conflict, but is hardcoded into the compiler and can't be disabled. For this reason, `Tesla` units use the `_Te` abbreviation.
 
 The following macros may need to be undefined on the Windows platform to use `units`:
 
