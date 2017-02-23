@@ -4554,7 +4554,6 @@ namespace units
 		}
 
 	}	// end namespace math
-	UNIT_ADD(length, square_meters_per_second, square_meters_per_second, m2ps, unit < std::ratio<1>, compound_unit<area::square_meters, inverse<time::second>>>);
 
 }	// end namespace units
 
