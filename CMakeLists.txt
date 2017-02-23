@@ -9,14 +9,6 @@ OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applica
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	# enable parallel build
-	set( ENV{CL} /MP )
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	# Increase warning levels
-	add_compile_options(-Wall -Wextra -pedantic)
-endif()
-
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
 #
@@ -25,6 +17,15 @@ endif()
 add_library(${PROJECT_NAME} INTERFACE)
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/units.h)
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	# enable parallel build
+	set( ENV{CL} /MP )
+	target_compile_definitions(${PROJECT_NAME} INTERFACE "/permissive-")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# Increase warning levels
+	add_compile_options(-Wall -Wextra -pedantic)
+endif()
 
 # Remove IOStream from the library (useful for embdedded development)
 if(DISABLE_IOSTREAM)
