@@ -3950,7 +3950,7 @@ namespace units
 		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
 		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
 		static constexpr const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
-		static constexpr const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::cpow<5>(pi) * math::cpow<4>(R)) / (15 * math::cpow<3>(h) * math::cpow<2>(c) * math::cpow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static constexpr const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma(5.670367e-8);	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
 
