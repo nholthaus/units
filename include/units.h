@@ -1446,12 +1446,12 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
-		constexpr UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
+		constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 		{
 			return y == 0 ? 1.0 : x * pow(x, y - 1);
 		}
 
-		constexpr UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
+		constexpr inline UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
 		{
 			return x < 0 ? -x : x;
 		}
