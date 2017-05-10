@@ -1,4 +1,4 @@
-os: Visual Studio 2015
+os: Visual Studio 2017
 
 clone_folder: c:/projects/units
 
@@ -14,16 +14,18 @@ configuration:
   - Debug
   - Release
 
-image:
-- Visual Studio 2013
-- Visual Studio 2015
-- Visual Studio 2017
+environment:
+  matrix:
+    - VS_GEN: Visual Studio 12 2013 Win64
+    - VS_GEN: Visual Studio 14 2015 Win64
+    - VS_GEN: Visual Studio 15 2017 Win64
 
 build_script:
   - md build
   - cd build
-  - cmake -Wno-dev ..
+  - cmake -Wno-dev -G"%VS_GEN%" ..
   - cmake --build . --config %CONFIGURATION%
 
 test_script:
   - cmd: ctest -VV -C %CONFIGURATION%
+
