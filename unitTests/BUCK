@@ -1,0 +1,14 @@
+include_defs('//BUCKAROO_DEPS')
+
+cxx_test(
+  name = 'unitTests',
+  srcs = [
+    'main.cpp',
+  ],
+  compiler_flags = [
+    '-std=c++14',
+  ],
+  deps = BUCKAROO_DEPS + [
+    '//:units',
+  ],
+)
