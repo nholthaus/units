@@ -18,6 +18,7 @@ environment:
   matrix:
     - VS_GEN: Visual Studio 12 2013 Win64
     - VS_GEN: Visual Studio 14 2015 Win64
+    - VS_GEN: Visual Studio 15 2017 Win64
 
 build_script:
   - md build
