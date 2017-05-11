@@ -2542,6 +2542,16 @@ TEST_F(UnitConversion, std_chrono)
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 
+TEST_F(UnitMath, min)
+{
+	meter_t a = 1_m;
+	meter_t b = 2_m;
+	foot_t c = 1_ft;
+	std::cout << math::min(a, b) << std::endl;
+	std::cout << math::min(a, c) << std::endl;
+	EXPECT_EQ(c, math::min(a, c));
+}
+
 TEST_F(UnitMath, cos)
 {
 	EXPECT_TRUE((std::is_same<typename std::decay<scalar_t>::type, typename std::decay<decltype(cos(angle::radian_t(0)))>::type>::value));

@@ -3967,6 +3967,22 @@ namespace units
 	{
 
 		//----------------------------------
+		//	MIN/MAX FUNCTIONS
+		//----------------------------------
+
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		constexpr UnitTypeLhs min( const UnitTypeLhs& lhs, const UnitTypeRhs& rhs )
+		{
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return (lhs < rhs ? lhs : rhs);
+		}
+// 		template<class UnitType>
+// 		constexpr const UnitType& min(const UnitType& lhs, const UnitType& rhs)
+// 		{
+// 			return (lhs < rhs ? lhs : rhs);
+// 		}
+
+		//----------------------------------
 		//	TRIGONOMETRIC FUNCTIONS
 		//----------------------------------
 
