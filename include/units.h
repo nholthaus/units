@@ -173,7 +173,7 @@
 	{\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d)\
 		{\
-			return namespaceName::nameSingular ## _t(d);\
+			return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 		}\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d)\
 		{\
