@@ -47,6 +47,8 @@
 #define units_h__
 
 #ifdef _MSC_VER
+#	pragma push_macro("pascal")
+# undef pascal
 #	if _MSC_VER <= 1800
 #		define _ALLOW_KEYWORD_MACROS
 #		pragma warning(push)
@@ -173,7 +175,7 @@
 	{\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d)\
 		{\
-			return namespaceName::nameSingular ## _t(d);\
+			return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 		}\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d)\
 		{\
@@ -4350,6 +4352,7 @@ namespace units
 #		pragma pop_macro("noexcept")
 #		undef _ALLOW_KEYWORD_MACROS
 #	endif // _MSC_VER < 1800
+#	pragma pop_macro("pascal")
 #endif // _MSC_VER
 
 #endif // units_h__
