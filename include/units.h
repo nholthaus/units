@@ -47,6 +47,8 @@
 #define units_h__
 
 #ifdef _MSC_VER
+#	pragma push_macro("pascal")
+# undef pascal
 #	if _MSC_VER <= 1800
 #		define _ALLOW_KEYWORD_MACROS
 #		pragma warning(push)
@@ -176,7 +178,7 @@
 	{\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d)\
 		{\
-			return namespaceName::nameSingular ## _t(d);\
+			return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 		}\
 		inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d)\
 		{\
@@ -1544,9 +1546,9 @@ namespace units
 	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
 	 * @sa			unit_t	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
-	 *				and must be convertible to `UnitTo` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
 	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
-	 *				and must be convertible from `UnitFrom` (i.e. is_converitble_unit<UnitFrom, UnitTo>::value == true).
+	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
 	 * @tparam		T type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in arithmetic type.
 	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
 	 *				a quantity in units of `UnitFrom`.
@@ -1671,7 +1673,7 @@ namespace units
 		template<typename T>
 		struct unit_t_traits
 		{
-			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logatirhmic arithmetic functions.
+			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logarithmic arithmetic functions.
 			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `double`.
 			typedef typename T::value_type value_type;							///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
 			typedef typename T::unit_type unit_type;							///< Type of unit the `unit_t` represents, e.g. `meters`
@@ -1775,7 +1777,7 @@ namespace units
 	 * @brief		Container for values which represent quantities of a given unit.
 	 * @details		Stores a value which represents a quantity in the given units. Unit containers
 	 *				(except scalar values) are *not* convertible to built-in c++ types, in order to
-	 *				provide type safety in dimensional analysis. Unit containers *are* implicitely
+	 *				provide type safety in dimensional analysis. Unit containers *are* implicitly
 	 *				convertible to other compatible unit container types. Unit containers support
 	 *				various types of arithmetic operations, depending on their scale type.
 	 *
@@ -2889,7 +2891,7 @@ namespace units
 		struct unit_value_arithmetic
 		{
 			static_assert(traits::is_unit_value_t<U1>::value, "Template parameter `U1` must be a `unit_value_t` type.");
-			static_assert(traits::is_unit_value_t<U2>::value, "Template parameter `U1` must be a `unit_value_t` type.");
+			static_assert(traits::is_unit_value_t<U2>::value, "Template parameter `U2` must be a `unit_value_t` type.");
 
 			using _UNIT1 = typename traits::unit_value_t_traits<U1>::unit_type;
 			using _UNIT2 = typename traits::unit_value_t_traits<U2>::unit_type;
@@ -3974,7 +3976,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute cosine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`. 
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`. 
 		 * @param[in]	angle		angle to compute the cosine of
 		 * @returns		Returns the cosine of <i>angle</i>
 		 */
@@ -3989,7 +3991,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute sine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the since of
 		 * @returns		Returns the sine of <i>angle</i>
 		 */
@@ -4004,7 +4006,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute tangent
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the tangent of
 		 * @returns		Returns the tangent of <i>angle</i>
 		 */
@@ -4050,7 +4052,7 @@ namespace units
 		 *				Notice that because of the sign ambiguity, the function cannot determine with 
 		 *				certainty in which quadrant the angle falls only by its tangent value. See 
 		 *				atan2 for an alternative that takes a fractional argument instead.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
 		 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 		 */
@@ -4086,7 +4088,7 @@ namespace units
 		 * @ingroup		UnitMath
 		 * @brief		Compute hyperbolic cosine
 		 * @details		The input value can be in any unit of angle, including radians or degrees.
-		 * @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		 * @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		 * @param[in]	angle		angle to compute the hyperbolic cosine of
 		 * @returns		Returns the hyperbolic cosine of <i>angle</i>
 		 */
@@ -4101,7 +4103,7 @@ namespace units
 		* @ingroup		UnitMath
 		* @brief		Compute hyperbolic sine
 		* @details		The input value can be in any unit of angle, including radians or degrees.
-		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		* @param[in]	angle		angle to compute the hyperbolic sine of
 		* @returns		Returns the hyperbolic sine of <i>angle</i>
 		*/
@@ -4116,7 +4118,7 @@ namespace units
 		* @ingroup		UnitMath
 		* @brief		Compute hyperbolic tangent
 		* @details		The input value can be in any unit of angle, including radians or degrees.
-		* @tparam		AngleUnit	any `unit_t` type of `catgeory::angle_unit`.
+		* @tparam		AngleUnit	any `unit_t` type of `category::angle_unit`.
 		* @param[in]	angle		angle to compute the hyperbolic tangent of
 		* @returns		Returns the hyperbolic tangent of <i>angle</i>
 		*/
@@ -4466,7 +4468,7 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>>
 		UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 		{
-			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fdim() function are not compatible units.");
 			return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
 		}
 
@@ -4566,6 +4568,7 @@ namespace units
 #		pragma pop_macro("noexcept")
 #		undef _ALLOW_KEYWORD_MACROS
 #	endif // _MSC_VER < 1800
+#	pragma pop_macro("pascal")
 #endif // _MSC_VER
 
 #endif // units_h__
