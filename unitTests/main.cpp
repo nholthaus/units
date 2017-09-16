@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <type_traits>
+#include <array>
 
 using namespace units;
 using namespace units::dimensionless;
@@ -37,6 +38,8 @@ using namespace units::torque;
 using namespace units::volume;
 using namespace units::density;
 using namespace units::concentration;
+using namespace units::data;
+using namespace units::data_transfer_rate;
 using namespace units::math;
 
 #if !defined(_MSC_VER) || _MSC_VER > 1800
@@ -182,6 +185,14 @@ TEST_F(TypeTraits, unit_traits)
 {
 	EXPECT_TRUE((std::is_same<void, traits::unit_traits<double>::conversion_ratio>::value));
 	EXPECT_FALSE((std::is_same<void, traits::unit_traits<meters>::conversion_ratio>::value));
+}
+
+TEST_F(TypeTraits, unit_t_traits)
+{
+	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::value_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::value_type>::value));
 }
 
 TEST_F(TypeTraits, all_true)
@@ -599,16 +610,16 @@ TEST_F(TypeTraits, is_impedance_unit)
 
 TEST_F(TypeTraits, is_conductance_unit)
 {
-	EXPECT_TRUE((traits::is_conductance_unit<siemen>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<siemens>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<volt>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<double>::value));
 
-	EXPECT_TRUE((traits::is_conductance_unit<siemen_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t&>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<siemens_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t&>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<volt_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t&, millisiemen_t>::value));
-	EXPECT_FALSE((traits::is_conductance_unit<volt_t, siemen_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t&, millisiemens_t>::value));
+	EXPECT_FALSE((traits::is_conductance_unit<volt_t, siemens_t>::value));
 }
 
 TEST_F(TypeTraits, is_magnetic_flux_unit)
@@ -757,7 +768,6 @@ TEST_F(TypeTraits, is_volume_unit)
 
 TEST_F(TypeTraits, is_density_unit)
 {
-
 	EXPECT_TRUE((traits::is_density_unit<kilograms_per_cubic_meter>::value));
 	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot>::value));
 	EXPECT_FALSE((traits::is_density_unit<year>::value));
@@ -770,6 +780,40 @@ TEST_F(TypeTraits, is_density_unit)
 	EXPECT_FALSE((traits::is_density_unit<year_t>::value));
 	EXPECT_TRUE((traits::is_density_unit<ounces_per_cubic_foot_t, kilograms_per_cubic_meter_t>::value));
 	EXPECT_FALSE((traits::is_density_unit<year_t, kilograms_per_cubic_meter_t>::value));
+}
+
+TEST_F(TypeTraits, is_data_unit)
+{
+	EXPECT_TRUE((traits::is_data_unit<bit>::value));
+	EXPECT_TRUE((traits::is_data_unit<byte>::value));
+	EXPECT_TRUE((traits::is_data_unit<exabit>::value));
+	EXPECT_TRUE((traits::is_data_unit<exabyte>::value));
+	EXPECT_FALSE((traits::is_data_unit<year>::value));
+	EXPECT_FALSE((traits::is_data_unit<double>::value));
+
+	EXPECT_TRUE((traits::is_data_unit<bit_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<const bit_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<const bit_t&>::value));
+	EXPECT_TRUE((traits::is_data_unit<byte_t>::value));
+	EXPECT_FALSE((traits::is_data_unit<year_t>::value));
+	EXPECT_TRUE((traits::is_data_unit<bit_t, byte_t>::value));
+	EXPECT_FALSE((traits::is_data_unit<year_t, byte_t>::value));
+}
+
+TEST_F(TypeTraits, is_data_transfer_rate_unit)
+{
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<Gbps>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<GBps>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<double>::value));
+
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabits_per_second_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<const gigabytes_per_second_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<const gigabytes_per_second_t&>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabytes_per_second_t>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year_t>::value));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit<gigabits_per_second_t, gigabytes_per_second_t>::value));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit<year_t, gigabytes_per_second_t>::value));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -885,6 +929,7 @@ TEST_F(UnitContainer, make_unit)
 
 TEST_F(UnitContainer, unitTypeAddition)
 {
+	// units
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
 
@@ -900,6 +945,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	auto e_ft = b_ft + meter_t(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 
+	// scalar
 	scalar_t sresult = scalar_t(1.0) + scalar_t(1.0);
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 
@@ -1108,6 +1154,98 @@ TEST_F(UnitContainer, unitTypeDivision)
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 }
 
+TEST_F(UnitContainer, compoundAssignmentAddition)
+{
+	// units
+	meter_t a(0.0);
+	a += meter_t(1.0);
+
+	EXPECT_EQ(meter_t(1.0), a);
+
+	a += foot_t(meter_t(1));
+
+	EXPECT_EQ(meter_t(2.0), a);
+
+	// scalars
+	scalar_t b(0);
+	b += scalar_t(1.0);
+
+	EXPECT_EQ(scalar_t(1.0), b);
+
+	b += 1;
+
+	EXPECT_EQ(scalar_t(2.0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentSubtraction)
+{
+	// units
+	meter_t a(2.0);
+	a -= meter_t(1.0);
+
+	EXPECT_EQ(meter_t(1.0), a);
+
+	a -= foot_t(meter_t(1));
+
+	EXPECT_EQ(meter_t(0.0), a);
+
+	// scalars
+	scalar_t b(2);
+	b -= scalar_t(1.0);
+
+	EXPECT_EQ(scalar_t(1.0), b);
+
+	b -= 1;
+
+	EXPECT_EQ(scalar_t(0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentMultiplication)
+{
+	// units
+	meter_t a(2.0);
+	a *= scalar_t(2.0);
+
+	EXPECT_EQ(meter_t(4.0), a);
+
+	a *= 2.0;
+
+	EXPECT_EQ(meter_t(8.0), a);
+
+	// scalars
+	scalar_t b(2);
+	b *= scalar_t(2.0);
+
+	EXPECT_EQ(scalar_t(4.0), b);
+
+	b *= 2;
+
+	EXPECT_EQ(scalar_t(8.0), b);
+}
+
+TEST_F(UnitContainer, compoundAssignmentDivision)
+{
+	// units
+	meter_t a(8.0);
+	a /= scalar_t(2.0);
+
+	EXPECT_EQ(meter_t(4.0), a);
+
+	a /= 2.0;
+
+	EXPECT_EQ(meter_t(2.0), a);
+
+	// scalars
+	scalar_t b(8);
+	b /= scalar_t(2.0);
+
+	EXPECT_EQ(scalar_t(4.0), b);
+
+	b /= 2;
+
+	EXPECT_EQ(scalar_t(2.0), b);
+}
+
 TEST_F(UnitContainer, scalarTypeImplicitConversion)
 {
 	double test = scalar_t(3.0);
@@ -1129,6 +1267,10 @@ TEST_F(UnitContainer, valueMethod)
 {
 	double test = meter_t(3.0).to<double>();
 	EXPECT_DOUBLE_EQ(3.0, test);
+
+	auto test2 = meter_t(4.0).value();
+	EXPECT_DOUBLE_EQ(4.0, test2);
+	EXPECT_TRUE((std::is_same<decltype(test2), double>::value));
 }
 
 TEST_F(UnitContainer, convertMethod)
@@ -1140,42 +1282,102 @@ TEST_F(UnitContainer, convertMethod)
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
-	degree_t test1(349.87);
-	meter_t test2(1.0);
-	dB_t test3(31.0);
-	volt_t test4(21.79);
-	dBW_t test5(12.0);
-	dBm_t test6(120.0);
+	testing::internal::CaptureStdout();
+	std::cout << degree_t(349.87);
+	std::string output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("349.87 deg", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test1;
-	std::string output1 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("349.87 deg", output1.c_str());
+	std::cout << meter_t(1.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1 m", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test2;
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1 m", output2.c_str());
+	std::cout << dB_t(31.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("31 dB", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test3;
-	std::string output3 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("31 dB", output3.c_str());
+	std::cout << volt_t(21.79);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("21.79 V", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test4;
-	std::string output4 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("21.79 V", output4.c_str());
+	std::cout << dBW_t(12.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("12 dBW", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test5;
-	std::string output5 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("12 dBW", output5.c_str());
+	std::cout << dBm_t(120.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("120 dBm", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << test6;
-	std::string output6 = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("120 dBm", output6.c_str());
+	std::cout << miles_per_hour_t(72.1);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("72.1 mph", output.c_str());
+
+	// undefined unit
+	testing::internal::CaptureStdout();
+	std::cout << units::math::cpow<4>(meter_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("16 m^4", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << units::math::cpow<3>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("8 cu_ft", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << units::math::cpow<4>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("0.138095597 m^4", output.c_str());
+
+	// constants
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(8) << constants::k_B;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("1.3806485e-023 m^2 kg s^-2 K^-1", output.c_str());
+#else
+	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
+#endif
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << constants::mu_B;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("9.27400999e-024 m^2 A", output.c_str());
+#else
+	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
+#endif
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(7) << constants::sigma;
+	output = testing::internal::GetCapturedStdout();
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+	EXPECT_STREQ("5.670367e-008 kg s^-3 K^-4", output.c_str());
+#else
+	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
+#endif
+}
+
+TEST_F(UnitContainer, to_string)
+{
+	foot_t a(3.5);
+	EXPECT_STREQ("3.5 ft", units::length::to_string(a).c_str());
+
+	meter_t b(8);
+	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
+}
+
+TEST_F(UnitContainer, abbreviation)
+{
+	foot_t a(3.5);
+	EXPECT_STREQ("ft", units::length::abbreviation(a));
+
+	meter_t b(8);
+	EXPECT_STREQ("m", units::length::abbreviation(b));
 }
 #endif
 
@@ -1445,6 +1647,10 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
 	test = convert<hours, minutes>(4.0);
 	EXPECT_NEAR(240.0, test, 5.0e-14);
+	test = convert<julian_years, days>(1.0);
+	EXPECT_NEAR(365.25, test, 5.0e-14);
+	test = convert<gregorian_years, days>(1.0);
+	EXPECT_NEAR(365.2425, test, 5.0e-14);
 }
 
 TEST_F(UnitConversion, angle)
@@ -2167,6 +2373,92 @@ TEST_F(UnitConversion, concentration)
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
+TEST_F(UnitConversion, data)
+{
+	EXPECT_EQ(8, (convert<byte, bit>(1)));
+
+	EXPECT_EQ(1000, (convert<kilobytes, bytes>(1)));
+	EXPECT_EQ(1000, (convert<megabytes, kilobytes>(1)));
+	EXPECT_EQ(1000, (convert<gigabytes, megabytes>(1)));
+	EXPECT_EQ(1000, (convert<terabytes, gigabytes>(1)));
+	EXPECT_EQ(1000, (convert<petabytes, terabytes>(1)));
+	EXPECT_EQ(1000, (convert<exabytes, petabytes>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibytes, bytes>(1)));
+	EXPECT_EQ(1024, (convert<mebibytes, kibibytes>(1)));
+	EXPECT_EQ(1024, (convert<gibibytes, mebibytes>(1)));
+	EXPECT_EQ(1024, (convert<tebibytes, gibibytes>(1)));
+	EXPECT_EQ(1024, (convert<pebibytes, tebibytes>(1)));
+	EXPECT_EQ(1024, (convert<exbibytes, pebibytes>(1)));
+
+	EXPECT_EQ(93750000, (convert<gigabytes, kibibits>(12)));
+
+	EXPECT_EQ(1000, (convert<kilobits, bits>(1)));
+	EXPECT_EQ(1000, (convert<megabits, kilobits>(1)));
+	EXPECT_EQ(1000, (convert<gigabits, megabits>(1)));
+	EXPECT_EQ(1000, (convert<terabits, gigabits>(1)));
+	EXPECT_EQ(1000, (convert<petabits, terabits>(1)));
+	EXPECT_EQ(1000, (convert<exabits, petabits>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibits, bits>(1)));
+	EXPECT_EQ(1024, (convert<mebibits, kibibits>(1)));
+	EXPECT_EQ(1024, (convert<gibibits, mebibits>(1)));
+	EXPECT_EQ(1024, (convert<tebibits, gibibits>(1)));
+	EXPECT_EQ(1024, (convert<pebibits, tebibits>(1)));
+	EXPECT_EQ(1024, (convert<exbibits, pebibits>(1)));
+
+	// Source: https://en.wikipedia.org/wiki/Binary_prefix
+	EXPECT_NEAR(percent_t(2.4), kibibyte_t(1) / kilobyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(4.9), mebibyte_t(1) / megabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(7.4), gibibyte_t(1) / gigabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(10.0), tebibyte_t(1) / terabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(12.6), pebibyte_t(1) / petabyte_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(15.3), exbibyte_t(1) / exabyte_t(1) - 1, 0.005);
+}
+
+TEST_F(UnitConversion, data_transfer_rate)
+{
+	EXPECT_EQ(8, (convert<bytes_per_second, bits_per_second>(1)));
+
+	EXPECT_EQ(1000, (convert<kilobytes_per_second, bytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<megabytes_per_second, kilobytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<gigabytes_per_second, megabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<terabytes_per_second, gigabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<petabytes_per_second, terabytes_per_second>(1)));
+	EXPECT_EQ(1000, (convert<exabytes_per_second, petabytes_per_second>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibytes_per_second, bytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<mebibytes_per_second, kibibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<gibibytes_per_second, mebibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<tebibytes_per_second, gibibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<pebibytes_per_second, tebibytes_per_second>(1)));
+	EXPECT_EQ(1024, (convert<exbibytes_per_second, pebibytes_per_second>(1)));
+
+	EXPECT_EQ(93750000, (convert<gigabytes_per_second, kibibits_per_second>(12)));
+
+	EXPECT_EQ(1000, (convert<kilobits_per_second, bits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<megabits_per_second, kilobits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<gigabits_per_second, megabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<terabits_per_second, gigabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<petabits_per_second, terabits_per_second>(1)));
+	EXPECT_EQ(1000, (convert<exabits_per_second, petabits_per_second>(1)));
+
+	EXPECT_EQ(1024, (convert<kibibits_per_second, bits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<mebibits_per_second, kibibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<gibibits_per_second, mebibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<tebibits_per_second, gibibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<pebibits_per_second, tebibits_per_second>(1)));
+	EXPECT_EQ(1024, (convert<exbibits_per_second, pebibits_per_second>(1)));
+
+	// Source: https://en.wikipedia.org/wiki/Binary_prefix
+	EXPECT_NEAR(percent_t(2.4), kibibytes_per_second_t(1) / kilobytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(4.9), mebibytes_per_second_t(1) / megabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(7.4), gibibytes_per_second_t(1) / gigabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(10.0), tebibytes_per_second_t(1) / terabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(12.6), pebibytes_per_second_t(1) / petabytes_per_second_t(1) - 1, 0.005);
+	EXPECT_NEAR(percent_t(15.3), exbibytes_per_second_t(1) / exabytes_per_second_t(1) - 1, 0.005);
+}
+
 TEST_F(UnitConversion, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit<decltype(constants::pi)>::value);
@@ -2220,22 +2512,23 @@ TEST_F(UnitConversion, pi)
 
 TEST_F(UnitConversion, constants)
 {
+	// Source: NIST "2014 CODATA recommended values" 
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
 	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
 	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
-	EXPECT_NEAR(1.256637061e-6, constants::mu0(), 5.0e-16);
+	EXPECT_NEAR(1.2566370614e-6, constants::mu0(), 5.0e-17);
 	EXPECT_NEAR(8.854187817e-12, constants::epsilon0(), 5.0e-21);
-	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12);
-	EXPECT_NEAR(8.987551787e9, constants::k_e(), 5.0e-1);
-	EXPECT_NEAR(1.602176565e-19, constants::e(), 5.0e-29);
-	EXPECT_NEAR(9.10938291e-31, constants::m_e(), 5.0e-40);
-	EXPECT_NEAR(1.672621777e-27, constants::m_p(), 5.0e-37);
-	EXPECT_NEAR(9.27400968e-24, constants::mu_B(), 5.0e-30);
-	EXPECT_NEAR(6.02214129e23, constants::N_A(), 5.0e14);
-	EXPECT_NEAR(8.3144621, constants::R(), 5.0e-8);
-	EXPECT_NEAR(1.3806488e-23, constants::k_B(), 5.0e-31);
-	EXPECT_NEAR(96485.3365, constants::F(), 5.0e-5);
-	EXPECT_NEAR(5.670373e-8, constants::sigma(), 5.0e-14);
+	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12); 
+	EXPECT_NEAR(8987551787.3681764, constants::k_e(), 5.0e-6);
+	EXPECT_NEAR(1.6021766208e-19, constants::e(), 5.0e-29);
+	EXPECT_NEAR(9.10938356e-31, constants::m_e(), 5.0e-40);
+	EXPECT_NEAR(1.672621898e-27, constants::m_p(), 5.0e-37);
+	EXPECT_NEAR(9.274009994e-24, constants::mu_B(), 5.0e-32);
+	EXPECT_NEAR(6.022140857e23, constants::N_A(), 5.0e14);
+	EXPECT_NEAR(8.3144598, constants::R(), 5.0e-8);
+	EXPECT_NEAR(1.38064852e-23, constants::k_B(), 5.0e-31);
+	EXPECT_NEAR(96485.33289, constants::F(), 5.0e-5);
+	EXPECT_NEAR(5.670367e-8, constants::sigma(), 5.0e-14);
 }
 
 TEST_F(UnitConversion, std_chrono)
@@ -2265,6 +2558,31 @@ TEST_F(UnitConversion, std_chrono)
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(k).count(), 60000000000);
 	std::chrono::nanoseconds l = hour_t(1);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
+}
+
+TEST_F(UnitConversion, squaredTemperature)
+{
+	using squared_celsius = units::compound_unit<squared<celsius>>;
+	using squared_celsius_t = units::unit_t<squared_celsius>;
+	const squared_celsius_t right(100);
+	const celsius_t rootRight = units::math::sqrt(right);
+	EXPECT_EQ(celsius_t(10), rootRight);
+}
+
+TEST_F(UnitMath, min)
+{
+	meter_t a(1);
+	meter_t b(2);
+	foot_t c(1);
+	EXPECT_EQ(c, math::min(a, c));
+}
+
+TEST_F(UnitMath, max)
+{
+	meter_t a(1);
+	meter_t b(2);
+	foot_t c(1);
+	EXPECT_EQ(a, math::max(a, c));
 }
 
 TEST_F(UnitMath, cos)
@@ -2539,6 +2857,7 @@ TEST_F(UnitMath, fma)
 	EXPECT_EQ(square_meter_t(7.0), (math::fma(x, y, z)));
 }
 
+// Constexpr
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 TEST_F(Constexpr, construction)
 {
@@ -2604,6 +2923,43 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_EQ(8_cu_m, result9);
 	EXPECT_EQ(4_sq_m, result10);
 }
+
+TEST_F(Constexpr, realtional)
+{
+	constexpr bool equalityTrue = (1_m == 1_m);
+	constexpr bool equalityFalse = (1_m == 2_m);
+	constexpr bool lessThanTrue = (1_m < 2_m);
+	constexpr bool lessThanFalse = (1_m < 1_m);
+	constexpr bool lessThanEqualTrue1 = (1_m <= 1_m);
+	constexpr bool lessThanEqualTrue2 = (1_m <= 2_m);
+	constexpr bool lessThanEqualFalse = (1_m < 0_m);
+	constexpr bool greaterThanTrue = (2_m > 1_m);
+	constexpr bool greaterThanFalse = (2_m > 2_m);
+	constexpr bool greaterThanEqualTrue1 = (2_m >= 1_m);
+	constexpr bool greaterThanEqualTrue2 = (2_m >= 2_m);
+	constexpr bool greaterThanEqualFalse = (2_m > 3_m);
+
+	EXPECT_TRUE(equalityTrue);
+	EXPECT_TRUE(lessThanTrue);
+	EXPECT_TRUE(lessThanEqualTrue1);
+	EXPECT_TRUE(lessThanEqualTrue2);
+	EXPECT_TRUE(greaterThanTrue);
+	EXPECT_TRUE(greaterThanEqualTrue1);
+	EXPECT_TRUE(greaterThanEqualTrue2);
+	EXPECT_FALSE(equalityFalse);
+	EXPECT_FALSE(lessThanFalse);
+	EXPECT_FALSE(lessThanEqualFalse);
+	EXPECT_FALSE(greaterThanFalse);
+	EXPECT_FALSE(greaterThanEqualFalse);
+}
+
+TEST_F(Constexpr, stdArray)
+{
+	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
+	constexpr bool equal = (arr[3] == 3_m);
+	EXPECT_TRUE(equal);
+}
+
 #endif
 
 TEST_F(CompileTimeArithmetic, unit_value_t)

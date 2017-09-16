@@ -2,118 +2,56 @@
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
-[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
+[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
+# Get in touch
 
-# Latest Release - v2.2.0
+If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
+
+# Latest Release - v2.3.0
 
 ## Get it
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.2.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.2.0)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.0)
 
-## Special Thanks
+## New features in v2.3.0
 
-Thank you to the contributors who made this version possible!
-
-@dharmatech
-@JaapAap
-@martinmoene
-@Oxyd
-@pvaibhav
-
-## New features in v2.2.0
-
- - `constexpr` and `noexcept` specifiers have been added to _all_ applicable classes and functions.
-
-   ```cpp
-   constexpr auto distance = 5_m;     
-   constexpr auto area = 2_m * 2_m;   // area == 4_sq_m
-   ```
-
- - Added a `constexpr` power function.
-
-   ```cpp
-   constexpr auto volume(units::math::cpow<3>(2_m));  // volume == 8_cu_m 
-   ```
-
-- Added a dimensionless `PI` constant. The new constant is more intuitive and can be used in all places where a unit type could be used.
-
+features:
+- 5x compile time improvement on MSVC.
+- 1.5x compile time improvement on GCC.
+- Even more dramatic reductions in compile time can be acheived if you opt-in to specific unit definitions instead of using all the library-defined types (which is the default value). Check out [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time) for instructions.
+- Adds std::cout support for units with no defined abbreviation (they show up as a combination of SI base units)
+- Support for `std::numeric_limits` of unit types.
+- Assignment operators for unit types: `-=`, `+=`, `/=`, `*=`.
+- Added `min` and `max` overloads for units types in `units::math`.
+- Added `to_string` function and `abbreviation` functions:
   ```cpp
-  meter_t a = constants::pi * 1_m;  // a == PI meters
-  meter_t b(constants::pi);         // b == PI meters
+  auto len = 3.5_m;
+  auto str = units::length::to_string(len);
+  auto abv = units::length::abbreviation(len);
+
+  std::cout << str;  // prints "3.5 m"
+  std::cout << abv;  // prints "m"
   ```
-
-- Added `make_unit<...>()` factory. The syntax is familiar to `boost::units` users, and allows explicit reference to the unit type for member variable initialization.
-
-   ```cpp
-   class myClass
-   {
-     public:
-       
-       myClass() : m_speed(make_unit<miles_per_hour_t>(100)) {}
-
-     private:
-
-       miles_per_hour_t m_speed;
-   };
-   ```
-   
-   of course, explicit initializations are still supported.
-
-   ```cpp
-   meter_t distance_m(10);
-   meter_t distance(10_m);
-   ```
-
-- Added `<cmath> hypot()` function wrapper.
-
-   ```cpp
-   using namespace units::math;
-   auto hypotnuse = hypot(3_m, 4_m);  // hypotnuse == 5_m
-   ```
-- Support interoperability between `units::time` and `std::chrono`.
-
-   ```cpp
-   nanosecond_t a = std::chrono::nanoseconds(10); // a == 10_ns
-   std::chrono::nanoseconds b = hour_t(1);        // b.count() == 3600000000000
-   ```
-
- - Allow operations which requires `<iostream>` or `operator<<` to be [disabled in embedded applications](#disabling-iostream).
- - Eliminated gcc warnings when compiling with `-Wall -Wextra -pedantic`.
- 
-## New features in v2.1.3
-
-- Literal suffixes for instantiating unit containers (c++14 compliant compiler required).
-
-  ```cpp
-  auto area = 3.0_m * 4.0_m;	// area == 12_sq_m
+- Added units of data and data transfer: `bits`, `bytes`, `bits_per_second`, and `bytes_per_second`.
+- Adds `value()` member for accessing underlying type.
+- Adds `value_type` trait, as a synonym for `underlying_type`.
+- Adds definitions for Julian and Gregorian years.
+- Thanks to @dinocore1, `units` now supports cmake install and `find_packages`. From the [pull request](https://github.com/nholthaus/units/pull/84):
+  ```cmake
+  # To have cmake install units library to a local 'install' directory:
+  mkdir build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX="install" ..
+  cmake --build . --target install
+  # The units library can then be used in some other cmake project using 
+  # the standard 'find_package' command. Like so:
+  find_package(units)
   ```
-
-- `std::cout` output now includes the unit abbreviations.
-
-  ```cpp
-  mile_t distance(26.2);
-  std::cout << distance;	// printed: 26.2 mi
-  ```
-
-- Unit-to-built-in-type conversions using `to<>` or `unit_cast`.
-    
-  ```cpp
-  mile_t distance(26.2);
-  double result = unit_cast<double>(distance); // result == 26.2
-  ```
-
-- Unit definition macros.
-
-  ```cpp
-  UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
-  ```
-- Improvements for integral unit types.
-- Adds CMake `INTERFACE` project.
-- Clang support.
-
-## Notes
-
- - Due to incompatibilities with the MSVC compiler, the literal abbreviation for `Tesla` units are `_Te`, instead of the SI standard `_T`.
+Bug fixes:
+- Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)
+- Fixed bug with `cubrt` operation (Thanks @PearCoding)
+- fixed constexpr relational operators bug
+- fixed exponential temperature conversions (Thanks @guarndt)
  
 ## Tested on
 
@@ -122,6 +60,7 @@ Thank you to the contributors who made this version possible!
  - clang-3.4
  - msvc2013
  - msvc2015
+ - msvc2017
 
 Does this library work on your compiler? If so, let me know!
 
@@ -130,17 +69,16 @@ Does this library work on your compiler? If so, let me know!
 <!-- TOC -->
 
 - [UNITS](#units)
-- [Latest Release - v2.2.0](#latest-release---v220)
+- [Get in touch](#get-in-touch)
+- [Latest Release - v2.3.0](#latest-release---v230)
 	- [Get it](#get-it)
-	- [Special Thanks](#special-thanks)
-	- [New features in v2.2.0](#new-features-in-v220)
-	- [New features in v2.1.3](#new-features-in-v213)
-	- [Notes](#notes)
+	- [New feares in v2.3.0](#new-feautres-in-v230)
 	- [Tested on](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
 - [Getting started guide](#getting-started-guide)
+- [Unit initialization](#unit-initialization)
 - [Unit tags](#unit-tags)
 - [Unit containers](#unit-containers)
 - [Unit Literals](#unit-literals)
@@ -156,6 +94,7 @@ Does this library work on your compiler? If so, let me know!
 - [Unit Type Traits](#unit-type-traits)
 - [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
 - [Disabling IOStream](#disabling-iostream)
+- [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time)
 - [Macro clashes](#macro-clashes)
 	- [Windows macros](#windows-macros)
 	- [ARM macros](#arm-macros)
@@ -244,6 +183,32 @@ meter_t c = sqrt(pow<2>(a) + pow<2>(b));    // Pythagorean threorem.
 
 std::cout << c << std::endl;                // prints: "5 m"
 ```
+# Unit initialization
+
+There are several ways to initialize unit values:
+
+- Explicit initialization
+
+  ```cpp
+  meter_t distance_m(10); // Explicit initialization from double
+  meter_t distance(10_m); // Explicit initialization from unit literal
+  meter_t dist(100_ft);   // Explicit initialization from unit literal of a different type
+  ```
+
+- `make_unit<...>()` factory. The syntax is familiar to `boost::units` users, and allows explicit reference to the unit type for member variable initialization.
+
+   ```cpp
+   class myClass
+   {
+     public:
+       
+       myClass() : m_speed(make_unit<miles_per_hour_t>(100)) {}
+
+     private:
+
+       miles_per_hour_t m_speed;
+   };
+   ```
 
 # Unit tags
 Unit tags are the foundation of the unit library. Unit tags are types which are never instantiated in user code, but which provide the meta-information about different units, including how to convert between them, and how to determine their compatibility for conversion.
@@ -524,6 +489,8 @@ Unit tag and `unit_t` container definitions are defined in the following namespa
  - units::volume
  - units::density
  - units::concentration
+ - units::data
+ - units::data_transfer_rate
  - units::constants (scalar and non-scalar physical constants like Avogadro's number)
  
 Literal values for unit containers are defined in the `literals` namespace
@@ -666,6 +633,24 @@ For some embedded applications, it may be [desirable to remove all references to
    cmake -DDISABLE_IOSTREAM=ON -DBUILD_TESTS=OFF ..
    cmake --build . --config Release
    ```
+
+# Enabling a subset of units to improve compilation time
+
+If you know that you only need a subset of the unit namespaces for your application, you can dramatically improve compilation time by disabling the default definitions, and then only opting-in to the namespaces you want. For example:
+
+  ```cpp
+  // Only use length and time
+  #define DISABLE_PREDEFINED_UNITS
+  #define ENABLE_PREDEFINED_LENGTH_UNITS
+  #define ENABLE_PREDEFINED_TIME_UNITS
+  ```
+
+The generic algorithm is
+  1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
+  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
+
+Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project.
+
 # Macro clashes
 
 With certain compilers, it is possible that system header files like `<ctype.h>` will define macros which conflict with the unit literals, which use SI abbreviations. In these cases, it is general safe and advisable to `#undef` the offending macros.
