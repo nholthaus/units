@@ -1448,12 +1448,12 @@ namespace units
 	/** @cond */	// DOXYGEN IGNORE
 	namespace detail
 	{
-		constexpr UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
+		constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 		{
 			return y == 0 ? 1.0 : x * pow(x, y - 1);
 		}
 
-		constexpr UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
+		constexpr inline UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
 		{
 			return x < 0 ? -x : x;
 		}
@@ -3967,6 +3967,22 @@ namespace units
 	 */
 	namespace math
 	{
+
+		//----------------------------------
+		//	MIN/MAX FUNCTIONS
+		//----------------------------------
+
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		constexpr UnitTypeLhs min( const UnitTypeLhs& lhs, const UnitTypeRhs& rhs )
+		{
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return (lhs < rhs ? lhs : rhs);
+		}
+// 		template<class UnitType>
+// 		constexpr const UnitType& min(const UnitType& lhs, const UnitType& rhs)
+// 		{
+// 			return (lhs < rhs ? lhs : rhs);
+// 		}
 
 		//----------------------------------
 		//	TRIGONOMETRIC FUNCTIONS
