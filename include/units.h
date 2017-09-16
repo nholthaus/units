@@ -83,7 +83,6 @@
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	#include <iostream>
 	#include <string>
-	using namespace std::string_literals;
 #endif
 
 //------------------------------
