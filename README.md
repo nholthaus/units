@@ -13,7 +13,7 @@ If you are using `units.h` in production code, I'd love to hear from you via Git
 ## Get it
 [![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.0)
 
-## New feautres in v2.3.0
+## New features in v2.3.0
 
 features:
 - 5x compile time improvement on MSVC.
@@ -72,7 +72,7 @@ Does this library work on your compiler? If so, let me know!
 - [Get in touch](#get-in-touch)
 - [Latest Release - v2.3.0](#latest-release---v230)
 	- [Get it](#get-it)
-	- [New feautres in v2.3.0](#new-feautres-in-v230)
+	- [New feares in v2.3.0](#new-feautres-in-v230)
 	- [Tested on](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
