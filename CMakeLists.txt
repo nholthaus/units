@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-PROJECT(units)
+PROJECT(units LANGUAGES CXX)
 
 # cmake options
 OPTION(BUILD_TESTS "Build unit tests" ON)
@@ -201,3 +201,15 @@ if(BUILD_DOCS)
 		)
 	endif(DOXYGEN_FOUND)
 endif(BUILD_DOCS)
+
+install(TARGETS units
+  EXPORT unitsConfig
+)
+
+install(DIRECTORY include/
+  DESTINATION include
+)
+
+install(EXPORT unitsConfig
+  DESTINATION cmake
+)
