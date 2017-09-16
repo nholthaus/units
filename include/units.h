@@ -4696,23 +4696,26 @@ namespace units
 //	std::numeric_limits
 //------------------------------
 
-template<class Units, typename T, template<typename> class NonLinearScale>
-class std::numeric_limits<units::unit_t<Units, T, NonLinearScale>>
+namespace std
 {
-public:
-	static constexpr units::unit_t<Units, T, NonLinearScale> min()
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	class numeric_limits<units::unit_t<Units, T, NonLinearScale>>
 	{
-		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::min());
-	}
-	static constexpr units::unit_t<Units, T, NonLinearScale> max()
-	{
-		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::max());
-	}
-	static constexpr units::unit_t<Units, T, NonLinearScale> lowest()
-	{
-		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
-	}
-};
+	public:
+		static constexpr units::unit_t<Units, T, NonLinearScale> min()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::min());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> max()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::max());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> lowest()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+		}
+	};
+}
 
 #ifdef _MSC_VER
 #	if _MSC_VER <= 1800
