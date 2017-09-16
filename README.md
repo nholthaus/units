@@ -16,6 +16,9 @@ If you are using `units.h` in production code, I'd love to hear from you via Git
 ## New feautres in v2.3.0
 
 features:
+- 5x compile time improvement on MSVC.
+- 1.5x compile time improvement on GCC.
+- Adds std::cout support for units with no defined abbreviation (they show up as a combination of SI base units)
 - Support for `std::numeric_limits` of unit types.
 - Assignment operators for unit types: `-=`, `+=`, `/=`, `*=`.
 - Added `min` and `max` overloads for units types in `units::math`.
@@ -29,10 +32,14 @@ features:
   std::cout << abv;  // prints "m"
   ```
 - Added units of data and data transfer: `bits`, `bytes`, `bits_per_second`, and `bytes_per_second`.
+- Adds value() member for accessing underlying type.
+- Adds value_type trait, as a synonym for underlying_type.
+- Adds definitions for Julian and Gregorian years.
 
 Bug fixes:
 - Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)
 - Fixed bug with `cubrt` operation (Thanks @PearCoding)
+- fixed constexpr relational operators bug
  
 ## Tested on
 
