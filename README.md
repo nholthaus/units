@@ -18,6 +18,7 @@ If you are using `units.h` in production code, I'd love to hear from you via Git
 features:
 - 5x compile time improvement on MSVC.
 - 1.5x compile time improvement on GCC.
+- Even more dramatic reductions in compile time can be acheived if you opt-in to specific unit definitions instead of using all the library-defined types (which is the default value). Check out [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time) for instructions.
 - Adds std::cout support for units with no defined abbreviation (they show up as a combination of SI base units)
 - Support for `std::numeric_limits` of unit types.
 - Assignment operators for unit types: `-=`, `+=`, `/=`, `*=`.
@@ -82,6 +83,7 @@ Does this library work on your compiler? If so, let me know!
 - [Unit Type Traits](#unit-type-traits)
 - [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
 - [Disabling IOStream](#disabling-iostream)
+- [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time)
 - [Macro clashes](#macro-clashes)
 	- [Windows macros](#windows-macros)
 	- [ARM macros](#arm-macros)
@@ -620,6 +622,24 @@ For some embedded applications, it may be [desirable to remove all references to
    cmake -DDISABLE_IOSTREAM=ON -DBUILD_TESTS=OFF ..
    cmake --build . --config Release
    ```
+
+# Enabling a subset of units to improve compilation time
+
+If you know that you only need a subset of the unit namespaces for your application, you can dramatically improve compilation time by disabling the default definitions, and then only opting-in to the namespaces you want. For example:
+
+  ```cpp
+  // Only use length and time
+  #define DISABLE_PREDEFINED_UNITS
+  #define ENABLE_PREDEFINED_LENGTH_UNITS
+  #define ENABLE_PREDEFINED_TIME_UNITS
+  ```
+
+The generic algorithm is
+  1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
+  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
+
+Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project.
+
 # Macro clashes
 
 With certain compilers, it is possible that system header files like `<ctype.h>` will define macros which conflict with the unit literals, which use SI abbreviations. In these cases, it is general safe and advisable to `#undef` the offending macros.
