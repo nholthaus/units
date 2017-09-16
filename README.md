@@ -33,14 +33,25 @@ features:
   std::cout << abv;  // prints "m"
   ```
 - Added units of data and data transfer: `bits`, `bytes`, `bits_per_second`, and `bytes_per_second`.
-- Adds value() member for accessing underlying type.
-- Adds value_type trait, as a synonym for underlying_type.
+- Adds `value()` member for accessing underlying type.
+- Adds `value_type` trait, as a synonym for `underlying_type`.
 - Adds definitions for Julian and Gregorian years.
-
+- Thanks to @dinocore1, `units` now supports cmake install and `find_packages`. From the [pull request](https://github.com/nholthaus/units/pull/84):
+  ```cmake
+  # To have cmake install units library to a local 'install' directory:
+  mkdir build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX="install" ..
+  cmake --build . --target install
+  # The units library can then be used in some other cmake project using 
+  # the standard 'find_package' command. Like so:
+  find_package(units)
+  ```
 Bug fixes:
 - Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)
 - Fixed bug with `cubrt` operation (Thanks @PearCoding)
 - fixed constexpr relational operators bug
+- fixed exponential temperature conversions (Thanks @guarndt)
  
 ## Tested on
 

@@ -2560,6 +2560,15 @@ TEST_F(UnitConversion, std_chrono)
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 
+TEST_F(UnitConversion, squaredTemperature)
+{
+	using squared_celsius = units::compound_unit<squared<celsius>>;
+	using squared_celsius_t = units::unit_t<squared_celsius>;
+	const squared_celsius_t right(100);
+	const celsius_t rootRight = units::math::sqrt(right);
+	EXPECT_EQ(celsius_t(10), rootRight);
+}
+
 TEST_F(UnitMath, min)
 {
 	meter_t a(1);

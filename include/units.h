@@ -1090,7 +1090,8 @@ namespace units
 			using type = unit < std::ratio_multiply<Conversion, Conversion>,
 				squared_base<traits::base_unit_of<typename Unit::base_unit_type>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
-				std::ratio < 0 >> ;
+				typename Unit::translation_ratio
+			> ;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1120,7 +1121,7 @@ namespace units
 			using type = unit < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
 				cubed_base<traits::base_unit_of<typename Unit::base_unit_type>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
-				std::ratio < 0 >> ;
+				typename Unit::translation_ratio> ;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1311,7 +1312,7 @@ namespace units
 			using type = unit <ratio_sqrt<Conversion, Eps>,
 				sqrt_base<traits::base_unit_of<typename Unit::base_unit_type>>,
 				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>,
-				std::ratio < 0 >>;
+				typename Unit::translation_ratio>;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
