@@ -2,9 +2,50 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 PROJECT(units)
 
+# cmake options
 OPTION(BUILD_TESTS "Build unit tests" ON)
 OPTION(BUILD_DOCS "Build the documentation" OFF)
 OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+
+# options to disable unit definitions. Turn these on for unused namespaces to improve compile speed
+OPTION(DISABLE_PREDEFINED_UNITS "Disables all library-defined units" OFF)
+
+# options to re-enable specific unit types. Only use these if DISABLE_PREDEFINED_UNITS is set to ON
+OPTION(ENABLE_PREDEFINED_LENGTH_UNITS "Enables library-defined units of LENGTH." OFF)
+OPTION(ENABLE_PREDEFINED_MASS_UNITS "Enables library-defined units of MASS." OFF)
+OPTION(ENABLE_PREDEFINED_TIME_UNITS "Enables library-defined units of TIME." OFF)
+OPTION(ENABLE_PREDEFINED_ANGLE_UNITS "Enables library-defined units of ANGLE." OFF)
+OPTION(ENABLE_PREDEFINED_CURRENT_UNITS "Enables library-defined units of CURRENT." OFF)
+OPTION(ENABLE_PREDEFINED_TEMPERATURE_UNITS "Enables library-defined units of TEMPERATURE." OFF)
+OPTION(ENABLE_PREDEFINED_SUBSTANCE_UNITS "Enables library-defined units of SUBSTANCE." OFF)
+OPTION(ENABLE_PREDEFINED_LUMINOUS_UNITS "Enables library-defined units of LUMINOUS." OFF)
+OPTION(ENABLE_PREDEFINED_SOLID_UNITS "Enables library-defined units of SOLID." OFF)
+OPTION(ENABLE_PREDEFINED_FREQUENCY_UNITS "Enables library-defined units of FREQUENCY." OFF)
+OPTION(ENABLE_PREDEFINED_VELOCITY_UNITS "Enables library-defined units of VELOCITY." OFF)
+OPTION(ENABLE_PREDEFINED_ANGULAR_UNITS "Enables library-defined units of ANGULAR." OFF)
+OPTION(ENABLE_PREDEFINED_ACCELERATION_UNITS "Enables library-defined units of ACCELERATION." OFF)
+OPTION(ENABLE_PREDEFINED_FORCE_UNITS "Enables library-defined units of FORCE." OFF)
+OPTION(ENABLE_PREDEFINED_PRESSURE_UNITS "Enables library-defined units of PRESSURE." OFF)
+OPTION(ENABLE_PREDEFINED_CHARGE_UNITS "Enables library-defined units of CHARGE." OFF)
+OPTION(ENABLE_PREDEFINED_ENERGY_UNITS "Enables library-defined units of ENERGY." OFF)
+OPTION(ENABLE_PREDEFINED_POWER_UNITS "Enables library-defined units of POWER." OFF)
+OPTION(ENABLE_PREDEFINED_VOLTAGE_UNITS "Enables library-defined units of VOLTAGE." OFF)
+OPTION(ENABLE_PREDEFINED_CAPACITANCE_UNITS "Enables library-defined units of CAPACITANCE." OFF)
+OPTION(ENABLE_PREDEFINED_IMPEDANCE_UNITS "Enables library-defined units of IMPEDANCE." OFF)
+OPTION(ENABLE_PREDEFINED_MAGNETIC_UNITS "Enables library-defined units of MAGNETIC." OFF)
+OPTION(ENABLE_PREDEFINED_MAGNETIC_UNITS "Enables library-defined units of MAGNETIC." OFF)
+OPTION(ENABLE_PREDEFINED_INDUCTANCE_UNITS "Enables library-defined units of INDUCTANCE." OFF)
+OPTION(ENABLE_PREDEFINED_LUMINOUS_UNITS "Enables library-defined units of LUMINOUS." OFF)
+OPTION(ENABLE_PREDEFINED_ILLUMINANCE_UNITS "Enables library-defined units of ILLUMINANCE." OFF)
+OPTION(ENABLE_PREDEFINED_RADIATION_UNITS "Enables library-defined units of RADIATION." OFF)
+OPTION(ENABLE_PREDEFINED_TORQUE_UNITS "Enables library-defined units of TORQUE." OFF)
+OPTION(ENABLE_PREDEFINED_AREA_UNITS "Enables library-defined units of AREA." OFF)
+OPTION(ENABLE_PREDEFINED_VOLUME_UNITS "Enables library-defined units of VOLUME." OFF)
+OPTION(ENABLE_PREDEFINED_DENSITY_UNITS "Enables library-defined units of DENSITY." OFF)
+OPTION(ENABLE_PREDEFINED_CONCENTRATION_UNITS "Enables library-defined units of CONCENTRATION." OFF)
+OPTION(ENABLE_PREDEFINED_DATA_UNITS "Enables library-defined units of DATA." OFF)
+OPTION(ENABLE_PREDEFINED_DATA_UNITS "Enables library-defined units of DATA." OFF)
+OPTION(ENABLE_PREDEFINED_CONSTANTS_UNITS "Enables library-defined units of CONSTANTS." OFF)
 
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -39,6 +80,11 @@ if(BUILD_TESTS)
 	add_subdirectory(3rdParty/gtest)
 	add_subdirectory(unitTests)
 endif(BUILD_TESTS)
+
+#enable specific unit definitions
+if(DISABLE_PREDEFINED_UNITS)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DDISABLE_PREDEFINED_UNITS)
+endif(DISABLE_PREDEFINED_UNITS)
 
 # add a target to generate API documentation with Doxygen
 if(BUILD_DOCS)

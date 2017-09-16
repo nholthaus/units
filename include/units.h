@@ -182,7 +182,7 @@ namespace units
 		{\
 			return units::detail::to_string(obj()) + std::string(" "#abbrev);\
 		}\
-		inline constexpr char * abbreviation(const nameSingular ## _t& obj)\
+		inline constexpr const char* abbreviation(const nameSingular ## _t&)\
 		{\
 			return #abbrev;\
 		}\
@@ -3253,6 +3253,7 @@ namespace units
 	 * @anchor		lengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LENGTH_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(length, meter, meters, m, unit<std::ratio<1>, units::category::length_unit>)
 	UNIT_ADD(length, foot, feet, ft, unit<std::ratio<381, 1250>, meters>)
 	UNIT_ADD(length, mil, mils, mil, unit<std::ratio<1000>, feet>)
@@ -3273,6 +3274,7 @@ namespace units
 	UNIT_ADD(length, yard, yards, yd, unit<std::ratio<3>, feet>)
 
 	UNIT_ADD_CATEGORY_TRAIT(length)
+#endif
 
 	//------------------------------
 	//	MASS UNITS
@@ -3286,6 +3288,7 @@ namespace units
 	 * @anchor		massContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MASS_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(mass, gram, grams, g, unit<std::ratio<1, 1000>, units::category::mass_unit>)
 	UNIT_ADD(mass, metric_ton, metric_tons, t, unit<std::ratio<1000>, kilograms>)
 	UNIT_ADD(mass, pound, pounds, lb, unit<std::ratio<45359237, 100000000>, kilograms>)
@@ -3297,6 +3300,7 @@ namespace units
 	UNIT_ADD(mass, slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 
 	UNIT_ADD_CATEGORY_TRAIT(mass)
+#endif
 
 	//------------------------------
 	//	TIME UNITS
@@ -3310,6 +3314,7 @@ namespace units
 	 * @anchor		timeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_TIME_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, unit<std::ratio<1>, units::category::time_unit>)
 	UNIT_ADD(time, minute, minutes, min, unit<std::ratio<60>, seconds>)
 	UNIT_ADD(time, hour, hours, hr, unit<std::ratio<60>, minutes>)
@@ -3320,6 +3325,7 @@ namespace units
 	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, unit<std::ratio<31556952>, seconds>)
 
 	UNIT_ADD_CATEGORY_TRAIT(time)
+#endif
 
 	//------------------------------
 	//	ANGLE UNITS
@@ -3333,6 +3339,7 @@ namespace units
 	 * @anchor		angleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(angle, radian, radians, rad, unit<std::ratio<1>, units::category::angle_unit>)
 	UNIT_ADD(angle, degree, degrees, deg, unit<std::ratio<1, 180>, radians, std::ratio<1>>)
 	UNIT_ADD(angle, arcminute, arcminutes, arcmin, unit<std::ratio<1, 60>, degrees>)
@@ -3342,6 +3349,7 @@ namespace units
 	UNIT_ADD(angle, gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 
 	UNIT_ADD_CATEGORY_TRAIT(angle)
+#endif
 
 	//------------------------------
 	//	UNITS OF CURRENT
@@ -3354,9 +3362,11 @@ namespace units
 	 * @anchor		currentContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CURRENT_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit<std::ratio<1>, units::category::current_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(current)
+#endif
 
 	//------------------------------
 	//	UNITS OF TEMPERATURE
@@ -3373,6 +3383,7 @@ namespace units
 	 * @anchor		temperatureContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_TEMPERATURE_UNITS)
 	UNIT_ADD(temperature, kelvin, kelvin, K, unit<std::ratio<1>, units::category::temperature_unit>)
 	UNIT_ADD(temperature, celsius, celsius, degC, unit<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>)
 	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF, unit<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>)
@@ -3380,6 +3391,7 @@ namespace units
 	UNIT_ADD(temperature, rankine, rankine, Ra, unit<std::ratio<5, 9>, kelvin>)
 
 	UNIT_ADD_CATEGORY_TRAIT(temperature)
+#endif
 
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
@@ -3393,9 +3405,11 @@ namespace units
 	 * @anchor		substanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SUBSTANCE_UNITS)
 	UNIT_ADD(substance, mole, moles, mol, unit<std::ratio<1>, units::category::substance_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(substance)
+#endif
 
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
@@ -3409,9 +3423,11 @@ namespace units
 	 * @anchor		luminousIntensityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_INTENSITY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit<std::ratio<1>, units::category::luminous_intensity_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(luminous_intensity)
+#endif
 
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
@@ -3425,11 +3441,13 @@ namespace units
 	 * @anchor		solidAngleContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SOLID_ANGLE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(solid_angle, steradian, steradians, sr, unit<std::ratio<1>, units::category::solid_angle_unit>)
 	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degrees>)
 	UNIT_ADD(solid_angle, spat, spats, sp, unit<std::ratio<4>, steradians, std::ratio<1>>)
 
 	UNIT_ADD_CATEGORY_TRAIT(solid_angle)
+#endif
 
 	//------------------------------
 	//	FREQUENCY UNITS
@@ -3443,9 +3461,11 @@ namespace units
 	 * @anchor		frequencyContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_FREQUENCY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit<std::ratio<1>, units::category::frequency_unit>)
 
 	UNIT_ADD_CATEGORY_TRAIT(frequency)
+#endif
 
 	//------------------------------
 	//	VELOCITY UNITS
@@ -3459,6 +3479,7 @@ namespace units
 	 * @anchor		velocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_VELOCITY_UNITS)
 	UNIT_ADD(velocity, meters_per_second, meters_per_second, mps, unit<std::ratio<1>, units::category::velocity_unit>)
 	UNIT_ADD(velocity, feet_per_second, feet_per_second, fps, compound_unit<length::feet, inverse<time::seconds>>)
 	UNIT_ADD(velocity, miles_per_hour, miles_per_hour, mph, compound_unit<length::miles, inverse<time::hour>>)
@@ -3466,6 +3487,7 @@ namespace units
 	UNIT_ADD(velocity, knot, knots, kts, compound_unit<length::nauticalMiles, inverse<time::hour>>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(velocity)
+#endif
 
 	//------------------------------
 	//	ANGULAR VELOCITY UNITS
@@ -3479,12 +3501,14 @@ namespace units
 	 * @anchor		angularVelocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGULAR_VELOCITY_UNITS)
 	UNIT_ADD(angular_velocity, radians_per_second, radians_per_second, rad_per_s, unit<std::ratio<1>, units::category::angular_velocity_unit>)
 	UNIT_ADD(angular_velocity, degrees_per_second, degrees_per_second, deg_per_s, compound_unit<angle::degrees, inverse<time::seconds>>)
 	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm, unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
 	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr, compound_unit<angle::milliarcseconds, inverse<time::year>>)
 
 	UNIT_ADD_CATEGORY_TRAIT(angular_velocity)
+#endif
 
 	//------------------------------
 	//	UNITS OF ACCELERATION
@@ -3498,11 +3522,13 @@ namespace units
 	 * @anchor		accelerationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ACCELERATION_UNITS)
 	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps_sq, unit<std::ratio<1>, units::category::acceleration_unit>)
 	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq, compound_unit<length::feet, inverse<squared<time::seconds>>>)
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
 	UNIT_ADD_CATEGORY_TRAIT(acceleration)
+#endif
 
 	//------------------------------
 	//	UNITS OF FORCE
@@ -3516,6 +3542,7 @@ namespace units
 	 * @anchor		forceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_FORCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(force, newton, newtons, N, unit<std::ratio<1>, units::category::force_unit>)
 	UNIT_ADD(force, pound, pounds, lbf, compound_unit<mass::slug, length::foot, inverse<squared<time::seconds>>>)
 	UNIT_ADD(force, dyne, dynes, dyn, unit<std::ratio<1, 100000>, newtons>)
@@ -3523,6 +3550,7 @@ namespace units
 	UNIT_ADD(force, poundal, poundals, pdl, compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>)
 
 	UNIT_ADD_CATEGORY_TRAIT(force)
+#endif
 
 	//------------------------------
 	//	UNITS OF PRESSURE
@@ -3536,6 +3564,7 @@ namespace units
 	 * @anchor		pressureContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_PRESSURE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascal, pascals, Pa, unit<std::ratio<1>, units::category::pressure_unit>)
 	UNIT_ADD(pressure, bar, bars, bar, unit<std::ratio<100>, kilo<pascals>>)
 	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit<std::ratio<101325>, pascals>)
@@ -3543,6 +3572,7 @@ namespace units
 	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(pressure)
+#endif
 
 	//------------------------------
 	//	UNITS OF CHARGE
@@ -3556,10 +3586,12 @@ namespace units
 	 * @anchor		chargeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CHARGE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulomb, coulombs, C, unit<std::ratio<1>, units::category::charge_unit>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hour, ampere_hours, Ah, compound_unit<current::ampere, time::hours>)
 
 	UNIT_ADD_CATEGORY_TRAIT(charge)
+#endif
 
 	//------------------------------
 	//	UNITS OF ENERGY
@@ -3573,6 +3605,7 @@ namespace units
 	 * @anchor		energyContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ENERGY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joule, joules, J, unit<std::ratio<1>, units::category::energy_unit>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calorie, calories, cal, unit<std::ratio<4184, 1000>, joules>)
 	UNIT_ADD(energy, kilowatt_hour, kilowatt_hours, kWh, unit<std::ratio<36, 10>, megajoules>)
@@ -3584,6 +3617,7 @@ namespace units
 	UNIT_ADD(energy, foot_pound, foot_pounds, ftlbf, unit<std::ratio<13558179483314004, 10000000000000000>, joules>)
 
 	UNIT_ADD_CATEGORY_TRAIT(energy)
+#endif
 
 	//------------------------------
 	//	UNITS OF POWER
@@ -3597,12 +3631,14 @@ namespace units
 	 * @anchor		powerContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_POWER_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(power, watt, watts, W, unit<std::ratio<1>, units::category::power_unit>)
 	UNIT_ADD(power, horsepower, horsepower, hp, unit<std::ratio<7457, 10>, watts>)
 	UNIT_ADD_DECIBEL(power, watt, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
 	
 	UNIT_ADD_CATEGORY_TRAIT(power)
+#endif
 
 	//------------------------------
 	//	UNITS OF VOLTAGE
@@ -3616,11 +3652,13 @@ namespace units
 	 * @anchor		voltageContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_VOLTAGE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, unit<std::ratio<1>, units::category::voltage_unit>)
 	UNIT_ADD(voltage, statvolt, statvolts, statV, unit<std::ratio<1000000, 299792458>, volts>)
 	UNIT_ADD(voltage, abvolt, abvolts, abV, unit<std::ratio<1, 100000000>, volts>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(voltage)
+#endif
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
@@ -3634,9 +3672,11 @@ namespace units
 	 * @anchor		capacitanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CAPACITANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit<std::ratio<1>, units::category::capacitance_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(capacitance)
+#endif
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
@@ -3650,9 +3690,11 @@ namespace units
 	 * @anchor		impedanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_IMPEDANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit<std::ratio<1>, units::category::impedance_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(impedance)
+#endif
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
@@ -3666,9 +3708,11 @@ namespace units
 	 * @anchor		conductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONDUCTANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(conductance)
+#endif
 
 	//------------------------------
 	//	UNITS OF MAGNETIC FLUX
@@ -3682,10 +3726,12 @@ namespace units
 	 * @anchor		magneticFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MAGNETIC_FLUX_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit<std::ratio<1>, units::category::magnetic_flux_unit>)
 	UNIT_ADD(magnetic_flux, maxwell, maxwells, Mx, unit<std::ratio<1, 100000000>, webers>)
 
 	UNIT_ADD_CATEGORY_TRAIT(magnetic_flux)
+#endif
 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
@@ -3700,10 +3746,12 @@ namespace units
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
 	// Unfortunately `_T` is a WINAPI macro, so we have to use `_Te` as the tesla abbreviation.
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MAGNETIC_FIELD_STRENGTH_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit<std::ratio<1>, units::category::magnetic_field_strength_unit>)
 	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
 		
 	UNIT_ADD_CATEGORY_TRAIT(magnetic_field_strength)
+#endif
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
@@ -3717,9 +3765,11 @@ namespace units
 	 * @anchor		inductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_INDUCTANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit<std::ratio<1>, units::category::inductance_unit>)
 
 	UNIT_ADD_CATEGORY_TRAIT(inductance)
+#endif
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
@@ -3733,9 +3783,11 @@ namespace units
 	 * @anchor		luminousFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_FLUX_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit<std::ratio<1>, units::category::luminous_flux_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(luminous_flux)
+#endif
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
@@ -3749,12 +3801,14 @@ namespace units
 	 * @anchor		illuminanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ILLUMINANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, luxes, lx, unit<std::ratio<1>, units::category::illuminance_unit>)
 	UNIT_ADD(illuminance, footcandle, footcandles, fc, compound_unit<luminous_flux::lumen, inverse<squared<length::foot>>>)
 	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
 	UNIT_ADD(illuminance, phot, phots, ph, compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(illuminance)
+#endif
 
 	//------------------------------
 	//	UNITS OF RADIATION
@@ -3770,6 +3824,7 @@ namespace units
 	 * @anchor		radiationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_RADIATION_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerel, becquerels, Bq, unit<std::ratio<1>, units::frequency::hertz>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, gray, grays, Gy, compound_unit<energy::joules, inverse<mass::kilogram>>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, unit<std::ratio<1>, grays>)
@@ -3778,6 +3833,7 @@ namespace units
 	UNIT_ADD(radiation, rad, rads, rads, unit<std::ratio<1>, centigrays>)
 
 	UNIT_ADD_CATEGORY_TRAIT(radioactivity)
+#endif
 
 	//------------------------------
 	//	UNITS OF TORQUE
@@ -3791,6 +3847,7 @@ namespace units
 	 * @anchor		torqueContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_TORQUE_UNITS)
 	UNIT_ADD(torque, newton_meter, newton_meters, Nm, unit<std::ratio<1>, units::energy::joule>)
 	UNIT_ADD(torque, foot_pound, foot_pounds, ftlb, compound_unit<length::foot, force::pounds>)
 	UNIT_ADD(torque, foot_poundal, foot_poundals, ftpdl, compound_unit<length::foot, force::poundal>)
@@ -3798,6 +3855,7 @@ namespace units
 	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit<length::meter, force::kiloponds>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(torque)
+#endif
 
 	//------------------------------
 	//	AREA UNITS
@@ -3811,6 +3869,7 @@ namespace units
 	 * @anchor		areaContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_AREA_UNITS)
 	UNIT_ADD(area, square_meter, square_meters, sq_m, unit<std::ratio<1>, units::category::area_unit>)
 	UNIT_ADD(area, square_foot, square_feet, sq_ft, squared<length::feet>)
 	UNIT_ADD(area, square_inch, square_inches, sq_in, squared<length::inch>)
@@ -3820,6 +3879,7 @@ namespace units
 	UNIT_ADD(area, acre, acres, acre, unit<std::ratio<43560>, square_feet>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(area)
+#endif
 
 	//------------------------------
 	//	UNITS OF VOLUME
@@ -3833,6 +3893,7 @@ namespace units
 	 * @anchor		volumeContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_VOLUME_UNITS)
 	UNIT_ADD(volume, cubic_meter, cubic_meters, cu_m, unit<std::ratio<1>, units::category::volume_unit>)
 	UNIT_ADD(volume, cubic_millimeter, cubic_millimeters, cu_mm, cubed<length::millimeter>)
 	UNIT_ADD(volume, cubic_kilometer, cubic_kilometers, cu_km, cubed<length::kilometer>)
@@ -3864,6 +3925,7 @@ namespace units
 	UNIT_ADD(volume, strike, strikes, strikes, unit<std::ratio<2>, bushels>)
 
 	UNIT_ADD_CATEGORY_TRAIT(volume)
+#endif
 
 	//------------------------------
 	//	UNITS OF DENSITY
@@ -3877,6 +3939,7 @@ namespace units
 	 * @anchor		densityContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_DENSITY_UNITS)
 	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m, unit<std::ratio<1>, units::category::density_unit>)
 	UNIT_ADD(density, grams_per_milliliter, grams_per_milliliter, g_per_mL, compound_unit<mass::grams, inverse<volume::milliliter>>)
 	UNIT_ADD(density, kilograms_per_liter, kilograms_per_liter, kg_per_L, unit<std::ratio<1>, compound_unit<mass::grams, inverse<volume::milliliter>>>)
@@ -3889,6 +3952,7 @@ namespace units
 	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft, compound_unit<mass::slugs, inverse<volume::cubic_foot>>)
 
 	UNIT_ADD_CATEGORY_TRAIT(density)
+#endif
 
 	//------------------------------
 	//	UNITS OF CONCENTRATION
@@ -3902,12 +3966,14 @@ namespace units
 	 * @anchor		concentrationContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONCENTRATION_UNITS)
 	UNIT_ADD(concentration, ppm, parts_per_million, ppm, unit<std::ratio<1, 1000000>, units::category::scalar_unit>)
 	UNIT_ADD(concentration, ppb, parts_per_billion, ppb, unit<std::ratio<1, 1000>, parts_per_million>)
 	UNIT_ADD(concentration, ppt, parts_per_trillion, ppt, unit<std::ratio<1, 1000>, parts_per_billion>)
 	UNIT_ADD(concentration, percent, percent, pct, unit<std::ratio<1, 100>, units::category::scalar_unit>)
 
 	UNIT_ADD_CATEGORY_TRAIT(concentration)
+#endif
 
 	//------------------------------
 	//	UNITS OF DATA
@@ -3921,12 +3987,14 @@ namespace units
 	 * @anchor		dataContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_DATA_UNITS)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, byte, bytes, B, unit<std::ratio<1>, units::category::data_unit>)
 	UNIT_ADD(data, exabyte, exabytes, EB, unit<std::ratio<1000>, petabytes>)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, unit<std::ratio<1, 8>, byte>)
 	UNIT_ADD(data, exabit, exabits, Eb, unit<std::ratio<1000>, petabits>)
 
 	UNIT_ADD_CATEGORY_TRAIT(data)
+#endif
 
 	//------------------------------
 	//	UNITS OF DATA TRANSFER
@@ -3940,12 +4008,14 @@ namespace units
 	* @anchor		dataContainers
 	* @sa			See unit_t for more information on unit type containers.
 	*/
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_DATA_TRANSFER_RATE_UNITS)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, bytes_per_second, Bps, unit<std::ratio<1>, units::category::data_transfer_rate_unit>)
 	UNIT_ADD(data_transfer_rate, exabytes_per_second, exabytes_per_second, EBps, unit<std::ratio<1000>, petabytes_per_second>)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bits_per_second, bits_per_second, bps, unit<std::ratio<1, 8>, bytes_per_second>)
 	UNIT_ADD(data_transfer_rate, exabits_per_second, exabits_per_second, Ebps, unit<std::ratio<1000>, petabits_per_second>)
 
 	UNIT_ADD_CATEGORY_TRAIT(data_transfer_rate)
+#endif
 
 	//------------------------------
 	//	CONSTANTS
@@ -3955,6 +4025,7 @@ namespace units
 	 * @brief		namespace for physical constants like PI and Avogadro's Number.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONSTANT_UNITS)
 	namespace constants
 	{
 		/**
@@ -3983,6 +4054,7 @@ namespace units
 		static constexpr const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::cpow<5>(pi) * math::cpow<4>(R)) / (15 * math::cpow<3>(h) * math::cpow<2>(c) * math::cpow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
+#endif
 
 	//----------------------------------
 	//	UNIT-ENABLED CMATH FUNCTIONS
