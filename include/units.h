@@ -4005,14 +4005,16 @@ namespace units
 		constexpr UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return (lhs < rhs ? lhs : rhs);
+			UnitTypeLhs r(rhs);
+			return (lhs < r ? lhs : r);
 		}
 
 		template<class UnitTypeLhs, class UnitTypeRhs>
 		constexpr UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
-			return (lhs > rhs ? lhs : rhs);
+			UnitTypeLhs r(rhs);
+			return (lhs > r ? lhs : r);
 		}
 
 		//----------------------------------

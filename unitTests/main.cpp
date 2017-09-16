@@ -2562,17 +2562,17 @@ TEST_F(UnitConversion, std_chrono)
 
 TEST_F(UnitMath, min)
 {
-	meter_t a = 1_m;
-	meter_t b = 2_m;
-	foot_t c = 1_ft;
+	meter_t a(1);
+	meter_t b(2);
+	foot_t c(1);
 	EXPECT_EQ(c, math::min(a, c));
 }
 
 TEST_F(UnitMath, max)
 {
-	meter_t a = 1_m;
-	meter_t b = 2_m;
-	foot_t c = 1_ft;
+	meter_t a(1);
+	meter_t b(2);
+	foot_t c(1);
 	EXPECT_EQ(a, math::max(a, c));
 }
 
