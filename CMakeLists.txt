@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-PROJECT(units)
+PROJECT(units LANGUAGES CXX)
 
 OPTION(BUILD_TESTS "Build unit tests" ON)
 OPTION(BUILD_DOCS "Build the documentation" OFF)
@@ -23,7 +23,15 @@ endif()
 # add_subdirectory(units) # or whatever you named the directory
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_compile_features(${PROJECT_NAME}
+  INTERFACE cxx_variadic_templates
+)
+
+target_include_directories(${PROJECT_NAME}
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 # Remove IOStream from the library (useful for embdedded development)
 if(DISABLE_IOSTREAM)
@@ -50,3 +58,15 @@ if(BUILD_DOCS)
 		)
 	endif(DOXYGEN_FOUND)
 endif(BUILD_DOCS)
+
+install(TARGETS units
+  EXPORT unitsConfig
+)
+
+install(DIRECTORY include/
+  DESTINATION include
+)
+
+install(EXPORT unitsConfig
+  DESTINATION cmake
+)
