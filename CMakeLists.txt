@@ -56,8 +56,11 @@ SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # add_subdirectory(units) # or whatever you named the directory
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
-target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/units.h)
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_include_directories(${PROJECT_NAME} 
+	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+	$<INSTALL_INTERFACE:include> 
+)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# enable parallel build
