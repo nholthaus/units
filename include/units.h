@@ -4073,7 +4073,7 @@ namespace units
 		//----------------------------------
 
 		template<class UnitTypeLhs, class UnitTypeRhs>
-		constexpr UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			UnitTypeLhs r(rhs);
@@ -4081,7 +4081,7 @@ namespace units
 		}
 
 		template<class UnitTypeLhs, class UnitTypeRhs>
-		constexpr UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			UnitTypeLhs r(rhs);
