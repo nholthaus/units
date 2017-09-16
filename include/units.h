@@ -4025,7 +4025,7 @@ namespace units
 	 * @brief		namespace for physical constants like PI and Avogadro's Number.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONSTANT_UNITS)
+#if !defined(DISABLE_PREDEFINED_UNITS)
 	namespace constants
 	{
 		/**
@@ -4144,12 +4144,14 @@ namespace units
 		 * @param[in]	x		Value whose arc cosine is computed, in the interval [-1,+1].
 		 * @returns		Principal arc cosine of x, in the interval [0,pi] radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t acos(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acos(x()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4158,12 +4160,14 @@ namespace units
 		 * @param[in]	x		Value whose arc sine is computed, in the interval [-1,+1].
 		 * @returns		Principal arc sine of x, in the interval [-pi/2,+pi/2] radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t asin(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asin(x()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4176,12 +4180,14 @@ namespace units
 		 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
 		 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t atan(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atan(x()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4191,6 +4197,7 @@ namespace units
 		 * @param[in]	x		x-component of the triangle expressed.
 		 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class Y, class X>
 		angle::radian_t atan2(const Y y, const X x) noexcept
 		{
@@ -4199,6 +4206,7 @@ namespace units
 			// X and Y could be different length units, so normalize them
 			return angle::radian_t(std::atan2(y.template convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
 		}
+#endif
 
 		//----------------------------------
 		//	HYPERBOLIC TRIG FUNCTIONS
@@ -4257,12 +4265,14 @@ namespace units
 		 *					than 1, a domain error occurs.
 		 * @returns		Nonnegative arc hyperbolic cosine of x, in the interval [0,+INFINITY] radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t acosh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acosh(x()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4271,12 +4281,14 @@ namespace units
 		 * @param[in]	x	Value whose arc hyperbolic sine is computed.
 		 * @returns		Arc hyperbolic sine of x, in radians.
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t asinh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asinh(x()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4287,12 +4299,14 @@ namespace units
 		 *					values of -1 and +1, a pole error may occur.
 		 * @returns		units::angle::radian_t
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class ScalarUnit>
 		angle::radian_t atanh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atanh(x()));
 		}
+#endif
 
 		//----------------------------------
 		//	TRANSCENDENTAL FUNCTIONS
