@@ -610,16 +610,16 @@ TEST_F(TypeTraits, is_impedance_unit)
 
 TEST_F(TypeTraits, is_conductance_unit)
 {
-	EXPECT_TRUE((traits::is_conductance_unit<siemen>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<siemens>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<volt>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<double>::value));
 
-	EXPECT_TRUE((traits::is_conductance_unit<siemen_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t&>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<siemens_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t&>::value));
 	EXPECT_FALSE((traits::is_conductance_unit<volt_t>::value));
-	EXPECT_TRUE((traits::is_conductance_unit<const siemen_t&, millisiemen_t>::value));
-	EXPECT_FALSE((traits::is_conductance_unit<volt_t, siemen_t>::value));
+	EXPECT_TRUE((traits::is_conductance_unit<const siemens_t&, millisiemens_t>::value));
+	EXPECT_FALSE((traits::is_conductance_unit<volt_t, siemens_t>::value));
 }
 
 TEST_F(TypeTraits, is_magnetic_flux_unit)
@@ -1360,6 +1360,24 @@ TEST_F(UnitContainer, cout)
 #else
 	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
 #endif
+}
+
+TEST_F(UnitContainer, to_string)
+{
+	foot_t a(3.5);
+	EXPECT_STREQ("3.5 ft", units::length::to_string(a).c_str());
+
+	meter_t b(8);
+	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
+}
+
+TEST_F(UnitContainer, abbreviation)
+{
+	foot_t a(3.5);
+	EXPECT_STREQ("ft", units::length::abbreviation(a));
+
+	meter_t b(8);
+	EXPECT_STREQ("m", units::length::abbreviation(b));
 }
 #endif
 
@@ -2547,9 +2565,15 @@ TEST_F(UnitMath, min)
 	meter_t a = 1_m;
 	meter_t b = 2_m;
 	foot_t c = 1_ft;
-	std::cout << math::min(a, b) << std::endl;
-	std::cout << math::min(a, c) << std::endl;
 	EXPECT_EQ(c, math::min(a, c));
+}
+
+TEST_F(UnitMath, max)
+{
+	meter_t a = 1_m;
+	meter_t b = 2_m;
+	foot_t c = 1_ft;
+	EXPECT_EQ(a, math::max(a, c));
 }
 
 TEST_F(UnitMath, cos)

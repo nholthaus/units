@@ -4,6 +4,9 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
+# Get in touch
+
+If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
 
 # Latest Release - v2.3.0
 
@@ -12,7 +15,8 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 ## New feautres in v2.3.0
 
-
+- Support for `std::numeric_limits` of unit types.
+- Assignment operators for unit types: `-=`, `+=`, `/=`, `*=`.
 
  
 ## Tested on
@@ -31,10 +35,11 @@ Does this library work on your compiler? If so, let me know!
 <!-- TOC -->
 
 - [UNITS](#units)
+- [Get in touch](#get-in-touch)
 - [Latest Release - v2.3.0](#latest-release---v230)
-    - [Get it](#get-it)
-    - [New feautres in v2.3.0](#new-feautres-in-v230)
-    - [Tested on](#tested-on)
+	- [Get it](#get-it)
+	- [New feautres in v2.3.0](#new-feautres-in-v230)
+	- [Tested on](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
 - [Description](#description)
@@ -56,12 +61,12 @@ Does this library work on your compiler? If so, let me know!
 - [Changing the underlying type of `unit_t`](#changing-the-underlying-type-of-unit_t)
 - [Disabling IOStream](#disabling-iostream)
 - [Macro clashes](#macro-clashes)
-    - [Windows macros](#windows-macros)
-    - [ARM macros](#arm-macros)
+	- [Windows macros](#windows-macros)
+	- [ARM macros](#arm-macros)
 - [CMake Instructions](#cmake-instructions)
 - [Build Instructions](#build-instructions)
-    - [Windows](#windows)
-    - [Linux](#linux)
+	- [Windows](#windows)
+	- [Linux](#linux)
 - [Previous Releases](#previous-releases)
 
 <!-- /TOC -->

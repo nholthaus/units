@@ -48,7 +48,7 @@
 
 #ifdef _MSC_VER
 #	pragma push_macro("pascal")
-# undef pascal
+#	undef pascal
 #	if _MSC_VER <= 1800
 #		define _ALLOW_KEYWORD_MACROS
 #		pragma warning(push)
@@ -81,8 +81,29 @@
 #include <limits>
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-   #include <iostream>
+	#include <iostream>
+	#include <string>
+	using namespace std::string_literals;
 #endif
+
+//------------------------------
+//	STRING FORMATTER
+//------------------------------
+
+namespace units
+{
+	namespace detail
+	{
+		template <typename T> std::string to_string(const T& t)
+		{
+			std::string str{ std::to_string(t) };
+			int offset{ 1 };
+			if (str.find_last_not_of('0') == str.find('.')) { offset = 0; }
+			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
+			return str;
+		}
+	}
+}
 
 //------------------------------
 //	MACROS
@@ -145,18 +166,26 @@
  *				prints both the value and abbreviation of the unit when invoked.
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
- * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		abbrev - abbreviated unit name, e.g. 'm'
  * @note		When UNIT_LIB_DISABLE_IOSTREAM is defined, the macro does not generate any code
  */
 #if defined(UNIT_LIB_DISABLE_IOSTREAM)
-	#define UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)
+	#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)
 #else
-	#define UNIT_ADD_IO(namespaceName, nameSingular, abbreviation)\
+	#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)\
 	namespace namespaceName\
 	{\
 		inline std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) \
 		{\
-			os << obj() << " "#abbreviation; return os; \
+			os << obj() << " "#abbrev; return os; \
+		}\
+		inline std::string to_string(const nameSingular ## _t& obj)\
+		{\
+			return units::detail::to_string(obj()) + std::string(" "#abbrev);\
+		}\
+		inline constexpr char * abbreviation(const nameSingular ## _t& obj)\
+		{\
+			return #abbrev;\
 		}\
 	}
 #endif
@@ -959,7 +988,7 @@ namespace units
 		template<class U> struct cbrt_base_impl;
 		template<class... Exponents>
 		struct cbrt_base_impl<base_unit<Exponents...>> {
-			using type = base_unit<std::ratio_multiply<Exponents, std::ratio<3>>...>;
+			using type = base_unit<std::ratio_divide<Exponents, std::ratio<3>>...>;
 		};
 
 		/**
@@ -3638,7 +3667,7 @@ namespace units
 	 * @anchor		conductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemen, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, siemens, S, unit<std::ratio<1>, units::category::conductance_unit>)
 	
 	UNIT_ADD_CATEGORY_TRAIT(conductance)
 
@@ -3973,16 +4002,18 @@ namespace units
 		//----------------------------------
 
 		template<class UnitTypeLhs, class UnitTypeRhs>
-		constexpr UnitTypeLhs min( const UnitTypeLhs& lhs, const UnitTypeRhs& rhs )
+		constexpr UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 		{
 			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 			return (lhs < rhs ? lhs : rhs);
 		}
-// 		template<class UnitType>
-// 		constexpr const UnitType& min(const UnitType& lhs, const UnitType& rhs)
-// 		{
-// 			return (lhs < rhs ? lhs : rhs);
-// 		}
+
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		constexpr UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+		{
+			static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+			return (lhs > rhs ? lhs : rhs);
+		}
 
 		//----------------------------------
 		//	TRIGONOMETRIC FUNCTIONS
@@ -4572,8 +4603,29 @@ namespace units
 		}
 
 	}	// end namespace math
-
 }	// end namespace units
+
+//------------------------------
+//	std::numeric_limits
+//------------------------------
+
+template<class Units, typename T, template<typename> class NonLinearScale>
+class std::numeric_limits<units::unit_t<Units, T, NonLinearScale>>
+{
+public:
+	static constexpr units::unit_t<Units, T, NonLinearScale> min()
+	{
+		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::min());
+	}
+	static constexpr units::unit_t<Units, T, NonLinearScale> max()
+	{
+		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::max());
+	}
+	static constexpr units::unit_t<Units, T, NonLinearScale> lowest()
+	{
+		return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+	}
+};
 
 #ifdef _MSC_VER
 #	if _MSC_VER <= 1800
