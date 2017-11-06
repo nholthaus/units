@@ -46,8 +46,6 @@ features:
   # The units library can then be used in some other cmake project using 
   # the standard 'find_package' command. Like so:
   find_package(units)
-  add_executable(foo foo.cpp)
-  target_link_libraries(foo units::units)
   ```
 Bug fixes:
 - Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)
@@ -699,6 +697,15 @@ However, if you are already using CMake as your build system, the recommended wa
    add_executable(${PROJECT_NAME} main.cpp)
    target_link_libraries(${PROJECT_NAME} units)
    ```
+
+Also, if you are distributing headers that depends on units.h, you shoud consider using cmake's `find_package` to check if the header is installed on the user's system:
+    
+    ```cmake
+    find_package(units)
+    
+    add_library(${PROJECT_NAME} my_lib.cpp)
+    target_link_libraries(${PROJECT_NAME} units::units)
+    ```
 
 The include path properties are part of the `units` target, so adding it as a subdirectory and linking against it is all you need to do, no need to worry about additional include directories.
 
