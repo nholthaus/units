@@ -46,6 +46,8 @@ features:
   # The units library can then be used in some other cmake project using 
   # the standard 'find_package' command. Like so:
   find_package(units)
+  add_executable(foo foo.cpp)
+  target_link_libraries(foo units::units)
   ```
 Bug fixes:
 - Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)

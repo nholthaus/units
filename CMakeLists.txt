@@ -206,13 +206,14 @@ if(BUILD_DOCS)
 endif(BUILD_DOCS)
 
 install(TARGETS units
-  EXPORT unitsConfig
+    EXPORT unitsConfig
 )
 
 install(DIRECTORY include/
-  DESTINATION include
+    DESTINATION include
 )
 
 install(EXPORT unitsConfig
-  DESTINATION cmake
+    NAMESPACE units::
+    DESTINATION cmake
 )
