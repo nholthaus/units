@@ -219,12 +219,12 @@ install(TARGETS units
 
 install(EXPORT unitsConfig
     NAMESPACE units::
-    DESTINATION cmake
+    DESTINATION share/units/cmake
 )
 
 install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/unitsConfigVersion.cmake"
-    DESTINATION cmake
+    DESTINATION share/units/cmake
 )
 
 install(DIRECTORY include/
