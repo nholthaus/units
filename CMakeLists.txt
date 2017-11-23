@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 PROJECT(units LANGUAGES CXX)
+set(units_VERSION 2.3.1)
 
 # cmake options
 OPTION(BUILD_TESTS "Build unit tests" ON)
@@ -205,15 +206,27 @@ if(BUILD_DOCS)
 	endif(DOXYGEN_FOUND)
 endif(BUILD_DOCS)
 
-install(TARGETS units
-    EXPORT unitsConfig
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/unitsConfigVersion.cmake"
+  VERSION ${units_VERSION}
+  COMPATIBILITY SameMajorVersion
 )
 
-install(DIRECTORY include/
-    DESTINATION include
+install(TARGETS units
+    EXPORT unitsConfig
 )
 
 install(EXPORT unitsConfig
     NAMESPACE units::
     DESTINATION cmake
+)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/unitsConfigVersion.cmake"
+    DESTINATION cmake
+)
+
+install(DIRECTORY include/
+    DESTINATION include
 )
