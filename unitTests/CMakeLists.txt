@@ -16,7 +16,7 @@ if (COVERALLS)
 
 	# use absolute paths to help coveralls
 	get_filename_component(MAIN main.cpp ABSOLUTE)
-	get_filename_component(UNITS ../include/units.h ABSOLUTE)
+	get_filename_component(UNITS ../include/units/units.h ABSOLUTE)
     SET(FILES ${MAIN} ${UNITS})
 
 	include(Coveralls)
