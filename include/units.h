@@ -97,7 +97,12 @@ namespace units
 		{
 			std::string str{ std::to_string(t) };
 			int offset{ 1 };
-			if (str.find_last_not_of('0') == str.find('.')) { offset = 0; }
+
+			// remove trailing decimal points for integer value units. Locale aware!
+			struct lconv * lc;
+			lc = localeconv();
+			char decimalPoint = *lc->decimal_point;
+			if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
 			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
 			return str;
 		}

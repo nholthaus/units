@@ -1373,15 +1373,31 @@ TEST_F(UnitContainer, to_string)
 
 TEST_F(UnitContainer, to_string_locale)
 {
-	// US locale
-	setlocale(LC_ALL, "en_US");
-	char point_us = std::use_facet< std::numpunct<char> >(std::cout.getloc()).decimal_point();
-	EXPECT_EQ(point_us, '.');
-
+	struct lconv * lc;
+	
 	// German locale
 	setlocale(LC_ALL, "de-DE");
-	char point_de = std::use_facet< std::numpunct<char> >(std::cout.getloc()).decimal_point();
+	lc = localeconv();
+	char point_de = *lc->decimal_point;
 	EXPECT_EQ(point_de, ',');
+
+	kilometer_t de = 2_km;
+	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
+	
+	de = 2.5_km;
+	EXPECT_STREQ("2,5 km", units::length::to_string(de).c_str());
+
+	// US locale
+	setlocale(LC_ALL, "en-US");
+	lc = localeconv();
+	char point_us = *lc->decimal_point;
+	EXPECT_EQ(point_us, '.');
+
+	mile_t us = 2_mi;
+	EXPECT_STREQ("2 mi", units::length::to_string(us).c_str());
+
+	us = 2.5_mi;
+	EXPECT_STREQ("2.5 mi", units::length::to_string(us).c_str());
 }
 
 TEST_F(UnitContainer, abbreviation)
