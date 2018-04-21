@@ -965,6 +965,25 @@ TEST_F(UnitContainer, unitTypeAddition)
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
+TEST_F(UnitContainer, unitTypeUnaryAddition)
+{
+	meter_t a_m(1.0);
+
+	EXPECT_EQ(++a_m, meter_t(2));
+	EXPECT_EQ(a_m++, meter_t(2));
+	EXPECT_EQ(a_m, meter_t(3));
+	EXPECT_EQ(+a_m, meter_t(3));
+	EXPECT_EQ(a_m, meter_t(3));
+
+	dBW_t b_dBW(1.0);
+
+	EXPECT_EQ(++b_dBW, dBW_t(2));
+	EXPECT_EQ(b_dBW++, dBW_t(2));
+	EXPECT_EQ(b_dBW, dBW_t(3));
+	EXPECT_EQ(+b_dBW, dBW_t(3));
+	EXPECT_EQ(b_dBW, dBW_t(3));
+}
+
 TEST_F(UnitContainer, unitTypeSubtraction)
 {
 	meter_t a_m(1.0), c_m;
@@ -996,6 +1015,25 @@ TEST_F(UnitContainer, unitTypeSubtraction)
 
 	d = 1.0 - scalar_t(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
+}
+
+TEST_F(UnitContainer, unitTypeUnarySubtraction)
+{
+	meter_t a_m(4.0);
+
+	EXPECT_EQ(--a_m, meter_t(3));
+	EXPECT_EQ(a_m--, meter_t(3));
+	EXPECT_EQ(a_m, meter_t(2));
+	EXPECT_EQ(-a_m, meter_t(-2));
+	EXPECT_EQ(a_m, meter_t(2));
+
+	dBW_t b_dBW(4.0);
+
+	EXPECT_EQ(--b_dBW, dBW_t(3));
+	EXPECT_EQ(b_dBW--, dBW_t(3));
+	EXPECT_EQ(b_dBW, dBW_t(2));
+	EXPECT_EQ(-b_dBW, dBW_t(-2));
+	EXPECT_EQ(b_dBW, dBW_t(2));
 }
 
 TEST_F(UnitContainer, unitTypeMultiplication)
@@ -1371,13 +1409,56 @@ TEST_F(UnitContainer, to_string)
 	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
 }
 
-TEST_F(UnitContainer, abbreviation)
+TEST_F(UnitContainer, to_string_locale)
+{
+	struct lconv * lc;
+	
+	// German locale
+#if defined(_MSC_VER)
+	setlocale(LC_ALL, "de-DE");
+#else	
+	EXPECT_STREQ("de_DE.utf8",setlocale(LC_ALL, "de_DE.utf8"));
+#endif
+
+	lc = localeconv();
+	char point_de = *lc->decimal_point;
+	EXPECT_EQ(point_de, ',');
+
+	kilometer_t de = 2_km;
+	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
+	
+	de = 2.5_km;
+	EXPECT_STREQ("2,5 km", units::length::to_string(de).c_str());
+
+	// US locale
+#if defined(_MSC_VER)
+	setlocale(LC_ALL, "en-US");
+#else
+	EXPECT_STREQ("en_US.utf8",setlocale(LC_ALL, "en_US.utf8"));
+#endif
+
+	lc = localeconv();
+	char point_us = *lc->decimal_point;
+	EXPECT_EQ(point_us, '.');
+
+	mile_t us = 2_mi;
+	EXPECT_STREQ("2 mi", units::length::to_string(us).c_str());
+
+	us = 2.5_mi;
+	EXPECT_STREQ("2.5 mi", units::length::to_string(us).c_str());
+}
+
+TEST_F(UnitContainer, nameAndAbbreviation)
 {
 	foot_t a(3.5);
-	EXPECT_STREQ("ft", units::length::abbreviation(a));
+	EXPECT_STREQ("ft", units::abbreviation(a));
+	EXPECT_STREQ("ft", a.abbreviation());
+	EXPECT_STREQ("foot", a.name());
 
 	meter_t b(8);
-	EXPECT_STREQ("m", units::length::abbreviation(b));
+	EXPECT_STREQ("m", units::abbreviation(b));
+	EXPECT_STREQ("m", b.abbreviation());
+	EXPECT_STREQ("meter", b.name());
 }
 #endif
 
