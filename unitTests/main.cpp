@@ -972,7 +972,7 @@ TEST_F(UnitContainer, unitTypeUnaryAddition)
 	EXPECT_EQ(++a_m, meter_t(2));
 	EXPECT_EQ(a_m++, meter_t(2));
 	EXPECT_EQ(a_m, meter_t(3));
-	EXPECT_EQ(+a_m, meter_t(4));
+	EXPECT_EQ(+a_m, meter_t(3));
 	EXPECT_EQ(a_m, meter_t(3));
 
 	dBW_t b_dBW(1.0);
@@ -980,7 +980,7 @@ TEST_F(UnitContainer, unitTypeUnaryAddition)
 	EXPECT_EQ(++b_dBW, dBW_t(2));
 	EXPECT_EQ(b_dBW++, dBW_t(2));
 	EXPECT_EQ(b_dBW, dBW_t(3));
-	EXPECT_EQ(+b_dBW, dBW_t(4));
+	EXPECT_EQ(+b_dBW, dBW_t(3));
 	EXPECT_EQ(b_dBW, dBW_t(3));
 }
 
@@ -1024,7 +1024,7 @@ TEST_F(UnitContainer, unitTypeUnarySubtraction)
 	EXPECT_EQ(--a_m, meter_t(3));
 	EXPECT_EQ(a_m--, meter_t(3));
 	EXPECT_EQ(a_m, meter_t(2));
-	EXPECT_EQ(-a_m, meter_t(1));
+	EXPECT_EQ(-a_m, meter_t(-2));
 	EXPECT_EQ(a_m, meter_t(2));
 
 	dBW_t b_dBW(4.0);
@@ -1032,7 +1032,7 @@ TEST_F(UnitContainer, unitTypeUnarySubtraction)
 	EXPECT_EQ(--b_dBW, dBW_t(3));
 	EXPECT_EQ(b_dBW--, dBW_t(3));
 	EXPECT_EQ(b_dBW, dBW_t(2));
-	EXPECT_EQ(-b_dBW, dBW_t(1));
+	EXPECT_EQ(-b_dBW, dBW_t(-2));
 	EXPECT_EQ(b_dBW, dBW_t(2));
 }
 
@@ -1414,7 +1414,12 @@ TEST_F(UnitContainer, to_string_locale)
 	struct lconv * lc;
 	
 	// German locale
+#if defined(_MSC_VER)
 	setlocale(LC_ALL, "de-DE");
+#else
+	setlocale(LC_ALL, "de_DE");
+#endif
+
 	lc = localeconv();
 	char point_de = *lc->decimal_point;
 	EXPECT_EQ(point_de, ',');
@@ -1426,7 +1431,12 @@ TEST_F(UnitContainer, to_string_locale)
 	EXPECT_STREQ("2,5 km", units::length::to_string(de).c_str());
 
 	// US locale
+#if defined(_MSC_VER)
 	setlocale(LC_ALL, "en-US");
+#else
+	setlocale(LC_ALL, "en_US");
+#endif
+
 	lc = localeconv();
 	char point_us = *lc->decimal_point;
 	EXPECT_EQ(point_us, '.');
