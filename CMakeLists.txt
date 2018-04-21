@@ -79,7 +79,7 @@ endif(DISABLE_IOSTREAM)
 # unit tests
 if(BUILD_TESTS)
 	set(VERSION_GTEST "1.8.0" CACHE STRING "Google Test framework version")
-	enable_testing ()
+	enable_testing()
 	add_subdirectory(3rdParty/gtest)
 	add_subdirectory(unitTests)
 endif(BUILD_TESTS)

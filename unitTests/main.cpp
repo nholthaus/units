@@ -1371,6 +1371,19 @@ TEST_F(UnitContainer, to_string)
 	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
 }
 
+TEST_F(UnitContainer, to_string_locale)
+{
+	// US locale
+	setlocale(LC_ALL, "en_US");
+	char point_us = std::use_facet< std::numpunct<char> >(std::cout.getloc()).decimal_point();
+	EXPECT_EQ(point_us, '.');
+
+	// German locale
+	setlocale(LC_ALL, "de-DE");
+	char point_de = std::use_facet< std::numpunct<char> >(std::cout.getloc()).decimal_point();
+	EXPECT_EQ(point_de, ',');
+}
+
 TEST_F(UnitContainer, abbreviation)
 {
 	foot_t a(3.5);
