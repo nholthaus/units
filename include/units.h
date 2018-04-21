@@ -2393,7 +2393,7 @@ namespace units
 	//------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<!traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
-	constexpr inline int operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr inline int operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
 	{
 		static_assert(traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, "Cannot add units with different linear/non-linear scales.");
 		return 0;
@@ -4101,12 +4101,14 @@ namespace units
 		 * @param[in]	angle		angle to compute the cosine of
 		 * @returns		Returns the cosine of <i>angle</i>
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t cos(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::cos(angle.template convert<angle::radian>()()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4116,13 +4118,14 @@ namespace units
 		 * @param[in]	angle		angle to compute the since of
 		 * @returns		Returns the sine of <i>angle</i>
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t sin(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::sin(angle.template convert<angle::radian>()()));
 		}
-
+#endif
 		/**
 		 * @ingroup		UnitMath
 		 * @brief		Compute tangent
@@ -4131,12 +4134,14 @@ namespace units
 		 * @param[in]	angle		angle to compute the tangent of
 		 * @returns		Returns the tangent of <i>angle</i>
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t tan(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::tan(angle.template convert<angle::radian>()()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath
@@ -4221,12 +4226,14 @@ namespace units
 		 * @param[in]	angle		angle to compute the hyperbolic cosine of
 		 * @returns		Returns the hyperbolic cosine of <i>angle</i>
 		 */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t cosh(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::cosh(angle.template convert<angle::radian>()()));
 		}
+#endif
 
 		/**
 		* @ingroup		UnitMath
@@ -4236,12 +4243,14 @@ namespace units
 		* @param[in]	angle		angle to compute the hyperbolic sine of
 		* @returns		Returns the hyperbolic sine of <i>angle</i>
 		*/
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t sinh(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::sinh(angle.template convert<angle::radian>()()));
 		}
+#endif
 
 		/**
 		* @ingroup		UnitMath
@@ -4251,12 +4260,14 @@ namespace units
 		* @param[in]	angle		angle to compute the hyperbolic tangent of
 		* @returns		Returns the hyperbolic tangent of <i>angle</i>
 		*/
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ANGLE_UNITS)
 		template<class AngleUnit>
 		dimensionless::scalar_t tanh(const AngleUnit angle) noexcept
 		{
 			static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 			return dimensionless::scalar_t(std::tanh(angle.template convert<angle::radian>()()));
 		}
+#endif
 
 		/**
 		 * @ingroup		UnitMath

@@ -698,6 +698,15 @@ However, if you are already using CMake as your build system, the recommended wa
    target_link_libraries(${PROJECT_NAME} units)
    ```
 
+Also, if you are distributing headers that depends on units.h, you shoud consider using cmake's `find_package` to check if the header is installed on the user's system:
+    
+    ```cmake
+    find_package(units)
+    
+    add_library(${PROJECT_NAME} my_lib.cpp)
+    target_link_libraries(${PROJECT_NAME} units::units)
+    ```
+
 The include path properties are part of the `units` target, so adding it as a subdirectory and linking against it is all you need to do, no need to worry about additional include directories.
 
 If you don't care about the unit tests, you can minimize compile time by invoking CMake with the following option:
