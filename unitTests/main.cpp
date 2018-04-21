@@ -1448,13 +1448,17 @@ TEST_F(UnitContainer, to_string_locale)
 	EXPECT_STREQ("2.5 mi", units::length::to_string(us).c_str());
 }
 
-TEST_F(UnitContainer, abbreviation)
+TEST_F(UnitContainer, nameAndAbbreviation)
 {
 	foot_t a(3.5);
 	EXPECT_STREQ("ft", units::length::abbreviation(a));
+	EXPECT_STREQ("ft", a.abbreviation());
+	EXPECT_STREQ("foot", a.name());
 
 	meter_t b(8);
 	EXPECT_STREQ("m", units::length::abbreviation(b));
+	EXPECT_STREQ("m", b.abbreviation());
+	EXPECT_STREQ("meter", b.name());
 }
 #endif
 
