@@ -83,31 +83,31 @@
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	#include <iostream>
 	#include <string>
-#endif
 
-//------------------------------
-//	STRING FORMATTER
-//------------------------------
+	//------------------------------
+	//	STRING FORMATTER
+	//------------------------------
 
-namespace units
-{
-	namespace detail
+	namespace units
 	{
-		template <typename T> std::string to_string(const T& t)
+		namespace detail
 		{
-			std::string str{ std::to_string(t) };
-			int offset{ 1 };
+			template <typename T> std::string to_string(const T& t)
+			{
+				std::string str{ std::to_string(t) };
+				int offset{ 1 };
 
-			// remove trailing decimal points for integer value units. Locale aware!
-			struct lconv * lc;
-			lc = localeconv();
-			char decimalPoint = *lc->decimal_point;
-			if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
-			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
-			return str;
+				// remove trailing decimal points for integer value units. Locale aware!
+				struct lconv * lc;
+				lc = localeconv();
+				char decimalPoint = *lc->decimal_point;
+				if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
+				str.erase(str.find_last_not_of('0') + offset, std::string::npos);
+				return str;
+			}
 		}
 	}
-}
+#endif
 
 //------------------------------
 //	MACROS
