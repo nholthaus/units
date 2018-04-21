@@ -965,6 +965,25 @@ TEST_F(UnitContainer, unitTypeAddition)
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
+TEST_F(UnitContainer, unitTypeUnaryAddition)
+{
+	meter_t a_m(1.0);
+
+	EXPECT_EQ(++a_m, meter_t(2));
+	EXPECT_EQ(a_m++, meter_t(2));
+	EXPECT_EQ(a_m, meter_t(3));
+	EXPECT_EQ(+a_m, meter_t(4));
+	EXPECT_EQ(a_m, meter_t(3));
+
+	dBW_t b_dBW(1.0);
+
+	EXPECT_EQ(++b_dBW, dBW_t(2));
+	EXPECT_EQ(b_dBW++, dBW_t(2));
+	EXPECT_EQ(b_dBW, dBW_t(3));
+	EXPECT_EQ(+b_dBW, dBW_t(4));
+	EXPECT_EQ(b_dBW, dBW_t(3));
+}
+
 TEST_F(UnitContainer, unitTypeSubtraction)
 {
 	meter_t a_m(1.0), c_m;
@@ -996,6 +1015,25 @@ TEST_F(UnitContainer, unitTypeSubtraction)
 
 	d = 1.0 - scalar_t(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
+}
+
+TEST_F(UnitContainer, unitTypeUnarySubtraction)
+{
+	meter_t a_m(4.0);
+
+	EXPECT_EQ(--a_m, meter_t(3));
+	EXPECT_EQ(a_m--, meter_t(3));
+	EXPECT_EQ(a_m, meter_t(2));
+	EXPECT_EQ(-a_m, meter_t(1));
+	EXPECT_EQ(a_m, meter_t(2));
+
+	dBW_t b_dBW(4.0);
+
+	EXPECT_EQ(--b_dBW, dBW_t(3));
+	EXPECT_EQ(b_dBW--, dBW_t(3));
+	EXPECT_EQ(b_dBW, dBW_t(2));
+	EXPECT_EQ(-b_dBW, dBW_t(1));
+	EXPECT_EQ(b_dBW, dBW_t(2));
 }
 
 TEST_F(UnitContainer, unitTypeMultiplication)

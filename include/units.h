@@ -2201,12 +2201,6 @@ namespace units
 	}
 #endif
 
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	constexpr unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val) noexcept
-	{
-		return unit_t<Units, T, NonLinearScale>(-val());
-	}
-
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
@@ -2247,6 +2241,58 @@ namespace units
 
 		lhs = lhs / rhs;
 		return lhs;
+	}
+
+	//------------------------------
+	//	UNIT_T UNARY OPERATORS
+	//------------------------------
+
+	// unary addition: +T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator+(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		return unit_t<Units, T, NonLinearScale>(u() + 1);
+	}
+
+	// prefix increment: ++T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale>& operator++(unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		u = unit_t<Units, T, NonLinearScale>(u() + 1);
+		return u;
+	}
+
+	// postfix increment: T++
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator++(unit_t<Units, T, NonLinearScale>& u, int) noexcept
+	{
+		auto ret = u;
+		u = unit_t<Units, T, NonLinearScale>(u() + 1);
+		return ret;
+	}
+
+	// unary addition: +T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		return unit_t<Units, T, NonLinearScale>(u() - 1);
+	}
+
+	// prefix increment: ++T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale>& operator--(unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		u = unit_t<Units, T, NonLinearScale>(u() - 1);
+		return u;
+	}
+
+	// postfix increment: T++
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator--(unit_t<Units, T, NonLinearScale>& u, int) noexcept
+	{
+		auto ret = u;
+		u = unit_t<Units, T, NonLinearScale>(u() - 1);
+		return ret;
 	}
 
 	//------------------------------
