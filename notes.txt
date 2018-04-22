@@ -1,3 +1,4 @@
-- removed namespace math
-- category is now dimension
-- dimensionless types are no longer in a namespace
+- removed namespace math.
+- category is now dimension.
+- dimensionless types are no longer in a namespace.
+- unit_value_t types have been removed, use `constexpr` unit types instead.
