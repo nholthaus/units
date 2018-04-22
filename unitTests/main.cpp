@@ -40,7 +40,6 @@ using namespace units::density;
 using namespace units::concentration;
 using namespace units::data;
 using namespace units::data_transfer_rate;
-using namespace units::math;
 
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 using namespace units::literals;
@@ -1346,17 +1345,17 @@ TEST_F(UnitContainer, cout)
 
 	// undefined unit
 	testing::internal::CaptureStdout();
-	std::cout << units::math::cpow<4>(meter_t(2));
+	std::cout << cpow<4>(meter_t(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("16 m^4", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << units::math::cpow<3>(foot_t(2));
+	std::cout << cpow<3>(foot_t(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("8 cu_ft", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(9) << units::math::cpow<4>(foot_t(2));
+	std::cout << std::setprecision(9) << cpow<4>(foot_t(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("0.138095597 m^4", output.c_str());
 
@@ -2539,8 +2538,8 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(6.28318531, (2 * constants::pi), 5.0e-9);
 	EXPECT_NEAR(6.28318531, (constants::pi + constants::pi), 5.0e-9);
 	EXPECT_NEAR(0.0, (constants::pi - constants::pi), 5.0e-9);
-	EXPECT_NEAR(31.00627668, units::math::cpow<3>(constants::pi), 5.0e-10);
-	EXPECT_NEAR(0.0322515344, (1.0 / units::math::cpow<3>(constants::pi)), 5.0e-11);
+	EXPECT_NEAR(31.00627668, cpow<3>(constants::pi), 5.0e-10);
+	EXPECT_NEAR(0.0322515344, (1.0 / cpow<3>(constants::pi)), 5.0e-11);
 	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
 	EXPECT_TRUE(1.0 != constants::pi);
 	EXPECT_TRUE(4.0 > constants::pi);
@@ -2635,7 +2634,7 @@ TEST_F(UnitConversion, squaredTemperature)
 	using squared_celsius = units::compound_unit<squared<celsius>>;
 	using squared_celsius_t = units::unit_t<squared_celsius>;
 	const squared_celsius_t right(100);
-	const celsius_t rootRight = units::math::sqrt(right);
+	const celsius_t rootRight = sqrt(right);
 	EXPECT_EQ(celsius_t(10), rootRight);
 }
 
@@ -2644,7 +2643,7 @@ TEST_F(UnitMath, min)
 	meter_t a(1);
 	meter_t b(2);
 	foot_t c(1);
-	EXPECT_EQ(c, math::min(a, c));
+	EXPECT_EQ(c, units::min(a, c));
 }
 
 TEST_F(UnitMath, max)
@@ -2652,7 +2651,7 @@ TEST_F(UnitMath, max)
 	meter_t a(1);
 	meter_t b(2);
 	foot_t c(1);
-	EXPECT_EQ(a, math::max(a, c));
+	EXPECT_EQ(a, max(a, c));
 }
 
 TEST_F(UnitMath, cos)
@@ -2924,7 +2923,7 @@ TEST_F(UnitMath, fma)
 	meter_t x(2.0);
 	meter_t y(3.0);
 	square_meter_t z(1.0);
-	EXPECT_EQ(square_meter_t(7.0), (math::fma(x, y, z)));
+	EXPECT_EQ(square_meter_t(7.0), (units::fma(x, y, z)));
 }
 
 // Constexpr
@@ -2974,8 +2973,8 @@ TEST_F(Constexpr, arithmetic)
 	constexpr auto result5(meter_t(1) - meter_t(1));
 	constexpr auto result6(meter_t(1) * meter_t(1));
 	constexpr auto result7(meter_t(1) / meter_t(1));
-	constexpr auto result8(units::math::cpow<2>(meter_t(2)));
-	constexpr auto result9 = units::math::cpow<3>(2_m);
+	constexpr auto result8(cpow<2>(meter_t(2)));
+	constexpr auto result9 = cpow<3>(2_m);
 	constexpr auto result10 = 2_m * 2_m;
 
 	EXPECT_TRUE(noexcept(result0));
@@ -3273,8 +3272,8 @@ TEST_F(CaseStudies, radarRangeEquation)
 	B_n = megahertz_t(1.67);
 	L = dB_t(8.0);
 
-	scalar_t SNR = (P_t * math::pow<2>(G) * math::pow<2>(lambda) * sigma) /
-		(math::pow<3>(4 * constants::pi) * math::pow<4>(R) * constants::k_B * T_s * B_n * L);
+	scalar_t SNR = (P_t * pow<2>(G) * pow<2>(lambda) * sigma) /
+		(pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
 }
