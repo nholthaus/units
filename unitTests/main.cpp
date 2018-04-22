@@ -1,5 +1,3 @@
-#define UNIT_LIB_DISABLE_IOSTREAM // REMOVE THIS!!!!!
-
 #include <units.h>
 #include <gtest/gtest.h>
 #include <chrono>
@@ -41,10 +39,7 @@ using namespace units::density;
 using namespace units::concentration;
 using namespace units::data;
 using namespace units::data_transfer_rate;
-
-#if !defined(_MSC_VER) || _MSC_VER > 1800
 using namespace units::literals;
-#endif
 
 namespace {
 
@@ -1357,29 +1352,17 @@ TEST_F(UnitContainer, cout)
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(8) << constants::k_B;
 	output = testing::internal::GetCapturedStdout();
-#if defined(_MSC_VER) && (_MSC_VER <= 1800)
-	EXPECT_STREQ("1.3806485e-023 m^2 kg s^-2 K^-1", output.c_str());
-#else
 	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
-#endif
 
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(9) << constants::mu_B;
 	output = testing::internal::GetCapturedStdout();
-#if defined(_MSC_VER) && (_MSC_VER <= 1800)
-	EXPECT_STREQ("9.27400999e-024 m^2 A", output.c_str());
-#else
 	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
-#endif
 
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(7) << constants::sigma;
 	output = testing::internal::GetCapturedStdout();
-#if defined(_MSC_VER) && (_MSC_VER <= 1800)
-	EXPECT_STREQ("5.670367e-008 kg s^-3 K^-4", output.c_str());
-#else
 	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
-#endif
 }
 
 TEST_F(UnitContainer, to_string)
@@ -1559,7 +1542,6 @@ TEST_F(UnitContainer, unit_cast)
 }
 
 // literal syntax is only supported in GCC 4.7+ and MSVC2015+
-#if !defined(_MSC_VER) || _MSC_VER > 1800
 TEST_F(UnitContainer, literals)
 {
 	// basic functionality testing
@@ -1586,7 +1568,6 @@ TEST_F(UnitContainer, literals)
 	meter_t c = sqrt(pow<2>(a) + pow<2>(b));
 	EXPECT_TRUE(c == 5_m);
 }
-#endif
 
 TEST_F(UnitConversion, length)
 {
