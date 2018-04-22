@@ -2,20 +2,33 @@
 # UNITS 
 A compile-time, header-only, dimensional analysis library built on c++14 with no dependencies.
 
-[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2013](https://img.shields.io/badge/MSVC-2013-ff69b4.svg) ![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
+[![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 # Get in touch
 
 If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
 
-# Latest Release - v2.3.0
+# Latest Release - v2.3.1
 
 ## Get it
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.0)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.1-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.1)
 
-## New features in v2.3.0
+## New in v2.3.1
 
-features:
+**This version removes support for the Visual Studio 2013 compiler.**
+
+Features:
+- units now include constexpr `name()` and `abbreviation()` member functions, which do not really on string/iostream.
+- Builds with VS2017 Ninja generator out of the box
+- string conversions are now locale aware
+- added unary incremement and decremement operators (`++`,`--`), as well as unary `+` operator.
+
+Bug fixs:
+- fixed compilation error when iostream was disabled
+
+## New in v2.3.0
+
+Features:
 - 5x compile time improvement on MSVC.
 - 1.5x compile time improvement on GCC.
 - Even more dramatic reductions in compile time can be acheived if you opt-in to specific unit definitions instead of using all the library-defined types (which is the default value). Check out [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time) for instructions.
@@ -58,7 +71,6 @@ Bug fixes:
  - gcc-4.9.3
  - gcc-5.4.0
  - clang-3.4
- - msvc2013
  - msvc2015
  - msvc2017
 
@@ -70,9 +82,10 @@ Does this library work on your compiler? If so, let me know!
 
 - [UNITS](#units)
 - [Get in touch](#get-in-touch)
-- [Latest Release - v2.3.0](#latest-release---v230)
+- [Latest Release - v2.3.1](#latest-release---v231)
 	- [Get it](#get-it)
-	- [New feares in v2.3.0](#new-feautres-in-v230)
+	- [New in v2.3.1](#new-in-v231)
+	- [New in v2.3.0](#new-in-v230)
 	- [Tested on](#tested-on)
 - [Contents](#contents)
 - [Documentation](#documentation)
