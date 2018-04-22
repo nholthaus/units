@@ -1416,8 +1416,8 @@ TEST_F(UnitContainer, to_string_locale)
 	// German locale
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "de-DE");
-#else
-	setlocale(LC_ALL, "de_DE");
+#else	
+	EXPECT_STREQ("de_DE.utf8",setlocale(LC_ALL, "de_DE.utf8"));
 #endif
 
 	lc = localeconv();
@@ -1434,7 +1434,7 @@ TEST_F(UnitContainer, to_string_locale)
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "en-US");
 #else
-	setlocale(LC_ALL, "en_US");
+	EXPECT_STREQ("en_US.utf8",setlocale(LC_ALL, "en_US.utf8"));
 #endif
 
 	lc = localeconv();
@@ -1451,12 +1451,12 @@ TEST_F(UnitContainer, to_string_locale)
 TEST_F(UnitContainer, nameAndAbbreviation)
 {
 	foot_t a(3.5);
-	EXPECT_STREQ("ft", units::length::abbreviation(a));
+	EXPECT_STREQ("ft", units::abbreviation(a));
 	EXPECT_STREQ("ft", a.abbreviation());
 	EXPECT_STREQ("foot", a.name());
 
 	meter_t b(8);
-	EXPECT_STREQ("m", units::length::abbreviation(b));
+	EXPECT_STREQ("m", units::abbreviation(b));
 	EXPECT_STREQ("m", b.abbreviation());
 	EXPECT_STREQ("meter", b.name());
 }

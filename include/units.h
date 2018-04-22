@@ -83,6 +83,7 @@
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	#include <iostream>
 	#include <string>
+	#include <locale>
 
 	//------------------------------
 	//	STRING FORMATTER
@@ -108,6 +109,12 @@
 		}
 	}
 #endif
+
+namespace units
+{
+	template<typename T> inline constexpr const char* name(const T&);
+	template<typename T> inline constexpr const char* abbreviation(const T&);
+}
 
 //------------------------------
 //	MACROS
@@ -147,7 +154,7 @@
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
 	namespace namespaceName\
 	{\
-	/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}
 
 /**
@@ -201,16 +208,13 @@
   * @param		abbreviation - abbreviated unit name, e.g. 'm'
   */
 #define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev)\
-namespace namespaceName\
+template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&)\
 {\
-	inline constexpr const char* name(const nameSingular ## _t&)\
-	{\
-		return #nameSingular;\
-	}\
-	inline constexpr const char* abbreviation(const nameSingular ## _t&)\
-	{\
-		return #abbrev;\
-	}\
+	return #nameSingular;\
+}\
+template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&)\
+{\
+	return #abbrev;\
 }
 
 /**
@@ -2142,7 +2146,7 @@ namespace units
 		 */
 		inline constexpr const char* name() const noexcept
 		{
-			return ::name(*this);
+			return units::name(*this);
 		}
 
 		/**
@@ -2150,7 +2154,7 @@ namespace units
 		 */
 		inline constexpr const char* abbreviation() const noexcept
 		{
-			return ::abbreviation(*this);
+			return units::abbreviation(*this);
 		}
 
 	public:

@@ -35,7 +35,7 @@ env:
 
 install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y -qq lcov curl
+  - sudo apt-get install -y -qq lcov curl language-pack-de
   - if [[ "$CXX" = "g++" ]]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - pwd
   - ls
