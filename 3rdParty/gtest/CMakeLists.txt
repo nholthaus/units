@@ -69,6 +69,7 @@ ELSE(WIN32)
 	)
 ENDIF(WIN32)
 
+target_compile_definitions(${PROJECT_NAME} INTERFACE GTEST_LANG_CXX11)
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ext)
 
 SET(INCLUDE_DIR ${${PROJECT_NAME_UPPER}_DIR}/googletest/include)

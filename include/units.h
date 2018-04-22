@@ -125,9 +125,9 @@ namespace units
 #define UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
-	/** @name Units (full names plural) */ /** @{ */ typedef __VA_ARGS__ namePlural; /** @} */\
-	/** @name Units (full names singular) */ /** @{ */ typedef namePlural nameSingular; /** @} */\
-	/** @name Units (abbreviated) */ /** @{ */ typedef namePlural abbreviation; /** @} */\
+	/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+	/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+	/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 	}
 
 /**
@@ -140,7 +140,7 @@ namespace units
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
 	namespace namespaceName\
 	{\
-		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
+		/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular>; /** @} */\
 	}
 
 /**
@@ -154,7 +154,7 @@ namespace units
 #define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular, underlyingType)\
 	namespace namespaceName\
 	{\
-	/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular,underlyingType> nameSingular ## _t; /** @} */\
+	/** @name Unit Containers */ /** @{ */ using nameSingular ## _t = unit_t<nameSingular,underlyingType>; /** @} */\
 	}
 /**
  * @def			UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
@@ -194,11 +194,11 @@ namespace units
   * @param		abbreviation - abbreviated unit name, e.g. 'm'
   */
 #define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev)\
-template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&)\
+template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&) noexcept\
 {\
 	return #nameSingular;\
 }\
-template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&)\
+template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&) noexcept\
 {\
 	return #abbrev;\
 }
@@ -217,11 +217,11 @@ template<> inline constexpr const char* abbreviation(const namespaceName::nameSi
 #define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)\
 namespace literals\
 {\
-	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d)\
+	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d) noexcept\
 	{\
 		return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 	}\
-	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d)\
+	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) noexcept\
 	{\
 		return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 	}\
@@ -501,7 +501,10 @@ namespace units
 	 *				whether `class T` has a numerator static member.
 	 */
 	template<class T>
-	struct has_num : units::detail::has_num_impl<T>::type {};
+	using has_num = typename units::detail::has_num_impl<T>::type;
+
+	template<class T>
+	inline constexpr bool has_num_v = has_num<T>::value;
 
 	namespace detail
 	{
@@ -524,7 +527,7 @@ namespace units
 	 *				whether `class T` has a denominator static member.
 	 */
 	template<class T>
-	struct has_den : units::detail::has_den_impl<T>::type {};
+	using has_den = typename units::detail::has_den_impl<T>::type;
 	
 	template<class T>
 	inline constexpr bool has_den_v = has_den<T>::value;
@@ -539,7 +542,10 @@ namespace units
 		 *				whether `class T` implements a std::ratio.
 		 */
 		template<class T>
-		struct is_ratio : std::bool_constant<has_num<T>::value && has_den_v<T>>{};
+		struct is_ratio : std::bool_constant<has_num_v<T> && has_den_v<T>> {};
+
+		template<class T>
+		inline constexpr bool is_ratio_v = typename is_ratio<T>::value;
 	}
 
 	//------------------------------
@@ -575,10 +581,10 @@ namespace units
 		template<class T, typename = void>
 		struct unit_traits
 		{
-			typedef void base_unit_type;
-			typedef void conversion_ratio;
-			typedef void pi_exponent_ratio;
-			typedef void translation_ratio;
+			using base_unit_type = void;
+			using conversion_ratio = void;
+			using pi_exponent_ratio = void;
+			using translation_ratio = void;
 		};
 
 		template<class T>
@@ -617,7 +623,10 @@ namespace units
 		 *				whether `class T` implements a `base_unit`.
 		 */
 		template<class T>
-		struct is_base_unit : std::is_base_of<units::detail::_base_unit_t, T> {};
+		using is_base_unit = std::is_base_of<units::detail::_base_unit_t, T>;
+
+		template<class T>
+		inline constexpr bool is_base_unit_v = typename is_base_unit<T>::value;
 	}
 
 	/** @cond */	// DOXYGEN IGNORE
@@ -639,11 +648,14 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Traits which tests if a class is a `unit`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit_v<T>` to test
 		 *				whether `class T` implements a `unit`.
 		 */
 		template<class T>
-		struct is_unit : std::is_base_of<units::detail::_unit, T>::type {};
+		using is_unit = typename std::is_base_of<units::detail::_unit, T>::type;
+
+		template<class T>
+		inline constexpr bool is_unit_v = typename is_unit<T>::value;
 	}
 
 	/** @} */ // end of TypeTraits
@@ -681,25 +693,25 @@ namespace units
 	class Byte = std::ratio<0>>
 	struct base_unit : units::detail::_base_unit_t
 	{
-		static_assert(traits::is_ratio<Meter>::value, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
-		static_assert(traits::is_ratio<Kilogram>::value, "Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
-		static_assert(traits::is_ratio<Second>::value, "Template parameter `Second` must be a `std::ratio` representing the exponent of seconds the unit has");
-		static_assert(traits::is_ratio<Ampere>::value, "Template parameter `Ampere` must be a `std::ratio` representing the exponent of amperes the unit has");
-		static_assert(traits::is_ratio<Kelvin>::value, "Template parameter `Kelvin` must be a `std::ratio` representing the exponent of kelvin the unit has");
-		static_assert(traits::is_ratio<Candela>::value, "Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
-		static_assert(traits::is_ratio<Mole>::value, "Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
-		static_assert(traits::is_ratio<Radian>::value, "Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
-		static_assert(traits::is_ratio<Byte>::value, "Template parameter `Byte` must be a `std::ratio` representing the exponent of bytes the unit has");
+		static_assert(traits::is_ratio_v<Meter>, "Template parameter `Meter` must be a `std::ratio` representing the exponent of meters the unit has");
+		static_assert(traits::is_ratio_v<Kilogram>, "Template parameter `Kilogram` must be a `std::ratio` representing the exponent of kilograms the unit has");
+		static_assert(traits::is_ratio_v<Second>, "Template parameter `Second` must be a `std::ratio` representing the exponent of seconds the unit has");
+		static_assert(traits::is_ratio_v<Ampere>, "Template parameter `Ampere` must be a `std::ratio` representing the exponent of amperes the unit has");
+		static_assert(traits::is_ratio_v<Kelvin>, "Template parameter `Kelvin` must be a `std::ratio` representing the exponent of kelvin the unit has");
+		static_assert(traits::is_ratio_v<Candela>, "Template parameter `Candela` must be a `std::ratio` representing the exponent of candelas the unit has");
+		static_assert(traits::is_ratio_v<Mole>, "Template parameter `Mole` must be a `std::ratio` representing the exponent of moles the unit has");
+		static_assert(traits::is_ratio_v<Radian>, "Template parameter `Radian` must be a `std::ratio` representing the exponent of radians the unit has");
+		static_assert(traits::is_ratio_v<Byte>, "Template parameter `Byte` must be a `std::ratio` representing the exponent of bytes the unit has");
 
-		typedef Meter meter_ratio;
-		typedef Kilogram kilogram_ratio;
-		typedef Second second_ratio;
-		typedef Radian radian_ratio;
-		typedef Ampere ampere_ratio;
-		typedef Kelvin kelvin_ratio;
-		typedef Mole mole_ratio;
-		typedef Candela candela_ratio;
-		typedef Byte byte_ratio;
+		using meter_ratio = Meter;
+		using kilogram_ratio = Kilogram;
+		using second_ratio = Second;
+		using radian_ratio = Radian;
+		using ampere_ratio = Ampere;
+		using kelvin_ratio = Kelvin;
+		using mole_ratio = Mole;
+		using candela_ratio = Candela;
+		using byte_ratio = Byte;
 	};
 
 	//------------------------------
@@ -777,10 +789,10 @@ namespace units
 		static_assert(traits::is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 		static_assert(traits::is_ratio<Translation>::value, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
-		typedef typename units::base_unit<Exponents...> base_unit_type;
-		typedef Conversion conversion_ratio;
-		typedef Translation translation_ratio;
-		typedef PiExponent pi_exponent_ratio;
+		using base_unit_type = typename units::base_unit<Exponents...>;
+		using conversion_ratio = Conversion;
+		using translation_ratio = Translation;
+		using pi_exponent_ratio = PiExponent;
 	};
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -810,7 +822,7 @@ namespace units
 		static_assert(traits::is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(traits::is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
-		typedef typename units::traits::unit_traits<BaseUnit>::base_unit_type base_unit_type;
+		using base_unit_type = typename units::traits::unit_traits<BaseUnit>::base_unit_type;
 		typedef typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
 		typedef typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
 		typedef typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio> translation_ratio;
@@ -834,12 +846,12 @@ namespace units
 		template<class... Exponents>
 		struct base_unit_of_impl<base_unit<Exponents...>>
 		{
-			typedef base_unit<Exponents...> type;
+			using type = base_unit<Exponents...>;
 		};
 		template<>
 		struct base_unit_of_impl<void>
 		{
-			typedef void type;
+			using type = void;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
