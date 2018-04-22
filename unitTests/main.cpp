@@ -195,17 +195,6 @@ TEST_F(TypeTraits, unit_t_traits)
 	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::value_type>::value));
 }
 
-TEST_F(TypeTraits, all_true)
-{
-	EXPECT_TRUE(all_true<true>::type::value);
-	EXPECT_TRUE((all_true<true, true>::type::value));
-	EXPECT_TRUE((all_true<true, true, true>::type::value));
-	EXPECT_FALSE(all_true<false>::type::value);
-	EXPECT_FALSE((all_true<true, false>::type::value));
-	EXPECT_FALSE((all_true<true, true, false>::type::value));
-	EXPECT_FALSE((all_true<false, false, false>::type::value));
-}
-
 TEST_F(TypeTraits, is_convertible_unit)
 {
 	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
