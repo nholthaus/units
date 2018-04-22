@@ -1,0 +1,3 @@
+- removed namespace math
+- category is now dimension
+- dimensionless types are no longer in a namespace
