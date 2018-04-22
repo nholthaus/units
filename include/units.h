@@ -3640,7 +3640,7 @@ namespace units
 	UNIT_ADD(force, dyne, dynes, dyn, unit<std::ratio<1, 100000>, newtons>)
 	UNIT_ADD(force, kilopond, kiloponds, kp, compound_unit<acceleration::standard_gravity, mass::kilograms>)
 	UNIT_ADD(force, poundal, poundals, pdl, compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>)
-
+	UNIT_ADD(pressure, mbar, mbars, mbar, milli<pressure::bar>)
 	UNIT_ADD_CATEGORY_TRAIT(force)
 #endif
 
@@ -3659,6 +3659,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_PRESSURE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascal, pascals, Pa, unit<std::ratio<1>, units::category::pressure_unit>)
 	UNIT_ADD(pressure, bar, bars, bar, unit<std::ratio<100>, kilo<pascals>>)
+
 	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit<std::ratio<101325>, pascals>)
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
@@ -4144,6 +4145,10 @@ namespace units
 		static constexpr const unit_t<compound_unit<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
 		static constexpr const unit_t<compound_unit<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
 		static constexpr const unit_t<compound_unit<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * math::cpow<5>(pi) * math::cpow<4>(R)) / (15 * math::cpow<3>(h) * math::cpow<2>(c) * math::cpow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static constexpr const unit_t<milli<pressure::bar>>																										p_n{1.01324};		///< normal pressure.
+		static constexpr const temperature::kelvin_t 																										T_n{273.15};	///< normal temperature.
+		static constexpr const unit_t<milli<pressure::bar>>																										p_std{1.00000};		///< standard pressure.
+		static constexpr const temperature::kelvin_t 																										T_n{298.15};	///< standard temperature.
 		/** @} */
 	}
 #endif
