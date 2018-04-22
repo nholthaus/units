@@ -83,25 +83,37 @@
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	#include <iostream>
 	#include <string>
-#endif
+	#include <locale>
 
-//------------------------------
-//	STRING FORMATTER
-//------------------------------
+	//------------------------------
+	//	STRING FORMATTER
+	//------------------------------
+
+	namespace units
+	{
+		namespace detail
+		{
+			template <typename T> std::string to_string(const T& t)
+			{
+				std::string str{ std::to_string(t) };
+				int offset{ 1 };
+
+				// remove trailing decimal points for integer value units. Locale aware!
+				struct lconv * lc;
+				lc = localeconv();
+				char decimalPoint = *lc->decimal_point;
+				if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
+				str.erase(str.find_last_not_of('0') + offset, std::string::npos);
+				return str;
+			}
+		}
+	}
+#endif
 
 namespace units
 {
-	namespace detail
-	{
-		template <typename T> std::string to_string(const T& t)
-		{
-			std::string str{ std::to_string(t) };
-			int offset{ 1 };
-			if (str.find_last_not_of('0') == str.find('.')) { offset = 0; }
-			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
-			return str;
-		}
-	}
+	template<typename T> inline constexpr const char* name(const T&);
+	template<typename T> inline constexpr const char* abbreviation(const T&);
 }
 
 //------------------------------
@@ -142,7 +154,7 @@ namespace units
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
 	namespace namespaceName\
 	{\
-	/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
+		/** @name Unit Containers */ /** @{ */ typedef unit_t<nameSingular> nameSingular ## _t; /** @} */\
 	}
 
 /**
@@ -182,12 +194,28 @@ namespace units
 		{\
 			return units::detail::to_string(obj()) + std::string(" "#abbrev);\
 		}\
-		inline constexpr const char* abbreviation(const nameSingular ## _t&)\
-		{\
-			return #abbrev;\
-		}\
 	}
 #endif
+
+ /**
+  * @def		UNIT_ADD_NAME(namespaceName,nameSingular,abbreviation)
+  * @brief		Macro for generating constexpr names/abbreviations for units.
+  * @details	The macro generates names for units. E.g. name() of 1_m would be "meter", and 
+  *				abbreviation would be "m".
+  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
+  *				are placed in the `units::literals` namespace.
+  * @param		nameSingular singular version of the unit name, e.g. 'meter'
+  * @param		abbreviation - abbreviated unit name, e.g. 'm'
+  */
+#define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev)\
+template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&)\
+{\
+	return #nameSingular;\
+}\
+template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&)\
+{\
+	return #abbrev;\
+}
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -239,6 +267,7 @@ namespace units
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, __VA_ARGS__)\
 	UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
+	UNIT_ADD_NAME(namespaceName,nameSingular, abbreviation)\
 	UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)\
 	UNIT_ADD_LITERALS(namespaceName,nameSingular, abbreviation)
 
@@ -2112,6 +2141,22 @@ namespace units
 			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<Units, unit<std::ratio<1,1000000000>, category::time_unit>>((*this)())));
 		}
 
+		/**
+		 * @brief		returns the unit name
+		 */
+		inline constexpr const char* name() const noexcept
+		{
+			return units::name(*this);
+		}
+
+		/**
+		 * @brief		returns the unit abbreviation
+		 */
+		inline constexpr const char* abbreviation() const noexcept
+		{
+			return units::abbreviation(*this);
+		}
+
 	public:
 
 		template<class U, typename Ty, template<typename> class Nlt>
@@ -2196,12 +2241,6 @@ namespace units
 	}
 #endif
 
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	constexpr unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& val) noexcept
-	{
-		return unit_t<Units, T, NonLinearScale>(-val());
-	}
-
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
@@ -2242,6 +2281,58 @@ namespace units
 
 		lhs = lhs / rhs;
 		return lhs;
+	}
+
+	//------------------------------
+	//	UNIT_T UNARY OPERATORS
+	//------------------------------
+
+	// unary addition: +T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator+(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		return u;
+	}
+
+	// prefix increment: ++T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale>& operator++(unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		u = unit_t<Units, T, NonLinearScale>(u() + 1);
+		return u;
+	}
+
+	// postfix increment: T++
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator++(unit_t<Units, T, NonLinearScale>& u, int) noexcept
+	{
+		auto ret = u;
+		u = unit_t<Units, T, NonLinearScale>(u() + 1);
+		return ret;
+	}
+
+	// unary addition: -T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		return unit_t<Units, T, NonLinearScale>(-u());
+	}
+
+	// prefix increment: --T
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale>& operator--(unit_t<Units, T, NonLinearScale>& u) noexcept
+	{
+		u = unit_t<Units, T, NonLinearScale>(u() - 1);
+		return u;
+	}
+
+	// postfix increment: T--
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	inline unit_t<Units, T, NonLinearScale> operator--(unit_t<Units, T, NonLinearScale>& u, int) noexcept
+	{
+		auto ret = u;
+		u = unit_t<Units, T, NonLinearScale>(u() - 1);
+		return ret;
 	}
 
 	//------------------------------
