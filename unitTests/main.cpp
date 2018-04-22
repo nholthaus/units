@@ -687,16 +687,16 @@ TEST_F(TypeTraits, is_illuminance_unit)
 TEST_F(TypeTraits, is_radioactivity_unit)
 {
 
-	EXPECT_TRUE((traits::is_radioactivity_unit<becquerel>::value));
+	EXPECT_TRUE((traits::is_radioactivity_unit<sievert>::value));
 	EXPECT_FALSE((traits::is_radioactivity_unit<year>::value));
 	EXPECT_FALSE((traits::is_radioactivity_unit<double>::value));
 
-	EXPECT_TRUE((traits::is_radioactivity_unit<becquerel_t>::value));
-	EXPECT_TRUE((traits::is_radioactivity_unit<const becquerel_t>::value));
-	EXPECT_TRUE((traits::is_radioactivity_unit<const becquerel_t&>::value));
+	EXPECT_TRUE((traits::is_radioactivity_unit<sievert>::value));
+	EXPECT_TRUE((traits::is_radioactivity_unit<const sievert>::value));
+	EXPECT_TRUE((traits::is_radioactivity_unit<const sievert&>::value));
 	EXPECT_FALSE((traits::is_radioactivity_unit<year_t>::value));
-	EXPECT_TRUE((traits::is_radioactivity_unit<const becquerel_t&, millibecquerel_t>::value));
-	EXPECT_FALSE((traits::is_radioactivity_unit<year_t, becquerel_t>::value));
+	EXPECT_TRUE((traits::is_radioactivity_unit<const sievert&, millisievert>::value));
+	EXPECT_FALSE((traits::is_radioactivity_unit<year_t, sievert>::value));
 }
 
 TEST_F(TypeTraits, is_torque_unit)
@@ -2240,10 +2240,10 @@ TEST_F(UnitConversion, illuminance)
 
 // 	test = convert<footcandles, luxes>(0.092903);
 // 	EXPECT_NEAR(1.0, test, 5.0e-5);
-// 	test = convert<lux, lumens_per_square_inch>(1550.0031000062);
-// 	EXPECT_NEAR(1.0, test, 5.0e-13);
-// 	test = convert<phots, luxes>(0.0001);
-// 	EXPECT_NEAR(1.0, test, 5.0e-5);
+	test = convert<lux, lumens_per_square_inch>(1550.0031000062);
+	EXPECT_NEAR(1.0, test, 5.0e-13);
+	test = convert<phots, luxes>(0.0001);
+	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
 TEST_F(UnitConversion, radiation)

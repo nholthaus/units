@@ -931,13 +931,13 @@ namespace units
 		using magnetic_field_strength	= make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>;				///< Represents an SI derived unit of magnetic field strength
 		using inductance				= dimension_multiply<impedance, time>;				///< Represents an SI derived unit of inductance
 		using luminous_flux				= dimension_multiply<solid_angle, luminous_intensity>;					///< Represents an SI derived unit of luminous flux
-		using illuminance				= make_dimension<luminous_intensity, std::ratio<1>, length, std::ratio<-2>>;				///< Represents an SI derived unit of illuminance
+		using illuminance				= make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>;				///< Represents an SI derived unit of illuminance
 		using radioactivity				= make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;					///< Represents an SI derived unit of radioactivity
 
 		// OTHER UNIT TYPES
-		using torque					= dimension_multiply<energy, angle>;				///< Represents an SI derived unit of torque
+		using torque					= dimension_multiply<force, length>;				///< Represents an SI derived unit of torque
 		using volume					= dimension_pow<length, std::ratio<3>>;				///< Represents an SI derived unit of volume
-		using density					= dimension_divide<mass, area>;				///< Represents an SI derived unit of density
+		using density					= dimension_divide<mass, volume>;				///< Represents an SI derived unit of density
 		using concentration				= make_dimension<volume, std::ratio<-1>>;					///< Represents a unit of concentration
 		using data						= make_dimension<data_tag>;				///< Represents a unit of data size
 		using data_transfer_rate		= make_dimension<data, std::ratio<-1>>;				///< Represents a unit of data transfer rate
