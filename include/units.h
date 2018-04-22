@@ -325,6 +325,8 @@ namespace literals\
 	{\
 		template<typename... T>\
 		struct is_ ## unitCategory ## _unit : std::bool_constant<std::conjunction_v<units::traits::detail::is_ ## unitCategory ## _unit_impl<std::decay_t<T>>...>> {};\
+		template<typename... T>\
+		inline constexpr bool is_ ## unitCategory ## _unit_v = is_ ## unitCategory ## _unit<T...>::value;\
 	}
 
 #define UNIT_ADD_CATEGORY_TRAIT(unitCategory)\
@@ -1449,6 +1451,9 @@ namespace units
 		template<class U1, class U2>
 		struct is_convertible_unit : std::is_same <traits::base_unit_of<typename units::traits::unit_traits<U1>::base_unit_type>,
 			base_unit_of<typename units::traits::unit_traits<U2>::base_unit_type >> {};
+
+		template<class U1, class U2>
+		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
 	}
 
 	//------------------------------
@@ -1569,7 +1574,7 @@ namespace units
 	{
 		static_assert(traits::is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(traits::is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(traits::is_convertible_unit<UnitFrom, UnitTo>::value, "Units are not compatible.");
+		static_assert(traits::is_convertible_unit_v<UnitFrom, UnitTo>, "Units are not compatible.");
 
 		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
@@ -1739,9 +1744,7 @@ namespace units
 		 * @sa			is_convertible_unit
 		 */
 		template<class U1, class U2>
-		struct is_convertible_unit_t : std::integral_constant<bool,
-			is_convertible_unit<typename units::traits::unit_t_traits<U1>::unit_type, typename units::traits::unit_t_traits<U2>::unit_type>::value>
-		{};
+		struct is_convertible_unit_t : std::bool_constant<is_convertible_unit_v<typename units::traits::unit_t_traits<U1>::unit_type, typename units::traits::unit_t_traits<U2>::unit_type>>{};
 	}
 
 	//---------------------------------- 
@@ -1766,11 +1769,7 @@ namespace units
 	namespace traits
 	{
 		// forward declaration
-		#if !defined(_MSC_VER) || _MSC_VER > 1800 // bug in VS2013 prevents this from working
 		template<typename... T> struct is_dimensionless_unit;
-		#else
-		template<typename T1, typename T2 = T1, typename T3 = T1> struct is_dimensionless_unit;
-		#endif
 
 		/**
 		 * @ingroup		TypeTraits
@@ -2087,7 +2086,7 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<typename U = Units, std::enable_if_t<units::traits::is_convertible_unit<U, unit<std::ratio<1>, category::time_unit>>::value, int> = 0>
+		template<typename U = Units, std::enable_if_t<units::traits::is_convertible_unit_v<U, unit<std::ratio<1>, category::time_unit>>, int> = 0>
 		inline constexpr operator std::chrono::nanoseconds() const noexcept
 		{
 			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<Units, unit<std::ratio<1,1000000000>, category::time_unit>>((*this)())));
@@ -2386,10 +2385,9 @@ namespace units
 		inline constexpr linear_scale(const linear_scale&) = default;
 		inline ~linear_scale() = default;
 		inline linear_scale& operator=(const linear_scale&) = default;
-#if defined(_MSC_VER) && (_MSC_VER > 1800)
 		inline constexpr linear_scale(linear_scale&&) = default;
 		inline linear_scale& operator=(linear_scale&&) = default;
-#endif
+
 		template<class... Args>
 		inline constexpr linear_scale(const T& value, Args&&...) noexcept : m_value(value) {}	///< constructor.
 		inline constexpr T operator()() const noexcept { return m_value; }							///< returns value.
@@ -2740,10 +2738,8 @@ namespace units
 		inline constexpr decibel_scale(const decibel_scale&) = default;
 		inline ~decibel_scale() = default;
 		inline decibel_scale& operator=(const decibel_scale&) = default;
-#if defined(_MSC_VER) && (_MSC_VER > 1800)
 		inline constexpr decibel_scale(decibel_scale&&) = default;
 		inline decibel_scale& operator=(decibel_scale&&) = default;
-#endif
 		inline constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
 		template<class... Args>
 		inline constexpr decibel_scale(const T value, std::true_type, Args&&...) noexcept : m_value(value) {}
@@ -2766,7 +2762,7 @@ namespace units
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 		inline std::ostream& operator<<(std::ostream& os, const dB_t& obj) { os << obj() << " dB"; return os; }
 #endif
-		typedef dB_t dBi_t;
+		using dBi_t = dB_t;
 	}
 
 	//------------------------------
@@ -2986,7 +2982,7 @@ namespace units
 		typedef typename Base::_UNIT1 unit_type;
 		using ratio = std::ratio_add<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
 
-		static_assert(traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, "Unit types are not compatible.");
 		/** @endcond */	// END DOXYGEN IGNORE
 
 		/**
@@ -3036,7 +3032,7 @@ namespace units
 		typedef typename Base::_UNIT1 unit_type;
 		using ratio = std::ratio_subtract<typename Base::_RATIO1, typename Base::_RATIO2CONV>;
 
-		static_assert(traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, "Unit types are not compatible.");
 		/** @endcond */	// END DOXYGEN IGNORE
 
 		/**
@@ -3079,15 +3075,15 @@ namespace units
 	 */
 	template<class U1, class U2>
 	struct unit_value_multiply : units::detail::unit_value_arithmetic<U1, U2>,
-		units::detail::_unit_value_t<typename std::conditional<traits::is_convertible_unit<typename traits::unit_value_t_traits<U1>::unit_type,
-			typename traits::unit_value_t_traits<U2>::unit_type>::value, compound_unit<squared<typename traits::unit_value_t_traits<U1>::unit_type>>, 
+		units::detail::_unit_value_t<typename std::conditional<traits::is_convertible_unit_v<typename traits::unit_value_t_traits<U1>::unit_type,
+			typename traits::unit_value_t_traits<U2>::unit_type>, compound_unit<squared<typename traits::unit_value_t_traits<U1>::unit_type>>, 
 			compound_unit<typename traits::unit_value_t_traits<U1>::unit_type, typename traits::unit_value_t_traits<U2>::unit_type>>::type>
 	{
 		/** @cond */	// DOXYGEN IGNORE
 		using Base = units::detail::unit_value_arithmetic<U1, U2>;
 		
-		using unit_type = std::conditional_t<traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, compound_unit<squared<typename Base::_UNIT1>>, compound_unit<typename Base::_UNIT1, typename Base::_UNIT2>>;
-		using ratio = std::conditional_t<traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2>>;
+		using unit_type = std::conditional_t<traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, compound_unit<squared<typename Base::_UNIT1>>, compound_unit<typename Base::_UNIT1, typename Base::_UNIT2>>;
+		using ratio = std::conditional_t<traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_multiply<typename Base::_RATIO1, typename Base::_RATIO2>>;
 		/** @endcond */	// END DOXYGEN IGNORE
 
 		/**
@@ -3129,15 +3125,15 @@ namespace units
 	 */
 	template<class U1, class U2>
 	struct unit_value_divide : units::detail::unit_value_arithmetic<U1, U2>,
-		units::detail::_unit_value_t<typename std::conditional<traits::is_convertible_unit<typename traits::unit_value_t_traits<U1>::unit_type,
-		typename traits::unit_value_t_traits<U2>::unit_type>::value, dimensionless::scalar, compound_unit<typename traits::unit_value_t_traits<U1>::unit_type, 
+		units::detail::_unit_value_t<typename std::conditional<traits::is_convertible_unit_v<typename traits::unit_value_t_traits<U1>::unit_type,
+		typename traits::unit_value_t_traits<U2>::unit_type>, dimensionless::scalar, compound_unit<typename traits::unit_value_t_traits<U1>::unit_type, 
 		inverse<typename traits::unit_value_t_traits<U2>::unit_type>>>::type>
 	{
 		/** @cond */	// DOXYGEN IGNORE
 		using Base = units::detail::unit_value_arithmetic<U1, U2>;
 		
-		using unit_type = std::conditional_t<traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, dimensionless::scalar, compound_unit<typename Base::_UNIT1, inverse<typename Base::_UNIT2>>>;
-		using ratio = std::conditional_t<traits::is_convertible_unit<typename Base::_UNIT1, typename Base::_UNIT2>::value, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2>>;
+		using unit_type = std::conditional_t<traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, dimensionless::scalar, compound_unit<typename Base::_UNIT1, inverse<typename Base::_UNIT2>>>;
+		using ratio = std::conditional_t<traits::is_convertible_unit_v<typename Base::_UNIT1, typename Base::_UNIT2>, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2CONV>, std::ratio_divide<typename Base::_RATIO1, typename Base::_RATIO2>>;
 		/** @endcond */	// END DOXYGEN IGNORE
 
 		/**
@@ -4189,7 +4185,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t acos(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acos(x()));
 		}
 #endif
@@ -4205,7 +4201,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t asin(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asin(x()));
 		}
 #endif
@@ -4225,7 +4221,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t atan(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atan(x()));
 		}
 #endif
@@ -4242,7 +4238,7 @@ namespace units
 		template<class Y, class X>
 		angle::radian_t atan2(const Y y, const X x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<decltype(y/x)>::value, "The quantity y/x must yield a dimensionless ratio.");
+			static_assert(traits::is_dimensionless_unit_v<decltype(y/x)>, "The quantity y/x must yield a dimensionless ratio.");
 
 			// X and Y could be different length units, so normalize them
 			return angle::radian_t(std::atan2(y.template convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
@@ -4316,7 +4312,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t acosh(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::acosh(x()));
 		}
 #endif
@@ -4332,7 +4328,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t asinh(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::asinh(x()));
 		}
 #endif
@@ -4350,7 +4346,7 @@ namespace units
 		template<class ScalarUnit>
 		angle::radian_t atanh(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return angle::radian_t(std::atanh(x()));
 		}
 #endif
@@ -4374,7 +4370,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t exp(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::exp(x()));
 		}
 
@@ -4390,7 +4386,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t log(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log(x()));
 		}
 
@@ -4405,7 +4401,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t log10(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log10(x()));
 		}
 
@@ -4423,7 +4419,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t modf(const ScalarUnit x, ScalarUnit* intpart) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 
 			UNIT_LIB_DEFAULT_TYPE intp;
 			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x(), &intp));
@@ -4441,7 +4437,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t exp2(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::exp2(x()));
 		}
 
@@ -4456,7 +4452,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t expm1(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::expm1(x()));
 		}
 
@@ -4472,7 +4468,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t log1p(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log1p(x()));
 		}
 		
@@ -4487,7 +4483,7 @@ namespace units
 		template<class ScalarUnit>
 		dimensionless::scalar_t log2(const ScalarUnit x) noexcept
 		{
-			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
+			static_assert(traits::is_dimensionless_unit_v<ScalarUnit>, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 			return dimensionless::scalar_t(std::log2(x()));
 		}
 
