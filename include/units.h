@@ -1302,7 +1302,7 @@ namespace units
 		template<class Unit, std::intmax_t Eps>
 		struct sqrt_impl
 		{
-			static_assert(traits::is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			static_assert(traits::is_unit_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit <ratio_sqrt<Conversion, Eps>,
 				sqrt_base<traits::base_unit_of<typename Unit::base_unit_type>>,
@@ -1383,23 +1383,23 @@ namespace units
 		template<class Ratio, class Unit>
 		struct prefix
 		{
-			static_assert(traits::is_ratio<Ratio>::value, "Template parameter `Ratio` must be a `std::ratio`.");
-			static_assert(traits::is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
-			typedef typename units::unit<Ratio, Unit> type;
+			static_assert(traits::is_ratio_v<Ratio>, "Template parameter `Ratio` must be a `std::ratio`.");
+			static_assert(traits::is_unit_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
+			using type = typename units::unit<Ratio, Unit>;
 		};
 
 		/// recursive exponential implementation
 		template <int N, class U>
 		struct power_of_ratio
 		{
-			typedef std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type> type;
+			using type = std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type>;
 		};
 
 		/// End recursion
 		template <class U>
 		struct power_of_ratio<1, U>
 		{
-			typedef U type;
+			using type = U;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -1584,8 +1584,8 @@ namespace units
 	template<class UnitFrom, class UnitTo, typename T = UNIT_LIB_DEFAULT_TYPE>
 	static inline constexpr T convert(const T& value) noexcept
 	{
-		static_assert(traits::is_unit<UnitFrom>::value, "Template parameter `UnitFrom` must be a `unit` type.");
-		static_assert(traits::is_unit<UnitTo>::value, "Template parameter `UnitTo` must be a `unit` type.");
+		static_assert(traits::is_unit_v<UnitFrom>, "Template parameter `UnitFrom` must be a `unit` type.");
+		static_assert(traits::is_unit_v<UnitTo>, "Template parameter `UnitTo` must be a `unit` type.");
 		static_assert(traits::is_convertible_unit_v<UnitFrom, UnitTo>, "Units are not compatible.");
 
 		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
@@ -1630,7 +1630,10 @@ namespace units
 		 * @details		used as part of the linear_scale concept.
 		 */
 		template<class T, class Ret>
-		struct has_operator_parenthesis : traits::detail::has_operator_parenthesis_impl<T, Ret>::type {};
+		using has_operator_parenthesis = typename traits::detail::has_operator_parenthesis_impl<T, Ret>::type;
+
+		template<class T, class Ret>
+		inline constexpr bool has_operator_parenthesis_v = typename has_operator_parenthesis<T, Ret>::value;
 	}
 
 	namespace traits
@@ -1658,7 +1661,10 @@ namespace units
 		 * @details		used as part of the linear_scale concept checker.
 		 */
 		template<class T, class Ret>
-		struct has_value_member : traits::detail::has_value_member_impl<T, Ret>::type {};
+		using has_value_member = typename traits::detail::has_value_member_impl<T, Ret>::type;
+
+		template<class T, class Ret>
+		inline constexpr bool has_value_member_v = typename has_value_member<T, Ret>::value;
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -1676,11 +1682,11 @@ namespace units
 		 *				if they represent things like dB.
 		 */
 		template<class T, class Ret>
-		struct is_nonlinear_scale : std::integral_constant<bool,
-			std::is_default_constructible<T>::value &&
-			has_operator_parenthesis<T, Ret>::value &&
-			has_value_member<T, Ret>::value &&
-			std::is_trivial<T>::value>
+		struct is_nonlinear_scale : std::bool_constant<
+			std::is_default_constructible_v<T> &&
+			has_operator_parenthesis_v<T, Ret> &&
+			has_value_member_v<T, Ret> &&
+			std::is_trivial_v<T>>
 		{};
 	}
 
@@ -1718,7 +1724,7 @@ namespace units
 			using non_linear_scale_type = void;
 			using underlying_type = void;
 			using value_type = void;
-			typedef void unit_type;
+			using unit_type = void;
 		};
 	
 		/**
@@ -2207,7 +2213,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
+		static_assert(traits::is_convertible_unit_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value), 
 			"parameters are not compatible units.");
 
