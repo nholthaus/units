@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 // 
-//	Units: A compile-time c++14 unit conversion library with no dependencies
+//	UnitConversion: A compile-time c++14 unit conversion library with no dependencies
 //
 //--------------------------------------------------------------------------------------------------
 //
@@ -130,9 +130,9 @@ namespace units
 #define UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, /*definition*/...)\
 	namespace namespaceName\
 	{\
-	/** @name Units (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
-	/** @name Units (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
-	/** @name Units (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
+	/** @name UnitConversion (full names plural) */ /** @{ */ using namePlural = __VA_ARGS__; /** @} */\
+	/** @name UnitConversion (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */\
+	/** @name UnitConversion (abbreviated) */ /** @{ */ using abbreviation = namePlural; /** @} */\
 	}
 
 /**
@@ -928,8 +928,8 @@ namespace units
 		using magnetic_field_strength	= make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>;	///< Represents an SI derived unit of magnetic field strength
 		using inductance				= dimension_multiply<impedance, time>;						///< Represents an SI derived unit of inductance
 		using luminous_flux				= dimension_multiply<solid_angle, luminous_intensity>;		///< Represents an SI derived unit of luminous flux
-		using illuminance				= make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>;					///< Represents an SI derived unit of illuminance
-		using radioactivity				= make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;							///< Represents an SI derived unit of radioactivity
+		using illuminance				= make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>;	///< Represents an SI derived unit of illuminance
+		using radioactivity				= make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;			///< Represents an SI derived unit of radioactivity
 
 		// OTHER UNIT TYPES
 		using torque					= dimension_multiply<force, length>;						///< Represents an SI derived unit of torque
@@ -1548,7 +1548,7 @@ namespace units
 	{
 		static_assert(traits::is_unit_conversion_v<UnitFrom>, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(traits::is_unit_conversion_v<UnitTo>, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(traits::is_convertible_unit_conversion_v<UnitFrom, UnitTo>, "Units are not compatible.");
+		static_assert(traits::is_convertible_unit_conversion_v<UnitFrom, UnitTo>, "UnitConversion are not compatible.");
 
 		using Ratio			= std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
@@ -1803,7 +1803,7 @@ namespace units
 	 *				using `operator()`: @code
 	 *				meter_t m(5.0);
 	 *				double val = m(); // val == 5.0	@endcode.
-	 * @tparam		Units unit tag for which type of units the `unit` represents (e.g. meters)
+	 * @tparam		UnitConversion unit tag for which type of units the `unit` represents (e.g. meters)
 	 * @tparam		T underlying type of the storage. Defaults to double.
 	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
 	 *				not scale the unit value). Examples of non-linear scales could be logarithmic,
@@ -1844,10 +1844,10 @@ namespace units
 	 *				- \ref concentrationContainers "concentration unit containers"
 	 *				- \ref constantContainers "constant unit containers"
 	 */
-	template<class Units, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
+	template<class UnitConversion, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
 	class unit : public NonLinearScale<T>, units::detail::_unit
 	{
-		static_assert(traits::is_unit_conversion_v<Units>, "Template parameter `Units` must be a unit tag. Check that you aren't using a unit type (_t).");
+		static_assert(traits::is_unit_conversion_v<UnitConversion>, "Template parameter `UnitConversion` must be a unit tag. Check that you aren't using a unit type (_t).");
 		static_assert(traits::is_nonlinear_scale_v<NonLinearScale<T>, T>, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	protected:
@@ -1860,7 +1860,7 @@ namespace units
 		using non_linear_scale_type = NonLinearScale<T>;											///< Type of the non-linear scale of the unit (e.g. linear_scale)
 		using underlying_type = T;																	///< Type of the underlying storage of the unit (e.g. double)
 		using value_type = T;																		///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
-		using unit_conversion = Units;																	///< Type of `unit` the `unit` represents (e.g. meters)
+		using unit_conversion = UnitConversion;																	///< Type of `unit` the `unit` represents (e.g. meters)
 
 		/**
 		 * @ingroup		Constructors
@@ -1887,7 +1887,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic_v<Ty>>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<Ty>>::type>
 		inline constexpr unit(const Ty value) noexcept : nls(value) 
 		{
 
@@ -1900,7 +1900,7 @@ namespace units
 		 */
 		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep> && traits::is_ratio_v<Period>>>
 		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
-		nls(units::convert<units::unit_conversion<std::ratio<1,1000000000>, dimension::time>, Units>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())))
+		nls(units::convert<units::unit_conversion<std::ratio<1,1000000000>, dimension::time>, UnitConversion>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())))
 		{
 
 		}
@@ -1910,9 +1910,9 @@ namespace units
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr unit(const unit<UnitsRhs, Ty, NlsRhs>& rhs) noexcept :
-		nls(units::convert<UnitsRhs, Units, T>(rhs.m_value), std::true_type() /*store linear value*/)
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr unit(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) noexcept :
+		nls(units::convert<UnitConversionRhs, UnitConversion, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
 
 		}
@@ -1922,10 +1922,10 @@ namespace units
 		 * @details		performs implicit unit conversions if required
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline unit& operator=(const unit<UnitsRhs, Ty, NlsRhs>& rhs) noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline unit& operator=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) noexcept
 		{		
-			nls::m_value = units::convert<UnitsRhs, Units, T>(rhs.m_value);
+			nls::m_value = units::convert<UnitConversionRhs, UnitConversion, T>(rhs.m_value);
 			return *this;
 		}
 
@@ -1934,7 +1934,7 @@ namespace units
 		* @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic_v<Ty>>>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<Ty>>>
 		inline unit& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
@@ -1947,10 +1947,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than the value of `rhs`
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator<(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value < units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value < units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
 		}
 
 		/**
@@ -1959,10 +1959,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than or equal to the value of `rhs`
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<=(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator<=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value <= units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value <= units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
 		}
 
 		/**
@@ -1971,10 +1971,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than the value of `rhs`
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator>(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value > units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value > units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
 		}
 
 		/**
@@ -1983,10 +1983,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than or equal to the value of `rhs`
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>=(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator>=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value >= units::convert<UnitsRhs, Units>(rhs.m_value));
+			return (nls::m_value >= units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
 		}
 
 		/**
@@ -1996,20 +1996,20 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
-		operator==(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		operator==(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
-				abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
-				abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
+			return abs(nls::m_value - units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
+				abs(nls::m_value + units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) ||
+				abs(nls::m_value - units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) < std::numeric_limits<T>::min();
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
-		operator==(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		operator==(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return nls::m_value == units::convert<UnitsRhs, Units>(rhs.m_value);
+			return nls::m_value == units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value);
 		}
 
 		/**
@@ -2019,8 +2019,8 @@ namespace units
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator!=(const unit<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator!=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return !(*this == rhs);
 		}
@@ -2057,7 +2057,7 @@ namespace units
 
 		/**
 		 * @brief		conversion
-		 * @details		Converts to a different unit container. Units can be converted to other containers
+		 * @details		Converts to a different unit container. UnitConversion can be converted to other containers
 		 *				implicitly, but this can be used in cases where explicit notation of a conversion
 		 *				is beneficial, or where an r-value container is needed.
 		 * @tparam		U unit (not unit) to convert to
@@ -2075,18 +2075,18 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for dimensionless unit types.
 		 */
-		template<class Ty, std::enable_if_t<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int> = 0>
+		template<class Ty, std::enable_if_t<traits::is_dimensionless_unit<UnitConversion>::value && std::is_arithmetic<Ty>::value, int> = 0>
 		inline constexpr operator Ty() const noexcept 
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
-			return static_cast<Ty>(units::convert<Units, units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>>((*this)()));
+			return static_cast<Ty>(units::convert<UnitConversion, units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>>((*this)()));
 		}
 
 		/**
 		 * @brief		explicit type conversion.
 		 * @details		only enabled for non-dimensionless unit types.
 		 */
-		template<class Ty, std::enable_if_t<!traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value, int> = 0>
+		template<class Ty, std::enable_if_t<!traits::is_dimensionless_unit<UnitConversion>::value && std::is_arithmetic<Ty>::value, int> = 0>
 		inline constexpr explicit operator Ty() const noexcept
 		{
 			return static_cast<Ty>((*this)());
@@ -2096,10 +2096,10 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<typename U = Units, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>>, int> = 0>
+		template<typename U = UnitConversion, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>>, int> = 0>
 		inline constexpr operator std::chrono::nanoseconds() const noexcept
 		{
-			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<Units, units::unit_conversion<std::ratio<1,1000000000>, dimension::time>>((*this)())));
+			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<UnitConversion, units::unit_conversion<std::ratio<1,1000000000>, dimension::time>>((*this)())));
 		}
 
 		/**
@@ -2146,8 +2146,8 @@ namespace units
 	}
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline std::ostream& operator<<(std::ostream& os, const unit<Units, T, NonLinearScale>& obj) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj) noexcept
 	{
 	// 	using d = typename traits::unit_conversion_traits<typename traits::unit_traits<decltype(a)>::unit_type>::dimension_type;
 	// 	using d_1 = d::front;
@@ -2165,62 +2165,62 @@ namespace units
 
 
 		os << typeid(obj).name();
- 		using Dimensions = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<Units>::dimension_type>;
-// 		os << convert<Units, Dimensions>(obj());
+ 		using Dimensions = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
+// 		os << convert<UnitConversion, Dimensions>(obj());
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::num != 0) { os << " m"; }
-// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::num != 0 && 
-// 			traits::unit_traits<Units>::dimension_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::meter_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<Units>::dimension_type::meter_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 0) { os << " m"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 0 && 
+// 			traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 0) { os << " kg"; }
-// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::kilogram_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::kilogram_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 0) { os << " kg"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::num != 0) { os << " s"; }
-// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::second_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::second_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 0) { os << " s"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::second_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 0) { os << " A"; }
-// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::ampere_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::ampere_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 0) { os << " A"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 0) { os << " K"; }
-// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::kelvin_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::kelvin_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 0) { os << " K"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::num != 0) { os << " mol"; }
-// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::num != 0 && 
-// 			traits::unit_traits<Units>::dimension_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::mole_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::mole_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 0) { os << " mol"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 0 && 
+// 			traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::num != 0) { os << " cd"; }
-// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::candela_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::candela_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 0) { os << " cd"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::num != 0) { os << " rad"; }
-// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::radian_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::radian_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 0) { os << " rad"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::den; }
 // 
-// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::num != 0) { os << " b"; }
-// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::num != 0 &&
-// 			traits::unit_traits<Units>::dimension_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::byte_ratio::num; }
-// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::byte_ratio::den; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 0) { os << " b"; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 0 &&
+// 			traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num; }
+// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::den; }
 
 		return os;
 	}
 #endif
 
-	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<Units, T, NonLinearScale>& operator+=(unit<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_conversion_v<unit<Units, T, NonLinearScale>, RhsType> ||
+		static_assert(traits::is_convertible_unit_conversion_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>), 
 			"parameters are not compatible units.");
 
@@ -2228,10 +2228,10 @@ namespace units
 		return lhs;
 	}
 
-	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<Units, T, NonLinearScale>& operator-=(unit<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_v<unit<Units, T, NonLinearScale>, RhsType> ||
+		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>),
 			"parameters are not compatible units.");
 
@@ -2239,8 +2239,8 @@ namespace units
 		return lhs;
 	}
 
-	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<Units, T, NonLinearScale>& operator*=(unit<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
@@ -2249,8 +2249,8 @@ namespace units
 		return lhs;
 	}
 
-	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<Units, T, NonLinearScale>& operator/=(unit<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
+	inline unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
@@ -2264,50 +2264,50 @@ namespace units
 	//------------------------------
 
 	// unary addition: +T
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale> operator+(const unit<Units, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale> operator+(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		return u;
 	}
 
 	// prefix increment: ++T
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale>& operator++(unit<Units, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
-		u = unit<Units, T, NonLinearScale>(u() + 1);
+		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
 		return u;
 	}
 
 	// postfix increment: T++
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale> operator++(unit<Units, T, NonLinearScale>& u, int) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale> operator++(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
-		u = unit<Units, T, NonLinearScale>(u() + 1);
+		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
 		return ret;
 	}
 
 	// unary addition: -T
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale> operator-(const unit<Units, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale> operator-(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
-		return unit<Units, T, NonLinearScale>(-u());
+		return unit<UnitConversion, T, NonLinearScale>(-u());
 	}
 
 	// prefix increment: --T
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale>& operator--(unit<Units, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
-		u = unit<Units, T, NonLinearScale>(u() - 1);
+		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
 		return u;
 	}
 
 	// postfix increment: T--
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit<Units, T, NonLinearScale> operator--(unit<Units, T, NonLinearScale>& u, int) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	inline unit<UnitConversion, T, NonLinearScale> operator--(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
-		u = unit<Units, T, NonLinearScale>(u() - 1);
+		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
 		return ret;
 	}
 
@@ -2328,9 +2328,9 @@ namespace units
 	 * @param		value	Unit value to cast.
 	 * @sa			unit::to
 	 */
-	template<typename T, typename Units>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<Units>, T>
-	unit_cast(const Units& value) noexcept
+	template<typename T, typename UnitConversion>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitConversion>, T>
+	unit_cast(const UnitConversion& value) noexcept
 	{
 		return static_cast<T>(value);
 	}
@@ -2457,9 +2457,9 @@ namespace units
 	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return UnitTypeLhs(lhs() + convert<UnitsRhs, UnitsLhs>(rhs()));
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return UnitTypeLhs(lhs() + convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
@@ -2483,9 +2483,9 @@ namespace units
 	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs> 
 	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return UnitTypeLhs(lhs() - convert<UnitsRhs, UnitsLhs>(rhs()));
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return UnitTypeLhs(lhs() - convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
@@ -2509,10 +2509,10 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		return  unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
-			(lhs() * convert<UnitsRhs, UnitsLhs>(rhs()));
+			(lhs() * convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
 	}
 	
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -2520,9 +2520,9 @@ namespace units
 		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<compound_unit_conversion<UnitsLhs, UnitsRhs>>
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return unit<compound_unit_conversion<UnitConversionLhs, UnitConversionRhs>>
 			(lhs() * rhs());
 	}
 
@@ -2565,9 +2565,9 @@ namespace units
 	inline constexpr std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, dimensionless> 
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return dimensionless(lhs() / convert<UnitsRhs, UnitsLhs>(rhs()));
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return dimensionless(lhs() / convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -2575,9 +2575,9 @@ namespace units
 		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>>
 	{
-		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<compound_unit_conversion<UnitsLhs, inverse<UnitsRhs>>>
+		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return unit<compound_unit_conversion<UnitConversionLhs, inverse<UnitConversionRhs>>>
 			(lhs() / rhs());
 	}
 
@@ -2611,8 +2611,8 @@ namespace units
 		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
 	inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
 	{
-		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<inverse<UnitsRhs>>
+		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		return unit<inverse<UnitConversionRhs>>
 			(lhs / rhs());
 	}
 
@@ -2620,87 +2620,87 @@ namespace units
 	//	DIMENSIONLESS COMPARISONS
 	//----------------------------------
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool> 
-	operator==(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool> 
+	operator==(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
 			abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator==(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator==(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
 			abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator!=(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator!=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return!(lhs == static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool> operator!=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool> operator!=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return !(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) == rhs);
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator>=(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator>=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return std::isgreaterequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator>=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator>=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return std::isgreaterequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator>(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator>(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return lhs > static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator>(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator>(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) > rhs;
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator<=(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator<=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return std::islessequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator<=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator<=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return std::islessequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator<(const UNIT_LIB_DEFAULT_TYPE& lhs, const Units& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator<(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
 	{
 		return lhs < static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename Units>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>, bool>
-	operator<(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
+	operator<(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) < rhs;
 	}
@@ -2806,12 +2806,12 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
-		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using LhsUnitConversion = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
-		return unit<compound_unit_conversion<squared<LhsUnits>>, underlying_type, decibel_scale>
-			(lhs.template toLinearized<underlying_type>() * convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
+		return unit<compound_unit_conversion<squared<LhsUnitConversion>>, underlying_type, decibel_scale>
+			(lhs.template toLinearized<underlying_type>() * convert<RhsUnitConversion, LhsUnitConversion>(rhs.template toLinearized<underlying_type>()), std::true_type());
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -2836,12 +2836,12 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
-		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using LhsUnitConversion = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
-		return unit<compound_unit_conversion<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale>
-			(lhs.template toLinearized<underlying_type>() / convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
+		return unit<compound_unit_conversion<LhsUnitConversion, inverse<RhsUnitConversion>>, underlying_type, decibel_scale>
+			(lhs.template toLinearized<underlying_type>() / convert<RhsUnitConversion, LhsUnitConversion>(rhs.template toLinearized<underlying_type>()), std::true_type());
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -2858,10 +2858,10 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
-		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		using underlying_type = typename units::traits::unit_traits<RhsUnits>::underlying_type;
+		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using underlying_type = typename units::traits::unit_traits<RhsUnitConversion>::underlying_type;
 
-		return unit<inverse<RhsUnits>, underlying_type, decibel_scale>
+		return unit<inverse<RhsUnitConversion>, underlying_type, decibel_scale>
 			(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
@@ -4339,21 +4339,21 @@ namespace units
 
 namespace std
 {
-	template<class Units, typename T, template<typename> class NonLinearScale>
-	class numeric_limits<units::unit<Units, T, NonLinearScale>>
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>>
 	{
 	public:
-		static constexpr units::unit<Units, T, NonLinearScale> min()
+		static constexpr units::unit<UnitConversion, T, NonLinearScale> min()
 		{
-			return units::unit<Units, T, NonLinearScale>(std::numeric_limits<T>::min());
+			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::min());
 		}
-		static constexpr units::unit<Units, T, NonLinearScale> max()
+		static constexpr units::unit<UnitConversion, T, NonLinearScale> max()
 		{
-			return units::unit<Units, T, NonLinearScale>(std::numeric_limits<T>::max());
+			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::max());
 		}
-		static constexpr units::unit<Units, T, NonLinearScale> lowest()
+		static constexpr units::unit<UnitConversion, T, NonLinearScale> lowest()
 		{
-			return units::unit<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::lowest());
 		}
 	};
 }
