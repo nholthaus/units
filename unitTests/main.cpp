@@ -1172,6 +1172,16 @@ TEST_F(UnitContainer, unitTypeDivision)
 	auto mph = mile_t(60.0) / hour_t(1.0);
 	meters_per_second_t mps = mph;
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
+
+	auto h = 10_rad / 2_rad;
+	EXPECT_NEAR(5, h, 5.0e-5);
+	isSame = std::is_same_v<decltype(h), dimensionless>;
+	EXPECT_TRUE(isSame);
+
+	auto i = (3_N * 2_m) / 6_J;
+	EXPECT_NEAR(1, i, 5.0e-5);
+	isSame = std::is_same_v<decltype(i), dimensionless>;
+	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitContainer, compoundAssignmentAddition)
@@ -1630,7 +1640,7 @@ TEST_F(UnitConversion, length)
 	test = convert<meters, chains>(1.0);
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
-	meter_t b = 5_mph;
+//	dimensionless b = 5_rad;
 }
 
 TEST_F(UnitConversion, mass)
@@ -2530,8 +2540,8 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(6.28318531, (2 * constants::pi), 5.0e-9);
 	EXPECT_NEAR(6.28318531, (constants::pi + constants::pi), 5.0e-9);
 	EXPECT_NEAR(0.0, (constants::pi - constants::pi), 5.0e-9);
-	EXPECT_NEAR(31.00627668, cpow<3>(constants::pi), 5.0e-10);
-	EXPECT_NEAR(0.0322515344, (1.0 / cpow<3>(constants::pi)), 5.0e-11);
+	EXPECT_NEAR(31.00627668, pow<3>(constants::pi), 5.0e-10);
+	EXPECT_NEAR(0.0322515344, (1.0 / pow<3>(constants::pi)), 5.0e-11);
 	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
 	EXPECT_TRUE(1.0 != constants::pi);
 	EXPECT_TRUE(4.0 > constants::pi);
@@ -2964,8 +2974,8 @@ TEST_F(Constexpr, arithmetic)
 	constexpr auto result5(meter_t(1) - meter_t(1));
 	constexpr auto result6(meter_t(1) * meter_t(1));
 	constexpr auto result7(meter_t(1) / meter_t(1));
-	constexpr auto result8(cpow<2>(meter_t(2)));
-	constexpr auto result9 = cpow<3>(2_m);
+	constexpr auto result8(pow<2>(meter_t(2)));
+	constexpr auto result9 = pow<3>(2_m);
 	constexpr auto result10 = 2_m * 2_m;
 
 	EXPECT_TRUE(noexcept(result0));
@@ -3044,6 +3054,14 @@ TEST_F(CaseStudies, radarRangeEquation)
 		(pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);
 
 	EXPECT_NEAR(1.535, SNR(), 5.0e-4);
+}
+
+TEST_F(CaseStudies, rightTriangle)
+{
+	constexpr auto a = 3_m;
+	constexpr auto b = 4_m;
+	constexpr auto c = sqrt(pow<2>(a) + pow<2>(b));
+	EXPECT_EQ(5_m, c);
 }
 
 int main(int argc, char* argv[])

@@ -905,7 +905,7 @@ namespace units
 		using luminous_intensity		= make_dimension<luminous_intensity_tag>;
 
 		// dimensionless (DIMENSIONLESS) TYPES	
-		using dimensionless				= dimension_divide<length, length>;							///< Represents a quantity with no dimension.
+		using dimensionless				= dimension_t<>;											///< Represents a quantity with no dimension.
 		using angle						= make_dimension<angle_tag>;								///< Represents a quantity of angle
 
 		// SI DERIVED UNIT TYPES
@@ -1513,6 +1513,21 @@ namespace units
 	//------------------------------
 	//	CONSTEXPR MATH FUNCTIONS
 	//------------------------------
+
+	namespace Detail
+	{
+		double constexpr sqrtNewtonRaphson(UNIT_LIB_DEFAULT_TYPE x, UNIT_LIB_DEFAULT_TYPE curr, UNIT_LIB_DEFAULT_TYPE prev)
+		{
+			return curr == prev ? curr : sqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
+		}
+	}
+
+	constexpr inline UNIT_LIB_DEFAULT_TYPE sqrt(UNIT_LIB_DEFAULT_TYPE x)
+	{
+		return x >= 0 && x < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::infinity()
+			? Detail::sqrtNewtonRaphson(x, x, 0)
+			: std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::quiet_NaN();
+	}
 
 	constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 	{
@@ -2734,24 +2749,8 @@ namespace units
 		* @returns		new unit, raised to the given exponent
 		*/
 	template<int power, class UnitType, class = typename std::enable_if<traits::has_linear_scale_v<UnitType>, int>>
-	inline auto pow(const UnitType& value) noexcept -> unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
+	constexpr inline auto pow(const UnitType& value) noexcept -> unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
-		return unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
-			(std::pow(value(), power));
-	}
-
-	/**
-		* @brief		computes the value of <i>value</i> raised to the <i>power</i> as a constexpr
-		* @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting unit type can be deduced.
-		*				Additionally, the power must be <i>a positive, integral, value</i>.
-		* @tparam		power exponential power to raise <i>value</i> by.
-		* @param[in]	value `unit` derived type to raise to the given <i>power</i>
-		* @returns		new unit, raised to the given exponent
-		*/
-	template<int power, class UnitType, class = typename std::enable_if<traits::has_linear_scale_v<UnitType>, int>>
-	inline constexpr auto cpow(const UnitType& value) noexcept -> unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
-	{
-		static_assert(power >= 0, "cpow cannot accept negative numbers. Try units::math::pow instead.");
 		return unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(pow(value(), power));
 	}
@@ -3679,8 +3678,8 @@ namespace units
 		static constexpr const velocity::meters_per_second_t																								c(299792458.0);									///< Speed of light in vacuum.
 		static constexpr const unit<compound_unit_conversion<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
 		static constexpr const unit<compound_unit_conversion<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
-		static constexpr const unit<compound_unit_conversion<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / cpow<2>(current::ampere_t(1)));					///< vacuum permeability.
-		static constexpr const unit<compound_unit_conversion<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * cpow<2>(c)));				///< vacuum permitivity.
+		static constexpr const unit<compound_unit_conversion<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));					///< vacuum permeability.
+		static constexpr const unit<compound_unit_conversion<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
 		static constexpr const impedance::ohm_t																												Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		static constexpr const unit<compound_unit_conversion<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
 		static constexpr const charge::coulomb_t																											e(1.6021766208e-19);							///< elementary charge.
@@ -3691,7 +3690,7 @@ namespace units
 		static constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
 		static constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
 		static constexpr const unit<compound_unit_conversion<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
-		static constexpr const unit<compound_unit_conversion<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * cpow<5>(pi) * cpow<4>(R)) / (15 * cpow<3>(h) * cpow<2>(c) * cpow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		static constexpr const unit<compound_unit_conversion<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
 #endif
@@ -4106,10 +4105,10 @@ namespace units
 		*				unit type may have errors no larger than `1e-10`.
 		*/
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	inline auto sqrt(const UnitType& value) noexcept -> unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
+	constexpr inline auto sqrt(const UnitType& value) noexcept -> unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
 		return unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
-			(std::sqrt(value()));
+			(sqrt(value()));
 	}
 
 	/**
