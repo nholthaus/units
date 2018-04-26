@@ -2385,10 +2385,10 @@ namespace units
 		 * @tparam		T2	right hand type
 		 */
 		template<typename T1, typename T2>
-		struct is_same_scale : std::bool_constant<std::is_same_v<typename units::traits::unit_traits<T1>::non_linear_scale_type, typename units::traits::unit_traits<T2>::non_linear_scale_type>>{};
+		struct has_same_scale : std::bool_constant<std::is_same_v<typename units::traits::unit_traits<T1>::non_linear_scale_type, typename units::traits::unit_traits<T2>::non_linear_scale_type>>{};
 
 		template<typename... T>
-		inline constexpr bool is_same_scale_v = is_same_scale<T...>::value;
+		inline constexpr bool has_same_scale_v = has_same_scale<T...>::value;
 	}
 
 	//----------------------------------
@@ -2450,10 +2450,10 @@ namespace units
 	//------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs>
-	constexpr inline std::enable_if_t<!traits::is_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
+	constexpr inline std::enable_if_t<!traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
 	operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
 	{
-		static_assert(traits::is_same_scale_v<UnitTypeLhs, UnitTypeRhs>, "Cannot add units with different linear/non-linear scales.");
+		static_assert(traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, "Cannot add units with different linear/non-linear scales.");
 		return 0;
 	}
 
