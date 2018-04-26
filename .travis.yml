@@ -9,24 +9,35 @@ cache:
     - cmake-3.4.3-Linux-x86_64/plugins
     - cmake-3.4.3-Linux-x86_64/share
 
-os:
-  - linux
-compiler:
-  - gcc
-  - clang
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-5.0
-    packages:
-      - g++-7
-      - clang-5.0
-env:
-  - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-  - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+matrix:
+  # gcc-7
+  os:
+    - linux
+  addons:
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - g++-7
+  env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+  branches:
+  except:
+    - gh-pages
+    - documentation
 
-branches:
+  # clang 5.0
+  os:
+    - linux
+  addons:
+    apt:
+      sources:
+        - llvm-toolchain-trusty-5.0
+      packages:
+        - clang-5.0
+  env:
+    - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+  branches:
   except:
     - gh-pages
     - documentation
