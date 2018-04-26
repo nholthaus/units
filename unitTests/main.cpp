@@ -809,8 +809,8 @@ TEST_F(UnitManipulators, squared)
 	test = convert<squared<meters>, square_feet>(0.092903);
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
-	using dimensionless_2 = squared<units::dimensionless>;	// this is actually nonsensical, and should also result in a dimensionless.
-	bool isSame = std::is_same_v<typename std::decay<dimensionless_t>::type, typename std::decay<unit_t<dimensionless_2>>::type>;
+	using dimensionless_2 = squared<units::dimensionless_unit>;	// this is actually nonsensical, and should also result in a dimensionless.
+	bool isSame = std::is_same_v<typename std::decay<dimensionless_t>::type, typename std::decay<unit<dimensionless_2>>::type>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -1064,7 +1064,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 {
 	meter_t a_m(1.0);
 	foot_t b_ft(3.28084);
-	unit_t<inverse<meter>> i_m(2.0);
+	unit<inverse<meter>> i_m(2.0);
 
 	// resultant unit is square of leftmost unit
 	auto c_m2 = a_m * b_ft;
@@ -1094,7 +1094,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	auto e_ft2 = b_ft * meter_t(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 
-	auto mps = meter_t(10.0) * unit_t<inverse<seconds>>(1.0);
+	auto mps = meter_t(10.0) * unit<inverse<seconds>>(1.0);
 	EXPECT_EQ(mps, meters_per_second_t(10));
 }
 
@@ -1166,7 +1166,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 
 	auto g = 4.0 / b_m;
 	EXPECT_NEAR(2.0, g(), 5.0e-5);
-	isSame = std::is_same_v<decltype(g), unit_t<inverse<meters>>>;
+	isSame = std::is_same_v<decltype(g), unit<inverse<meters>>>;
 	EXPECT_TRUE(isSame);
 
 	auto mph = mile_t(60.0) / hour_t(1.0);
@@ -1510,7 +1510,7 @@ TEST_F(UnitContainer, dBAddition)
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
 	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_dBW2), unit_t<squared<watts>, double, decibel_scale>>;
+	isSame = std::is_same_v<decltype(result_dBW2), unit<squared<watts>, double, decibel_scale>>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -2623,7 +2623,7 @@ TEST_F(UnitConversion, std_chrono)
 TEST_F(UnitConversion, squaredTemperature)
 {
 	using squared_celsius = units::compound_unit_tag<squared<celsius>>;
-	using squared_celsius_t = units::unit_t<squared_celsius>;
+	using squared_celsius_t = units::unit<squared_celsius>;
 	const squared_celsius_t right(100);
 	const celsius_t rootRight = sqrt(right);
 	EXPECT_EQ(celsius_t(10), rootRight);
@@ -2803,12 +2803,12 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), unit_t<cubed<meter>>>;
+	isSame = std::is_same_v<decltype(cube), unit<cubed<meter>>>;
 	EXPECT_TRUE(isSame);
 
 	auto fourth = pow<4>(value);
 	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
-	isSame = std::is_same_v<decltype(fourth), unit_t<compound_unit_tag<squared<meter>, squared<meter>>>>;
+	isSame = std::is_same_v<decltype(fourth), unit<compound_unit_tag<squared<meter>, squared<meter>>>>;
 	EXPECT_TRUE(isSame);
 }
 
