@@ -2358,7 +2358,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_linear_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::linear_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>> {};
+		struct has_linear_scale : std::conjunction<std::is_base_of<units::linear_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...> {};
 
 		template<typename... T>
 		inline constexpr bool has_linear_scale_v = has_linear_scale<T...>::value;
@@ -2371,7 +2371,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_decibel_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::decibel_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>> {};
+		struct has_decibel_scale : std::conjunction<std::is_base_of<units::decibel_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...> {};
 		
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
