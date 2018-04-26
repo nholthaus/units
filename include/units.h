@@ -68,38 +68,41 @@
 #include <limits>
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-	#include <iostream>
-	#include <string>
-	#include <locale>
+#include <iostream>
+#include <string>
+#include <locale>
 
-	//------------------------------
-	//	STRING FORMATTER
-	//------------------------------
-
-	namespace units
-	{
-		namespace detail
-		{
-			template <typename T> std::string to_string(const T& t)
-			{
-				std::string str{ std::to_string(t) };
-				int offset{ 1 };
-
-				// remove trailing decimal points for integer value units. Locale aware!
-				struct lconv * lc;
-				lc = localeconv();
-				char decimalPoint = *lc->decimal_point;
-				if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
-				str.erase(str.find_last_not_of('0') + offset, std::string::npos);
-				return str;
-			}
-		}
-	}
-#endif
+//------------------------------
+//	STRING FORMATTER
+//------------------------------
 
 namespace units
 {
-	// Forward declarations
+	namespace detail
+	{
+		template <typename T> std::string to_string(const T& t)
+		{
+			std::string str{ std::to_string(t) };
+			int offset{ 1 };
+
+			// remove trailing decimal points for integer value units. Locale aware!
+			struct lconv * lc;
+			lc = localeconv();
+			char decimalPoint = *lc->decimal_point;
+			if (str.find_last_not_of('0') == str.find(decimalPoint)) { offset = 0; }
+			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
+			return str;
+		}
+	}
+}
+#endif
+
+//------------------------------
+//	FORWARD DECLARATIONS
+//------------------------------
+
+namespace units
+{
 	template<typename T> inline constexpr const char* name(const T&) noexcept;
 	template<typename T> inline constexpr const char* abbreviation(const T&) noexcept;
 }
@@ -326,7 +329,7 @@ namespace literals\
 	namespace traits\
 	{\
 		template<typename... T>\
-		struct is_ ## unitdimension ## _unit : std::bool_constant<std::conjunction_v<units::traits::detail::is_ ## unitdimension ## _unit_impl<std::decay_t<T>>...>> {};\
+		struct is_ ## unitdimension ## _unit : std::conjunction<units::traits::detail::is_ ## unitdimension ## _unit_impl<std::decay_t<T>>...> {};\
 		template<typename... T>\
 		inline constexpr bool is_ ## unitdimension ## _unit_v = is_ ## unitdimension ## _unit<T...>::value;\
 	}
@@ -467,7 +470,7 @@ namespace units
 	{
 		namespace detail
 		{
-			static constexpr const UNIT_LIB_DEFAULT_TYPE PI_VAL = 3.14159265358979323846264338327950288419716939937510;
+			inline constexpr UNIT_LIB_DEFAULT_TYPE PI_VAL = 3.14159265358979323846264338327950288419716939937510;
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
@@ -486,7 +489,7 @@ namespace units
 		/** @cond */	// DOXYGEN IGNORE
 		namespace detail
 		{
-			/// has_num implementation.
+			/// has_num implementation. Expression SFINAE.
 			template<class T>
 			struct has_num_impl
 			{
@@ -513,7 +516,7 @@ namespace units
 
 		namespace detail
 		{
-			/// has_den implementation.
+			/// has_den implementation. Expression SFINAE.
 			template<class T>
 			struct has_den_impl
 			{
@@ -545,7 +548,7 @@ namespace units
 		 *				whether `class T` implements a std::ratio.
 		 */
 		template<class T>
-		struct is_ratio : std::conjunction<has_num<T>, has_den<T>> {};
+		using is_ratio = std::conjunction<has_num<T>, has_den<T>>;
 
 		template<class T>
 		inline constexpr bool is_ratio_v = typename is_ratio<T>::value;
@@ -637,10 +640,7 @@ namespace units
 
 		template<class T>
 		inline constexpr bool is_dimension_v = typename is_dimension<T>::value;
-	}
 
-	namespace traits
-	{
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Traits which tests if a class is a `unit`
@@ -911,39 +911,39 @@ namespace units
 		using luminous_intensity		= make_dimension<luminous_intensity_tag>;
 
 		// dimensionless (DIMENSIONLESS) TYPES	
-		using dimensionless				= dimension_divide<length, length>;					///< Represents a quantity with no dimension.
-		using angle						= make_dimension<angle_tag>; ///< Represents a quantity of angle
+		using dimensionless				= dimension_divide<length, length>;							///< Represents a quantity with no dimension.
+		using angle						= make_dimension<angle_tag>;								///< Represents a quantity of angle
 
 		// SI DERIVED UNIT TYPES
-		using solid_angle				= dimension_pow<angle, std::ratio<2>>;				///< Represents an SI derived unit of solid angle
-		using frequency					= make_dimension<time, std::ratio<-1>>;					///< Represents an SI derived unit of frequency
-		using velocity					= dimension_divide<length, time>;				///< Represents an SI derived unit of velocity
-		using angular_velocity			= dimension_divide<angle, time>;				///< Represents an SI derived unit of angular velocity
-		using acceleration				= dimension_divide<velocity, time>;				///< Represents an SI derived unit of acceleration
+		using solid_angle				= dimension_pow<angle, std::ratio<2>>;						///< Represents an SI derived unit of solid angle
+		using frequency					= make_dimension<time, std::ratio<-1>>;						///< Represents an SI derived unit of frequency
+		using velocity					= dimension_divide<length, time>;							///< Represents an SI derived unit of velocity
+		using angular_velocity			= dimension_divide<angle, time>;							///< Represents an SI derived unit of angular velocity
+		using acceleration				= dimension_divide<velocity, time>;							///< Represents an SI derived unit of acceleration
 		using force						= dimension_multiply<mass, acceleration>;					///< Represents an SI derived unit of force
-		using area						= dimension_pow<length, std::ratio<2>>;				///< Represents an SI derived unit of area
-		using pressure					= dimension_divide<force, area>;				///< Represents an SI derived unit of pressure
-		using charge					= dimension_multiply<time, current>;				///< Represents an SI derived unit of charge
-		using energy					= dimension_multiply<force, length>;				///< Represents an SI derived unit of energy
-		using power						= dimension_divide<energy, time>;					///< Represents an SI derived unit of power
-		using voltage					= dimension_divide<power, current>;				///< Represents an SI derived unit of voltage
-		using capacitance				= dimension_divide<charge, voltage>;				///< Represents an SI derived unit of capacitance
-		using impedance					= dimension_divide<voltage, current>;					///< Represents an SI derived unit of impedance
-		using conductance				= dimension_divide<current, voltage>;				///< Represents an SI derived unit of conductance
-		using magnetic_flux				= dimension_divide<energy, current>;					///< Represents an SI derived unit of magnetic flux
-		using magnetic_field_strength	= make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>;				///< Represents an SI derived unit of magnetic field strength
-		using inductance				= dimension_multiply<impedance, time>;				///< Represents an SI derived unit of inductance
-		using luminous_flux				= dimension_multiply<solid_angle, luminous_intensity>;					///< Represents an SI derived unit of luminous flux
-		using illuminance				= make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>;				///< Represents an SI derived unit of illuminance
-		using radioactivity				= make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;					///< Represents an SI derived unit of radioactivity
+		using area						= dimension_pow<length, std::ratio<2>>;						///< Represents an SI derived unit of area
+		using pressure					= dimension_divide<force, area>;							///< Represents an SI derived unit of pressure
+		using charge					= dimension_multiply<time, current>;						///< Represents an SI derived unit of charge
+		using energy					= dimension_multiply<force, length>;						///< Represents an SI derived unit of energy
+		using power						= dimension_divide<energy, time>;							///< Represents an SI derived unit of power
+		using voltage					= dimension_divide<power, current>;							///< Represents an SI derived unit of voltage
+		using capacitance				= dimension_divide<charge, voltage>;						///< Represents an SI derived unit of capacitance
+		using impedance					= dimension_divide<voltage, current>;						///< Represents an SI derived unit of impedance
+		using conductance				= dimension_divide<current, voltage>;						///< Represents an SI derived unit of conductance
+		using magnetic_flux				= dimension_divide<energy, current>;						///< Represents an SI derived unit of magnetic flux
+		using magnetic_field_strength	= make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>;	///< Represents an SI derived unit of magnetic field strength
+		using inductance				= dimension_multiply<impedance, time>;						///< Represents an SI derived unit of inductance
+		using luminous_flux				= dimension_multiply<solid_angle, luminous_intensity>;		///< Represents an SI derived unit of luminous flux
+		using illuminance				= make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>;					///< Represents an SI derived unit of illuminance
+		using radioactivity				= make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;							///< Represents an SI derived unit of radioactivity
 
 		// OTHER UNIT TYPES
-		using torque					= dimension_multiply<force, length>;				///< Represents an SI derived unit of torque
-		using volume					= dimension_pow<length, std::ratio<3>>;				///< Represents an SI derived unit of volume
-		using density					= dimension_divide<mass, volume>;				///< Represents an SI derived unit of density
+		using torque					= dimension_multiply<force, length>;						///< Represents an SI derived unit of torque
+		using volume					= dimension_pow<length, std::ratio<3>>;						///< Represents an SI derived unit of volume
+		using density					= dimension_divide<mass, volume>;							///< Represents an SI derived unit of density
 		using concentration				= make_dimension<volume, std::ratio<-1>>;					///< Represents a unit of concentration
-		using data						= make_dimension<data_tag>;				///< Represents a unit of data size
-		using data_transfer_rate		= make_dimension<data, std::ratio<-1>>;				///< Represents a unit of data transfer rate
+		using data						= make_dimension<data_tag>;									///< Represents a unit of data size
+		using data_transfer_rate		= make_dimension<data, std::ratio<-1>>;						///< Represents a unit of data transfer rate
 	}
 
 	//------------------------------
@@ -1520,99 +1520,15 @@ namespace units
 	//	CONVERSION FUNCTION
 	//------------------------------
 
-	/** @cond */	// DOXYGEN IGNORE
-	namespace detail
+	constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 	{
-		constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
-		{
-			return y == 0 ? 1.0 : x * pow(x, y - 1);
-		}
-
-		constexpr inline UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
-		{
-			return x < 0 ? -x : x;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::false_type, std::false_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::false_type, std::true_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::true_type, std::false_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::true_type, std::true_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units of different types w/ no translation and no PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::false_type) noexcept
-		{
-			return ((value * Ratio::num) / Ratio::den);
-		}
-
-		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
-		// constepxr with PI in numerator
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr
-		std::enable_if_t<(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0), T>
-		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
-		{
-			return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
-		}
-
-		/// convert dispatch for units of different types w/ no translation, but has PI in denominator
-		// constexpr with PI in denominator
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr
-		std::enable_if_t<(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0), T>
- 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
- 		{
- 			return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
- 		}
-
-		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
-		// Not constexpr - uses std::pow
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline // sorry, this can't be constexpr!
-		std::enable_if_t<(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1), T>
-		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
-		{
-			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
-		}
-
-		/// convert dispatch for units of different types with a translation, but no PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::true_type) noexcept
-		{
-			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
-		}
-
-		/// convert dispatch for units of different types with a translation AND PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, const std::false_type, const std::true_type, const std::true_type) noexcept
-		{
-			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
-		}
+		return y == 0 ? 1.0 : x * pow(x, y - 1);
 	}
-	/** @endcond */	// END DOXYGEN IGNORE
+
+	constexpr inline UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
+	{
+		return x < 0 ? -x : x;
+	}
 
 	/**
 	 * @ingroup		Conversion
@@ -1636,16 +1552,35 @@ namespace units
 		static_assert(traits::is_unit_tag_v<UnitTo>, "Template parameter `UnitTo` must be a `unit` type.");
 		static_assert(traits::is_convertible_unit_tag_v<UnitFrom, UnitTo>, "Units are not compatible.");
 
-		using Ratio = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		using Translation = std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
+		using Ratio			= std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
+		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
+		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 
-		using isSame = typename std::is_same<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>::type;
-		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, PiRatio>::value)>;
-		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, Translation>::value)>;
+		static constexpr bool isSame				= std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>;
+		static constexpr bool piRequired			= !std::is_same_v<std::ratio<0>, PiRatio>;
+		static constexpr bool constexprPiInNum		= piRequired && (PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0);
+		static constexpr bool constexprPiInDen		= piRequired && (PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0);
+		static constexpr bool nonConstexprPi		= piRequired && (PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1);
+		static constexpr bool translationRequired	= !std::is_same_v<std::ratio<0>, Translation>;
 
-		return units::detail::convert<UnitFrom, UnitTo, Ratio, PiRatio, Translation, T>
-			(value, isSame{}, piRequired{}, translationRequired{});
+		if constexpr(isSame)
+			return value;
+		else if constexpr(piRequired && !translationRequired)
+		{
+			if constexpr(constexprPiInNum)
+				return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
+			else if constexpr(constexprPiInDen)
+				return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
+			else if constexpr(nonConstexprPi)
+				// this case isn't actually constexpr
+				return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
+		}
+		else if constexpr(!piRequired && translationRequired)
+			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+		else if constexpr(piRequired && translationRequired)
+			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+		else constexpr
+			return ((value * Ratio::num) / Ratio::den);
 	}
 
 	//----------------------------------
@@ -2068,9 +2003,9 @@ namespace units
 		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
 		operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
-				detail::abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
-				detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
+			return abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
+				abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
+				abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
 		}
 
 		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
@@ -2689,15 +2624,15 @@ namespace units
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator==(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
-		return detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
-			detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
+		return abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
+			abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator==(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
-		return detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
-			detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
+		return abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
+			abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
 	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
@@ -2808,7 +2743,7 @@ namespace units
 	{
 		static_assert(power >= 0, "cpow cannot accept negative numbers. Try units::math::pow instead.");
 		return unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_type>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
-			(detail::pow(value(), power));
+			(pow(value(), power));
 	}
 
 	//------------------------------
