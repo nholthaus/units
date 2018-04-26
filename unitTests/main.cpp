@@ -169,34 +169,34 @@ TEST_F(TypeTraits, is_unit_t)
 	EXPECT_TRUE(traits::is_unit_t<meter_t>::value);
 }
 
-TEST_F(TypeTraits, unit_traits)
+TEST_F(TypeTraits, unit_tag_traits)
 {
-	EXPECT_TRUE((std::is_same<void, traits::unit_traits<double>::conversion_ratio>::value));
-	EXPECT_FALSE((std::is_same<void, traits::unit_traits<meters>::conversion_ratio>::value));
+	EXPECT_TRUE((std::is_same<void, traits::unit_tag_traits<double>::conversion_ratio>::value));
+	EXPECT_FALSE((std::is_same<void, traits::unit_tag_traits<meters>::conversion_ratio>::value));
 }
 
-TEST_F(TypeTraits, unit_t_traits)
+TEST_F(TypeTraits, unit_traits)
 {
-	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::underlying_type>::value));
-	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::underlying_type>::value));
-	EXPECT_TRUE((std::is_same<void, traits::unit_t_traits<double>::value_type>::value));
-	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_t_traits<meter_t>::value_type>::value));
+	EXPECT_TRUE((std::is_same<void, traits::unit_traits<double>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_traits<meter_t>::underlying_type>::value));
+	EXPECT_TRUE((std::is_same<void, traits::unit_traits<double>::value_type>::value));
+	EXPECT_TRUE((std::is_same<UNIT_LIB_DEFAULT_TYPE, traits::unit_traits<meter_t>::value_type>::value));
 }
 
 TEST_F(TypeTraits, is_convertible_unit)
 {
-	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<meters, astronicalUnits>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<meters, parsecs>::value));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<meters, meters>));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<meters, astronicalUnits>));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<meters, parsecs>));
 
-	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<astronicalUnits, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<parsecs, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<years, weeks>::value));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<meters, meters>));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<astronicalUnits, meters>));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<parsecs, meters>));
+	EXPECT_TRUE((traits::is_convertible_unit_tag_v<years, weeks>));
 
-	EXPECT_FALSE((traits::is_convertible_unit<meters, seconds>::value));
-	EXPECT_FALSE((traits::is_convertible_unit<seconds, meters>::value));
-	EXPECT_FALSE((traits::is_convertible_unit<years, meters>::value));
+	EXPECT_FALSE((traits::is_convertible_unit_tag_v<meters, seconds>));
+	EXPECT_FALSE((traits::is_convertible_unit_tag_v<seconds, meters>));
+	EXPECT_FALSE((traits::is_convertible_unit_tag_v<years, meters>));
 }
 
 TEST_F(TypeTraits, inverse)
@@ -214,9 +214,9 @@ TEST_F(TypeTraits, inverse)
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
 }
 
-TEST_F(TypeTraits, base_unit_of)
+TEST_F(TypeTraits, dimension_of)
 {
-	using base = traits::base_unit_of<years>;
+	using base = traits::dimension_of<years>;
 	bool shouldBeTrue = std::is_same<base, dimension::time>::value;
 
 	EXPECT_TRUE(shouldBeTrue);
@@ -1798,7 +1798,7 @@ TEST_F(UnitConversion, solid_angle)
 	double test;
 	bool same;
 
-	same = std::is_same<traits::base_unit_of<steradians>, traits::base_unit_of<degrees_squared>>::value;
+	same = std::is_same<traits::dimension_of<steradians>, traits::dimension_of<degrees_squared>>::value;
 	EXPECT_TRUE(same);
 
 	test = convert<steradians, steradians>(72.0);

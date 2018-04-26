@@ -286,7 +286,7 @@ namespace literals\
  * @details		This macro generates the decibel unit container, cout overload, and literal definitions.
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
- * @param		nameSingular singular version of the base unit name, e.g. 'watt'
+ * @param		nameSingular singular version of the dimension name, e.g. 'watt'
  * @param		abbreviation - abbreviated decibel unit name, e.g. 'dBW'
  */
 #define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)\
@@ -298,7 +298,7 @@ namespace literals\
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
- * @def			UNIT_ADD_dimension_TRAIT(unitdimension, baseUnit)
+ * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension, baseUnit)
  * @brief		Macro to create the `is_dimension_unit` type trait.
  * @details		This trait allows users to test whether a given type matches
  *				an intended dimension. This macro comprises all the boiler-plate
@@ -306,7 +306,7 @@ namespace literals\
  * @param		unitdimension The name of the dimension of unit, e.g. length or mass.
  */
 
-#define UNIT_ADD_dimension_TRAIT_DETAIL(unitdimension)\
+#define UNIT_ADD_DIMENSION_TRAIT_DETAIL(unitdimension)\
 	namespace traits\
 	{\
 		/** @cond */\
@@ -314,14 +314,14 @@ namespace literals\
 		{\
 			template<typename T> struct is_ ## unitdimension ## _unit_impl : std::false_type {};\
 			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_traits<units::unit<C, U, P, T>>::base_unit_type>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit<C, U, P, T>> : std::is_same<units::traits::dimension_of<typename units::traits::unit_tag_traits<units::unit<C, U, P, T>>::dimension_type>, units::dimension::unitdimension ## >::type {};\
 			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::base_unit_of<typename units::traits::unit_t_traits<units::unit_t<U, S, N>>::unit_type>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit_t<U, S, N>> : std::is_same<units::traits::dimension_of<typename units::traits::unit_traits<units::unit_t<U, S, N>>::unit_type>, units::dimension::unitdimension ## >::type {};\
 		}\
 		/** @endcond */\
 	}
 
-#define UNIT_ADD_IS_UNIT_dimension_TRAIT(unitdimension)\
+#define UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)\
 	namespace traits\
 	{\
 		template<typename... T>\
@@ -330,13 +330,13 @@ namespace literals\
 		inline constexpr bool is_ ## unitdimension ## _unit_v = is_ ## unitdimension ## _unit<T...>::value;\
 	}
 
-#define UNIT_ADD_dimension_TRAIT(unitdimension)\
-	UNIT_ADD_dimension_TRAIT_DETAIL(unitdimension)\
+#define UNIT_ADD_DIMENSION_TRAIT(unitdimension)\
+	UNIT_ADD_DIMENSION_TRAIT_DETAIL(unitdimension)\
     /** @ingroup	TypeTraits*/\
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/\
 	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit<T>::value` to test the unit represents a unitdimension quantity.*/\
 	/** @tparam		T	one or more types to test*/\
-	UNIT_ADD_IS_UNIT_dimension_TRAIT(unitdimension)
+	UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)
 
 /**
  * @def			UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -567,12 +567,12 @@ namespace units
 		 *				unit_traits instantiation.
 		 */
 		template<class T>
-		struct unit_traits
+		struct unit_tag_traits
 		{
-			typedef typename T::base_unit_type base_unit_type;											///< Unit type that the unit was derived from. May be a `base_unit` or another `unit`. Use the `base_unit_of` trait to find the SI base unit type. This will be `void` if type `T` is not a unit.
-			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `base_unit_type`. This will be `void` if type `T` is not a unit.
+			typedef typename T::dimension_type dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
 			typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
-			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the base unit (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
+			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
 		};
 #endif
 		/** @cond */	// DOXYGEN IGNORE
@@ -580,26 +580,26 @@ namespace units
 		 * @brief		unit traits implementation for classes which are not units.
 		 */
 		template<class T, typename = void>
-		struct unit_traits
+		struct unit_tag_traits
 		{
-			using base_unit_type = void;
+			using dimension_type = void;
 			using conversion_ratio = void;
 			using pi_exponent_ratio = void;
 			using translation_ratio = void;
 		};
 
 		template<class T>
-		struct unit_traits
+		struct unit_tag_traits
 			<T, typename std::void_t<
-			typename T::base_unit_type,
+			typename T::dimension_type,
 			typename T::conversion_ratio,
 			typename T::pi_exponent_ratio,
 			typename T::translation_ratio>>
 		{
-			typedef typename T::base_unit_type base_unit_type;											///< Unit type that the unit was derived from. May be a `base_unit` or another `unit`. Use the `base_unit_of` trait to find the SI base unit type. This will be `void` if type `T` is not a unit.
-			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `base_unit_type`. This will be `void` if type `T` is not a unit.
-			typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
-			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the base unit (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
+			using dimension_type = typename T::dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			using conversion_ratio = typename T::conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
+			using pi_exponent_ratio = typename T::pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
+			using translation_ratio = typename T::translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
 		};
 		/** @endcond */	// END DOXYGEN IGNORE
 	}
@@ -608,10 +608,10 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		helper type to identify base units.
-		 * @details		A non-templated base class for `base_unit` which enables RTTI testing.
+		 * @brief		helper type to identify dimensions.
+		 * @details		A non-templated base class for `dimension` which enables RTTI testing.
 		 */
-		struct _base_unit_t {};
+		struct _dimension_t {};
 
 		/**
 		 * @brief		helper type to identify units.
@@ -626,15 +626,15 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests if a class is a `base_unit` type.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_base_unit<T>::value` to test
-		 *				whether `class T` implements a `base_unit`.
+		 * @brief		Trait which tests if a class is a `dimension` type.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_dimension<T>::value` to test
+		 *				whether `class T` implements a `dimension`.
 		 */
 		template<class T>
-		using is_base_unit = std::is_base_of<units::detail::_base_unit_t, T>;
+		using is_dimension = std::is_base_of<units::detail::_dimension_t, T>;
 
 		template<class T>
-		inline constexpr bool is_base_unit_v = typename is_base_unit<T>::value;
+		inline constexpr bool is_dimension_v = typename is_dimension<T>::value;
 	}
 
 	namespace traits
@@ -658,6 +658,7 @@ namespace units
 	//	DIMENSIONS
 	//------------------------------
 	// see: https://github.com/swatanabe/cppnow17-units
+	// license for this code: https://github.com/swatanabe/cppnow17-units/blob/master/LICENSE_1_0.txt
 	//------------------------------
 	
 	template<class D, class E>
@@ -833,7 +834,7 @@ namespace units
 
 	/**
 	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be needed by library users.
-	 * @sa			base_unit for the definition of the dimension parameters.
+	 * @sa			dimension for the definition of the dimension parameters.
 	 */
 	namespace dimension
 	{
@@ -841,61 +842,61 @@ namespace units
 		struct length_tag
 		{
 			static constexpr const char* const name = "length";
-			static constexpr const char* const base_unit = "m";
+			static constexpr const char* const dimension = "m";
 		};
 
 		struct mass_tag
 		{
 			static constexpr const char* const name = "mass";
-			static constexpr const char* const base_unit = "kg";
+			static constexpr const char* const dimension = "kg";
 		};
 
 		struct time_tag
 		{
 			static constexpr const char* const name = "time";
-			static constexpr const char* const base_unit = "s";
+			static constexpr const char* const dimension = "s";
 		};
 
 		struct current_tag
 		{
 			static constexpr const char* const name = "current";
-			static constexpr const char* const base_unit = "A";
+			static constexpr const char* const dimension = "A";
 		};
 
 		struct temperature_tag
 		{
 			static constexpr const char* const name = "temperature";
-			static constexpr const char* const base_unit = "K";
+			static constexpr const char* const dimension = "K";
 		};
 
 		struct substance_tag
 		{
 			static constexpr const char* const name = "amount of substance";
-			static constexpr const char* const base_unit = "mol";
+			static constexpr const char* const dimension = "mol";
 		};
 
 		struct luminous_intensity_tag
 		{
 			static constexpr const char* const name = "luminous intensity";
-			static constexpr const char* const base_unit = "cd";
+			static constexpr const char* const dimension = "cd";
 		};
 
 // 		struct dimensionless_tag
 // 		{
 // 			static constexpr const char* const name = "dimensionless";
-// 			static constexpr const char* const base_unit = "";
+// 			static constexpr const char* const dimension = "";
 // 		};
 
 		struct angle_tag
 		{
 			static constexpr const char* const name = "angle";
-			static constexpr const char* const base_unit = "rad";
+			static constexpr const char* const dimension = "rad";
 		};
 
 		struct data_tag
 		{
 			static constexpr const char* const name = "data";
-			static constexpr const char* const base_unit = "byte";
+			static constexpr const char* const dimension = "byte";
 		};
 
 		// SI BASE UNITS
@@ -949,17 +950,17 @@ namespace units
 
 	/** @cond */	// DOXYGEN IGNORE
 	/**
-	 * @brief		unit type template specialization for units derived from base units.
+	 * @brief		unit type template specialization for units derived from dimensions.
 	 */
 	template <class, class, class, class> struct unit;
 	template<class Conversion, class... Exponents, class PiExponent, class Translation>
 	struct unit<Conversion, dimension_t<Exponents...>, PiExponent, Translation> : units::detail::_unit
 	{
-		static_assert(traits::is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
+		static_assert(traits::is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `Dimension`.");
 		static_assert(traits::is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 		static_assert(traits::is_ratio<Translation>::value, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
-		using base_unit_type = typename units::dimension_t<Exponents...>;
+		using dimension_type = typename units::dimension_t<Exponents...>;
 		using conversion_ratio = Conversion;
 		using translation_ratio = Translation;
 		using pi_exponent_ratio = PiExponent;
@@ -972,8 +973,8 @@ namespace units
 	 * @details		`unit` types are used as tags for the `conversion` function. They are *not* containers
 	 *				(see `unit_t` for a  container class). Each unit is defined by:
 	 *
-	 *				- A `std::ratio` defining the conversion factor to the base unit type. (e.g. `std::ratio<1,12>` for inches to feet)
-	 *				- A base unit that the unit is derived from (or a unit dimension. Must be of type `unit` or `base_unit`)
+	 *				- A `std::ratio` defining the conversion factor to the dimension type. (e.g. `std::ratio<1,12>` for inches to feet)
+	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type `unit` or `dimension`)
 	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
 	 *
@@ -981,21 +982,21 @@ namespace units
 	 *				of `unit`, i.e. `using meters = unit<std::ratio<1>, units::dimension::length`, or
 	 *				`using inches = unit<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
-	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `base_unit`, or another `unit`.
+	 * @tparam		Dimension	Unit type which this unit is derived from. May be a `dimension`, or another `unit`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
-	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
+	template<class Conversion, class Dimension, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit : units::detail::_unit
 	{
-		static_assert(traits::is_unit<BaseUnit>::value, "Template parameter `BaseUnit` must be a `unit` type.");
-		static_assert(traits::is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
+		static_assert(traits::is_unit<Dimension>::value, "Template parameter `Dimension` must be a `unit` type.");
+		static_assert(traits::is_ratio<Conversion>::value, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `Dimension`.");
 		static_assert(traits::is_ratio<PiExponent>::value, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
-		using base_unit_type = typename units::traits::unit_traits<BaseUnit>::base_unit_type;
-		typedef typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion> conversion_ratio;
-		typedef typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent> pi_exponent_ratio;
-		typedef typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio> translation_ratio;
+		using dimension_type = typename units::traits::unit_tag_traits<Dimension>::dimension_type;
+		using conversion_ratio = typename std::ratio_multiply<typename Dimension::conversion_ratio, Conversion>;
+		using pi_exponent_ratio = typename std::ratio_add<typename Dimension::pi_exponent_ratio, PiExponent>;
+		using translation_ratio = typename std::ratio_add<std::ratio_multiply<typename Dimension::conversion_ratio, Translation>, typename Dimension::translation_ratio>;
 	};
 
 	//------------------------------
@@ -1006,20 +1007,20 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		base_unit_of trait implementation
-		 * @details		recursively seeks base_unit type that a unit is derived from. Since units can be
-		 *				derived from other units, the `base_unit_type` typedef may not represent this value.
+		 * @brief		dimension_of trait implementation
+		 * @details		recursively seeks dimension type that a unit is derived from. Since units can be
+		 *				derived from other units, the `dimension_type` typedef may not represent this value.
 		 */
-		template<class> struct base_unit_of_impl;
-		template<class Conversion, class BaseUnit, class PiExponent, class Translation>
-		struct base_unit_of_impl<unit<Conversion, BaseUnit, PiExponent, Translation>> : base_unit_of_impl<BaseUnit> {};
+		template<class> struct dimension_of_impl;
+		template<class Conversion, class Dimension, class PiExponent, class Translation>
+		struct dimension_of_impl<unit<Conversion, Dimension, PiExponent, Translation>> : dimension_of_impl<Dimension> {};
 		template<class... Exponents>
-		struct base_unit_of_impl<dimension_t<Exponents...>>
+		struct dimension_of_impl<dimension_t<Exponents...>>
 		{
 			using type = dimension_t<Exponents...>;
 		};
 		template<>
-		struct base_unit_of_impl<void>
+		struct dimension_of_impl<void>
 		{
 			using type = void;
 		};
@@ -1029,13 +1030,13 @@ namespace units
 	namespace traits
 	{
 		/**
-		 * @brief		Trait which returns the `base_unit` type that a unit is originally derived from.
-		 * @details		Since units can be derived from other `unit` types in addition to `base_unit` types,
-		 *				the `base_unit_type` typedef will not always be a `base_unit` (or unit dimension).
+		 * @brief		Trait which returns the `dimension` type that a unit is originally derived from.
+		 * @details		Since units can be derived from other `unit` types in addition to `dimension` types,
+		 *				the `dimension_type` typedef will not always be a `dimension` (or unit dimension).
 		 *				Since compatible
 		 */
 		template<class U>
-		using base_unit_of = typename units::detail::base_unit_of_impl<U>::type;
+		using dimension_of = typename units::detail::dimension_of_impl<U>::type;
 	}
 
 	//------------------------------
@@ -1047,7 +1048,7 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `unit_multiply`.
-		 * @details		multiplies two units. The base unit becomes the base units of each with their exponents
+		 * @details		multiplies two units. The dimension becomes the dimensions of each with their exponents
 		 *				added together. The conversion factors of each are multiplied by each other. Pi exponent ratios
 		 *				are added, and datum translations are removed.
 		 */
@@ -1055,7 +1056,7 @@ namespace units
 		struct unit_multiply_impl
 		{
 			using type = unit < std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_multiply<traits::base_unit_of<typename Unit1::base_unit_type>, traits::base_unit_of<typename Unit2::base_unit_type>>,
+				dimension_multiply<traits::dimension_of<typename Unit1::dimension_type>, traits::dimension_of<typename Unit2::dimension_type>>,
 				std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
 				std::ratio < 0 >> ;
 		};
@@ -1069,7 +1070,7 @@ namespace units
 
 		/**
 		 * @brief		implementation of `unit_divide`.
-		 * @details		divides two units. The base unit becomes the base units of each with their exponents
+		 * @details		divides two units. The dimension becomes the dimensions of each with their exponents
 		 *				subtracted from each other. The conversion factors of each are divided by each other. Pi exponent ratios
 		 *				are subtracted, and datum translations are removed.
 		 */
@@ -1077,7 +1078,7 @@ namespace units
 		struct unit_divide_impl
 		{
 			using type = unit < std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_divide<traits::base_unit_of<typename Unit1::base_unit_type>, traits::base_unit_of<typename Unit2::base_unit_type>>,
+				dimension_divide<traits::dimension_of<typename Unit1::dimension_type>, traits::dimension_of<typename Unit2::dimension_type>>,
 				std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
 				std::ratio < 0 >> ;
 		};
@@ -1091,7 +1092,7 @@ namespace units
 
 		/**
 		 * @brief		implementation of `inverse`
-		 * @details		inverts a unit (equivalent to 1/unit). The `base_unit` and pi exponents are all multiplied by
+		 * @details		inverts a unit (equivalent to 1/unit). The `dimension` and pi exponents are all multiplied by
 		 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
 		 *				ratios are removed.
 		 */
@@ -1099,8 +1100,8 @@ namespace units
 		struct inverse_impl
 		{
 			using type = unit < std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
-				dimension_pow<traits::base_unit_of<typename units::traits::unit_traits<Unit>::base_unit_type>, std::ratio<-1>>,
-				std::ratio_multiply<typename units::traits::unit_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
+				dimension_pow<traits::dimension_of<typename units::traits::unit_tag_traits<Unit>::dimension_type>, std::ratio<-1>>,
+				std::ratio_multiply<typename units::traits::unit_tag_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
 				std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
 		};
 	}
@@ -1119,7 +1120,7 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `squared`
-		 * @details		Squares the conversion ratio, `base_unit` exponents, pi exponents, and removes
+		 * @details		Squares the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
 		template<class Unit>
@@ -1128,7 +1129,7 @@ namespace units
 			static_assert(traits::is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit < std::ratio_multiply<Conversion, Conversion>,
-				dimension_pow<traits::base_unit_of<typename Unit::base_unit_type>, std::ratio<2>>,
+				dimension_pow<traits::dimension_of<typename Unit::dimension_type>, std::ratio<2>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 				typename Unit::translation_ratio
 			> ;
@@ -1150,7 +1151,7 @@ namespace units
 	{
 		/**
 			 * @brief		implementation of `cubed`
-			 * @details		Cubes the conversion ratio, `base_unit` exponents, pi exponents, and removes
+			 * @details		Cubes the conversion ratio, `dimension` exponents, pi exponents, and removes
 			 *				datum translation ratios.
 			 */
 		template<class Unit>
@@ -1159,7 +1160,7 @@ namespace units
 			static_assert(traits::is_unit<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-				dimension_pow<traits::base_unit_of<typename Unit::base_unit_type>, std::ratio<3>>,
+				dimension_pow<traits::dimension_of<typename Unit::dimension_type>, std::ratio<3>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
 				typename Unit::translation_ratio> ;
 		};
@@ -1341,7 +1342,7 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `sqrt`
-		 * @details		square roots the conversion ratio, `base_unit` exponents, pi exponents, and removes
+		 * @details		square roots the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
 		template<class Unit, std::intmax_t Eps>
@@ -1350,7 +1351,7 @@ namespace units
 			static_assert(traits::is_unit_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit <ratio_sqrt<Conversion, Eps>,
-				dimension_root<traits::base_unit_of<typename Unit::base_unit_type>, std::ratio<2>>,
+				dimension_root<traits::dimension_of<typename Unit::dimension_type>, std::ratio<2>>,
 				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 				typename Unit::translation_ratio>;
 		};
@@ -1506,11 +1507,11 @@ namespace units
 		 * @sa			is_convertible_unit_t
 		 */
 		template<class U1, class U2>
-		struct is_convertible_unit : std::is_same <traits::base_unit_of<typename units::traits::unit_traits<U1>::base_unit_type>,
-			base_unit_of<typename units::traits::unit_traits<U2>::base_unit_type >> {};
+		struct is_convertible_unit_tag : std::is_same <traits::dimension_of<typename units::traits::unit_tag_traits<U1>::dimension_type>,
+			dimension_of<typename units::traits::unit_tag_traits<U2>::dimension_type >> {};
 
 		template<class U1, class U2>
-		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
+		inline constexpr bool is_convertible_unit_tag_v = is_convertible_unit_tag<U1, U2>::value;
 	}
 
 	//------------------------------
@@ -1733,6 +1734,9 @@ namespace units
 			has_value_member_v<T, Ret> &&
 			std::is_trivial_v<T>>
 		{};
+
+		template<class T, class Ret>
+		inline constexpr bool is_nonlinear_scale_v = is_nonlinear_scale<T, Ret>::value;
 	}
 
 	//------------------------------
@@ -1749,7 +1753,7 @@ namespace units
 		*				and what they represent by using the members of the corresponding unit_t_traits instantiation.
 		*/
 		template<typename T>
-		struct unit_t_traits
+		struct unit_traits
 		{
 			typedef typename T::non_linear_scale_type non_linear_scale_type;	///< Type of the unit_t non_linear_scale (e.g. linear_scale, decibel_scale). This property is used to enable the proper linear or logarithmic arithmetic functions.
 			typedef typename T::underlying_type underlying_type;				///< Underlying storage type of the `unit_t`, e.g. `double`.
@@ -1764,7 +1768,7 @@ namespace units
 		 * @details
 		 */
 		template<typename T, typename = void>
-		struct unit_t_traits
+		struct unit_traits
 		{
 			using non_linear_scale_type = void;
 			using underlying_type = void;
@@ -1778,7 +1782,7 @@ namespace units
 		 * @details
 		 */
 		template<typename T>
-		struct unit_t_traits <T, std::void_t<
+		struct unit_traits <T, std::void_t<
 			typename T::non_linear_scale_type,
 			typename T::underlying_type,
 			typename T::value_type,
@@ -1807,7 +1811,11 @@ namespace units
 		 * @sa			is_convertible_unit
 		 */
 		template<class U1, class U2>
-		struct is_convertible_unit_t : std::bool_constant<is_convertible_unit_v<typename units::traits::unit_t_traits<U1>::unit_type, typename units::traits::unit_t_traits<U2>::unit_type>>{};
+		struct is_convertible_unit : std::bool_constant<is_convertible_unit_tag_v<typename units::traits::unit_traits<U1>::unit_type, typename units::traits::unit_traits<U2>::unit_type>>{};
+
+		template<class U1, class U2>
+		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
+
 	}
 
 	//---------------------------------- 
@@ -1902,8 +1910,8 @@ namespace units
 	template<class Units, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
 	class unit_t : public NonLinearScale<T>, units::detail::_unit_t
 	{
-		static_assert(traits::is_unit<Units>::value, "Template parameter `Units` must be a unit tag. Check that you aren't using a unit type (_t).");
-		static_assert(traits::is_nonlinear_scale<NonLinearScale<T>, T>::value, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
+		static_assert(traits::is_unit_v<Units>, "Template parameter `Units` must be a unit tag. Check that you aren't using a unit type (_t).");
+		static_assert(traits::is_nonlinear_scale_v<NonLinearScale<T>, T>, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	protected:
 
@@ -1942,7 +1950,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit_t
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic<Ty>::value>::type>
 		inline constexpr unit_t(const Ty value) noexcept : nls(value) 
 		{
 
@@ -2149,7 +2157,7 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<typename U = Units, std::enable_if_t<units::traits::is_convertible_unit_v<U, unit<std::ratio<1>, dimension::time>>, int> = 0>
+		template<typename U = Units, std::enable_if_t<units::traits::is_convertible_unit_tag_v<U, unit<std::ratio<1>, dimension::time>>, int> = 0>
 		inline constexpr operator std::chrono::nanoseconds() const noexcept
 		{
 			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<Units, unit<std::ratio<1,1000000000>, dimension::time>>((*this)())));
@@ -2203,53 +2211,54 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
-		using BaseUnits = unit<std::ratio<1>, typename traits::unit_traits<Units>::base_unit_type>;
-		os << convert<Units, BaseUnits>(obj());
-
-		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 0) { os << " m"; }
-		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 0 && 
-			traits::unit_traits<Units>::base_unit_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::meter_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<Units>::base_unit_type::meter_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 0) { os << " kg"; }
-		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::kilogram_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::kilogram_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::second_ratio::num != 0) { os << " s"; }
-		if (traits::unit_traits<Units>::base_unit_type::second_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::second_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::second_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 0) { os << " A"; }
-		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::ampere_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::ampere_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 0) { os << " K"; }
-		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::kelvin_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::kelvin_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 0) { os << " mol"; }
-		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 0 && 
-			traits::unit_traits<Units>::base_unit_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::mole_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::mole_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 0) { os << " cd"; }
-		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::candela_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::candela_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 0) { os << " rad"; }
-		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::radian_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::radian_ratio::den; }
-
-		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 0) { os << " b"; }
-		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 0 &&
-			traits::unit_traits<Units>::base_unit_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::base_unit_type::byte_ratio::num; }
-		if (traits::unit_traits<Units>::base_unit_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::base_unit_type::byte_ratio::den; }
+		os << typeid(obj).name();
+ 		using Dimensions = unit<std::ratio<1>, typename traits::unit_tag_traits<Units>::dimension_type>;
+// 		os << convert<Units, Dimensions>(obj());
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::num != 0) { os << " m"; }
+// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::num != 0 && 
+// 			traits::unit_traits<Units>::dimension_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::meter_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<Units>::dimension_type::meter_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 0) { os << " kg"; }
+// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::kilogram_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::kilogram_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::num != 0) { os << " s"; }
+// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::second_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::second_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 0) { os << " A"; }
+// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::ampere_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::ampere_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 0) { os << " K"; }
+// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::kelvin_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::kelvin_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::num != 0) { os << " mol"; }
+// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::num != 0 && 
+// 			traits::unit_traits<Units>::dimension_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::mole_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::mole_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::num != 0) { os << " cd"; }
+// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::candela_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::candela_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::num != 0) { os << " rad"; }
+// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::radian_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::radian_ratio::den; }
+// 
+// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::num != 0) { os << " b"; }
+// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::num != 0 &&
+// 			traits::unit_traits<Units>::dimension_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<Units>::dimension_type::byte_ratio::num; }
+// 		if (traits::unit_traits<Units>::dimension_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<Units>::dimension_type::byte_ratio::den; }
 
 		return os;
 	}
@@ -2258,7 +2267,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
+		static_assert(traits::is_convertible_unit_tag_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value), 
 			"parameters are not compatible units.");
 
@@ -2269,7 +2278,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator-=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
+		static_assert(traits::is_convertible_unit<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value),
 			"parameters are not compatible units.");
 
@@ -2389,7 +2398,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_linear_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::linear_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>...>> {};
+		struct has_linear_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::linear_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>> {};
 
 		template<typename... T>
 		inline constexpr bool has_linear_scale_v = has_linear_scale<T...>::value;
@@ -2402,7 +2411,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_decibel_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::decibel_scale<typename units::traits::unit_t_traits<T>::underlying_type>, T>...>> {};
+		struct has_decibel_scale : std::bool_constant<std::conjunction_v<std::is_base_of<units::decibel_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>> {};
 		
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
@@ -2416,7 +2425,7 @@ namespace units
 		 * @tparam		T2	right hand type
 		 */
 		template<typename T1, typename T2>
-		struct is_same_scale : std::bool_constant<std::is_same_v<typename units::traits::unit_t_traits<T1>::non_linear_scale_type, typename units::traits::unit_t_traits<T2>::non_linear_scale_type>>{};
+		struct is_same_scale : std::bool_constant<std::is_same_v<typename units::traits::unit_traits<T1>::non_linear_scale_type, typename units::traits::unit_traits<T2>::non_linear_scale_type>>{};
 
 		template<typename... T>
 		inline constexpr bool is_same_scale_v = is_same_scale<T...>::value;
@@ -2463,15 +2472,15 @@ namespace units
 	//----------------------------------
 
 	// dimensionless units are the *ONLY* units implicitly convertible to/from built-in types.
-	typedef unit<std::ratio<1>, units::dimension::dimensionless> dimensionless;
-	typedef unit_t<dimensionless> dimensionless_t;
+	using dimensionless = unit<std::ratio<1>, units::dimension::dimensionless>;
+	using dimensionless_t = unit_t<dimensionless>;
 
 // ignore the redeclaration of the default template parameters
 #if defined(_MSC_VER) 
 #	pragma warning(push)
 #	pragma warning(disable : 4348)
 #endif
-	UNIT_ADD_dimension_TRAIT(dimensionless)
+	UNIT_ADD_DIMENSION_TRAIT(dimensionless)
 #if defined(_MSC_VER) 
 #	pragma warning(pop)
 #endif
@@ -2491,8 +2500,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return UnitTypeLhs(lhs() + convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
@@ -2514,8 +2523,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return UnitTypeLhs(lhs() - convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
@@ -2535,22 +2544,22 @@ namespace units
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
+		std::enable_if_t<traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>>
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
-		return  unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>>
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
+		return  unit_t<compound_unit<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>>
 			(lhs() * convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 	
 	/// Multiplication type for non-convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		std::enable_if_t<!traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return unit_t<compound_unit<UnitsLhs, UnitsRhs>>
 			(lhs() * rhs());
 	}
@@ -2591,21 +2600,21 @@ namespace units
 
 	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a dimensionless
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 		inline constexpr dimensionless_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return dimensionless_t(lhs() / convert<UnitsRhs, UnitsLhs>(rhs()));
 	}
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>>
+		std::enable_if_t<!traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit_t<compound_unit<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>>
 	{
-		using UnitsLhs = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return unit_t<compound_unit<UnitsLhs, inverse<UnitsRhs>>>
 			(lhs() / rhs());
 	}
@@ -2621,9 +2630,9 @@ namespace units
 	/// Division of a dimensionless unit  by a unit_t type with a linear scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
-		return unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		return unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 			(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) / rhs());
 	}
 
@@ -2638,9 +2647,9 @@ namespace units
 	/// Division of a dimensionless  by a unit_t type with a linear scale
 	template<class UnitTypeRhs, typename T,
 		std::enable_if_t<std::is_arithmetic<T>::value && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
-		inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>
+		inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
-		using UnitsRhs = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
+		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
 		return unit_t<inverse<UnitsRhs>>
 			(lhs / rhs());
 	}
@@ -2752,9 +2761,9 @@ namespace units
 		* @returns		new unit_t, raised to the given exponent
 		*/
 	template<int power, class UnitType, class = typename std::enable_if<traits::has_linear_scale_v<UnitType>, int>>
-	inline auto pow(const UnitType& value) noexcept -> unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_t_traits<UnitType>::unit_type>::type, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+	inline auto pow(const UnitType& value) noexcept -> unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_type>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
-		return unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_t_traits<UnitType>::unit_type>::type, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+		return unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_type>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(std::pow(value(), power));
 	}
 
@@ -2767,10 +2776,10 @@ namespace units
 		* @returns		new unit_t, raised to the given exponent
 		*/
 	template<int power, class UnitType, class = typename std::enable_if<traits::has_linear_scale_v<UnitType>, int>>
-	inline constexpr auto cpow(const UnitType& value) noexcept -> unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_t_traits<UnitType>::unit_type>::type, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+	inline constexpr auto cpow(const UnitType& value) noexcept -> unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_type>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
 		static_assert(power >= 0, "cpow cannot accept negative numbers. Try units::math::pow instead.");
-		return unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_t_traits<UnitType>::unit_type>::type, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+		return unit_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_type>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(detail::pow(value(), power));
 	}
 
@@ -2822,11 +2831,11 @@ namespace units
 	/// Addition for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
-	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
-		using LhsUnits = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
-		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
+		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
+		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
 		return unit_t<compound_unit<squared<LhsUnits>>, underlying_type, decibel_scale>
 			(lhs.template toLinearized<underlying_type>() * convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
@@ -2836,7 +2845,7 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
 	constexpr inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
-		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
+		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 		return UnitTypeLhs(lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
@@ -2844,17 +2853,17 @@ namespace units
 	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
 	constexpr inline UnitTypeRhs operator+(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using underlying_type = typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type;
+		using underlying_type = typename units::traits::unit_traits<UnitTypeRhs>::underlying_type;
 		return UnitTypeRhs(lhs.template toLinearized<underlying_type>() * rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Subtraction for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
-	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>>, typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
-		using LhsUnits = typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type;
-		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
-		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
+		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
+		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
+		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
 		return unit_t<compound_unit<LhsUnits, inverse<RhsUnits>>, underlying_type, decibel_scale>
 			(lhs.template toLinearized<underlying_type>() / convert<RhsUnits, LhsUnits>(rhs.template toLinearized<underlying_type>()), std::true_type());
@@ -2864,16 +2873,16 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
 	constexpr inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
-		using underlying_type = typename units::traits::unit_t_traits<UnitTypeLhs>::underlying_type;
+		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 		return UnitTypeLhs(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_t_traits<UnitTypeRhs>::underlying_type, decibel_scale>
+	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
-		using RhsUnits = typename units::traits::unit_t_traits<UnitTypeRhs>::unit_type;
-		using underlying_type = typename units::traits::unit_t_traits<RhsUnits>::underlying_type;
+		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
+		using underlying_type = typename units::traits::unit_traits<RhsUnits>::underlying_type;
 
 		return unit_t<inverse<RhsUnits>, underlying_type, decibel_scale>
 			(lhs.template toLinearized<underlying_type>() / rhs.template toLinearized<underlying_type>(), std::true_type());
@@ -2901,7 +2910,7 @@ namespace units
 	/**
 	 * @namespace	units::length
 	 * @brief		namespace for unit types and containers representing length values
-	 * @details		The SI unit for length is `meters`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for length is `meters`, and the corresponding `dimension` dimension is
 	 *				`length_unit`.
 	 * @anchor		lengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -2926,7 +2935,7 @@ namespace units
 	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, unit<std::ratio<3>, nauticalMiles>)
 	UNIT_ADD(length, yard, yards, yd, unit<std::ratio<3>, feet>)
 
-	UNIT_ADD_dimension_TRAIT(length)
+	UNIT_ADD_DIMENSION_TRAIT(length)
 #endif
 
 	//------------------------------
@@ -2936,7 +2945,7 @@ namespace units
 	/**
 	 * @namespace	units::mass
 	 * @brief		namespace for unit types and containers representing mass values
-	 * @details		The SI unit for mass is `kilograms`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for mass is `kilograms`, and the corresponding `dimension` dimension is
 	 *				`mass_unit`.
 	 * @anchor		massContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -2952,7 +2961,7 @@ namespace units
 	UNIT_ADD(mass, carat, carats, ct, unit<std::ratio<200>, milligrams>)
 	UNIT_ADD(mass, slug, slugs, slug, unit<std::ratio<145939029, 10000000>, kilograms>)
 
-	UNIT_ADD_dimension_TRAIT(mass)
+	UNIT_ADD_DIMENSION_TRAIT(mass)
 #endif
 
 	//------------------------------
@@ -2962,7 +2971,7 @@ namespace units
 	/**
 	 * @namespace	units::time
 	 * @brief		namespace for unit types and containers representing time values
-	 * @details		The SI unit for time is `seconds`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for time is `seconds`, and the corresponding `dimension` dimension is
 	 *				`time_unit`.
 	 * @anchor		timeContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -2977,7 +2986,7 @@ namespace units
 	UNIT_ADD(time, julian_year, julian_years, a_j,	unit<std::ratio<31557600>, seconds>)
 	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, unit<std::ratio<31556952>, seconds>)
 
-	UNIT_ADD_dimension_TRAIT(time)
+	UNIT_ADD_DIMENSION_TRAIT(time)
 #endif
 
 	//------------------------------
@@ -2987,7 +2996,7 @@ namespace units
 	/**
 	 * @namespace	units::angle
 	 * @brief		namespace for unit types and containers representing angle values
-	 * @details		The SI unit for angle is `radians`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for angle is `radians`, and the corresponding `dimension` dimension is
 	 *				`angle_unit`.
 	 * @anchor		angleContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3001,7 +3010,7 @@ namespace units
 	UNIT_ADD(angle, turn, turns, tr, unit<std::ratio<2>, radians, std::ratio<1>>)
 	UNIT_ADD(angle, gradian, gradians, gon, unit<std::ratio<1, 400>, turns>)
 
-	UNIT_ADD_dimension_TRAIT(angle)
+	UNIT_ADD_DIMENSION_TRAIT(angle)
 #endif
 
 	//------------------------------
@@ -3010,7 +3019,7 @@ namespace units
 	/**
 	 * @namespace	units::current
 	 * @brief		namespace for unit types and containers representing current values
-	 * @details		The SI unit for current is `amperes`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for current is `amperes`, and the corresponding `dimension` dimension is
 	 *				`current_unit`.
 	 * @anchor		currentContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3018,7 +3027,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CURRENT_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit<std::ratio<1>, units::dimension::current>)
 	
-	UNIT_ADD_dimension_TRAIT(current)
+	UNIT_ADD_DIMENSION_TRAIT(current)
 #endif
 
 	//------------------------------
@@ -3031,7 +3040,7 @@ namespace units
 	/**
 	 * @namespace	units::temperature
 	 * @brief		namespace for unit types and containers representing temperature values
-	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `dimension` dimension is
 	 *				`temperature_unit`.
 	 * @anchor		temperatureContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3043,7 +3052,7 @@ namespace units
 	UNIT_ADD(temperature, reaumur, reaumur, Re, unit<std::ratio<10, 8>, celsius>)
 	UNIT_ADD(temperature, rankine, rankine, Ra, unit<std::ratio<5, 9>, kelvin>)
 
-	UNIT_ADD_dimension_TRAIT(temperature)
+	UNIT_ADD_DIMENSION_TRAIT(temperature)
 #endif
 
 	//------------------------------
@@ -3053,7 +3062,7 @@ namespace units
 	/**
 	 * @namespace	units::substance
 	 * @brief		namespace for unit types and containers representing substance values
-	 * @details		The SI unit for substance is `moles`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for substance is `moles`, and the corresponding `dimension` dimension is
 	 *				`substance_unit`.
 	 * @anchor		substanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3061,7 +3070,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SUBSTANCE_UNITS)
 	UNIT_ADD(substance, mole, moles, mol, unit<std::ratio<1>, units::dimension::substance>)
 	
-	UNIT_ADD_dimension_TRAIT(substance)
+	UNIT_ADD_DIMENSION_TRAIT(substance)
 #endif
 
 	//------------------------------
@@ -3071,7 +3080,7 @@ namespace units
 	/**
 	 * @namespace	units::luminous_intensity
 	 * @brief		namespace for unit types and containers representing luminous_intensity values
-	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `dimension` dimension is
 	 *				`luminous_intensity_unit`.
 	 * @anchor		luminousIntensityContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3079,7 +3088,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_INTENSITY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit<std::ratio<1>, units::dimension::luminous_intensity>)
 	
-	UNIT_ADD_dimension_TRAIT(luminous_intensity)
+	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
 #endif
 
 	//------------------------------
@@ -3089,7 +3098,7 @@ namespace units
 	/**
 	 * @namespace	units::solid_angle
 	 * @brief		namespace for unit types and containers representing solid_angle values
-	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `dimension` dimension is
 	 *				`solid_angle_unit`.
 	 * @anchor		solidAngleContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3099,7 +3108,7 @@ namespace units
 	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degrees>)
 	UNIT_ADD(solid_angle, spat, spats, sp, unit<std::ratio<4>, steradians, std::ratio<1>>)
 
-	UNIT_ADD_dimension_TRAIT(solid_angle)
+	UNIT_ADD_DIMENSION_TRAIT(solid_angle)
 #endif
 
 	//------------------------------
@@ -3109,7 +3118,7 @@ namespace units
 	/**
 	 * @namespace	units::frequency
 	 * @brief		namespace for unit types and containers representing frequency values
-	 * @details		The SI unit for frequency is `hertz`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for frequency is `hertz`, and the corresponding `dimension` dimension is
 	 *				`frequency_unit`.
 	 * @anchor		frequencyContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3117,7 +3126,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_FREQUENCY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit<std::ratio<1>, units::dimension::frequency>)
 
-	UNIT_ADD_dimension_TRAIT(frequency)
+	UNIT_ADD_DIMENSION_TRAIT(frequency)
 #endif
 
 	//------------------------------
@@ -3127,7 +3136,7 @@ namespace units
 	/**
 	 * @namespace	units::velocity
 	 * @brief		namespace for unit types and containers representing velocity values
-	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `dimension` dimension is
 	 *				`velocity_unit`.
 	 * @anchor		velocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3139,7 +3148,7 @@ namespace units
 	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph, compound_unit<length::kilometers, inverse<time::hour>>)
 	UNIT_ADD(velocity, knot, knots, kts, compound_unit<length::nauticalMiles, inverse<time::hour>>)
 	
-	UNIT_ADD_dimension_TRAIT(velocity)
+	UNIT_ADD_DIMENSION_TRAIT(velocity)
 #endif
 
 	//------------------------------
@@ -3149,7 +3158,7 @@ namespace units
 	/**
 	 * @namespace	units::angular_velocity
 	 * @brief		namespace for unit types and containers representing angular velocity values
-	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `dimension` dimension is
 	 *				`angular_velocity_unit`.
 	 * @anchor		angularVelocityContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3160,7 +3169,7 @@ namespace units
 	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm, unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
 	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr, compound_unit<angle::milliarcseconds, inverse<time::year>>)
 
-	UNIT_ADD_dimension_TRAIT(angular_velocity)
+	UNIT_ADD_DIMENSION_TRAIT(angular_velocity)
 #endif
 
 	//------------------------------
@@ -3170,7 +3179,7 @@ namespace units
 	/**
 	 * @namespace	units::acceleration
 	 * @brief		namespace for unit types and containers representing acceleration values
-	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `dimension` dimension is
 	 *				`acceleration_unit`.
 	 * @anchor		accelerationContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3180,7 +3189,7 @@ namespace units
 	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq, compound_unit<length::feet, inverse<squared<time::seconds>>>)
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
-	UNIT_ADD_dimension_TRAIT(acceleration)
+	UNIT_ADD_DIMENSION_TRAIT(acceleration)
 #endif
 
 	//------------------------------
@@ -3190,7 +3199,7 @@ namespace units
 	/**
 	 * @namespace	units::force
 	 * @brief		namespace for unit types and containers representing force values
-	 * @details		The SI unit for force is `newtons`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for force is `newtons`, and the corresponding `dimension` dimension is
 	 *				`force_unit`.
 	 * @anchor		forceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3202,7 +3211,7 @@ namespace units
 	UNIT_ADD(force, kilopond, kiloponds, kp, compound_unit<acceleration::standard_gravity, mass::kilograms>)
 	UNIT_ADD(force, poundal, poundals, pdl, compound_unit<mass::pound, length::foot, inverse<squared<time::seconds>>>)
 
-	UNIT_ADD_dimension_TRAIT(force)
+	UNIT_ADD_DIMENSION_TRAIT(force)
 #endif
 
 	//------------------------------
@@ -3212,7 +3221,7 @@ namespace units
 	/**
 	 * @namespace	units::pressure
 	 * @brief		namespace for unit types and containers representing pressure values
-	 * @details		The SI unit for pressure is `pascals`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for pressure is `pascals`, and the corresponding `dimension` dimension is
 	 *				`pressure_unit`.
 	 * @anchor		pressureContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3225,7 +3234,7 @@ namespace units
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
 	
-	UNIT_ADD_dimension_TRAIT(pressure)
+	UNIT_ADD_DIMENSION_TRAIT(pressure)
 #endif
 
 	//------------------------------
@@ -3235,7 +3244,7 @@ namespace units
 	/**
 	 * @namespace	units::charge
 	 * @brief		namespace for unit types and containers representing charge values
-	 * @details		The SI unit for charge is `coulombs`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for charge is `coulombs`, and the corresponding `dimension` dimension is
 	 *				`charge_unit`.
 	 * @anchor		chargeContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3244,7 +3253,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulomb, coulombs, C, unit<std::ratio<1>, units::dimension::charge>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hour, ampere_hours, Ah, compound_unit<current::ampere, time::hours>)
 
-	UNIT_ADD_dimension_TRAIT(charge)
+	UNIT_ADD_DIMENSION_TRAIT(charge)
 #endif
 
 	//------------------------------
@@ -3254,7 +3263,7 @@ namespace units
 	/**
 	 * @namespace	units::energy
 	 * @brief		namespace for unit types and containers representing energy values
-	 * @details		The SI unit for energy is `joules`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for energy is `joules`, and the corresponding `dimension` dimension is
 	 *				`energy_unit`.
 	 * @anchor		energyContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3270,7 +3279,7 @@ namespace units
 	UNIT_ADD(energy, therm, therms, thm, unit<std::ratio<100000>, british_thermal_units_59>)
 	UNIT_ADD(energy, foot_pound, foot_pounds, ftlbf, unit<std::ratio<13558179483314004, 10000000000000000>, joules>)
 
-	UNIT_ADD_dimension_TRAIT(energy)
+	UNIT_ADD_DIMENSION_TRAIT(energy)
 #endif
 
 	//------------------------------
@@ -3280,7 +3289,7 @@ namespace units
 	/**
 	 * @namespace	units::power
 	 * @brief		namespace for unit types and containers representing power values
-	 * @details		The SI unit for power is `watts`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for power is `watts`, and the corresponding `dimension` dimension is
 	 *				`power_unit`.
 	 * @anchor		powerContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3291,7 +3300,7 @@ namespace units
 	UNIT_ADD_DECIBEL(power, watt, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
 	
-	UNIT_ADD_dimension_TRAIT(power)
+	UNIT_ADD_DIMENSION_TRAIT(power)
 #endif
 
 	//------------------------------
@@ -3301,7 +3310,7 @@ namespace units
 	/**
 	 * @namespace	units::voltage
 	 * @brief		namespace for unit types and containers representing voltage values
-	 * @details		The SI unit for voltage is `volts`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for voltage is `volts`, and the corresponding `dimension` dimension is
 	 *				`voltage_unit`.
 	 * @anchor		voltageContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3311,7 +3320,7 @@ namespace units
 	UNIT_ADD(voltage, statvolt, statvolts, statV, unit<std::ratio<1000000, 299792458>, volts>)
 	UNIT_ADD(voltage, abvolt, abvolts, abV, unit<std::ratio<1, 100000000>, volts>)
 	
-	UNIT_ADD_dimension_TRAIT(voltage)
+	UNIT_ADD_DIMENSION_TRAIT(voltage)
 #endif
 
 	//------------------------------
@@ -3321,7 +3330,7 @@ namespace units
 	/**
 	 * @namespace	units::capacitance
 	 * @brief		namespace for unit types and containers representing capacitance values
-	 * @details		The SI unit for capacitance is `farads`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for capacitance is `farads`, and the corresponding `dimension` dimension is
 	 *				`capacitance_unit`.
 	 * @anchor		capacitanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3329,7 +3338,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CAPACITANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit<std::ratio<1>, units::dimension::capacitance>)
 	
-	UNIT_ADD_dimension_TRAIT(capacitance)
+	UNIT_ADD_DIMENSION_TRAIT(capacitance)
 #endif
 
 	//------------------------------
@@ -3339,7 +3348,7 @@ namespace units
 	/**
 	 * @namespace	units::impedance
 	 * @brief		namespace for unit types and containers representing impedance values
-	 * @details		The SI unit for impedance is `ohms`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for impedance is `ohms`, and the corresponding `dimension` dimension is
 	 *				`impedance_unit`.
 	 * @anchor		impedanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3347,7 +3356,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_IMPEDANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit<std::ratio<1>, units::dimension::impedance>)
 	
-	UNIT_ADD_dimension_TRAIT(impedance)
+	UNIT_ADD_DIMENSION_TRAIT(impedance)
 #endif
 
 	//------------------------------
@@ -3357,7 +3366,7 @@ namespace units
 	/**
 	 * @namespace	units::conductance
 	 * @brief		namespace for unit types and containers representing conductance values
-	 * @details		The SI unit for conductance is `siemens`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for conductance is `siemens`, and the corresponding `dimension` dimension is
 	 *				`conductance_unit`.
 	 * @anchor		conductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3365,7 +3374,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONDUCTANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, siemens, S, unit<std::ratio<1>, units::dimension::conductance>)
 	
-	UNIT_ADD_dimension_TRAIT(conductance)
+	UNIT_ADD_DIMENSION_TRAIT(conductance)
 #endif
 
 	//------------------------------
@@ -3375,7 +3384,7 @@ namespace units
 	/**
 	 * @namespace	units::magnetic_flux
 	 * @brief		namespace for unit types and containers representing magnetic_flux values
-	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `dimension` dimension is
 	 *				`magnetic_flux_unit`.
 	 * @anchor		magneticFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3384,7 +3393,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit<std::ratio<1>, units::dimension::magnetic_flux>)
 	UNIT_ADD(magnetic_flux, maxwell, maxwells, Mx, unit<std::ratio<1, 100000000>, webers>)
 
-	UNIT_ADD_dimension_TRAIT(magnetic_flux)
+	UNIT_ADD_DIMENSION_TRAIT(magnetic_flux)
 #endif
 
 	//----------------------------------------
@@ -3394,7 +3403,7 @@ namespace units
 	/**
 	 * @namespace	units::magnetic_field_strength
 	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
-	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `dimension` dimension is
 	 *				`magnetic_field_strength_unit`.
 	 * @anchor		magneticFieldStrengthContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3404,7 +3413,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit<std::ratio<1>, units::dimension::magnetic_field_strength>)
 	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
 		
-	UNIT_ADD_dimension_TRAIT(magnetic_field_strength)
+	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
 #endif
 
 	//------------------------------
@@ -3414,7 +3423,7 @@ namespace units
 	/**
 	 * @namespace	units::inductance
 	 * @brief		namespace for unit types and containers representing inductance values
-	 * @details		The SI unit for inductance is `henrys`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for inductance is `henrys`, and the corresponding `dimension` dimension is
 	 *				`inductance_unit`.
 	 * @anchor		inductanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3422,7 +3431,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_INDUCTANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit<std::ratio<1>, units::dimension::inductance>)
 
-	UNIT_ADD_dimension_TRAIT(inductance)
+	UNIT_ADD_DIMENSION_TRAIT(inductance)
 #endif
 
 	//------------------------------
@@ -3432,7 +3441,7 @@ namespace units
 	/**
 	 * @namespace	units::luminous_flux
 	 * @brief		namespace for unit types and containers representing luminous_flux values
-	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `dimension` dimension is
 	 *				`luminous_flux_unit`.
 	 * @anchor		luminousFluxContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3440,7 +3449,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_FLUX_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit<std::ratio<1>, units::dimension::luminous_flux>)
 	
-	UNIT_ADD_dimension_TRAIT(luminous_flux)
+	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
 #endif
 
 	//------------------------------
@@ -3450,7 +3459,7 @@ namespace units
 	/**
 	 * @namespace	units::illuminance
 	 * @brief		namespace for unit types and containers representing illuminance values
-	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for illuminance is `luxes`, and the corresponding `dimension` dimension is
 	 *				`illuminance_unit`.
 	 * @anchor		illuminanceContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3461,7 +3470,7 @@ namespace units
 	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_unit<luminous_flux::lumen, inverse<squared<length::inch>>>)
 	UNIT_ADD(illuminance, phot, phots, ph, compound_unit<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
 	
-	UNIT_ADD_dimension_TRAIT(illuminance)
+	UNIT_ADD_DIMENSION_TRAIT(illuminance)
 #endif
 
 	//------------------------------
@@ -3486,7 +3495,7 @@ namespace units
 	UNIT_ADD(radiation, rutherford, rutherfords, rd, unit<std::ratio<1>, megabecquerels>)
 	UNIT_ADD(radiation, rad, rads, rads, unit<std::ratio<1>, centigrays>)
 
-	UNIT_ADD_dimension_TRAIT(radioactivity)
+	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 #endif
 
 	//------------------------------
@@ -3496,7 +3505,7 @@ namespace units
 	/**
 	 * @namespace	units::torque
 	 * @brief		namespace for unit types and containers representing torque values
-	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `dimension` dimension is
 	 *				`torque_units`.
 	 * @anchor		torqueContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3508,7 +3517,7 @@ namespace units
 	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_unit<length::inch, force::pounds>)
 	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit<length::meter, force::kiloponds>)
 	
-	UNIT_ADD_dimension_TRAIT(torque)
+	UNIT_ADD_DIMENSION_TRAIT(torque)
 #endif
 
 	//------------------------------
@@ -3518,7 +3527,7 @@ namespace units
 	/**
 	 * @namespace	units::area
 	 * @brief		namespace for unit types and containers representing area values
-	 * @details		The SI unit for area is `square_meters`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for area is `square_meters`, and the corresponding `dimension` dimension is
 	 *				`area_unit`.
 	 * @anchor		areaContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3532,7 +3541,7 @@ namespace units
 	UNIT_ADD(area, hectare, hectares, ha, unit<std::ratio<10000>, square_meters>)
 	UNIT_ADD(area, acre, acres, acre, unit<std::ratio<43560>, square_feet>)
 	
-	UNIT_ADD_dimension_TRAIT(area)
+	UNIT_ADD_DIMENSION_TRAIT(area)
 #endif
 
 	//------------------------------
@@ -3542,7 +3551,7 @@ namespace units
 	/**
 	 * @namespace	units::volume
 	 * @brief		namespace for unit types and containers representing volume values
-	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for volume is `cubic_meters`, and the corresponding `dimension` dimension is
 	 *				`volume_unit`.
 	 * @anchor		volumeContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3578,7 +3587,7 @@ namespace units
 	UNIT_ADD(volume, shot, shots, shots, unit<std::ratio<3, 2>, fluid_ounces>)
 	UNIT_ADD(volume, strike, strikes, strikes, unit<std::ratio<2>, bushels>)
 
-	UNIT_ADD_dimension_TRAIT(volume)
+	UNIT_ADD_DIMENSION_TRAIT(volume)
 #endif
 
 	//------------------------------
@@ -3588,7 +3597,7 @@ namespace units
 	/**
 	 * @namespace	units::density
 	 * @brief		namespace for unit types and containers representing density values
-	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for density is `kilograms_per_cubic_meter`, and the corresponding `dimension` dimension is
 	 *				`density_unit`.
 	 * @anchor		densityContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3605,7 +3614,7 @@ namespace units
 	UNIT_ADD(density, pounds_per_gallon, pounds_per_gallon, lb_per_gal, compound_unit<mass::pounds, inverse<volume::gallon>>)
 	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft, compound_unit<mass::slugs, inverse<volume::cubic_foot>>)
 
-	UNIT_ADD_dimension_TRAIT(density)
+	UNIT_ADD_DIMENSION_TRAIT(density)
 #endif
 
 	//------------------------------
@@ -3615,7 +3624,7 @@ namespace units
 	/**
 	 * @namespace	units::concentration
 	 * @brief		namespace for unit types and containers representing concentration values
-	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `base_unit` dimension is
+	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `dimension` dimension is
 	 *				`dimensionless_unit`.
 	 * @anchor		concentrationContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3626,7 +3635,7 @@ namespace units
 	UNIT_ADD(concentration, ppt, parts_per_trillion, ppt, unit<std::ratio<1, 1000>, parts_per_billion>)
 	UNIT_ADD(concentration, percent, percent, pct, unit<std::ratio<1, 100>, units::dimension::dimensionless>)
 
-	UNIT_ADD_dimension_TRAIT(concentration)
+	UNIT_ADD_DIMENSION_TRAIT(concentration)
 #endif
 
 	//------------------------------
@@ -3636,7 +3645,7 @@ namespace units
 	/**
 	 * @namespace	units::data
 	 * @brief		namespace for unit types and containers representing data values
-	 * @details		The base unit for data is `bytes`, and the corresponding `base_unit` dimension is
+	 * @details		The dimension for data is `bytes`, and the corresponding `dimension` dimension is
 	 *				`data_unit`.
 	 * @anchor		dataContainers
 	 * @sa			See unit_t for more information on unit type containers.
@@ -3647,7 +3656,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, unit<std::ratio<1, 8>, byte>)
 	UNIT_ADD(data, exabit, exabits, Eb, unit<std::ratio<1000>, petabits>)
 
-	UNIT_ADD_dimension_TRAIT(data)
+	UNIT_ADD_DIMENSION_TRAIT(data)
 #endif
 
 	//------------------------------
@@ -3657,7 +3666,7 @@ namespace units
 	/**
 	* @namespace	units::data_transfer_rate
 	* @brief		namespace for unit types and containers representing data values
-	* @details		The base unit for data is `bytes`, and the corresponding `base_unit` dimension is
+	* @details		The dimension for data is `bytes`, and the corresponding `dimension` dimension is
 	*				`data_unit`.
 	* @anchor		dataContainers
 	* @sa			See unit_t for more information on unit type containers.
@@ -3668,7 +3677,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bits_per_second, bits_per_second, bps, unit<std::ratio<1, 8>, bytes_per_second>)
 	UNIT_ADD(data_transfer_rate, exabits_per_second, exabits_per_second, Ebps, unit<std::ratio<1000>, petabits_per_second>)
 
-	UNIT_ADD_dimension_TRAIT(data_transfer_rate)
+	UNIT_ADD_DIMENSION_TRAIT(data_transfer_rate)
 #endif
 
 	//------------------------------
@@ -3721,7 +3730,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs>
 	UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 		UnitTypeLhs r(rhs);
 		return (lhs < r ? lhs : r);
 	}
@@ -3729,7 +3738,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs>
 	UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
 		UnitTypeLhs r(rhs);
 		return (lhs > r ? lhs : r);
 	}
@@ -3855,7 +3864,7 @@ namespace units
 		static_assert(traits::is_dimensionless_unit_v<decltype(y/x)>, "The quantity y/x must yield a dimensionless ratio.");
 
 		// X and Y could be different length units, so normalize them
-		return angle::radian_t(std::atan2(y.template convert<typename units::traits::unit_t_traits<X>::unit_type>()(), x()));
+		return angle::radian_t(std::atan2(y.template convert<typename units::traits::unit_traits<X>::unit_type>()(), x()));
 	}
 #endif
 
@@ -4120,9 +4129,9 @@ namespace units
 		*				unit type may have errors no larger than `1e-10`.
 		*/
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	inline auto sqrt(const UnitType& value) noexcept -> unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+	inline auto sqrt(const UnitType& value) noexcept -> unit_t<square_root<typename units::traits::unit_traits<UnitType>::unit_type>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
-		return unit_t<square_root<typename units::traits::unit_t_traits<UnitType>::unit_type>, typename units::traits::unit_t_traits<UnitType>::underlying_type, linear_scale>
+		return unit_t<square_root<typename units::traits::unit_traits<UnitType>::unit_type>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(std::sqrt(value()));
 	}
 
@@ -4138,8 +4147,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<units::traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline UnitTypeLhs hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
-		return UnitTypeLhs(std::hypot(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
+		return UnitTypeLhs(std::hypot(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
 	//----------------------------------
@@ -4183,8 +4192,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>>
 	UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmod() function are not compatible units.");
-		return UnitTypeLhs(std::fmod(numer(), denom.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmod() function are not compatible units.");
+		return UnitTypeLhs(std::fmod(numer(), denom.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
 	/**
@@ -4259,8 +4268,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>>
 	UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fdim() function are not compatible units.");
-		return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fdim() function are not compatible units.");
+		return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
 	/**
@@ -4276,8 +4285,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>>
 	UnitTypeLhs fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmax() function are not compatible units.");
-		return UnitTypeLhs(std::fmax(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmax() function are not compatible units.");
+		return UnitTypeLhs(std::fmax(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
 	/**
@@ -4294,8 +4303,8 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_t<UnitTypeLhs>::value && traits::is_unit_t<UnitTypeRhs>::value>>
 	UnitTypeLhs fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit_t<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmin() function are not compatible units.");
-		return UnitTypeLhs(std::fmin(x(), y.template convert<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type>()()));
+		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmin() function are not compatible units.");
+		return UnitTypeLhs(std::fmin(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
 	//----------------------------------
@@ -4342,7 +4351,7 @@ namespace units
 	auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept -> decltype(x * y)
 	{
 		using resultType = decltype(x * y);
-		static_assert(traits::is_convertible_unit_t<compound_unit<typename units::traits::unit_t_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_t_traits<UnitMultiply>::unit_type>, typename units::traits::unit_t_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit<compound_unit<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitMultiply>::unit_type>, typename units::traits::unit_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
 		return resultType(std::fma(x(), y(), resultType(z)()));
 	}
 }	// end namespace units
