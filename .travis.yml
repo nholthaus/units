@@ -12,38 +12,36 @@ cache:
 matrix:
   include:
     # gcc-7
-    os:
-      - linux
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-        packages:
-          - g++-7
-    env:
-      - MATRIX_EVAL="export CC=gcc-7 && export CXX=g++-7"
-      - COVERALLS_SERVICE_NAME=travis-ci
-      - secure: H8JjZT7juIz0CNHmV01gPLhTWPBjVV9RNCvSQtxtGxCn4y0GwsSFB7T3nFLw2cSYYjBNkcYsierIrPau68fV2B03cdr+9GnRM+eFFHbiLIzzvZoysfHTZvl2ElCLc96fS6bko++vPc7FQEdNAphvSKZSN05UbR5sFKtgeykViEEAdmFYPG+ZMex7Exq+2YUANjQxBVGhPQ4/t3FNhKc+ByvQzxlO8MfmxNVLUwJsW9W/wb0ruXl1CFc15bXBts/DBAn+voJpqvl7+1GtlvcahMiSbKBi0aiqihlAcohw6c6x7IYXFekO0cNcAhFNeF2VM6b2DBY8wFQ07K2o0tXKovBdSdxTSmmfAKlKyYXYdtI47vtF0mIcx08nkuPNEbzeWyPOgMxKd6Ffa9XMf2e9zN6+2XwjvoIb3SjPl0mz41pp0MRSSxkTQdifUfXQthMFYPPTq734O4J/aIpB4AygkqeGnZtg140erqSeUG2prVB4EekCZwPAqk/4LCA2VIGf+PtqrCZDFk0dRW1SXViz67/7GqyIu4dkOMitEOLtqjO09roQHK9TP/QuWtlGWtJ+oaANNK7D+ciCM3gP5FmH6Se/OrqyUgJN+LLI/wJscDSPgiXPXNs44d85tLdsbG+hzrvj0IaMR0anqT5pDqaHYlKRhfFHZbbJyQ+yeItWhk8=
-    branches:
-    except:
-      - gh-pages
-      - documentation
-  
-    # clang 5.0
-    os:
-      - linux
-    addons:
-      apt:
-        sources:
-          - llvm-toolchain-trusty-5.0
-        packages:
-          - clang-5.0
-    env:
-      - MATRIX_EVAL="export CC=clang-5.0 && export CXX=clang++-5.0"
-    branches:
-    except:
-      - gh-pages
-      - documentation
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - COVERALLS_SERVICE_NAME=travis-ci
+        - secure: H8JjZT7juIz0CNHmV01gPLhTWPBjVV9RNCvSQtxtGxCn4y0GwsSFB7T3nFLw2cSYYjBNkcYsierIrPau68fV2B03cdr+9GnRM+eFFHbiLIzzvZoysfHTZvl2ElCLc96fS6bko++vPc7FQEdNAphvSKZSN05UbR5sFKtgeykViEEAdmFYPG+ZMex7Exq+2YUANjQxBVGhPQ4/t3FNhKc+ByvQzxlO8MfmxNVLUwJsW9W/wb0ruXl1CFc15bXBts/DBAn+voJpqvl7+1GtlvcahMiSbKBi0aiqihlAcohw6c6x7IYXFekO0cNcAhFNeF2VM6b2DBY8wFQ07K2o0tXKovBdSdxTSmmfAKlKyYXYdtI47vtF0mIcx08nkuPNEbzeWyPOgMxKd6Ffa9XMf2e9zN6+2XwjvoIb3SjPl0mz41pp0MRSSxkTQdifUfXQthMFYPPTq734O4J/aIpB4AygkqeGnZtg140erqSeUG2prVB4EekCZwPAqk/4LCA2VIGf+PtqrCZDFk0dRW1SXViz67/7GqyIu4dkOMitEOLtqjO09roQHK9TP/QuWtlGWtJ+oaANNK7D+ciCM3gP5FmH6Se/OrqyUgJN+LLI/wJscDSPgiXPXNs44d85tLdsbG+hzrvj0IaMR0anqT5pDqaHYlKRhfFHZbbJyQ+yeItWhk8=
+      branches:
+      except:
+        - gh-pages
+        - documentation
+
+    # clang 5
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+      branches:
+      except:
+        - gh-pages
+        - documentation
 
 before_install:
     - eval "${MATRIX_EVAL}"
@@ -63,6 +61,7 @@ script:
   - cmake --build . --config Debug
   - cd .. && mkdir coverallsBuild && cd coverallsBuild
   - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
+
 after_success:
   - cd test
   - ctest -C Release -V

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 PROJECT(units LANGUAGES CXX)
-set(units_VERSION 2.3.1)
+set(units_VERSION 3.0.0)
 
 # cmake options
 OPTION(BUILD_TESTS "Build unit tests" ON)
