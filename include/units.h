@@ -2272,7 +2272,7 @@ namespace units
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_tag_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
+			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>), 
 			"parameters are not compatible units.");
 
 		lhs = lhs + rhs;
@@ -2283,7 +2283,7 @@ namespace units
 	inline unit_t<Units, T, NonLinearScale>& operator-=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>),
+			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>),
 			"parameters are not compatible units.");
 
 		lhs = lhs - rhs;
@@ -2293,7 +2293,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator*=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
+		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs * rhs;
@@ -2303,7 +2303,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator/=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
+		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs / rhs;
@@ -2577,7 +2577,7 @@ namespace units
 
 	/// Multiplication by a dimensionless unit for unit_t types with a linear scale.
 	template<class UnitTypeLhs, typename UnitTypeRhs,
-		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 	inline constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// the cast makes sure factors of PI are handled as expected
@@ -2586,7 +2586,7 @@ namespace units
 
 	/// Multiplication by a dimensionless unit for unit_t types with a linear scale.
 	template<class UnitTypeLhs, typename UnitTypeRhs,
-		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 		inline constexpr UnitTypeRhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// the cast makes sure factors of PI are handled as expected
@@ -2621,7 +2621,7 @@ namespace units
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit_t<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>>
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
@@ -2632,7 +2632,7 @@ namespace units
 
 	/// Division by a dimensionless unit for unit_t types with a linear scale
 	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, UnitTypeLhs>
+	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeLhs>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		return UnitTypeLhs(lhs() / static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
@@ -2640,7 +2640,7 @@ namespace units
 
 	/// Division of a dimensionless unit  by a unit_t type with a linear scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
 		return unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
@@ -2669,75 +2669,75 @@ namespace units
 	//	dimensionless COMPARISONS
 	//----------------------------------
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator==(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
 			detail::abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator==(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
 			detail::abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator!=(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return!(lhs == static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator!=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return !(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) == rhs);
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator>=(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return std::isgreaterequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator>=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return std::isgreaterequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator>(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return lhs > static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator>(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) > rhs;
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator<=(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return std::islessequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator<=(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return std::islessequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator<(const UNIT_LIB_DEFAULT_TYPE lhs, const Units& rhs) noexcept
 	{
 		return lhs < static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit<Units>::value>>
+	template<typename Units, class = std::enable_if_t<units::traits::is_dimensionless_unit_v<Units>>>
 	constexpr bool operator<(const Units& lhs, const UNIT_LIB_DEFAULT_TYPE rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) < rhs;
@@ -2853,7 +2853,7 @@ namespace units
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
+	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2861,7 +2861,7 @@ namespace units
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 	constexpr inline UnitTypeRhs operator+(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeRhs>::underlying_type;
@@ -2881,7 +2881,7 @@ namespace units
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
+	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2889,7 +2889,7 @@ namespace units
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
