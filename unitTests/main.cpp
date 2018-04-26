@@ -262,8 +262,8 @@ TEST_F(TypeTraits, has_same_scale)
 	EXPECT_TRUE((traits::has_same_scale_v<dB_t, dBW_t>));
 	EXPECT_FALSE((traits::has_same_scale_v<dB_t, dimensionless_t>));
 
-// 	EXPECT_TRUE((traits::has_same_scale_v<dB_t, dBW_t, dBW_t>));
-// 	EXPECT_FALSE((traits::has_same_scale_v<dB_t, dBW_t, meter_t>));
+ 	EXPECT_TRUE((traits::has_same_scale_v<dB_t, dBW_t, dBW_t>));
+ 	EXPECT_FALSE((traits::has_same_scale_v<dB_t, dBW_t, meter_t>));
 }
 
 TEST_F(TypeTraits, is_dimensionless_unit)

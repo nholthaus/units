@@ -2384,8 +2384,9 @@ namespace units
 		 * @tparam		T1	left hand type.
 		 * @tparam		T2	right hand type
 		 */
-		template<typename T1, typename T2>
-		struct has_same_scale : std::bool_constant<std::is_same_v<typename units::traits::unit_traits<T1>::non_linear_scale_type, typename units::traits::unit_traits<T2>::non_linear_scale_type>>{};
+
+		template<typename T, typename... Ts>
+		using has_same_scale = std::conjunction<std::is_same<typename units::traits::unit_traits<T>::non_linear_scale_type, typename units::traits::unit_traits<Ts>::non_linear_scale_type>...>;
 
 		template<typename... T>
 		inline constexpr bool has_same_scale_v = has_same_scale<T...>::value;
