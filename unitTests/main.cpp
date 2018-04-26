@@ -2707,8 +2707,8 @@ TEST_F(UnitMath, atan2)
 	EXPECT_NEAR(angle::degree_t(45).to<double>(), angle::degree_t(atan2(dimensionless(2), dimensionless(2))).to<double>(), 5.0e-12);
 
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(dimensionless(1), dimensionless(1)))>::type>));
-	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 6).to<double>(), atan2(dimensionless(1), dimensionless(sqrt(3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t(30).to<double>(), angle::degree_t(atan2(dimensionless(1), dimensionless(sqrt(3)))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 6).to<double>(), atan2(dimensionless(1), sqrt(dimensionless(3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(30).to<double>(), angle::degree_t(atan2(dimensionless(1), sqrt(dimensionless(3)))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, cosh)

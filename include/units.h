@@ -318,9 +318,9 @@ namespace literals\
 		{\
 			template<typename T> struct is_ ## unitdimension ## _unit_impl : std::false_type {};\
 			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit_conversion<C, U, P, T>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_conversion_traits<units::unit_conversion<C, U, P, T>>::dimension_type>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit_conversion<C, U, P, T>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_conversion_traits<units::unit_conversion<C, U, P, T>>::dimension_type>, units::dimension::unitdimension>::type {};\
 			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit<U, S, N>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_traits<units::unit<U, S, N>>::unit_conversion>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit<U, S, N>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_traits<units::unit<U, S, N>>::unit_conversion>, units::dimension::unitdimension>::type {};\
 		}\
 		/** @endcond */\
 	}
@@ -551,7 +551,7 @@ namespace units
 		using is_ratio = std::conjunction<has_num<T>, has_den<T>>;
 
 		template<class T>
-		inline constexpr bool is_ratio_v = typename is_ratio<T>::value;
+		inline constexpr bool is_ratio_v = is_ratio<T>::value;
 	}
 
 	//------------------------------
@@ -639,7 +639,7 @@ namespace units
 		using is_dimension = std::is_base_of<units::detail::_dimension_t, T>;
 
 		template<class T>
-		inline constexpr bool is_dimension_v = typename is_dimension<T>::value;
+		inline constexpr bool is_dimension_v = is_dimension<T>::value;
 
 		/**
 		 * @ingroup		TypeTraits
@@ -651,7 +651,7 @@ namespace units
 		using is_unit_conversion = typename std::is_base_of<units::detail::_unit_conversion, T>::type;
 
 		template<class T>
-		inline constexpr bool is_unit_conversion_v = typename is_unit_conversion<T>::value;
+		inline constexpr bool is_unit_conversion_v = is_unit_conversion<T>::value;
 	}
 
 	/** @} */ // end of TypeTraits
@@ -1568,31 +1568,45 @@ namespace units
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 
-		static constexpr bool isSame				= std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>;
-		static constexpr bool piRequired			= !std::is_same_v<std::ratio<0>, PiRatio>;
-		static constexpr bool constexprPiInNum		= piRequired && (PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0);
-		static constexpr bool constexprPiInDen		= piRequired && (PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0);
-		static constexpr bool nonConstexprPi		= piRequired && (PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1);
-		static constexpr bool translationRequired	= !std::is_same_v<std::ratio<0>, Translation>;
-
-		if constexpr(isSame)
-			return value;
-		else if constexpr(piRequired && !translationRequired)
+		// same exact unit on both sides
+		if constexpr(std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>)
 		{
-			if constexpr(constexprPiInNum)
-				return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
-			else if constexpr(constexprPiInDen)
-				return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
-			else if constexpr(nonConstexprPi)
-				// this case isn't actually constexpr
-				return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
+			return value;
 		}
-		else if constexpr(!piRequired && translationRequired)
+		// PI REQUIRED, no translation
+		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !!std::is_same_v<std::ratio<0>, Translation>)
+		{
+			// constexpr pi in numerator
+			if constexpr(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
+			{
+				return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
+			}
+			// constexpr pi in denominator
+			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
+			{
+				return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
+			}
+			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
+			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
+			{
+				return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
+			}
+		}
+		// Translation required, no pi variable
+		else if constexpr(!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		{
 			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
-		else if constexpr(piRequired && translationRequired)
+		}
+		// pi and translation needed
+		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		{
 			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
-		else constexpr
+		}
+		// normal conversion between two different units
+		else
+		{
 			return ((value * Ratio::num) / Ratio::den);
+		}
 	}
 
 	//----------------------------------
@@ -1628,7 +1642,7 @@ namespace units
 		using has_operator_parenthesis = typename traits::detail::has_operator_parenthesis_impl<T, Ret>::type;
 
 		template<class T, class Ret>
-		inline constexpr bool has_operator_parenthesis_v = typename has_operator_parenthesis<T, Ret>::value;
+		inline constexpr bool has_operator_parenthesis_v = has_operator_parenthesis<T, Ret>::value;
 	}
 
 	namespace traits
@@ -1659,7 +1673,7 @@ namespace units
 		using has_value_member = typename traits::detail::has_value_member_impl<T, Ret>::type;
 
 		template<class T, class Ret>
-		inline constexpr bool has_value_member_v = typename has_value_member<T, Ret>::value;
+		inline constexpr bool has_value_member_v = has_value_member<T, Ret>::value;
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
@@ -1901,7 +1915,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<UnitType> && std::is_arithmetic_v<Ty>>::type>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic_v<Ty>>>
 		inline constexpr unit(const Ty value) noexcept : nls(value) 
 		{
 
@@ -1948,7 +1962,7 @@ namespace units
 		* @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<UnitType> && std::is_arithmetic_v<Ty>>>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic_v<Ty>>>
 		inline unit& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
@@ -2166,7 +2180,7 @@ namespace units
 	//-----------------------------------------
 
 	template<class D, class E>
-	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>& obj) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>&) noexcept
 	{
 		if constexpr(E::num != 0)os << ' ' << D::abbreviation;
 		if constexpr(E::num != 0 && E::num != 1) { os << "^" << E::num; }
@@ -2174,13 +2188,13 @@ namespace units
 		return os;
 	}
 
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>& obj) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>&) noexcept
 	{
 		return os;
 	}
 
 	template<class Dim, class... Dims>
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>& obj) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&) noexcept
 	{
 		os << Dim{};
 		os << dimension_t<Dims...>{};
@@ -2207,7 +2221,7 @@ namespace units
 	inline unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_conversion_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>), 
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
 			"parameters are not compatible units.");
 
 		lhs = lhs + rhs;
@@ -2218,7 +2232,7 @@ namespace units
 	inline unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit_v<decltype(lhs)> && std::is_arithmetic_v<RhsType>),
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>),
 			"parameters are not compatible units.");
 
 		lhs = lhs - rhs;
@@ -2228,7 +2242,7 @@ namespace units
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs * rhs;
@@ -2238,7 +2252,7 @@ namespace units
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit_v<RhsType> || std::is_arithmetic_v<RhsType>),
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs / rhs;
@@ -2364,9 +2378,8 @@ namespace units
 		 * @tparam		T1	left hand type.
 		 * @tparam		T2	right hand type
 		 */
-
-		template<typename T, typename... Ts>
-		using has_same_scale = std::conjunction<std::is_same<typename units::traits::unit_traits<T>::non_linear_scale_type, typename units::traits::unit_traits<Ts>::non_linear_scale_type>...>;
+		template <class T, class... Ts>
+		struct has_same_scale : std::conjunction<std::is_same<typename units::traits::unit_traits<T>::non_linear_scale_type, typename units::traits::unit_traits<Ts>::non_linear_scale_type>...> {};
 
 		template<typename... T>
 		inline constexpr bool has_same_scale_v = has_same_scale<T...>::value;
