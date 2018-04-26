@@ -318,9 +318,9 @@ namespace literals\
 		{\
 			template<typename T> struct is_ ## unitdimension ## _unit_impl : std::false_type {};\
 			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit_conversion<C, U, P, T>> : std::is_same<units::traits::dimension_of<typename units::traits::unit_conversion_traits<units::unit_conversion<C, U, P, T>>::dimension_type>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit_conversion<C, U, P, T>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_conversion_traits<units::unit_conversion<C, U, P, T>>::dimension_type>, units::dimension::unitdimension ## >::type {};\
 			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit<U, S, N>> : std::is_same<units::traits::dimension_of<typename units::traits::unit_traits<units::unit<U, S, N>>::unit_conversion>, units::dimension::unitdimension ## >::type {};\
+			struct is_ ## unitdimension ## _unit_impl<units::unit<U, S, N>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_traits<units::unit<U, S, N>>::unit_conversion>, units::dimension::unitdimension ## >::type {};\
 		}\
 		/** @endcond */\
 	}
@@ -574,7 +574,7 @@ namespace units
 		template<class T>
 		struct unit_conversion_traits
 		{
-			typedef typename T::dimension_type dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			typedef typename T::dimension_type dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
 			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
 			typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
 			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
@@ -601,7 +601,7 @@ namespace units
 			typename T::pi_exponent_ratio,
 			typename T::translation_ratio>>
 		{
-			using dimension_type = typename T::dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			using dimension_type = typename T::dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
 			using conversion_ratio = typename T::conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
 			using pi_exponent_ratio = typename T::pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
 			using translation_ratio = typename T::translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
@@ -844,55 +844,55 @@ namespace units
 		struct length_tag
 		{
 			static constexpr const char* const name = "length";
-			static constexpr const char* const dimension = "m";
+			static constexpr const char* const abbreviation = "m";
 		};
 
 		struct mass_tag
 		{
 			static constexpr const char* const name = "mass";
-			static constexpr const char* const dimension = "kg";
+			static constexpr const char* const abbreviation = "kg";
 		};
 
 		struct time_tag
 		{
 			static constexpr const char* const name = "time";
-			static constexpr const char* const dimension = "s";
+			static constexpr const char* const abbreviation = "s";
 		};
 
 		struct current_tag
 		{
 			static constexpr const char* const name = "current";
-			static constexpr const char* const dimension = "A";
+			static constexpr const char* const abbreviation = "A";
 		};
 
 		struct temperature_tag
 		{
 			static constexpr const char* const name = "temperature";
-			static constexpr const char* const dimension = "K";
+			static constexpr const char* const abbreviation = "K";
 		};
 
 		struct substance_tag
 		{
 			static constexpr const char* const name = "amount of substance";
-			static constexpr const char* const dimension = "mol";
+			static constexpr const char* const abbreviation = "mol";
 		};
 
 		struct luminous_intensity_tag
 		{
 			static constexpr const char* const name = "luminous intensity";
-			static constexpr const char* const dimension = "cd";
+			static constexpr const char* const abbreviation = "cd";
 		};
 
 		struct angle_tag
 		{
 			static constexpr const char* const name = "angle";
-			static constexpr const char* const dimension = "rad";
+			static constexpr const char* const abbreviation = "rad";
 		};
 
 		struct data_tag
 		{
 			static constexpr const char* const name = "data";
-			static constexpr const char* const dimension = "byte";
+			static constexpr const char* const abbreviation = "byte";
 		};
 
 		// SI BASE UNITS
@@ -956,12 +956,51 @@ namespace units
 		static_assert(traits::is_ratio_v<PiExponent>, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 		static_assert(traits::is_ratio_v<Translation>, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
-		using dimension_type = typename units::dimension_t<Exponents...>;
+		using dimension_type = units::dimension_t<Exponents...>;
 		using conversion_ratio = Conversion;
 		using translation_ratio = Translation;
 		using pi_exponent_ratio = PiExponent;
 	};
 	/** @endcond */	// END DOXYGEN IGNORE
+
+					/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		* @brief		dimension_of_t trait implementation
+		* @details		recursively seeks dimension type that a unit is derived from. Since units can be
+		*				derived from other units, the `dimension_type` typedef may not represent this value.
+		*/
+		template<class> struct dimension_of_impl;
+
+		template<class Conversion, class BaseUnit, class PiExponent, class Translation>
+		struct dimension_of_impl<unit_conversion<Conversion, BaseUnit, PiExponent, Translation>> : dimension_of_impl<BaseUnit> {};
+
+		template<class... Exponents>
+		struct dimension_of_impl<dimension_t<Exponents...>>
+		{
+			using type = dimension_t<Exponents...>;
+		};
+
+		template<>
+		struct dimension_of_impl<void>
+		{
+			using type = void;
+		};
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	namespace traits
+	{
+		/**
+		* @brief		Trait which returns the `dimension` type that a unit is originally derived from.
+		* @details		Since units can be derived from other `unit` types in addition to `dimension` types,
+		*				the `dimension_type` typedef will not always be a `dimension` (or unit dimension).
+		*				Since compatible
+		*/
+		template<class U>
+		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
+	}
 
 	/**
 	 * @brief		Type representing an arbitrary unit.
@@ -978,62 +1017,22 @@ namespace units
 	 *				of `unit`, i.e. `using meters = unit<std::ratio<1>, units::dimension::length`, or
 	 *				`using inches = unit<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
-	 * @tparam		Dimension	Unit type which this unit is derived from. May be a `dimension`, or another `unit`.
+	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension`, or another `unit_conversion`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
-	template<class Conversion, class Dimension, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
+	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit_conversion : units::detail::_unit_conversion
 	{
-		static_assert(traits::is_unit_conversion_v<Dimension>, "Template parameter `Dimension` must be a `unit` type.");
-		static_assert(traits::is_ratio_v<Conversion>, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `Dimension`.");
+		static_assert(traits::is_unit_conversion_v<BaseUnit>, "Template parameter `BaseUnit` must be a `unit_conversion` type.");
+		static_assert(traits::is_ratio_v<Conversion>, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
 		static_assert(traits::is_ratio_v<PiExponent>, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
-		using dimension_type = typename units::traits::unit_conversion_traits<Dimension>::dimension_type;
-		using conversion_ratio = typename std::ratio_multiply<typename Dimension::conversion_ratio, Conversion>;
-		using pi_exponent_ratio = typename std::ratio_add<typename Dimension::pi_exponent_ratio, PiExponent>;
-		using translation_ratio = typename std::ratio_add<std::ratio_multiply<typename Dimension::conversion_ratio, Translation>, typename Dimension::translation_ratio>;
+		using dimension_type = units::traits::dimension_of_t<BaseUnit>;
+		using conversion_ratio = typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion>;
+		using pi_exponent_ratio = typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent>;
+		using translation_ratio = typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio>;
 	};
-
-	//------------------------------
-	//	BASE UNIT MANIPULATORS
-	//------------------------------
-
-	/** @cond */	// DOXYGEN IGNORE
-	namespace detail
-	{
-		/**
-		 * @brief		dimension_of trait implementation
-		 * @details		recursively seeks dimension type that a unit is derived from. Since units can be
-		 *				derived from other units, the `dimension_type` typedef may not represent this value.
-		 */
-		template<class> struct dimension_of_impl;
-		template<class Conversion, class Dimension, class PiExponent, class Translation>
-		struct dimension_of_impl<unit_conversion<Conversion, Dimension, PiExponent, Translation>> : dimension_of_impl<Dimension> {};
-		template<class... Exponents>
-		struct dimension_of_impl<dimension_t<Exponents...>>
-		{
-			using type = dimension_t<Exponents...>;
-		};
-		template<>
-		struct dimension_of_impl<void>
-		{
-			using type = void;
-		};
-	}
-	/** @endcond */	// END DOXYGEN IGNORE
-
-	namespace traits
-	{
-		/**
-		 * @brief		Trait which returns the `dimension` type that a unit is originally derived from.
-		 * @details		Since units can be derived from other `unit` types in addition to `dimension` types,
-		 *				the `dimension_type` typedef will not always be a `dimension` (or unit dimension).
-		 *				Since compatible
-		 */
-		template<class U>
-		using dimension_of = typename units::detail::dimension_of_impl<U>::type;
-	}
 
 	//------------------------------
 	//	UNIT MANIPULATORS
@@ -1052,7 +1051,7 @@ namespace units
 		struct unit_multiply_impl
 		{
 			using type = unit_conversion < std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_multiply<traits::dimension_of<typename Unit1::dimension_type>, traits::dimension_of<typename Unit2::dimension_type>>,
+				dimension_multiply<traits::dimension_of_t<typename Unit1::dimension_type>, traits::dimension_of_t<typename Unit2::dimension_type>>,
 				std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
 				std::ratio < 0 >> ;
 		};
@@ -1074,7 +1073,7 @@ namespace units
 		struct unit_divide_impl
 		{
 			using type = unit_conversion < std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_divide<traits::dimension_of<typename Unit1::dimension_type>, traits::dimension_of<typename Unit2::dimension_type>>,
+				dimension_divide<traits::dimension_of_t<typename Unit1::dimension_type>, traits::dimension_of_t<typename Unit2::dimension_type>>,
 				std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>,
 				std::ratio < 0 >> ;
 		};
@@ -1096,7 +1095,7 @@ namespace units
 		struct inverse_impl
 		{
 			using type = unit_conversion < std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
-				dimension_pow<traits::dimension_of<typename units::traits::unit_conversion_traits<Unit>::dimension_type>, std::ratio<-1>>,
+				dimension_pow<traits::dimension_of_t<typename units::traits::unit_conversion_traits<Unit>::dimension_type>, std::ratio<-1>>,
 				std::ratio_multiply<typename units::traits::unit_conversion_traits<Unit>::pi_exponent_ratio, std::ratio<-1>>,
 				std::ratio < 0 >> ;	// inverses are rates or change, the translation factor goes away.
 		};
@@ -1125,7 +1124,7 @@ namespace units
 			static_assert(traits::is_unit_conversion<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit_conversion < std::ratio_multiply<Conversion, Conversion>,
-				dimension_pow<traits::dimension_of<typename Unit::dimension_type>, std::ratio<2>>,
+				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 				typename Unit::translation_ratio
 			> ;
@@ -1156,7 +1155,7 @@ namespace units
 			static_assert(traits::is_unit_conversion<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit_conversion < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-				dimension_pow<traits::dimension_of<typename Unit::dimension_type>, std::ratio<3>>,
+				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<3>>,
 				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>,
 				typename Unit::translation_ratio> ;
 		};
@@ -1347,7 +1346,7 @@ namespace units
 			static_assert(traits::is_unit_conversion_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit_conversion <ratio_sqrt<Conversion, Eps>,
-				dimension_root<traits::dimension_of<typename Unit::dimension_type>, std::ratio<2>>,
+				dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
 				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>,
 				typename Unit::translation_ratio>;
 		};
@@ -1503,8 +1502,8 @@ namespace units
 		 * @sa			is_convertible_unit
 		 */
 		template<class U1, class U2>
-		struct is_convertible_unit_conversion : std::is_same <traits::dimension_of<typename units::traits::unit_conversion_traits<U1>::dimension_type>,
-			dimension_of<typename units::traits::unit_conversion_traits<U2>::dimension_type >> {};
+		struct is_convertible_unit_conversion : std::is_same <traits::dimension_of_t<typename units::traits::unit_conversion_traits<U1>::dimension_type>,
+			dimension_of_t<typename units::traits::unit_conversion_traits<U2>::dimension_type >> {};
 
 		template<class U1, class U2>
 		inline constexpr bool is_convertible_unit_conversion_v = is_convertible_unit_conversion<U1, U2>::value;
@@ -2161,72 +2160,44 @@ namespace units
 	}
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+
+	//-----------------------------------------
+	//	OSTREAM OPERATOR FOR EPHEMERAL UNITS
+	//-----------------------------------------
+
+	template<class D, class E>
+	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>& obj) noexcept
+	{
+		if constexpr(E::num != 0)os << ' ' << D::abbreviation;
+		if constexpr(E::num != 0 && E::num != 1) { os << "^" << E::num; }
+		if constexpr(E::den != 1) { os << "/" << E::den; }
+		return os;
+	}
+
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>& obj) noexcept
+	{
+		return os;
+	}
+
+	template<class Dim, class... Dims>
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>& obj) noexcept
+	{
+		os << Dim{};
+		os << dimension_t<Dims...>{};
+		return os;
+	}
+
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj) noexcept
 	{
-	// 	using d = typename traits::unit_conversion_traits<typename traits::unit_traits<decltype(a)>::unit_type>::dimension_type;
-	// 	using d_1 = d::front;
-	// 	using d_1_0 = d_1::dimension;
-	// 	d_1_0 b;
-	// 	std::cout << d_1_0::dimension;
+		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
+		os << convert<UnitConversion, BaseUnit>(obj());
 
-		using d = typename traits::unit_conversion_traits<typename traits::unit_traits<decltype(obj)>::unit_conversion>::dimension_type;
-// 		if constexpr(!d::empty)
-// 		{
-// //			using d_1 = typename d::front;
-// 			os << decltype(d);
-// 		}
-
-
-
-		os << typeid(obj).name();
- 		using Dimensions = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-// 		os << convert<UnitConversion, Dimensions>(obj());
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 0) { os << " m"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 0 && 
-// 			traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::den != 1) { os << "/"   << traits::unit_traits<UnitConversion>::dimension_type::meter_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 0) { os << " kg"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::kilogram_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 0) { os << " s"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::second_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::second_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::second_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 0) { os << " A"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::ampere_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 0) { os << " K"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::kelvin_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 0) { os << " mol"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 0 && 
-// 			traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::mole_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 0) { os << " cd"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::candela_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 0) { os << " rad"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::radian_ratio::den; }
-// 
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 0) { os << " b"; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 0 &&
-// 			traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num != 1) { os << "^" << traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::num; }
-// 		if (traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::den != 1) { os << "/" << traits::unit_traits<UnitConversion>::dimension_type::byte_ratio::den; }
+		using DimType = typename traits::dimension_of_t<UnitConversion>;
+		if constexpr(!DimType::empty)
+		{
+			os << DimType{};
+		}
 
 		return os;
 	}

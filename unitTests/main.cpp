@@ -222,10 +222,17 @@ TEST_F(TypeTraits, inverse)
 
 TEST_F(TypeTraits, dimension_of)
 {
-	using base = traits::dimension_of<years>;
-	bool shouldBeTrue = std::is_same_v<base, dimension::time>;
+	using dim = traits::dimension_of_t<years>;
 
-	EXPECT_TRUE(shouldBeTrue);
+	EXPECT_TRUE((std::is_same_v<dim, dimension::time>));
+	EXPECT_FALSE((std::is_same_v<dim, dimension::length>));
+	EXPECT_FALSE((std::is_same_v<dim, units::time::days>));
+
+	using dim2 = typename traits::unit_conversion_traits<typename traits::unit_traits<decltype(meters_per_second_t(5)) > ::unit_conversion > ::dimension_type;
+
+	EXPECT_TRUE((std::is_same_v<dim2, dimension::velocity>));
+	EXPECT_FALSE((std::is_same_v<dim2, dimension::time>));
+	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::mph>));
 }
 
 TEST_F(TypeTraits, has_linear_scale)
@@ -1312,83 +1319,77 @@ TEST_F(UnitContainer, convertMethod)
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
-// 	using d = typename traits::unit_conversion_traits<typename traits::unit_traits<decltype(a)>::unit_type>::dimension_type;
-// 	using d_1 = d::front;
-// 	using d_1_0 = d_1::dimension;
-// 	d_1_0 b;
-// 	std::cout << d_1_0::dimension;
-
 	testing::internal::CaptureStdout();
 	std::cout << meters_per_second_t(5);
 	std::string output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("5 m s^-1", output.c_str());
+	EXPECT_STREQ("5 mps", output.c_str());
 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << degree_t(349.87);
-// 	std::string output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("349.87 deg", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << meter_t(1.0);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("1 m", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << dB_t(31.0);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("31 dB", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << volt_t(21.79);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("21.79 V", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << dBW_t(12.0);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("12 dBW", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << dBm_t(120.0);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("120 dBm", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << miles_per_hour_t(72.1);
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("72.1 mph", output.c_str());
-// 
-// 	// undefined unit
-// 	testing::internal::CaptureStdout();
-// 	std::cout << cpow<4>(meter_t(2));
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("16 m^4", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << cpow<3>(foot_t(2));
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("8 cu_ft", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << std::setprecision(9) << cpow<4>(foot_t(2));
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("0.138095597 m^4", output.c_str());
-// 
-// 	// constants
-// 	testing::internal::CaptureStdout();
-// 	std::cout << std::setprecision(8) << constants::k_B;
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << std::setprecision(9) << constants::mu_B;
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
-// 
-// 	testing::internal::CaptureStdout();
-// 	std::cout << std::setprecision(7) << constants::sigma;
-// 	output = testing::internal::GetCapturedStdout();
-// 	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
+	testing::internal::CaptureStdout();
+	std::cout << degree_t(349.87);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("349.87 deg", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << meter_t(1.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1 m", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << dB_t(31.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("31 dB", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << volt_t(21.79);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("21.79 V", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << dBW_t(12.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("12 dBW", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << dBm_t(120.0);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("120 dBm", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << miles_per_hour_t(72.1);
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("72.1 mph", output.c_str());
+
+	// undefined unit
+	testing::internal::CaptureStdout();
+	std::cout << pow<4>(meter_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("16 m^4", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << pow<3>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("8 cu_ft", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << pow<4>(foot_t(2));
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("0.138095597 m^4", output.c_str());
+
+	// constants
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(8) << constants::k_B;
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("1.3806485e-23 m^2 kg K^-1 s^-2", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(9) << constants::mu_B;
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("9.27400999e-24 A m^2", output.c_str());
+
+	testing::internal::CaptureStdout();
+	std::cout << std::setprecision(7) << constants::sigma;
+	output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("5.670367e-08 kg K^-4 s^-3", output.c_str());
 }
 
 TEST_F(UnitContainer, to_string)
@@ -1722,6 +1723,7 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(365.25, test, 5.0e-14);
 	test = convert<gregorian_years, days>(1.0);
 	EXPECT_NEAR(365.2425, test, 5.0e-14);
+
 }
 
 TEST_F(UnitConversion, angle)
@@ -1825,7 +1827,7 @@ TEST_F(UnitConversion, solid_angle)
 	double test;
 	bool same;
 
-	same = std::is_same_v<traits::dimension_of<steradians>, traits::dimension_of<degrees_squared>>;
+	same = std::is_same_v<traits::dimension_of_t<steradians>, traits::dimension_of_t<degrees_squared>>;
 	EXPECT_TRUE(same);
 
 	test = convert<steradians, steradians>(72.0);

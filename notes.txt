@@ -7,3 +7,4 @@
 - unit_t renamed to unit
 - C++17 required
 - cpow is now `pow`
+- added constexpr sqrt function
