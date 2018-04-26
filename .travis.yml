@@ -13,6 +13,8 @@ matrix:
   # gcc-7
   os:
     - linux
+  compiler:
+    - gcc
   addons:
     apt:
       sources:
@@ -31,6 +33,8 @@ matrix:
   # clang 5.0
   os:
     - linux
+  compiler:
+    - clang
   addons:
     apt:
       sources:
