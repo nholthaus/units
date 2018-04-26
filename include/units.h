@@ -2062,16 +2062,18 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, int> = 0>
-		inline constexpr bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
+		operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
 				detail::abs(nls::m_value + units::convert<UnitsRhs, Units>(rhs.m_value)) ||
 				detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::min();
 		}
 
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, int> = 0>
-		inline constexpr bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
+		operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return nls::m_value == units::convert<UnitsRhs, Units>(rhs.m_value);
 		}
@@ -2102,7 +2104,7 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit converted to an arithmetic, non-safe type.
 		 */
-		template<typename Ty, class = std::enable_if_t<std::is_arithmetic<Ty>::value>>
+		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
 		inline constexpr Ty to() const noexcept
 		{
 			return static_cast<Ty>(*this);
@@ -2113,7 +2115,7 @@ namespace units
 		 * @returns		linearized value of unit which has a non-linear scale. For `unit_t` types with
 		 *				linear scales, this is equivalent to `value`.
 		 */
-		template<typename Ty, class = std::enable_if_t<std::is_arithmetic<Ty>::value>>
+		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
 		inline constexpr Ty toLinearized() const noexcept
 		{
 			return static_cast<Ty>(m_value);
@@ -2131,7 +2133,7 @@ namespace units
 		template<class U>
 		inline constexpr unit_t<U> convert() const noexcept
 		{
-			static_assert(traits::is_unit_tag<U>::value, "Template parameter `U` must be a unit type.");
+			static_assert(traits::is_unit_tag_v<U>, "Template parameter `U` must be a unit tag type.");
 			return unit_t<U>(*this);
 		}
 
@@ -2202,11 +2204,10 @@ namespace units
 	 * @tparam		Ty		Arithmetic type.
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
-	template<class UnitType, typename T, class = std::enable_if_t<std::is_arithmetic<T>::value>>
+	template<class UnitType, typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
 	inline constexpr UnitType make_unit(const T value) noexcept
 	{
-		static_assert(traits::is_unit<UnitType>::value, "Template parameter `UnitType` must be a unit type.");
-		
+		static_assert(traits::is_unit_v<UnitType>, "Template parameter `UnitType` must be a unit type.");		
 		return UnitType(value);
 	}
 
@@ -2271,7 +2272,7 @@ namespace units
 	inline unit_t<Units, T, NonLinearScale>& operator+=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_tag_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value), 
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
 			"parameters are not compatible units.");
 
 		lhs = lhs + rhs;
@@ -2281,8 +2282,8 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator-=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit<unit_t<Units, T, NonLinearScale>, RhsType>::value ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic<RhsType>::value),
+		static_assert(traits::is_convertible_unit_v<unit_t<Units, T, NonLinearScale>, RhsType> ||
+			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>),
 			"parameters are not compatible units.");
 
 		lhs = lhs - rhs;
@@ -2292,7 +2293,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator*=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic<RhsType>::value),
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs * rhs;
@@ -2302,7 +2303,7 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline unit_t<Units, T, NonLinearScale>& operator/=(unit_t<Units, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic<RhsType>::value),
+		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs / rhs;
@@ -2378,7 +2379,7 @@ namespace units
 	 * @param		value	Unit value to cast.
 	 * @sa			unit_t::to
 	 */
-	template<typename T, typename Units, class = std::enable_if_t<std::is_arithmetic<T>::value && traits::is_unit<Units>::value>>
+	template<typename T, typename Units, class = std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<Units>>>
 	inline constexpr T unit_cast(const Units& value) noexcept
 	{
 		return static_cast<T>(value);
@@ -2492,16 +2493,18 @@ namespace units
 	//	LINEAR ARITHMETIC
 	//------------------------------
 
-	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<!traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
-	constexpr inline int operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
+	template<class UnitTypeLhs, class UnitTypeRhs>
+	constexpr inline std::enable_if_t<!traits::is_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
+	operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
 	{
-		static_assert(traits::is_same_scale<UnitTypeLhs, UnitTypeRhs>::value, "Cannot add units with different linear/non-linear scales.");
+		static_assert(traits::is_same_scale_v<UnitTypeLhs, UnitTypeRhs>, "Cannot add units with different linear/non-linear scales.");
 		return 0;
 	}
 
 	/// Addition operator for unit_t types with a linear_scale.
-	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	inline constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	template<class UnitTypeLhs, class UnitTypeRhs>
+	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs>
+	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2509,22 +2512,25 @@ namespace units
 	}
 
 	/// Addition operator for dimensionless unit_t types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-	inline constexpr dimensionless_t operator+(const dimensionless_t& lhs, T rhs) noexcept
+	template<typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless_t>
+	operator+(const dimensionless_t& lhs, T rhs) noexcept
 	{
 		return dimensionless_t(lhs() + rhs);
 	}
 
 	/// Addition operator for dimensionless unit_t types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-	inline constexpr dimensionless_t operator+(T lhs, const dimensionless_t& rhs) noexcept
+	template<typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless_t> 
+	operator+(T lhs, const dimensionless_t& rhs) noexcept
 	{
 		return dimensionless_t(lhs + rhs());
 	}
 
 	/// Subtraction operator for unit_t types with a linear_scale.
-	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	inline constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	template<class UnitTypeLhs, class UnitTypeRhs>
+	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs> 
+	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2532,23 +2538,25 @@ namespace units
 	}
 
 	/// Subtraction operator for dimensionless unit_t types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-	inline constexpr dimensionless_t operator-(const dimensionless_t& lhs, T rhs) noexcept
+	template<typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless_t>
+	operator-(const dimensionless_t& lhs, T rhs) noexcept
 	{
 		return dimensionless_t(lhs() - rhs);
 	}
 
 	/// Subtraction operator for dimensionless unit_t types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-	inline constexpr dimensionless_t operator-(T lhs, const dimensionless_t& rhs) noexcept
+	template<typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless_t> 
+	operator-(T lhs, const dimensionless_t& rhs) noexcept
 	{
 		return dimensionless_t(lhs - rhs());
 	}
 
 	/// Multiplication type for convertible unit_t types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>>
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>>
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2558,8 +2566,8 @@ namespace units
 	
 	/// Multiplication type for non-convertible unit_t types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
+		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2570,7 +2578,7 @@ namespace units
 	/// Multiplication by a dimensionless unit for unit_t types with a linear scale.
 	template<class UnitTypeLhs, typename UnitTypeRhs,
 		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	inline constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// the cast makes sure factors of PI are handled as expected
 		return UnitTypeLhs(lhs() * static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
@@ -2586,25 +2594,25 @@ namespace units
 	}
 
 	/// Multiplication by a dimensionless for unit_t types with a linear scale.
-	template<class UnitTypeLhs, typename T,
-		std::enable_if_t<std::is_arithmetic<T>::value && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
-		inline constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, T rhs) noexcept
+	template<class UnitTypeLhs, typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, UnitTypeLhs> 
+	operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		return UnitTypeLhs(lhs() * rhs);
 	}
 
 	/// Multiplication by a dimensionless for unit_t types with a linear scale.
-	template<class UnitTypeRhs, typename T,
-		std::enable_if_t<std::is_arithmetic<T>::value && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
-		inline constexpr UnitTypeRhs operator*(T lhs, const UnitTypeRhs& rhs) noexcept
+	template<class UnitTypeRhs, typename T>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, UnitTypeRhs> 
+	operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		return UnitTypeRhs(lhs * rhs());
 	}
 
 	/// Division for convertible unit_t types with a linear scale. @returns the lhs divided by rhs value, whose type is a dimensionless
-	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-		inline constexpr dimensionless_t operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	template<class UnitTypeLhs, class UnitTypeRhs>
+	inline constexpr std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, dimensionless_t> 
+	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2613,7 +2621,7 @@ namespace units
 
 	/// Division for non-convertible unit_t types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
 		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit_t<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>>
 	{
 		using UnitsLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
@@ -2623,9 +2631,9 @@ namespace units
 	}
 
 	/// Division by a dimensionless unit for unit_t types with a linear scale
-	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
-		inline constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	template<class UnitTypeLhs, class UnitTypeRhs>
+	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value && traits::is_dimensionless_unit<UnitTypeRhs>::value, UnitTypeLhs>
+	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		return UnitTypeLhs(lhs() / static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
@@ -2641,7 +2649,7 @@ namespace units
 
 	/// Division by a dimensionless for unit_t types with a linear scale
 	template<class UnitTypeLhs, typename T,
-		std::enable_if_t<std::is_arithmetic<T>::value && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
 		inline constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		return UnitTypeLhs(lhs() / rhs);
@@ -2649,7 +2657,7 @@ namespace units
 
 	/// Division of a dimensionless  by a unit_t type with a linear scale
 	template<class UnitTypeRhs, typename T,
-		std::enable_if_t<std::is_arithmetic<T>::value && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
 		inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>
 	{
 		using UnitsRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -2833,7 +2841,7 @@ namespace units
 
 	/// Addition for convertible unit_t types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
+		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
@@ -2845,7 +2853,7 @@ namespace units
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
+	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
 	constexpr inline UnitTypeLhs operator+(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2853,7 +2861,7 @@ namespace units
 	}
 
 	/// Addition between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
 	constexpr inline UnitTypeRhs operator+(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeRhs>::underlying_type;
@@ -2861,7 +2869,7 @@ namespace units
 	}
 
 	/// Subtraction for convertible unit_t types with a decibel_scale
-	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs, UnitTypeRhs>::value, int> = 0>
+	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnits = typename units::traits::unit_traits<UnitTypeLhs>::unit_type;
@@ -2873,7 +2881,7 @@ namespace units
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeLhs>::value && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
+	template<class UnitTypeLhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit<UnitTypeLhs>::value, int> = 0>
 	constexpr inline UnitTypeLhs operator-(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2881,7 +2889,7 @@ namespace units
 	}
 
 	/// Subtraction between unit_t types with a decibel_scale and dimensionless dB units
-	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale<UnitTypeRhs>::value && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
+	template<class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit<UnitTypeRhs>::value, int> = 0>
 	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_type>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using RhsUnits = typename units::traits::unit_traits<UnitTypeRhs>::unit_type;
@@ -3733,7 +3741,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs>
 	UnitTypeLhs min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Unit types are not compatible.");
 		UnitTypeLhs r(rhs);
 		return (lhs < r ? lhs : r);
 	}
@@ -3741,7 +3749,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs>
 	UnitTypeLhs max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Unit types are not compatible.");
 		UnitTypeLhs r(rhs);
 		return (lhs > r ? lhs : r);
 	}
@@ -3762,7 +3770,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t cos(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::cos(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -3779,7 +3787,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t sin(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::sin(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -3795,7 +3803,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t tan(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::tan(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -3887,7 +3895,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t cosh(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::cosh(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -3904,7 +3912,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t sinh(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::sinh(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -3921,7 +3929,7 @@ namespace units
 	template<class AngleUnit>
 	dimensionless_t tanh(const AngleUnit angle) noexcept
 	{
-		static_assert(traits::is_angle_unit<AngleUnit>::value, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
+		static_assert(traits::is_angle_unit_v<AngleUnit>, "Type `AngleUnit` must be a unit of angle derived from `unit_t`.");
 		return dimensionless_t(std::tanh(angle.template convert<angle::radian>()()));
 	}
 #endif
@@ -4150,7 +4158,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<units::traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline UnitTypeLhs hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of hypot() function are not compatible units.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Parameters of hypot() function are not compatible units.");
 		return UnitTypeLhs(std::hypot(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
@@ -4165,7 +4173,7 @@ namespace units
 		* @param[in]	x	Unit value to round up.
 		* @returns		The smallest integral value that is not less than x.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType ceil(const UnitType x) noexcept
 	{
 		return UnitType(std::ceil(x()));
@@ -4178,7 +4186,7 @@ namespace units
 		* @param[in]	x	Unit value to round down.
 		* @returns		The value of x rounded downward.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType floor(const UnitType x) noexcept
 	{
 		return UnitType(std::floor(x()));
@@ -4192,10 +4200,10 @@ namespace units
 		* @param[in]	denom	Value of the quotient denominator.
 		* @returns		The remainder of dividing the arguments.
 		*/
-	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitTypeRhs>::value>>
+	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
 	UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmod() function are not compatible units.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Parameters of fmod() function are not compatible units.");
 		return UnitTypeLhs(std::fmod(numer(), denom.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
@@ -4207,7 +4215,7 @@ namespace units
 		* @param[in]	x	Value to truncate
 		* @returns		The nearest integral value that is not larger in magnitude than x.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType trunc(const UnitType x) noexcept
 	{
 		return UnitType(std::trunc(x()));
@@ -4222,7 +4230,7 @@ namespace units
 		* @param[in]	x	value to round.
 		* @returns		The value of x rounded to the nearest integral.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType round(const UnitType x) noexcept
 	{
 		return UnitType(std::round(x()));
@@ -4241,14 +4249,14 @@ namespace units
 		* @param[in]	y	Value with the sign of the resulting value.
 		* @returns		value with the magnitude and dimension of x, and the sign of y.
 		*/
-	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitTypeRhs>::value>>
+	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
 	UnitTypeLhs copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return UnitTypeLhs(std::copysign(x(), y()));	// no need for conversion to get the correct sign.
 	}
 
 	/// Overload to copy the sign from a raw double
-	template<class UnitTypeLhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value>>
+	template<class UnitTypeLhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs>>>
 	UnitTypeLhs copysign(const UnitTypeLhs x, const UNIT_LIB_DEFAULT_TYPE y) noexcept
 	{
 		return UnitTypeLhs(std::copysign(x(), y));
@@ -4268,10 +4276,10 @@ namespace units
 		* @param[in]	y	Values whose difference is calculated.
 		* @returns		The positive difference between x and y.
 		*/
-	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitTypeRhs>::value>>
+	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
 	UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fdim() function are not compatible units.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Parameters of fdim() function are not compatible units.");
 		return UnitTypeLhs(std::fdim(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
@@ -4285,10 +4293,10 @@ namespace units
 		* @param[in]	y	Values among which the function selects a maximum.
 		* @returns		The maximum numeric value of its arguments.
 		*/
-	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitTypeRhs>::value>>
+	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
 	UnitTypeLhs fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmax() function are not compatible units.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Parameters of fmax() function are not compatible units.");
 		return UnitTypeLhs(std::fmax(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
@@ -4303,10 +4311,10 @@ namespace units
 		* @param[in]	y	Values among which the function selects a minimum.
 		* @returns		The minimum numeric value of its arguments.
 		*/
-	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitTypeRhs>::value>>
+	template<class UnitTypeLhs, class UnitTypeRhs, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
 	UnitTypeLhs fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		static_assert(traits::is_convertible_unit<UnitTypeLhs, UnitTypeRhs>::value, "Parameters of fmin() function are not compatible units.");
+		static_assert(traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, "Parameters of fmin() function are not compatible units.");
 		return UnitTypeLhs(std::fmin(x(), y.template convert<typename units::traits::unit_traits<UnitTypeLhs>::unit_type>()()));
 	}
 
@@ -4321,7 +4329,7 @@ namespace units
 		* @param[in]	x	Value whose absolute value is returned.
 		* @returns		The absolute value of x.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType fabs(const UnitType x) noexcept
 	{
 		return UnitType(std::fabs(x()));
@@ -4334,7 +4342,7 @@ namespace units
 		* @param[in]	x	Value whose absolute value is returned.
 		* @returns		The absolute value of x.
 		*/
-	template<class UnitType, class = std::enable_if_t<traits::is_unit<UnitType>::value>>
+	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
 	UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::fabs(x()));
@@ -4350,11 +4358,11 @@ namespace units
 		* @param[in]	z	Value to be added.
 		* @returns		The result of x*y+z
 		*/
-	template<class UnitTypeLhs, class UnitMultiply, class UnitAdd, class = std::enable_if_t<traits::is_unit<UnitTypeLhs>::value && traits::is_unit<UnitMultiply>::value && traits::is_unit<UnitAdd>::value>>
+	template<class UnitTypeLhs, class UnitMultiply, class UnitAdd, class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitMultiply> && traits::is_unit_v<UnitAdd>>>
 	auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept -> decltype(x * y)
 	{
 		using resultType = decltype(x * y);
-		static_assert(traits::is_convertible_unit<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitMultiply>::unit_type>, typename units::traits::unit_traits<UnitAdd>::unit_type>::value, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_v<compound_unit_tag<typename units::traits::unit_traits<UnitTypeLhs>::unit_type, typename units::traits::unit_traits<UnitMultiply>::unit_type>, typename units::traits::unit_traits<UnitAdd>::unit_type>, "Unit types are not compatible.");
 		return resultType(std::fma(x(), y(), resultType(z)()));
 	}
 }	// end namespace units
