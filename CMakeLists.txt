@@ -48,8 +48,8 @@ OPTION(ENABLE_PREDEFINED_DATA_UNITS "Enables library-defined units of DATA." OFF
 OPTION(ENABLE_PREDEFINED_DATA_UNITS "Enables library-defined units of DATA." OFF)
 OPTION(ENABLE_PREDEFINED_CONSTANTS_UNITS "Enables library-defined units of CONSTANTS." OFF)
 
-SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+SET(CMAKE_CXX_STANDARD 17)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
