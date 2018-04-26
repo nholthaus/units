@@ -55,17 +55,18 @@ install:
   - sudo apt-get install -y -qq lcov curl language-pack-de
   - pwd
   - ls
-  - if [[ ! -f "cmake-3.11.1-Linux-x86_64/bin/cmake" ]]; then wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.1-Linux-x86_64.tar.gz && tar -xvf cmake-3.11.1-Linux-x86_64.tar.gz; fi
-  
+  - pip install --upgrade cmake
+
 script:
   - eval "${MATRIX_EVAL}"
   - mkdir build && cd build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.11.1-Linux-x86_64/bin/cmake .. ;fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.11.1-Linux-x86_64/bin/cmake --build . --config Release ;fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.11.1-Linux-x86_64/bin/cmake --build . --config Debug ;fi
+  - cmake --version
+  - cmake ..
+  - cmake --build . --config Release
+  - cmake --build . --config Debug
   - cd .. && mkdir coverallsBuild && cd coverallsBuild
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../cmake-3.11.1-Linux-x86_64/bin/cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls ;fi
+  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
 after_success:
   - cd test
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ../../cmake-3.11.1-Linux-x86_64/bin/ctest -C Release -V ;fi
+  - ctest -C Release -V
 
