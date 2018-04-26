@@ -1710,10 +1710,10 @@ namespace units
 		template<typename T, typename = void>
 		struct unit_traits
 		{
-			using non_linear_scale_type = void;
-			using underlying_type = void;
-			using value_type = void;
-			using unit_tag = void;
+			using non_linear_scale_type	= void;
+			using underlying_type		= void;
+			using value_type			= void;
+			using unit_tag				= void;
 		};
 	
 		/**
@@ -1728,10 +1728,10 @@ namespace units
 			typename T::value_type,
 			typename T::unit_tag>>
 		{
-			using non_linear_scale_type = typename T::non_linear_scale_type;
-			using underlying_type = typename T::underlying_type;
-			using value_type = typename T::value_type;
-			using unit_tag = typename T::unit_tag;
+			using non_linear_scale_type	= typename T::non_linear_scale_type;
+			using underlying_type		= typename T::underlying_type;
+			using value_type			= typename T::value_type;
+			using unit_tag				= typename T::unit_tag;
 		};
 		/** @endcond */	// END DOXYGEN IGNORE
 	}
@@ -2334,8 +2334,9 @@ namespace units
 	 * @param		value	Unit value to cast.
 	 * @sa			unit_t::to
 	 */
-	template<typename T, typename Units, class = std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<Units>>>
-	inline constexpr T unit_cast(const Units& value) noexcept
+	template<typename T, typename Units>
+	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<Units>, T>
+	unit_cast(const Units& value) noexcept
 	{
 		return static_cast<T>(value);
 	}
