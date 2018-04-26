@@ -118,6 +118,12 @@ namespace {
 
 TEST_F(TypeTraits, isRatio)
 {
+	EXPECT_TRUE(traits::has_num_v<std::ratio<1>>);
+	EXPECT_FALSE(traits::has_num_v<double>);
+
+	EXPECT_TRUE(traits::has_den_v<std::ratio<1>>);
+	EXPECT_FALSE(traits::has_den_v<double>);
+
 	EXPECT_TRUE(traits::is_ratio_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_ratio_v<double>);
 }
@@ -1293,72 +1299,83 @@ TEST_F(UnitContainer, convertMethod)
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitContainer, cout)
 {
+// 	using d = typename traits::unit_tag_traits<typename traits::unit_traits<decltype(a)>::unit_type>::dimension_type;
+// 	using d_1 = d::front;
+// 	using d_1_0 = d_1::dimension;
+// 	d_1_0 b;
+// 	std::cout << d_1_0::dimension;
+
 	testing::internal::CaptureStdout();
-	std::cout << degree_t(349.87);
+	std::cout << meters_per_second_t(5);
 	std::string output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("349.87 deg", output.c_str());
+	EXPECT_STREQ("5 m s^-1", output.c_str());
 
-	testing::internal::CaptureStdout();
-	std::cout << meter_t(1.0);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1 m", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << dB_t(31.0);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("31 dB", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << volt_t(21.79);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("21.79 V", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << dBW_t(12.0);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("12 dBW", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << dBm_t(120.0);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("120 dBm", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << miles_per_hour_t(72.1);
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("72.1 mph", output.c_str());
-
-	// undefined unit
-	testing::internal::CaptureStdout();
-	std::cout << cpow<4>(meter_t(2));
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("16 m^4", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << cpow<3>(foot_t(2));
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("8 cu_ft", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(9) << cpow<4>(foot_t(2));
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("0.138095597 m^4", output.c_str());
-
-	// constants
-	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(8) << constants::k_B;
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(9) << constants::mu_B;
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(7) << constants::sigma;
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
+// 	testing::internal::CaptureStdout();
+// 	std::cout << degree_t(349.87);
+// 	std::string output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("349.87 deg", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << meter_t(1.0);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("1 m", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << dB_t(31.0);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("31 dB", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << volt_t(21.79);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("21.79 V", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << dBW_t(12.0);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("12 dBW", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << dBm_t(120.0);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("120 dBm", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << miles_per_hour_t(72.1);
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("72.1 mph", output.c_str());
+// 
+// 	// undefined unit
+// 	testing::internal::CaptureStdout();
+// 	std::cout << cpow<4>(meter_t(2));
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("16 m^4", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << cpow<3>(foot_t(2));
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("8 cu_ft", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << std::setprecision(9) << cpow<4>(foot_t(2));
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("0.138095597 m^4", output.c_str());
+// 
+// 	// constants
+// 	testing::internal::CaptureStdout();
+// 	std::cout << std::setprecision(8) << constants::k_B;
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("1.3806485e-23 m^2 kg s^-2 K^-1", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << std::setprecision(9) << constants::mu_B;
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("9.27400999e-24 m^2 A", output.c_str());
+// 
+// 	testing::internal::CaptureStdout();
+// 	std::cout << std::setprecision(7) << constants::sigma;
+// 	output = testing::internal::GetCapturedStdout();
+// 	EXPECT_STREQ("5.670367e-08 kg s^-3 K^-4", output.c_str());
 }
 
 TEST_F(UnitContainer, to_string)
@@ -3001,13 +3018,13 @@ TEST_F(Constexpr, stdArray)
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-	watt_t			P_t;				// transmit power
+	watt_t				P_t;				// transmit power
 	dimensionless_t		G;					// gain
-	meter_t			lambda;				// wavelength
-	square_meter_t	sigma;				// radar cross section
-	meter_t			R;					// range
-	kelvin_t		T_s;				// system noise temp
-	hertz_t			B_n;				// bandwidth
+	meter_t				lambda;				// wavelength
+	square_meter_t		sigma;				// radar cross section
+	meter_t				R;					// range
+	kelvin_t			T_s;				// system noise temp
+	hertz_t				B_n;				// bandwidth
 	dimensionless_t		L;					// loss
 
 	P_t = megawatt_t(1.4);

@@ -99,8 +99,9 @@
 
 namespace units
 {
-	template<typename T> inline constexpr const char* name(const T&);
-	template<typename T> inline constexpr const char* abbreviation(const T&);
+	// Forward declarations
+	template<typename T> inline constexpr const char* name(const T&) noexcept;
+	template<typename T> inline constexpr const char* abbreviation(const T&) noexcept;
 }
 
 //------------------------------
@@ -480,70 +481,71 @@ namespace units
 	 * @{
 	 */
 
-	/** @cond */	// DOXYGEN IGNORE
-	namespace detail
-	{
-		/// has_num implementation.
-		template<class T>
-		struct has_num_impl
-		{
-			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; }
-			template<typename>
-			static constexpr std::false_type test(...) { return std::false_type{}; }
-
-			using type = decltype(test<T>(0));
-		};
-	}
-
-	/**
-	 * @brief		Trait which checks for the existence of a static numerator.
-	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_num<T>::value` to test
-	 *				whether `class T` has a numerator static member.
-	 */
-	template<class T>
-	using has_num = typename units::detail::has_num_impl<T>::type;
-
-	template<class T>
-	inline constexpr bool has_num_v = has_num<T>::value;
-
-	namespace detail
-	{
-		/// has_den implementation.
-		template<class T>
-		struct has_den_impl
-		{
-			template<class U>
-			static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; }
-			template<typename>
-			static constexpr std::false_type test(...) { return std::false_type{}; }
-
-			using type = decltype(test<T>(0));
-		};
-	}
-
-	/**
-	 * @brief		Trait which checks for the existence of a static denominator.
-	 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_den<T>::value` to test
-	 *				whether `class T` has a denominator static member.
-	 */
-	template<class T>
-	using has_den = typename units::detail::has_den_impl<T>::type;
-	
-	template<class T>
-	inline constexpr bool has_den_v = has_den<T>::value;
-
-	/** @endcond */	// END DOXYGEN IGNORE
-
 	namespace traits
 	{
+		/** @cond */	// DOXYGEN IGNORE
+		namespace detail
+		{
+			/// has_num implementation.
+			template<class T>
+			struct has_num_impl
+			{
+				template<class U>
+				static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; }
+				template<typename>
+				static constexpr std::false_type test(...);
+
+				using type = decltype(test<T>(0));
+			};
+		}
+		/** @endcond */	// END DOXYGEN IGNORE
+
+		/**
+		 * @brief		Trait which checks for the existence of a static numerator.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_num_v<T>` to test
+		 *				whether `class T` has a numerator static member.
+		 */
+		template<class T>
+		using has_num = typename detail::has_num_impl<T>::type;
+
+		template<class T>
+		inline constexpr bool has_num_v = has_num<T>::value;
+
+		namespace detail
+		{
+			/// has_den implementation.
+			template<class T>
+			struct has_den_impl
+			{
+				template<class U>
+				static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; }
+				template<typename>
+				static constexpr std::false_type test(...) { return std::false_type{}; }
+
+				using type = decltype(test<T>(0));
+			};
+		}
+
+		/**
+		 * @brief		Trait which checks for the existence of a static denominator.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_den<T>::value` to test
+		 *				whether `class T` has a denominator static member.
+		 */
+		template<class T>
+		using has_den = typename detail::has_den_impl<T>::type;
+	
+		template<class T>
+		inline constexpr bool has_den_v = has_den<T>::value;
+
+		/** @endcond */	// END DOXYGEN IGNORE
+
 		/**
 		 * @brief		Trait that tests whether a type represents a std::ratio.
 		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio<T>::value` to test
 		 *				whether `class T` implements a std::ratio.
 		 */
 		template<class T>
-		struct is_ratio : std::bool_constant<has_num_v<T> && has_den_v<T>> {};
+		struct is_ratio : std::conjunction<has_num<T>, has_den<T>> {};
 
 		template<class T>
 		inline constexpr bool is_ratio_v = typename is_ratio<T>::value;
@@ -664,8 +666,8 @@ namespace units
 	template<class D, class E>
 	struct dim
 	{
-		typedef D dimension;
-		typedef E exponent;
+		using dimension = D;
+		using exponent = E;
 	};
 
 	template<class... D>
@@ -2215,6 +2217,21 @@ namespace units
 	template<class Units, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit_t<Units, T, NonLinearScale>& obj) noexcept
 	{
+	// 	using d = typename traits::unit_tag_traits<typename traits::unit_traits<decltype(a)>::unit_type>::dimension_type;
+	// 	using d_1 = d::front;
+	// 	using d_1_0 = d_1::dimension;
+	// 	d_1_0 b;
+	// 	std::cout << d_1_0::dimension;
+
+		using d = typename traits::unit_tag_traits<typename traits::unit_traits<decltype(obj)>::unit_type>::dimension_type;
+// 		if constexpr(!d::empty)
+// 		{
+// //			using d_1 = typename d::front;
+// 			os << decltype(d);
+// 		}
+
+
+
 		os << typeid(obj).name();
  		using Dimensions = unit_tag<std::ratio<1>, typename traits::unit_tag_traits<Units>::dimension_type>;
 // 		os << convert<Units, Dimensions>(obj());
