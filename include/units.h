@@ -1548,7 +1548,7 @@ namespace units
 	{
 		static_assert(traits::is_unit_conversion_v<UnitFrom>, "Template parameter `UnitFrom` must be a `unit` type.");
 		static_assert(traits::is_unit_conversion_v<UnitTo>, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(traits::is_convertible_unit_conversion_v<UnitFrom, UnitTo>, "UnitConversion are not compatible.");
+		static_assert(traits::is_convertible_unit_conversion_v<UnitFrom, UnitTo>, "Units are not compatible.");
 
 		using Ratio			= std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
@@ -1844,10 +1844,10 @@ namespace units
 	 *				- \ref concentrationContainers "concentration unit containers"
 	 *				- \ref constantContainers "constant unit containers"
 	 */
-	template<class UnitConversion, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
+	template<class UnitType, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
 	class unit : public NonLinearScale<T>, units::detail::_unit
 	{
-		static_assert(traits::is_unit_conversion_v<UnitConversion>, "Template parameter `UnitConversion` must be a unit tag. Check that you aren't using a unit type (_t).");
+		static_assert(traits::is_unit_conversion_v<UnitType>, "Template parameter `UnitType` must be a unit tag. Check that you aren't using a unit type (_t).");
 		static_assert(traits::is_nonlinear_scale_v<NonLinearScale<T>, T>, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
 
 	protected:
@@ -1860,7 +1860,7 @@ namespace units
 		using non_linear_scale_type = NonLinearScale<T>;											///< Type of the non-linear scale of the unit (e.g. linear_scale)
 		using underlying_type = T;																	///< Type of the underlying storage of the unit (e.g. double)
 		using value_type = T;																		///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
-		using unit_conversion = UnitConversion;																	///< Type of `unit` the `unit` represents (e.g. meters)
+		using unit_conversion = UnitType;																	///< Type of `unit` the `unit` represents (e.g. meters)
 
 		/**
 		 * @ingroup		Constructors
@@ -1887,7 +1887,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<Ty>>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<UnitType> && std::is_arithmetic_v<Ty>>::type>
 		inline constexpr unit(const Ty value) noexcept : nls(value) 
 		{
 
@@ -1900,7 +1900,7 @@ namespace units
 		 */
 		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep> && traits::is_ratio_v<Period>>>
 		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
-		nls(units::convert<units::unit_conversion<std::ratio<1,1000000000>, dimension::time>, UnitConversion>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())))
+		nls(units::convert<units::unit_conversion<std::ratio<1,1000000000>, dimension::time>, UnitType>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())))
 		{
 
 		}
@@ -1910,9 +1910,9 @@ namespace units
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr unit(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) noexcept :
-		nls(units::convert<UnitConversionRhs, UnitConversion, T>(rhs.m_value), std::true_type() /*store linear value*/)
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept :
+		nls(units::convert<UnitTypeRhs, UnitType, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
 
 		}
@@ -1922,10 +1922,10 @@ namespace units
 		 * @details		performs implicit unit conversions if required
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline unit& operator=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline unit& operator=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept
 		{		
-			nls::m_value = units::convert<UnitConversionRhs, UnitConversion, T>(rhs.m_value);
+			nls::m_value = units::convert<UnitTypeRhs, UnitType, T>(rhs.m_value);
 			return *this;
 		}
 
@@ -1934,7 +1934,7 @@ namespace units
 		* @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<Ty>>>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<UnitType> && std::is_arithmetic_v<Ty>>>
 		inline unit& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
@@ -1947,10 +1947,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than the value of `rhs`
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value < units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
+			return (nls::m_value < units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
 		}
 
 		/**
@@ -1959,10 +1959,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than or equal to the value of `rhs`
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value <= units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
+			return (nls::m_value <= units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
 		}
 
 		/**
@@ -1971,10 +1971,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than the value of `rhs`
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value > units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
+			return (nls::m_value > units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
 		}
 
 		/**
@@ -1983,10 +1983,10 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than or equal to the value of `rhs`
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value >= units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value));
+			return (nls::m_value >= units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
 		}
 
 		/**
@@ -1996,20 +1996,20 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
-		operator==(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return abs(nls::m_value - units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
-				abs(nls::m_value + units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) ||
-				abs(nls::m_value - units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value)) < std::numeric_limits<T>::min();
+			return abs(nls::m_value - units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
+				abs(nls::m_value + units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) ||
+				abs(nls::m_value - units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) < std::numeric_limits<T>::min();
 		}
 
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
-		operator==(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return nls::m_value == units::convert<UnitConversionRhs, UnitConversion>(rhs.m_value);
+			return nls::m_value == units::convert<UnitTypeRhs, UnitType>(rhs.m_value);
 		}
 
 		/**
@@ -2019,8 +2019,8 @@ namespace units
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitConversionRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator!=(const unit<UnitConversionRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		inline constexpr bool operator!=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return !(*this == rhs);
 		}
@@ -2057,7 +2057,7 @@ namespace units
 
 		/**
 		 * @brief		conversion
-		 * @details		Converts to a different unit container. UnitConversion can be converted to other containers
+		 * @details		Converts to a different unit container. UnitType can be converted to other containers
 		 *				implicitly, but this can be used in cases where explicit notation of a conversion
 		 *				is beneficial, or where an r-value container is needed.
 		 * @tparam		U unit (not unit) to convert to
@@ -2075,18 +2075,18 @@ namespace units
 		 * @brief		implicit type conversion.
 		 * @details		only enabled for dimensionless unit types.
 		 */
-		template<class Ty, std::enable_if_t<traits::is_dimensionless_unit<UnitConversion>::value && std::is_arithmetic<Ty>::value, int> = 0>
+		template<class Ty, std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic<Ty>::value, int> = 0>
 		inline constexpr operator Ty() const noexcept 
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
-			return static_cast<Ty>(units::convert<UnitConversion, units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>>((*this)()));
+			return static_cast<Ty>(units::convert<UnitType, units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>>((*this)()));
 		}
 
 		/**
 		 * @brief		explicit type conversion.
 		 * @details		only enabled for non-dimensionless unit types.
 		 */
-		template<class Ty, std::enable_if_t<!traits::is_dimensionless_unit<UnitConversion>::value && std::is_arithmetic<Ty>::value, int> = 0>
+		template<class Ty, std::enable_if_t<!traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic<Ty>::value, int> = 0>
 		inline constexpr explicit operator Ty() const noexcept
 		{
 			return static_cast<Ty>((*this)());
@@ -2096,10 +2096,10 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<typename U = UnitConversion, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>>, int> = 0>
+		template<typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>>, int> = 0>
 		inline constexpr operator std::chrono::nanoseconds() const noexcept
 		{
-			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<UnitConversion, units::unit_conversion<std::ratio<1,1000000000>, dimension::time>>((*this)())));
+			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<UnitType, units::unit_conversion<std::ratio<1,1000000000>, dimension::time>>((*this)())));
 		}
 
 		/**

@@ -1630,6 +1630,7 @@ TEST_F(UnitConversion, length)
 	test = convert<meters, chains>(1.0);
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
+	meter_t b = 5_mph;
 }
 
 TEST_F(UnitConversion, mass)
