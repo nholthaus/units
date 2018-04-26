@@ -1953,7 +1953,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit_t
 		 */
-		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic<Ty>::value>::type>
+		template<class Ty, class = typename std::enable_if<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic_v<Ty>>::type>
 		inline constexpr unit_t(const Ty value) noexcept : nls(value) 
 		{
 
@@ -1964,7 +1964,7 @@ namespace units
 		 * @details		enable implicit conversions from std::chrono::duration types ONLY for time units
 		 * @param[in]	value value of the unit_t
 		 */
-		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic<Rep>::value && traits::is_ratio<Period>::value>>
+		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep> && traits::is_ratio_v<Period>>>
 		inline constexpr unit_t(const std::chrono::duration<Rep, Period>& value) noexcept : 
 		nls(units::convert<unit_tag<std::ratio<1,1000000000>, dimension::time>, Units>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count()))) 
 		{
@@ -2000,7 +2000,7 @@ namespace units
 		* @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<Units>::value && std::is_arithmetic<Ty>::value>>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit_v<Units> && std::is_arithmetic_v<Ty>>>
 		inline unit_t& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
@@ -2062,7 +2062,7 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit_t is a double.
 		 */
-		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_floating_point<T>::value || std::is_floating_point<Ty>::value, int> = 0>
+		template<class UnitsRhs, typename Ty, template<typename> class NlsRhs, std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, int> = 0>
 		inline constexpr bool operator==(const unit_t<UnitsRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return detail::abs(nls::m_value - units::convert<UnitsRhs, Units>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
