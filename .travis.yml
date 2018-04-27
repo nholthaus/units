@@ -19,9 +19,9 @@ os: linux
         - g++-7 # for std lib
         - clang-5.0
   branches:
-  except:
-    - gh-pages
-    - documentation
+    except:
+      - gh-pages
+      - documentation
 
 matrix:
   include:
