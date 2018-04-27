@@ -64,7 +64,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_COMPILE_OPTIONS -std=c++17)
+add_compile_options(-Wall -Wextra -pedantic -std=c++17)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# enable parallel build
 	set( ENV{CL} /MP )
