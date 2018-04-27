@@ -18,8 +18,6 @@ os: linux
       packages:
         - g++-7 # for std lib
         - clang-5.0
-  env:
-    - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
   branches:
   except:
     - gh-pages
