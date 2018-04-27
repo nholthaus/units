@@ -63,7 +63,9 @@ target_include_directories(${PROJECT_NAME}
 	$<INSTALL_INTERFACE:include> 
 )
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_COMPILE_OPTIONS -std=c++17)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# enable parallel build
 	set( ENV{CL} /MP )
 	target_compile_definitions(${PROJECT_NAME} INTERFACE "/permissive-")
