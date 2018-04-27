@@ -62,7 +62,7 @@ target_include_directories(${PROJECT_NAME}
 	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
 	$<INSTALL_INTERFACE:include> 
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_COMPILE_DEFINITIONS /std:c++17)
+set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_COMPILE_OPTIONS /std:c++17)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# enable parallel build
