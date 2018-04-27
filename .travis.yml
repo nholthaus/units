@@ -10,18 +10,20 @@ cache:
     - cmake-3.11.1-Linux-x86_64/share
 
 os: linux
-  addons:
-    apt:
-      sources:
-        - llvm-toolchain-trusty-5.0
-        - ubuntu-toolchain-r-test
-      packages:
-        - g++-7 # for std lib
-        - clang-5.0
-  branches:
-    except:
-      - gh-pages
-      - documentation
+  
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-trusty-5.0
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7 # for std lib
+      - clang-5.0
+  
+branches:
+  except:
+    - gh-pages
+    - documentation
 
 matrix:
   include:
