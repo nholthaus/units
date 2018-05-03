@@ -2180,7 +2180,7 @@ namespace units
 	//-----------------------------------------
 
 	template<class D, class E>
-	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>&) noexcept
+	inline constexpr std::ostream& operator<<(std::ostream& os, const dim<D, E>&) noexcept
 	{
 		if constexpr(E::num != 0)os << ' ' << D::abbreviation;
 		if constexpr(E::num != 0 && E::num != 1) { os << "^" << E::num; }
@@ -2188,13 +2188,13 @@ namespace units
 		return os;
 	}
 
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>&) noexcept
+	inline constexpr std::ostream& operator<<(std::ostream& os, const dimension_t<>&) noexcept
 	{
 		return os;
 	}
 
 	template<class Dim, class... Dims>
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&) noexcept
+	inline constexpr std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&) noexcept
 	{
 		os << Dim{};
 		os << dimension_t<Dims...>{};
@@ -2202,7 +2202,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj) noexcept
+	inline constexpr std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj) noexcept
 	{
 		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
 		os << convert<UnitConversion, BaseUnit>(obj());
@@ -2218,7 +2218,7 @@ namespace units
 #endif
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_conversion_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
@@ -2229,7 +2229,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>),
@@ -2240,7 +2240,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
@@ -2250,7 +2250,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
 		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
 			"right-hand side parameter must be dimensionless.");
@@ -2265,14 +2265,14 @@ namespace units
 
 	// unary addition: +T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale> operator+(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale> operator+(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		return u;
 	}
 
 	// prefix increment: ++T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
 		return u;
@@ -2280,7 +2280,7 @@ namespace units
 
 	// postfix increment: T++
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale> operator++(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale> operator++(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
 		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
@@ -2289,14 +2289,14 @@ namespace units
 
 	// unary addition: -T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale> operator-(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale> operator-(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		return unit<UnitConversion, T, NonLinearScale>(-u());
 	}
 
 	// prefix increment: --T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
 		return u;
@@ -2304,7 +2304,7 @@ namespace units
 
 	// postfix increment: T--
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline unit<UnitConversion, T, NonLinearScale> operator--(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	inline constexpr unit<UnitConversion, T, NonLinearScale> operator--(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
 		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
