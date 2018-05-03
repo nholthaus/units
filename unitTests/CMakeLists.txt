@@ -1,6 +1,7 @@
 PROJECT(unitLibTest)
 
-SET(SOURCE_CODE 
+SET(SOURCE_CODE
+../include/units.h
 main.cpp
 )
 
