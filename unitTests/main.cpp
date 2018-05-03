@@ -48,8 +48,18 @@ namespace {
 
 		TypeTraits() {};
 		virtual ~TypeTraits() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
+	};
+
+	class STDTypeTraits : public ::testing::Test
+	{
+	protected:
+
+		STDTypeTraits() {};
+		virtual ~STDTypeTraits() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitManipulators : public ::testing::Test {
@@ -57,8 +67,8 @@ namespace {
 
 		UnitManipulators() {};
 		virtual ~UnitManipulators() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitContainer : public ::testing::Test {
@@ -66,8 +76,8 @@ namespace {
 
 		UnitContainer() {};
 		virtual ~UnitContainer() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitConversion : public ::testing::Test {
@@ -75,8 +85,8 @@ namespace {
 
 		UnitConversion() {};
 		virtual ~UnitConversion() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitMath : public ::testing::Test {
@@ -84,8 +94,8 @@ namespace {
 
 		UnitMath() {};
 		virtual ~UnitMath() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class CompileTimeArithmetic : public ::testing::Test {
@@ -93,8 +103,8 @@ namespace {
 
 		CompileTimeArithmetic() {};
 		virtual ~CompileTimeArithmetic() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class Constexpr : public ::testing::Test {
@@ -102,8 +112,8 @@ namespace {
 
 		Constexpr() {};
 		virtual ~Constexpr() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class CaseStudies : public ::testing::Test {
@@ -111,8 +121,8 @@ namespace {
 
 		CaseStudies() {};
 		virtual ~CaseStudies() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 }
 
@@ -807,6 +817,11 @@ TEST_F(TypeTraits, is_data_transfer_rate_unit)
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year_t>));
 	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second_t, gigabytes_per_second_t>));
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year_t, gigabytes_per_second_t>));
+}
+
+TEST_F(STDTypeTraits, std_is_convertible_v)
+{
+
 }
 
 TEST_F(UnitManipulators, squared)
@@ -2941,9 +2956,8 @@ TEST_F(Constexpr, construction)
 	EXPECT_EQ(meter_t(1), result1);
 	EXPECT_EQ(meter_t(2), result2);
 
-	EXPECT_TRUE(noexcept(result0));
-	EXPECT_TRUE(noexcept(result1));
-	EXPECT_TRUE(noexcept(result2));
+	EXPECT_TRUE(noexcept(meter_t(0)));
+	EXPECT_TRUE(noexcept(make_unit<meter_t>(1)));
 }
 
 TEST_F(Constexpr, constants)
@@ -2980,17 +2994,25 @@ TEST_F(Constexpr, arithmetic)
 	constexpr auto result9 = pow<3>(2_m);
 	constexpr auto result10 = 2_m * 2_m;
 
-	EXPECT_TRUE(noexcept(result0));
-	EXPECT_TRUE(noexcept(result1));
-	EXPECT_TRUE(noexcept(result2));
-	EXPECT_TRUE(noexcept(result3));
-	EXPECT_TRUE(noexcept(result4));
-	EXPECT_TRUE(noexcept(result5));
-	EXPECT_TRUE(noexcept(result6));
-	EXPECT_TRUE(noexcept(result7));
-	EXPECT_TRUE(noexcept(result8));
-	EXPECT_TRUE(noexcept(result9));
-	EXPECT_TRUE(noexcept(result10));
+	EXPECT_TRUE(noexcept(1_m + 1_m));
+	EXPECT_TRUE(noexcept(1_m - 1_m));
+	EXPECT_TRUE(noexcept(1_m * 1_m));
+	EXPECT_TRUE(noexcept(1_m / 1_m));
+	EXPECT_TRUE(noexcept(meter_t(1) + meter_t(1)));
+	EXPECT_TRUE(noexcept(meter_t(1) - meter_t(1)));
+	EXPECT_TRUE(noexcept(meter_t(1) * meter_t(1)));
+	EXPECT_TRUE(noexcept(meter_t(1) / meter_t(1)));
+	EXPECT_TRUE(noexcept(pow<2>(meter_t(2))));
+	EXPECT_TRUE(noexcept(pow<3>(2_m)));
+	EXPECT_TRUE(noexcept(2_m * 2_m));
+	
+	meter_t m{ 42 };
+	EXPECT_TRUE(noexcept(+m));
+	EXPECT_TRUE(noexcept(-m));
+	EXPECT_TRUE(noexcept(++m));
+	EXPECT_TRUE(noexcept(--m));
+	EXPECT_TRUE(noexcept(m++));
+	EXPECT_TRUE(noexcept(m--));
 
 	EXPECT_EQ(8_cu_m, result9);
 	EXPECT_EQ(4_sq_m, result10);
