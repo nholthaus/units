@@ -2930,6 +2930,35 @@ TEST_F(UnitMath, fma)
 	EXPECT_EQ(square_meter_t(7.0), (units::fma(x, y, z)));
 }
 
+
+TEST_F(UnitMath, unit_ptr)
+{
+	meter_t m{ 42 };
+	foot_t f{ 10 };
+
+	detail::unit_ptr pm(m);
+	detail::unit_ptr pf(f);
+
+	constexpr size_t val = units::detail::str2int("lm_p");
+// 	auto m2 = *(static_cast<meter_t*>(pf));
+// 	auto f2 = *(static_cast<foot_t*>(pf));
+// 	EXPECT_EQ(m2, f2);
+// 	EXPECT_TRUE((std::is_same_v<typename traits::unit_traits<decltype(m2)>::unit_conversion, typename traits::unit_traits<decltype(f2)>::unit_conversion>));
+// 	EXPECT_TRUE((std::is_same_v<typename traits::unit_traits<meter_t>::unit_conversion, typename traits::unit_traits<decltype(f2)>::unit_conversion>));
+// 	EXPECT_TRUE((std::is_same_v<typename traits::unit_traits<foot_t>::unit_conversion, typename traits::unit_traits<std::decay_t<decltype(f2)>>::unit_conversion>));
+// 	EXPECT_TRUE((std::is_same_v<typename traits::unit_traits<void>::unit_conversion, typename traits::unit_traits<std::decay_t<decltype(f2)>>::unit_conversion>));
+
+// 	units::detail::_unit* p = &m;
+// 	meter_t* m2 = static_cast<meter_t*>(p);
+// 	EXPECT_EQ(42_m, *m2);
+// 
+// 	units::detail::_unit* pf = &f;
+// 	std
+// 	meter_t f2 = *(static_cast<foot_t*>(pf));
+// 	EXPECT_EQ(3.048_m, f2);
+
+}
+
 // Constexpr
 TEST_F(Constexpr, construction)
 {

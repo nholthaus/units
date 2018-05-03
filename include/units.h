@@ -32,6 +32,7 @@
 // http://stackoverflow.com/questions/35069778/create-comparison-trait-for-template-classes-whose-parameters-are-in-a-different
 // http://stackoverflow.com/questions/28253399/check-traits-for-all-variadic-template-arguments/28253503
 // http://stackoverflow.com/questions/36321295/rational-approximation-of-square-root-of-stdratio-at-compile-time?noredirect=1#comment60266601_36321295
+// https://stackoverflow.com/questions/47248107/use-c-11-constexpr-for-stdmap-initialization
 // https://github.com/swatanabe/cppnow17-units
 //
 //--------------------------------------------------------------------------------------------------
@@ -71,15 +72,17 @@
 #include <iostream>
 #include <string>
 #include <locale>
-
-//------------------------------
-//	STRING FORMATTER
-//------------------------------
+#include <unordered_map>
+#include <typeindex>
 
 namespace units
 {
 	namespace detail
 	{
+		//------------------------------
+		//	STRING FORMATTER
+		//------------------------------
+
 		template <typename T> std::string to_string(const T& t)
 		{
 			std::string str{ std::to_string(t) };
@@ -93,8 +96,95 @@ namespace units
 			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
 			return str;
 		}
-	}
-}
+
+		//------------------------------
+		//	UNIT_PTR
+		//------------------------------
+
+		struct _unit;
+
+		struct unit_ptr
+		{
+			unit_ptr() = default;
+			unit_ptr(const unit_ptr&) = default;
+			unit_ptr(unit_ptr&&) = default;
+
+			template<typename T>
+			unit_ptr(T& u)
+				: p(&u)
+				, t(typeid(u).hash_code())
+			{
+				static_assert(traits::is_unit_v<std::decay_t<T>>, "type `T` is not a `unit` type.");
+			}
+
+			template<typename T>
+			unit_ptr(T* u)
+				: p(u)
+				, t(typeid(*u).hash_code())
+			{
+				static_assert(traits::is_unit_v<std::decay_t<T>>, "type `T` is not a `unit` type.");
+			}
+
+			units::detail::_unit* operator*() noexcept { return p; }
+			const units::detail::_unit* operator*() const noexcept { return p; }
+
+			units::detail::_unit* p = nullptr;
+			size_t t;
+		};
+
+		//------------------------------
+		//	UNIT REGISTRATION
+		//------------------------------
+
+		struct unit_ptr;
+
+		template<typename Unit> 
+		unit_ptr createUnitPtr() { return new Unit; }
+
+		constexpr size_t str2int(const char* str, const size_t h = 0)
+		{
+			return !str[h] ? 50377 : (str2int(str, h + 1) * 33) ^ str[h];
+		}
+
+		template<size_t> struct UnitAbbrevMap;
+		template<size_t> struct UnitPtrMap;
+
+// 		struct UnitFactory
+// 		{
+// 			using map_type = std::unordered_map<std::string, unit_ptr(*)()>;
+// 
+// 			static unit_ptr createInstance(std::string const& s)
+// 			{
+// 				map_type::iterator it = getMap()->find(s);
+// 				if (it == getMap()->end())
+// 					return unit_ptr{};
+// 				return it->second();
+// 			}
+// 
+// 		protected:
+// 			static map_type * getMap()
+// 			{
+// 				// never deleted. (exist until program termination)
+// 				// because we can't guarantee correct destruction order 
+// 				if (!map) { map = new map_type; }
+// 				return map;
+// 			}
+// 
+// 		private:
+// 			static map_type * map;
+// 		};
+// 
+// 		template<typename T>
+// 		struct UnitRegister : UnitFactory
+// 		{
+// 			UnitRegister(std::string const& s)
+// 			{
+// 				getMap()->insert(std::make_pair(s, &createUnitPtr<T>));
+// 			}
+// 		};
+
+	}	// namespace detail
+}	// namespace units
 #endif
 
 //------------------------------
@@ -175,6 +265,7 @@ namespace units
 	#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)
 #else
 	#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)\
+	template <> struct detail::UnitAbbrevMap<detail::str2int(#abbrev)> {static constexpr int value = 8;};\
 	namespace namespaceName\
 	{\
 		inline std::ostream& operator<<(std::ostream& os, const nameSingular ## _t& obj) \
@@ -1873,7 +1964,7 @@ namespace units
 	 *				- \ref constantContainers "constant unit containers"
 	 */
 	template<class UnitType, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
-	class unit : public NonLinearScale<T>, units::detail::_unit
+	class unit : public NonLinearScale<T>, public units::detail::_unit
 	{
 		static_assert(traits::is_unit_conversion_v<UnitType>, "Template parameter `UnitType` must be a unit tag. Check that you aren't using a unit type (_t).");
 		static_assert(traits::is_nonlinear_scale_v<NonLinearScale<T>, T>, "Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
