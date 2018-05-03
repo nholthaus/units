@@ -2979,12 +2979,6 @@ TEST_F(Constexpr, arithmetic)
 	constexpr auto result8(pow<2>(meter_t(2)));
 	constexpr auto result9 = pow<3>(2_m);
 	constexpr auto result10 = 2_m * 2_m;
-	constexpr auto result11 = +2_m;
-	constexpr auto result12 = -2_m;
-	constexpr auto result13 = ++2_m;
-	constexpr auto result14 = --2_m;
-	constexpr auto result15 = 2_m++;
-	constexpr auto result16 = 2_m--;
 
 	EXPECT_TRUE(noexcept(result0));
 	EXPECT_TRUE(noexcept(result1));
@@ -2997,12 +2991,6 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(result8));
 	EXPECT_TRUE(noexcept(result9));
 	EXPECT_TRUE(noexcept(result10));
-	EXPECT_TRUE(noexcept(result11));
-	EXPECT_TRUE(noexcept(result12));
-	EXPECT_TRUE(noexcept(result13));
-	EXPECT_TRUE(noexcept(result14));
-	EXPECT_TRUE(noexcept(result15));
-	EXPECT_TRUE(noexcept(result16));
 
 	EXPECT_EQ(8_cu_m, result9);
 	EXPECT_EQ(4_sq_m, result10);
@@ -3013,6 +3001,12 @@ TEST_F(Constexpr, assignment)
 	auto testConstexpr = []() constexpr noexcept
 	{
 		meter_t m{ 42 };
+		+m;
+		-m;
+		++m;
+		--m;
+		m++;
+		m--;
 		m += 2_m;
 		m -= 2_m;
 		m *= 2;
