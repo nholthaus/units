@@ -122,7 +122,7 @@ namespace units
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `unit<std::ratio<1>, units::dimension::length>`)
+ *				(e.g. `unit_conversion<std::ratio<1>, units::dimension::length>`)
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -246,7 +246,7 @@ namespace literals\
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `unit<std::ratio<1>, units::dimension::length>`)
+ *				(e.g. `unit_conversion<std::ratio<1>, units::dimension::length>`)
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -273,7 +273,7 @@ namespace literals\
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		underlyingType - the underlying type, e.g. 'int' or 'float'
  * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `unit<std::ratio<1>, units::dimension::length>`)
+ *				(e.g. `unit_conversion<std::ratio<1>, units::dimension::length>`)
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -338,7 +338,7 @@ namespace literals\
 	UNIT_ADD_DIMENSION_TRAIT_DETAIL(unitdimension)\
     /** @ingroup	TypeTraits*/\
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/\
-	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit<T>::value` to test the unit represents a unitdimension quantity.*/\
+	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/\
 	/** @tparam		T	one or more types to test*/\
 	UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)
 
@@ -355,7 +355,7 @@ namespace literals\
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `unit<std::ratio<1>, units::dimension::length>`)
+ *				(e.g. `unit_conversion<std::ratio<1>, units::dimension::length>`)
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -390,7 +390,7 @@ namespace literals\
   * @param		namePlural - plural version of the unit name, e.g. 'bytes'
   * @param		abbreviation - abbreviated unit name, e.g. 'B'
   * @param		definition - the variadic parameter is used for the definition of the unit
-  *				(e.g. `unit<std::ratio<1>, units::dimension::data>`)
+  *				(e.g. `unit_conversion<std::ratio<1>, units::dimension::data>`)
   * @note		a variadic template is used for the definition to allow templates with
   *				commas to be easily expanded. All the variadic 'arguments' should together
   *				comprise the unit definition.
@@ -437,13 +437,6 @@ namespace units
 	 *				Unit manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to
 	 *				represent picoseconds^-2.
 	 */
-
-	 /**
-	  * @defgroup	CompileTimeUnitManipulators Compile-time Unit Manipulators
-	  * @brief		Defines a series of classes used to manipulate `unit_value_t` types at compile-time, such as `unit_value_add<>`, `unit_value_sqrt<>`, etc.
-	  *				Compile-time manipulators can be chained together, e.g. `unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>` to
-	  *				represent `c = sqrt(a^2 + b^2).
-	  */
 
 	 /**
 	 * @defgroup	UnitMath Unit Math
@@ -544,7 +537,7 @@ namespace units
 
 		/**
 		 * @brief		Trait that tests whether a type represents a std::ratio.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio<T>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio_v<T>` to test
 		 *				whether `class T` implements a std::ratio.
 		 */
 		template<class T>
@@ -574,7 +567,7 @@ namespace units
 		template<class T>
 		struct unit_conversion_traits
 		{
-			typedef typename T::dimension_type dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			typedef typename T::dimension_type dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit_conversion`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
 			typedef typename T::conversion_ratio conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
 			typedef typename T::pi_exponent_ratio pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
 			typedef typename T::translation_ratio translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
@@ -601,7 +594,7 @@ namespace units
 			typename T::pi_exponent_ratio,
 			typename T::translation_ratio>>
 		{
-			using dimension_type = typename T::dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
+			using dimension_type = typename T::dimension_type;											///< Unit type that the unit was derived from. May be a `dimension` or another `unit_conversion`. Use the `dimension_of_t` trait to find the SI dimension type. This will be `void` if type `T` is not a unit.
 			using conversion_ratio = typename T::conversion_ratio;										///< `std::ratio` representing the conversion factor to the `dimension_type`. This will be `void` if type `T` is not a unit.
 			using pi_exponent_ratio = typename T::pi_exponent_ratio;									///< `std::ratio` representing the exponent of pi to be used in the conversion. This will be `void` if type `T` is not a unit.
 			using translation_ratio = typename T::translation_ratio;									///< `std::ratio` representing a datum translation to the dimension (i.e. degrees C to degrees F conversion). This will be `void` if type `T` is not a unit.
@@ -632,7 +625,7 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests if a class is a `dimension` type.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_dimension<T>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_dimension_v<T>` to test
 		 *				whether `class T` implements a `dimension`.
 		 */
 		template<class T>
@@ -969,7 +962,7 @@ namespace units
 		/**
 		* @brief		dimension_of_t trait implementation
 		* @details		recursively seeks dimension type that a unit is derived from. Since units can be
-		*				derived from other units, the `dimension_type` typedef may not represent this value.
+		*				derived from other units, the `dimension_type` typedef may not represent this type.
 		*/
 		template<class> struct dimension_of_impl;
 
@@ -993,10 +986,9 @@ namespace units
 	namespace traits
 	{
 		/**
-		* @brief		Trait which returns the `dimension` type that a unit is originally derived from.
-		* @details		Since units can be derived from other `unit` types in addition to `dimension` types,
-		*				the `dimension_type` typedef will not always be a `dimension` (or unit dimension).
-		*				Since compatible
+		* @brief		Trait which returns the `dimension_t` type that a unit is originally derived from.
+		* @details		Since units can be derived from other `unit_conversion` types in addition to `dimension_t` types,
+		*				the `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
 		*/
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
@@ -1005,17 +997,17 @@ namespace units
 	/**
 	 * @brief		Type representing an arbitrary unit.
 	 * @ingroup		UnitTypes
-	 * @details		`unit` types are used as tags for the `conversion` function. They are *not* containers
+	 * @details		`unit_conversion` types are used as tags for the `conversion` function. They are *not* containers
 	 *				(see `unit` for a  container class). Each unit is defined by:
 	 *
 	 *				- A `std::ratio` defining the conversion factor to the dimension type. (e.g. `std::ratio<1,12>` for inches to feet)
-	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type `unit` or `dimension`)
+	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type `unit_conversion` or `dimension`)
 	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians to degrees conversion)
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a farenheit to celsius conversion)
 	 *
 	 *				Typically, a specific unit, like `meters`, would be implemented as a type alias
-	 *				of `unit`, i.e. `using meters = unit<std::ratio<1>, units::dimension::length`, or
-	 *				`using inches = unit<std::ratio<1,12>, feet>`.
+	 *				of `unit_conversion`, i.e. `using meters = unit_conversion<std::ratio<1>, units::dimension::length>`, or
+	 *				`using inches = unit_conversion<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
 	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension`, or another `unit_conversion`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
@@ -1370,7 +1362,7 @@ namespace units
 	 * @tparam		Eps	Value of epsilon, which represents the inverse of the maximum allowable
 	 *					error. This value should be chosen to be as high as possible before
 	 *					integer overflow errors occur in the compiler. 
-	 * @note		USE WITH CAUTION. The is an approximate value. In general, squared<sqrt<meter>> != meter,
+	 * @note		USE WITH CAUTION. The is an approximate value. In general, square<square_root<meter>> != meter,
 	 *				i.e. the operation is not reversible, and it will result in propogated approximations.
 	 *				Use only when absolutely necessary.
 	 */
@@ -1492,7 +1484,7 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which checks whether two units can be converted to each other
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit<U1, U2>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
 		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic meaning,
 		 *				(i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
 		 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
@@ -1548,10 +1540,10 @@ namespace units
 	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. This does not change
 	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
 	 * @sa			unit	for implicit conversion of unit containers.
-	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
-	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
-	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
-	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
+	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit_conversion` type (i.e. is_unit_conversion_v<UnitFrom> == true),
+	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
+	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit_conversion` type (i.e. is_unit_conversion_v<UnitTo> == true),
+	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
 	 * @tparam		T type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in arithmetic type.
 	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
 	 *				a quantity in units of `UnitFrom`.
@@ -1685,7 +1677,7 @@ namespace units
 		 * @details		A non-linear scale must:
 		 *				- be default constructible
 		 *				- have an `operator()` member which returns the non-linear value stored in the scale
-		 *				- have an accessible `m_value` member type which stores the linearized value in the scale.
+		 *				- have an accessible `m_value` data member which stores the linearized value in the scale.
 		 *
 		 *				Linear/nonlinear scales are used by `units::unit` to store values and scale them
 		 *				if they represent things like dB.
@@ -1712,7 +1704,7 @@ namespace units
 		* @ingroup		TypeTraits
 		* @brief		Trait for accessing the publically defined types of `units::unit`
 		* @details		The units library determines certain properties of the unit types passed to them
-		*				and what they represent by using the members of the corresponding unit_t_traits instantiation.
+		*				and what they represent by using the members of the corresponding unit_traits instantiation.
 		*/
 		template<typename T>
 		struct unit_traits
@@ -1726,7 +1718,7 @@ namespace units
 
 		/** @cond */	// DOXYGEN IGNORE
 		/**
-		 * @brief		unit_t_traits specialization for things which are not unit
+		 * @brief		unit_traits specialization for things which are not unit
 		 * @details
 		 */
 		template<typename T, typename = void>
@@ -1763,14 +1755,14 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether two container types derived from `unit` are convertible to each other
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit<U1, U2>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
 		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic meaning,
 		 *				(i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
 		 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
 		 *				U2 will be convertible to U1.
 		 * @tparam		U1 Unit to convert from.
 		 * @tparam		U2 Unit to convert to.
-		 * @sa			is_convertible_unit
+		 * @sa			is_convertible_unit_conversion
 		 */
 		template<class U1, class U2>
 		using is_convertible_unit = is_convertible_unit_conversion<typename units::traits::unit_traits<U1>::unit_conversion, typename units::traits::unit_traits<U2>::unit_conversion>;
@@ -1807,7 +1799,7 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Traits which tests if a class is a `unit`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit<T>::value` to test
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit_v<T>` to test
 		 *				whether `class T` implements a `unit`.
 		 */
 		template<class T>
@@ -1831,12 +1823,12 @@ namespace units
 	 *				using `operator()`: @code
 	 *				meter_t m(5.0);
 	 *				double val = m(); // val == 5.0	@endcode.
-	 * @tparam		UnitConversion unit tag for which type of units the `unit` represents (e.g. meters)
+	 * @tparam		UnitConversion unit tag for which type of units the `unit_conversion` represents (e.g. meters)
 	 * @tparam		T underlying type of the storage. Defaults to double.
 	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
 	 *				not scale the unit value). Examples of non-linear scales could be logarithmic,
 	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
-	 *				concept, i.e. `is_nonlinear_scale<...>::value` must be `true`.
+	 *				concept, i.e. `is_nonlinear_scale_v<...>` must be `true`.
 	 * @sa
 	 *				- \ref lengthContainers "length unit containers"
 	 *				- \ref massContainers "mass unit containers"
@@ -1934,7 +1926,7 @@ namespace units
 		}
 
 		/**
-		 * @brief		copy constructor (converting)
+		 * @brief		converting constructor
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
@@ -1947,7 +1939,7 @@ namespace units
 
 		/**
 		 * @brief		assignment
-		 * @details		performs implicit unit conversions if required
+		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
@@ -2163,7 +2155,7 @@ namespace units
 	 *				using the explicit constructor. Unlike the explicit constructor it forces the user to explicitly
 	 *				specify the units.
 	 * @tparam		UnitType Type to construct.
-	 * @tparam		Ty		Arithmetic type.
+	 * @tparam		T		Arithmetic type.
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
 	template<class UnitType, typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -2216,6 +2208,10 @@ namespace units
 		return os;
 	}
 #endif
+
+	//----------------------------------------
+	//	UNIT_T COMPOUND ASSIGNMENT OPERATORS
+	//----------------------------------------
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
@@ -2322,7 +2318,7 @@ namespace units
 	 *				to a built-in arithmetic type. This may be useful for compatibility with libraries
 	 *				and legacy code that don't support `unit` types. E.g 
 	 * @code		meter_t unitVal(5);
-	 *  double value = units::unit_cast<double>(unitVal);	// value = 5.0 
+	 *  double value = units::unit_cast<double>(unitVal);	// value == 5.0
 	 * @endcode
 	 * @tparam		T		Type to cast the unit type to. Must be a built-in arithmetic type.
 	 * @param		value	Unit value to cast.
@@ -2347,8 +2343,8 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is inherited from a linear scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_linear_scale<U1 [, U2, ...]>::value` to test
-		 *				one or more types to see if they represent unit's whose scale is linear.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_linear_scale_v<U1 [, U2, ...]>` to test
+		 *				one or more types to see if they represent units whose scale is linear.
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
@@ -2360,8 +2356,8 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is inherited from a decibel scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_decibel_scale<U1 [, U2, ...]>::value` to test
-		 *				one or more types to see if they represent unit's whose scale is in decibels.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_decibel_scale_v<U1 [, U2, ...]>` to test
+		 *				one or more types to see if they represent units whose scale is in decibels.
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
@@ -2372,8 +2368,8 @@ namespace units
 
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether two types has the same non-linear scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_same_scale<U1 , U2>::value` to test
+		 * @brief		Trait which tests whether two types have the same non-linear scale.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_same_scale_v<U1 , U2>` to test
 		 *				whether two types have the same non-linear scale.
 		 * @tparam		T1	left hand type.
 		 * @tparam		T2	right hand type
