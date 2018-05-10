@@ -482,57 +482,12 @@ namespace units
 		/** @cond */	// DOXYGEN IGNORE
 		namespace detail
 		{
-			/// has_num implementation. Expression SFINAE.
 			template<class T>
-			struct has_num_impl
-			{
-				template<class U>
-				static constexpr auto test(U*)->std::is_integral<decltype(U::num)> {return std::is_integral<decltype(U::num)>{}; }
-				template<typename>
-				static constexpr std::false_type test(...);
+			struct is_ratio_impl : std::false_type {};
 
-				using type = decltype(test<T>(0));
-			};
+			template<std::intmax_t N, std::intmax_t D>
+			struct is_ratio_impl<std::ratio<N, D>> : std::true_type {};
 		}
-		/** @endcond */	// END DOXYGEN IGNORE
-
-		/**
-		 * @brief		Trait which checks for the existence of a static numerator.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_num_v<T>` to test
-		 *				whether `class T` has a numerator static member.
-		 */
-		template<class T>
-		using has_num = typename detail::has_num_impl<T>::type;
-
-		template<class T>
-		inline constexpr bool has_num_v = has_num<T>::value;
-
-		namespace detail
-		{
-			/// has_den implementation. Expression SFINAE.
-			template<class T>
-			struct has_den_impl
-			{
-				template<class U>
-				static constexpr auto test(U*)->std::is_integral<decltype(U::den)> { return std::is_integral<decltype(U::den)>{}; }
-				template<typename>
-				static constexpr std::false_type test(...) { return std::false_type{}; }
-
-				using type = decltype(test<T>(0));
-			};
-		}
-
-		/**
-		 * @brief		Trait which checks for the existence of a static denominator.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_den<T>::value` to test
-		 *				whether `class T` has a denominator static member.
-		 */
-		template<class T>
-		using has_den = typename detail::has_den_impl<T>::type;
-	
-		template<class T>
-		inline constexpr bool has_den_v = has_den<T>::value;
-
 		/** @endcond */	// END DOXYGEN IGNORE
 
 		/**
@@ -541,7 +496,7 @@ namespace units
 		 *				whether `class T` implements a std::ratio.
 		 */
 		template<class T>
-		using is_ratio = std::conjunction<has_num<T>, has_den<T>>;
+		using is_ratio = detail::is_ratio_impl<T>;
 
 		template<class T>
 		inline constexpr bool is_ratio_v = is_ratio<T>::value;

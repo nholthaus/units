@@ -128,12 +128,6 @@ namespace {
 
 TEST_F(TypeTraits, isRatio)
 {
-	EXPECT_TRUE(traits::has_num_v<std::ratio<1>>);
-	EXPECT_FALSE(traits::has_num_v<double>);
-
-	EXPECT_TRUE(traits::has_den_v<std::ratio<1>>);
-	EXPECT_FALSE(traits::has_den_v<double>);
-
 	EXPECT_TRUE(traits::is_ratio_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_ratio_v<double>);
 }
