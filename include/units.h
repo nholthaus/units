@@ -1560,38 +1560,6 @@ namespace units
 	//	NON-LINEAR SCALE TRAITS
 	//----------------------------------
 
-	/** @cond */	// DOXYGEN IGNORE
-	namespace traits
-	{
-		namespace detail
-		{
-			/**
-			* @brief		implementation of has_operator_parenthesis
-			* @details		checks that operator() returns the same type as `Ret`. Uses Expression SFINAE.
-			*/
-			template<class T, class Ret>
-			struct has_operator_parenthesis_impl
-			{
-				template<class U>
-				static constexpr auto test(U*) -> decltype(std::declval<U>()()) { return decltype(std::declval<U>()()){}; }
-				template<typename>
-				static constexpr std::false_type test(...) { return std::false_type{}; }
-
-				using type = typename std::is_same<Ret, decltype(test<T>(0))>::type;
-			};
-		}
-
-		/**
-		 * @brief		checks that `class T` has an `operator()` member which returns `Ret`
-		 * @details		used as part of the linear_scale concept.
-		 */
-		template<class T, class Ret>
-		using has_operator_parenthesis = typename traits::detail::has_operator_parenthesis_impl<T, Ret>::type;
-
-		template<class T, class Ret>
-		inline constexpr bool has_operator_parenthesis_v = has_operator_parenthesis<T, Ret>::value;
-	}
-
 	namespace traits
 	{
 		namespace detail
@@ -1640,7 +1608,7 @@ namespace units
 		template<class T, class Ret>
 		using is_nonlinear_scale = std::conjunction<
 			std::is_default_constructible<T>,
-			has_operator_parenthesis<T, Ret>,
+			std::is_invocable_r<Ret, T>,
 			has_value_member<T, Ret>,
 			std::is_trivial<T>>;
 
