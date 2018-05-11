@@ -2095,7 +2095,7 @@ namespace units
 	//-----------------------------------------
 
 	template<class D, class E>
-	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>&) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>&)
 	{
 		if constexpr(E::num != 0)os << ' ' << D::abbreviation;
 		if constexpr(E::num != 0 && E::num != 1) { os << "^" << E::num; }
@@ -2103,13 +2103,13 @@ namespace units
 		return os;
 	}
 
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>&) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>&)
 	{
 		return os;
 	}
 
 	template<class Dim, class... Dims>
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&)
 	{
 		os << Dim{};
 		os << dimension_t<Dims...>{};
@@ -2117,7 +2117,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj) noexcept
+	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
 		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
 		os << convert<UnitConversion, BaseUnit>(obj());
