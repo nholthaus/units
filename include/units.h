@@ -904,7 +904,7 @@ namespace units
 		static_assert(traits::is_ratio_v<PiExponent>, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 		static_assert(traits::is_ratio_v<Translation>, "Template parameter `Translation` must be a `std::ratio` representing an additive translation required by the unit conversion.");
 
-		using dimension_type = units::dimension_t<Exponents...>;
+		using dimension_type = dimension_t<Exponents...>;
 		using conversion_ratio = Conversion;
 		using translation_ratio = Translation;
 		using pi_exponent_ratio = PiExponent;
@@ -1450,7 +1450,7 @@ namespace units
 		 */
 		template<class U1, class U2>
 		struct is_convertible_unit_conversion : std::is_same <traits::dimension_of_t<typename units::traits::unit_conversion_traits<U1>::dimension_type>,
-			dimension_of_t<typename units::traits::unit_conversion_traits<U2>::dimension_type >> {};
+			traits::dimension_of_t<typename units::traits::unit_conversion_traits<U2>::dimension_type >>::type {};
 
 		template<class U1, class U2>
 		inline constexpr bool is_convertible_unit_conversion_v = is_convertible_unit_conversion<U1, U2>::value;
