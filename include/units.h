@@ -1372,7 +1372,7 @@ namespace units
 		struct prefix
 		{
 			static_assert(traits::is_ratio_v<Ratio>, "Template parameter `Ratio` must be a `std::ratio`.");
-			static_assert(traits::is_unit_conversion_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
+			static_assert(traits::is_unit_conversion_v<Unit>, "Template parameter `Unit` must be a `unit_conversion` type.");
 			using type = typename units::unit_conversion<Ratio, Unit>;
 		};
 
@@ -2139,7 +2139,7 @@ namespace units
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_conversion_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
+		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
 			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
 			"parameters are not compatible units.");
 
@@ -4231,7 +4231,7 @@ namespace units
 	auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept -> decltype(x * y)
 	{
 		using resultType = decltype(x * y);
-		static_assert(traits::is_convertible_unit_v<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, typename units::traits::unit_traits<UnitMultiply>::unit_conversion>, typename units::traits::unit_traits<UnitAdd>::unit_conversion>, "Unit types are not compatible.");
+		static_assert(traits::is_convertible_unit_conversion_v<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, typename units::traits::unit_traits<UnitMultiply>::unit_conversion>, typename units::traits::unit_traits<UnitAdd>::unit_conversion>, "Unit types are not compatible.");
 		return resultType(std::fma(x(), y(), resultType(z)()));
 	}
 }	// end namespace units
