@@ -921,8 +921,8 @@ namespace units
 		*/
 		template<class> struct dimension_of_impl;
 
-		template<class Conversion, class BaseUnit, class PiExponent, class Translation>
-		struct dimension_of_impl<unit_conversion<Conversion, BaseUnit, PiExponent, Translation>> : dimension_of_impl<BaseUnit> {};
+		template<class Conversion, class Dimension, class PiExponent, class Translation>
+		struct dimension_of_impl<unit_conversion<Conversion, Dimension, PiExponent, Translation>> : dimension_of_impl<Dimension> {};
 
 		template<class... Exponents>
 		struct dimension_of_impl<dimension_t<Exponents...>>
@@ -964,21 +964,21 @@ namespace units
 	 *				of `unit_conversion`, i.e. `using meters = unit_conversion<std::ratio<1>, units::dimension::length>`, or
 	 *				`using inches = unit_conversion<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
-	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension`, or another `unit_conversion`.
+	 * @tparam		Dimension	Unit type which this unit is derived from. May be a `dimension`, or another `unit_conversion`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
-	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
+	template<class Conversion, class Dimension, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
 	struct unit_conversion : units::detail::_unit_conversion
 	{
-		static_assert(traits::is_unit_conversion_v<BaseUnit>, "Template parameter `BaseUnit` must be a `unit_conversion` type.");
-		static_assert(traits::is_ratio_v<Conversion>, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
+		static_assert(traits::is_unit_conversion_v<Dimension>, "Template parameter `Dimension` must be a `unit_conversion` type.");
+		static_assert(traits::is_ratio_v<Conversion>, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `Dimension`.");
 		static_assert(traits::is_ratio_v<PiExponent>, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
-		using dimension_type = units::traits::dimension_of_t<BaseUnit>;
-		using conversion_ratio = typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion>;
-		using pi_exponent_ratio = typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent>;
-		using translation_ratio = typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio>;
+		using dimension_type = units::traits::dimension_of_t<Dimension>;
+		using conversion_ratio = typename std::ratio_multiply<typename Dimension::conversion_ratio, Conversion>;
+		using pi_exponent_ratio = typename std::ratio_add<typename Dimension::pi_exponent_ratio, PiExponent>;
+		using translation_ratio = typename std::ratio_add<std::ratio_multiply<typename Dimension::conversion_ratio, Translation>, typename Dimension::translation_ratio>;
 	};
 
 	//------------------------------
@@ -2119,8 +2119,8 @@ namespace units
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
-		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-		os << convert<UnitConversion, BaseUnit>(obj());
+		using Dimension = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
+		os << convert<UnitConversion, Dimension>(obj());
 
 		using DimType = typename traits::dimension_of_t<UnitConversion>;
 		if constexpr(!DimType::empty)
