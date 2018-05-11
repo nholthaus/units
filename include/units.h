@@ -1468,19 +1468,19 @@ namespace units
 		}
 	}
 
-	constexpr inline UNIT_LIB_DEFAULT_TYPE sqrt(UNIT_LIB_DEFAULT_TYPE x)
+	inline constexpr UNIT_LIB_DEFAULT_TYPE sqrt(UNIT_LIB_DEFAULT_TYPE x)
 	{
 		return x >= 0 && x < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::infinity()
 			? Detail::sqrtNewtonRaphson(x, x, 0)
 			: std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::quiet_NaN();
 	}
 
-	constexpr inline UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
+	inline constexpr UNIT_LIB_DEFAULT_TYPE pow(UNIT_LIB_DEFAULT_TYPE x, unsigned long long y)
 	{
 		return y == 0 ? 1.0 : x * pow(x, y - 1);
 	}
 
-	constexpr inline UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
+	inline constexpr UNIT_LIB_DEFAULT_TYPE abs(UNIT_LIB_DEFAULT_TYPE x)
 	{
 		return x < 0 ? -x : x;
 	}
@@ -1729,7 +1729,7 @@ namespace units
 		struct is_unit : std::is_base_of<units::detail::_unit, T>::type {};
 
 		template<class T>
-		constexpr inline bool is_unit_v = is_unit<T>::value;
+		inline constexpr bool is_unit_v = is_unit<T>::value;
 	}
 
 	/**
@@ -2363,7 +2363,7 @@ namespace units
 	//------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs>
-	constexpr inline std::enable_if_t<!traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
+	inline constexpr std::enable_if_t<!traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
 	operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
 	{
 		static_assert(traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, "Cannot add units with different linear/non-linear scales.");
@@ -2653,7 +2653,7 @@ namespace units
 		* @returns		new unit, raised to the given exponent
 		*/
 	template<int power, class UnitType, class = typename std::enable_if<traits::has_linear_scale_v<UnitType>, int>>
-	constexpr inline auto pow(const UnitType& value) noexcept -> unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
+	inline constexpr auto pow(const UnitType& value) noexcept -> unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
 		return unit<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::unit_conversion>::type, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(pow(value(), power));
@@ -2707,7 +2707,7 @@ namespace units
 	/// Addition for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	constexpr inline auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	inline constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnitConversion = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
 		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
@@ -2719,7 +2719,7 @@ namespace units
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs>
-	constexpr inline std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, UnitTypeLhs>
+	inline constexpr std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, UnitTypeLhs>
 	operator+(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2728,7 +2728,7 @@ namespace units
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs>
-	constexpr inline std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeRhs> 
+	inline constexpr std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeRhs>
 	operator+(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeRhs>::underlying_type;
@@ -2737,7 +2737,7 @@ namespace units
 
 	/// Subtraction for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	constexpr inline auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
+	inline constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnitConversion = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
 		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
@@ -2749,7 +2749,7 @@ namespace units
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeLhs>
-	constexpr inline std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, UnitTypeLhs>
+	inline constexpr std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs>, UnitTypeLhs>
 	operator-(const UnitTypeLhs& lhs, const dB_t& rhs) noexcept
 	{
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
@@ -2759,7 +2759,7 @@ namespace units
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
 	template<class UnitTypeRhs, 
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
-	constexpr inline auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
+	inline constexpr auto operator-(const dB_t& lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, typename units::traits::unit_traits<UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		using underlying_type = typename units::traits::unit_traits<RhsUnitConversion>::underlying_type;
@@ -4009,7 +4009,7 @@ namespace units
 		*				unit type may have errors no larger than `1e-10`.
 		*/
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	constexpr inline auto sqrt(const UnitType& value) noexcept -> unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
+	inline constexpr auto sqrt(const UnitType& value) noexcept -> unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 	{
 		return unit<square_root<typename units::traits::unit_traits<UnitType>::unit_conversion>, typename units::traits::unit_traits<UnitType>::underlying_type, linear_scale>
 			(sqrt(value()));
