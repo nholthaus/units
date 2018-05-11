@@ -2619,87 +2619,88 @@ namespace units
 	//	DIMENSIONLESS COMPARISONS
 	//----------------------------------
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool> 
-	operator==(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator==(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(lhs + static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) ||
 			abs(lhs - static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs)) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator==(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator==(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::epsilon() * abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) + rhs) ||
 			abs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) - rhs) < std::numeric_limits<UNIT_LIB_DEFAULT_TYPE>::min();
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator!=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator!=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return!(lhs == static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool> operator!=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator!=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return !(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) == rhs);
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator>=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator>=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return std::isgreaterequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator>=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator>=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return std::isgreaterequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator>(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator>(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return lhs > static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator>(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator>(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) > rhs;
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator<=(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator<=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return std::islessequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator<=(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator<=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return std::islessequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator<(const UNIT_LIB_DEFAULT_TYPE& lhs, const UnitConversion& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator<(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		return lhs < static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
 	}
 
-	template<typename UnitConversion>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion>, bool>
-	operator<(const UnitConversion& lhs, const UNIT_LIB_DEFAULT_TYPE& rhs) noexcept
+	template<typename UnitConversion, typename T>
+	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
+	operator<(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) < rhs;
 	}
