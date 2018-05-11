@@ -1068,7 +1068,7 @@ namespace units
 		template<class Unit>
 		struct squared_impl
 		{
-			static_assert(traits::is_unit_conversion<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			static_assert(traits::is_unit_conversion_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit_conversion < std::ratio_multiply<Conversion, Conversion>,
 				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
@@ -1099,7 +1099,7 @@ namespace units
 		template<class Unit>
 		struct cubed_impl
 		{
-			static_assert(traits::is_unit_conversion<Unit>::value, "Template parameter `Unit` must be a `unit` type.");
+			static_assert(traits::is_unit_conversion_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = unit_conversion < std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
 				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<3>>,
