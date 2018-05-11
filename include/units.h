@@ -543,7 +543,7 @@ namespace units
 
 		template<class T>
 		struct unit_conversion_traits
-			<T, typename std::void_t<
+			<T, std::void_t<
 			typename T::dimension_type,
 			typename T::conversion_ratio,
 			typename T::pi_exponent_ratio,
