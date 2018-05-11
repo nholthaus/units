@@ -1138,18 +1138,18 @@ namespace units
 				static_assert(value > 0, "Overflows when computing 2 * N");
 			};
 
-			template <intmax_t Lower, intmax_t Upper, typename Condition1 = void, typename Condition2 = void>
+			template <std::intmax_t Lower, std::intmax_t Upper, typename Condition1 = void, typename Condition2 = void>
 			struct DoubleSidedSearch_ : DoubleSidedSearch_<Lower, Upper,
 				std::integral_constant<bool, (Upper - Lower == 1)>,
 				std::integral_constant<bool, ((Upper - Lower>1 && Predicate<Lower + (Upper - Lower) / 2>::value))>> {};
 
-			template <intmax_t Lower, intmax_t Upper>
+			template <std::intmax_t Lower, std::intmax_t Upper>
 			struct DoubleSidedSearch_<Lower, Upper, std::false_type, std::false_type> : DoubleSidedSearch_<Lower, Lower + (Upper - Lower) / 2> {};
 
-			template <intmax_t Lower, intmax_t Upper, typename Condition2>
-			struct DoubleSidedSearch_<Lower, Upper, std::true_type, Condition2> : std::integral_constant<intmax_t, Lower>{};
+			template <std::intmax_t Lower, std::intmax_t Upper, typename Condition2>
+			struct DoubleSidedSearch_<Lower, Upper, std::true_type, Condition2> : std::integral_constant<std::intmax_t, Lower>{};
 
-			template <intmax_t Lower, intmax_t Upper, typename Condition1>
+			template <std::intmax_t Lower, std::intmax_t Upper, typename Condition1>
 			struct DoubleSidedSearch_<Lower, Upper, Condition1, std::true_type> : DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
 
 			template <std::intmax_t Lower, class enabled1 = void>
