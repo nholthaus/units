@@ -1668,7 +1668,7 @@ namespace units
 			using non_linear_scale_type	= typename T::non_linear_scale_type;
 			using underlying_type		= typename T::underlying_type;
 			using value_type			= typename T::value_type;
-			using unit_conversion				= typename T::unit_conversion;
+			using unit_conversion		= typename T::unit_conversion;
 		};
 		/** @endcond */	// END DOXYGEN IGNORE
 	}
