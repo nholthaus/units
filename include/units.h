@@ -1605,7 +1605,14 @@ namespace units
 		// normal conversion between two different units
 		else
 		{
-			return ((value * Ratio::num) / Ratio::den);
+			if constexpr (Ratio::num == 1 && Ratio::den == 1)
+				return value;
+			if constexpr (Ratio::num != 1 && Ratio::den == 1)
+				return (value * Ratio::num);
+			if constexpr (Ratio::num == 1 && Ratio::den != 1)
+				return (value / Ratio::den);
+			if constexpr (Ratio::num != 1 && Ratio::den != 1)
+				return ((value * Ratio::num) / Ratio::den);
 		}
 	}
 
