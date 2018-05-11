@@ -1572,9 +1572,9 @@ namespace units
 			struct has_value_member_impl
 			{
 				template<class U>
-				static constexpr auto test(U* p) -> decltype(p->m_value) { return p->m_value; }
+				static constexpr auto test(U* p) -> decltype(p->m_value);
 				template<typename>
-				static constexpr auto test(...)->std::false_type { return std::false_type{}; }
+				static constexpr auto test(...)->std::false_type;
 
 				using type = typename std::is_same<std::decay_t<Ret>, std::decay_t<decltype(test<T>(0))>>::type;
 			};
