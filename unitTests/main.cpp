@@ -919,6 +919,29 @@ TEST_F(UnitContainer, has_value_member)
 	EXPECT_FALSE((traits::has_value_member_v<meter, double>));
 }
 
+TEST_F(UnitContainer, constructionFromArithmeticType)
+{
+	meter_t a_m(1.0);
+	EXPECT_EQ(1.0, a_m());
+
+	meter_t b_m(1);
+	EXPECT_EQ(1, b_m());
+
+	unit<meters, int> c_m(1);
+	static_assert(std::is_same_v<int, decltype(c_m())>);
+	EXPECT_EQ(1, c_m());
+
+	dimensionless a_dim(1.0);
+	EXPECT_EQ(1.0, a_dim());
+
+	dimensionless b_dim(1);
+	EXPECT_EQ(1, b_dim());
+
+	unit<dimensionless_unit, int> c_dim(1);
+	static_assert(std::is_same_v<int, decltype(c_dim())>);
+	EXPECT_EQ(1, c_dim());
+}
+
 TEST_F(UnitContainer, make_unit)
 {
 	auto dist = units::make_unit<meter_t>(5);

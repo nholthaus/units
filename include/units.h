@@ -1726,6 +1726,12 @@ namespace units
 	namespace detail
 	{
 		/**
+		 * @brief		SFINAE helper to test if an arithmetic conversion is non lossy.
+		 */
+		template <class From, class To>
+		inline constexpr bool is_non_lossy_convertible = std::is_arithmetic_v<From> && (std::is_floating_point_v<To> || !std::is_floating_point_v<From>);
+
+		/**
 		* @brief		helper type to identify units.
 		* @details		A non-templated base class for `unit` which enables RTTI testing.
 		*/
@@ -1838,8 +1844,8 @@ namespace units
 		 *						args are required depends on which scale is used. For the default (linear) scale,
 		 *						no additional args are necessary.
 		 */
-		template<class... Args>
-		inline explicit constexpr unit(const T value, const Args&... args) noexcept : nls(value, args...) 
+		template<class Ty, class... Args, class = std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>>>
+		inline explicit constexpr unit(const Ty value, const Args&... args) noexcept : nls(value, args...)
 		{
 
 		}
@@ -1849,7 +1855,7 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic_v<Ty>>>
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>>>
 		inline constexpr unit(const Ty value) noexcept : nls(value) 
 		{
 
@@ -2100,7 +2106,7 @@ namespace units
 	 * @tparam		T		Arithmetic type.
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
-	template<class UnitType, typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template<class UnitType, typename T, class = std::enable_if_t<detail::is_non_lossy_convertible<T, typename UnitType::underlying_type>>>
 	inline constexpr UnitType make_unit(const T value) noexcept
 	{
 		static_assert(traits::is_unit_v<UnitType>, "Template parameter `UnitType` must be a unit type.");		
