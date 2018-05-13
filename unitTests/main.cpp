@@ -942,6 +942,26 @@ TEST_F(UnitContainer, constructionFromArithmeticType)
 	EXPECT_EQ(1, c_dim());
 }
 
+TEST_F(UnitContainer, constructionFromUnitContainer)
+{
+	unit<meters, int> a_m(1);
+
+	unit<meters, int> b_m(a_m);
+	EXPECT_EQ(1, b_m());
+
+	unit<millimeters, int> a_mm(b_m);
+	EXPECT_EQ(1000, a_mm());
+
+	meter_t c_m(b_m);
+	EXPECT_EQ(1.0, c_m());
+
+	meter_t d_m(a_mm);
+	EXPECT_EQ(1.0, d_m());
+
+	meter_t e_m(unit<kilometers, int>(1));
+	EXPECT_EQ(1000.0, e_m());
+}
+
 TEST_F(UnitContainer, make_unit)
 {
 	auto dist = units::make_unit<meter_t>(5);

@@ -1732,6 +1732,22 @@ namespace units
 		inline constexpr bool is_non_lossy_convertible = std::is_arithmetic_v<From> && (std::is_floating_point_v<To> || !std::is_floating_point_v<From>);
 
 		/**
+		 * @brief		Trait which tests if a unit type can be converted to another unit type without truncation error.
+		 * @details		Valid only when the involved units have integral underlying types.
+		 */
+		template <class UnitConversionFrom, class UnitConversionTo>
+		struct is_non_truncated_convertible_unit : std::false_type
+		{
+			static constexpr bool value = std::ratio_divide<typename UnitConversionFrom::conversion_ratio, typename UnitConversionTo::conversion_ratio>::den == 1;
+		};
+
+		/**
+		 * @brief		SFINAE helper to test if a conversion of units is non lossy.
+		 */
+		template <class UnitFrom, class UnitTo>
+		inline constexpr bool is_non_lossy_convertible_unit = std::is_floating_point_v<typename UnitTo::underlying_type> || std::conjunction_v<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>, detail::is_non_truncated_convertible_unit<typename UnitFrom::unit_conversion, typename UnitTo::unit_conversion>>;
+
+		/**
 		* @brief		helper type to identify units.
 		* @details		A non-templated base class for `unit` which enables RTTI testing.
 		*/
@@ -1837,6 +1853,12 @@ namespace units
 		constexpr unit() = default;
 
 		/**
+		 * @ingroup		Constructors
+		 * @brief		default copy constructor.
+		 */
+		constexpr unit(const unit&) = default;
+
+		/**
 		 * @brief		constructor
 		 * @details		constructs a new unit using the non-linear scale's constructor.
 		 * @param[in]	value	unit value magnitude.
@@ -1878,7 +1900,7 @@ namespace units
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs, class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NlsRhs>, unit>>>
 		inline constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept :
 		nls(units::convert<UnitTypeRhs, UnitType, T>(rhs.m_value), std::true_type() /*store linear value*/)
 		{
@@ -1886,24 +1908,19 @@ namespace units
 		}
 
 		/**
-		 * @brief		assignment
+		 * @brief		default assignment
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline unit& operator=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept
-		{		
-			nls::m_value = units::convert<UnitTypeRhs, UnitType, T>(rhs.m_value);
-			return *this;
-		}
+		constexpr unit& operator=(const unit& rhs) noexcept = default;
 
 		/**
 		* @brief		assignment
 		* @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		* @param[in]	rhs value to copy.
 		*/
-		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic_v<Ty>>>
-		inline unit& operator=(const Ty& rhs) noexcept
+		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>>>
+		constexpr unit& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
 			return *this;
