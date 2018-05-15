@@ -1486,8 +1486,19 @@ namespace units
 	}
 
 	//------------------------------
-	//	CONVERSION FUNCTION
+	//	CONVERSION FUNCTIONS
 	//------------------------------
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		 * @brief		SFINAE helper to test that types are convertible `unit_conversion`s.
+		 */
+		template<class From, class To>
+		inline constexpr bool is_convertible_unit_conversion = traits::is_unit_conversion_v<From> && traits::is_unit_conversion_v<To> && traits::is_convertible_unit_conversion_v<From, To>;
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @ingroup		Conversion
@@ -1504,13 +1515,9 @@ namespace units
 	 *				a quantity in units of `UnitFrom`.
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitFrom, class UnitTo, typename T = UNIT_LIB_DEFAULT_TYPE>
+	template<class UnitFrom, class UnitTo, typename T = UNIT_LIB_DEFAULT_TYPE, class = std::enable_if_t<detail::is_convertible_unit_conversion<UnitFrom, UnitTo>>>
 	static inline constexpr T convert(const T& value) noexcept
 	{
-		static_assert(traits::is_unit_conversion_v<UnitFrom>, "Template parameter `UnitFrom` must be a `unit` type.");
-		static_assert(traits::is_unit_conversion_v<UnitTo>, "Template parameter `UnitTo` must be a `unit` type.");
-		static_assert(traits::is_convertible_unit_conversion_v<UnitFrom, UnitTo>, "Units are not compatible.");
-
 		using Ratio			= std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
@@ -1572,6 +1579,110 @@ namespace units
 				return (value / Ratio::den);
 			if constexpr (Ratio::num != 1 && Ratio::den != 1)
 				return ((value * Ratio::num) / Ratio::den);
+		}
+	}
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace traits
+	{
+		// forward declaration
+		template<class T>
+		struct is_unit;
+	}
+
+	namespace detail
+	{
+		/**
+		 * @brief		SFINAE helper to prevent warnings in Clang 6 when `From` or `To` is a `unit_conversion`.
+		 * @details		`typename T::unit_conversion` is interpreted as a constructor when `T` is a `unit_conversion` (-Winjected-class-name).
+		 */
+		template <class UnitFrom, class UnitTo>
+		struct delayed_is_convertible_unit_conversion : std::false_type
+		{
+			static constexpr bool value = traits::is_convertible_unit_conversion_v<typename UnitFrom::unit_conversion, typename UnitTo::unit_conversion>;
+		};
+
+		/**
+		 * @brief		SFINAE helper to test that types are convertible `unit`s.
+		 */
+		template<class From, class To>
+		inline constexpr bool is_convertible_unit = std::conjunction_v<traits::is_unit<From>, traits::is_unit<To>, delayed_is_convertible_unit_conversion<From, To>>;
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		Conversion
+	 * @brief		converts a unit to another unit.
+	 * @details		Converts the value of a unit to another unit. E.g. @code length::meter_t result = convert<length::meters>(length::feet(1.0));	// result == 3.28084_m @endcode Intermediate computations are carried in the widest representation before being converted to `UnitTo`.
+	 * @sa			unit	for implicit conversion of unit containers.
+	 * @tparam		UnitFrom unit to convert to `UnitTo`. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
+	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
+	 * @tparam		UnitTo unit to convert `from` to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
+	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
+	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
+	 */
+	template<class UnitTo, class UnitFrom, class = std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>>>
+	constexpr UnitTo convert(const UnitFrom& from) noexcept
+	{
+		using Ratio			= std::ratio_divide<typename UnitFrom::unit_conversion::conversion_ratio, typename UnitTo::unit_conversion::conversion_ratio>;
+		using PiRatio		= std::ratio_subtract<typename UnitFrom::unit_conversion::pi_exponent_ratio, typename UnitTo::unit_conversion::pi_exponent_ratio>;
+		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::unit_conversion::translation_ratio, typename UnitTo::unit_conversion::translation_ratio>, typename UnitTo::unit_conversion::conversion_ratio>;
+
+		[[maybe_unused]] const auto value(from.template toLinearized<typename UnitFrom::underlying_type>());
+
+		// same exact unit on both sides
+		if constexpr(std::is_same_v<UnitFrom, UnitTo>)
+		{
+			return from;
+		}
+		// PI REQUIRED, no translation
+		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !!std::is_same_v<std::ratio<0>, Translation>)
+		{
+			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
+
+			// constexpr pi in numerator
+			if constexpr(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
+			{
+				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
+			}
+			// constexpr pi in denominator
+			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
+			{
+				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / (static_cast<CommonUnderlying>(Ratio::den) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den)))), std::true_type() /*store linear value*/);
+			}
+			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
+			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
+			{
+				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))  * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
+			}
+		}
+		// Translation required, no pi variable
+		else if constexpr(!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		{
+			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
+
+			return UnitTo(static_cast<typename UnitTo::underlying_type>(((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den))), std::true_type() /*store linear value*/);
+		}
+		// pi and translation needed
+		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		{
+			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
+
+			return UnitTo(static_cast<typename UnitTo::underlying_type>(((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den))), std::true_type() /*store linear value*/);
+		}
+		// normal conversion between two different units
+		else
+		{
+			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, std::intmax_t>;
+
+			if constexpr (Ratio::num == 1 && Ratio::den == 1)
+				return UnitTo(static_cast<typename UnitTo::underlying_type>(value), std::true_type() /*store linear value*/);
+			if constexpr (Ratio::num != 1 && Ratio::den == 1)
+				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)), std::true_type() /*store linear value*/);
+			if constexpr (Ratio::num == 1 && Ratio::den != 1)
+				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
+			if constexpr (Ratio::num != 1 && Ratio::den != 1)
+				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
 		}
 	}
 
@@ -1888,9 +1999,9 @@ namespace units
 		 * @details		enable implicit conversions from std::chrono::duration types ONLY for time units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep> && traits::is_ratio_v<Period>>>
+		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep>>>
 		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
-		nls(units::convert<units::unit_conversion<std::ratio<1,1000000000>, dimension::time>, UnitType>(static_cast<T>(std::chrono::duration_cast<std::chrono::nanoseconds>(value).count())))
+		nls(units::convert<unit>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(value.count()))())
 		{
 
 		}
@@ -1902,7 +2013,7 @@ namespace units
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs, class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NlsRhs>, unit>>>
 		inline constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept :
-		nls(units::convert<UnitTypeRhs, UnitType, T>(rhs.m_value), std::true_type() /*store linear value*/)
+		nls(units::convert<unit>(rhs).m_value, std::true_type() /*store linear value*/)
 		{
 
 		}
@@ -1935,7 +2046,7 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value < units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
+			return (nls::m_value < units::convert<unit>(rhs).m_value);
 		}
 
 		/**
@@ -1947,7 +2058,7 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value <= units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
+			return (nls::m_value <= units::convert<unit>(rhs).m_value);
 		}
 
 		/**
@@ -1959,7 +2070,7 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value > units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
+			return (nls::m_value > units::convert<unit>(rhs).m_value);
 		}
 
 		/**
@@ -1971,7 +2082,7 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value >= units::convert<UnitTypeRhs, UnitType>(rhs.m_value));
+			return (nls::m_value >= units::convert<unit>(rhs).m_value);
 		}
 
 		/**
@@ -1985,16 +2096,18 @@ namespace units
 		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
 		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return abs(nls::m_value - units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) < std::numeric_limits<T>::epsilon() * 
-				abs(nls::m_value + units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) ||
-				abs(nls::m_value - units::convert<UnitTypeRhs, UnitType>(rhs.m_value)) < std::numeric_limits<T>::min();
+			const underlying_type rhs_m_value(units::convert<unit>(rhs).m_value);
+
+			return abs(nls::m_value - rhs_m_value) < std::numeric_limits<T>::epsilon() *
+				abs(nls::m_value + rhs_m_value) ||
+				abs(nls::m_value - rhs_m_value) < std::numeric_limits<T>::min();
 		}
 
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
 		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return nls::m_value == units::convert<UnitTypeRhs, UnitType>(rhs.m_value);
+			return nls::m_value == units::convert<unit>(rhs).m_value;
 		}
 
 		/**
@@ -2064,7 +2177,7 @@ namespace units
 		inline constexpr operator Ty() const noexcept 
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
-			return static_cast<Ty>(units::convert<UnitType, units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>>((*this)()));
+			return units::convert<units::unit<units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>, Ty, NonLinearScale>>(*this)();
 		}
 
 		/**
@@ -2081,10 +2194,10 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>>, int> = 0>
-		inline constexpr operator std::chrono::nanoseconds() const noexcept
+		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>> && std::is_arithmetic_v<Rep>, int> = 0>
+		inline constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
-			return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::nano>(units::convert<UnitType, units::unit_conversion<std::ratio<1,1000000000>, dimension::time>>((*this)())));
+			return std::chrono::duration<Rep, Period>(units::convert<units::unit<units::unit_conversion<Period, dimension::time>, Rep>>(*this)());
 		}
 
 		/**
@@ -2162,7 +2275,7 @@ namespace units
 	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
 		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-		os << convert<UnitConversion, BaseUnit>(obj());
+		os << convert<unit<BaseUnit, T, NonLinearScale>>(obj)();
 
 		using DimType = typename traits::dimension_of_t<UnitConversion>;
 		if constexpr(!DimType::empty)
@@ -2417,9 +2530,7 @@ namespace units
 	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return UnitTypeLhs(lhs() + convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
+		return UnitTypeLhs(lhs() + convert<UnitTypeLhs>(rhs)());
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
@@ -2443,9 +2554,7 @@ namespace units
 	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs> 
 	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return UnitTypeLhs(lhs() - convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
+		return UnitTypeLhs(lhs() - convert<UnitTypeLhs>(rhs)());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
@@ -2469,10 +2578,8 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		return  unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
-			(lhs() * convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
+			(lhs() * convert<UnitTypeLhs>(rhs)());
 	}
 	
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
@@ -2525,9 +2632,7 @@ namespace units
 	inline constexpr std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, dimensionless> 
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return dimensionless(lhs() / convert<UnitConversionRhs, UnitConversionLhs>(rhs()));
+		return dimensionless(lhs() / convert<UnitTypeLhs>(rhs)());
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
@@ -2752,11 +2857,10 @@ namespace units
 	inline constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>, typename units::traits::unit_traits<UnitTypeLhs>::underlying_type, decibel_scale>
 	{
 		using LhsUnitConversion = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using RhsUnitConversion = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
 		return unit<compound_unit_conversion<squared<LhsUnitConversion>>, underlying_type, decibel_scale>
-			(lhs.template toLinearized<underlying_type>() * convert<RhsUnitConversion, LhsUnitConversion>(rhs.template toLinearized<underlying_type>()), std::true_type());
+			(lhs.template toLinearized<underlying_type>() * convert<UnitTypeLhs>(rhs).template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -2786,7 +2890,7 @@ namespace units
 		using underlying_type = typename units::traits::unit_traits<UnitTypeLhs>::underlying_type;
 
 		return unit<compound_unit_conversion<LhsUnitConversion, inverse<RhsUnitConversion>>, underlying_type, decibel_scale>
-			(lhs.template toLinearized<underlying_type>() / convert<RhsUnitConversion, LhsUnitConversion>(rhs.template toLinearized<underlying_type>()), std::true_type());
+			(lhs.template toLinearized<underlying_type>() / convert<UnitTypeLhs>(rhs).template toLinearized<underlying_type>(), std::true_type());
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
