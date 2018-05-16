@@ -4,6 +4,7 @@
 #include <string>
 #include <type_traits>
 #include <array>
+#include <ratio>
 
 using namespace units;
 using namespace units::length;
@@ -123,6 +124,13 @@ namespace {
 		virtual ~CaseStudies() {};
 		void SetUp() override {};
 		void TearDown() override {};
+	};
+
+	// Tests that two units have the same conversion ratio to the same dimension.
+	constexpr auto has_equivalent_unit_conversion = [](const auto& t, const auto& u) {
+		using T = std::decay_t<decltype(t)>;
+		using U = std::decay_t<decltype(u)>;
+		return units::traits::is_convertible_unit_v<T, U> && std::ratio_equal_v<typename T::unit_conversion::conversion_ratio, typename U::unit_conversion::conversion_ratio>;
 	};
 }
 
@@ -813,9 +821,65 @@ TEST_F(TypeTraits, is_data_transfer_rate_unit)
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year_t, gigabytes_per_second_t>));
 }
 
-TEST_F(STDTypeTraits, std_is_convertible_v)
+TEST_F(STDTypeTraits, std_common_type)
 {
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, meter_t>(), meter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, kilometer_t>(), kilometer_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, millimeter_t>(), millimeter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, kilometer_t>(), meter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, meter_t>(), meter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, millimeter_t>(), millimeter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, meter_t>(), millimeter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, kilometer_t>(), millimeter_t()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, millimeter_t>(), millimeter_t()));
+	static_assert(std::is_same_v<std::common_type_t<meter_t, kilometer_t>, std::common_type_t<kilometer_t, meter_t>>);
+	static_assert(std::is_same_v<std::common_type_t<meter_t, millimeter_t>, std::common_type_t<millimeter_t, meter_t>>);
+	static_assert(std::is_same_v<std::common_type_t<millimeter_t, kilometer_t>, std::common_type_t<kilometer_t, millimeter_t>>);
 
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<meters, int>, unit<meters, int>>(), unit<meters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<kilometers, int>, unit<kilometers, int>>(), unit<kilometers, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<millimeters, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<meters, int>, unit<kilometers, int>>(), unit<meters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<kilometers, int>, unit<meters, int>>(), unit<meters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<meters, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<millimeters, int>, unit<meters, int>>(), unit<millimeters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<millimeters, int>, unit<kilometers, int>>(), unit<millimeters, int>()));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<unit<kilometers, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
+	static_assert(std::is_same_v<std::common_type_t<unit<meters, int>, unit<kilometers, int>>, std::common_type_t<unit<kilometers, int>, unit<meters, int>>>);
+	static_assert(std::is_same_v<std::common_type_t<unit<meters, int>, unit<millimeters, int>>, std::common_type_t<unit<millimeters, int>, unit<meters, int>>>);
+	static_assert(std::is_same_v<std::common_type_t<unit<millimeters, int>, unit<kilometers, int>>, std::common_type_t<unit<kilometers, int>, unit<millimeters, int>>>);
+
+	using half_a_second = unit<unit_conversion<std::ratio<1, 2>, seconds>, int>;
+	using third_a_second = unit<unit_conversion<std::ratio<1, 3>, seconds>, int>;
+	using sixth_a_second = unit<unit_conversion<std::ratio<1, 6>, seconds>, int>;
+
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<half_a_second, third_a_second>{}, sixth_a_second{}));
+	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>, std::common_type_t<third_a_second, half_a_second>>);
+	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
+
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<kelvin_t, celsius_t>{}, celsius_t{}));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<celsius_t, kelvin_t>{}, celsius_t{}));
+	static_assert(std::is_same_v<std::common_type_t<kelvin_t, celsius_t>, std::common_type_t<celsius_t, kelvin_t>>);
+
+	using half_a_kelvin = unit<unit_conversion<std::ratio<1, 2>, kelvin>, double>;
+	using third_a_kelvin = unit<unit_conversion<std::ratio<1, 3>, kelvin>, int>;
+	using sixth_a_kelvin = unit<unit_conversion<std::ratio<1, 6>, kelvin>, int>;
+
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<half_a_kelvin, third_a_kelvin>{}, sixth_a_kelvin{}));
+	static_assert(std::is_same_v<std::common_type_t<half_a_kelvin, third_a_kelvin>, std::common_type_t<third_a_kelvin, half_a_kelvin>>);
+	static_assert(std::is_same_v<std::common_type_t<half_a_kelvin, third_a_kelvin>::underlying_type, double>);
+
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<radian_t, degree_t>{}, degree_t{}));
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<degree_t, radian_t>{}, degree_t{}));
+	static_assert(std::is_same_v<std::common_type_t<radian_t, degree_t>, std::common_type_t<degree_t, radian_t>>);
+
+	using half_a_radian = unit<unit_conversion<std::ratio<1, 2>, radians>, int>;
+	using third_a_radian = unit<unit_conversion<std::ratio<1, 3>, radians>, double>;
+	using sixth_a_radian = unit<unit_conversion<std::ratio<1, 6>, radians>, int>;
+
+	static_assert(has_equivalent_unit_conversion(std::common_type_t<half_a_radian, third_a_radian>{}, sixth_a_radian{}));
+	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>, std::common_type_t<third_a_radian, half_a_radian>>);
+	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
 }
 
 TEST_F(UnitManipulators, squared)

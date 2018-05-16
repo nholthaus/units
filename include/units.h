@@ -66,6 +66,7 @@
 #include <cstdint>
 #include <cmath>
 #include <limits>
+#include <numeric>
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 #include <iostream>
@@ -452,6 +453,11 @@ namespace units
 	/**
 	 * @defgroup	TypeTraits Type Traits
 	 * @brief		Defines a series of classes to obtain unit type information at compile-time.
+	 */
+
+	/**
+	 * @defgroup	STDTypeTraits Standard Type Traits Specializations
+	 * @brief		Specialization of `std::common_type` for unit types.
 	 */
 
 	//------------------------------
@@ -2235,6 +2241,61 @@ namespace units
 		return os;
 	}
 #endif
+
+	//------------------------------
+	//	std::common_type
+	//------------------------------
+
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		 * @brief		greatest common divisor of two ratios.
+		 */
+		template<class Ratio1, class Ratio2>
+		using ratio_gcd = std::ratio<std::gcd(Ratio1::num, Ratio2::num), std::lcm(Ratio1::den, Ratio2::den)>;
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+}	// end namespace units
+
+namespace std
+{
+	/**
+	 * @ingroup		STDTypeTraits
+	 * @brief		common type of units
+	 * @details		The `type` alias of the `std::common_type` of two `unit`s of the same dimension is the least precise `unit`
+	 *				to which both `unit` arguments can be converted to without requiring a division operation or truncating
+	 *				any value of these conversions, although floating-point units may have round-off errors.
+	 *				If the units have mixed scales, preference is given to `linear_scale` for their common type.
+	 */
+	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty, template<typename> class NonLinearScale>
+	struct common_type<units::unit<UnitConversionLhs, Tx, NonLinearScale>, units::unit<UnitConversionRhs, Ty, NonLinearScale>> :
+		std::enable_if<units::traits::is_convertible_unit_conversion_v<UnitConversionLhs, UnitConversionRhs>,
+			units::unit<
+				units::unit_conversion<
+					units::detail::ratio_gcd<typename UnitConversionLhs::conversion_ratio, typename UnitConversionRhs::conversion_ratio>,
+					units::traits::dimension_of_t<UnitConversionLhs>,
+					units::detail::ratio_gcd<typename UnitConversionLhs::pi_exponent_ratio, typename UnitConversionRhs::pi_exponent_ratio>,
+					units::detail::ratio_gcd<typename UnitConversionLhs::translation_ratio, typename UnitConversionRhs::translation_ratio>>,
+				common_type_t<Tx, Ty>,
+				NonLinearScale>> {};
+
+	/** @cond */	// DOXYGEN IGNORE
+	/**
+	 * @brief		`linear_scale` preferring specializations.
+	 */
+	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty>
+	struct common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>, units::unit<UnitConversionRhs, Ty, units::decibel_scale>> :
+		common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>, units::unit<UnitConversionRhs, Ty, units::linear_scale>> {};
+
+	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty>
+	struct common_type<units::unit<UnitConversionLhs, Tx, units::decibel_scale>, units::unit<UnitConversionRhs, Ty, units::linear_scale>> :
+		common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>, units::unit<UnitConversionRhs, Ty, units::linear_scale>> {};
+	/** @endcond */	// END DOXYGEN IGNORE
+}
+
+namespace units
+{
 
 	//----------------------------------------
 	//	UNIT_T COMPOUND ASSIGNMENT OPERATORS
