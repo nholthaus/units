@@ -1515,6 +1515,18 @@ namespace units
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 
+		[[maybe_unused]] constexpr auto normal_convert = [](const T& value) {
+			using ResolvedUnitFrom = unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type>;
+			using ResolvedUnitTo   = unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type>;
+			return convert<ResolvedUnitFrom, ResolvedUnitTo>(value);
+		};
+
+		[[maybe_unused]] constexpr auto pi_convert = [](const T& value) {
+			using ResolvedUnitFrom = unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type, typename UnitFrom::pi_exponent_ratio>;
+			using ResolvedUnitTo   = unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type, typename UnitTo::pi_exponent_ratio>;
+			return convert<ResolvedUnitFrom, ResolvedUnitTo>(value);
+		};
+
 		// same exact unit on both sides
 		if constexpr(std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>)
 		{
@@ -1526,7 +1538,7 @@ namespace units
 			// constexpr pi in numerator
 			if constexpr(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
 			{
-				return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
+				return normal_convert(value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den));
 			}
 			// constexpr pi in denominator
 			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
@@ -1536,18 +1548,18 @@ namespace units
 			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
 			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
 			{
-				return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
+				return normal_convert(value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den));
 			}
 		}
 		// Translation required, no pi variable
 		else if constexpr(!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
 		{
-			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+			return normal_convert(value) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
 		}
 		// pi and translation needed
 		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
 		{
-			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+			return pi_convert(value) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
 		}
 		// normal conversion between two different units
 		else
