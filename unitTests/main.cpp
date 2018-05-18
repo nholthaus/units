@@ -1307,6 +1307,70 @@ TEST_F(UnitContainer, unitTypeDivision)
 	EXPECT_TRUE(isSame);
 }
 
+TEST_F(UnitContainer, unitTypeModulus)
+{
+	const unit<meters, int> a_m(2200);
+	const unit<meters, int> b_m(1800);
+	const unit<kilometers, int> a_km(2);
+
+	const auto c_m = a_m % b_m;
+	EXPECT_EQ(400, c_m());
+	static_assert(has_equivalent_unit_conversion(c_m, a_m));
+
+	const auto d_m = a_m % a_km;
+	EXPECT_EQ(200, d_m());
+	static_assert(has_equivalent_unit_conversion(d_m, a_m));
+
+	const auto b_km = a_km % unit<dimensionless_unit, int>(3);
+	EXPECT_EQ(2, b_km());
+	static_assert(has_equivalent_unit_conversion(b_km, a_km));
+
+	auto e_m = a_m % 2000;
+	EXPECT_EQ(200, e_m());
+	static_assert(has_equivalent_unit_conversion(e_m, a_m));
+
+	e_m %= a_m;
+	EXPECT_EQ(200, e_m());
+
+	e_m %= a_km;
+	EXPECT_EQ(200, e_m());
+
+	e_m %= unit<dimensionless_unit, int>(180);
+	EXPECT_EQ(20, e_m());
+
+	e_m %= dimensionless(15.0);
+	EXPECT_EQ(5, e_m());
+
+	e_m %= 6;
+	EXPECT_EQ(5, e_m());
+
+	e_m %= 3.0;
+	EXPECT_EQ(2, e_m());
+
+	const unit<dimensionless_unit, int> a_s(12);
+	const unit<dimensionless_unit, int> b_s(5);
+
+	const auto c_s = a_s % b_s;
+	EXPECT_EQ(2, c_s());
+	static_assert(has_equivalent_unit_conversion(c_s, a_s));
+
+	auto d_s = a_s % 20;
+	EXPECT_EQ(12, d_s());
+	static_assert(has_equivalent_unit_conversion(d_s, a_s));
+
+	d_s %= unit<dimensionless_unit, int>(20);
+	EXPECT_EQ(12, d_s());
+
+	d_s %= dimensionless(7.0);
+	EXPECT_EQ(5, d_s());
+
+	d_s %= 3;
+	EXPECT_EQ(2, d_s());
+
+	d_s %= 3.0;
+	EXPECT_EQ(2, d_s());
+}
+
 TEST_F(UnitContainer, compoundAssignmentAddition)
 {
 	// units

@@ -2301,6 +2301,23 @@ namespace units
 	//	UNIT_T COMPOUND ASSIGNMENT OPERATORS
 	//----------------------------------------
 
+	/** @cond */	// DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		 * @brief		Helper to make the use of a template parameter a non-deduced context.
+		 */
+		template<class T>
+		struct type_identity
+		{
+			using type = T;
+		};
+
+		template<class T>
+		using type_identity_t = typename type_identity<T>::type;
+	}
+	/** @endcond */	// END DOXYGEN IGNORE
+
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
 	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
 	{
@@ -2340,6 +2357,27 @@ namespace units
 			"right-hand side parameter must be dimensionless.");
 
 		lhs = lhs / rhs;
+		return lhs;
+	}
+
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator%=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
+	{
+		lhs = lhs % rhs;
+		return lhs;
+	}
+
+	template<class UnitConversionLhs, typename T, template<typename> class NonLinearScaleLhs, class UnitConversionRhs, template<typename> class NonLinearScaleRhs, class = std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value>>
+	constexpr unit<UnitConversionLhs, T, NonLinearScaleLhs>& operator%=(unit<UnitConversionLhs, T, NonLinearScaleLhs>& lhs, const unit<UnitConversionRhs, detail::type_identity_t<T>, NonLinearScaleRhs>& rhs) noexcept
+	{
+		lhs = lhs % rhs;
+		return lhs;
+	}
+
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator%=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	{
+		lhs = lhs % rhs;
 		return lhs;
 	}
 
@@ -2689,6 +2727,37 @@ namespace units
 		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
 		return unit<inverse<UnitConversionRhs>>
 			(lhs / rhs());
+	}
+
+	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type is their common type
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs>
+	operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return CommonUnit(CommonUnit(lhs)() % CommonUnit(rhs)());
+	}
+
+	/// Modulo by a dimensionless for unit types with a linear scale
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+	operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using CommonUnit		= unit<typename UnitTypeLhs::unit_conversion, CommonUnderlying>;
+		return CommonUnit(CommonUnit(lhs)() % static_cast<CommonUnderlying>(rhs));
+	}
+
+	/// Modulo by a dimensionless for unit types with a linear scale
+	template<class UnitTypeLhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
+	operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
+	{
+		using CommonUnit = unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return CommonUnit(CommonUnit(lhs)() % rhs);
 	}
 
 	//----------------------------------
