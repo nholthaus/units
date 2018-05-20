@@ -2001,7 +2001,8 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value < units::convert<unit>(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
+			return (CommonUnit(*this).m_value < CommonUnit(rhs).m_value);
 		}
 
 		/**
@@ -2013,7 +2014,8 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value <= units::convert<unit>(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
+			return (CommonUnit(*this).m_value <= CommonUnit(rhs).m_value);
 		}
 
 		/**
@@ -2025,7 +2027,8 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value > units::convert<unit>(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
+			return (CommonUnit(*this).m_value > CommonUnit(rhs).m_value);
 		}
 
 		/**
@@ -2037,7 +2040,8 @@ namespace units
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
 		inline constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
-			return (nls::m_value >= units::convert<unit>(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
+			return (CommonUnit(*this).m_value >= CommonUnit(rhs).m_value);
 		}
 
 		/**
@@ -2814,56 +2818,96 @@ namespace units
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator>=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
-		return std::isgreaterequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
+		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+
+		if constexpr(std::is_integral_v<CommonUnderlying>)
+		{
+			return lhs >= static_cast<CommonUnderlying>(rhs);
+		}
+		else
+		{
+			return std::isgreaterequal(lhs, static_cast<CommonUnderlying>(rhs));
+		}
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator>=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
-		return std::isgreaterequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
+		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+
+		if constexpr(std::is_integral_v<CommonUnderlying>)
+		{
+			return static_cast<CommonUnderlying>(lhs) >= rhs;
+		}
+		else
+		{
+			return std::isgreaterequal(static_cast<CommonUnderlying>(lhs), rhs);
+		}
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator>(const T& lhs, const UnitConversion& rhs) noexcept
 	{
-		return lhs > static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
+		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		return lhs > static_cast<CommonUnderlying>(rhs);
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator>(const UnitConversion& lhs, const T& rhs) noexcept
 	{
-		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) > rhs;
+		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		return static_cast<CommonUnderlying>(lhs) > rhs;
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator<=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
-		return std::islessequal(lhs, static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
+		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+
+		if constexpr(std::is_integral_v<CommonUnderlying>)
+		{
+			return lhs <= static_cast<CommonUnderlying>(rhs);
+		}
+		else
+		{
+			return std::islessequal(lhs, static_cast<CommonUnderlying>(rhs));
+		}
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator<=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
-		return std::islessequal(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs), rhs);
+		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+
+		if constexpr(std::is_integral_v<CommonUnderlying>)
+		{
+			return static_cast<CommonUnderlying>(lhs) <= rhs;
+		}
+		else
+		{
+			return std::islessequal(static_cast<CommonUnderlying>(lhs), rhs);
+		}
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator<(const T& lhs, const UnitConversion& rhs) noexcept
 	{
-		return lhs < static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs);
+		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		return lhs < static_cast<CommonUnderlying>(rhs);
 	}
 
 	template<typename UnitConversion, typename T>
 	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
 	operator<(const UnitConversion& lhs, const T& rhs) noexcept
 	{
-		return static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) < rhs;
+		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		return static_cast<CommonUnderlying>(lhs) < rhs;
 	}
 
 	//----------------------------------
