@@ -2327,44 +2327,30 @@ namespace units
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>), 
-			"parameters are not compatible units.");
-
 		lhs = lhs + rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
 	{
-		static_assert(traits::is_convertible_unit_v<unit<UnitConversion, T, NonLinearScale>, RhsType> ||
-			(traits::is_dimensionless_unit<decltype(lhs)>::value && std::is_arithmetic_v<RhsType>),
-			"parameters are not compatible units.");
-
 		lhs = lhs - rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator*=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
-			"right-hand side parameter must be dimensionless.");
-
 		lhs = lhs * rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale, typename RhsType>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const RhsType& rhs) noexcept
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator/=(unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
 	{
-		static_assert((traits::is_dimensionless_unit<RhsType>::value || std::is_arithmetic_v<RhsType>),
-			"right-hand side parameter must be dimensionless.");
-
 		lhs = lhs / rhs;
 		return lhs;
 	}
@@ -2574,168 +2560,196 @@ namespace units
 	//	LINEAR ARITHMETIC
 	//------------------------------
 
-	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<!traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, int>
-	operator+(const UnitTypeLhs& /* lhs */, const UnitTypeRhs& /* rhs */) noexcept
-	{
-		static_assert(traits::has_same_scale_v<UnitTypeLhs, UnitTypeRhs>, "Cannot add units with different linear/non-linear scales.");
-		return 0;
-	}
-
 	/// Addition operator for unit types with a linear_scale.
-	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs>
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() + convert<UnitTypeLhs>(rhs)());
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return CommonUnit(CommonUnit(lhs)() + CommonUnit(rhs)());
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless>
-	operator+(const dimensionless& lhs, T rhs) noexcept
+	template<class UnitTypeLhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr unit<dimensionless_unit, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
+	operator+(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		return dimensionless(lhs() + rhs);
+		using CommonUnit = unit<dimensionless_unit, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return CommonUnit(CommonUnit(lhs)() + rhs);
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless> 
-	operator+(T lhs, const dimensionless& rhs) noexcept
+	template<class UnitTypeRhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<dimensionless_unit, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
+	operator+(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return dimensionless(lhs + rhs());
+		using CommonUnit = unit<dimensionless_unit, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>;
+		return CommonUnit(lhs + CommonUnit(rhs)());
 	}
 
 	/// Subtraction operator for unit types with a linear_scale.
-	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, UnitTypeLhs> 
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs>
 	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() - convert<UnitTypeLhs>(rhs)());
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return CommonUnit(CommonUnit(lhs)() - CommonUnit(rhs)());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless>
-	operator-(const dimensionless& lhs, T rhs) noexcept
+	template<class UnitTypeLhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr unit<dimensionless_unit, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
+	operator-(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		return dimensionless(lhs() - rhs);
+		using CommonUnit = unit<dimensionless_unit, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return CommonUnit(CommonUnit(lhs)() - rhs);
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly converted to built-in types.
-	template<typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T>, dimensionless> 
-	operator-(T lhs, const dimensionless& rhs) noexcept
+	template<class UnitTypeRhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<dimensionless_unit, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
+	operator-(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return dimensionless(lhs - rhs());
+		using CommonUnit = unit<dimensionless_unit, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>;
+		return CommonUnit(lhs - CommonUnit(rhs)());
 	}
 
 	/// Multiplication type for convertible unit types with a linear scale. @returns the multiplied value, with the same type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
+	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<squared<typename units::traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::unit_conversion>, typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
-		return  unit<compound_unit_conversion<squared<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion>>>
-			(lhs() * convert<UnitTypeLhs>(rhs)());
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return  unit<squared<typename units::traits::unit_traits<CommonUnit>::unit_conversion>, typename CommonUnit::underlying_type>
+			(CommonUnit(lhs)() * CommonUnit(rhs)());
 	}
 	
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
-	inline constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
+	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
 		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
 		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<compound_unit_conversion<UnitConversionLhs, UnitConversionRhs>>
-			(lhs() * rhs());
+		using CommonUnderlying = std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		return unit<compound_unit_conversion<UnitConversionLhs, UnitConversionRhs>, CommonUnderlying>
+			(static_cast<CommonUnderlying>(lhs) * static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Multiplication by a dimensionless unit for unit types with a linear scale.
-	template<class UnitTypeLhs, typename UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeLhs>
+	template<class UnitTypeLhs, typename UnitTypeRhs,
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using CommonUnit		= unit<typename UnitTypeLhs::unit_conversion, CommonUnderlying>;
 		// the cast makes sure factors of PI are handled as expected
-		return UnitTypeLhs(lhs() * static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
+		return CommonUnit(CommonUnit(lhs)() * static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Multiplication by a dimensionless unit for unit types with a linear scale.
-	template<class UnitTypeLhs, typename UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeRhs>
+	template<class UnitTypeLhs, typename UnitTypeRhs,
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<typename UnitTypeRhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using CommonUnit		= unit<typename UnitTypeRhs::unit_conversion, CommonUnderlying>;
 		// the cast makes sure factors of PI are handled as expected
-		return UnitTypeRhs(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) * rhs());
+		return CommonUnit(static_cast<CommonUnderlying>(lhs) * CommonUnit(rhs)());
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
-	template<class UnitTypeLhs, typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, UnitTypeLhs> 
+	template<class UnitTypeLhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
 	operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() * rhs);
+		using CommonUnit = unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return CommonUnit(CommonUnit(lhs)() * rhs);
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
-	template<class UnitTypeRhs, typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, UnitTypeRhs> 
+	template<class UnitTypeRhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<typename UnitTypeRhs::unit_conversion, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeRhs(lhs * rhs());
+		using CommonUnit = unit<typename UnitTypeRhs::unit_conversion, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>;
+		return CommonUnit(lhs * CommonUnit(rhs)());
 	}
 
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a dimensionless
-	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, dimensionless> 
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+	constexpr unit<dimensionless_unit, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return dimensionless(lhs() / convert<UnitTypeLhs>(rhs)());
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return unit<dimensionless_unit, typename CommonUnit::underlying_type>
+			(CommonUnit(lhs)() / CommonUnit(rhs)());
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a compound unit type of lhs/rhs 
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
-		inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>>
+		constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->  unit<compound_unit_conversion<typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion, inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<compound_unit_conversion<UnitConversionLhs, inverse<UnitConversionRhs>>>
-			(lhs() / rhs());
+		using UnitConversionLhs	= typename units::traits::unit_traits<UnitTypeLhs>::unit_conversion;
+		using UnitConversionRhs	= typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		return unit<compound_unit_conversion<UnitConversionLhs, inverse<UnitConversionRhs>>, CommonUnderlying>
+			(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division by a dimensionless unit for unit types with a linear scale
-	template<class UnitTypeLhs, class UnitTypeRhs>
-	inline constexpr std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, UnitTypeLhs>
+	template<class UnitTypeLhs, class UnitTypeRhs,
+		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() / static_cast<UNIT_LIB_DEFAULT_TYPE>(rhs));
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using CommonUnit		= unit<typename UnitTypeLhs::unit_conversion, CommonUnderlying>;
+		return CommonUnit(CommonUnit(lhs)() / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division of a dimensionless unit  by a unit type with a linear scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>, int> = 0>
-	inline constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
-		return unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
-			(static_cast<UNIT_LIB_DEFAULT_TYPE>(lhs) / rhs());
+		using CommonUnderlying	= std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		return unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, CommonUnderlying>
+			(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division by a dimensionless for unit types with a linear scale
-	template<class UnitTypeLhs, typename T>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, UnitTypeLhs> 
+	template<class UnitTypeLhs, typename T,
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeLhs>, int> = 0>
+	constexpr unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
 	operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		return UnitTypeLhs(lhs() / rhs);
+		using CommonUnit = unit<typename UnitTypeLhs::unit_conversion, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return CommonUnit(CommonUnit(lhs)() / rhs);
 	}
 
 	/// Division of a dimensionless  by a unit type with a linear scale
 	template<class UnitTypeRhs, typename T,
 		std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
-	inline constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>>
+	constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept -> unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion>, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	{
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
-		return unit<inverse<UnitConversionRhs>>
-			(lhs / rhs());
+		using UnitConversionRhs	= typename units::traits::unit_traits<UnitTypeRhs>::unit_conversion;
+		using CommonUnderlying	= std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
+		using CommonUnitRhs		= unit<UnitConversionRhs, CommonUnderlying>;
+		return unit<inverse<UnitConversionRhs>, CommonUnderlying>
+			(lhs / CommonUnitRhs(rhs)());
 	}
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type is their common type

@@ -1047,7 +1047,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	c_m = b_ft + meter_t(3);
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 
-	auto e_ft = b_ft + meter_t(3);
+	foot_t e_ft = b_ft + meter_t(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 
 	// dimensionless
@@ -1100,7 +1100,7 @@ TEST_F(UnitContainer, unitTypeSubtraction)
 	c_m = b_ft - meter_t(1);
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
 
-	auto e_ft = b_ft - meter_t(1);
+	foot_t e_ft = b_ft - meter_t(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
 
 	dimensionless sresult = dimensionless(1.0) - dimensionless(1.0);
@@ -1190,10 +1190,10 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	unit<inverse<meter>> i_m(2.0);
 
 	// resultant unit is square of leftmost unit
-	auto c_m2 = a_m * b_ft;
+	unit<squared<meter>> c_m2 = a_m * b_ft;
 	EXPECT_NEAR(1.0, c_m2(), 5.0e-5);
 
-	auto c_ft2 = b_ft * a_m;
+	unit<squared<foot>> c_ft2 = b_ft * a_m;
 	EXPECT_NEAR(10.7639111056, c_ft2(), 5.0e-7);
 
 	// you can get whatever (compatible) type you want if you ask explicitly
@@ -1214,7 +1214,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	c_m2 = b_ft * meter_t(2);
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
 
-	auto e_ft2 = b_ft * meter_t(3);
+	unit<squared<foot>> e_ft2 = b_ft * meter_t(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 
 	auto mps = meter_t(10.0) * unit<inverse<seconds>>(1.0);
