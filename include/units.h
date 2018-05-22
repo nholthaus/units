@@ -1503,82 +1503,90 @@ namespace units
 	/**
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from one type to another.
-	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. This does not change
-	 *				the type of <i>value</i>, only what it contains. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode
+	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. E.g. @code double result = convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode Intermediate computations are carried in the widest representation before being converted to `To`.
 	 * @sa			unit	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit_conversion` type (i.e. is_unit_conversion_v<UnitFrom> == true),
 	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
 	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit_conversion` type (i.e. is_unit_conversion_v<UnitTo> == true),
 	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
-	 * @tparam		T type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in arithmetic type.
+	 * @tparam		From type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in arithmetic type.
 	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
 	 *				a quantity in units of `UnitFrom`.
+	 * @tparam		To arithmetic type of the converted unit value. The value represents a quantity in units of `UnitTo`.
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitFrom, class UnitTo, typename T = UNIT_LIB_DEFAULT_TYPE, class = std::enable_if_t<detail::is_convertible_unit_conversion<UnitFrom, UnitTo>>>
-	static inline constexpr T convert(const T& value) noexcept
+	template<class UnitFrom, class UnitTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From, class = std::enable_if_t<detail::is_convertible_unit_conversion<UnitFrom, UnitTo>>>
+	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio			= std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
 		using PiRatio		= std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
 		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>, typename UnitTo::conversion_ratio>;
 
-		[[maybe_unused]] constexpr auto normal_convert = [](const T& value) {
-			using ResolvedUnitFrom = unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type>;
-			using ResolvedUnitTo   = unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo>(value);
+		[[maybe_unused]] constexpr auto normal_convert = [](const auto& value) {
+			using ResolvedUnitFrom	= unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type>;
+			using ResolvedUnitTo	= unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type>;
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
-		[[maybe_unused]] constexpr auto pi_convert = [](const T& value) {
-			using ResolvedUnitFrom = unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type, typename UnitFrom::pi_exponent_ratio>;
-			using ResolvedUnitTo   = unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type, typename UnitTo::pi_exponent_ratio>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo>(value);
+		[[maybe_unused]] constexpr auto pi_convert = [](const auto& value) {
+			using ResolvedUnitFrom	= unit_conversion<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type, typename UnitFrom::pi_exponent_ratio>;
+			using ResolvedUnitTo	= unit_conversion<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type, typename UnitTo::pi_exponent_ratio>;
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
 		// same exact unit on both sides
 		if constexpr(std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>)
 		{
-			return value;
+			return static_cast<To>(value);
 		}
 		// PI REQUIRED, no translation
 		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !!std::is_same_v<std::ratio<0>, Translation>)
 		{
+			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
+
 			// constexpr pi in numerator
 			if constexpr(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
 			{
-				return normal_convert(value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den));
+				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))));
 			}
 			// constexpr pi in denominator
 			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
 			{
-				return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
+				return static_cast<To>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / (static_cast<CommonUnderlying>(Ratio::den) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den))));
 			}
 			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
 			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
 			{
-				return normal_convert(value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den));
+				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))));
 			}
 		}
 		// Translation required, no pi variable
 		else if constexpr(!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
 		{
-			return normal_convert(value) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
+
+			return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den)));
 		}
 		// pi and translation needed
 		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
 		{
-			return pi_convert(value) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
+
+			return static_cast<To>(pi_convert(static_cast<CommonUnderlying>(value)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den)));
 		}
 		// normal conversion between two different units
 		else
 		{
+			using CommonUnderlying = std::common_type_t<To, From, std::intmax_t>;
+
 			if constexpr (Ratio::num == 1 && Ratio::den == 1)
-				return value;
+				return static_cast<To>(value);
 			if constexpr (Ratio::num != 1 && Ratio::den == 1)
-				return (value * Ratio::num);
+				return static_cast<To>(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num));
 			if constexpr (Ratio::num == 1 && Ratio::den != 1)
-				return (value / Ratio::den);
+				return static_cast<To>(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(Ratio::den));
 			if constexpr (Ratio::num != 1 && Ratio::den != 1)
-				return ((value * Ratio::num) / Ratio::den);
+				return static_cast<To>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den));
 		}
 	}
 
