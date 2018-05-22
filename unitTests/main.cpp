@@ -1700,8 +1700,8 @@ TEST_F(UnitContainer, dBAddition)
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
-	EXPECT_NEAR(20.0, result_dBW2(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_dBW2), unit<squared<watts>, double, decibel_scale>>;
+	EXPECT_NEAR(80.0, result_dBW2(), 5.0e-5);
+	isSame = std::is_same_v<decltype(result_dBW2), unit<squared<milliwatts>, double, decibel_scale>>;
 	EXPECT_TRUE(isSame);
 }
 
