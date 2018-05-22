@@ -1632,66 +1632,7 @@ namespace units
 	template<class UnitTo, class UnitFrom, class = std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>>>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
-		using Ratio			= std::ratio_divide<typename UnitFrom::unit_conversion::conversion_ratio, typename UnitTo::unit_conversion::conversion_ratio>;
-		using PiRatio		= std::ratio_subtract<typename UnitFrom::unit_conversion::pi_exponent_ratio, typename UnitTo::unit_conversion::pi_exponent_ratio>;
-		using Translation	= std::ratio_divide<std::ratio_subtract<typename UnitFrom::unit_conversion::translation_ratio, typename UnitTo::unit_conversion::translation_ratio>, typename UnitTo::unit_conversion::conversion_ratio>;
-
-		[[maybe_unused]] const auto value(from.template toLinearized<typename UnitFrom::underlying_type>());
-
-		// same exact unit on both sides
-		if constexpr(std::is_same_v<UnitFrom, UnitTo>)
-		{
-			return from;
-		}
-		// PI REQUIRED, no translation
-		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !!std::is_same_v<std::ratio<0>, Translation>)
-		{
-			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
-
-			// constexpr pi in numerator
-			if constexpr(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
-			{
-				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
-			}
-			// constexpr pi in denominator
-			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
-			{
-				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / (static_cast<CommonUnderlying>(Ratio::den) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den)))), std::true_type() /*store linear value*/);
-			}
-			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
-			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
-			{
-				return UnitTo(static_cast<typename UnitTo::underlying_type>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))  * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
-			}
-		}
-		// Translation required, no pi variable
-		else if constexpr(!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
-		{
-			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
-
-			return UnitTo(static_cast<typename UnitTo::underlying_type>(((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den))), std::true_type() /*store linear value*/);
-		}
-		// pi and translation needed
-		else if constexpr(!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
-		{
-			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, UNIT_LIB_DEFAULT_TYPE>;
-
-			return UnitTo(static_cast<typename UnitTo::underlying_type>(((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den)) + (static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den))), std::true_type() /*store linear value*/);
-		}
-		// normal conversion between two different units
-		else
-		{
-			using CommonUnderlying = std::common_type_t<typename UnitTo::underlying_type, typename UnitFrom::underlying_type, std::intmax_t>;
-
-			if constexpr (Ratio::num == 1 && Ratio::den == 1)
-				return UnitTo(static_cast<typename UnitTo::underlying_type>(value), std::true_type() /*store linear value*/);
-			if constexpr (Ratio::num != 1 && Ratio::den == 1)
-				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)), std::true_type() /*store linear value*/);
-			if constexpr (Ratio::num == 1 && Ratio::den != 1)
-				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
-			if constexpr (Ratio::num != 1 && Ratio::den != 1)
-				return UnitTo(static_cast<typename UnitTo::underlying_type>(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num) / static_cast<CommonUnderlying>(Ratio::den)), std::true_type() /*store linear value*/);
-		}
+		return UnitTo(convert<typename UnitFrom::unit_conversion, typename UnitTo::unit_conversion, typename UnitTo::underlying_type>(from.template toLinearized<typename UnitFrom::underlying_type>()), std::true_type() /*store linear value*/);
 	}
 
 	//----------------------------------
