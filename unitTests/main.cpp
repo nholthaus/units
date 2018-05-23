@@ -3028,8 +3028,8 @@ TEST_F(UnitMath, hypot)
 	EXPECT_TRUE((std::is_same_v<typename std::decay<meter_t>::type, typename std::decay<decltype(hypot(meter_t(3.0), meter_t(4.0)))>::type>));
 	EXPECT_NEAR(meter_t(5.0).to<double>(), (hypot(meter_t(3.0), meter_t(4.0))).to<double>(), 5.0e-9);
 
-	EXPECT_TRUE((std::is_same_v<typename std::decay<foot_t>::type, typename std::decay<decltype(hypot(foot_t(3.0), meter_t(1.2192)))>::type>));
-	EXPECT_NEAR(foot_t(5.0).to<double>(), (hypot(foot_t(3.0), meter_t(1.2192))).to<double>(), 5.0e-9);
+	static_assert(traits::is_convertible_unit_v<foot_t, decltype(hypot(foot_t(3.0), meter_t(1.2192)))>);
+	EXPECT_NEAR(foot_t(5.0).to<double>(), foot_t(hypot(foot_t(3.0), meter_t(1.2192))).to<double>(), 5.0e-9);
 }
 
 TEST_F(UnitMath, ceil)
@@ -3074,7 +3074,7 @@ TEST_F(UnitMath, fdim)
 {
 	EXPECT_EQ(meter_t(0.0), fdim(meter_t(8.0), meter_t(10.0)));
 	EXPECT_EQ(meter_t(2.0), fdim(meter_t(10.0), meter_t(8.0)));
-	EXPECT_NEAR(meter_t(9.3904).to<double>(), fdim(meter_t(10.0), foot_t(2.0)).to<double>(), 5.0e-320);	// not sure why they aren't comparing exactly equal, but clearly they are.
+	EXPECT_NEAR(meter_t(9.3904).to<double>(), meter_t(fdim(meter_t(10.0), foot_t(2.0))).to<double>(), 5.0e-320);	// not sure why they aren't comparing exactly equal, but clearly they are.
 }
 
 TEST_F(UnitMath, fmin)
