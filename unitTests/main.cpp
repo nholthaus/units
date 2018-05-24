@@ -1566,7 +1566,7 @@ TEST_F(UnitContainer, valueMethod)
 
 TEST_F(UnitContainer, convertMethod)
 {
-	double test = foot_t(meter_t(3.0)).to<double>();
+	double test = meter_t(3.0).convert<feet>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
