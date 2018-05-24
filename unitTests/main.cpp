@@ -2865,17 +2865,17 @@ TEST_F(UnitConversion, std_chrono)
 	hour_t f = std::chrono::hours(2);
 	EXPECT_EQ(hour_t(2), f);
 
-	std::chrono::nanoseconds g = nanosecond_t(100);
+	std::chrono::nanoseconds g = unit<nanosecond, int>(100);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(g).count(), 100);
-	std::chrono::nanoseconds h = microsecond_t(2);
+	std::chrono::nanoseconds h = unit<microsecond, int>(2);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(h).count(), 2000);
-	std::chrono::nanoseconds i = millisecond_t(1);
+	std::chrono::nanoseconds i = unit<millisecond, int>(1);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(i).count(), 1000000);
-	std::chrono::nanoseconds j = second_t(1);
+	std::chrono::nanoseconds j = unit<second, int>(1);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(j).count(), 1000000000);
-	std::chrono::nanoseconds k = minute_t(1);
+	std::chrono::nanoseconds k = unit<minute, int>(1);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(k).count(), 60000000000);
-	std::chrono::nanoseconds l = hour_t(1);
+	std::chrono::nanoseconds l = unit<hour, int>(1);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 

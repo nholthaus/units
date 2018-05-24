@@ -1597,7 +1597,7 @@ namespace units
 			// constexpr pi in denominator
 			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
 			{
-				return static_cast<To>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / (static_cast<CommonUnderlying>(Ratio::den) * static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den))));
+				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den))));
 			}
 			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
 			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
@@ -1986,7 +1986,7 @@ namespace units
 		 * @details		enable implicit conversions from std::chrono::duration types ONLY for time units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Rep, class Period, class = std::enable_if_t<std::is_arithmetic_v<Rep>>>
+		template<class Rep, class Period, class = std::enable_if_t<detail::is_non_lossy_convertible<Rep, T>>>
 		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
 		nls(units::convert<unit>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(value.count()))())
 		{
@@ -2191,7 +2191,7 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>> && std::is_arithmetic_v<Rep>, int> = 0>
+		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
 		inline constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(units::convert<units::unit<units::unit_conversion<Period, dimension::time>, Rep>>(*this)());
