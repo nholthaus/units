@@ -2194,7 +2194,7 @@ namespace units
 		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
 		inline constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
-			return std::chrono::duration<Rep, Period>(units::convert<units::unit<units::unit_conversion<Period, dimension::time>, Rep>>(*this)());
+			return std::chrono::duration<Rep, Period>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(*this)());
 		}
 
 		/**
@@ -2272,7 +2272,7 @@ namespace units
 	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
 		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-		os << convert<unit<BaseUnit, T, NonLinearScale>>(obj)();
+		os << unit<BaseUnit, T, NonLinearScale>(obj)();
 
 		using DimType = typename traits::dimension_of_t<UnitConversion>;
 		if constexpr(!DimType::empty)

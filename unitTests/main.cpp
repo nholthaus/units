@@ -225,10 +225,10 @@ TEST_F(TypeTraits, inverse)
 	bool shouldBeTrue = std::is_same_v<htz, hertz>;
 	EXPECT_TRUE(shouldBeTrue);
 
-	test = convert<unit<inverse<fahrenheit>>>(unit<inverse<celsius>>(1.0))();
+	test = unit<inverse<fahrenheit>>(unit<inverse<celsius>>(1.0))();
 	EXPECT_NEAR(5.0 / 9.0, test, 5.0e-5);
 
-	test = convert<unit<inverse<fahrenheit>>>(unit<inverse<kelvin>>(6.0))();
+	test = unit<inverse<fahrenheit>>(unit<inverse<kelvin>>(6.0))();
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
 }
 
@@ -886,7 +886,7 @@ TEST_F(UnitManipulators, squared)
 {
 	double test;
 
-	test = convert<unit<square_feet>>(unit<squared<meters>>(0.092903))();
+	test = unit<square_feet>(unit<squared<meters>>(0.092903))();
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using dimensionless_2 = squared<units::dimensionless_unit>;	// this is actually nonsensical, and should also result in a dimensionless.
@@ -898,7 +898,7 @@ TEST_F(UnitManipulators, cubed)
 {
 	double test;
 
-	test = convert<unit<cubic_feet>>(unit<cubed<meters>>(0.0283168))();
+	test = unit<cubic_feet>(unit<cubed<meters>>(0.0283168))();
 	EXPECT_NEAR(0.999998354619, test, 5.0e-13);
 }
 
@@ -906,7 +906,7 @@ TEST_F(UnitManipulators, square_root)
 {
 	double test;
 
-	test = convert<meter_t>(unit<square_root<square_kilometer>>(1.0))();
+	test = meter_t(unit<square_root<square_kilometer>>(1.0))();
 	EXPECT_TRUE((traits::is_convertible_unit_v<typename std::decay<square_root<square_kilometer>>::type, kilometer>));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
@@ -1103,7 +1103,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	meter_t a_m(1.0), c_m;
 	foot_t b_ft(3.28084);
 
-	double d = convert<meter_t>(b_ft)();
+	double d = meter_t(b_ft)();
 	EXPECT_NEAR(1.0, d, 5.0e-5);
 
 	c_m = a_m + b_ft;
@@ -1557,7 +1557,7 @@ TEST_F(UnitContainer, valueMethod)
 
 TEST_F(UnitContainer, convertMethod)
 {
-	double test = meter_t(3.0).convert<feet>().to<double>();
+	double test = foot_t(meter_t(3.0)).to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
@@ -1844,46 +1844,46 @@ TEST_F(UnitContainer, literals)
 TEST_F(UnitConversion, length)
 {
 	double test;
-	test = convert<nanometer_t>(0.000000001_m)();
+	test = nanometer_t(0.000000001_m)();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<micrometer_t>(meter_t(0.000001))();
+	test = micrometer_t(meter_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<millimeter_t>(meter_t(0.001))();
+	test = millimeter_t(meter_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<centimeter_t>(meter_t(0.01))();
+	test = centimeter_t(meter_t(0.01))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<kilometer_t>(meter_t(1000.0))();
+	test = kilometer_t(meter_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<meter_t>(meter_t(1.0))();
+	test = meter_t(meter_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<foot_t>(meter_t(0.3048))();
+	test = foot_t(meter_t(0.3048))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<mile_t>(meter_t(1609.344))();
+	test = mile_t(meter_t(1609.344))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<inch_t>(meter_t(0.0254))();
+	test = inch_t(meter_t(0.0254))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<nauticalMile_t>(meter_t(1852.0))();
+	test = nauticalMile_t(meter_t(1852.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<astronicalUnit_t>(meter_t(149597870700.0))();
+	test = astronicalUnit_t(meter_t(149597870700.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<lightyear_t>(meter_t(9460730472580800.0))();
+	test = lightyear_t(meter_t(9460730472580800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<parsec_t>(meter_t(3.08567758e16))();
+	test = parsec_t(meter_t(3.08567758e16))();
 	EXPECT_NEAR(1.0, test, 5.0e7);
 
-	test = convert<foot_t>(foot_t(6.3))();
+	test = foot_t(foot_t(6.3))();
 	EXPECT_NEAR(6.3, test, 5.0e-5);
-	test = convert<inch_t>(foot_t(6.0))();
+	test = inch_t(foot_t(6.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = convert<foot_t>(inch_t(6.0))();
+	test = foot_t(inch_t(6.0))();
 	EXPECT_NEAR(0.5, test, 5.0e-5);
-	test = convert<foot_t>(meter_t(1.0))();
+	test = foot_t(meter_t(1.0))();
 	EXPECT_NEAR(3.28084, test, 5.0e-5);
-	test = convert<nauticalMile_t>(mile_t(6.3))();
+	test = nauticalMile_t(mile_t(6.3))();
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
-	test = convert<meter_t>(mile_t(11.0))();
+	test = meter_t(mile_t(11.0))();
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
-	test = convert<chain_t>(meter_t(1.0))();
+	test = chain_t(meter_t(1.0))();
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
 //	dimensionless b = 5_rad;
@@ -1893,30 +1893,30 @@ TEST_F(UnitConversion, mass)
 {
 	double test;
 
-	test = convert<gram_t>(kilogram_t(1.0e-3))();
+	test = gram_t(kilogram_t(1.0e-3))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<microgram_t>(kilogram_t(1.0e-9))();
+	test = microgram_t(kilogram_t(1.0e-9))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<milligram_t>(kilogram_t(1.0e-6))();
+	test = milligram_t(kilogram_t(1.0e-6))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<kilogram_t>(kilogram_t(1.0))();
+	test = kilogram_t(kilogram_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<metric_ton_t>(kilogram_t(1000.0))();
+	test = metric_ton_t(kilogram_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<pound_t>(kilogram_t(0.453592))();
+	test = pound_t(kilogram_t(0.453592))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<long_ton_t>(kilogram_t(1016.05))();
+	test = long_ton_t(kilogram_t(1016.05))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<short_ton_t>(kilogram_t(907.185))();
+	test = short_ton_t(kilogram_t(907.185))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<mass::ounce_t>(kilogram_t(0.0283495))();
+	test = mass::ounce_t(kilogram_t(0.0283495))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<carat_t>(kilogram_t(0.0002))();
+	test = carat_t(kilogram_t(0.0002))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<kilogram_t>(slug_t(1.0))();
+	test = kilogram_t(slug_t(1.0))();
 	EXPECT_NEAR(14.593903, test, 5.0e-7);
 
-	test = convert<carat_t>(pound_t(6.3))();
+	test = carat_t(pound_t(6.3))();
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
@@ -1941,32 +1941,32 @@ TEST_F(UnitConversion, time)
 
 
 
-	test = convert<second_t>(second_t(1.0))();
+	test = second_t(second_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<nanosecond_t>(second_t(1.0e-9))();
+	test = nanosecond_t(second_t(1.0e-9))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<microsecond_t>(second_t(1.0e-6))();
+	test = microsecond_t(second_t(1.0e-6))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<millisecond_t>(second_t(1.0e-3))();
+	test = millisecond_t(second_t(1.0e-3))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<minute_t>(second_t(60.0))();
+	test = minute_t(second_t(60.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<hour_t>(second_t(3600.0))();
+	test = hour_t(second_t(3600.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<day_t>(second_t(86400.0))();
+	test = day_t(second_t(86400.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<week_t>(second_t(604800.0))();
+	test = week_t(second_t(604800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<year_t>(second_t(3.154e7))();
+	test = year_t(second_t(3.154e7))();
 	EXPECT_NEAR(1.0, test, 5.0e3);
 
-	test = convert<week_t>(year_t(2.0))();
+	test = week_t(year_t(2.0))();
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
-	test = convert<minute_t>(hour_t(4.0))();
+	test = minute_t(hour_t(4.0))();
 	EXPECT_NEAR(240.0, test, 5.0e-14);
-	test = convert<day_t>(julian_year_t(1.0))();
+	test = day_t(julian_year_t(1.0))();
 	EXPECT_NEAR(365.25, test, 5.0e-14);
-	test = convert<day_t>(gregorian_year_t(1.0))();
+	test = day_t(gregorian_year_t(1.0))();
 	EXPECT_NEAR(365.2425, test, 5.0e-14);
 
 }
@@ -1979,28 +1979,28 @@ TEST_F(UnitConversion, angle)
 
 	double test;
 
-	test = convert<angle::radian_t>(angle::radian_t(1.0))();
+	test = angle::radian_t(angle::radian_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<angle::milliradian_t>(angle::radian_t(0.001))();
+	test = angle::milliradian_t(angle::radian_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-4);
-	test = convert<angle::degree_t>(angle::radian_t(0.0174533))();
+	test = angle::degree_t(angle::radian_t(0.0174533))();
 	EXPECT_NEAR(1.0, test, 5.0e-7);
-	test = convert<angle::arcminute_t>(angle::radian_t(0.000290888))();
+	test = angle::arcminute_t(angle::radian_t(0.000290888))();
 	EXPECT_NEAR(0.99999928265913, test, 5.0e-8);
-	test = convert<angle::arcsecond_t>(angle::radian_t(4.8481e-6))();
+	test = angle::arcsecond_t(angle::radian_t(4.8481e-6))();
 	EXPECT_NEAR(0.999992407, test, 5.0e-10);
-	test = convert<angle::turn_t>(angle::radian_t(6.28319))();
+	test = angle::turn_t(angle::radian_t(6.28319))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = convert<angle::gradian_t>(angle::radian_t(0.015708))();
+	test = angle::gradian_t(angle::radian_t(0.015708))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 
-	test = convert<angle::radian_t>(angle::radian_t(2.1))();
+	test = angle::radian_t(angle::radian_t(2.1))();
 	EXPECT_NEAR(2.1, test, 5.0e-6);
-	test = convert<angle::gradian_t>(angle::arcsecond_t(2.1))();
+	test = angle::gradian_t(angle::arcsecond_t(2.1))();
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
-	test = convert<angle::degree_t>(angle::radian_t(constants::detail::PI_VAL))();
+	test = angle::degree_t(angle::radian_t(constants::detail::PI_VAL))();
 	EXPECT_NEAR(180.0, test, 5.0e-6);
-	test = convert<angle::radian_t>(angle::degree_t(90.0))();
+	test = angle::radian_t(angle::degree_t(90.0))();
 	EXPECT_NEAR(constants::detail::PI_VAL / 2, test, 5.0e-6);
 }
 
@@ -2008,7 +2008,7 @@ TEST_F(UnitConversion, current)
 {
 	double test;
 
-	test = convert<current::milliampere_t>(current::ampere_t(2.1))();
+	test = current::milliampere_t(current::ampere_t(2.1))();
 	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
@@ -2017,43 +2017,43 @@ TEST_F(UnitConversion, temperature)
 	// temp conversion are weird/hard since they involve translations AND scaling.
 	double test;
 
-	test = convert<kelvin_t>(kelvin_t(72.0))();
+	test = kelvin_t(kelvin_t(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = convert<fahrenheit_t>(fahrenheit_t(72.0))();
+	test = fahrenheit_t(fahrenheit_t(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = convert<fahrenheit_t>(kelvin_t(300.0))();
+	test = fahrenheit_t(kelvin_t(300.0))();
 	EXPECT_NEAR(80.33, test, 5.0e-5);
-	test = convert<kelvin_t>(fahrenheit_t(451.0))();
+	test = kelvin_t(fahrenheit_t(451.0))();
 	EXPECT_NEAR(505.928, test, 5.0e-4);
-	test = convert<celsius_t>(kelvin_t(300.0))();
+	test = celsius_t(kelvin_t(300.0))();
 	EXPECT_NEAR(26.85, test, 5.0e-3);
-	test = convert<kelvin_t>(celsius_t(451.0))();
+	test = kelvin_t(celsius_t(451.0))();
 	EXPECT_NEAR(724.15, test, 5.0e-3);
-	test = convert<celsius_t>(fahrenheit_t(72.0))();
+	test = celsius_t(fahrenheit_t(72.0))();
 	EXPECT_NEAR(22.2222, test, 5.0e-5);
-	test = convert<fahrenheit_t>(celsius_t(100.0))();
+	test = fahrenheit_t(celsius_t(100.0))();
 	EXPECT_NEAR(212.0, test, 5.0e-5);
-	test = convert<celsius_t>(fahrenheit_t(32.0))();
+	test = celsius_t(fahrenheit_t(32.0))();
 	EXPECT_NEAR(0.0, test, 5.0e-5);
-	test = convert<fahrenheit_t>(celsius_t(0.0))();
+	test = fahrenheit_t(celsius_t(0.0))();
 	EXPECT_NEAR(32.0, test, 5.0e-5);
-	test = convert<kelvin_t>(rankine_t(100.0))();
+	test = kelvin_t(rankine_t(100.0))();
 	EXPECT_NEAR(55.5556, test, 5.0e-5);
-	test = convert<rankine_t>(kelvin_t(100.0))();
+	test = rankine_t(kelvin_t(100.0))();
 	EXPECT_NEAR(180.0, test, 5.0e-5);
-	test = convert<rankine_t>(fahrenheit_t(100.0))();
+	test = rankine_t(fahrenheit_t(100.0))();
 	EXPECT_NEAR(559.67, test, 5.0e-5);
-	test = convert<fahrenheit_t>(rankine_t(72.0))();
+	test = fahrenheit_t(rankine_t(72.0))();
 	EXPECT_NEAR(-387.67, test, 5.0e-5);
-	test = convert<kelvin_t>(reaumur_t(100.0))();
+	test = kelvin_t(reaumur_t(100.0))();
 	EXPECT_NEAR(398.0, test, 5.0e-1);
-	test = convert<celsius_t>(reaumur_t(80.0))();
+	test = celsius_t(reaumur_t(80.0))();
 	EXPECT_NEAR(100.0, test, 5.0e-5);
-	test = convert<reaumur_t>(celsius_t(212.0))();
+	test = reaumur_t(celsius_t(212.0))();
 	EXPECT_NEAR(169.6, test, 5.0e-2);
-	test = convert<fahrenheit_t>(reaumur_t(80.0))();
+	test = fahrenheit_t(reaumur_t(80.0))();
 	EXPECT_NEAR(212.0, test, 5.0e-5);
-	test = convert<reaumur_t>(fahrenheit_t(37.0))();
+	test = reaumur_t(fahrenheit_t(37.0))();
 	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
@@ -2061,9 +2061,9 @@ TEST_F(UnitConversion, luminous_intensity)
 {
 	double test;
 
-	test = convert<millicandela_t>(candela_t(72.0))();
+	test = millicandela_t(candela_t(72.0))();
 	EXPECT_NEAR(72000.0, test, 5.0e-5);
-	test = convert<candela_t>(millicandela_t(376.0))();
+	test = candela_t(millicandela_t(376.0))();
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
@@ -2075,23 +2075,23 @@ TEST_F(UnitConversion, solid_angle)
 	same = std::is_same_v<traits::dimension_of_t<steradians>, traits::dimension_of_t<degrees_squared>>;
 	EXPECT_TRUE(same);
 
-	test = convert<steradian_t>(steradian_t(72.0))();
+	test = steradian_t(steradian_t(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = convert<degree_squared_t>(steradian_t(1.0))();
+	test = degree_squared_t(steradian_t(1.0))();
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
-	test = convert<spat_t>(steradian_t(8.0))();
+	test = spat_t(steradian_t(8.0))();
 	EXPECT_NEAR(0.636619772367582, test, 5.0e-14);
-	test = convert<steradian_t>(degree_squared_t(3282.8))();
+	test = steradian_t(degree_squared_t(3282.8))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<degree_squared_t>(degree_squared_t(72.0))();
+	test = degree_squared_t(degree_squared_t(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = convert<spat_t>(degree_squared_t(3282.8))();
+	test = spat_t(degree_squared_t(3282.8))();
 	EXPECT_NEAR(1.0 / (4 * constants::detail::PI_VAL), test, 5.0e-5);
-	test = convert<steradian_t>(spat_t(1.0 / (4 * constants::detail::PI_VAL)))();
+	test = steradian_t(spat_t(1.0 / (4 * constants::detail::PI_VAL)))();
 	EXPECT_NEAR(1.0, test, 5.0e-14);
-	test = convert<degree_squared_t>(spat_t(1.0 / (4 * constants::detail::PI_VAL)))();
+	test = degree_squared_t(spat_t(1.0 / (4 * constants::detail::PI_VAL)))();
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
-	test = convert<spat_t>(spat_t(72.0))();
+	test = spat_t(spat_t(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
@@ -2099,13 +2099,13 @@ TEST_F(UnitConversion, frequency)
 {
 	double test;
 
-	test = convert<kilohertz_t>(hertz_t(63000.0))();
+	test = kilohertz_t(hertz_t(63000.0))();
 	EXPECT_NEAR(63.0, test, 5.0e-5);
-	test = convert<hertz_t>(hertz_t(6.3))();
+	test = hertz_t(hertz_t(6.3))();
 	EXPECT_NEAR(6.3, test, 5.0e-5);
-	test = convert<hertz_t>(kilohertz_t(5.0))();
+	test = hertz_t(kilohertz_t(5.0))();
 	EXPECT_NEAR(5000.0, test, 5.0e-5);
-	test = convert<hertz_t>(megahertz_t(1.0))();
+	test = hertz_t(megahertz_t(1.0))();
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
@@ -2119,15 +2119,15 @@ TEST_F(UnitConversion, velocity)
 	same = traits::is_convertible_unit_v<miles_per_hour, meters_per_second>;
 	EXPECT_TRUE(same);
 
-	test = convert<miles_per_hour_t>(meters_per_second_t(1250.0))();
+	test = miles_per_hour_t(meters_per_second_t(1250.0))();
 	EXPECT_NEAR(2796.17, test, 5.0e-3);
-	test = convert<kilometers_per_hour_t>(feet_per_second_t(2796.17))();
+	test = kilometers_per_hour_t(feet_per_second_t(2796.17))();
 	EXPECT_NEAR(3068.181418, test, 5.0e-7);
-	test = convert<miles_per_hour_t>(knot_t(600.0))();
+	test = miles_per_hour_t(knot_t(600.0))();
 	EXPECT_NEAR(690.468, test, 5.0e-4);
-	test = convert<feet_per_second_t>(miles_per_hour_t(120.0))();
+	test = feet_per_second_t(miles_per_hour_t(120.0))();
 	EXPECT_NEAR(176.0, test, 5.0e-5);
-	test = convert<meters_per_second_t>(feet_per_second_t(10.0))();
+	test = meters_per_second_t(feet_per_second_t(10.0))();
 	EXPECT_NEAR(3.048, test, 5.0e-5);
 }
 
@@ -2141,13 +2141,13 @@ TEST_F(UnitConversion, angular_velocity)
 	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
 	EXPECT_TRUE(same);
 
-	test = convert<milliarcseconds_per_year_t>(radians_per_second_t(1.0))();
+	test = milliarcseconds_per_year_t(radians_per_second_t(1.0))();
 	EXPECT_NEAR(6.504e15, test, 1.0e12);
-	test = convert<radians_per_second_t>(degrees_per_second_t(1.0))();
+	test = radians_per_second_t(degrees_per_second_t(1.0))();
 	EXPECT_NEAR(0.0174533, test, 5.0e-8);
-	test = convert<radians_per_second_t>(revolutions_per_minute_t(1.0))();
+	test = radians_per_second_t(revolutions_per_minute_t(1.0))();
 	EXPECT_NEAR(0.10471975512, test, 5.0e-13);
-	test = convert<radians_per_second_t>(milliarcseconds_per_year_t(1.0))();
+	test = radians_per_second_t(milliarcseconds_per_year_t(1.0))();
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
@@ -2155,7 +2155,7 @@ TEST_F(UnitConversion, acceleration)
 {
 	double test;
 
-	test = convert<meters_per_second_squared_t>(standard_gravity_t(1.0))();
+	test = meters_per_second_squared_t(standard_gravity_t(1.0))();
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
 }
 
@@ -2163,17 +2163,17 @@ TEST_F(UnitConversion, force)
 {
 	double test;
 
-	test = convert<units::force::newton_t>(units::force::newton_t(1.0))();
+	test = units::force::newton_t(units::force::newton_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<units::force::pound_t>(units::force::newton_t(6.3))();
+	test = units::force::pound_t(units::force::newton_t(6.3))();
 	EXPECT_NEAR(1.4163, test, 5.0e-5);
-	test = convert<units::force::dyne_t>(units::force::newton_t(5.0))();
+	test = units::force::dyne_t(units::force::newton_t(5.0))();
 	EXPECT_NEAR(500000.0, test, 5.0e-5);
-	test = convert<units::force::poundal_t>(units::force::newton_t(2.1))();
+	test = units::force::poundal_t(units::force::newton_t(2.1))();
 	EXPECT_NEAR(15.1893, test, 5.0e-5);
-	test = convert<units::force::kilopond_t>(units::force::newton_t(173.0))();
+	test = units::force::kilopond_t(units::force::newton_t(173.0))();
 	EXPECT_NEAR(17.6411, test, 5.0e-5);
-	test = convert<units::force::kilopond_t>(units::force::poundal_t(21.879))();
+	test = units::force::kilopond_t(units::force::poundal_t(21.879))();
 	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
@@ -2181,15 +2181,15 @@ TEST_F(UnitConversion, area)
 {
 	double test;
 
-	test = convert<acre_t>(hectare_t(6.3))();
+	test = acre_t(hectare_t(6.3))();
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
-	test = convert<square_kilometer_t>(square_mile_t(10.0))();
+	test = square_kilometer_t(square_mile_t(10.0))();
 	EXPECT_NEAR(25.8999, test, 5.0e-5);
-	test = convert<square_meter_t>(square_inch_t(4.0))();
+	test = square_meter_t(square_inch_t(4.0))();
 	EXPECT_NEAR(0.00258064, test, 5.0e-9);
-	test = convert<square_foot_t>(acre_t(5.0))();
+	test = square_foot_t(acre_t(5.0))();
 	EXPECT_NEAR(217800.0, test, 5.0e-5);
-	test = convert<square_foot_t>(square_meter_t(1.0))();
+	test = square_foot_t(square_meter_t(1.0))();
 	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
@@ -2197,25 +2197,25 @@ TEST_F(UnitConversion, pressure)
 {
 	double test;
 
-	test = convert<torr_t>(pascal_t(1.0))();
+	test = torr_t(pascal_t(1.0))();
 	EXPECT_NEAR(0.00750062, test, 5.0e-5);
-	test = convert<pounds_per_square_inch_t>(bar_t(2.2))();
+	test = pounds_per_square_inch_t(bar_t(2.2))();
 	EXPECT_NEAR(31.9083, test, 5.0e-5);
-	test = convert<bar_t>(atmosphere_t(4.0))();
+	test = bar_t(atmosphere_t(4.0))();
 	EXPECT_NEAR(4.053, test, 5.0e-5);
-	test = convert<pascal_t>(torr_t(800.0))();
+	test = pascal_t(torr_t(800.0))();
 	EXPECT_NEAR(106657.89474, test, 5.0e-5);
-	test = convert<atmosphere_t>(pounds_per_square_inch_t(38.0))();
+	test = atmosphere_t(pounds_per_square_inch_t(38.0))();
 	EXPECT_NEAR(2.58575, test, 5.0e-5);
-	test = convert<pascal_t>(pounds_per_square_inch_t(1.0))();
+	test = pascal_t(pounds_per_square_inch_t(1.0))();
 	EXPECT_NEAR(6894.76, test, 5.0e-3);
-	test = convert<bar_t>(pascal_t(0.25))();
+	test = bar_t(pascal_t(0.25))();
 	EXPECT_NEAR(2.5e-6, test, 5.0e-5);
-	test = convert<atmosphere_t>(torr_t(9.0))();
+	test = atmosphere_t(torr_t(9.0))();
 	EXPECT_NEAR(0.0118421, test, 5.0e-8);
-	test = convert<torr_t>(bar_t(12.0))();
+	test = torr_t(bar_t(12.0))();
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
-	test = convert<pounds_per_square_inch_t>(atmosphere_t(1.0))();
+	test = pounds_per_square_inch_t(atmosphere_t(1.0))();
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 }
 
@@ -2223,9 +2223,9 @@ TEST_F(UnitConversion, charge)
 {
 	double test;
 
-	test = convert<ampere_hour_t>(coulomb_t(4.0))();
+	test = ampere_hour_t(coulomb_t(4.0))();
 	EXPECT_NEAR(0.00111111, test, 5.0e-9);
-	test = convert<coulomb_t>(ampere_hour_t(1.0))();
+	test = coulomb_t(ampere_hour_t(1.0))();
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
@@ -2233,31 +2233,31 @@ TEST_F(UnitConversion, energy)
 {
 	double test;
 
-	test = convert<calorie_t>(joule_t(8000.000464))();
+	test = calorie_t(joule_t(8000.000464))();
 	EXPECT_NEAR(1912.046, test, 5.0e-4);
-	test = convert<joule_t>(therm_t(12.0))();
+	test = joule_t(therm_t(12.0))();
 	EXPECT_NEAR(1.266e+9, test, 5.0e5);
-	test = convert<watt_hour_t>(megajoule_t(100.0))();
+	test = watt_hour_t(megajoule_t(100.0))();
 	EXPECT_NEAR(27777.778, test, 5.0e-4);
-	test = convert<megajoule_t>(kilocalorie_t(56.0))();
+	test = megajoule_t(kilocalorie_t(56.0))();
 	EXPECT_NEAR(0.234304, test, 5.0e-7);
-	test = convert<therm_t>(kilojoule_t(56.0))();
+	test = therm_t(kilojoule_t(56.0))();
 	EXPECT_NEAR(0.000530904, test, 5.0e-5);
-	test = convert<kilojoule_t>(british_thermal_unit_t(18.56399995447))();
+	test = kilojoule_t(british_thermal_unit_t(18.56399995447))();
 	EXPECT_NEAR(19.5860568, test, 5.0e-5);
-	test = convert<energy::foot_pound_t>(calorie_t(18.56399995447))();
+	test = energy::foot_pound_t(calorie_t(18.56399995447))();
 	EXPECT_NEAR(57.28776190423856, test, 5.0e-5);
-	test = convert<calorie_t>(megajoule_t(1.0))();
+	test = calorie_t(megajoule_t(1.0))();
 	EXPECT_NEAR(239006.0, test, 5.0e-1);
-	test = convert<kilowatt_hour_t>(kilocalorie_t(2.0))();
+	test = kilowatt_hour_t(kilocalorie_t(2.0))();
 	EXPECT_NEAR(0.00232444, test, 5.0e-9);
-	test = convert<kilocalorie_t>(therm_t(0.1))();
+	test = kilocalorie_t(therm_t(0.1))();
 	EXPECT_NEAR(2521.04, test, 5.0e-3);
-	test = convert<megajoule_t>(watt_hour_t(67.0))();
+	test = megajoule_t(watt_hour_t(67.0))();
 	EXPECT_NEAR(0.2412, test, 5.0e-5);
-	test = convert<watt_hour_t>(british_thermal_unit_t(100.0))();
+	test = watt_hour_t(british_thermal_unit_t(100.0))();
 	EXPECT_NEAR(29.3071, test, 5.0e-5);
-	test = convert<british_thermal_unit_t>(calorie_t(100.0))();
+	test = british_thermal_unit_t(calorie_t(100.0))();
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
@@ -2265,19 +2265,19 @@ TEST_F(UnitConversion, power)
 {
 	double test;
 
-	test = convert<watt_t>(unit<compound_unit_conversion<energy::foot_pounds, inverse<seconds>>>(550.0))();
+	test = watt_t(unit<compound_unit_conversion<energy::foot_pounds, inverse<seconds>>>(550.0))();
 	EXPECT_NEAR(745.7, test, 5.0e-2);
-	test = convert<gigawatt_t>(watt_t(1000000000.0))();
+	test = gigawatt_t(watt_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-4);
-	test = convert<watt_t>(microwatt_t(200000.0))();
+	test = watt_t(microwatt_t(200000.0))();
 	EXPECT_NEAR(0.2, test, 5.0e-4);
-	test = convert<watt_t>(horsepower_t(100.0))();
+	test = watt_t(horsepower_t(100.0))();
 	EXPECT_NEAR(74570.0, test, 5.0e-1);
-	test = convert<megawatt_t>(horsepower_t(5.0))();
+	test = megawatt_t(horsepower_t(5.0))();
 	EXPECT_NEAR(0.0037284994, test, 5.0e-7);
-	test = convert<horsepower_t>(kilowatt_t(232.0))();
+	test = horsepower_t(kilowatt_t(232.0))();
 	EXPECT_NEAR(311.117, test, 5.0e-4);
-	test = convert<horsepower_t>(milliwatt_t(1001.0))();
+	test = horsepower_t(milliwatt_t(1001.0))();
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
@@ -2285,29 +2285,29 @@ TEST_F(UnitConversion, voltage)
 {
 	double test;
 
-	test = convert<millivolt_t>(volt_t(10.0))();
+	test = millivolt_t(volt_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<volt_t>(picovolt_t(1000000000000.0))();
+	test = volt_t(picovolt_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(nanovolt_t(1000000000.0))();
+	test = volt_t(nanovolt_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(microvolt_t(1000000.0))();
+	test = volt_t(microvolt_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(millivolt_t(1000.0))();
+	test = volt_t(millivolt_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(kilovolt_t(0.001))();
+	test = volt_t(kilovolt_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(megavolt_t(0.000001))();
+	test = volt_t(megavolt_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(gigavolt_t(0.000000001))();
+	test = volt_t(gigavolt_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<volt_t>(statvolt_t(299.792458))();
+	test = volt_t(statvolt_t(299.792458))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<statvolt_t>(millivolt_t(1000.0))();
+	test = statvolt_t(millivolt_t(1000.0))();
 	EXPECT_NEAR(299.792458, test, 5.0e-5);
-	test = convert<nanovolt_t>(abvolt_t(0.1))();
+	test = nanovolt_t(abvolt_t(0.1))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<abvolt_t>(microvolt_t(0.01))();
+	test = abvolt_t(microvolt_t(0.01))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2315,21 +2315,21 @@ TEST_F(UnitConversion, capacitance)
 {
 	double test;
 
-	test = convert<millifarad_t>(farad_t(10.0))();
+	test = millifarad_t(farad_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<farad_t>(picofarad_t(1000000000000.0))();
+	test = farad_t(picofarad_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(nanofarad_t(1000000000.0))();
+	test = farad_t(nanofarad_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(microfarad_t(1000000.0))();
+	test = farad_t(microfarad_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(millifarad_t(1000.0))();
+	test = farad_t(millifarad_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(kilofarad_t(0.001))();
+	test = farad_t(kilofarad_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(megafarad_t(0.000001))();
+	test = farad_t(megafarad_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<farad_t>(gigafarad_t(0.000000001))();
+	test = farad_t(gigafarad_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2337,21 +2337,21 @@ TEST_F(UnitConversion, impedance)
 {
 	double test;
 
-	test = convert<milliohm_t>(ohm_t(10.0))();
+	test = milliohm_t(ohm_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<ohm_t>(picoohm_t(1000000000000.0))();
+	test = ohm_t(picoohm_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(nanoohm_t(1000000000.0))();
+	test = ohm_t(nanoohm_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(microohm_t(1000000.0))();
+	test = ohm_t(microohm_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(milliohm_t(1000.0))();
+	test = ohm_t(milliohm_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(kiloohm_t(0.001))();
+	test = ohm_t(kiloohm_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(megaohm_t(0.000001))();
+	test = ohm_t(megaohm_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<ohm_t>(gigaohm_t(0.000000001))();
+	test = ohm_t(gigaohm_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2359,21 +2359,21 @@ TEST_F(UnitConversion, conductance)
 {
 	double test;
 
-	test = convert<millisiemens_t>(siemens_t(10.0))();
+	test = millisiemens_t(siemens_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<siemens_t>(picosiemens_t(1000000000000.0))();
+	test = siemens_t(picosiemens_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(nanosiemens_t(1000000000.0))();
+	test = siemens_t(nanosiemens_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(microsiemens_t(1000000.0))();
+	test = siemens_t(microsiemens_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(millisiemens_t(1000.0))();
+	test = siemens_t(millisiemens_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(kilosiemens_t(0.001))();
+	test = siemens_t(kilosiemens_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(megasiemens_t(0.000001))();
+	test = siemens_t(megasiemens_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<siemens_t>(gigasiemens_t(0.000000001))();
+	test = siemens_t(gigasiemens_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2381,25 +2381,25 @@ TEST_F(UnitConversion, magnetic_flux)
 {
 	double test;
 
-	test = convert<milliweber_t>(weber_t(10.0))();
+	test = milliweber_t(weber_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<weber_t>(picoweber_t(1000000000000.0))();
+	test = weber_t(picoweber_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(nanoweber_t(1000000000.0))();
+	test = weber_t(nanoweber_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(microweber_t(1000000.0))();
+	test = weber_t(microweber_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(milliweber_t(1000.0))();
+	test = weber_t(milliweber_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(kiloweber_t(0.001))();
+	test = weber_t(kiloweber_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(megaweber_t(0.000001))();
+	test = weber_t(megaweber_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(gigaweber_t(0.000000001))();
+	test = weber_t(gigaweber_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<weber_t>(maxwell_t(100000000.0))();
+	test = weber_t(maxwell_t(100000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<maxwell_t>(nanoweber_t(10.0))();
+	test = maxwell_t(nanoweber_t(10.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2407,25 +2407,25 @@ TEST_F(UnitConversion, magnetic_field_strength)
 {
 	double test;
 
-	test = convert<millitesla_t>(tesla_t(10.0))();
+	test = millitesla_t(tesla_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<tesla_t>(picotesla_t(1000000000000.0))();
+	test = tesla_t(picotesla_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(nanotesla_t(1000000000.0))();
+	test = tesla_t(nanotesla_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(microtesla_t(1000000.0))();
+	test = tesla_t(microtesla_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(millitesla_t(1000.0))();
+	test = tesla_t(millitesla_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(kilotesla_t(0.001))();
+	test = tesla_t(kilotesla_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(megatesla_t(0.000001))();
+	test = tesla_t(megatesla_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(gigatesla_t(0.000000001))();
+	test = tesla_t(gigatesla_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<tesla_t>(gauss_t(10000.0))();
+	test = tesla_t(gauss_t(10000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gauss_t>(nanotesla_t(100000.0))();
+	test = gauss_t(nanotesla_t(100000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2433,21 +2433,21 @@ TEST_F(UnitConversion, inductance)
 {
 	double test;
 
-	test = convert<millihenry_t>(henry_t(10.0))();
+	test = millihenry_t(henry_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<henry_t>(picohenry_t(1000000000000.0))();
+	test = henry_t(picohenry_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(nanohenry_t(1000000000.0))();
+	test = henry_t(nanohenry_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(microhenry_t(1000000.0))();
+	test = henry_t(microhenry_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(millihenry_t(1000.0))();
+	test = henry_t(millihenry_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(kilohenry_t(0.001))();
+	test = henry_t(kilohenry_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(megahenry_t(0.000001))();
+	test = henry_t(megahenry_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<henry_t>(gigahenry_t(0.000000001))();
+	test = henry_t(gigahenry_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2455,21 +2455,21 @@ TEST_F(UnitConversion, luminous_flux)
 {
 	double test;
 
-	test = convert<millilumen_t>(lumen_t(10.0))();
+	test = millilumen_t(lumen_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<lumen_t>(picolumen_t(1000000000000.0))();
+	test = lumen_t(picolumen_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(nanolumen_t(1000000000.0))();
+	test = lumen_t(nanolumen_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(microlumen_t(1000000.0))();
+	test = lumen_t(microlumen_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(millilumen_t(1000.0))();
+	test = lumen_t(millilumen_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(kilolumen_t(0.001))();
+	test = lumen_t(kilolumen_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(megalumen_t(0.000001))();
+	test = lumen_t(megalumen_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumen_t>(gigalumen_t(0.000000001))();
+	test = lumen_t(gigalumen_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2477,28 +2477,28 @@ TEST_F(UnitConversion, illuminance)
 {
 	double test;
 
-	test = convert<millilux_t>(lux_t(10.0))();
+	test = millilux_t(lux_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<lux_t>(picolux_t(1000000000000.0))();
+	test = lux_t(picolux_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(nanolux_t(1000000000.0))();
+	test = lux_t(nanolux_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(microlux_t(1000000.0))();
+	test = lux_t(microlux_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(millilux_t(1000.0))();
+	test = lux_t(millilux_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(kilolux_t(0.001))();
+	test = lux_t(kilolux_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(megalux_t(0.000001))();
+	test = lux_t(megalux_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lux_t>(gigalux_t(0.000000001))();
+	test = lux_t(gigalux_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-// 	test = convert<lux_t>(footcandle_t(0.092903))();
+// 	test = lux_t(footcandle_t(0.092903))();
 // 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<lumens_per_square_inch_t>(lux_t(1550.0031000062))();
+	test = lumens_per_square_inch_t(lux_t(1550.0031000062))();
 	EXPECT_NEAR(1.0, test, 5.0e-13);
-	test = convert<lux_t>(phot_t(0.0001))();
+	test = lux_t(phot_t(0.0001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2506,62 +2506,62 @@ TEST_F(UnitConversion, radiation)
 {
 	double test;
 
-	test = convert<millibecquerel_t>(becquerel_t(10.0))();
+	test = millibecquerel_t(becquerel_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<becquerel_t>(picobecquerel_t(1000000000000.0))();
+	test = becquerel_t(picobecquerel_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(nanobecquerel_t(1000000000.0))();
+	test = becquerel_t(nanobecquerel_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(microbecquerel_t(1000000.0))();
+	test = becquerel_t(microbecquerel_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(millibecquerel_t(1000.0))();
+	test = becquerel_t(millibecquerel_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(kilobecquerel_t(0.001))();
+	test = becquerel_t(kilobecquerel_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(megabecquerel_t(0.000001))();
+	test = becquerel_t(megabecquerel_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<becquerel_t>(gigabecquerel_t(0.000000001))();
+	test = becquerel_t(gigabecquerel_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = convert<milligray_t>(gray_t(10.0))();
+	test = milligray_t(gray_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<gray_t>(picogray_t(1000000000000.0))();
+	test = gray_t(picogray_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(nanogray_t(1000000000.0))();
+	test = gray_t(nanogray_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(microgray_t(1000000.0))();
+	test = gray_t(microgray_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(milligray_t(1000.0))();
+	test = gray_t(milligray_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(kilogray_t(0.001))();
+	test = gray_t(kilogray_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(megagray_t(0.000001))();
+	test = gray_t(megagray_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(gigagray_t(0.000000001))();
+	test = gray_t(gigagray_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = convert<millisievert_t>(sievert_t(10.0))();
+	test = millisievert_t(sievert_t(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = convert<sievert_t>(picosievert_t(1000000000000.0))();
+	test = sievert_t(picosievert_t(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(nanosievert_t(1000000000.0))();
+	test = sievert_t(nanosievert_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(microsievert_t(1000000.0))();
+	test = sievert_t(microsievert_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(millisievert_t(1000.0))();
+	test = sievert_t(millisievert_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(kilosievert_t(0.001))();
+	test = sievert_t(kilosievert_t(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(megasievert_t(0.000001))();
+	test = sievert_t(megasievert_t(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<sievert_t>(gigasievert_t(0.000000001))();
+	test = sievert_t(gigasievert_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = convert<curie_t>(becquerel_t(37.0e9))();
+	test = curie_t(becquerel_t(37.0e9))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<rutherford_t>(becquerel_t(1000000.0))();
+	test = rutherford_t(becquerel_t(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<gray_t>(rad_t(100.0))();
+	test = gray_t(rad_t(100.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -2569,17 +2569,17 @@ TEST_F(UnitConversion, torque)
 {
 	double test;
 
-	test = convert<newton_meter_t>(torque::foot_pound_t(1.0))();
+	test = newton_meter_t(torque::foot_pound_t(1.0))();
 	EXPECT_NEAR(1.355817948, test, 5.0e-5);
-	test = convert<newton_meter_t>(inch_pound_t(1.0))();
+	test = newton_meter_t(inch_pound_t(1.0))();
 	EXPECT_NEAR(0.112984829, test, 5.0e-5);
-	test = convert<newton_meter_t>(foot_poundal_t(1.0))();
+	test = newton_meter_t(foot_poundal_t(1.0))();
 	EXPECT_NEAR(4.214011009e-2, test, 5.0e-5);
-	test = convert<newton_meter_t>(meter_kilogram_t(1.0))();
+	test = newton_meter_t(meter_kilogram_t(1.0))();
 	EXPECT_NEAR(9.80665, test, 5.0e-5);
-	test = convert<meter_kilogram_t>(inch_pound_t(86.79616930855788))();
+	test = meter_kilogram_t(inch_pound_t(86.79616930855788))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<inch_pound_t>(foot_poundal_t(2.681170713))();
+	test = inch_pound_t(foot_poundal_t(2.681170713))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
 }
@@ -2588,67 +2588,67 @@ TEST_F(UnitConversion, volume)
 {
 	double test;
 
-	test = convert<cubic_meter_t>(cubic_meter_t(1.0))();
+	test = cubic_meter_t(cubic_meter_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<cubic_meter_t>(cubic_millimeter_t(1.0))();
+	test = cubic_meter_t(cubic_millimeter_t(1.0))();
 	EXPECT_NEAR(1.0e-9, test, 5.0e-5);
-	test = convert<cubic_meter_t>(cubic_kilometer_t(1.0))();
+	test = cubic_meter_t(cubic_kilometer_t(1.0))();
 	EXPECT_NEAR(1.0e9, test, 5.0e-5);
-	test = convert<cubic_meter_t>(liter_t(1.0))();
+	test = cubic_meter_t(liter_t(1.0))();
 	EXPECT_NEAR(0.001, test, 5.0e-5);
-	test = convert<cubic_meter_t>(milliliter_t(1.0))();
+	test = cubic_meter_t(milliliter_t(1.0))();
 	EXPECT_NEAR(1.0e-6, test, 5.0e-5);
-	test = convert<cubic_meter_t>(cubic_inch_t(1.0))();
+	test = cubic_meter_t(cubic_inch_t(1.0))();
 	EXPECT_NEAR(1.6387e-5, test, 5.0e-10);
-	test = convert<cubic_meter_t>(cubic_foot_t(1.0))();
+	test = cubic_meter_t(cubic_foot_t(1.0))();
 	EXPECT_NEAR(0.0283168, test, 5.0e-8);
-	test = convert<cubic_meter_t>(cubic_yard_t(1.0))();
+	test = cubic_meter_t(cubic_yard_t(1.0))();
 	EXPECT_NEAR(0.764555, test, 5.0e-7);
-	test = convert<cubic_meter_t>(cubic_mile_t(1.0))();
+	test = cubic_meter_t(cubic_mile_t(1.0))();
 	EXPECT_NEAR(4.168e+9, test, 5.0e5);
-	test = convert<cubic_meter_t>(gallon_t(1.0))();
+	test = cubic_meter_t(gallon_t(1.0))();
 	EXPECT_NEAR(0.00378541, test, 5.0e-8);
-	test = convert<cubic_meter_t>(quart_t(1.0))();
+	test = cubic_meter_t(quart_t(1.0))();
 	EXPECT_NEAR(0.000946353, test, 5.0e-10);
-	test = convert<cubic_meter_t>(pint_t(1.0))();
+	test = cubic_meter_t(pint_t(1.0))();
 	EXPECT_NEAR(0.000473176, test, 5.0e-10);
-	test = convert<cubic_meter_t>(cup_t(1.0))();
+	test = cubic_meter_t(cup_t(1.0))();
 	EXPECT_NEAR(0.00024, test, 5.0e-6);
-	test = convert<cubic_meter_t>(volume::fluid_ounce_t(1.0))();
+	test = cubic_meter_t(volume::fluid_ounce_t(1.0))();
 	EXPECT_NEAR(2.9574e-5, test, 5.0e-5);
-	test = convert<cubic_meter_t>(barrel_t(1.0))();
+	test = cubic_meter_t(barrel_t(1.0))();
 	EXPECT_NEAR(0.158987294928, test, 5.0e-13);
-	test = convert<cubic_meter_t>(bushel_t(1.0))();
+	test = cubic_meter_t(bushel_t(1.0))();
 	EXPECT_NEAR(0.0352391, test, 5.0e-8);
-	test = convert<cubic_meter_t>(cord_t(1.0))();
+	test = cubic_meter_t(cord_t(1.0))();
 	EXPECT_NEAR(3.62456, test, 5.0e-6);
-	test = convert<cubic_meter_t>(cubic_fathom_t(1.0))();
+	test = cubic_meter_t(cubic_fathom_t(1.0))();
 	EXPECT_NEAR(6.11644, test, 5.0e-6);
-	test = convert<cubic_meter_t>(tablespoon_t(1.0))();
+	test = cubic_meter_t(tablespoon_t(1.0))();
 	EXPECT_NEAR(1.4787e-5, test, 5.0e-10);
-	test = convert<cubic_meter_t>(teaspoon_t(1.0))();
+	test = cubic_meter_t(teaspoon_t(1.0))();
 	EXPECT_NEAR(4.9289e-6, test, 5.0e-11);
-	test = convert<cubic_meter_t>(pinch_t(1.0))();
+	test = cubic_meter_t(pinch_t(1.0))();
 	EXPECT_NEAR(616.11519921875e-9, test, 5.0e-20);
-	test = convert<cubic_meter_t>(dash_t(1.0))();
+	test = cubic_meter_t(dash_t(1.0))();
 	EXPECT_NEAR(308.057599609375e-9, test, 5.0e-20);
-	test = convert<cubic_meter_t>(drop_t(1.0))();
+	test = cubic_meter_t(drop_t(1.0))();
 	EXPECT_NEAR(82.14869322916e-9, test, 5.0e-9);
-	test = convert<cubic_meter_t>(fifth_t(1.0))();
+	test = cubic_meter_t(fifth_t(1.0))();
 	EXPECT_NEAR(0.00075708236, test, 5.0e-12);
-	test = convert<cubic_meter_t>(dram_t(1.0))();
+	test = cubic_meter_t(dram_t(1.0))();
 	EXPECT_NEAR(3.69669e-6, test, 5.0e-12);
-	test = convert<cubic_meter_t>(gill_t(1.0))();
+	test = cubic_meter_t(gill_t(1.0))();
 	EXPECT_NEAR(0.000118294, test, 5.0e-10);
-	test = convert<cubic_meter_t>(peck_t(1.0))();
+	test = cubic_meter_t(peck_t(1.0))();
 	EXPECT_NEAR(0.00880977, test, 5.0e-9);
-	test = convert<cubic_meter_t>(sack_t(9.4591978))();
+	test = cubic_meter_t(sack_t(9.4591978))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<cubic_meter_t>(shot_t(1.0))();
+	test = cubic_meter_t(shot_t(1.0))();
 	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
-	test = convert<cubic_meter_t>(strike_t(1.0))();
+	test = cubic_meter_t(strike_t(1.0))();
 	EXPECT_NEAR(0.07047814033376, test, 5.0e-5);
-	test = convert<milliliter_t>(volume::fluid_ounce_t(1.0))();
+	test = milliliter_t(volume::fluid_ounce_t(1.0))();
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
@@ -2656,25 +2656,25 @@ TEST_F(UnitConversion, density)
 {
 	double test;
 
-	test = convert<kilograms_per_cubic_meter_t>(kilograms_per_cubic_meter_t(1.0))();
+	test = kilograms_per_cubic_meter_t(kilograms_per_cubic_meter_t(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = convert<kilograms_per_cubic_meter_t>(grams_per_milliliter_t(1.0))();
+	test = kilograms_per_cubic_meter_t(grams_per_milliliter_t(1.0))();
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = convert<kilograms_per_cubic_meter_t>(kilograms_per_liter_t(1.0))();
+	test = kilograms_per_cubic_meter_t(kilograms_per_liter_t(1.0))();
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = convert<kilograms_per_cubic_meter_t>(ounces_per_cubic_foot_t(1.0))();
+	test = kilograms_per_cubic_meter_t(ounces_per_cubic_foot_t(1.0))();
 	EXPECT_NEAR(1.001153961, test, 5.0e-10);
-	test = convert<kilograms_per_cubic_meter_t>(ounces_per_cubic_inch_t(1.0))();
+	test = kilograms_per_cubic_meter_t(ounces_per_cubic_inch_t(1.0))();
 	EXPECT_NEAR(1.729994044e3, test, 5.0e-7);
-	test = convert<kilograms_per_cubic_meter_t>(ounces_per_gallon_t(1.0))();
+	test = kilograms_per_cubic_meter_t(ounces_per_gallon_t(1.0))();
 	EXPECT_NEAR(7.489151707, test, 5.0e-10);
-	test = convert<kilograms_per_cubic_meter_t>(pounds_per_cubic_foot_t(1.0))();
+	test = kilograms_per_cubic_meter_t(pounds_per_cubic_foot_t(1.0))();
 	EXPECT_NEAR(16.01846337, test, 5.0e-9);
-	test = convert<kilograms_per_cubic_meter_t>(pounds_per_cubic_inch_t(1.0))();
+	test = kilograms_per_cubic_meter_t(pounds_per_cubic_inch_t(1.0))();
 	EXPECT_NEAR(2.767990471e4, test, 5.0e-6);
-	test = convert<kilograms_per_cubic_meter_t>(pounds_per_gallon_t(1.0))();
+	test = kilograms_per_cubic_meter_t(pounds_per_gallon_t(1.0))();
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
-	test = convert<kilograms_per_cubic_meter_t>(slugs_per_cubic_foot_t(1.0))();
+	test = kilograms_per_cubic_meter_t(slugs_per_cubic_foot_t(1.0))();
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
@@ -2694,37 +2694,37 @@ TEST_F(UnitConversion, concentration)
 
 TEST_F(UnitConversion, data)
 {
-	EXPECT_EQ(8, (convert<bit_t>(byte_t(1))()));
+	EXPECT_EQ(8, (bit_t(byte_t(1))()));
 
-	EXPECT_EQ(1000, (convert<byte_t>(kilobyte_t(1))()));
-	EXPECT_EQ(1000, (convert<kilobyte_t>(megabyte_t(1))()));
-	EXPECT_EQ(1000, (convert<megabyte_t>(gigabyte_t(1))()));
-	EXPECT_EQ(1000, (convert<gigabyte_t>(terabyte_t(1))()));
-	EXPECT_EQ(1000, (convert<terabyte_t>(petabyte_t(1))()));
-	EXPECT_EQ(1000, (convert<petabyte_t>(exabyte_t(1))()));
+	EXPECT_EQ(1000, (byte_t(kilobyte_t(1))()));
+	EXPECT_EQ(1000, (kilobyte_t(megabyte_t(1))()));
+	EXPECT_EQ(1000, (megabyte_t(gigabyte_t(1))()));
+	EXPECT_EQ(1000, (gigabyte_t(terabyte_t(1))()));
+	EXPECT_EQ(1000, (terabyte_t(petabyte_t(1))()));
+	EXPECT_EQ(1000, (petabyte_t(exabyte_t(1))()));
 
-	EXPECT_EQ(1024, (convert<byte_t>(kibibyte_t(1))()));
-	EXPECT_EQ(1024, (convert<kibibyte_t>(mebibyte_t(1))()));
-	EXPECT_EQ(1024, (convert<mebibyte_t>(gibibyte_t(1))()));
-	EXPECT_EQ(1024, (convert<gibibyte_t>(tebibyte_t(1))()));
-	EXPECT_EQ(1024, (convert<tebibyte_t>(pebibyte_t(1))()));
-	EXPECT_EQ(1024, (convert<pebibyte_t>(exbibyte_t(1))()));
+	EXPECT_EQ(1024, (byte_t(kibibyte_t(1))()));
+	EXPECT_EQ(1024, (kibibyte_t(mebibyte_t(1))()));
+	EXPECT_EQ(1024, (mebibyte_t(gibibyte_t(1))()));
+	EXPECT_EQ(1024, (gibibyte_t(tebibyte_t(1))()));
+	EXPECT_EQ(1024, (tebibyte_t(pebibyte_t(1))()));
+	EXPECT_EQ(1024, (pebibyte_t(exbibyte_t(1))()));
 
-	EXPECT_EQ(93750000, (convert<kibibit_t>(gigabyte_t(12))()));
+	EXPECT_EQ(93750000, (kibibit_t(gigabyte_t(12))()));
 
-	EXPECT_EQ(1000, (convert<bit_t>(kilobit_t(1))()));
-	EXPECT_EQ(1000, (convert<kilobit_t>(megabit_t(1))()));
-	EXPECT_EQ(1000, (convert<megabit_t>(gigabit_t(1))()));
-	EXPECT_EQ(1000, (convert<gigabit_t>(terabit_t(1))()));
-	EXPECT_EQ(1000, (convert<terabit_t>(petabit_t(1))()));
-	EXPECT_EQ(1000, (convert<petabit_t>(exabit_t(1))()));
+	EXPECT_EQ(1000, (bit_t(kilobit_t(1))()));
+	EXPECT_EQ(1000, (kilobit_t(megabit_t(1))()));
+	EXPECT_EQ(1000, (megabit_t(gigabit_t(1))()));
+	EXPECT_EQ(1000, (gigabit_t(terabit_t(1))()));
+	EXPECT_EQ(1000, (terabit_t(petabit_t(1))()));
+	EXPECT_EQ(1000, (petabit_t(exabit_t(1))()));
 
-	EXPECT_EQ(1024, (convert<bit_t>(kibibit_t(1))()));
-	EXPECT_EQ(1024, (convert<kibibit_t>(mebibit_t(1))()));
-	EXPECT_EQ(1024, (convert<mebibit_t>(gibibit_t(1))()));
-	EXPECT_EQ(1024, (convert<gibibit_t>(tebibit_t(1))()));
-	EXPECT_EQ(1024, (convert<tebibit_t>(pebibit_t(1))()));
-	EXPECT_EQ(1024, (convert<pebibit_t>(exbibit_t(1))()));
+	EXPECT_EQ(1024, (bit_t(kibibit_t(1))()));
+	EXPECT_EQ(1024, (kibibit_t(mebibit_t(1))()));
+	EXPECT_EQ(1024, (mebibit_t(gibibit_t(1))()));
+	EXPECT_EQ(1024, (gibibit_t(tebibit_t(1))()));
+	EXPECT_EQ(1024, (tebibit_t(pebibit_t(1))()));
+	EXPECT_EQ(1024, (pebibit_t(exbibit_t(1))()));
 
 	// Source: https://en.wikipedia.org/wiki/Binary_prefix
 	EXPECT_NEAR(percent_t(2.4), kibibyte_t(1) / kilobyte_t(1) - 1, 0.005);
@@ -2737,37 +2737,37 @@ TEST_F(UnitConversion, data)
 
 TEST_F(UnitConversion, data_transfer_rate)
 {
-	EXPECT_EQ(8, (convert<bits_per_second_t>(bytes_per_second_t(1))()));
+	EXPECT_EQ(8, (bits_per_second_t(bytes_per_second_t(1))()));
 
-	EXPECT_EQ(1000, (convert<bytes_per_second_t>(kilobytes_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<kilobytes_per_second_t>(megabytes_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<megabytes_per_second_t>(gigabytes_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<gigabytes_per_second_t>(terabytes_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<terabytes_per_second_t>(petabytes_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<petabytes_per_second_t>(exabytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (bytes_per_second_t(kilobytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (kilobytes_per_second_t(megabytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (megabytes_per_second_t(gigabytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (gigabytes_per_second_t(terabytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (terabytes_per_second_t(petabytes_per_second_t(1))()));
+	EXPECT_EQ(1000, (petabytes_per_second_t(exabytes_per_second_t(1))()));
 
-	EXPECT_EQ(1024, (convert<bytes_per_second_t>(kibibytes_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<kibibytes_per_second_t>(mebibytes_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<mebibytes_per_second_t>(gibibytes_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<gibibytes_per_second_t>(tebibytes_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<tebibytes_per_second_t>(pebibytes_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<pebibytes_per_second_t>(exbibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (bytes_per_second_t(kibibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (kibibytes_per_second_t(mebibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (mebibytes_per_second_t(gibibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (gibibytes_per_second_t(tebibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (tebibytes_per_second_t(pebibytes_per_second_t(1))()));
+	EXPECT_EQ(1024, (pebibytes_per_second_t(exbibytes_per_second_t(1))()));
 
-	EXPECT_EQ(93750000, (convert<kibibits_per_second_t>(gigabytes_per_second_t(12))()));
+	EXPECT_EQ(93750000, (kibibits_per_second_t(gigabytes_per_second_t(12))()));
 
-	EXPECT_EQ(1000, (convert<bits_per_second_t>(kilobits_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<kilobits_per_second_t>(megabits_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<megabits_per_second_t>(gigabits_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<gigabits_per_second_t>(terabits_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<terabits_per_second_t>(petabits_per_second_t(1))()));
-	EXPECT_EQ(1000, (convert<petabits_per_second_t>(exabits_per_second_t(1))()));
+	EXPECT_EQ(1000, (bits_per_second_t(kilobits_per_second_t(1))()));
+	EXPECT_EQ(1000, (kilobits_per_second_t(megabits_per_second_t(1))()));
+	EXPECT_EQ(1000, (megabits_per_second_t(gigabits_per_second_t(1))()));
+	EXPECT_EQ(1000, (gigabits_per_second_t(terabits_per_second_t(1))()));
+	EXPECT_EQ(1000, (terabits_per_second_t(petabits_per_second_t(1))()));
+	EXPECT_EQ(1000, (petabits_per_second_t(exabits_per_second_t(1))()));
 
-	EXPECT_EQ(1024, (convert<bits_per_second_t>(kibibits_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<kibibits_per_second_t>(mebibits_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<mebibits_per_second_t>(gibibits_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<gibibits_per_second_t>(tebibits_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<tebibits_per_second_t>(pebibits_per_second_t(1))()));
-	EXPECT_EQ(1024, (convert<pebibits_per_second_t>(exbibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (bits_per_second_t(kibibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (kibibits_per_second_t(mebibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (mebibits_per_second_t(gibibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (gibibits_per_second_t(tebibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (tebibits_per_second_t(pebibits_per_second_t(1))()));
+	EXPECT_EQ(1024, (pebibits_per_second_t(exbibits_per_second_t(1))()));
 
 	// Source: https://en.wikipedia.org/wiki/Binary_prefix
 	EXPECT_NEAR(percent_t(2.4), kibibytes_per_second_t(1) / kilobytes_per_second_t(1) - 1, 0.005);
