@@ -1008,22 +1008,72 @@ TEST_F(UnitContainer, constructionFromArithmeticType)
 
 TEST_F(UnitContainer, constructionFromUnitContainer)
 {
-	unit<meters, int> a_m(1);
+	const unit<meters, int> a_m(1);
 
-	unit<meters, int> b_m(a_m);
+	const unit<meters, int> b_m(a_m);
 	EXPECT_EQ(1, b_m());
 
-	unit<millimeters, int> a_mm(b_m);
+	const unit<millimeters, int> a_mm(b_m);
 	EXPECT_EQ(1000, a_mm());
 
-	meter_t c_m(b_m);
+	const meter_t c_m(b_m);
 	EXPECT_EQ(1.0, c_m());
 
-	meter_t d_m(a_mm);
+	const meter_t d_m(a_mm);
 	EXPECT_EQ(1.0, d_m());
 
-	meter_t e_m(unit<kilometers, int>(1));
+	const meter_t e_m(unit<kilometers, int>(1));
 	EXPECT_EQ(1000.0, e_m());
+
+	const unit<dimensionless_unit, int> a_dim(1);
+
+	const unit<dimensionless_unit, int> b_dim(a_dim);
+	EXPECT_EQ(1, b_dim());
+
+	const dimensionless c_dim(b_dim);
+	EXPECT_EQ(1, b_dim());
+
+	const dimensionless d_dim(c_dim);
+	EXPECT_EQ(1.0, d_dim());
+}
+
+TEST_F(UnitContainer, assignmentFromUnitContainer)
+{
+	const unit<meters, int> a_m(1);
+
+	unit<meters, int> b_m;
+	b_m = a_m;
+	EXPECT_EQ(1, b_m());
+
+	unit<millimeters, int> a_mm;
+	a_mm = b_m;
+	EXPECT_EQ(1000, a_mm());
+
+	meter_t c_m;
+	c_m = b_m;
+	EXPECT_EQ(1.0, c_m());
+
+	meter_t d_m;
+	d_m = a_mm;
+	EXPECT_EQ(1.0, d_m());
+
+	meter_t e_m;
+	e_m = unit<kilometers, int>(1);
+	EXPECT_EQ(1000.0, e_m());
+
+	const unit<dimensionless_unit, int> a_dim(1);
+
+	unit<dimensionless_unit, int> b_dim;
+	b_dim = a_dim;
+	EXPECT_EQ(1, b_dim());
+
+	dimensionless c_dim;
+	c_dim = b_dim;
+	EXPECT_EQ(1, b_dim());
+
+	dimensionless d_dim;
+	d_dim = c_dim;
+	EXPECT_EQ(1.0, d_dim());
 }
 
 TEST_F(UnitContainer, make_unit)
