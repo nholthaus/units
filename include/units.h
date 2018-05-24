@@ -1543,7 +1543,7 @@ namespace units
 			// constexpr pi in denominator
 			else if constexpr(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
 			{
-				return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
+				return normal_convert(value / pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
 			}
 			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
 			else if constexpr(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
