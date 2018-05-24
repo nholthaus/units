@@ -1097,6 +1097,54 @@ TEST_F(UnitContainer, make_unit)
 	EXPECT_EQ((unit<dimensionless_unit, int>(5)), c_dim);
 }
 
+TEST_F(UnitContainer, unitTypeEquality)
+{
+	const meter_t a_m(0);
+	const meter_t b_m(1);
+
+	EXPECT_TRUE(a_m == a_m);
+	EXPECT_FALSE(a_m == b_m);
+	EXPECT_TRUE(a_m != b_m);
+	EXPECT_FALSE(b_m != b_m);
+
+	const unit<meters, int> c_m(0);
+	const unit<meters, int> d_m(1);
+
+	EXPECT_TRUE(c_m == c_m);
+	EXPECT_FALSE(c_m == d_m);
+	EXPECT_TRUE(c_m != d_m);
+	EXPECT_FALSE(d_m != d_m);
+
+	EXPECT_TRUE(a_m == c_m);
+	EXPECT_TRUE(d_m == b_m);
+	EXPECT_FALSE(a_m != c_m);
+	EXPECT_FALSE(d_m != b_m);
+	EXPECT_TRUE(a_m != d_m);
+	EXPECT_TRUE(c_m != b_m);
+	EXPECT_FALSE(a_m != c_m);
+	EXPECT_FALSE(d_m != b_m);
+}
+
+TEST_F(UnitContainer, unitTypeMixedEquality)
+{
+	const meter_t a_m(0);
+	const foot_t a_f(meter_t(1));
+
+	EXPECT_FALSE(a_m == a_f);
+	EXPECT_TRUE(a_m != a_f);
+
+	const unit<feet, int> b_f(0);
+	const unit<meters, int> b_m(1);
+
+	EXPECT_FALSE(b_f == b_m);
+	EXPECT_TRUE(b_f != b_m);
+
+	EXPECT_TRUE(a_m == b_f);
+	EXPECT_TRUE(b_m == a_f);
+	EXPECT_FALSE(a_m != b_f);
+	EXPECT_FALSE(b_m != a_f);
+}
+
 TEST_F(UnitContainer, unitTypeAddition)
 {
 	// units
