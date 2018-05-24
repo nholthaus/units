@@ -2155,14 +2155,15 @@ namespace units
 		 *				implicitly, but this can be used in cases where explicit notation of a conversion
 		 *				is beneficial, or where an r-value container is needed.
 		 * @tparam		U unit (not unit) to convert to
+		 * @tparam		Ty underlying type to convert to
 		 * @returns		a unit container with the specified units containing the equivalent value to
 		 *				*this.
 		 */
-		template<class U>
-		inline constexpr unit<U> convert() const noexcept
+		template<class U, typename Ty = T>
+		inline constexpr unit<U, Ty> convert() const noexcept
 		{
 			static_assert(traits::is_unit_conversion_v<U>, "Template parameter `U` must be a unit tag type.");
-			return unit<U>(*this);
+			return unit<U, Ty>(*this);
 		}
 
 		/**
