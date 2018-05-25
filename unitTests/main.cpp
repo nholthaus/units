@@ -3545,6 +3545,10 @@ TEST_F(UnitMath, min)
 	meter_t b(2);
 	foot_t c(1);
 	EXPECT_EQ(c, units::min(a, c));
+
+	const unit<meters> d(1);
+	const unit<centimeters> e(99);
+	EXPECT_EQ(e, units::min(d, e));
 }
 
 TEST_F(UnitMath, max)
@@ -3553,101 +3557,146 @@ TEST_F(UnitMath, max)
 	meter_t b(2);
 	foot_t c(1);
 	EXPECT_EQ(a, max(a, c));
+
+	const unit<meters> d(1);
+	const unit<centimeters> e(101);
+	EXPECT_EQ(e, max(d, e));
 }
 
 TEST_F(UnitMath, cos)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(cos(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(cos(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(-0.41614683654), cos(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(-0.41614683654), cos(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(-0.70710678118), cos(angle::degree_t(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(-0.70710678118), cos(unit<degrees, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, sin)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(sin(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(sin(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(0.90929742682), sin(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(0.90929742682), sin(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(0.70710678118), sin(angle::degree_t(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(0.70710678118), sin(unit<degrees, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, tan)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(tan(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(tan(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(-2.18503986326), tan(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(-2.18503986326), tan(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(-1.0), tan(angle::degree_t(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(-1.0), tan(unit<degrees, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, acos)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acos(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acos(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(2).to<double>(), acos(dimensionless(-0.41614683654)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radian_t(1.570796326795).to<double>(), acos(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::degree_t(135).to<double>(), angle::degree_t(acos(dimensionless(-0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(90).to<double>(), angle::degree_t(acos(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asin)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asin(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asin(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(1.14159265).to<double>(), asin(dimensionless(0.90929742682)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian_t(1.570796326795).to<double>(), asin(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degree_t(45).to<double>(), angle::degree_t(asin(dimensionless(0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(90).to<double>(), angle::degree_t(asin(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(-1.14159265).to<double>(), atan(dimensionless(-2.18503986326)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian_t(0.785398163397).to<double>(), atan(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degree_t(-45).to<double>(), angle::degree_t(atan(dimensionless(-1.0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(45).to<double>(), angle::degree_t(atan(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan2)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(dimensionless(1), dimensionless(1)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(unit<dimensionless_unit, int>(1), unit<dimensionless_unit, int>(1)))>::type>));
 	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 4).to<double>(), atan2(dimensionless(2), dimensionless(2)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 4).to<double>(), atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree_t(45).to<double>(), angle::degree_t(atan2(dimensionless(2), dimensionless(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(45).to<double>(), angle::degree_t(atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
 
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atan2(dimensionless(1), dimensionless(1)))>::type>));
 	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 6).to<double>(), atan2(dimensionless(1), sqrt(dimensionless(3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::radian_t(constants::detail::PI_VAL / 6).to<double>(), atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree_t(30).to<double>(), angle::degree_t(atan2(dimensionless(1), sqrt(dimensionless(3)))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(30).to<double>(), angle::degree_t(atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3)))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, cosh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(cosh(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(cosh(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(3.76219569108), cosh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(3.76219569108), cosh(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(5.32275215), cosh(angle::degree_t(135)), 5.0e-9);
+	EXPECT_NEAR(dimensionless(5.32275215), cosh(unit<degrees, int>(135)), 5.0e-9);
 }
 
 TEST_F(UnitMath, sinh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(sinh(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(sinh(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(3.62686040785), sinh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(3.62686040785), sinh(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(5.22797192), sinh(angle::degree_t(135)), 5.0e-9);
+	EXPECT_NEAR(dimensionless(5.22797192), sinh(unit<degrees, int>(135)), 5.0e-9);
 }
 
 TEST_F(UnitMath, tanh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(tanh(angle::radian_t(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<dimensionless>::type, typename std::decay<decltype(tanh(unit<degrees, int>(0)))>::type>));
 	EXPECT_NEAR(dimensionless(0.96402758007), tanh(angle::radian_t(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(0.96402758007), tanh(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(0.98219338), tanh(angle::degree_t(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(0.98219338), tanh(unit<degrees, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, acosh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acosh(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(acosh(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(1.316957896924817).to<double>(), acosh(dimensionless(2.0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radian_t(1.316957896924817).to<double>(), acosh(unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::degree_t(75.456129290216893).to<double>(), angle::degree_t(acosh(dimensionless(2.0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(75.456129290216893).to<double>(), angle::degree_t(acosh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asinh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asinh(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(asinh(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(1.443635475178810).to<double>(), asinh(dimensionless(2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian_t(1.443635475178810).to<double>(), asinh(unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degree_t(82.714219883108939).to<double>(), angle::degree_t(asinh(dimensionless(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(82.714219883108939).to<double>(), angle::degree_t(asinh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atanh)
 {
 	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atanh(dimensionless(0)))>::type>));
+	EXPECT_TRUE((std::is_same_v<typename std::decay<angle::radian_t>::type, typename std::decay<decltype(atanh(unit<dimensionless_unit, int>(0)))>::type>));
 	EXPECT_NEAR(angle::radian_t(0.549306144334055).to<double>(), atanh(dimensionless(0.5)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian_t(0).to<double>(), atanh(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degree_t(31.472923730945389).to<double>(), angle::degree_t(atanh(dimensionless(0.5))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree_t(0).to<double>(), angle::degree_t(atanh(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, exp)
