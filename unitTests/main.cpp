@@ -1290,30 +1290,54 @@ TEST_F(UnitContainer, unitTypeAddition)
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 	sresult = unit<dimensionless_unit, int>(1) + unit<dimensionless_unit, int>(1);
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = dimensionless(1.0) + unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = unit<dimensionless_unit, int>(1) + dimensionless(1.0);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 
 	sresult = dimensionless(1.0) + 1.0;
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = unit<dimensionless_unit, int>(1) + 1;
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = dimensionless(1.0) + 1;
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 	sresult = unit<dimensionless_unit, int>(1) + 1.0;
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 
 	sresult = 1.0 + dimensionless(1.0);
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = 1 + unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 	sresult = 1.0 + unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	sresult = 1 + dimensionless(1.0);
 	EXPECT_NEAR(2.0, sresult, 5.0e-6);
 
 	d = dimensionless(1.0) + dimensionless(1.0);
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 	d = unit<dimensionless_unit, int>(1) + unit<dimensionless_unit, int>(1);
 	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = dimensionless(1.0) + unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = unit<dimensionless_unit, int>(1) + dimensionless(1.0);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
 
 	d = dimensionless(1.0) + 1.0;
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = unit<dimensionless_unit, int>(1) + 1;
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = dimensionless(1.0) + 1;
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 	d = unit<dimensionless_unit, int>(1) + 1.0;
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 
 	d = 1.0 + dimensionless(1.0);
 	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = 1.+ unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
 	d = 1.0 + unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(2.0, d, 5.0e-6);
+	d = 1 + dimensionless(1.0);
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
@@ -1374,30 +1398,54 @@ TEST_F(UnitContainer, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 	sresult = unit<dimensionless_unit, int>(1) - unit<dimensionless_unit, int>(1);
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = dimensionless(1.0) - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = unit<dimensionless_unit, int>(1) - dimensionless(1.0);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 
 	sresult = dimensionless(1.0) - 1.0;
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = unit<dimensionless_unit, int>(1) - 1;
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = dimensionless(1.0) - 1;
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 	sresult = unit<dimensionless_unit, int>(1) - 1.0;
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 
 	sresult = 1.0 - dimensionless(1.0);
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = 1 - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 	sresult = 1.0 - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sresult = 1 - dimensionless(1.0);
 	EXPECT_NEAR(0.0, sresult, 5.0e-6);
 
 	double d = dimensionless(1.0) - dimensionless(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 	d = unit<dimensionless_unit, int>(1) - unit<dimensionless_unit, int>(1);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = dimensionless(1.0) - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = unit<dimensionless_unit, int>(1) - dimensionless(1.0);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
 
 	d = dimensionless(1.0) - 1.0;
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = unit<dimensionless_unit, int>(1) - 1;
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = dimensionless(1.0) - 1;
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 	d = unit<dimensionless_unit, int>(1) - 1.0;
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 
 	d = 1.0 - dimensionless(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = 1 - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
 	d = 1.0 - unit<dimensionless_unit, int>(1);
+	EXPECT_NEAR(0.0, d, 5.0e-6);
+	d = 1 - dimensionless(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 }
 
@@ -1467,9 +1515,9 @@ TEST_F(UnitContainer, unitTypeMultiplication)
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 	c_m = 2 * e_m;
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
-	c_m = 2 * b_m;
-	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 	c_m = 2.0 * e_m;
+	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
+	c_m = 2 * b_m;
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 
 	double convert = dimensionless(3.14);
@@ -1481,30 +1529,54 @@ TEST_F(UnitContainer, unitTypeMultiplication)
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 	sresult = unit<dimensionless_unit, int>(5) * unit<dimensionless_unit, int>(4);
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = dimensionless(5.0) * unit<dimensionless_unit, int>(4);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = unit<dimensionless_unit, int>(5) * dimensionless(4.0);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 
 	sresult = dimensionless(5.0) * 4.0;
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = unit<dimensionless_unit, int>(5) * 4;
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = dimensionless(5.0) * 4;
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 	sresult = unit<dimensionless_unit, int>(5) * 4.0;
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 
 	sresult = 4.0 * dimensionless(5.0);
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = 4 * unit<dimensionless_unit, int>(5);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 	sresult = 4.0 * unit<dimensionless_unit, int>(5);
+	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
+	sresult = 4 * dimensionless(5.0);
 	EXPECT_NEAR(20.0, sresult(), 5.0e-5);
 
 	double result = dimensionless(5.0) * dimensionless(4.0);
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 	result = unit<dimensionless_unit, int>(5) * unit<dimensionless_unit, int>(4);
 	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = dimensionless(5.0) * unit<dimensionless_unit, int>(4);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = unit<dimensionless_unit, int>(5) * dimensionless(4.0);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
 
 	result = dimensionless(5.0) * 4.0;
+	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = unit<dimensionless_unit, int>(5) * 4;
+	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = dimensionless(5.0) * 4;
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 	result = unit<dimensionless_unit, int>(5) * 4.0;
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 
 	result = 4.0 * dimensionless(5.0);
 	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = 4 * unit<dimensionless_unit, int>(5);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
 	result = 4.0 * unit<dimensionless_unit, int>(5);
+	EXPECT_NEAR(20.0, result, 5.0e-5);
+	result = 4 * dimensionless(5.0);
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 }
 
@@ -1560,9 +1632,9 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
 	e_m = unit<dimensionless_unit, int>(4) * b_m;
 	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
-	e_m = unit<dimensionless_unit, int>(4) * a_m;
-	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
 	e_m = dimensionless(4) * b_m;
+	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
+	e_m = unit<dimensionless_unit, int>(4) * a_m;
 	EXPECT_NEAR(4.0, e_m(), 5.0e-5);
 
 	// unit times its inverse results in a dimensionless
@@ -1595,8 +1667,12 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 
 	auto mps = meter_t(10.0) * unit<inverse<seconds>>(1.0);
 	EXPECT_EQ(mps, meters_per_second_t(10));
-	auto i_mps = unit<meters, int>(10) * unit<inverse<seconds>, int>(1);
-	EXPECT_EQ(i_mps, meters_per_second_t(10));
+	mps = unit<meters, int>(10) * unit<inverse<seconds>, int>(1);
+	EXPECT_EQ(mps, meters_per_second_t(10));
+	mps = meter_t(10.0) * unit<inverse<seconds>, int>(1);
+	EXPECT_EQ(mps, meters_per_second_t(10));
+	mps = unit<meters, int>(10) * unit<inverse<seconds>>(1.0);
+	EXPECT_EQ(mps, meters_per_second_t(10));
 }
 
 TEST_F(UnitContainer, unitTypedimensionlessMultiplication)
@@ -1644,7 +1720,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 	c = a_m / b_m;
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	c = d_m / e_m;
-	EXPECT_NEAR(0, c, 5.0e-5);
+	EXPECT_EQ(0, c);
 	c = a_m / e_m;
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	c = d_m / b_m;
@@ -1666,10 +1742,10 @@ TEST_F(UnitContainer, unitTypeDivision)
 	c = dimensionless(1.0) / 2.0;
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	c = unit<dimensionless_unit, int>(1) / 2;
-	EXPECT_NEAR(0, c, 5.0e-5);
-	c = unit<dimensionless_unit, int>(1) / 2.0;
-	EXPECT_NEAR(0.5, c, 5.0e-5);
+	EXPECT_EQ(0, c);
 	c = dimensionless(1.0) / 2;
+	EXPECT_NEAR(0.5, c, 5.0e-5);
+	c = unit<dimensionless_unit, int>(1) / 2.0;
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	isSame = std::is_same_v<decltype(c), dimensionless>;
 	EXPECT_TRUE(isSame);
@@ -1677,7 +1753,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 	c = 1.0 / dimensionless(2.0);
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	c = 1 / unit<dimensionless_unit, int>(2);
-	EXPECT_NEAR(0, c, 5.0e-5);
+	EXPECT_EQ(0, c);
 	c = 1.0 / unit<dimensionless_unit, int>(2);
 	EXPECT_NEAR(0.5, c, 5.0e-5);
 	c = 1 / dimensionless(2.0);
@@ -1691,7 +1767,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 	auto e = a_m / a_sec;
 	EXPECT_NEAR(0.1, e(), 5.0e-5);
 	e = d_m / b_sec;
-	EXPECT_NEAR(0, e(), 5.0e-5);
+	EXPECT_EQ(0, e());
 	e = a_m / b_sec;
 	EXPECT_NEAR(0.1, e(), 5.0e-5);
 	e = d_m / a_sec;
@@ -1702,7 +1778,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 	auto f = a_m / 8.0;
 	EXPECT_NEAR(0.125, f(), 5.0e-5);
 	f = d_m / 8;
-	EXPECT_NEAR(0, f(), 5.0e-5);
+	EXPECT_EQ(0, f());
 	f = a_m / 8;
 	EXPECT_NEAR(0.125, f(), 5.0e-5);
 	f = d_m / 8.0;
@@ -1714,9 +1790,9 @@ TEST_F(UnitContainer, unitTypeDivision)
 	EXPECT_NEAR(2.0, g(), 5.0e-5);
 	g = 4 / e_m;
 	EXPECT_NEAR(2.0, g(), 5.0e-5);
-	g = 4 / b_m;
-	EXPECT_NEAR(2.0, g(), 5.0e-5);
 	g = 4.0 / e_m;
+	EXPECT_NEAR(2.0, g(), 5.0e-5);
+	g = 4 / b_m;
 	EXPECT_NEAR(2.0, g(), 5.0e-5);
 	isSame = std::is_same_v<decltype(g), unit<inverse<meters>>>;
 	EXPECT_TRUE(isSame);
@@ -1804,6 +1880,10 @@ TEST_F(UnitContainer, compoundAssignmentAddition)
 
 	EXPECT_EQ(meter_t(3.0), a);
 
+	a += std::common_type_t<unit<meters, int>, unit<feet, int>>(unit<meters, int>(1));
+
+	EXPECT_EQ(meter_t(4.0), a);
+
 	unit<meters, int> c(0);
 	c += unit<meters, int>(1);
 
@@ -1856,6 +1936,10 @@ TEST_F(UnitContainer, compoundAssignmentSubtraction)
 	a -= unit<meters, int>(1);
 
 	EXPECT_EQ(meter_t(-1.0), a);
+
+	a -= std::common_type_t<unit<meters, int>, unit<feet, int>>(unit<meters, int>(1));
+
+	EXPECT_EQ(meter_t(-2.0), a);
 
 	unit<meters, int> c(1);
 	c -= unit<meters, int>(1);
@@ -1970,22 +2054,22 @@ TEST_F(UnitContainer, compoundAssignmentMultiplication)
 TEST_F(UnitContainer, compoundAssignmentDivision)
 {
 	// units
-	meter_t a(32.0);
+	meter_t a(8.0);
 	a /= dimensionless(2.0);
 
-	EXPECT_EQ(meter_t(16.0), a);
+	EXPECT_EQ(meter_t(4.0), a);
 
 	a /= 2.0;
 
-	EXPECT_EQ(meter_t(8.0), a);
+	EXPECT_EQ(meter_t(2.0), a);
 
 	a /= unit<dimensionless_unit, int>(2);
 
-	EXPECT_EQ(meter_t(4), a);
+	EXPECT_EQ(meter_t(1), a);
 
 	a /= 2;
 
-	EXPECT_EQ(meter_t(2), a);
+	EXPECT_EQ(meter_t(0.5), a);
 
 	unit<meters, int> c(32);
 	c /= unit<dimensionless_unit, int>(2);
@@ -2005,22 +2089,22 @@ TEST_F(UnitContainer, compoundAssignmentDivision)
 	EXPECT_EQ((unit<meters, int>(2)), c);
 
 	// dimensionlesss
-	dimensionless b(32);
+	dimensionless b(8);
 	b /= dimensionless(2.0);
-
-	EXPECT_EQ(dimensionless(16.0), b);
-
-	b /= 2.0;
-
-	EXPECT_EQ(dimensionless(8.0), b);
-
-	b /= unit<dimensionless_unit, int>(2);
 
 	EXPECT_EQ(dimensionless(4.0), b);
 
-	b /= 2;
+	b /= 2.0;
 
 	EXPECT_EQ(dimensionless(2.0), b);
+
+	b /= unit<dimensionless_unit, int>(2);
+
+	EXPECT_EQ(dimensionless(1.0), b);
+
+	b /= 2;
+
+	EXPECT_EQ(dimensionless(0.5), b);
 
 	unit<dimensionless_unit, int> d(32);
 	d /= unit<dimensionless_unit, int>(2);
