@@ -2390,16 +2390,24 @@ TEST_F(UnitContainer, dBAddition)
 
 	auto result_dbw = dBW_t(10.0) + dB_t(30.0);
 	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
+	result_dbw = unit<watt, int, decibel_scale>(10) + unit<dimensionless_unit, int, decibel_scale>(30);
+	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
 	result_dbw = dB_t(12.0) + dBW_t(30.0);
 	EXPECT_NEAR(42.0, result_dbw(), 5.0e-5);
+	result_dbw = unit<dimensionless_unit, int, decibel_scale>(12) + unit<watt, int, decibel_scale>(30);
+	EXPECT_NEAR(42.0, result_dbw(), 2);
 	isSame = std::is_same_v<decltype(result_dbw), dBW_t>;
 	EXPECT_TRUE(isSame);
 
 	auto result_dbm = dB_t(30.0) + dBm_t(20.0);
 	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
+	result_dbm = unit<dimensionless_unit, int, decibel_scale>(30) + unit<milliwatt, int, decibel_scale>(20);
+	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	auto result_dBW2 = dBW_t(10.0) + dBm_t(40.0);
+	EXPECT_NEAR(80.0, result_dBW2(), 5.0e-5);
+	result_dBW2 = unit<watt, int, decibel_scale>(10) + unit<milliwatt, int, decibel_scale>(40);
 	EXPECT_NEAR(80.0, result_dBW2(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dBW2), unit<squared<milliwatts>, double, decibel_scale>>;
 	EXPECT_TRUE(isSame);
@@ -2411,21 +2419,29 @@ TEST_F(UnitContainer, dBSubtraction)
 
 	auto result_dbw = dBW_t(10.0) - dB_t(30.0);
 	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
+	result_dbw = unit<watt, int, decibel_scale>(10) - unit<dimensionless_unit, int, decibel_scale>(30);
+	EXPECT_EQ(-INFINITY, result_dbw());
 	isSame = std::is_same_v<decltype(result_dbw), dBW_t>;
 	EXPECT_TRUE(isSame);
 
 	auto result_dbm = dBm_t(100.0) - dB_t(30.0);
 	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
+	result_dbm = unit<milliwatt, int, decibel_scale>(100) - unit<dimensionless_unit, int, decibel_scale>(30); // NaN
+//	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbm), dBm_t>;
 	EXPECT_TRUE(isSame);
 
 	auto result_db = dBW_t(100.0) - dBW_t(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+	result_db = unit<watt, int, decibel_scale>(100) - unit<watt, int, decibel_scale>(80); // NaN
+//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_db), dB_t>;
 	EXPECT_TRUE(isSame);
 
 	result_db = dB_t(100.0) - dB_t(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
+	result_db = unit<dimensionless_unit, int, decibel_scale>(100) - unit<dimensionless_unit, int, decibel_scale>(80); // NaN
+//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_db), dB_t>;
 	EXPECT_TRUE(isSame);
 }
