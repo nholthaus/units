@@ -1145,6 +1145,106 @@ TEST_F(UnitContainer, unitTypeMixedEquality)
 	EXPECT_FALSE(b_m != a_f);
 }
 
+TEST_F(UnitContainer, unitTypeRelational)
+{
+	const meter_t a_m(0);
+	const meter_t b_m(1);
+
+	EXPECT_FALSE(a_m < a_m);
+	EXPECT_FALSE(b_m < a_m);
+	EXPECT_TRUE(a_m < b_m);
+	EXPECT_TRUE(a_m <= a_m);
+	EXPECT_FALSE(b_m <= a_m);
+	EXPECT_TRUE(a_m <= b_m);
+	EXPECT_FALSE(a_m > a_m);
+	EXPECT_TRUE(b_m > a_m);
+	EXPECT_FALSE(a_m > b_m);
+	EXPECT_TRUE(a_m >= a_m);
+	EXPECT_TRUE(b_m >= a_m);
+	EXPECT_FALSE(a_m >= b_m);
+
+	const unit<meters, int> c_m(0);
+	const unit<meters, int> d_m(1);
+
+	EXPECT_FALSE(c_m < c_m);
+	EXPECT_FALSE(d_m < c_m);
+	EXPECT_TRUE(c_m < d_m);
+	EXPECT_TRUE(c_m <= c_m);
+	EXPECT_FALSE(d_m <= c_m);
+	EXPECT_TRUE(c_m <= d_m);
+	EXPECT_FALSE(c_m > c_m);
+	EXPECT_TRUE(d_m > c_m);
+	EXPECT_FALSE(c_m > d_m);
+	EXPECT_TRUE(c_m >= c_m);
+	EXPECT_TRUE(d_m >= c_m);
+	EXPECT_FALSE(c_m >= d_m);
+
+	EXPECT_FALSE(a_m < c_m);
+	EXPECT_FALSE(d_m < a_m);
+	EXPECT_TRUE(a_m < d_m);
+	EXPECT_TRUE(c_m <= a_m);
+	EXPECT_FALSE(d_m <= a_m);
+	EXPECT_TRUE(a_m <= d_m);
+	EXPECT_FALSE(a_m > c_m);
+	EXPECT_TRUE(d_m > a_m);
+	EXPECT_FALSE(a_m > d_m);
+	EXPECT_TRUE(c_m >= a_m);
+	EXPECT_TRUE(d_m >= a_m);
+	EXPECT_FALSE(a_m >= d_m);
+
+	const dimensionless a_s(0);
+	const unit<dimensionless_unit, int> b_s(1);
+
+	EXPECT_FALSE(a_s < a_s);
+	EXPECT_FALSE(b_s < a_s);
+	EXPECT_TRUE(a_s < b_s);
+	EXPECT_TRUE(a_s <= a_s);
+	EXPECT_FALSE(b_s <= a_s);
+	EXPECT_TRUE(a_s <= b_s);
+	EXPECT_FALSE(a_s > a_s);
+	EXPECT_TRUE(b_s > a_s);
+	EXPECT_FALSE(a_s > b_s);
+	EXPECT_TRUE(a_s >= a_s);
+	EXPECT_TRUE(b_s >= a_s);
+	EXPECT_FALSE(a_s >= b_s);
+}
+
+TEST_F(UnitContainer, unitTypeMixedRelational)
+{
+	const meter_t a_m(0);
+	const foot_t a_f(meter_t(1));
+
+	EXPECT_FALSE(a_f < a_m);
+	EXPECT_TRUE(a_m < a_f);
+	EXPECT_FALSE(a_f <= a_m);
+	EXPECT_TRUE(a_m <= a_f);
+	EXPECT_TRUE(a_f > a_m);
+	EXPECT_FALSE(a_m > a_f);
+	EXPECT_TRUE(a_f >= a_m);
+	EXPECT_FALSE(a_m >= a_f);
+
+	const unit<feet, int> b_f(0);
+	const unit<meters, int> b_m(1);
+
+	EXPECT_FALSE(b_m < b_f);
+	EXPECT_TRUE(b_f < b_m);
+	EXPECT_FALSE(b_m <= b_f);
+	EXPECT_TRUE(b_f <= b_m);
+	EXPECT_TRUE(b_m > b_f);
+	EXPECT_FALSE(b_f > b_m);
+	EXPECT_TRUE(b_m >= b_f);
+	EXPECT_FALSE(b_f >= b_m);
+
+	EXPECT_FALSE(a_m < b_f);
+	EXPECT_FALSE(a_f < b_m);
+	EXPECT_TRUE(b_f <= a_m);
+	EXPECT_TRUE(b_m <= a_f);
+	EXPECT_FALSE(a_m > b_f);
+	EXPECT_FALSE(a_f > b_m);
+	EXPECT_TRUE(b_f >= a_m);
+	EXPECT_TRUE(b_m >= a_f);
+}
+
 TEST_F(UnitContainer, unitTypeAddition)
 {
 	// units
