@@ -1843,7 +1843,13 @@ namespace units
 		 * @brief		SFINAE helper to test if a conversion of units is non lossy.
 		 */
 		template <class UnitFrom, class UnitTo>
-		inline constexpr bool is_non_lossy_convertible_unit = std::is_floating_point_v<typename UnitTo::underlying_type> || std::conjunction_v<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>, detail::is_non_truncated_convertible_unit<typename UnitFrom::unit_conversion, typename UnitTo::unit_conversion>>;
+		inline constexpr bool is_non_lossy_convertible_unit = traits::is_convertible_unit_v<UnitFrom, UnitTo> && (std::is_floating_point_v<typename UnitTo::underlying_type> || std::conjunction_v<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>, detail::is_non_truncated_convertible_unit<typename UnitFrom::unit_conversion, typename UnitTo::unit_conversion>>);
+
+		/**
+		 * @brief		SFINAE helper to test if a `unit_conversion` is of the time dimension.
+		 */
+		template <class UnitConversion>
+		inline constexpr bool is_time_unit_conversion = traits::is_convertible_unit_conversion_v<UnitConversion, unit_conversion<std::ratio<1>, dimension::time>>;
 
 		/**
 		* @brief		helper type to identify units.
@@ -1986,7 +1992,7 @@ namespace units
 		 * @details		enable implicit conversions from std::chrono::duration types ONLY for time units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Rep, class Period, class = std::enable_if_t<detail::is_non_lossy_convertible<Rep, T>>>
+		template<class Rep, class Period, typename U = UnitType, class = std::enable_if_t<detail::is_time_unit_conversion<U> && detail::is_non_lossy_convertible<Rep, T>>>
 		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
 		nls(units::convert<unit>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(value.count()))())
 		{
@@ -2191,7 +2197,7 @@ namespace units
 		 * @brief		chrono implicit type conversion.
 		 * @details		only enabled for time unit types.
 		 */
-		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<units::traits::is_convertible_unit_conversion_v<U, units::unit_conversion<std::ratio<1>, dimension::time>> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
+		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<detail::is_time_unit_conversion<U> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
 		inline constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(*this)());
