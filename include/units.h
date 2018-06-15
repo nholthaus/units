@@ -2866,15 +2866,7 @@ namespace units
 	operator>=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
-
-		if constexpr(std::is_integral_v<CommonUnderlying>)
-		{
-			return lhs >= static_cast<CommonUnderlying>(rhs);
-		}
-		else
-		{
-			return std::isgreaterequal(lhs, static_cast<CommonUnderlying>(rhs));
-		}
+		return lhs >= static_cast<CommonUnderlying>(rhs);
 	}
 
 	template<typename UnitConversion, typename T>
@@ -2882,15 +2874,7 @@ namespace units
 	operator>=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
-
-		if constexpr(std::is_integral_v<CommonUnderlying>)
-		{
-			return static_cast<CommonUnderlying>(lhs) >= rhs;
-		}
-		else
-		{
-			return std::isgreaterequal(static_cast<CommonUnderlying>(lhs), rhs);
-		}
+		return static_cast<CommonUnderlying>(lhs) >= rhs;
 	}
 
 	template<typename UnitConversion, typename T>
@@ -2914,15 +2898,7 @@ namespace units
 	operator<=(const T& lhs, const UnitConversion& rhs) noexcept
 	{
 		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
-
-		if constexpr(std::is_integral_v<CommonUnderlying>)
-		{
-			return lhs <= static_cast<CommonUnderlying>(rhs);
-		}
-		else
-		{
-			return std::islessequal(lhs, static_cast<CommonUnderlying>(rhs));
-		}
+		return lhs <= static_cast<CommonUnderlying>(rhs);
 	}
 
 	template<typename UnitConversion, typename T>
@@ -2930,15 +2906,7 @@ namespace units
 	operator<=(const UnitConversion& lhs, const T& rhs) noexcept
 	{
 		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
-
-		if constexpr(std::is_integral_v<CommonUnderlying>)
-		{
-			return static_cast<CommonUnderlying>(lhs) <= rhs;
-		}
-		else
-		{
-			return std::islessequal(static_cast<CommonUnderlying>(lhs), rhs);
-		}
+		return static_cast<CommonUnderlying>(lhs) <= rhs;
 	}
 
 	template<typename UnitConversion, typename T>
