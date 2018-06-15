@@ -571,13 +571,13 @@ namespace units
 	{
 		/**
 		 * @brief		helper type to identify dimensions.
-		 * @details		A non-templated base class for `dimension` which enables RTTI testing.
+		 * @details		A non-templated base class for `dimension` which enables compile-time testing.
 		 */
 		struct _dimension_t {};
 
 		/**
 		 * @brief		helper type to identify units.
-		 * @details		A non-templated base class for `unit` which enables RTTI testing.
+		 * @details		A non-templated base class for `unit` which enables compile-time testing.
 		 */
 		struct _unit_conversion {};
 	}
@@ -1855,7 +1855,7 @@ namespace units
 
 		/**
 		* @brief		helper type to identify units.
-		* @details		A non-templated base class for `unit` which enables RTTI testing.
+		* @details		A non-templated base class for `unit` which enables compile-time testing.
 		*/
 		struct _unit {};
 	}
