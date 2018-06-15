@@ -2221,7 +2221,7 @@ namespace units
 			return units::abbreviation(*this);
 		}
 
-	public:
+	private:
 
 		template<class U, typename Ty, template<typename> class Nlt>
 		friend class unit;
