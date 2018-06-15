@@ -63,6 +63,16 @@ namespace {
 		void TearDown() override {};
 	};
 
+	class STDSpecializations : public ::testing::Test
+	{
+	protected:
+
+		STDSpecializations() {};
+		virtual ~STDSpecializations() {};
+		void SetUp() override {};
+		void TearDown() override {};
+	};
+
 	class UnitManipulators : public ::testing::Test {
 	protected:
 
@@ -95,15 +105,6 @@ namespace {
 
 		UnitMath() {};
 		virtual ~UnitMath() {};
-		void SetUp() override {};
-		void TearDown() override {};
-	};
-
-	class CompileTimeArithmetic : public ::testing::Test {
-	protected:
-
-		CompileTimeArithmetic() {};
-		virtual ~CompileTimeArithmetic() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -880,6 +881,20 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(has_equivalent_unit_conversion(std::common_type_t<half_a_radian, third_a_radian>{}, sixth_a_radian{}));
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>, std::common_type_t<third_a_radian, half_a_radian>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
+}
+
+TEST_F(STDSpecializations, hash)
+{
+	EXPECT_EQ(std::hash<meter_t>()(3.14_m), 3);
+	EXPECT_EQ(std::hash<millimeter_t>()(3.14_m), 3140);
+	EXPECT_EQ(std::hash<millimeter_t>()(3.14_mm), 3);
+	EXPECT_EQ(std::hash<kilometer_t>()(3.14_m), 0);
+	EXPECT_EQ(std::hash<kilometer_t>()(3.14_km), 3);
+
+	EXPECT_EQ((std::hash<unit<meters, int>>()(unit<meters, int>(42))), 42);
+	EXPECT_EQ((std::hash<unit<millimeters, int>>()(unit<meters, int>(42))), 42000);
+	EXPECT_EQ((std::hash<unit<millimeters, int>>()(unit<millimeters, int>(42))), 42);
+	EXPECT_EQ((std::hash<unit<kilometers, int>>()(unit<kilometers, int>(42))), 42);
 }
 
 TEST_F(UnitManipulators, squared)

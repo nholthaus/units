@@ -68,6 +68,8 @@
 #include <limits>
 #include <numeric>
 #include <utility>
+#include <functional>
+#include <cstddef>
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 #include <iostream>
@@ -4545,11 +4547,25 @@ namespace units
 }	// end namespace units
 
 //------------------------------
-//	std::numeric_limits
+//	std::hash
 //------------------------------
 
 namespace std
 {
+
+	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
+	struct hash<units::unit<UnitConversion, T, NonLinearScale>>
+	{
+		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) noexcept
+		{
+			return x.template toLinearized<T>();
+		}
+	};
+
+//------------------------------
+//	std::numeric_limits
+//------------------------------
+
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>>
 	{
