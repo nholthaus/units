@@ -1678,7 +1678,6 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 TEST_F(UnitContainer, unitTypedimensionlessMultiplication)
 {
 	meter_t a_m(1.0);
-	foot_t b_ft(3.28084);
 
 	auto result_m = dimensionless(3.0) * a_m;
 	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
@@ -3542,7 +3541,6 @@ TEST_F(UnitConversion, squaredTemperature)
 TEST_F(UnitMath, min)
 {
 	meter_t a(1);
-	meter_t b(2);
 	foot_t c(1);
 	EXPECT_EQ(c, units::min(a, c));
 
@@ -3554,7 +3552,6 @@ TEST_F(UnitMath, min)
 TEST_F(UnitMath, max)
 {
 	meter_t a(1);
-	meter_t b(2);
 	foot_t c(1);
 	EXPECT_EQ(a, max(a, c));
 
@@ -3913,15 +3910,15 @@ TEST_F(Constexpr, constants)
 
 TEST_F(Constexpr, arithmetic)
 {
-	constexpr auto result0(1_m + 1_m);
-	constexpr auto result1(1_m - 1_m);
-	constexpr auto result2(1_m * 1_m);
-	constexpr auto result3(1_m / 1_m);
-	constexpr auto result4(meter_t(1) + meter_t(1));
-	constexpr auto result5(meter_t(1) - meter_t(1));
-	constexpr auto result6(meter_t(1) * meter_t(1));
-	constexpr auto result7(meter_t(1) / meter_t(1));
-	constexpr auto result8(pow<2>(meter_t(2)));
+	[[maybe_unused]] constexpr auto result0(1_m + 1_m);
+	[[maybe_unused]] constexpr auto result1(1_m - 1_m);
+	[[maybe_unused]] constexpr auto result2(1_m * 1_m);
+	[[maybe_unused]] constexpr auto result3(1_m / 1_m);
+	[[maybe_unused]] constexpr auto result4(meter_t(1) + meter_t(1));
+	[[maybe_unused]] constexpr auto result5(meter_t(1) - meter_t(1));
+	[[maybe_unused]] constexpr auto result6(meter_t(1) * meter_t(1));
+	[[maybe_unused]] constexpr auto result7(meter_t(1) / meter_t(1));
+	[[maybe_unused]] constexpr auto result8(pow<2>(meter_t(2)));
 	constexpr auto result9 = pow<3>(2_m);
 	constexpr auto result10 = 2_m * 2_m;
 
@@ -3967,7 +3964,7 @@ TEST_F(Constexpr, assignment)
 		return m;
 	};
 
-	constexpr auto m = testConstexpr();
+	[[maybe_unused]] constexpr auto m = testConstexpr();
 }
 
 TEST_F(Constexpr, realtional)
