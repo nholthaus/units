@@ -204,11 +204,11 @@ TEST_F(TypeTraits, unit_traits)
 TEST_F(TypeTraits, is_convertible_unit)
 {
 	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, astronicalUnits>));
+	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, astronomicalUnits>));
 	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, parsecs>));
 
 	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<astronicalUnits, meters>));
+	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<astronomicalUnits, meters>));
 	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<parsecs, meters>));
 	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<years, weeks>));
 
@@ -743,16 +743,16 @@ TEST_F(TypeTraits, is_area_unit)
 
 	EXPECT_TRUE((traits::is_area_unit_v<square_meter>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronicalUnit>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit>));
 	EXPECT_FALSE((traits::is_area_unit_v<double>));
 
 	EXPECT_TRUE((traits::is_area_unit_v<square_meter_t>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t&>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare_t>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronicalUnit_t>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit_t>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare_t, square_meter_t>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronicalUnit_t, square_meter_t>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit_t, square_meter_t>));
 }
 
 TEST_F(TypeTraits, is_volume_unit)
@@ -2515,7 +2515,7 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = nauticalMile_t(meter_t(1852.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = astronicalUnit_t(meter_t(149597870700.0))();
+	test = astronomicalUnit_t(meter_t(149597870700.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = lightyear_t(meter_t(9460730472580800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
