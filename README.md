@@ -234,7 +234,7 @@ Units are defined in terms of
  3. [optionally] a scale factor of `pi`
  4. [optionally] a datum translation (such as the +/- 32 required to convert between `fahrenheit` and `celsius`)
 
- All units have their origin in the Scientific International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), and in this library they are treated as a basic unit type because of their important engineering applications.
+ All units have their origin in the Système International (SI) base unit system. A special exception is made for angle units, which are defined in SI as ( m * m^-1), and in this library they are treated as a basic unit type because of their important engineering applications.
  
 _Example_: the definitions of some common length units are:
 
