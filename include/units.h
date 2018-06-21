@@ -226,11 +226,11 @@ template<> inline constexpr const char* abbreviation(const namespaceName::nameSi
 #define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)\
 namespace literals\
 {\
-	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d) noexcept\
+	constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation(long double d) noexcept\
 	{\
 		return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 	}\
-	inline constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) noexcept\
+	constexpr namespaceName::nameSingular ## _t operator""_ ## abbreviation (unsigned long long d) noexcept\
 	{\
 		return namespaceName::nameSingular ## _t(static_cast<namespaceName::nameSingular ## _t::underlying_type>(d));\
 	}\
@@ -571,13 +571,13 @@ namespace units
 	{
 		/**
 		 * @brief		helper type to identify dimensions.
-		 * @details		A non-templated base class for `dimension` which enables RTTI testing.
+		 * @details		A non-templated base class for `dimension` which enables compile-time testing.
 		 */
 		struct _dimension_t {};
 
 		/**
 		 * @brief		helper type to identify units.
-		 * @details		A non-templated base class for `unit` which enables RTTI testing.
+		 * @details		A non-templated base class for `unit` which enables compile-time testing.
 		 */
 		struct _unit_conversion {};
 	}
@@ -1855,7 +1855,7 @@ namespace units
 
 		/**
 		* @brief		helper type to identify units.
-		* @details		A non-templated base class for `unit` which enables RTTI testing.
+		* @details		A non-templated base class for `unit` which enables compile-time testing.
 		*/
 		struct _unit {};
 	}
@@ -1973,7 +1973,7 @@ namespace units
 		 *						no additional args are necessary.
 		 */
 		template<class Ty, class... Args, class = std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>>>
-		inline explicit constexpr unit(const Ty value, const Args&... args) noexcept : nls(value, args...)
+		explicit constexpr unit(const Ty value, const Args&... args) noexcept : nls(value, args...)
 		{
 
 		}
@@ -1984,7 +1984,7 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<class Ty, class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>>>
-		inline constexpr unit(const Ty value) noexcept : nls(value) 
+		constexpr unit(const Ty value) noexcept : nls(value)
 		{
 
 		}
@@ -1995,7 +1995,7 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<class Rep, class Period, typename U = UnitType, class = std::enable_if_t<detail::is_time_unit_conversion<U> && detail::is_non_lossy_convertible<Rep, T>>>
-		inline constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept : 
+		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept :
 		nls(units::convert<unit>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(value.count()))())
 		{
 
@@ -2007,7 +2007,7 @@ namespace units
 		 * @param[in]	rhs unit to copy.
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs, class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NlsRhs>, unit>>>
-		inline constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept :
+		constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept :
 		nls(units::convert<unit>(rhs).m_value, std::true_type() /*store linear value*/)
 		{
 
@@ -2039,7 +2039,7 @@ namespace units
 		 * @returns		true IFF the value of `this` is less than the value of `rhs`
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
 			return (CommonUnit(*this).m_value < CommonUnit(rhs).m_value);
@@ -2052,7 +2052,7 @@ namespace units
 		 * @returns		true IFF the value of `this` is less than or equal to the value of `rhs`
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
 			return (CommonUnit(*this).m_value <= CommonUnit(rhs).m_value);
@@ -2065,7 +2065,7 @@ namespace units
 		 * @returns		true IFF the value of `this` is greater than the value of `rhs`
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
 			return (CommonUnit(*this).m_value > CommonUnit(rhs).m_value);
@@ -2078,7 +2078,7 @@ namespace units
 		 * @returns		true IFF the value of `this` is greater than or equal to the value of `rhs`
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
 			return (CommonUnit(*this).m_value >= CommonUnit(rhs).m_value);
@@ -2092,7 +2092,7 @@ namespace units
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
+		constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool>
 		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit		= std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
@@ -2107,7 +2107,7 @@ namespace units
 		}
 
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
+		constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool>
 		operator==(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
@@ -2122,7 +2122,7 @@ namespace units
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
 		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		inline constexpr bool operator!=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		constexpr bool operator!=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
 		{
 			return !(*this == rhs);
 		}
@@ -2131,7 +2131,7 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		inline constexpr underlying_type value() const noexcept
+		constexpr underlying_type value() const noexcept
 		{
 			return static_cast<underlying_type>(*this);
 		}
@@ -2141,7 +2141,7 @@ namespace units
 		 * @returns		value of the unit converted to an arithmetic, non-safe type.
 		 */
 		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
-		inline constexpr Ty to() const noexcept
+		constexpr Ty to() const noexcept
 		{
 			return static_cast<Ty>(*this);
 		}
@@ -2152,7 +2152,7 @@ namespace units
 		 *				linear scales, this is equivalent to `value`.
 		 */
 		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
-		inline constexpr Ty toLinearized() const noexcept
+		constexpr Ty toLinearized() const noexcept
 		{
 			return static_cast<Ty>(m_value);
 		}
@@ -2168,7 +2168,7 @@ namespace units
 		 *				*this.
 		 */
 		template<class U, typename Ty = T>
-		inline constexpr unit<U, Ty> convert() const noexcept
+		constexpr unit<U, Ty> convert() const noexcept
 		{
 			static_assert(traits::is_unit_conversion_v<U>, "Template parameter `U` must be a unit tag type.");
 			return unit<U, Ty>(*this);
@@ -2179,7 +2179,7 @@ namespace units
 		 * @details		only enabled for dimensionless unit types.
 		 */
 		template<class Ty, std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic<Ty>::value, int> = 0>
-		inline constexpr operator Ty() const noexcept 
+		constexpr operator Ty() const noexcept
 		{ 
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi ratio.
 			return units::convert<units::unit<units::unit_conversion<std::ratio<1>, units::dimension::dimensionless>, Ty, NonLinearScale>>(*this)();
@@ -2190,7 +2190,7 @@ namespace units
 		 * @details		only enabled for non-dimensionless unit types.
 		 */
 		template<class Ty, std::enable_if_t<!traits::is_dimensionless_unit<UnitType>::value && std::is_arithmetic<Ty>::value, int> = 0>
-		inline constexpr explicit operator Ty() const noexcept
+		constexpr explicit operator Ty() const noexcept
 		{
 			return static_cast<Ty>((*this)());
 		}
@@ -2200,7 +2200,7 @@ namespace units
 		 * @details		only enabled for time unit types.
 		 */
 		template<class Rep, class Period, typename U = UnitType, std::enable_if_t<detail::is_time_unit_conversion<U> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
-		inline constexpr operator std::chrono::duration<Rep, Period>() const noexcept
+		constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(units::unit<units::unit_conversion<Period, dimension::time>, Rep>(*this)());
 		}
@@ -2208,7 +2208,7 @@ namespace units
 		/**
 		 * @brief		returns the unit name
 		 */
-		inline constexpr const char* name() const noexcept
+		constexpr const char* name() const noexcept
 		{
 			return units::name(*this);
 		}
@@ -2216,12 +2216,12 @@ namespace units
 		/**
 		 * @brief		returns the unit abbreviation
 		 */
-		inline constexpr const char* abbreviation() const noexcept
+		constexpr const char* abbreviation() const noexcept
 		{
 			return units::abbreviation(*this);
 		}
 
-	public:
+	private:
 
 		template<class U, typename Ty, template<typename> class Nlt>
 		friend class unit;
@@ -2242,7 +2242,7 @@ namespace units
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
 	template<class UnitType, typename T, class = std::enable_if_t<detail::is_non_lossy_convertible<T, typename UnitType::underlying_type>>>
-	inline constexpr UnitType make_unit(const T value) noexcept
+	constexpr UnitType make_unit(const T value) noexcept
 	{
 		static_assert(traits::is_unit_v<UnitType>, "Template parameter `UnitType` must be a unit type.");		
 		return UnitType(value);
@@ -2255,7 +2255,7 @@ namespace units
 	//-----------------------------------------
 
 	template<class D, class E>
-	inline std::ostream& operator<<(std::ostream& os, const dim<D, E>&)
+	std::ostream& operator<<(std::ostream& os, const dim<D, E>&)
 	{
 		if constexpr(E::num != 0)os << ' ' << D::abbreviation;
 		if constexpr(E::num != 0 && E::num != 1) { os << "^" << E::num; }
@@ -2269,7 +2269,7 @@ namespace units
 	}
 
 	template<class Dim, class... Dims>
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&)
+	std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&)
 	{
 		os << Dim{};
 		os << dimension_t<Dims...>{};
@@ -2277,7 +2277,7 @@ namespace units
 	}
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
+	std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
 		using BaseUnit = unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
 		os << unit<BaseUnit, T, NonLinearScale>(obj)();
@@ -2423,14 +2423,14 @@ namespace units
 
 	// unary addition: +T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale> operator+(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale> operator+(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		return u;
 	}
 
 	// prefix increment: ++T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
 		return u;
@@ -2438,7 +2438,7 @@ namespace units
 
 	// postfix increment: T++
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale> operator++(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale> operator++(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
 		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
@@ -2447,14 +2447,14 @@ namespace units
 
 	// unary addition: -T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale> operator-(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale> operator-(const unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		return unit<UnitConversion, T, NonLinearScale>(-u());
 	}
 
 	// prefix increment: --T
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
 	{
 		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
 		return u;
@@ -2462,7 +2462,7 @@ namespace units
 
 	// postfix increment: T--
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	inline constexpr unit<UnitConversion, T, NonLinearScale> operator--(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	constexpr unit<UnitConversion, T, NonLinearScale> operator--(unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
 	{
 		auto ret = u;
 		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
@@ -2487,7 +2487,7 @@ namespace units
 	 * @sa			unit::to
 	 */
 	template<typename T, typename UnitConversion>
-	inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitConversion>, T>
+	constexpr std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitConversion>, T>
 	unit_cast(const UnitConversion& value) noexcept
 	{
 		return static_cast<T>(value);
@@ -2565,16 +2565,16 @@ namespace units
 	template<typename T>
 	struct linear_scale
 	{
-		inline constexpr linear_scale() = default;													///< default constructor.		
-		inline constexpr linear_scale(const linear_scale&) = default;
-		inline ~linear_scale() = default;
-		inline linear_scale& operator=(const linear_scale&) = default;
-		inline constexpr linear_scale(linear_scale&&) = default;
-		inline linear_scale& operator=(linear_scale&&) = default;
+		constexpr linear_scale() = default;													///< default constructor.
+		constexpr linear_scale(const linear_scale&) = default;
+		~linear_scale() = default;
+		linear_scale& operator=(const linear_scale&) = default;
+		constexpr linear_scale(linear_scale&&) = default;
+		linear_scale& operator=(linear_scale&&) = default;
 
 		template<class... Args>
-		inline constexpr linear_scale(const T& value, Args&&...) noexcept : m_value(value) {}	///< constructor.
-		inline constexpr T operator()() const noexcept { return m_value; }							///< returns value.
+		constexpr linear_scale(const T& value, Args&&...) noexcept : m_value(value) {}	///< constructor.
+		constexpr T operator()() const noexcept { return m_value; }							///< returns value.
 
 		T m_value;																					///< linearized value.	
 	};
@@ -2981,16 +2981,16 @@ namespace units
 	template<typename T>
 	struct decibel_scale
 	{
-		inline constexpr decibel_scale() = default;
-		inline constexpr decibel_scale(const decibel_scale&) = default;
-		inline ~decibel_scale() = default;
-		inline decibel_scale& operator=(const decibel_scale&) = default;
-		inline constexpr decibel_scale(decibel_scale&&) = default;
-		inline decibel_scale& operator=(decibel_scale&&) = default;
-		inline constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
+		constexpr decibel_scale() = default;
+		constexpr decibel_scale(const decibel_scale&) = default;
+		~decibel_scale() = default;
+		decibel_scale& operator=(const decibel_scale&) = default;
+		constexpr decibel_scale(decibel_scale&&) = default;
+		decibel_scale& operator=(decibel_scale&&) = default;
+		constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10)) {}
 		template<class... Args>
-		inline constexpr decibel_scale(const T value, std::true_type, Args&&...) noexcept : m_value(value) {}
-		inline constexpr T operator()() const noexcept { return 10 * std::log10(m_value); }
+		constexpr decibel_scale(const T value, std::true_type, Args&&...) noexcept : m_value(value) {}
+		constexpr T operator()() const noexcept { return 10 * std::log10(m_value); }
 
 		T m_value;	///< linearized value	
 	};
@@ -3893,23 +3893,23 @@ namespace units
 		 */
 		using PI = unit_conversion<std::ratio<1>, dimensionless_unit, std::ratio<1>>;
 
-		static constexpr const unit<PI>																														pi(1);											///< Ratio of a circle's circumference to its diameter.
-		static constexpr const velocity::meters_per_second_t																								c(299792458.0);									///< Speed of light in vacuum.
-		static constexpr const unit<compound_unit_conversion<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
-		static constexpr const unit<compound_unit_conversion<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
-		static constexpr const unit<compound_unit_conversion<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));					///< vacuum permeability.
-		static constexpr const unit<compound_unit_conversion<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
-		static constexpr const impedance::ohm_t																												Z0(mu0 * c);									///< characteristic impedance of vacuum.
-		static constexpr const unit<compound_unit_conversion<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
-		static constexpr const charge::coulomb_t																											e(1.6021766208e-19);							///< elementary charge.
-		static constexpr const mass::kilogram_t																												m_e(9.10938356e-31);							///< electron mass.
-		static constexpr const mass::kilogram_t																												m_p(1.672621898e-27);							///< proton mass.
-		static constexpr const unit<compound_unit_conversion<energy::joules, inverse<magnetic_field_strength::tesla>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
-		static constexpr const unit<inverse<substance::mol>>																								N_A(6.022140857e23);							///< Avagadro's Number.
-		static constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
-		static constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
-		static constexpr const unit<compound_unit_conversion<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
-		static constexpr const unit<compound_unit_conversion<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		inline constexpr const unit<PI>																														pi(1);											///< Ratio of a circle's circumference to its diameter.
+		inline constexpr const velocity::meters_per_second_t																								c(299792458.0);									///< Speed of light in vacuum.
+		inline constexpr const unit<compound_unit_conversion<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
+		inline constexpr const unit<compound_unit_conversion<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
+		inline constexpr const unit<compound_unit_conversion<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));					///< vacuum permeability.
+		inline constexpr const unit<compound_unit_conversion<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
+		inline constexpr const impedance::ohm_t																												Z0(mu0 * c);									///< characteristic impedance of vacuum.
+		inline constexpr const unit<compound_unit_conversion<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
+		inline constexpr const charge::coulomb_t																											e(1.6021766208e-19);							///< elementary charge.
+		inline constexpr const mass::kilogram_t																												m_e(9.10938356e-31);							///< electron mass.
+		inline constexpr const mass::kilogram_t																												m_p(1.672621898e-27);							///< proton mass.
+		inline constexpr const unit<compound_unit_conversion<energy::joules, inverse<magnetic_field_strength::tesla>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
+		inline constexpr const unit<inverse<substance::mol>>																								N_A(6.022140857e23);							///< Avagadro's Number.
+		inline constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
+		inline constexpr const unit<compound_unit_conversion<energy::joules, inverse<temperature::kelvin>>>													k_B(R / N_A);									///< Boltzmann constant.
+		inline constexpr const unit<compound_unit_conversion<charge::coulomb, inverse<substance::mol>>>														F(N_A * e);										///< Faraday constant.
+		inline constexpr const unit<compound_unit_conversion<power::watts, inverse<area::square_meters>, inverse<squared<squared<temperature::kelvin>>>>>	sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 	}
 #endif
