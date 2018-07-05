@@ -2996,6 +2996,17 @@ TEST_F(UnitConversion, capacitance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = farad_t(gigafarad_t(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
+
+	auto f = coulomb_t(1) / volt_t(1);
+	farad_t f2 = coulomb_t(1) / volt_t(1);
+	EXPECT_TRUE((std::is_convertible_v<decltype(f), farad_t>));
+
+	auto one_farad = []() -> farad_t
+	{
+		return coulomb_t(1) / volt_t(1);
+	};
+
+	EXPECT_EQ(1_F, one_farad());
 }
 
 TEST_F(UnitConversion, impedance)
@@ -3446,7 +3457,7 @@ TEST_F(UnitConversion, data_transfer_rate)
 TEST_F(UnitConversion, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<decltype(constants::pi)>);
-	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<constants::PI>);
+	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<constants::detail::PI>);
 
 	// implicit conversion/arithmetic
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
@@ -3593,6 +3604,7 @@ TEST_F(UnitMath, sin)
 	EXPECT_NEAR(dimensionless(0.90929742682), sin(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(0.70710678118), sin(angle::degree_t(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless(0.70710678118), sin(unit<degrees, int>(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless(0), sin(1_rad * units::constants::pi), 5.0e-16);
 }
 
 TEST_F(UnitMath, tan)

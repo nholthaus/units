@@ -3891,9 +3891,12 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
-		using PI = unit_conversion<std::ratio<1>, dimensionless_unit, std::ratio<1>>;
+		namespace detail
+		{
+			using PI = unit_conversion<std::ratio<1>, dimensionless_unit, std::ratio<1>>;
+		}
 
-		inline constexpr const unit<PI>																														pi(1);											///< Ratio of a circle's circumference to its diameter.
+		inline constexpr const unit<detail::PI>																												pi(1);											///< Ratio of a circle's circumference to its diameter.
 		inline constexpr const velocity::meters_per_second_t																								c(299792458.0);									///< Speed of light in vacuum.
 		inline constexpr const unit<compound_unit_conversion<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
 		inline constexpr const unit<compound_unit_conversion<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
