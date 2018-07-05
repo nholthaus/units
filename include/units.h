@@ -3115,7 +3115,7 @@ namespace units
 	UNIT_ADD(length, foot, feet, ft, unit_conversion<std::ratio<381, 1250>, meters>)
 	UNIT_ADD(length, mil, mils, mil, unit_conversion<std::ratio<1000>, feet>)
 	UNIT_ADD(length, inch, inches, in, unit_conversion<std::ratio<1, 12>, feet>)
-	UNIT_ADD(length, mile,   miles,    mi,    unit_conversion<std::ratio<5280>, feet>)
+	UNIT_ADD(length, mile, miles, mi, unit_conversion<std::ratio<5280>, feet>)
 	UNIT_ADD(length, nauticalMile, nauticalMiles, nmi, unit_conversion<std::ratio<1852>, meters>)
 	UNIT_ADD(length, astronomicalUnit, astronomicalUnits, au, unit_conversion<std::ratio<149597870700>, meters>)
 	UNIT_ADD(length, lightyear, lightyears, ly, unit_conversion<std::ratio<9460730472580800>, meters>)
@@ -3129,6 +3129,9 @@ namespace units
 	UNIT_ADD(length, league, leagues, lea, unit_conversion<std::ratio<3>, miles>)
 	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, unit_conversion<std::ratio<3>, nauticalMiles>)
 	UNIT_ADD(length, yard, yards, yd, unit_conversion<std::ratio<3>, feet>)
+
+	// british spelling aliases
+	using metre_t = length::meter_t;
 
 	UNIT_ADD_DIMENSION_TRAIT(length)
 #endif

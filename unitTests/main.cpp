@@ -2551,7 +2551,7 @@ TEST_F(UnitConversion, length)
 	test = chain_t(meter_t(1.0))();
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
-//	dimensionless b = 5_rad;
+	EXPECT_EQ(metre_t(1), meter_t(1));
 }
 
 TEST_F(UnitConversion, mass)
