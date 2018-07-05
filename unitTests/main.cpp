@@ -2882,6 +2882,8 @@ TEST_F(UnitConversion, pressure)
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
 	test = pounds_per_square_inch_t(atmosphere_t(1.0))();
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
+	
+	EXPECT_EQ(133.322387415_Pa, 1_mmHg);
 }
 
 TEST_F(UnitConversion, charge)

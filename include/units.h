@@ -3428,6 +3428,7 @@ namespace units
 	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit_conversion<std::ratio<101325>, pascals>)
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit_conversion<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit_conversion<std::ratio<1, 760>, atmospheres>)
+	UNIT_ADD(pressure, mmHg, mmHg, mmHg, unit_conversion<std::ratio<26664477483LL, 200000000LL>, pascals>)
 	
 	UNIT_ADD_DIMENSION_TRAIT(pressure)
 #endif
