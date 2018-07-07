@@ -274,7 +274,7 @@ namespace units
 
 /**
  * @def			UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName,nameSingular, namePlural, abbreviation, underlyingType,
- *definition)
+ *				definition)
  * @brief		Macro for generating the boiler-plate code needed for a new unit with a non-default underlying type.
  * @details		The macro generates singular, plural, and abbreviated forms
  *				of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
@@ -372,7 +372,7 @@ namespace units
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
 	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \
-	 * test the unit represents a unitdimension quantity.*/ \
+	 *				test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	one or more types to test*/ \
 	UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)
 
@@ -381,8 +381,8 @@ namespace units
  * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
  *				prefixes from femto to peta.
  * @details		See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and
- *'meter_t', it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as
- *well as the literal suffixes (e.g. `10.0_mm`).
+ *				'meter_t', it also creates corresponding units with metric suffixes such as `millimeters`, and
+ *				`millimeter_t`), as well as the literal suffixes (e.g. `10.0_mm`).
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
@@ -416,8 +416,8 @@ namespace units
  * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
  *				prefixes from femto to peta, and binary prefixes from kibi to exbi.
  * @details	See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `bytes` and 'byte_t',
- *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as well
- *as the literal suffixes (e.g. `10.0_B`).
+ *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as
+ *				well as the literal suffixes (e.g. `10.0_B`).
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
  * @param		nameSingular singular version of the unit name, e.g. 'byte'
@@ -468,9 +468,9 @@ namespace units
 
 	/**
 	 * @defgroup	UnitManipulators Unit Manipulators
-	 * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>`, `squared<>`, and metric
-	 *prefixes. Unit manipulators can be chained together, e.g. `inverse<squared<pico<time::seconds>>>` to represent
-	 *picoseconds^-2.
+	 * @brief		Defines a series of classes used to manipulate unit types, such as `inverse<>`, `squared<>`, and
+	 *				metric prefixes. Unit manipulators can be chained together, e.g.
+	 *				`inverse<squared<pico<time::seconds>>>` to represent picoseconds^-2.
 	 */
 
 	/**
@@ -849,8 +849,8 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be needed by
-	 * library users.
+	 * @brief		namespace representing the implemented base and derived unit types. These will not generally be
+	 *				needed by library users.
 	 * @sa			dimension for the definition of the dimension parameters.
 	 */
 	namespace dimension
@@ -1025,7 +1025,7 @@ namespace units
 		/**
 		 * @brief		Trait which returns the `dimension_t` type that a unit is originally derived from.
 		 * @details		Since units can be derived from other `unit_conversion` types in addition to `dimension_t`
-		 *types, the `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
+		 *				types, the `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
 		 */
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
@@ -1037,21 +1037,21 @@ namespace units
 	 * @details		`unit_conversion` types are used as tags for the `conversion` function. They are *not* containers
 	 *				(see `unit` for a  container class). Each unit is defined by:
 	 *
-	 *				- A `std::ratio` defining the conversion factor to the dimension type. (e.g. `std::ratio<1,12>` for inches
-	 *to feet)
-	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type `unit_conversion` or
-	 *`dimension`)
-	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a radians
-	 *to degrees conversion)
+	 *				- A `std::ratio` defining the conversion factor to the dimension type. (e.g. `std::ratio<1,12>` for
+	 *					inches to feet)
+	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type `unit_conversion`
+	 *					or `dimension`)
+	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a
+	 *					radians to degrees conversion)
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a
-	 *farenheit to celsius conversion)
+	 *					farenheit to celsius conversion)
 	 *
 	 *				Typically, a specific unit, like `meters`, would be implemented as a type alias
-	 *				of `unit_conversion`, i.e. `using meters = unit_conversion<std::ratio<1>, units::dimension::length>`,
-	 *or `using inches = unit_conversion<std::ratio<1,12>, feet>`.
+	 *				of `unit_conversion`, i.e. `using meters = unit_conversion<std::ratio<1>,
+	 *				units::dimension::length>`, or `using inches = unit_conversion<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
 	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension`, or another
-	 *`unit_conversion`.
+	 *				`unit_conversion`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
@@ -1107,8 +1107,8 @@ namespace units
 		/**
 		 * @brief		implementation of `unit_divide`.
 		 * @details		divides two units. The dimension becomes the dimensions of each with their exponents
-		 *				subtracted from each other. The conversion factors of each are divided by each other. Pi exponent
-		 *ratios are subtracted, and datum translations are removed.
+		 *				subtracted from each other. The conversion factors of each are divided by each other. Pi
+		 *				exponent ratios are subtracted, and datum translations are removed.
 		 */
 		template<class Unit1, class Unit2>
 		struct unit_divide_impl
@@ -1548,9 +1548,9 @@ namespace units
 		 * @brief		Trait which checks whether two units can be converted to each other
 		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
 		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic
-		 *meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
-		 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
-		 *				U2 will be convertible to U1.
+		 *				meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters
+		 *				can be converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2,
+		 *				then U2 will be convertible to U1.
 		 * @tparam		U1 Unit to convert from.
 		 * @tparam		U2 Unit to convert to.
 		 * @sa			is_convertible_unit
@@ -1656,21 +1656,21 @@ namespace units
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from one type to another.
 	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. E.g. @code double result =
-	 *convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode Intermediate computations are carried
-	 *in the widest representation before being converted to `To`.
+	 *				convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode Intermediate computations
+	 *				are carried in the widest representation before being converted to `To`.
 	 * @sa			unit	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `unit_conversion` type (i.e.
-	 *is_unit_conversion_v<UnitFrom> == true), and must be convertible to `UnitTo` (i.e.
-	 *is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
+	 *				is_unit_conversion_v<UnitFrom> == true), and must be convertible to `UnitTo` (i.e.
+	 *				is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
 	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `unit_conversion` type (i.e.
-	 *is_unit_conversion_v<UnitTo> == true), and must be convertible from `UnitFrom` (i.e.
-	 *is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
+	 *				is_unit_conversion_v<UnitTo> == true), and must be convertible from `UnitFrom` (i.e.
+	 *				is_convertible_unit_conversion_v<UnitFrom, UnitTo> == true).
 	 * @tparam		From type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in
-	 *arithmetic type.
+	 *				arithmetic type.
 	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
 	 *				a quantity in units of `UnitFrom`.
 	 * @tparam		To arithmetic type of the converted unit value. The value represents a quantity in units of
-	 *`UnitTo`.
+	 *				`UnitTo`.
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
 	template<class UnitFrom, class UnitTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
@@ -1769,7 +1769,7 @@ namespace units
 		/**
 		 * @brief		SFINAE helper to prevent warnings in Clang 6 when `From` or `To` is a `unit_conversion`.
 		 * @details		`typename T::unit_conversion` is interpreted as a constructor when `T` is a `unit_conversion`
-		 * (-Winjected-class-name).
+		 *				(-Winjected-class-name).
 		 */
 		template<class UnitFrom, class UnitTo>
 		struct delayed_is_convertible_unit_conversion : std::false_type
@@ -1791,8 +1791,8 @@ namespace units
 	 * @ingroup		Conversion
 	 * @brief		converts a unit to another unit.
 	 * @details		Converts the value of a unit to another unit. E.g. @code length::meter_t result =
-	 *convert<length::meters>(length::feet(1.0));	// result == 3.28084_m @endcode Intermediate computations are carried
-	 *in the widest representation before being converted to `UnitTo`.
+	 *				convert<length::meters>(length::feet(1.0));	// result == 3.28084_m @endcode Intermediate
+	 *				computations are carried in the widest representation before being converted to `UnitTo`.
 	 * @sa			unit	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit to convert to `UnitTo`. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
 	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
@@ -1933,9 +1933,9 @@ namespace units
 		 * @brief		Trait which tests whether two container types derived from `unit` are convertible to each other
 		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
 		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic
-		 *meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters can be
-		 *				converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2, then
-		 *				U2 will be convertible to U1.
+		 *				meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters
+		 *				can be converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2,
+		 *				then U2 will be convertible to U1.
 		 * @tparam		U1 Unit to convert from.
 		 * @tparam		U2 Unit to convert to.
 		 * @sa			is_convertible_unit_conversion
@@ -2121,8 +2121,8 @@ namespace units
 		 * @details		constructs a new unit using the non-linear scale's constructor.
 		 * @param[in]	value	unit value magnitude.
 		 * @param[in]	args	additional constructor arguments are forwarded to the non-linear scale constructor.
-		 *Which args are required depends on which scale is used. For the default (linear) scale, no additional args are
-		 *necessary.
+		 *				Which args are required depends on which scale is used. For the default (linear) scale, no
+		 *				additional args are necessary.
 		 */
 		template<class Ty, class... Args, class = std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>>>
 		explicit constexpr unit(const Ty value, const Args&... args) noexcept : nls(value, args...)
@@ -2483,9 +2483,9 @@ namespace std
 	 * @ingroup		STDTypeTraits
 	 * @brief		common type of units
 	 * @details		The `type` alias of the `std::common_type` of two `unit`s of the same dimension is the least precise
-	 *`unit` to which both `unit` arguments can be converted to without requiring a division operation or truncating any
-	 *value of these conversions, although floating-point units may have round-off errors. If the units have mixed
-	 *scales, preference is given to `linear_scale` for their common type.
+	 *				`unit` to which both `unit` arguments can be converted to without requiring a division operation or
+	 *				truncating any value of these conversions, although floating-point units may have round-off errors.
+	 *				If the units have mixed scales, preference is given to `linear_scale` for their common type.
 	 */
 	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty,
 		template<typename> class NonLinearScale>
@@ -2674,7 +2674,7 @@ namespace units
 	 *				to a built-in arithmetic type. This may be useful for compatibility with libraries
 	 *				and legacy code that don't support `unit` types. E.g
 	 * @code		meter_t unitVal(5);
-	 *  double value = units::unit_cast<double>(unitVal);	// value == 5.0
+	 *				double value = units::unit_cast<double>(unitVal);	// value == 5.0
 	 * @endcode
 	 * @tparam		T		Type to cast the unit type to. Must be a built-in arithmetic type.
 	 * @param		value	Unit value to cast.
@@ -2701,7 +2701,7 @@ namespace units
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is inherited from a linear scale.
 		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_linear_scale_v<U1 [, U2, ...]>` to
-		 *test one or more types to see if they represent units whose scale is linear.
+		 *				test one or more types to see if they represent units whose scale is linear.
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
@@ -2717,8 +2717,8 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether a type is inherited from a decibel scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_decibel_scale_v<U1 [, U2, ...]>` to
-		 *test one or more types to see if they represent units whose scale is in decibels.
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_decibel_scale_v<U1 [, U2, ...]>`
+		 *				to test one or more types to see if they represent units whose scale is in decibels.
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
@@ -3240,8 +3240,8 @@ namespace units
 
 	/**
 	 * @brief		computes the value of <i>value</i> raised to the <i>power</i>
-	 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the resulting
-	 * unit type can be deduced.
+	 * @details		Only implemented for linear_scale units. <i>Power</i> must be known at compile time, so the
+	 *				resulting unit type can be deduced.
 	 * @tparam		power exponential power to raise <i>value</i> by.
 	 * @param[in]	value `unit` derived type to raise to the given <i>power</i>
 	 * @returns		new unit, raised to the given exponent
@@ -4407,8 +4407,8 @@ namespace units
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Compute arc tangent with two parameters
-	 * @details		To compute the value, the function takes into account the sign of both arguments in order to determine
-	 * the quadrant.
+	 * @details		To compute the value, the function takes into account the sign of both arguments in order to
+	 *				determine the quadrant.
 	 * @param[in]	y		y-component of the triangle expressed.
 	 * @param[in]	x		x-component of the triangle expressed.
 	 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
@@ -4557,8 +4557,8 @@ namespace units
 	 * @param[in]	x	dimensionless value of the exponent.
 	 * @returns		Exponential value of x.
 	 *				If the magnitude of the result is too large to be represented by a value of the return type, the
-	 *				function returns HUGE_VAL (or HUGE_VALF or HUGE_VALL) with the proper sign, and an overflow range error
-	 *occurs
+	 *				function returns HUGE_VAL (or HUGE_VALF or HUGE_VALL) with the proper sign, and an overflow range
+	 *				error occurs
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(
@@ -4625,7 +4625,7 @@ namespace units
 	 * @ingroup		UnitMath
 	 * @brief		Compute binary exponential function
 	 * @details		Returns the base-2 exponential function of x, which is 2 raised to the power x: 2^x.
-	 * 2param[in]	x	Value of the exponent.
+	 * @param[in]	x	Value of the exponent.
 	 * @returns		2 raised to the power of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
