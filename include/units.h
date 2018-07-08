@@ -4537,7 +4537,7 @@ namespace std
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	struct hash<units::unit<UnitConversion, T, NonLinearScale>>
 	{
-		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) noexcept
+		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) const noexcept
 		{
 			return x.template toLinearized<T>();
 		}
