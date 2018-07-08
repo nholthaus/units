@@ -2509,20 +2509,6 @@ namespace units
 		
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether two types have the same non-linear scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_same_scale_v<U1 , U2>` to test
-		 *				whether two types have the same non-linear scale.
-		 * @tparam		T1	left hand type.
-		 * @tparam		T2	right hand type
-		 */
-		template <class T, class... Ts>
-		struct has_same_scale : std::conjunction<std::is_same<typename units::traits::unit_traits<T>::non_linear_scale_type, typename units::traits::unit_traits<Ts>::non_linear_scale_type>...> {};
-
-		template<typename... T>
-		inline constexpr bool has_same_scale_v = has_same_scale<T...>::value;
 	}
 
 	//----------------------------------
