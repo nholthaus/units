@@ -4557,7 +4557,7 @@ namespace std
 
 	// We inherit the numeric_limits specialization of the underlying scalar type (assuming it has one).
 	template<class Units, typename T, template<typename> class NonLinearScale>
-	class numeric_limits<units::unit_t<Units, T, NonLinearScale>> : public std::numeric_limits<T>
+	class numeric_limits<units::unit<Units, T, NonLinearScale>> : public std::numeric_limits<T>
 	{ };
 }
 
