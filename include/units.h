@@ -4555,23 +4555,10 @@ namespace std
 //	std::numeric_limits
 //------------------------------
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>>
-	{
-	public:
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> min()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::min());
-		}
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> max()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::max());
-		}
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> lowest()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::lowest());
-		}
-	};
+	// We inherit the numeric_limits specialization of the underlying scalar type (assuming it has one).
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	class numeric_limits<units::unit_t<Units, T, NonLinearScale>> : public std::numeric_limits<T>
+	{ };
 }
 
 #ifdef _MSC_VER
