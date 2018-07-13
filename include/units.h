@@ -4962,9 +4962,17 @@ namespace std
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	struct hash<units::unit<UnitConversion, T, NonLinearScale>>
 	{
-		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) noexcept
+		template<typename U = T>
+		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) const noexcept
 		{
-			return x.template toLinearized<T>();
+			if constexpr(std::is_integral_v<U>)
+			{
+				return x.template toLinearized<T>();
+			}
+			else
+			{
+				return hash<T>()(x.template toLinearized<T>());
+			}
 		}
 	};
 
@@ -4973,22 +4981,8 @@ namespace std
 	//------------------------------
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>>
-	{
-	public:
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> min()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::min());
-		}
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> max()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::max());
-		}
-		static constexpr units::unit<UnitConversion, T, NonLinearScale> lowest()
-		{
-			return units::unit<UnitConversion, T, NonLinearScale>(std::numeric_limits<T>::lowest());
-		}
-	};
+	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>> : public std::numeric_limits<T>
+	{	};
 } // namespace std
 
 #ifdef _MSC_VER

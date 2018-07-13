@@ -886,11 +886,11 @@ TEST_F(STDTypeTraits, std_common_type)
 
 TEST_F(STDSpecializations, hash)
 {
-	EXPECT_EQ(std::hash<meter_t>()(3.14_m), 3);
-	EXPECT_EQ(std::hash<millimeter_t>()(3.14_m), 3140);
-	EXPECT_EQ(std::hash<millimeter_t>()(3.14_mm), 3);
-	EXPECT_EQ(std::hash<kilometer_t>()(3.14_m), 0);
-	EXPECT_EQ(std::hash<kilometer_t>()(3.14_km), 3);
+	EXPECT_EQ(std::hash<meter_t>()(3.14_m), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<millimeter_t>()(3.14_m), std::hash<double>()(3.14e3));
+	EXPECT_EQ(std::hash<millimeter_t>()(3.14_mm), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<kilometer_t>()(3.14_m), std::hash<double>()(3.14e-3));
+	EXPECT_EQ(std::hash<kilometer_t>()(3.14_km), std::hash<double>()(3.14));
 
 	EXPECT_EQ((std::hash<unit<meters, int>>()(unit<meters, int>(42))), 42);
 	EXPECT_EQ((std::hash<unit<millimeters, int>>()(unit<meters, int>(42))), 42000);
