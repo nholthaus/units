@@ -306,45 +306,29 @@ namespace literals\
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
- * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension, baseUnit)
+ * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
  * @brief		Macro to create the `is_dimension_unit` type trait.
  * @details		This trait allows users to test whether a given type matches
  *				an intended dimension. This macro comprises all the boiler-plate
  *				code necessary to do so.
  * @param		unitdimension The name of the dimension of unit, e.g. length or mass.
  */
-
-#define UNIT_ADD_DIMENSION_TRAIT_DETAIL(unitdimension)\
-	namespace traits\
-	{\
-		/** @cond */\
-		namespace detail\
-		{\
-			template<typename T> struct is_ ## unitdimension ## _unit_impl : std::false_type {};\
-			template<typename C, typename U, typename P, typename T>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit_conversion<C, U, P, T>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_conversion_traits<units::unit_conversion<C, U, P, T>>::dimension_type>, units::dimension::unitdimension>::type {};\
-			template<typename U, typename S, template<typename> class N>\
-			struct is_ ## unitdimension ## _unit_impl<units::unit<U, S, N>> : std::is_same<units::traits::dimension_of_t<typename units::traits::unit_traits<units::unit<U, S, N>>::unit_conversion>, units::dimension::unitdimension>::type {};\
-		}\
-		/** @endcond */\
+#define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
+	/** @ingroup	TypeTraits*/ \
+	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
+	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \
+	 ** 			test the unit represents a unitdimension quantity.*/ \
+	/** @tparam		T	one or more types to test*/ \
+	namespace traits \
+	{ \
+		template<typename... T> \
+		struct is_##unitdimension##_unit \
+		  : std::conjunction<::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension>...> \
+		{ \
+		}; \
+		template<typename... T> \
+		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T...>::value; \
 	}
-
-#define UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)\
-	namespace traits\
-	{\
-		template<typename... T>\
-		struct is_ ## unitdimension ## _unit : std::conjunction<units::traits::detail::is_ ## unitdimension ## _unit_impl<std::decay_t<T>>...> {};\
-		template<typename... T>\
-		inline constexpr bool is_ ## unitdimension ## _unit_v = is_ ## unitdimension ## _unit<T...>::value;\
-	}
-
-#define UNIT_ADD_DIMENSION_TRAIT(unitdimension)\
-	UNIT_ADD_DIMENSION_TRAIT_DETAIL(unitdimension)\
-    /** @ingroup	TypeTraits*/\
-	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/\
-	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/\
-	/** @tparam		T	one or more types to test*/\
-	UNIT_ADD_IS_UNIT_DIMENSION_TRAIT(unitdimension)
 
 /**
  * @def			UNIT_ADD_WITH_METRIC_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -957,6 +941,31 @@ namespace units
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
 	}
+
+	/** @cond */	// DOXYGEN IGNORE
+	template<class UnitType, typename T, template<typename> class NonLinearScale>
+	class unit;
+
+	namespace detail
+	{
+		template<typename T, class Dim>
+		struct has_dimension_of_impl : std::false_type
+		{
+		};
+		template<typename C, typename U, typename P, typename T, class Dim>
+		struct has_dimension_of_impl<unit_conversion<C, U, P, T>, Dim>
+		  : std::is_same<typename unit_conversion<C, U, P, T>::dimension_type, Dim>::type
+		{
+		};
+		template<typename U, typename S, template<typename> class N, class Dim>
+		struct has_dimension_of_impl<unit<U, S, N>, Dim> : std::is_same<traits::dimension_of_t<U>, Dim>::type
+		{
+		};
+
+		template<typename T, class Dim>
+		using has_dimension_of = typename has_dimension_of_impl<T, Dim>::type;
+	} // namespace detail
+	/** @endcond */	// END DOXYGEN IGNORE
 
 	/**
 	 * @brief		Type representing an arbitrary unit.
