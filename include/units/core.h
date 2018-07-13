@@ -2192,10 +2192,8 @@ namespace units
 		 * @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		 * @param[in]	rhs value to copy.
 		 */
-		template<class Ty,
-			class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value &&
-				detail::is_non_lossy_convertible<Ty, T>>>
-		constexpr unit& operator=(const Ty& rhs) noexcept
+		template<class U = UnitType, class = std::enable_if_t<traits::is_dimensionless_unit<U>::value>>
+		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
 			nls::m_value = rhs;
 			return *this;
