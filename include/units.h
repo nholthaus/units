@@ -999,7 +999,7 @@ namespace units
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
 	} // namespace traits
 
-	/** @cond */	// DOXYGEN IGNORE
+	/** @cond */ // DOXYGEN IGNORE
 	template<class UnitType, typename T, template<typename> class NonLinearScale>
 	class unit;
 
@@ -1021,8 +1021,8 @@ namespace units
 
 		template<typename T, class Dim>
 		using has_dimension_of = typename has_dimension_of_impl<T, Dim>::type;
-	} // namespace detail
-	/** @endcond */	// END DOXYGEN IGNORE
+	}               // namespace detail
+	/** @endcond */ // END DOXYGEN IGNORE
 
 	/**
 	 * @brief		Type representing an arbitrary unit.
@@ -1692,7 +1692,7 @@ namespace units
 		};
 
 		// same exact unit on both sides
-		if constexpr (std::is_same_v<std::decay_t<UnitFrom>, std::decay_t<UnitTo>>)
+		if constexpr (std::is_same_v<UnitFrom, UnitTo>)
 		{
 			return static_cast<To>(value);
 		}
@@ -3557,7 +3557,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CURRENT_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit_conversion<std::ratio<1>, units::dimension::current>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(current)
 #endif
 
@@ -3600,7 +3600,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SUBSTANCE_UNITS)
 	UNIT_ADD(substance, mole, moles, mol, unit_conversion<std::ratio<1>, units::dimension::substance>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(substance)
 #endif
 
@@ -3618,7 +3618,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_INTENSITY_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit_conversion<std::ratio<1>, units::dimension::luminous_intensity>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
 #endif
 
@@ -3678,7 +3678,7 @@ namespace units
 	UNIT_ADD(velocity, miles_per_hour, miles_per_hour, mph, compound_unit_conversion<length::miles, inverse<time::hour>>)
 	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph, compound_unit_conversion<length::kilometers, inverse<time::hour>>)
 	UNIT_ADD(velocity, knot, knots, kts, compound_unit_conversion<length::nauticalMiles, inverse<time::hour>>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(velocity)
 #endif
 
@@ -3765,7 +3765,7 @@ namespace units
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit_conversion<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit_conversion<std::ratio<1, 760>, atmospheres>)
 	UNIT_ADD(pressure, mmHg, mmHg, mmHg, unit_conversion<std::ratio<26664477483LL, 200000000LL>, pascals>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(pressure)
 #endif
 
@@ -3831,7 +3831,7 @@ namespace units
 	UNIT_ADD(power, horsepower, horsepower, hp, unit_conversion<std::ratio<7457, 10>, watts>)
 	UNIT_ADD_DECIBEL(power, watt, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(power)
 #endif
 
@@ -3851,7 +3851,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, unit_conversion<std::ratio<1>, units::dimension::voltage>)
 	UNIT_ADD(voltage, statvolt, statvolts, statV, unit_conversion<std::ratio<1000000, 299792458>, volts>)
 	UNIT_ADD(voltage, abvolt, abvolts, abV, unit_conversion<std::ratio<1, 100000000>, volts>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(voltage)
 #endif
 
@@ -3869,7 +3869,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CAPACITANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit_conversion<std::ratio<1>, units::dimension::capacitance>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(capacitance)
 #endif
 
@@ -3887,7 +3887,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_IMPEDANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit_conversion<std::ratio<1>, units::dimension::impedance>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(impedance)
 #endif
 
@@ -3905,7 +3905,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONDUCTANCE_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, siemens, S, unit_conversion<std::ratio<1>, units::dimension::conductance>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(conductance)
 #endif
 
@@ -3944,7 +3944,7 @@ namespace units
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MAGNETIC_FIELD_STRENGTH_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit_conversion<std::ratio<1>, units::dimension::magnetic_field_strength>)
 	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit_conversion<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
-		
+
 	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
 #endif
 
@@ -3980,7 +3980,7 @@ namespace units
 	 */
 #if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_FLUX_UNITS)
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit_conversion<std::ratio<1>, units::dimension::luminous_flux>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
 #endif
 
@@ -4001,7 +4001,7 @@ namespace units
 	UNIT_ADD(illuminance, footcandle, footcandles, fc, compound_unit_conversion<luminous_flux::lumen, inverse<squared<length::foot>>>)
 	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_unit_conversion<luminous_flux::lumen, inverse<squared<length::inch>>>)
 	UNIT_ADD(illuminance, phot, phots, ph, compound_unit_conversion<luminous_flux::lumens, inverse<squared<length::centimeter>>>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(illuminance)
 #endif
 
@@ -4048,7 +4048,7 @@ namespace units
 	UNIT_ADD(torque, foot_poundal, foot_poundals, ftpdl, compound_unit_conversion<length::foot, force::poundal>)
 	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_unit_conversion<length::inch, force::pounds>)
 	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit_conversion<length::meter, force::kiloponds>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(torque)
 #endif
 
@@ -4072,7 +4072,7 @@ namespace units
 	UNIT_ADD(area, square_kilometer, square_kilometers, sq_km, squared<length::kilometers>)
 	UNIT_ADD(area, hectare, hectares, ha, unit_conversion<std::ratio<10000>, square_meters>)
 	UNIT_ADD(area, acre, acres, acre, unit_conversion<std::ratio<43560>, square_feet>)
-	
+
 	UNIT_ADD_DIMENSION_TRAIT(area)
 #endif
 
@@ -4958,7 +4958,7 @@ namespace std
 		template<typename U = T>
 		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) const noexcept
 		{
-			if constexpr(std::is_integral_v<U>)
+			if constexpr (std::is_integral_v<U>)
 			{
 				return x.template toLinearized<T>();
 			}
@@ -4975,7 +4975,8 @@ namespace std
 
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>> : public std::numeric_limits<T>
-	{	};
+	{
+	};
 } // namespace std
 
 #ifdef _MSC_VER
