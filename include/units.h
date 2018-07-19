@@ -2422,7 +2422,7 @@ namespace units
 	{
 		using BaseUnit =
 			unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-		os << unit<BaseUnit, T, NonLinearScale>(obj)();
+		os << unit<BaseUnit, detail::floating_point_promotion_t<T>, NonLinearScale>(obj)();
 
 		using DimType = typename traits::dimension_of_t<UnitConversion>;
 		if constexpr (!DimType::empty)
