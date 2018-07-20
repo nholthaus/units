@@ -277,16 +277,6 @@ TEST_F(TypeTraits, has_decibel_scale)
 	EXPECT_FALSE((traits::has_decibel_scale_v<meter_t, dB_t>));
 }
 
-TEST_F(TypeTraits, has_same_scale)
-{
-	EXPECT_TRUE((traits::has_same_scale_v<dimensionless, dimensionless>));
-	EXPECT_TRUE((traits::has_same_scale_v<dB_t, dBW_t>));
-	EXPECT_FALSE((traits::has_same_scale_v<dB_t, dimensionless>));
-
-	EXPECT_TRUE((traits::has_same_scale_v<dB_t, dBW_t, dBW_t>));
-	EXPECT_FALSE((traits::has_same_scale_v<dB_t, dBW_t, meter_t>));
-}
-
 TEST_F(TypeTraits, is_dimensionless_unit)
 {
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless>));

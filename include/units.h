@@ -589,14 +589,6 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		helper type to identify dimensions.
-		 * @details		A non-templated base class for `dimension` which enables compile-time testing.
-		 */
-		struct _dimension_t
-		{
-		};
-
-		/**
 		 * @brief		helper type to identify units.
 		 * @details		A non-templated base class for `unit` which enables compile-time testing.
 		 */
@@ -609,18 +601,6 @@ namespace units
 
 	namespace traits
 	{
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests if a class is a `dimension` type.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_dimension_v<T>` to test
-		 *				whether `class T` implements a `dimension`.
-		 */
-		template<class T>
-		using is_dimension = std::is_base_of<units::detail::_dimension_t, T>;
-
-		template<class T>
-		inline constexpr bool is_dimension_v = is_dimension<T>::value;
-
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		Traits which tests if a class is a `unit`
@@ -2723,25 +2703,6 @@ namespace units
 
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether two types have the same non-linear scale.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `has_same_scale_v<U1 , U2>` to test
-		 *				whether two types have the same non-linear scale.
-		 * @tparam		T1	left hand type.
-		 * @tparam		T2	right hand type
-		 */
-		template<class T, class... Ts>
-		struct has_same_scale
-		  : std::conjunction<std::is_same<typename units::traits::unit_traits<T>::non_linear_scale_type,
-				typename units::traits::unit_traits<Ts>::non_linear_scale_type>...>
-		{
-		};
-
-		template<typename... T>
-		inline constexpr bool has_same_scale_v = has_same_scale<T...>::value;
-	} // namespace traits
 
 	//----------------------------------
 	//	NON-LINEAR SCALES
