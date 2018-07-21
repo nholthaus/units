@@ -2704,6 +2704,8 @@ namespace units
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
 
+	} // namespace traits
+
 	//----------------------------------
 	//	NON-LINEAR SCALES
 	//----------------------------------
