@@ -2420,9 +2420,12 @@ namespace units
 	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
 	std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
 	{
-		using BaseUnit =
-			unit_conversion<std::ratio<1>, typename traits::unit_conversion_traits<UnitConversion>::dimension_type>;
-		os << unit<BaseUnit, T, NonLinearScale>(obj)();
+		using BaseConversion   = unit_conversion<std::ratio<1>, typename UnitConversion::dimension_type>;
+		using BaseUnit         = unit<BaseConversion, T, NonLinearScale>;
+		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NonLinearScale>;
+
+		os << std::conditional_t<detail::is_non_lossy_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit,
+			PromotedBaseUnit>(obj)();
 
 		using DimType = typename traits::dimension_of_t<UnitConversion>;
 		if constexpr (!DimType::empty)
