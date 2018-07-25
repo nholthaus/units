@@ -133,7 +133,7 @@ namespace units
  *				comprise the unit definition.
  */
 #define UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
-	namespace namespaceName \
+	inline namespace namespaceName \
 	{ \
 		/** @name UnitConversion (full names plural) */ /** @{ */ using namePlural     = __VA_ARGS__; /** @} */ \
 		/** @name UnitConversion (full names singular) */ /** @{ */ using nameSingular = namePlural;  /** @} */ \
