@@ -102,8 +102,10 @@ namespace units
 		 */
 		namespace detail
 		{
-			using PI = conversion_factor<std::ratio<1>, dimensionless_unit, std::ratio<1>>;
-		}
+			struct PI : conversion_factor<std::ratio<1>, dimensionless_unit, std::ratio<1>>
+			{
+			};
+		} // namespace detail
 
 		// clang-format off
 		inline constexpr const unit<detail::PI>																												pi(1);											///< Ratio of a circle's circumference to its diameter.

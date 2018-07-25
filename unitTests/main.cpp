@@ -222,7 +222,7 @@ TEST_F(TypeTraits, inverse)
 {
 	double test;
 
-	using htz         = inverse<seconds>;
+	using htz         = traits::strong_t<inverse<seconds>>;
 	bool shouldBeTrue = std::is_same_v<htz, hertz>;
 	EXPECT_TRUE(shouldBeTrue);
 
@@ -231,6 +231,15 @@ TEST_F(TypeTraits, inverse)
 
 	test = unit<inverse<fahrenheit>>(unit<inverse<kelvin>>(6.0))();
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
+}
+
+TEST_F(TypeTraits, strong)
+{
+	EXPECT_TRUE(
+		(std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
+	EXPECT_TRUE((std::is_same_v<meter, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
+	EXPECT_TRUE((std::is_same_v<kilometer, traits::strong_t<kilo<meter>>>));
+	EXPECT_TRUE((std::is_same_v<square_meter, traits::strong_t<squared<meter>>>));
 }
 
 TEST_F(TypeTraits, dimension_of)
@@ -655,15 +664,15 @@ TEST_F(TypeTraits, is_inductance_unit)
 TEST_F(TypeTraits, is_luminous_flux_unit)
 {
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<lumen>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<pound>));
+	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound>));
 	EXPECT_FALSE((traits::is_luminous_flux_unit_v<double>));
 
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<lumen_t>));
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t>));
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t&>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<pound_t>));
+	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound_t>));
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t&, millilumen_t>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<pound_t, lumen_t>));
+	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound_t, lumen_t>));
 }
 
 TEST_F(TypeTraits, is_illuminance_unit)
@@ -896,7 +905,8 @@ TEST_F(UnitManipulators, squared)
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using dimensionless_2 =
-		squared<units::dimensionless_unit>; // this is actually nonsensical, and should also result in a dimensionless.
+		traits::strong_t<squared<units::dimensionless_unit>>; // this is actually nonsensical, and should also result in
+															  // a dimensionless.
 	bool isSame = std::is_same_v<dimensionless, unit<dimensionless_2>>;
 	EXPECT_TRUE(isSame);
 }
@@ -941,7 +951,7 @@ TEST_F(UnitManipulators, compound_unit)
 	using arbitrary1 = compound_conversion_factor<meters, inverse<celsius>>;
 	using arbitrary2 = compound_conversion_factor<meters, celsius>;
 	using arbitrary3 = compound_conversion_factor<arbitrary1, arbitrary2>;
-	EXPECT_TRUE((std::is_same_v<square_meters, arbitrary3>));
+	EXPECT_TRUE((std::is_same_v<square_meters, traits::strong_t<arbitrary3>>));
 }
 
 TEST_F(UnitManipulators, dimensionalAnalysis)
@@ -950,7 +960,7 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	// unit types aren't know (i.e. they themselves are template parameters), as you can get the resulting unit of the
 	// operation.
 
-	using velocity    = units::detail::unit_divide<meters, second>;
+	using velocity    = traits::strong_t<units::detail::unit_divide<meters, second>>;
 	bool shouldBeTrue = std::is_same_v<meters_per_second, velocity>;
 	EXPECT_TRUE(shouldBeTrue);
 
@@ -2561,7 +2571,7 @@ TEST_F(UnitConversion, mass)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = metric_ton_t(kilogram_t(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = pound_t(kilogram_t(0.453592))();
+	test = mass::pound_t(kilogram_t(0.453592))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = long_ton_t(kilogram_t(1016.05))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
@@ -2574,7 +2584,7 @@ TEST_F(UnitConversion, mass)
 	test = kilogram_t(slug_t(1.0))();
 	EXPECT_NEAR(14.593903, test, 5.0e-7);
 
-	test = carat_t(pound_t(6.3))();
+	test = carat_t(mass::pound_t(6.3))();
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
@@ -2769,7 +2779,7 @@ TEST_F(UnitConversion, velocity)
 	double test;
 	bool same;
 
-	same = std::is_same_v<meters_per_second, conversion_factor<std::ratio<1>, dimension::velocity>>;
+	same = std::is_same_v<meters_per_second, traits::strong_t<conversion_factor<std::ratio<1>, dimension::velocity>>>;
 	EXPECT_TRUE(same);
 	same = traits::is_convertible_unit_v<miles_per_hour, meters_per_second>;
 	EXPECT_TRUE(same);
@@ -2791,7 +2801,8 @@ TEST_F(UnitConversion, angular_velocity)
 	double test;
 	bool same;
 
-	same = std::is_same_v<radians_per_second, conversion_factor<std::ratio<1>, dimension::angular_velocity>>;
+	same = std::is_same_v<radians_per_second,
+		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
 	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
 	EXPECT_TRUE(same);
@@ -3801,7 +3812,7 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), unit<cubed<meter>>>;
+	isSame = std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meter>>>>;
 	EXPECT_TRUE(isSame);
 
 	auto fourth = pow<4>(value);
