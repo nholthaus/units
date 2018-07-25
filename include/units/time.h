@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, conversion_factor<std::ratio<1>, units::dimension::time>)
-	UNIT_ADD(time, minute, minutes, min, conversion_factor<std::ratio<60>, seconds>)
+	UNIT_ADD(time, minute, minutes, mins, conversion_factor<std::ratio<60>, seconds>)
 	UNIT_ADD(time, hour, hours, hr, conversion_factor<std::ratio<60>, minutes>)
 	UNIT_ADD(time, day, days, d, conversion_factor<std::ratio<24>, hours>)
 	UNIT_ADD(time, week, weeks, wk, conversion_factor<std::ratio<7>, days>)
