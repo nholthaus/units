@@ -7,39 +7,6 @@
 #include <units.h>
 
 using namespace units;
-using namespace units::length;
-using namespace units::mass;
-using namespace units::angle;
-using namespace units::time;
-using namespace units::frequency;
-using namespace units::area;
-using namespace units::velocity;
-using namespace units::angular_velocity;
-using namespace units::temperature;
-using namespace units::luminous_intensity;
-using namespace units::solid_angle;
-using namespace units::frequency;
-using namespace units::acceleration;
-using namespace units::pressure;
-using namespace units::charge;
-using namespace units::energy;
-using namespace units::power;
-using namespace units::voltage;
-using namespace units::capacitance;
-using namespace units::impedance;
-using namespace units::conductance;
-using namespace units::magnetic_flux;
-using namespace units::magnetic_field_strength;
-using namespace units::inductance;
-using namespace units::luminous_flux;
-using namespace units::illuminance;
-using namespace units::radiation;
-using namespace units::torque;
-using namespace units::volume;
-using namespace units::density;
-using namespace units::concentration;
-using namespace units::data;
-using namespace units::data_transfer_rate;
 using namespace units::literals;
 
 namespace
