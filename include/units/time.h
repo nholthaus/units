@@ -48,6 +48,18 @@
 
 #include <units/core.h>
 
+/**
+ * @def			UNIT_ADD_WITH_PLURAL_TAG(namespaceName, nameSingular, namePlural, abbreviation, definition)
+ * @brief		Like `UNIT_ADD`, but the abbreviated unit is plural, e.g. `5_min` would have type `unit<mins>`
+ * @sa			`UNIT_ADD`
+ */
+#define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
+	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation##s, __VA_ARGS__) \
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
+	UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
+	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation) \
+	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
+
 namespace units
 {
 	/**
@@ -59,7 +71,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, conversion_factor<std::ratio<1>, units::dimension::time>)
-	UNIT_ADD(time, minute, minutes, mins, conversion_factor<std::ratio<60>, seconds>)
+	UNIT_ADD_WITH_PLURAL_TAG(time, minute, minutes, min, conversion_factor<std::ratio<60>, seconds>)
 	UNIT_ADD(time, hour, hours, hr, conversion_factor<std::ratio<60>, minutes>)
 	UNIT_ADD(time, day, days, d, conversion_factor<std::ratio<24>, hours>)
 	UNIT_ADD(time, week, weeks, wk, conversion_factor<std::ratio<7>, days>)

@@ -4061,7 +4061,7 @@ TEST_F(CaseStudies, rightTriangle)
 TEST_F(CaseStudies, selfDefinedUnits)
 {
 	using liters_per_second  = decltype(1_L / 1_s);
-	using gallons_per_minute = decltype(1_gal / 1_mins);
+	using gallons_per_minute = decltype(1_gal / 1_min);
 
 	liters_per_second lps(5);
 	gallons_per_minute gpm = lps;
