@@ -158,7 +158,7 @@ namespace units
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
  */
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
-	namespace namespaceName \
+	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ using nameSingular##_t = unit<nameSingular>; /** @} */ \
 	}
@@ -173,7 +173,7 @@ namespace units
  * @param		underlyingType the underlying type
  */
 #define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular, underlyingType) \
-	namespace namespaceName \
+	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ using nameSingular##_t = unit<nameSingular, underlyingType>; /** @} */ \
 	}
@@ -191,7 +191,7 @@ namespace units
 #define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)
 #else
 #define UNIT_ADD_IO(namespaceName, nameSingular, abbrev) \
-	namespace namespaceName \
+	inline namespace namespaceName \
 	{ \
 		inline std::ostream& operator<<(std::ostream& os, const nameSingular##_t& obj) \
 		{ \
@@ -315,7 +315,7 @@ namespace units
  * @param		abbreviation - abbreviated decibel unit name, e.g. 'dBW'
  */
 #define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation) \
-	namespace namespaceName \
+	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ typedef unit<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> \
 			abbreviation##_t; /** @} */ \
