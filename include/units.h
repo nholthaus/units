@@ -47,49 +47,11 @@
 #ifndef units_h__
 #define units_h__
 
-#include <units/core.h>
+#include <units/length.h>
 
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	LENGTH UNITS
-	//------------------------------
-
-	/**
-	 * @namespace	units::length
-	 * @brief		namespace for unit types and containers representing length values
-	 * @details		The SI unit for length is `meters`, and the corresponding `dimension` dimension is
-	 *				`length_unit`.
-	 * @anchor		lengthContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LENGTH_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(length, meter, meters, m, unit_conversion<std::ratio<1>, units::dimension::length>)
-	UNIT_ADD(length, foot, feet, ft, unit_conversion<std::ratio<381, 1250>, meters>)
-	UNIT_ADD(length, mil, mils, mil, unit_conversion<std::ratio<1000>, feet>)
-	UNIT_ADD(length, inch, inches, in, unit_conversion<std::ratio<1, 12>, feet>)
-	UNIT_ADD(length, mile, miles, mi, unit_conversion<std::ratio<5280>, feet>)
-	UNIT_ADD(length, nauticalMile, nauticalMiles, nmi, unit_conversion<std::ratio<1852>, meters>)
-	UNIT_ADD(length, astronomicalUnit, astronomicalUnits, au, unit_conversion<std::ratio<149597870700>, meters>)
-	UNIT_ADD(length, lightyear, lightyears, ly, unit_conversion<std::ratio<9460730472580800>, meters>)
-	UNIT_ADD(length, parsec, parsecs, pc, unit_conversion<std::ratio<648000>, astronomicalUnits, std::ratio<-1>>)
-	UNIT_ADD(length, angstrom, angstroms, angstrom, unit_conversion<std::ratio<1, 10>, nanometers>)
-	UNIT_ADD(length, cubit, cubits, cbt, unit_conversion<std::ratio<18>, inches>)
-	UNIT_ADD(length, fathom, fathoms, ftm, unit_conversion<std::ratio<6>, feet>)
-	UNIT_ADD(length, chain, chains, ch, unit_conversion<std::ratio<66>, feet>)
-	UNIT_ADD(length, furlong, furlongs, fur, unit_conversion<std::ratio<10>, chains>)
-	UNIT_ADD(length, hand, hands, hand, unit_conversion<std::ratio<4>, inches>)
-	UNIT_ADD(length, league, leagues, lea, unit_conversion<std::ratio<3>, miles>)
-	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, unit_conversion<std::ratio<3>, nauticalMiles>)
-	UNIT_ADD(length, yard, yards, yd, unit_conversion<std::ratio<3>, feet>)
-
-	// british spelling aliases
-	using metre_t = length::meter_t;
-
-	UNIT_ADD_DIMENSION_TRAIT(length)
-#endif
 
 	//------------------------------
 	//	MASS UNITS
