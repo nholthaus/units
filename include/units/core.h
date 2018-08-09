@@ -3857,10 +3857,6 @@ namespace std
 	};
 } // namespace std
 
-#ifdef _MSC_VER
-#pragma pop_macro("pascal")
-#endif // _MSC_VER
-
 #endif // units_core_h__
 
 // For Emacs

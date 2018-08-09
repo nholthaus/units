@@ -47,11 +47,6 @@
 #ifndef units_h__
 #define units_h__
 
-#ifdef _MSC_VER
-#pragma push_macro("pascal")
-#undef pascal
-#endif // _MSC_VER
-
 #include <units/core.h>
 
 namespace units
@@ -372,29 +367,12 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(force)
 #endif
 
-	//------------------------------
-	//	UNITS OF PRESSURE
-	//------------------------------
+}
 
-	/**
-	 * @namespace	units::pressure
-	 * @brief		namespace for unit types and containers representing pressure values
-	 * @details		The SI unit for pressure is `pascals`, and the corresponding `dimension` dimension is
-	 *				`pressure_unit`.
-	 * @anchor		pressureContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_PRESSURE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascal, pascals, Pa, unit_conversion<std::ratio<1>, units::dimension::pressure>)
-	UNIT_ADD(pressure, bar, bars, bar, unit_conversion<std::ratio<100>, kilo<pascals>>)
-	UNIT_ADD(pressure, millibar, millibars, mbar, unit_conversion<std::ratio<1>, milli<bars>>)
-	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit_conversion<std::ratio<101325>, pascals>)
-	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit_conversion<force::pounds, inverse<squared<length::inch>>>)
-	UNIT_ADD(pressure, torr, torrs, torr, unit_conversion<std::ratio<1, 760>, atmospheres>)
-	UNIT_ADD(pressure, mmHg, mmHg, mmHg, unit_conversion<std::ratio<26664477483LL, 200000000LL>, pascals>)
+#include <units/pressure.h>
 
-	UNIT_ADD_DIMENSION_TRAIT(pressure)
-#endif
+namespace units
+{
 
 	//------------------------------
 	//	UNITS OF CHARGE
@@ -1141,10 +1119,6 @@ namespace units
 	}
 #endif
 } // end namespace units
-
-#ifdef _MSC_VER
-#pragma pop_macro("pascal")
-#endif // _MSC_VER
 
 #endif // units_h__
 
