@@ -73,34 +73,13 @@
 #include <units/substance.h>
 #include <units/temperature.h>
 #include <units/time.h>
+#include <units/torque.h>
 #include <units/velocity.h>
 #include <units/voltage.h>
 
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF TORQUE
-	//------------------------------
-
-	/**
-	 * @namespace	units::torque
-	 * @brief		namespace for unit types and containers representing torque values
-	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `dimension` dimension is
-	 *				`torque_units`.
-	 * @anchor		torqueContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_TORQUE_UNITS)
-	UNIT_ADD(torque, newton_meter, newton_meters, Nm, unit_conversion<std::ratio<1>, units::energy::joule>)
-	UNIT_ADD(torque, foot_pound, foot_pounds, ftlb, compound_unit_conversion<length::foot, force::pounds>)
-	UNIT_ADD(torque, foot_poundal, foot_poundals, ftpdl, compound_unit_conversion<length::foot, force::poundal>)
-	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_unit_conversion<length::inch, force::pounds>)
-	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_unit_conversion<length::meter, force::kiloponds>)
-
-	UNIT_ADD_DIMENSION_TRAIT(torque)
-#endif
 
 	//------------------------------
 	//	AREA UNITS
