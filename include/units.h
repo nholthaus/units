@@ -57,32 +57,11 @@
 #include <units/substance.h>
 #include <units/temperature.h>
 #include <units/time.h>
+#include <units/velocity.h>
 
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	VELOCITY UNITS
-	//------------------------------
-
-	/**
-	 * @namespace	units::velocity
-	 * @brief		namespace for unit types and containers representing velocity values
-	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `dimension` dimension is
-	 *				`velocity_unit`.
-	 * @anchor		velocityContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_VELOCITY_UNITS)
-	UNIT_ADD(velocity, meters_per_second, meters_per_second, mps, unit_conversion<std::ratio<1>, units::dimension::velocity>)
-	UNIT_ADD(velocity, feet_per_second, feet_per_second, fps, compound_unit_conversion<length::feet, inverse<time::seconds>>)
-	UNIT_ADD(velocity, miles_per_hour, miles_per_hour, mph, compound_unit_conversion<length::miles, inverse<time::hour>>)
-	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph, compound_unit_conversion<length::kilometers, inverse<time::hour>>)
-	UNIT_ADD(velocity, knot, knots, kts, compound_unit_conversion<length::nauticalMiles, inverse<time::hour>>)
-
-	UNIT_ADD_DIMENSION_TRAIT(velocity)
-#endif
-
 	//------------------------------
 	//	ANGULAR VELOCITY UNITS
 	//------------------------------
