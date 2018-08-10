@@ -53,6 +53,7 @@
 #include <units/area.h>
 #include <units/capacitance.h>
 #include <units/charge.h>
+#include <units/concentration.h>
 #include <units/conductance.h>
 #include <units/current.h>
 #include <units/density.h>
@@ -83,27 +84,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF CONCENTRATION
-	//------------------------------
-
-	/**
-	 * @namespace	units::concentration
-	 * @brief		namespace for unit types and containers representing concentration values
-	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `dimension` dimension is
-	 *				`dimensionless_unit`.
-	 * @anchor		concentrationContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONCENTRATION_UNITS)
-	UNIT_ADD(concentration, ppm, parts_per_million, ppm, unit_conversion<std::ratio<1, 1000000>, units::dimension::dimensionless>)
-	UNIT_ADD(concentration, ppb, parts_per_billion, ppb, unit_conversion<std::ratio<1, 1000>, parts_per_million>)
-	UNIT_ADD(concentration, ppt, parts_per_trillion, ppt, unit_conversion<std::ratio<1, 1000>, parts_per_billion>)
-	UNIT_ADD(concentration, percent, percent, pct, unit_conversion<std::ratio<1, 100>, units::dimension::dimensionless>)
-
-	UNIT_ADD_DIMENSION_TRAIT(concentration)
-#endif
 
 	//------------------------------
 	//	UNITS OF DATA
