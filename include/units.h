@@ -52,6 +52,7 @@
 #include <units/length.h>
 #include <units/luminous_intensity.h>
 #include <units/mass.h>
+#include <units/solid_angle.h>
 #include <units/substance.h>
 #include <units/temperature.h>
 #include <units/time.h>
@@ -59,26 +60,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF SOLID ANGLE
-	//------------------------------
-
-	/**
-	 * @namespace	units::solid_angle
-	 * @brief		namespace for unit types and containers representing solid_angle values
-	 * @details		The SI unit for solid_angle is `steradians`, and the corresponding `dimension` dimension is
-	 *				`solid_angle_unit`.
-	 * @anchor		solidAngleContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SOLID_ANGLE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(solid_angle, steradian, steradians, sr, unit_conversion<std::ratio<1>, units::dimension::solid_angle>)
-	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degrees>)
-	UNIT_ADD(solid_angle, spat, spats, sp, unit_conversion<std::ratio<4>, steradians, std::ratio<1>>)
-
-	UNIT_ADD_DIMENSION_TRAIT(solid_angle)
-#endif
-
 	//------------------------------
 	//	FREQUENCY UNITS
 	//------------------------------
