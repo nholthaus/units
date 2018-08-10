@@ -56,6 +56,7 @@
 #include <units/energy.h>
 #include <units/force.h>
 #include <units/frequency.h>
+#include <units/impedance.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
 #include <units/mass.h>
@@ -71,24 +72,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF IMPEDANCE
-	//------------------------------
-
-	/**
-	 * @namespace	units::impedance
-	 * @brief		namespace for unit types and containers representing impedance values
-	 * @details		The SI unit for impedance is `ohms`, and the corresponding `dimension` dimension is
-	 *				`impedance_unit`.
-	 * @anchor		impedanceContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_IMPEDANCE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, unit_conversion<std::ratio<1>, units::dimension::impedance>)
-
-	UNIT_ADD_DIMENSION_TRAIT(impedance)
-#endif
 
 	//------------------------------
 	//	UNITS OF CONDUCTANCE
