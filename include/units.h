@@ -50,6 +50,7 @@
 #include <units/angle.h>
 #include <units/current.h>
 #include <units/length.h>
+#include <units/luminous_intensity.h>
 #include <units/mass.h>
 #include <units/substance.h>
 #include <units/temperature.h>
@@ -58,24 +59,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF LUMINOUS INTENSITY
-	//------------------------------
-
-	/**
-	 * @namespace	units::luminous_intensity
-	 * @brief		namespace for unit types and containers representing luminous_intensity values
-	 * @details		The SI unit for luminous_intensity is `candelas`, and the corresponding `dimension` dimension is
-	 *				`luminous_intensity_unit`.
-	 * @anchor		luminousIntensityContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_INTENSITY_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candela, candelas, cd, unit_conversion<std::ratio<1>, units::dimension::luminous_intensity>)
-
-	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
-#endif
-
 	//------------------------------
 	//	UNITS OF SOLID ANGLE
 	//------------------------------
