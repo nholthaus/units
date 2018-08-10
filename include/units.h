@@ -47,6 +47,7 @@
 #ifndef units_h__
 #define units_h__
 
+#include <units/acceleration.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/current.h>
@@ -63,26 +64,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF ACCELERATION
-	//------------------------------
-
-	/**
-	 * @namespace	units::acceleration
-	 * @brief		namespace for unit types and containers representing acceleration values
-	 * @details		The SI unit for acceleration is `meters_per_second_squared`, and the corresponding `dimension` dimension is
-	 *				`acceleration_unit`.
-	 * @anchor		accelerationContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ACCELERATION_UNITS)
-	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps_sq, unit_conversion<std::ratio<1>, units::dimension::acceleration>)
-	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq, compound_unit_conversion<length::feet, inverse<squared<time::seconds>>>)
-	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit_conversion<std::ratio<980665, 100000>, meters_per_second_squared>)
-
-	UNIT_ADD_DIMENSION_TRAIT(acceleration)
-#endif
-
 	//------------------------------
 	//	UNITS OF FORCE
 	//------------------------------
