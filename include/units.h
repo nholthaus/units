@@ -48,6 +48,7 @@
 #define units_h__
 
 #include <units/angle.h>
+#include <units/current.h>
 #include <units/length.h>
 #include <units/mass.h>
 #include <units/time.h>
@@ -55,23 +56,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF CURRENT
-	//------------------------------
-	/**
-	 * @namespace	units::current
-	 * @brief		namespace for unit types and containers representing current values
-	 * @details		The SI unit for current is `amperes`, and the corresponding `dimension` dimension is
-	 *				`current_unit`.
-	 * @anchor		currentContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CURRENT_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, unit_conversion<std::ratio<1>, units::dimension::current>)
-
-	UNIT_ADD_DIMENSION_TRAIT(current)
-#endif
-
 	//------------------------------
 	//	UNITS OF TEMPERATURE
 	//------------------------------
