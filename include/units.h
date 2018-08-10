@@ -60,6 +60,7 @@
 #include <units/impedance.h>
 #include <units/inductance.h>
 #include <units/length.h>
+#include <units/luminous_flux.h>
 #include <units/luminous_intensity.h>
 #include <units/magnetic_field_strength.h>
 #include <units/magnetic_flux.h>
@@ -76,24 +77,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF LUMINOUS FLUX
-	//------------------------------
-
-	/**
-	 * @namespace	units::luminous_flux
-	 * @brief		namespace for unit types and containers representing luminous_flux values
-	 * @details		The SI unit for luminous_flux is `lumens`, and the corresponding `dimension` dimension is
-	 *				`luminous_flux_unit`.
-	 * @anchor		luminousFluxContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_LUMINOUS_FLUX_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumen, lumens, lm, unit_conversion<std::ratio<1>, units::dimension::luminous_flux>)
-
-	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
-#endif
 
 	//------------------------------
 	//	UNITS OF ILLUMINANCE
