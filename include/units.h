@@ -58,6 +58,7 @@
 #include <units/force.h>
 #include <units/frequency.h>
 #include <units/impedance.h>
+#include <units/inductance.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
 #include <units/magnetic_field_strength.h>
@@ -75,24 +76,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF INDUCTANCE
-	//------------------------------
-
-	/**
-	 * @namespace	units::inductance
-	 * @brief		namespace for unit types and containers representing inductance values
-	 * @details		The SI unit for inductance is `henrys`, and the corresponding `dimension` dimension is
-	 *				`inductance_unit`.
-	 * @anchor		inductanceContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_INDUCTANCE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henry, henries, H, unit_conversion<std::ratio<1>, units::dimension::inductance>)
-
-	UNIT_ADD_DIMENSION_TRAIT(inductance)
-#endif
 
 	//------------------------------
 	//	UNITS OF LUMINOUS FLUX
