@@ -52,6 +52,7 @@
 #include <units/angular_velocity.h>
 #include <units/charge.h>
 #include <units/current.h>
+#include <units/energy.h>
 #include <units/force.h>
 #include <units/frequency.h>
 #include <units/length.h>
@@ -67,32 +68,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF ENERGY
-	//------------------------------
-
-	/**
-	 * @namespace	units::energy
-	 * @brief		namespace for unit types and containers representing energy values
-	 * @details		The SI unit for energy is `joules`, and the corresponding `dimension` dimension is
-	 *				`energy_unit`.
-	 * @anchor		energyContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_ENERGY_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joule, joules, J, unit_conversion<std::ratio<1>, units::dimension::energy>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calorie, calories, cal, unit_conversion<std::ratio<4184, 1000>, joules>)
-	UNIT_ADD(energy, kilowatt_hour, kilowatt_hours, kWh, unit_conversion<std::ratio<36, 10>, megajoules>)
-	UNIT_ADD(energy, watt_hour, watt_hours, Wh, unit_conversion<std::ratio<1, 1000>, kilowatt_hours>)
-	UNIT_ADD(energy, british_thermal_unit, british_thermal_units, BTU, unit_conversion<std::ratio<105505585262, 100000000>, joules>)
-	UNIT_ADD(energy, british_thermal_unit_iso, british_thermal_units_iso, BTU_iso, unit_conversion<std::ratio<1055056, 1000>, joules>)
-	UNIT_ADD(energy, british_thermal_unit_59, british_thermal_units_59, BTU59, unit_conversion<std::ratio<1054804, 1000>, joules>)
-	UNIT_ADD(energy, therm, therms, thm, unit_conversion<std::ratio<100000>, british_thermal_units_59>)
-	UNIT_ADD(energy, foot_pound, foot_pounds, ftlbf, unit_conversion<std::ratio<13558179483314004, 10000000000000000>, joules>)
-
-	UNIT_ADD_DIMENSION_TRAIT(energy)
-#endif
 
 	//------------------------------
 	//	UNITS OF POWER
