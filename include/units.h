@@ -60,6 +60,7 @@
 #include <units/impedance.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
+#include <units/magnetic_field_strength.h>
 #include <units/magnetic_flux.h>
 #include <units/mass.h>
 #include <units/power.h>
@@ -74,26 +75,6 @@
 namespace units
 {
 	// clang-format off
-
-	//----------------------------------------
-	//	UNITS OF MAGNETIC FIELD STRENGTH
-	//----------------------------------------
-
-	/**
-	 * @namespace	units::magnetic_field_strength
-	 * @brief		namespace for unit types and containers representing magnetic_field_strength values
-	 * @details		The SI unit for magnetic_field_strength is `teslas`, and the corresponding `dimension` dimension is
-	 *				`magnetic_field_strength_unit`.
-	 * @anchor		magneticFieldStrengthContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-	// Unfortunately `_T` is a WINAPI macro, so we have to use `_Te` as the tesla abbreviation.
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MAGNETIC_FIELD_STRENGTH_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te, unit_conversion<std::ratio<1>, units::dimension::magnetic_field_strength>)
-	UNIT_ADD(magnetic_field_strength, gauss, gauss, G, compound_unit_conversion<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
-
-	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
-#endif
 
 	//------------------------------
 	//	UNITS OF INDUCTANCE
