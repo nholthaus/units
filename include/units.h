@@ -65,30 +65,11 @@
 #include <units/temperature.h>
 #include <units/time.h>
 #include <units/velocity.h>
+#include <units/voltage.h>
 
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF VOLTAGE
-	//------------------------------
-
-	/**
-	 * @namespace	units::voltage
-	 * @brief		namespace for unit types and containers representing voltage values
-	 * @details		The SI unit for voltage is `volts`, and the corresponding `dimension` dimension is
-	 *				`voltage_unit`.
-	 * @anchor		voltageContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_VOLTAGE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, unit_conversion<std::ratio<1>, units::dimension::voltage>)
-	UNIT_ADD(voltage, statvolt, statvolts, statV, unit_conversion<std::ratio<1000000, 299792458>, volts>)
-	UNIT_ADD(voltage, abvolt, abvolts, abV, unit_conversion<std::ratio<1, 100000000>, volts>)
-
-	UNIT_ADD_DIMENSION_TRAIT(voltage)
-#endif
 
 	//------------------------------
 	//	UNITS OF CAPACITANCE
