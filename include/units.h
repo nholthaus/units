@@ -60,6 +60,7 @@
 #include <units/impedance.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
+#include <units/magnetic_flux.h>
 #include <units/mass.h>
 #include <units/power.h>
 #include <units/pressure.h>
@@ -73,25 +74,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF MAGNETIC FLUX
-	//------------------------------
-
-	/**
-	 * @namespace	units::magnetic_flux
-	 * @brief		namespace for unit types and containers representing magnetic_flux values
-	 * @details		The SI unit for magnetic_flux is `webers`, and the corresponding `dimension` dimension is
-	 *				`magnetic_flux_unit`.
-	 * @anchor		magneticFluxContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MAGNETIC_FLUX_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, weber, webers, Wb, unit_conversion<std::ratio<1>, units::dimension::magnetic_flux>)
-	UNIT_ADD(magnetic_flux, maxwell, maxwells, Mx, unit_conversion<std::ratio<1, 100000000>, webers>)
-
-	UNIT_ADD_DIMENSION_TRAIT(magnetic_flux)
-#endif
 
 	//----------------------------------------
 	//	UNITS OF MAGNETIC FIELD STRENGTH
