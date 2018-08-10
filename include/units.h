@@ -50,6 +50,7 @@
 #include <units/acceleration.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
+#include <units/area.h>
 #include <units/capacitance.h>
 #include <units/charge.h>
 #include <units/conductance.h>
@@ -80,30 +81,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	AREA UNITS
-	//------------------------------
-
-	/**
-	 * @namespace	units::area
-	 * @brief		namespace for unit types and containers representing area values
-	 * @details		The SI unit for area is `square_meters`, and the corresponding `dimension` dimension is
-	 *				`area_unit`.
-	 * @anchor		areaContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_AREA_UNITS)
-	UNIT_ADD(area, square_meter, square_meters, sq_m, unit_conversion<std::ratio<1>, units::dimension::area>)
-	UNIT_ADD(area, square_foot, square_feet, sq_ft, squared<length::feet>)
-	UNIT_ADD(area, square_inch, square_inches, sq_in, squared<length::inch>)
-	UNIT_ADD(area, square_mile, square_miles, sq_mi, squared<length::miles>)
-	UNIT_ADD(area, square_kilometer, square_kilometers, sq_km, squared<length::kilometers>)
-	UNIT_ADD(area, hectare, hectares, ha, unit_conversion<std::ratio<10000>, square_meters>)
-	UNIT_ADD(area, acre, acres, acre, unit_conversion<std::ratio<43560>, square_feet>)
-
-	UNIT_ADD_DIMENSION_TRAIT(area)
-#endif
 
 	//------------------------------
 	//	UNITS OF VOLUME
