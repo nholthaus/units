@@ -68,6 +68,7 @@
 #include <units/mass.h>
 #include <units/power.h>
 #include <units/pressure.h>
+#include <units/radiation.h>
 #include <units/solid_angle.h>
 #include <units/substance.h>
 #include <units/temperature.h>
@@ -78,31 +79,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF RADIATION
-	//------------------------------
-
-	/**
-	 * @namespace	units::radiation
-	 * @brief		namespace for unit types and containers representing radiation values
-	 * @details		The SI units for radiation are:
-	 *				- source activity:	becquerel
-	 *				- absorbed dose:	gray
-	 *				- equivalent dose:	sievert
-	 * @anchor		radiationContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_RADIATION_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerel, becquerels, Bq, unit_conversion<std::ratio<1>, units::frequency::hertz>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, gray, grays, Gy, compound_unit_conversion<energy::joules, inverse<mass::kilogram>>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, unit_conversion<std::ratio<1>, grays>)
-	UNIT_ADD(radiation, curie, curies, Ci, unit_conversion<std::ratio<37>, gigabecquerels>)
-	UNIT_ADD(radiation, rutherford, rutherfords, rd, unit_conversion<std::ratio<1>, megabecquerels>)
-	UNIT_ADD(radiation, rad, rads, rads, unit_conversion<std::ratio<1>, centigrays>)
-
-	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
-#endif
 
 	//------------------------------
 	//	UNITS OF TORQUE
