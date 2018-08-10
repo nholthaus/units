@@ -48,36 +48,11 @@
 #define units_h__
 
 #include <units/length.h>
+#include <units/mass.h>
 
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	MASS UNITS
-	//------------------------------
-
-	/**
-	 * @namespace	units::mass
-	 * @brief		namespace for unit types and containers representing mass values
-	 * @details		The SI unit for mass is `kilograms`, and the corresponding `dimension` dimension is
-	 *				`mass_unit`.
-	 * @anchor		massContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_MASS_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(mass, gram, grams, g, unit_conversion<std::ratio<1, 1000>, units::dimension::mass>)
-	UNIT_ADD(mass, metric_ton, metric_tons, t, unit_conversion<std::ratio<1000>, kilograms>)
-	UNIT_ADD(mass, pound, pounds, lb, unit_conversion<std::ratio<45359237, 100000000>, kilograms>)
-	UNIT_ADD(mass, long_ton, long_tons, ln_t, unit_conversion<std::ratio<2240>, pounds>)
-	UNIT_ADD(mass, short_ton, short_tons, sh_t, unit_conversion<std::ratio<2000>, pounds>)
-	UNIT_ADD(mass, stone, stone, st, unit_conversion<std::ratio<14>, pounds>)
-	UNIT_ADD(mass, ounce, ounces, oz, unit_conversion<std::ratio<1, 16>, pounds>)
-	UNIT_ADD(mass, carat, carats, ct, unit_conversion<std::ratio<200>, milligrams>)
-	UNIT_ADD(mass, slug, slugs, slug, unit_conversion<std::ratio<145939029, 10000000>, kilograms>)
-
-	UNIT_ADD_DIMENSION_TRAIT(mass)
-#endif
 
 	//------------------------------
 	//	TIME UNITS
