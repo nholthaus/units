@@ -51,30 +51,13 @@
 #include <units/current.h>
 #include <units/length.h>
 #include <units/mass.h>
+#include <units/substance.h>
 #include <units/temperature.h>
 #include <units/time.h>
 
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF AMOUNT OF SUBSTANCE
-	//------------------------------
-
-	/**
-	 * @namespace	units::substance
-	 * @brief		namespace for unit types and containers representing substance values
-	 * @details		The SI unit for substance is `moles`, and the corresponding `dimension` dimension is
-	 *				`substance_unit`.
-	 * @anchor		substanceContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_SUBSTANCE_UNITS)
-	UNIT_ADD(substance, mole, moles, mol, unit_conversion<std::ratio<1>, units::dimension::substance>)
-
-	UNIT_ADD_DIMENSION_TRAIT(substance)
-#endif
-
 	//------------------------------
 	//	UNITS OF LUMINOUS INTENSITY
 	//------------------------------
