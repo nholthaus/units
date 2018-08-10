@@ -50,6 +50,7 @@
 #include <units/acceleration.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
+#include <units/capacitance.h>
 #include <units/charge.h>
 #include <units/current.h>
 #include <units/energy.h>
@@ -70,24 +71,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF CAPACITANCE
-	//------------------------------
-
-	/**
-	 * @namespace	units::capacitance
-	 * @brief		namespace for unit types and containers representing capacitance values
-	 * @details		The SI unit for capacitance is `farads`, and the corresponding `dimension` dimension is
-	 *				`capacitance_unit`.
-	 * @anchor		capacitanceContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CAPACITANCE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, unit_conversion<std::ratio<1>, units::dimension::capacitance>)
-
-	UNIT_ADD_DIMENSION_TRAIT(capacitance)
-#endif
 
 	//------------------------------
 	//	UNITS OF IMPEDANCE
