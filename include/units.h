@@ -56,6 +56,7 @@
 #include <units/concentration.h>
 #include <units/conductance.h>
 #include <units/current.h>
+#include <units/data.h>
 #include <units/density.h>
 #include <units/energy.h>
 #include <units/force.h>
@@ -84,27 +85,6 @@
 namespace units
 {
 	// clang-format off
-
-	//------------------------------
-	//	UNITS OF DATA
-	//------------------------------
-
-	/**
-	 * @namespace	units::data
-	 * @brief		namespace for unit types and containers representing data values
-	 * @details		The dimension for data is `bytes`, and the corresponding `dimension` dimension is
-	 *				`data_unit`.
-	 * @anchor		dataContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_DATA_UNITS)
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, byte, bytes, B, unit_conversion<std::ratio<1>, units::dimension::data>)
-	UNIT_ADD(data, exabyte, exabytes, EB, unit_conversion<std::ratio<1000>, petabytes>)
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, unit_conversion<std::ratio<1, 8>, byte>)
-	UNIT_ADD(data, exabit, exabits, Eb, unit_conversion<std::ratio<1000>, petabits>)
-
-	UNIT_ADD_DIMENSION_TRAIT(data)
-#endif
 
 	//------------------------------
 	//	UNITS OF DATA TRANSFER
