@@ -51,36 +51,12 @@
 #include <units/current.h>
 #include <units/length.h>
 #include <units/mass.h>
+#include <units/temperature.h>
 #include <units/time.h>
 
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF TEMPERATURE
-	//------------------------------
-
-	// NOTE: temperature units have special conversion overloads, since they
-	// require translations and aren't a reversible transform.
-
-	/**
-	 * @namespace	units::temperature
-	 * @brief		namespace for unit types and containers representing temperature values
-	 * @details		The SI unit for temperature is `kelvin`, and the corresponding `dimension` dimension is
-	 *				`temperature_unit`.
-	 * @anchor		temperatureContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_TEMPERATURE_UNITS)
-	UNIT_ADD(temperature, kelvin, kelvin, K, unit_conversion<std::ratio<1>, units::dimension::temperature>)
-	UNIT_ADD(temperature, celsius, celsius, degC, unit_conversion<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>)
-	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF, unit_conversion<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>)
-	UNIT_ADD(temperature, reaumur, reaumur, Re, unit_conversion<std::ratio<10, 8>, celsius>)
-	UNIT_ADD(temperature, rankine, rankine, Ra, unit_conversion<std::ratio<5, 9>, kelvin>)
-
-	UNIT_ADD_DIMENSION_TRAIT(temperature)
-#endif
-
 	//------------------------------
 	//	UNITS OF AMOUNT OF SUBSTANCE
 	//------------------------------
