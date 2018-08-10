@@ -51,10 +51,12 @@
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/current.h>
+#include <units/force.h>
 #include <units/frequency.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
 #include <units/mass.h>
+#include <units/pressure.h>
 #include <units/solid_angle.h>
 #include <units/substance.h>
 #include <units/temperature.h>
@@ -64,34 +66,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	UNITS OF FORCE
-	//------------------------------
-
-	/**
-	 * @namespace	units::force
-	 * @brief		namespace for unit types and containers representing force values
-	 * @details		The SI unit for force is `newtons`, and the corresponding `dimension` dimension is
-	 *				`force_unit`.
-	 * @anchor		forceContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_FORCE_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(force, newton, newtons, N, unit_conversion<std::ratio<1>, units::dimension::force>)
-	UNIT_ADD(force, pound, pounds, lbf, compound_unit_conversion<mass::slug, length::foot, inverse<squared<time::seconds>>>)
-	UNIT_ADD(force, dyne, dynes, dyn, unit_conversion<std::ratio<1, 100000>, newtons>)
-	UNIT_ADD(force, kilopond, kiloponds, kp, compound_unit_conversion<acceleration::standard_gravity, mass::kilograms>)
-	UNIT_ADD(force, poundal, poundals, pdl, compound_unit_conversion<mass::pound, length::foot, inverse<squared<time::seconds>>>)
-
-	UNIT_ADD_DIMENSION_TRAIT(force)
-#endif
-
-}
-
-#include <units/pressure.h>
-
-namespace units
-{
 
 	//------------------------------
 	//	UNITS OF CHARGE
