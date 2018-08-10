@@ -49,6 +49,7 @@
 
 #include <units/angle.h>
 #include <units/current.h>
+#include <units/frequency.h>
 #include <units/length.h>
 #include <units/luminous_intensity.h>
 #include <units/mass.h>
@@ -60,24 +61,6 @@
 namespace units
 {
 	// clang-format off
-	//------------------------------
-	//	FREQUENCY UNITS
-	//------------------------------
-
-	/**
-	 * @namespace	units::frequency
-	 * @brief		namespace for unit types and containers representing frequency values
-	 * @details		The SI unit for frequency is `hertz`, and the corresponding `dimension` dimension is
-	 *				`frequency_unit`.
-	 * @anchor		frequencyContainers
-	 * @sa			See unit for more information on unit type containers.
-	 */
-#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_FREQUENCY_UNITS)
-	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, unit_conversion<std::ratio<1>, units::dimension::frequency>)
-
-	UNIT_ADD_DIMENSION_TRAIT(frequency)
-#endif
-
 	//------------------------------
 	//	VELOCITY UNITS
 	//------------------------------
