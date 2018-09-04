@@ -649,20 +649,9 @@ For some embedded applications, it may be [desirable to remove all references to
 
 # Enabling a subset of units to improve compilation time
 
-If you know that you only need a subset of the unit namespaces for your application, you can dramatically improve compilation time by disabling the default definitions, and then only opting-in to the namespaces you want. For example:
+If you know that you only need a subset of the unit namespaces for your application, you can ...
 
-  ```cpp
-  // Only use length and time
-  #define DISABLE_PREDEFINED_UNITS
-  #define ENABLE_PREDEFINED_LENGTH_UNITS
-  #define ENABLE_PREDEFINED_TIME_UNITS
-  ```
-
-The generic algorithm is
-  1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
-  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
-
-Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project.
+***THIS SECTION NEEDS A COMPLETE REWRITE***
 
 # Macro clashes
 
