@@ -21,7 +21,7 @@ Features:
 - units now include constexpr `name()` and `abbreviation()` member functions, which do not really on string/iostream.
 - Builds with VS2017 Ninja generator out of the box
 - string conversions are now locale aware
-- added unary incremement and decremement operators (`++`,`--`), as well as unary `+` operator.
+- added unary increment and decrement operators (`++`,`--`), as well as unary `+` operator.
 
 Bug fixs:
 - fixed compilation error when iostream was disabled
@@ -31,7 +31,7 @@ Bug fixs:
 Features:
 - 5x compile time improvement on MSVC.
 - 1.5x compile time improvement on GCC.
-- Even more dramatic reductions in compile time can be acheived if you opt-in to specific unit definitions instead of using all the library-defined types (which is the default value). Check out [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time) for instructions.
+- Even more dramatic reductions in compile time can be achieved if you opt-in to specific unit definitions instead of using all the library-defined types (which is the default value). Check out [Enabling a subset of units to improve compilation time](#enabling-a-subset-of-units-to-improve-compilation-time) for instructions.
 - Adds std::cout support for units with no defined abbreviation (they show up as a combination of SI base units)
 - Support for `std::numeric_limits` of unit types.
 - Assignment operators for unit types: `-=`, `+=`, `/=`, `*=`.
@@ -61,10 +61,10 @@ Features:
   find_package(units)
   ```
 Bug fixes:
-- Fixed singualr name of `siemen` to be `siemens` (Thanks @Oxyd)
+- Fixed singular name of `siemen` to be `siemens` (Thanks @Oxyd)
 - Fixed bug with `cubrt` operation (Thanks @PearCoding)
-- fixed constexpr relational operators bug
-- fixed exponential temperature conversions (Thanks @guarndt)
+- Fixed constexpr relational operators bug
+- Fixed exponential temperature conversions (Thanks @guarndt)
  
 ## Tested on
 
