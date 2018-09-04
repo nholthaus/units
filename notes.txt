@@ -8,3 +8,5 @@
 - C++17 required
 - cpow is now `pow`
 - added constexpr sqrt function
+- dimension namespaces are inlined now so you can use `units::meters` instead of `units::length::meters`. 
+  The occasional class can be resolved using the full namespace (e.g units::mass::pounds vs. units::force::pounds)
