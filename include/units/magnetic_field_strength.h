@@ -61,9 +61,9 @@ namespace units
 	 */
 	// Unfortunately `_T` is a WINAPI macro, so we have to use `_Te` as the tesla abbreviation.
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, tesla, teslas, Te,
-		unit_conversion<std::ratio<1>, units::dimension::magnetic_field_strength>)
+		conversion_factor<std::ratio<1>, units::dimension::magnetic_field_strength>)
 	UNIT_ADD(magnetic_field_strength, gauss, gauss, G,
-		compound_unit_conversion<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
+		compound_conversion_factor<magnetic_flux::maxwell, inverse<squared<length::centimeter>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
 } // namespace units

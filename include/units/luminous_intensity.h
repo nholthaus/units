@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		luminous_intensity, candela, candelas, cd, unit_conversion<std::ratio<1>, units::dimension::luminous_intensity>)
+		luminous_intensity, candela, candelas, cd, conversion_factor<std::ratio<1>, units::dimension::luminous_intensity>)
 
 	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
 } // namespace units

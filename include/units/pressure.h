@@ -65,14 +65,14 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		pressure, pascal, pascals, Pa, unit_conversion<std::ratio<1>, units::dimension::pressure>)
-	UNIT_ADD(pressure, bar, bars, bar, unit_conversion<std::ratio<100>, kilo<pascals>>)
-	UNIT_ADD(pressure, millibar, millibars, mbar, unit_conversion<std::ratio<1>, milli<bars>>)
-	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit_conversion<std::ratio<101325>, pascals>)
+		pressure, pascal, pascals, Pa, conversion_factor<std::ratio<1>, units::dimension::pressure>)
+	UNIT_ADD(pressure, bar, bars, bar, conversion_factor<std::ratio<100>, kilo<pascals>>)
+	UNIT_ADD(pressure, millibar, millibars, mbar, conversion_factor<std::ratio<1>, milli<bars>>)
+	UNIT_ADD(pressure, atmosphere, atmospheres, atm, conversion_factor<std::ratio<101325>, pascals>)
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi,
-		compound_unit_conversion<force::pounds, inverse<squared<length::inch>>>)
-	UNIT_ADD(pressure, torr, torrs, torr, unit_conversion<std::ratio<1, 760>, atmospheres>)
-	UNIT_ADD(pressure, mmHg, mmHg, mmHg, unit_conversion<std::ratio<26664477483LL, 200000000LL>, pascals>)
+		compound_conversion_factor<force::pounds, inverse<squared<length::inch>>>)
+	UNIT_ADD(pressure, torr, torrs, torr, conversion_factor<std::ratio<1, 760>, atmospheres>)
+	UNIT_ADD(pressure, mmHg, mmHg, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascals>)
 
 	UNIT_ADD_DIMENSION_TRAIT(pressure)
 } // namespace units

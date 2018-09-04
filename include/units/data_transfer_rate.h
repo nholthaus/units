@@ -59,13 +59,13 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, bytes_per_second, Bps,
-		unit_conversion<std::ratio<1>, units::dimension::data_transfer_rate>)
+		conversion_factor<std::ratio<1>, units::dimension::data_transfer_rate>)
 	UNIT_ADD(data_transfer_rate, exabytes_per_second, exabytes_per_second, EBps,
-		unit_conversion<std::ratio<1000>, petabytes_per_second>)
+		conversion_factor<std::ratio<1000>, petabytes_per_second>)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(
-		data_transfer_rate, bits_per_second, bits_per_second, bps, unit_conversion<std::ratio<1, 8>, bytes_per_second>)
+		data_transfer_rate, bits_per_second, bits_per_second, bps, conversion_factor<std::ratio<1, 8>, bytes_per_second>)
 	UNIT_ADD(data_transfer_rate, exabits_per_second, exabits_per_second, Ebps,
-		unit_conversion<std::ratio<1000>, petabits_per_second>)
+		conversion_factor<std::ratio<1000>, petabits_per_second>)
 
 	UNIT_ADD_DIMENSION_TRAIT(data_transfer_rate)
 } // namespace units
