@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		inductance, henry, henries, H, unit_conversion<std::ratio<1>, units::dimension::inductance>)
+		inductance, henry, henries, H, conversion_factor<std::ratio<1>, units::dimension::inductance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(inductance)
 } // namespace units

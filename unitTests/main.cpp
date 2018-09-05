@@ -126,12 +126,12 @@ namespace
 	};
 
 	// Tests that two units have the same conversion ratio to the same dimension.
-	constexpr auto has_equivalent_unit_conversion = [](const auto& t, const auto& u) {
+	constexpr auto has_equivalent_conversion_factor = [](const auto& t, const auto& u) {
 		using T = std::decay_t<decltype(t)>;
 		using U = std::decay_t<decltype(u)>;
 		return units::traits::is_convertible_unit_v<T, U> &&
-			std::ratio_equal_v<typename T::unit_conversion::conversion_ratio,
-				typename U::unit_conversion::conversion_ratio>;
+			std::ratio_equal_v<typename T::conversion_factor::conversion_ratio,
+				typename U::conversion_factor::conversion_ratio>;
 	};
 } // namespace
 
@@ -168,14 +168,14 @@ TEST_F(TypeTraits, ratio_sqrt)
 	EXPECT_LT(std::abs(std::sqrt(10000 / (double)1) - rt10000::num / (double)rt10000::den), 5e-9);
 }
 
-TEST_F(TypeTraits, is_unit_conversion)
+TEST_F(TypeTraits, is_conversion_factor)
 {
-	EXPECT_FALSE(traits::is_unit_conversion_v<std::ratio<1>>);
-	EXPECT_FALSE(traits::is_unit_conversion_v<double>);
-	EXPECT_TRUE(traits::is_unit_conversion_v<meters>);
-	EXPECT_TRUE(traits::is_unit_conversion_v<feet>);
-	EXPECT_TRUE(traits::is_unit_conversion_v<degrees_squared>);
-	EXPECT_FALSE(traits::is_unit_conversion_v<meter_t>);
+	EXPECT_FALSE(traits::is_conversion_factor_v<std::ratio<1>>);
+	EXPECT_FALSE(traits::is_conversion_factor_v<double>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<meters>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<feet>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<degrees_squared>);
+	EXPECT_FALSE(traits::is_conversion_factor_v<meter_t>);
 }
 
 TEST_F(TypeTraits, is_unit_t)
@@ -188,10 +188,10 @@ TEST_F(TypeTraits, is_unit_t)
 	EXPECT_TRUE(traits::is_unit_v<meter_t>);
 }
 
-TEST_F(TypeTraits, unit_conversion_traits)
+TEST_F(TypeTraits, conversion_factor_traits)
 {
-	EXPECT_TRUE((std::is_same_v<void, traits::unit_conversion_traits<double>::conversion_ratio>));
-	EXPECT_FALSE((std::is_same_v<void, traits::unit_conversion_traits<meters>::conversion_ratio>));
+	EXPECT_TRUE((std::is_same_v<void, traits::conversion_factor_traits<double>::conversion_ratio>));
+	EXPECT_FALSE((std::is_same_v<void, traits::conversion_factor_traits<meters>::conversion_ratio>));
 }
 
 TEST_F(TypeTraits, unit_traits)
@@ -204,18 +204,18 @@ TEST_F(TypeTraits, unit_traits)
 
 TEST_F(TypeTraits, is_convertible_unit)
 {
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, astronomicalUnits>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, parsecs>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, astronomicalUnits>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, parsecs>));
 
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<astronomicalUnits, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<parsecs, meters>));
-	EXPECT_TRUE((traits::is_convertible_unit_conversion_v<years, weeks>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<astronomicalUnits, meters>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<parsecs, meters>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<years, weeks>));
 
-	EXPECT_FALSE((traits::is_convertible_unit_conversion_v<meters, seconds>));
-	EXPECT_FALSE((traits::is_convertible_unit_conversion_v<seconds, meters>));
-	EXPECT_FALSE((traits::is_convertible_unit_conversion_v<years, meters>));
+	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<meters, seconds>));
+	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<seconds, meters>));
+	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<years, meters>));
 }
 
 TEST_F(TypeTraits, inverse)
@@ -241,8 +241,8 @@ TEST_F(TypeTraits, dimension_of)
 	EXPECT_FALSE((std::is_same_v<dim, dimension::length>));
 	EXPECT_FALSE((std::is_same_v<dim, units::time::days>));
 
-	using dim2 = typename traits::unit_conversion_traits<
-		typename traits::unit_traits<decltype(meters_per_second_t(5))>::unit_conversion>::dimension_type;
+	using dim2 = typename traits::conversion_factor_traits<
+		typename traits::unit_traits<decltype(meters_per_second_t(5))>::conversion_factor>::dimension_type;
 
 	EXPECT_TRUE((std::is_same_v<dim2, dimension::velocity>));
 	EXPECT_FALSE((std::is_same_v<dim2, dimension::time>));
@@ -796,37 +796,37 @@ TEST_F(TypeTraits, is_data_transfer_rate_unit)
 
 TEST_F(STDTypeTraits, std_common_type)
 {
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, meter_t>(), meter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, kilometer_t>(), kilometer_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, millimeter_t>(), millimeter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, kilometer_t>(), meter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, meter_t>(), meter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<meter_t, millimeter_t>(), millimeter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, meter_t>(), millimeter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<millimeter_t, kilometer_t>(), millimeter_t()));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<kilometer_t, millimeter_t>(), millimeter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meter_t, meter_t>(), meter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometer_t, kilometer_t>(), kilometer_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeter_t, millimeter_t>(), millimeter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meter_t, kilometer_t>(), meter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometer_t, meter_t>(), meter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meter_t, millimeter_t>(), millimeter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeter_t, meter_t>(), millimeter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeter_t, kilometer_t>(), millimeter_t()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometer_t, millimeter_t>(), millimeter_t()));
 	static_assert(std::is_same_v<std::common_type_t<meter_t, kilometer_t>, std::common_type_t<kilometer_t, meter_t>>);
 	static_assert(std::is_same_v<std::common_type_t<meter_t, millimeter_t>, std::common_type_t<millimeter_t, meter_t>>);
 	static_assert(
 		std::is_same_v<std::common_type_t<millimeter_t, kilometer_t>, std::common_type_t<kilometer_t, millimeter_t>>);
 
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<meters, int>, unit<meters, int>>(), unit<meters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<kilometers, int>, unit<kilometers, int>>(), unit<kilometers, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<millimeters, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<meters, int>, unit<kilometers, int>>(), unit<meters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<kilometers, int>, unit<meters, int>>(), unit<meters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<meters, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<millimeters, int>, unit<meters, int>>(), unit<millimeters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<millimeters, int>, unit<kilometers, int>>(), unit<millimeters, int>()));
-	static_assert(has_equivalent_unit_conversion(
+	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<kilometers, int>, unit<millimeters, int>>(), unit<millimeters, int>()));
 	static_assert(std::is_same_v<std::common_type_t<unit<meters, int>, unit<kilometers, int>>,
 		std::common_type_t<unit<kilometers, int>, unit<meters, int>>>);
@@ -835,40 +835,40 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<unit<millimeters, int>, unit<kilometers, int>>,
 		std::common_type_t<unit<kilometers, int>, unit<millimeters, int>>>);
 
-	using half_a_second  = unit<unit_conversion<std::ratio<1, 2>, seconds>, int>;
-	using third_a_second = unit<unit_conversion<std::ratio<1, 3>, seconds>, int>;
-	using sixth_a_second = unit<unit_conversion<std::ratio<1, 6>, seconds>, int>;
+	using half_a_second  = unit<conversion_factor<std::ratio<1, 2>, seconds>, int>;
+	using third_a_second = unit<conversion_factor<std::ratio<1, 3>, seconds>, int>;
+	using sixth_a_second = unit<conversion_factor<std::ratio<1, 6>, seconds>, int>;
 
 	static_assert(
-		has_equivalent_unit_conversion(std::common_type_t<half_a_second, third_a_second>{}, sixth_a_second{}));
+		has_equivalent_conversion_factor(std::common_type_t<half_a_second, third_a_second>{}, sixth_a_second{}));
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>,
 		std::common_type_t<third_a_second, half_a_second>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
 
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<kelvin_t, celsius_t>{}, celsius_t{}));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<celsius_t, kelvin_t>{}, celsius_t{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kelvin_t, celsius_t>{}, celsius_t{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<celsius_t, kelvin_t>{}, celsius_t{}));
 	static_assert(std::is_same_v<std::common_type_t<kelvin_t, celsius_t>, std::common_type_t<celsius_t, kelvin_t>>);
 
-	using half_a_kelvin  = unit<unit_conversion<std::ratio<1, 2>, kelvin>, double>;
-	using third_a_kelvin = unit<unit_conversion<std::ratio<1, 3>, kelvin>, int>;
-	using sixth_a_kelvin = unit<unit_conversion<std::ratio<1, 6>, kelvin>, int>;
+	using half_a_kelvin  = unit<conversion_factor<std::ratio<1, 2>, kelvin>, double>;
+	using third_a_kelvin = unit<conversion_factor<std::ratio<1, 3>, kelvin>, int>;
+	using sixth_a_kelvin = unit<conversion_factor<std::ratio<1, 6>, kelvin>, int>;
 
 	static_assert(
-		has_equivalent_unit_conversion(std::common_type_t<half_a_kelvin, third_a_kelvin>{}, sixth_a_kelvin{}));
+		has_equivalent_conversion_factor(std::common_type_t<half_a_kelvin, third_a_kelvin>{}, sixth_a_kelvin{}));
 	static_assert(std::is_same_v<std::common_type_t<half_a_kelvin, third_a_kelvin>,
 		std::common_type_t<third_a_kelvin, half_a_kelvin>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_kelvin, third_a_kelvin>::underlying_type, double>);
 
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<radian_t, degree_t>{}, degree_t{}));
-	static_assert(has_equivalent_unit_conversion(std::common_type_t<degree_t, radian_t>{}, degree_t{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<radian_t, degree_t>{}, degree_t{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<degree_t, radian_t>{}, degree_t{}));
 	static_assert(std::is_same_v<std::common_type_t<radian_t, degree_t>, std::common_type_t<degree_t, radian_t>>);
 
-	using half_a_radian  = unit<unit_conversion<std::ratio<1, 2>, radians>, int>;
-	using third_a_radian = unit<unit_conversion<std::ratio<1, 3>, radians>, double>;
-	using sixth_a_radian = unit<unit_conversion<std::ratio<1, 6>, radians>, int>;
+	using half_a_radian  = unit<conversion_factor<std::ratio<1, 2>, radians>, int>;
+	using third_a_radian = unit<conversion_factor<std::ratio<1, 3>, radians>, double>;
+	using sixth_a_radian = unit<conversion_factor<std::ratio<1, 6>, radians>, int>;
 
 	static_assert(
-		has_equivalent_unit_conversion(std::common_type_t<half_a_radian, third_a_radian>{}, sixth_a_radian{}));
+		has_equivalent_conversion_factor(std::common_type_t<half_a_radian, third_a_radian>{}, sixth_a_radian{}));
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>,
 		std::common_type_t<third_a_radian, half_a_radian>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
@@ -920,12 +920,12 @@ TEST_F(UnitManipulators, square_root)
 
 TEST_F(UnitManipulators, compound_unit)
 {
-	using acceleration1 = unit_conversion<std::ratio<1>, dimension::acceleration>;
-	using acceleration2 = compound_unit_conversion<meters, inverse<seconds>, inverse<seconds>>;
-	using acceleration3 = unit_conversion<std::ratio<1>,
+	using acceleration1 = conversion_factor<std::ratio<1>, dimension::acceleration>;
+	using acceleration2 = compound_conversion_factor<meters, inverse<seconds>, inverse<seconds>>;
+	using acceleration3 = conversion_factor<std::ratio<1>,
 		make_dimension<dimension::length, std::ratio<1>, dimension::time, std::ratio<-2>>>;
-	using acceleration4 = compound_unit_conversion<meters, inverse<squared<seconds>>>;
-	using acceleration5 = compound_unit_conversion<meters, squared<inverse<seconds>>>;
+	using acceleration4 = compound_conversion_factor<meters, inverse<squared<seconds>>>;
+	using acceleration5 = compound_conversion_factor<meters, squared<inverse<seconds>>>;
 
 	bool areSame12 = std::is_same_v<acceleration1, acceleration2>;
 	bool areSame23 = std::is_same_v<acceleration2, acceleration3>;
@@ -938,9 +938,9 @@ TEST_F(UnitManipulators, compound_unit)
 	EXPECT_TRUE(areSame45);
 
 	// test that thing with translations still compile
-	using arbitrary1 = compound_unit_conversion<meters, inverse<celsius>>;
-	using arbitrary2 = compound_unit_conversion<meters, celsius>;
-	using arbitrary3 = compound_unit_conversion<arbitrary1, arbitrary2>;
+	using arbitrary1 = compound_conversion_factor<meters, inverse<celsius>>;
+	using arbitrary2 = compound_conversion_factor<meters, celsius>;
+	using arbitrary3 = compound_conversion_factor<arbitrary1, arbitrary2>;
 	EXPECT_TRUE((std::is_same_v<square_meters, arbitrary3>));
 }
 
@@ -954,7 +954,7 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	bool shouldBeTrue = std::is_same_v<meters_per_second, velocity>;
 	EXPECT_TRUE(shouldBeTrue);
 
-	using acceleration1 = unit_conversion<std::ratio<1>, dimension::acceleration>;
+	using acceleration1 = conversion_factor<std::ratio<1>, dimension::acceleration>;
 	using acceleration2 = units::detail::unit_divide<meters, units::detail::unit_multiply<seconds, seconds>>;
 	shouldBeTrue        = std::is_same_v<acceleration1, acceleration2>;
 	EXPECT_TRUE(shouldBeTrue);
@@ -1845,30 +1845,30 @@ TEST_F(UnitContainer, unitTypeModulo)
 
 	const auto c_m = a_m % b_m;
 	EXPECT_EQ(400, c_m());
-	static_assert(has_equivalent_unit_conversion(c_m, a_m));
+	static_assert(has_equivalent_conversion_factor(c_m, a_m));
 
 	const auto d_m = a_m % a_km;
 	EXPECT_EQ(200, d_m());
-	static_assert(has_equivalent_unit_conversion(d_m, a_m));
+	static_assert(has_equivalent_conversion_factor(d_m, a_m));
 
 	const auto b_km = a_km % unit<dimensionless_unit, int>(3);
 	EXPECT_EQ(2, b_km());
-	static_assert(has_equivalent_unit_conversion(b_km, a_km));
+	static_assert(has_equivalent_conversion_factor(b_km, a_km));
 
 	const auto e_m = a_m % 2000;
 	EXPECT_EQ(200, e_m());
-	static_assert(has_equivalent_unit_conversion(e_m, a_m));
+	static_assert(has_equivalent_conversion_factor(e_m, a_m));
 
 	const unit<dimensionless_unit, int> a_s(12);
 	const unit<dimensionless_unit, int> b_s(5);
 
 	const auto c_s = a_s % b_s;
 	EXPECT_EQ(2, c_s());
-	static_assert(has_equivalent_unit_conversion(c_s, a_s));
+	static_assert(has_equivalent_conversion_factor(c_s, a_s));
 
 	const auto d_s = a_s % 20;
 	EXPECT_EQ(12, d_s());
-	static_assert(has_equivalent_unit_conversion(d_s, a_s));
+	static_assert(has_equivalent_conversion_factor(d_s, a_s));
 }
 
 TEST_F(UnitContainer, compoundAssignmentAddition)
@@ -2769,7 +2769,7 @@ TEST_F(UnitConversion, velocity)
 	double test;
 	bool same;
 
-	same = std::is_same_v<meters_per_second, unit_conversion<std::ratio<1>, dimension::velocity>>;
+	same = std::is_same_v<meters_per_second, conversion_factor<std::ratio<1>, dimension::velocity>>;
 	EXPECT_TRUE(same);
 	same = traits::is_convertible_unit_v<miles_per_hour, meters_per_second>;
 	EXPECT_TRUE(same);
@@ -2791,7 +2791,7 @@ TEST_F(UnitConversion, angular_velocity)
 	double test;
 	bool same;
 
-	same = std::is_same_v<radians_per_second, unit_conversion<std::ratio<1>, dimension::angular_velocity>>;
+	same = std::is_same_v<radians_per_second, conversion_factor<std::ratio<1>, dimension::angular_velocity>>;
 	EXPECT_TRUE(same);
 	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
 	EXPECT_TRUE(same);
@@ -2922,7 +2922,7 @@ TEST_F(UnitConversion, power)
 {
 	double test;
 
-	test = watt_t(unit<compound_unit_conversion<energy::foot_pounds, inverse<seconds>>>(550.0))();
+	test = watt_t(unit<compound_conversion_factor<energy::foot_pounds, inverse<seconds>>>(550.0))();
 	EXPECT_NEAR(745.7, test, 5.0e-2);
 	test = gigawatt_t(watt_t(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-4);
@@ -3545,7 +3545,7 @@ TEST_F(UnitConversion, std_chrono)
 
 TEST_F(UnitConversion, squaredTemperature)
 {
-	using squared_celsius   = units::compound_unit_conversion<squared<celsius>>;
+	using squared_celsius   = units::compound_conversion_factor<squared<celsius>>;
 	using squared_celsius_t = units::unit<squared_celsius>;
 	const squared_celsius_t right(100);
 	const celsius_t rootRight = sqrt(right);
@@ -3806,7 +3806,7 @@ TEST_F(UnitMath, pow)
 
 	auto fourth = pow<4>(value);
 	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
-	isSame = std::is_same_v<decltype(fourth), unit<compound_unit_conversion<squared<meter>, squared<meter>>>>;
+	isSame = std::is_same_v<decltype(fourth), unit<compound_conversion_factor<squared<meter>, squared<meter>>>>;
 	EXPECT_TRUE(isSame);
 }
 
