@@ -164,20 +164,6 @@ namespace units
 	}
 
 /**
- * @def			UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular,underlyingType)
- * @brief		Macro for generating the boiler-plate code for a unit type definition with a non-default underlying
- * type.
- * @details		The macro generates the definition of the unit container types, e.g. `meter_t`
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
- * @param		underlyingType the underlying type
- */
-#define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular, underlyingType) \
-	inline namespace namespaceName \
-	{ \
-		/** @name Unit Containers */ /** @{ */ using nameSingular##_t = unit<nameSingular, underlyingType>; /** @} */ \
-	}
-/**
  * @def			UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
  * @brief		Macro for generating the boiler-plate code needed for I/O for a new unit.
  * @details		The macro generates the code to insert units into an ostream. It
