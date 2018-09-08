@@ -2470,12 +2470,16 @@ TEST_F(UnitContainer, literals)
 {
 	// basic functionality testing
 	EXPECT_TRUE((std::is_same_v<decltype(16.2_m), meter_t<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(16_m), meter_t<int>>));
 	EXPECT_TRUE(meter_t<double>(16.2) == 16.2_m);
 	EXPECT_TRUE(meter_t<double>(16) == 16.0_m);
+	EXPECT_TRUE(meter_t<int>(16) == 16_m);
 
 	EXPECT_TRUE((std::is_same_v<decltype(11.2_ft), foot_t<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(11_ft), foot_t<int>>));
 	EXPECT_TRUE(foot_t<double>(11.2) == 11.2_ft);
 	EXPECT_TRUE(foot_t<double>(11) == 11.0_ft);
+	EXPECT_TRUE(foot_t<int>(11) == 11_ft);
 
 	// auto using literal syntax
 	auto x = 10.0_m;
