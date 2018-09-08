@@ -78,7 +78,8 @@ namespace units
 	UNIT_ADD(length, yard, yards, yd, conversion_factor<std::ratio<3>, feet>)
 
 	// british spelling aliases
-	using metre_t = length::meter_t;
+	template<class Underlying>
+	using metre_t = meter_t<Underlying>;
 
 	UNIT_ADD_DIMENSION_TRAIT(length)
 } // namespace units
