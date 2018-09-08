@@ -1808,24 +1808,24 @@ TEST_F(UnitContainer, unitTypeDivision)
 	mps = unit<miles, int>(60) / hour_t<double>(1.0);
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 
-	auto h = 10_rad / 2_rad;
+	auto h = 10.0_rad / 2.0_rad;
 	EXPECT_NEAR(5, h, 5.0e-5);
 	h = unit<radians, int>(10) / unit<radians, int>(2);
 	EXPECT_NEAR(5, h, 5.0e-5);
-	h = 10_rad / unit<radians, int>(2);
+	h = 10.0_rad / unit<radians, int>(2);
 	EXPECT_NEAR(5, h, 5.0e-5);
-	h = unit<radians, int>(10) / 2_rad;
+	h = unit<radians, int>(10) / 2.0_rad;
 	EXPECT_NEAR(5, h, 5.0e-5);
 	isSame = std::is_same_v<decltype(h), dimensionless<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto i = (3_N * 2_m) / 6_J;
+	auto i = (3.0_N * 2.0_m) / 6.0_J;
 	EXPECT_NEAR(1, i, 5.0e-5);
 	i = (unit<force::newtons, int>(3) * unit<meters, int>(2)) / unit<joules, int>(6);
 	EXPECT_NEAR(1, i, 5.0e-5);
-	i = (3_N * unit<meters, int>(2)) / unit<joules, int>(6);
+	i = (3.0_N * unit<meters, int>(2)) / unit<joules, int>(6);
 	EXPECT_NEAR(1, i, 5.0e-5);
-	i = (unit<force::newtons, int>(3) * unit<meters, int>(2)) / 6_J;
+	i = (unit<force::newtons, int>(3) * unit<meters, int>(2)) / 6.0_J;
 	EXPECT_NEAR(1, i, 5.0e-5);
 	isSame = std::is_same_v<decltype(i), dimensionless<double>>;
 	EXPECT_TRUE(isSame);
@@ -2296,7 +2296,7 @@ TEST_F(UnitContainer, to_string_locale)
 	char point_de = *lc->decimal_point;
 	EXPECT_EQ(point_de, ',');
 
-	kilometer_t<double> de = 2_km;
+	kilometer_t<double> de = 2.0_km;
 	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
 
 	de = 2.5_km;
@@ -2313,7 +2313,7 @@ TEST_F(UnitContainer, to_string_locale)
 	char point_us = *lc->decimal_point;
 	EXPECT_EQ(point_us, '.');
 
-	mile_t<double> us = 2_mi;
+	mile_t<double> us = 2.0_mi;
 	EXPECT_STREQ("2 mi", units::length::to_string(us).c_str());
 
 	us = 2.5_mi;
@@ -2470,12 +2470,16 @@ TEST_F(UnitContainer, literals)
 {
 	// basic functionality testing
 	EXPECT_TRUE((std::is_same_v<decltype(16.2_m), meter_t<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(16_m), meter_t<int>>));
 	EXPECT_TRUE(meter_t<double>(16.2) == 16.2_m);
-	EXPECT_TRUE(meter_t<double>(16) == 16_m);
+	EXPECT_TRUE(meter_t<double>(16) == 16.0_m);
+	EXPECT_TRUE(meter_t<int>(16) == 16_m);
 
 	EXPECT_TRUE((std::is_same_v<decltype(11.2_ft), foot_t<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(11_ft), foot_t<int>>));
 	EXPECT_TRUE(foot_t<double>(11.2) == 11.2_ft);
-	EXPECT_TRUE(foot_t<double>(11) == 11_ft);
+	EXPECT_TRUE(foot_t<double>(11) == 11.0_ft);
+	EXPECT_TRUE(foot_t<int>(11) == 11_ft);
 
 	// auto using literal syntax
 	auto x = 10.0_m;
@@ -2484,13 +2488,13 @@ TEST_F(UnitContainer, literals)
 
 	// conversion using literal syntax
 	foot_t<double> y = 0.3048_m;
-	EXPECT_TRUE(1_ft == y);
+	EXPECT_TRUE(1.0_ft == y);
 
 	// Pythagorean theorem
-	meter_t<double> a = 3_m;
-	meter_t<double> b = 4_m;
+	meter_t<double> a = 3.0_m;
+	meter_t<double> b = 4.0_m;
 	meter_t<double> c = sqrt(pow<2>(a) + pow<2>(b));
-	EXPECT_TRUE(c == 5_m);
+	EXPECT_TRUE(c == 5.0_m);
 }
 
 TEST_F(UnitConversion, length)
@@ -2869,7 +2873,7 @@ TEST_F(UnitConversion, pressure)
 	test = pounds_per_square_inch_t<double>(atmosphere_t<double>(1.0))();
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 
-	EXPECT_EQ(133.322387415_Pa, 1_mmHg);
+	EXPECT_EQ(133.322387415_Pa, 1.0_mmHg);
 }
 
 TEST_F(UnitConversion, charge)
@@ -2991,7 +2995,7 @@ TEST_F(UnitConversion, capacitance)
 
 	auto one_farad = []() -> farad_t<double> { return coulomb_t<double>(1) / volt_t<double>(1); };
 
-	EXPECT_EQ(1_F, one_farad());
+	EXPECT_EQ(1.0_F, one_farad());
 }
 
 TEST_F(UnitConversion, impedance)
@@ -3594,7 +3598,7 @@ TEST_F(UnitMath, sin)
 	EXPECT_NEAR(dimensionless<double>(0.90929742682), sin(unit<radians, int>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.70710678118), sin(angle::degree_t<double>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.70710678118), sin(unit<degrees, int>(135)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0), sin(1_rad * units::constants::pi), 5.0e-16);
+	EXPECT_NEAR(dimensionless<double>(0), sin(1.0_rad * units::constants::pi), 5.0e-16);
 }
 
 TEST_F(UnitMath, tan)
@@ -3970,29 +3974,29 @@ TEST_F(Constexpr, constants)
 
 TEST_F(Constexpr, arithmetic)
 {
-	[[maybe_unused]] constexpr auto result0(1_m + 1_m);
-	[[maybe_unused]] constexpr auto result1(1_m - 1_m);
-	[[maybe_unused]] constexpr auto result2(1_m * 1_m);
-	[[maybe_unused]] constexpr auto result3(1_m / 1_m);
+	[[maybe_unused]] constexpr auto result0(1.0_m + 1.0_m);
+	[[maybe_unused]] constexpr auto result1(1.0_m - 1.0_m);
+	[[maybe_unused]] constexpr auto result2(1.0_m * 1.0_m);
+	[[maybe_unused]] constexpr auto result3(1.0_m / 1.0_m);
 	[[maybe_unused]] constexpr auto result4(meter_t<double>(1) + meter_t<double>(1));
 	[[maybe_unused]] constexpr auto result5(meter_t<double>(1) - meter_t<double>(1));
 	[[maybe_unused]] constexpr auto result6(meter_t<double>(1) * meter_t<double>(1));
 	[[maybe_unused]] constexpr auto result7(meter_t<double>(1) / meter_t<double>(1));
 	[[maybe_unused]] constexpr auto result8(pow<2>(meter_t<double>(2)));
-	constexpr auto result9  = pow<3>(2_m);
-	constexpr auto result10 = 2_m * 2_m;
+	constexpr auto result9  = pow<3>(2.0_m);
+	constexpr auto result10 = 2.0_m * 2.0_m;
 
-	EXPECT_TRUE(noexcept(1_m + 1_m));
-	EXPECT_TRUE(noexcept(1_m - 1_m));
-	EXPECT_TRUE(noexcept(1_m * 1_m));
-	EXPECT_TRUE(noexcept(1_m / 1_m));
+	EXPECT_TRUE(noexcept(1.0_m + 1.0_m));
+	EXPECT_TRUE(noexcept(1.0_m - 1.0_m));
+	EXPECT_TRUE(noexcept(1.0_m * 1.0_m));
+	EXPECT_TRUE(noexcept(1.0_m / 1.0_m));
 	EXPECT_TRUE(noexcept(meter_t<double>(1) + meter_t<double>(1)));
 	EXPECT_TRUE(noexcept(meter_t<double>(1) - meter_t<double>(1)));
 	EXPECT_TRUE(noexcept(meter_t<double>(1) * meter_t<double>(1)));
 	EXPECT_TRUE(noexcept(meter_t<double>(1) / meter_t<double>(1)));
 	EXPECT_TRUE(noexcept(pow<2>(meter_t<double>(2))));
-	EXPECT_TRUE(noexcept(pow<3>(2_m)));
-	EXPECT_TRUE(noexcept(2_m * 2_m));
+	EXPECT_TRUE(noexcept(pow<3>(2.0_m)));
+	EXPECT_TRUE(noexcept(2.0_m * 2.0_m));
 
 	meter_t<double> m{42};
 	EXPECT_TRUE(noexcept(+m));
@@ -4002,8 +4006,8 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(m++));
 	EXPECT_TRUE(noexcept(m--));
 
-	EXPECT_EQ(8_cu_m, result9);
-	EXPECT_EQ(4_sq_m, result10);
+	EXPECT_EQ(8.0_cu_m, result9);
+	EXPECT_EQ(4.0_sq_m, result10);
 }
 
 TEST_F(Constexpr, assignment)
@@ -4017,8 +4021,8 @@ TEST_F(Constexpr, assignment)
 		--m;
 		m++;
 		m--;
-		m += 2_m;
-		m -= 2_m;
+		m += 2.0_m;
+		m -= 2.0_m;
 		m *= 2;
 		m /= 2;
 		return m;
@@ -4029,18 +4033,18 @@ TEST_F(Constexpr, assignment)
 
 TEST_F(Constexpr, realtional)
 {
-	constexpr bool equalityTrue          = (1_m == 1_m);
-	constexpr bool equalityFalse         = (1_m == 2_m);
-	constexpr bool lessThanTrue          = (1_m < 2_m);
-	constexpr bool lessThanFalse         = (1_m < 1_m);
-	constexpr bool lessThanEqualTrue1    = (1_m <= 1_m);
-	constexpr bool lessThanEqualTrue2    = (1_m <= 2_m);
-	constexpr bool lessThanEqualFalse    = (1_m < 0_m);
-	constexpr bool greaterThanTrue       = (2_m > 1_m);
-	constexpr bool greaterThanFalse      = (2_m > 2_m);
-	constexpr bool greaterThanEqualTrue1 = (2_m >= 1_m);
-	constexpr bool greaterThanEqualTrue2 = (2_m >= 2_m);
-	constexpr bool greaterThanEqualFalse = (2_m > 3_m);
+	constexpr bool equalityTrue          = (1.0_m == 1.0_m);
+	constexpr bool equalityFalse         = (1.0_m == 2.0_m);
+	constexpr bool lessThanTrue          = (1.0_m < 2.0_m);
+	constexpr bool lessThanFalse         = (1.0_m < 1.0_m);
+	constexpr bool lessThanEqualTrue1    = (1.0_m <= 1.0_m);
+	constexpr bool lessThanEqualTrue2    = (1.0_m <= 2.0_m);
+	constexpr bool lessThanEqualFalse    = (1.0_m < 0.0_m);
+	constexpr bool greaterThanTrue       = (2.0_m > 1.0_m);
+	constexpr bool greaterThanFalse      = (2.0_m > 2.0_m);
+	constexpr bool greaterThanEqualTrue1 = (2.0_m >= 1.0_m);
+	constexpr bool greaterThanEqualTrue2 = (2.0_m >= 2.0_m);
+	constexpr bool greaterThanEqualFalse = (2.0_m > 3.0_m);
 
 	EXPECT_TRUE(equalityTrue);
 	EXPECT_TRUE(lessThanTrue);
@@ -4058,8 +4062,8 @@ TEST_F(Constexpr, realtional)
 
 TEST_F(Constexpr, stdArray)
 {
-	constexpr std::array<meter_t<double>, 5> arr{{0_m, 1_m, 2_m, 3_m, 4_m}};
-	constexpr bool equal = (arr[3] == 3_m);
+	constexpr std::array<meter_t<double>, 5> arr{{0.0_m, 1.0_m, 2.0_m, 3.0_m, 4.0_m}};
+	constexpr bool equal = (arr[3] == 3.0_m);
 	EXPECT_TRUE(equal);
 }
 
@@ -4091,16 +4095,16 @@ TEST_F(CaseStudies, radarRangeEquation)
 
 TEST_F(CaseStudies, rightTriangle)
 {
-	constexpr auto a = 3_m;
-	constexpr auto b = 4_m;
+	constexpr auto a = 3.0_m;
+	constexpr auto b = 4.0_m;
 	constexpr auto c = sqrt(pow<2>(a) + pow<2>(b));
-	EXPECT_EQ(5_m, c);
+	EXPECT_EQ(5.0_m, c);
 }
 
 TEST_F(CaseStudies, selfDefinedUnits)
 {
-	using liters_per_second  = decltype(1_L / 1_s);
-	using gallons_per_minute = decltype(1_gal / 1_min);
+	using liters_per_second  = decltype(1.0_L / 1.0_s);
+	using gallons_per_minute = decltype(1.0_gal / 1.0_min);
 
 	liters_per_second lps(5);
 	gallons_per_minute gpm = lps;

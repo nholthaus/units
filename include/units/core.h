@@ -240,9 +240,9 @@ namespace units
 		{ \
 			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
 		} \
-		constexpr namespaceName::nameSingular##_t<double> operator""_##abbreviation(unsigned long long d) noexcept \
+		constexpr namespaceName::nameSingular##_t<int> operator""_##abbreviation(unsigned long long d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
+			return namespaceName::nameSingular##_t<int>(static_cast<int>(d)); \
 		} \
 	}
 
