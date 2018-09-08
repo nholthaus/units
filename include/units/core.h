@@ -106,10 +106,15 @@ namespace units
 
 namespace units
 {
-	template<typename T>
-	inline constexpr const char* name(const T&) noexcept;
-	template<typename T>
-	inline constexpr const char* abbreviation(const T&) noexcept;
+	template<class Unit>
+	struct unit_name;
+	template<class Unit>
+	struct unit_abbreviation;
+
+	template<class Unit>
+	inline constexpr const char* unit_name_v = unit_name<Unit>::value;
+	template<class Unit>
+	inline constexpr const char* unit_abbreviation_v = unit_abbreviation<Unit>::value;
 } // namespace units
 
 //------------------------------
@@ -160,23 +165,10 @@ namespace units
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
 	inline namespace namespaceName \
 	{ \
-		/** @name Unit Containers */ /** @{ */ using nameSingular##_t = unit<nameSingular>; /** @} */ \
+		/** @name Unit Containers */ /** @{ */ template<class Underlying> \
+		using nameSingular##_t = unit<nameSingular, Underlying>; /** @} */ \
 	}
 
-/**
- * @def			UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName,nameSingular,underlyingType)
- * @brief		Macro for generating the boiler-plate code for a unit type definition with a non-default underlying
- * type.
- * @details		The macro generates the definition of the unit container types, e.g. `meter_t`
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
- * @param		underlyingType the underlying type
- */
-#define UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular, underlyingType) \
-	inline namespace namespaceName \
-	{ \
-		/** @name Unit Containers */ /** @{ */ using nameSingular##_t = unit<nameSingular, underlyingType>; /** @} */ \
-	}
 /**
  * @def			UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
  * @brief		Macro for generating the boiler-plate code needed for I/O for a new unit.
@@ -193,12 +185,14 @@ namespace units
 #define UNIT_ADD_IO(namespaceName, nameSingular, abbrev) \
 	inline namespace namespaceName \
 	{ \
-		inline std::ostream& operator<<(std::ostream& os, const nameSingular##_t& obj) \
+		template<class Underlying> \
+		inline std::ostream& operator<<(std::ostream& os, const nameSingular##_t<Underlying>& obj) \
 		{ \
 			os << obj() << " " #abbrev; \
 			return os; \
 		} \
-		inline std::string to_string(const nameSingular##_t& obj) \
+		template<class Underlying> \
+		inline std::string to_string(const nameSingular##_t<Underlying>& obj) \
 		{ \
 			return units::detail::to_string(obj()) + std::string(" " #abbrev); \
 		} \
@@ -216,16 +210,17 @@ namespace units
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  */
 #define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev) \
-	template<> \
-	inline constexpr const char* name(const namespaceName::nameSingular##_t&) noexcept \
+	template<class Underlying> \
+	struct unit_name<namespaceName::nameSingular##_t<Underlying>> \
 	{ \
-		return #nameSingular; \
-	} \
-	template<> \
-	inline constexpr const char* abbreviation(const namespaceName::nameSingular##_t&) noexcept \
+		static constexpr const char* value = #nameSingular; \
+	}; \
+\
+	template<class Underlying> \
+	struct unit_abbreviation<namespaceName::nameSingular##_t<Underlying>> \
 	{ \
-		return #abbrev; \
-	}
+		static constexpr const char* value = #abbrev; \
+	};
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -241,13 +236,13 @@ namespace units
 #define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation) \
 	namespace literals \
 	{ \
-		constexpr namespaceName::nameSingular##_t operator""_##abbreviation(long double d) noexcept \
+		constexpr namespaceName::nameSingular##_t<double> operator""_##abbreviation(long double d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t(static_cast<namespaceName::nameSingular##_t::underlying_type>(d)); \
+			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
 		} \
-		constexpr namespaceName::nameSingular##_t operator""_##abbreviation(unsigned long long d) noexcept \
+		constexpr namespaceName::nameSingular##_t<double> operator""_##abbreviation(unsigned long long d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t(static_cast<namespaceName::nameSingular##_t::underlying_type>(d)); \
+			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
 		} \
 	}
 
@@ -317,8 +312,8 @@ namespace units
 #define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation) \
 	inline namespace namespaceName \
 	{ \
-		/** @name Unit Containers */ /** @{ */ typedef unit<nameSingular, UNIT_LIB_DEFAULT_TYPE, units::decibel_scale> \
-			abbreviation##_t; /** @} */ \
+		/** @name Unit Containers */ /** @{ */ template<class Underlying> \
+		using abbreviation##_t = unit<nameSingular, Underlying, units::decibel_scale>; /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
@@ -2388,17 +2383,19 @@ namespace units
 		/**
 		 * @brief		returns the unit name
 		 */
+		template<class Unit = unit>
 		constexpr const char* name() const noexcept
 		{
-			return units::name(*this);
+			return unit_name_v<Unit>;
 		}
 
 		/**
 		 * @brief		returns the unit abbreviation
 		 */
+		template<class Unit = unit>
 		constexpr const char* abbreviation() const noexcept
 		{
-			return units::abbreviation(*this);
+			return unit_abbreviation_v<Unit>;
 		}
 
 	private:
@@ -2806,7 +2803,8 @@ namespace units
 	{
 	};
 
-	using dimensionless = unit<dimensionless_unit>;
+	template<class Underlying>
+	using dimensionless = unit<dimensionless_unit, Underlying>;
 
 	namespace traits
 	{
@@ -3005,7 +3003,7 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
-	constexpr unit<dimensionless_unit,
+	constexpr dimensionless<
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -3324,15 +3322,18 @@ namespace units
 	 * @brief		namespace for unit types and containers for units that have no dimension (dimensionless units)
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	using dB_t = unit<dimensionless_unit, UNIT_LIB_DEFAULT_TYPE, decibel_scale>;
+	template<class Underlying>
+	using dB_t = unit<dimensionless_unit, Underlying, decibel_scale>;
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-	inline std::ostream& operator<<(std::ostream& os, const dB_t& obj)
+	template<class Underlying>
+	inline std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
 	{
 		os << obj() << " dB";
 		return os;
 	}
 #endif
-	using dBi_t = dB_t;
+	template<class Underlying>
+	using dBi_t = dB_t<Underlying>;
 
 	//------------------------------
 	//	DECIBEL ARITHMETIC
@@ -3394,14 +3395,13 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<dimensionless_unit,
-		typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> dB_t<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 
-		return unit<dimensionless_unit, CommonUnderlying, decibel_scale>(
-			CommonUnit(lhs).template toLinearized<CommonUnderlying>() /
+		return dB_t<CommonUnderlying>(CommonUnit(lhs).template toLinearized<CommonUnderlying>() /
 				CommonUnit(rhs).template toLinearized<CommonUnderlying>(),
 			std::true_type());
 	}
@@ -3449,7 +3449,7 @@ namespace units
 	 * @namespace	units::literals
 	 * @brief		namespace for unit literal definitions of all categories.
 	 * @details		Literals allow for declaring unit types using suffix values. For example, a type
-	 *				of `meter_t(6.2)` could be declared as `6.2_m`. All literals use an underscore
+	 *				of `meter_t<double>(6.2)` could be declared as `6.2_m`. All literals use an underscore
 	 *				followed by the abbreviation for the unit. To enable literal syntax in your code,
 	 *				include the statement `using namespace units::literals`.
 	 * @anchor		unitLiterals
@@ -3498,7 +3498,7 @@ namespace units
 	 *				error occurs
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::exp(x());
@@ -3514,7 +3514,7 @@ namespace units
 	 * @returns		Natural logarithm of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::log(x());
@@ -3529,7 +3529,7 @@ namespace units
 	 * @returns		Common logarithm of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log10(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log10(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::log10(x());
@@ -3550,7 +3550,7 @@ namespace units
 		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> &&
 				std::is_floating_point_v<typename dimensionlessUnit::underlying_type>,
 			int> = 0>
-	dimensionless modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
+	dimensionlessUnit modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
 		dimensionlessUnit fracpart = std::modf(x(), &intp);
@@ -3566,7 +3566,7 @@ namespace units
 	 * @returns		2 raised to the power of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp2(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp2(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::exp2(x());
@@ -3581,7 +3581,7 @@ namespace units
 	 * @returns		e raised to the power of x, minus one.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> expm1(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> expm1(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::expm1(x());
@@ -3597,7 +3597,7 @@ namespace units
 	 * @returns		The natural logarithm of (1+x).
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log1p(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log1p(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::log1p(x());
@@ -3612,7 +3612,7 @@ namespace units
 	 * @returns		The binary logarithm of x: log2x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	unit<dimensionless_unit, detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log2(
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log2(
 		const dimensionlessUnit x) noexcept
 	{
 		return std::log2(x());

@@ -109,16 +109,16 @@ namespace units
 
 		// clang-format off
 		inline constexpr const unit<detail::PI>																												pi(1);											///< Ratio of a circle's circumference to its diameter.
-		inline constexpr const velocity::meters_per_second_t																								c(299792458.0);									///< Speed of light in vacuum.
+		inline constexpr const velocity::meters_per_second_t<double>																								c(299792458.0);									///< Speed of light in vacuum.
 		inline constexpr const unit<compound_conversion_factor<cubed<length::meters>, inverse<mass::kilogram>, inverse<squared<time::seconds>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
 		inline constexpr const unit<compound_conversion_factor<energy::joule, time::seconds>>																	h(6.626070040e-34);								///< Planck constant.
-		inline constexpr const unit<compound_conversion_factor<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));					///< vacuum permeability.
+		inline constexpr const unit<compound_conversion_factor<force::newtons, inverse<squared<current::ampere>>>>											mu0(pi * 4.0e-7 * force::newton_t<double>(1) / pow<2>(current::ampere_t<double>(1)));					///< vacuum permeability.
 		inline constexpr const unit<compound_conversion_factor<capacitance::farad, inverse<length::meter>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
-		inline constexpr const impedance::ohm_t																												Z0(mu0 * c);									///< characteristic impedance of vacuum.
+		inline constexpr const impedance::ohm_t<double>																												Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		inline constexpr const unit<compound_conversion_factor<force::newtons, area::square_meter, inverse<squared<charge::coulomb>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
-		inline constexpr const charge::coulomb_t																											e(1.6021766208e-19);							///< elementary charge.
-		inline constexpr const mass::kilogram_t																												m_e(9.10938356e-31);							///< electron mass.
-		inline constexpr const mass::kilogram_t																												m_p(1.672621898e-27);							///< proton mass.
+		inline constexpr const charge::coulomb_t<double>																											e(1.6021766208e-19);							///< elementary charge.
+		inline constexpr const mass::kilogram_t<double>																												m_e(9.10938356e-31);							///< electron mass.
+		inline constexpr const mass::kilogram_t<double>																												m_p(1.672621898e-27);							///< proton mass.
 		inline constexpr const unit<compound_conversion_factor<energy::joules, inverse<magnetic_field_strength::tesla>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
 		inline constexpr const unit<inverse<substance::mol>>																								N_A(6.022140857e23);							///< Avagadro's Number.
 		inline constexpr const unit<compound_conversion_factor<energy::joules, inverse<temperature::kelvin>, inverse<substance::moles>>>						R(8.3144598);									///< Gas constant.
