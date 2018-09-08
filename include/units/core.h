@@ -106,10 +106,15 @@ namespace units
 
 namespace units
 {
-	template<typename T>
-	inline constexpr const char* name(const T&) noexcept;
-	template<typename T>
-	inline constexpr const char* abbreviation(const T&) noexcept;
+	template<class Unit>
+	struct unit_name;
+	template<class Unit>
+	struct unit_abbreviation;
+
+	template<class Unit>
+	inline constexpr const char* unit_name_v = unit_name<Unit>::value;
+	template<class Unit>
+	inline constexpr const char* unit_abbreviation_v = unit_abbreviation<Unit>::value;
 } // namespace units
 
 //------------------------------
@@ -206,15 +211,16 @@ namespace units
  */
 #define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev) \
 	template<class Underlying> \
-	inline constexpr const char* name(const namespaceName::nameSingular##_t<Underlying>&) noexcept \
+	struct unit_name<namespaceName::nameSingular##_t<Underlying>> \
 	{ \
-		return #nameSingular; \
-	} \
+		static constexpr const char* value = #nameSingular; \
+	}; \
+\
 	template<class Underlying> \
-	inline constexpr const char* abbreviation(const namespaceName::nameSingular##_t<Underlying>&) noexcept \
+	struct unit_abbreviation<namespaceName::nameSingular##_t<Underlying>> \
 	{ \
-		return #abbrev; \
-	}
+		static constexpr const char* value = #abbrev; \
+	};
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -2377,17 +2383,19 @@ namespace units
 		/**
 		 * @brief		returns the unit name
 		 */
+		template<class Unit = unit>
 		constexpr const char* name() const noexcept
 		{
-			return units::name(*this);
+			return unit_name_v<Unit>;
 		}
 
 		/**
 		 * @brief		returns the unit abbreviation
 		 */
+		template<class Unit = unit>
 		constexpr const char* abbreviation() const noexcept
 		{
-			return units::abbreviation(*this);
+			return unit_abbreviation_v<Unit>;
 		}
 
 	private:

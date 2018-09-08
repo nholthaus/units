@@ -2323,12 +2323,12 @@ TEST_F(UnitContainer, to_string_locale)
 TEST_F(UnitContainer, nameAndAbbreviation)
 {
 	foot_t<double> a(3.5);
-	EXPECT_STREQ("ft", units::abbreviation(a));
+	EXPECT_STREQ("ft", unit_abbreviation_v<decltype(a)>);
 	EXPECT_STREQ("ft", a.abbreviation());
 	EXPECT_STREQ("foot", a.name());
 
 	meter_t<double> b(8);
-	EXPECT_STREQ("m", units::abbreviation(b));
+	EXPECT_STREQ("m", unit_abbreviation_v<decltype(b)>);
 	EXPECT_STREQ("m", b.abbreviation());
 	EXPECT_STREQ("meter", b.name());
 }
