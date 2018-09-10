@@ -241,6 +241,27 @@ namespace units
 	}
 
 /**
+ * @def			UNIT_ADD_HASH(namespaceName, nameSingular)
+ * @brief		Macro for generating `std::hash` specializations for units.
+ * @details		The macro generates `std::hash` specializations for units. It should be used from the global namespace.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ */
+#define UNIT_ADD_HASH(namespaceName, nameSingular) \
+	namespace std \
+	{ \
+		template<class Underlying> \
+		struct hash<::units::namespaceName::nameSingular##_t<Underlying>> \
+		  : private hash<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>> \
+		{ \
+			constexpr size_t operator()(const ::units::namespaceName::nameSingular##_t<Underlying>& x) const noexcept \
+			{ \
+				return hash<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>>()(x); \
+			} \
+		}; \
+	}
+
+/**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
  * @brief		Macro for generating user-defined literals for units.
  * @details		The macro generates user-defined literals for units. A literal suffix is created
