@@ -241,6 +241,23 @@ namespace units
 	}
 
 /**
+ * @def			UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular)
+ * @brief		Macro for generating specializations of `units`'s templates for units. It should be used from the global
+ * namespace.
+ * @details		See `UNIT_ADD_HASH`, `UNIT_ADD_STRONG`
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		scale the `NumericalScale` template template argument of the unit's `unit` base
+ */
+#define UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
+	namespace units \
+	{ \
+		UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
+		UNIT_ADD_STRONG(namespaceName, nameSingular, scale) \
+	}
+
+/**
  * @def			UNIT_ADD_HASH(namespaceName, nameSingular)
  * @brief		Macro for generating `std::hash` specializations for units.
  * @details		The macro generates `std::hash` specializations for units. It should be used from the global namespace.
@@ -303,6 +320,32 @@ namespace units
 		{ \
 		}; \
 	}
+
+/**
+ * @def			UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular)
+ * @brief		Macro for generating specializations of standard templates for units.
+ *				It should be used from the global namespace.
+ * @details		See `UNIT_ADD_HASH`, `UNIT_ADD_COMMON_TYPE`
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ */
+#define UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular) \
+	UNIT_ADD_HASH(namespaceName, nameSingular) \
+	UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular)
+
+/**
+ * @def			UNIT_ADD_SPECIALIZATIONS(qualifiedName, singularName, abbreviation, scale)
+ * @brief		Macro for generating specializations for units.
+ *				It should be used from the global namespace.
+ * @details		See UNIT_ADD_UNITS_SPECIALIZATIONS and UNIT_ADD_STD_HASH_SPECIALIZATIONS.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		abbreviation - abbreviated unit name, e.g. 'm'
+ * @param		scale the non linear scale template argument of the unit's base
+ */
+#define UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
+	UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
+	UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular)
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
