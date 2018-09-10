@@ -1114,37 +1114,57 @@ namespace units
 		 */
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
+
+		/** @cond */ // DOXYGEN IGNORE
+		template<class T>
+		struct unit_base;
 	} // namespace traits
 
-	/** @cond */ // DOXYGEN IGNORE
 	template<class UnitType, typename T, class NumericalScale>
 	class unit;
 
 	namespace detail
 	{
-		template<typename T, class Dim, bool IsConv = false>
+		enum class type
+		{
+			none,
+			conversion_factor,
+			unit
+		};
+
+		template<typename T, class Dim, type = type::none>
 		struct has_dimension_of_impl : std::false_type
 		{
 		};
 
 		template<typename T, class Dim>
-		struct has_dimension_of_impl<T, Dim, true> : has_dimension_of_impl<conversion_factor_base_t<T>, Dim, true>::type
+		using has_dimension_of = typename has_dimension_of_impl<T, Dim,
+			(traits::is_conversion_factor_v<T> ? type::conversion_factor
+											   : (traits::is_unit<T>::value ? type::unit : type::none))>::type;
+
+		template<typename T, class Dim>
+		struct has_dimension_of_impl<T, Dim, type::conversion_factor>
+		  : has_dimension_of<conversion_factor_base_t<T>, Dim>::type
 		{
 		};
 
 		template<typename C, typename U, typename P, typename T, class Dim>
-		struct has_dimension_of_impl<conversion_factor<C, U, P, T>, Dim, true>
+		struct has_dimension_of_impl<conversion_factor<C, U, P, T>, Dim, type::conversion_factor>
 		  : std::is_same<typename conversion_factor<C, U, P, T>::dimension_type, Dim>::type
 		{
 		};
 
-		template<typename U, typename S, class N, class Dim>
-		struct has_dimension_of_impl<unit<U, S, N>, Dim> : std::is_same<traits::dimension_of_t<U>, Dim>::type
+		template<typename T, class Dim>
+		struct has_dimension_of_impl<T, Dim, type::unit>
+		  : has_dimension_of<typename traits::unit_base<T>::type, Dim>::type
 		{
 		};
 
-		template<typename T, class Dim>
-		using has_dimension_of = typename has_dimension_of_impl<T, Dim, traits::is_conversion_factor_v<T>>::type;
+		template<typename U, typename S, class N, class Dim>
+		struct has_dimension_of_impl<unit<U, S, N>, Dim, type::unit>
+		  : std::is_same<traits::dimension_of_t<U>, Dim>::type
+		{
+		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
