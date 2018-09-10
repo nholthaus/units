@@ -1942,6 +1942,41 @@ namespace units
 		template<class U1, class U2>
 		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
 
+		/** @cond */ // DOXYGEN IGNORE
+		namespace detail
+		{
+			template<class ConversionFactor, class T, class NumericalScale>
+			unit<ConversionFactor, T, NumericalScale> unit_base_t_impl(
+				const volatile unit<ConversionFactor, T, NumericalScale>*);
+
+			template<class T, bool IsUnit = false>
+			struct unit_base_impl
+			{
+			};
+
+			template<class T>
+			struct unit_base_impl<T, true>
+			{
+				using type = decltype(unit_base_t_impl(std::declval<T*>()));
+			};
+		}               // namespace detail
+		/** @endcond */ // END DOXYGEN IGNORE
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		SFINAE-able trait that names the `unit` base of `T`.
+		 * @details		If `is_unit_v<T>` is `true`, the member `type` alias names the cv-unqualified `unit`
+		 *				specialization that `T` is derived from. Otherwise, there is no `type` member. Note that
+		 *				`unit_base_t<unit<...>>` names `unit<...>`.
+		 */
+		template<class T>
+		struct unit_base : detail::unit_base_impl<T, is_unit<T>::value>
+		{
+		};
+
+		template<class T>
+		using unit_base_t = typename unit_base<T>::type;
+
 	} // namespace traits
 
 	//----------------------------------

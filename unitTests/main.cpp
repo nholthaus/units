@@ -155,6 +155,18 @@ TEST_F(TypeTraits, is_unit_t)
 	EXPECT_TRUE(traits::is_unit_v<meter_t<double>>);
 }
 
+TEST_F(TypeTraits, unit_base)
+{
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<unit<dimensionless_unit, int>>, unit<dimensionless_unit, int>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<dimensionless<int>>, unit<dimensionless_unit, int>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile unit<dimensionless_unit, int>>,
+		unit<dimensionless_unit, int>>));
+	EXPECT_TRUE(
+		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter_t<double>>, unit<meter, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter_t<double>>, unit<meter, double>>));
+}
+
 TEST_F(TypeTraits, conversion_factor_traits)
 {
 	EXPECT_TRUE((std::is_same_v<void, traits::conversion_factor_traits<double>::conversion_ratio>));
