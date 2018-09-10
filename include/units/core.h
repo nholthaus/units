@@ -262,6 +262,49 @@ namespace units
 	}
 
 /**
+ * @def			UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular)
+ * @brief		Macro for generating `std::common_type` specializations for units.
+ * @details		The macro generates `std::common_type` specializations for units.
+ *				It should be used from the global namespace.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ */
+#define UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular) \
+	namespace std \
+	{ \
+		template<typename Underlying, class ConversionFactor, class T, class NumericalScale> \
+		struct common_type<::units::namespaceName::nameSingular##_t<Underlying>, \
+			::units::unit<ConversionFactor, T, NumericalScale>> \
+		{ \
+			using type = ::units::traits::strong_t< \
+				common_type_t<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>, \
+					::units::unit<ConversionFactor, T, NumericalScale>>>; \
+		}; \
+\
+		template<class ConversionFactor, class T, class NumericalScale, typename Underlying> \
+		struct common_type<::units::unit<ConversionFactor, T, NumericalScale>, \
+			::units::namespaceName::nameSingular##_t<Underlying>> \
+		  : common_type<::units::namespaceName::nameSingular##_t<Underlying>, \
+				::units::unit<ConversionFactor, T, NumericalScale>> \
+		{ \
+		}; \
+\
+		template<typename Underlying1, typename Underlying2> \
+		struct common_type<::units::namespaceName::nameSingular##_t<Underlying1>, \
+			::units::namespaceName::nameSingular##_t<Underlying2>> \
+		{ \
+			using type = ::units::namespaceName::nameSingular##_t<common_type_t<Underlying1, Underlying2>>; \
+		}; \
+\
+		template<typename Underlying, class T> \
+		struct common_type<::units::namespaceName::nameSingular##_t<Underlying>, T> \
+		  : common_type<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>, \
+				::units::traits::unit_base_t<T>> \
+		{ \
+		}; \
+	}
+
+/**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
  * @brief		Macro for generating user-defined literals for units.
  * @details		The macro generates user-defined literals for units. A literal suffix is created
