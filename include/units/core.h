@@ -223,6 +223,24 @@ namespace units
 	};
 
 /**
+ * @def			UNIT_ADD_STRONG(namespaceName, nameSingular, scale)
+ * @brief		Macro for generating the boiler-plate code for the strong type trait of the unit.
+ * @details		The macro generates the specialization of the strong type trait of the unit.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		scale the `NumericalScale` template template argument of the unit's `unit` base
+ */
+#define UNIT_ADD_STRONG(namespaceName, nameSingular, scale) \
+	namespace traits \
+	{ \
+		template<class Underlying> \
+		struct strong<::units::unit<namespaceName::nameSingular, Underlying, scale>> \
+		{ \
+			using type = namespaceName::nameSingular##_t<Underlying>; \
+		}; \
+	}
+
+/**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
  * @brief		Macro for generating user-defined literals for units.
  * @details		The macro generates user-defined literals for units. A literal suffix is created
