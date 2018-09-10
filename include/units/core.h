@@ -585,15 +585,21 @@ namespace units
 		template<class T>
 		inline constexpr bool is_conversion_factor_v = is_conversion_factor<T>::value;
 
+		// forward declaration
+		template<class T>
+		struct is_unit;
+
 		/**
 		 * @ingroup			TypeTraits
-		 * @brief			SFINAE-able trait that maps a `conversion_factor` to its strengthened type.
-		 * @details			If `T` is a cv-unqualified `conversion_factor`, the member `type` alias names the strong
-		 *					type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member. This may
-		 *					be specialized only if `T` depends on a program-defined type.
+		 * @brief			SFINAE-able trait that maps a `unit` or `conversion_factor` to its strengthened type.
+		 * @details			If `T` is a cv-unqualified `unit` or `conversion_factor`, the member `type` alias names the
+		 *					strong type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member.
+		 *					This may be specialized only if `T` depends on a program-defined type.
 		 */
 		template<class T>
-		struct strong : std::enable_if<is_conversion_factor_v<T> && std::is_same_v<T, std::remove_cv_t<T>>, T>
+		struct strong
+		  : std::enable_if<(is_conversion_factor_v<T> || is_unit<T>::value) && std::is_same_v<T, std::remove_cv_t<T>>,
+				T>
 		{
 		};
 
@@ -1555,13 +1561,6 @@ namespace units
 	//------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
-	namespace traits
-	{
-		// forward declaration
-		template<class T>
-		struct is_unit;
-	} // namespace traits
-
 	namespace detail
 	{
 		/**
