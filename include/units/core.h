@@ -1168,6 +1168,67 @@ namespace units
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
+	namespace traits
+	{
+		/** @cond */ // DOXYGEN IGNORE
+		namespace detail
+		{
+			template<class T, class = void>
+			struct is_strong_unit_alias_impl : std::false_type
+			{
+			};
+
+			template<class Unit>
+			struct is_strong_unit_alias_impl<Unit, std::void_t<typename traits::unit_base<Unit>::type>>
+			  : std::bool_constant<!std::is_same_v<std::remove_const_t<Unit>, typename traits::unit_base<Unit>::type>>
+			{
+			};
+
+			template<class T>
+			struct is_strong_unit_alias : is_strong_unit_alias_impl<T>
+			{
+			};
+
+			template<class T>
+			inline constexpr bool is_strong_unit_alias_v = is_strong_unit_alias<T>::value;
+
+			template<class Unit, class Underlying, bool IsStrongUnit>
+			struct replace_underlying_impl
+			{
+			};
+
+			template<template<class> class T, class U, class Underlying>
+			struct replace_underlying_impl<T<U>, Underlying, true>
+			{
+				using type = T<Underlying>;
+			};
+
+			template<class Cf, typename T, class Ns, class Underlying>
+			struct replace_underlying_impl<unit<Cf, T, Ns>, Underlying, false>
+			{
+				using type = unit<Cf, Underlying, Ns>;
+			};
+		}               // namespace detail
+		/** @endcond */ // END DOXYGEN IGNORE
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		SFINAE-able trait which replaces the underlying type of `Unit` with `Underlying`.
+		 * @details		If `Unit` is an unit, the member `type` alias names the same unit with an underlying type of
+		 *				`Underlying`. Otherwise, there is no `type` member.
+		 * @param		Unit The unit type whose underlying type is to be replaced.
+		 * @param		Underlying The underlying type to replace that of `Unit`.
+		 */
+		template<class Unit, class Underlying>
+		struct replace_underlying
+		  : detail::replace_underlying_impl<Unit, Underlying, detail::is_strong_unit_alias_v<Unit>>
+		{
+		};
+
+		template<class Unit, class Underlying>
+		using replace_underlying_t = typename replace_underlying<Unit, Underlying>::type;
+	} // namespace traits
+
 	/**
 	 * @brief		Type representing an arbitrary unit.
 	 * @ingroup		UnitTypes
@@ -1722,10 +1783,10 @@ namespace units
 		template<typename T>
 		using floating_point_promotion_t = typename floating_point_promotion<T, traits::is_unit<T>::value>::type;
 
-		template<template<class, typename, class> class Unit, class UnitConversion, typename T, class NumericalScale>
-		struct floating_point_promotion<Unit<UnitConversion, T, NumericalScale>, true>
+		template<class Unit>
+		struct floating_point_promotion<Unit, true>
+		  : traits::replace_underlying<Unit, floating_point_promotion_t<typename Unit::underlying_type>>
 		{
-			using type = Unit<UnitConversion, floating_point_promotion_t<T>, NumericalScale>;
 		};
 	} // namespace detail
 

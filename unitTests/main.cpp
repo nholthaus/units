@@ -167,6 +167,16 @@ TEST_F(TypeTraits, unit_base)
 	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter_t<double>>, unit<meter, double>>));
 }
 
+TEST_F(TypeTraits, replace_underlying)
+{
+	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, int>,
+		unit<dimensionless_unit, int>>));
+	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, double>,
+		unit<dimensionless_unit, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, int>, dimensionless<int>>));
+	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, double>, dimensionless<double>>));
+}
+
 TEST_F(TypeTraits, conversion_factor_traits)
 {
 	EXPECT_TRUE((std::is_same_v<void, traits::conversion_factor_traits<double>::conversion_ratio>));
