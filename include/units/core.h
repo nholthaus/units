@@ -2784,59 +2784,43 @@ namespace units
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator+=(unit<UnitConversion, T, NumericalScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator-=(unit<UnitConversion, T, NumericalScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator*=(
-		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs * rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator/=(
-		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs / rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator%=(unit<UnitConversion, T, NumericalScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
 		return lhs;
 	}
 
-	template<class UnitConversionLhs, typename T, class NumericalScaleLhs, class UnitConversionRhs,
-		class NumericalScaleRhs, std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value, int> = 0>
-	constexpr unit<UnitConversionLhs, T, NumericalScaleLhs>& operator%=(
-		unit<UnitConversionLhs, T, NumericalScaleLhs>& lhs,
-		const unit<UnitConversionRhs, detail::type_identity_t<T>, NumericalScaleRhs>& rhs) noexcept
-	{
-		lhs = lhs % rhs;
-		return lhs;
-	}
-
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator%=(
-		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs % rhs;
 		return lhs;
