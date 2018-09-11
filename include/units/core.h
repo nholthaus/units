@@ -2200,11 +2200,12 @@ namespace units
 		 * @brief		SFINAE helper to test if a conversion of units is non lossy.
 		 */
 		template<class UnitFrom, class UnitTo>
-		inline constexpr bool is_non_lossy_convertible_unit = traits::is_convertible_unit_v<UnitFrom, UnitTo> &&
-			(std::is_floating_point_v<typename UnitTo::underlying_type> ||
-				std::conjunction_v<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
-					detail::is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor,
-						typename UnitTo::conversion_factor>>);
+		inline constexpr bool is_non_lossy_convertible_unit =
+			std::conjunction_v<traits::is_convertible_unit<UnitFrom, UnitTo>,
+				std::disjunction<std::is_floating_point<typename UnitTo::underlying_type>,
+					std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
+						detail::is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor,
+							typename UnitTo::conversion_factor>>>>;
 
 		/**
 		 * @brief		SFINAE helper to test if a `conversion_factor` is of the time dimension.
