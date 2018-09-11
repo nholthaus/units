@@ -2831,54 +2831,50 @@ namespace units
 	//------------------------------
 
 	// unary addition: +T
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale> operator+(
-		const unit<UnitConversion, T, NumericalScale>& u) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& u) noexcept
 	{
 		return u;
 	}
 
 	// prefix increment: ++T
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator++(unit<UnitConversion, T, NumericalScale>& u) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator++(UnitTypeLhs& u) noexcept
 	{
-		u = unit<UnitConversion, T, NumericalScale>(u() + 1);
+		u = UnitTypeLhs(u() + 1);
 		return u;
 	}
 
 	// postfix increment: T++
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale> operator++(
-		unit<UnitConversion, T, NumericalScale>& u, int) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs operator++(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = unit<UnitConversion, T, NumericalScale>(u() + 1);
+		u        = UnitTypeLhs(u() + 1);
 		return ret;
 	}
 
 	// unary addition: -T
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale> operator-(
-		const unit<UnitConversion, T, NumericalScale>& u) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
-		return unit<UnitConversion, T, NumericalScale>(-u());
+		return UnitTypeLhs(-u());
 	}
 
 	// prefix increment: --T
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale>& operator--(unit<UnitConversion, T, NumericalScale>& u) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs& operator--(UnitTypeLhs& u) noexcept
 	{
-		u = unit<UnitConversion, T, NumericalScale>(u() - 1);
+		u = UnitTypeLhs(u() - 1);
 		return u;
 	}
 
 	// postfix increment: T--
-	template<class UnitConversion, typename T, class NumericalScale>
-	constexpr unit<UnitConversion, T, NumericalScale> operator--(
-		unit<UnitConversion, T, NumericalScale>& u, int) noexcept
+	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
+	constexpr UnitTypeLhs operator--(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = unit<UnitConversion, T, NumericalScale>(u() - 1);
+		u        = UnitTypeLhs(u() - 1);
 		return ret;
 	}
 
