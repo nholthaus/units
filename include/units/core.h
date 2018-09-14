@@ -67,8 +67,8 @@
 #include <utility>
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+#include <clocale>
 #include <iostream>
-#include <locale>
 #include <string>
 
 //------------------------------
@@ -86,8 +86,8 @@ namespace units
 			int offset{1};
 
 			// remove trailing decimal points for integer value units. Locale aware!
-			struct lconv* lc;
-			lc                = localeconv();
+			struct std::lconv* lc;
+			lc                = std::localeconv();
 			char decimalPoint = *lc->decimal_point;
 			if (str.find_last_not_of('0') == str.find(decimalPoint))
 			{
