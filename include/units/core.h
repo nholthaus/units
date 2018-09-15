@@ -3409,7 +3409,7 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = decltype(units::min(lhs, rhs));
 		return (lhs < rhs ? CommonUnit(lhs) : CommonUnit(rhs));
 	}
 
@@ -3417,7 +3417,7 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = decltype(units::max(lhs, rhs));
 		return (lhs > rhs ? CommonUnit(lhs) : CommonUnit(rhs));
 	}
 
@@ -3604,7 +3604,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(
 		const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::hypot(x, y));
 		return CommonUnit(std::hypot(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -3653,7 +3653,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmod(numer, denom));
 		return CommonUnit(std::fmod(CommonUnit(numer)(), CommonUnit(denom)()));
 	}
 
@@ -3733,7 +3733,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fdim(x, y));
 		return CommonUnit(std::fdim(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -3752,7 +3752,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmax(x, y));
 		return CommonUnit(std::fmax(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -3772,7 +3772,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmin(x, y));
 		return CommonUnit(std::fmin(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -3829,9 +3829,7 @@ namespace units
 								  detail::floating_point_promotion_t<UnitMultiply>(y)),
 			UnitAdd>
 	{
-		using CommonUnit = std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) *
-												  detail::floating_point_promotion_t<UnitMultiply>(y)),
-			UnitAdd>;
+		using CommonUnit = decltype(units::fma(x, y, z));
 		return CommonUnit(std::fma(x(), y(), CommonUnit(z)()));
 	}
 } // end namespace units
