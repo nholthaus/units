@@ -56,11 +56,11 @@ namespace
 		void TearDown() override{};
 	};
 
-	class UnitConversion : public ::testing::Test
+	class ConversionFactor : public ::testing::Test
 	{
 	protected:
-		UnitConversion(){};
-		virtual ~UnitConversion(){};
+		ConversionFactor(){};
+		virtual ~ConversionFactor(){};
 		void SetUp() override{};
 		void TearDown() override{};
 	};
@@ -2894,7 +2894,7 @@ TEST_F(UnitType, literals)
 	EXPECT_TRUE(c == 5.0_m);
 }
 
-TEST_F(UnitConversion, length)
+TEST_F(ConversionFactor, length)
 {
 	double test;
 	test = nanometer_t<double>(0.000000001_m)();
@@ -2942,7 +2942,7 @@ TEST_F(UnitConversion, length)
 	EXPECT_EQ(metre_t<double>(1), meter_t<double>(1));
 }
 
-TEST_F(UnitConversion, mass)
+TEST_F(ConversionFactor, mass)
 {
 	double test;
 
@@ -2973,7 +2973,7 @@ TEST_F(UnitConversion, mass)
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
-TEST_F(UnitConversion, time)
+TEST_F(ConversionFactor, time)
 {
 	double result      = 0;
 	double daysPerYear = 365;
@@ -3021,7 +3021,7 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(365.2425, test, 5.0e-14);
 }
 
-TEST_F(UnitConversion, angle)
+TEST_F(ConversionFactor, angle)
 {
 	angle::degree_t<double> quarterCircleDeg(90.0);
 	angle::radian_t<double> quarterCircleRad = quarterCircleDeg;
@@ -3054,7 +3054,7 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(detail::PI_VAL / 2, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, current)
+TEST_F(ConversionFactor, current)
 {
 	double test;
 
@@ -3062,7 +3062,7 @@ TEST_F(UnitConversion, current)
 	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, temperature)
+TEST_F(ConversionFactor, temperature)
 {
 	// temp conversion are weird/hard since they involve translations AND scaling.
 	double test;
@@ -3107,7 +3107,7 @@ TEST_F(UnitConversion, temperature)
 	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
-TEST_F(UnitConversion, luminous_intensity)
+TEST_F(ConversionFactor, luminous_intensity)
 {
 	double test;
 
@@ -3117,13 +3117,13 @@ TEST_F(UnitConversion, luminous_intensity)
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, substance)
+TEST_F(ConversionFactor, substance)
 {
 	static_assert(1_g / 1_mol == 1_g_per_mol);
 	static_assert(1_mol / 1_g == 1_M);
 }
 
-TEST_F(UnitConversion, solid_angle)
+TEST_F(ConversionFactor, solid_angle)
 {
 	double test;
 	bool same;
@@ -3151,7 +3151,7 @@ TEST_F(UnitConversion, solid_angle)
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, frequency)
+TEST_F(ConversionFactor, frequency)
 {
 	double test;
 
@@ -3165,7 +3165,7 @@ TEST_F(UnitConversion, frequency)
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, velocity)
+TEST_F(ConversionFactor, velocity)
 {
 	double test;
 	bool same;
@@ -3187,7 +3187,7 @@ TEST_F(UnitConversion, velocity)
 	EXPECT_NEAR(3.048, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, angular_velocity)
+TEST_F(ConversionFactor, angular_velocity)
 {
 	double test;
 	bool same;
@@ -3208,7 +3208,7 @@ TEST_F(UnitConversion, angular_velocity)
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
-TEST_F(UnitConversion, acceleration)
+TEST_F(ConversionFactor, acceleration)
 {
 	double test;
 
@@ -3216,7 +3216,7 @@ TEST_F(UnitConversion, acceleration)
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
 }
 
-TEST_F(UnitConversion, force)
+TEST_F(ConversionFactor, force)
 {
 	double test;
 
@@ -3234,7 +3234,7 @@ TEST_F(UnitConversion, force)
 	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
-TEST_F(UnitConversion, area)
+TEST_F(ConversionFactor, area)
 {
 	double test;
 
@@ -3250,7 +3250,7 @@ TEST_F(UnitConversion, area)
 	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, pressure)
+TEST_F(ConversionFactor, pressure)
 {
 	double test;
 
@@ -3278,7 +3278,7 @@ TEST_F(UnitConversion, pressure)
 	EXPECT_EQ(133.322387415_Pa, 1.0_mmHg);
 }
 
-TEST_F(UnitConversion, charge)
+TEST_F(ConversionFactor, charge)
 {
 	double test;
 
@@ -3288,7 +3288,7 @@ TEST_F(UnitConversion, charge)
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, energy)
+TEST_F(ConversionFactor, energy)
 {
 	double test;
 
@@ -3320,7 +3320,7 @@ TEST_F(UnitConversion, energy)
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, power)
+TEST_F(ConversionFactor, power)
 {
 	double test;
 
@@ -3340,7 +3340,7 @@ TEST_F(UnitConversion, power)
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
-TEST_F(UnitConversion, voltage)
+TEST_F(ConversionFactor, voltage)
 {
 	double test;
 
@@ -3370,7 +3370,7 @@ TEST_F(UnitConversion, voltage)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, capacitance)
+TEST_F(ConversionFactor, capacitance)
 {
 	double test;
 
@@ -3400,7 +3400,7 @@ TEST_F(UnitConversion, capacitance)
 	EXPECT_EQ(1.0_F, one_farad());
 }
 
-TEST_F(UnitConversion, impedance)
+TEST_F(ConversionFactor, impedance)
 {
 	double test;
 
@@ -3422,7 +3422,7 @@ TEST_F(UnitConversion, impedance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, conductance)
+TEST_F(ConversionFactor, conductance)
 {
 	double test;
 
@@ -3444,7 +3444,7 @@ TEST_F(UnitConversion, conductance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, magnetic_flux)
+TEST_F(ConversionFactor, magnetic_flux)
 {
 	double test;
 
@@ -3470,7 +3470,7 @@ TEST_F(UnitConversion, magnetic_flux)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, magnetic_field_strength)
+TEST_F(ConversionFactor, magnetic_field_strength)
 {
 	double test;
 
@@ -3496,7 +3496,7 @@ TEST_F(UnitConversion, magnetic_field_strength)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, inductance)
+TEST_F(ConversionFactor, inductance)
 {
 	double test;
 
@@ -3518,7 +3518,7 @@ TEST_F(UnitConversion, inductance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, luminous_flux)
+TEST_F(ConversionFactor, luminous_flux)
 {
 	double test;
 
@@ -3540,7 +3540,7 @@ TEST_F(UnitConversion, luminous_flux)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, illuminance)
+TEST_F(ConversionFactor, illuminance)
 {
 	double test;
 
@@ -3569,7 +3569,7 @@ TEST_F(UnitConversion, illuminance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, radiation)
+TEST_F(ConversionFactor, radiation)
 {
 	double test;
 
@@ -3632,7 +3632,7 @@ TEST_F(UnitConversion, radiation)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, torque)
+TEST_F(ConversionFactor, torque)
 {
 	double test;
 
@@ -3650,7 +3650,7 @@ TEST_F(UnitConversion, torque)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, volume)
+TEST_F(ConversionFactor, volume)
 {
 	double test;
 
@@ -3718,7 +3718,7 @@ TEST_F(UnitConversion, volume)
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, density)
+TEST_F(ConversionFactor, density)
 {
 	double test;
 
@@ -3744,7 +3744,7 @@ TEST_F(UnitConversion, density)
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, concentration)
+TEST_F(ConversionFactor, concentration)
 {
 	double test;
 
@@ -3758,7 +3758,7 @@ TEST_F(UnitConversion, concentration)
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
-TEST_F(UnitConversion, data)
+TEST_F(ConversionFactor, data)
 {
 	EXPECT_EQ(8, (bit_t<double>(byte_t<double>(1))()));
 
@@ -3801,7 +3801,7 @@ TEST_F(UnitConversion, data)
 	EXPECT_NEAR(percent_t<double>(15.3), exbibyte_t<double>(1) / exabyte_t<double>(1) - 1, 0.005);
 }
 
-TEST_F(UnitConversion, data_transfer_rate)
+TEST_F(ConversionFactor, data_transfer_rate)
 {
 	EXPECT_EQ(8, (bits_per_second_t<double>(bytes_per_second_t<double>(1))()));
 
@@ -3850,7 +3850,7 @@ TEST_F(UnitConversion, data_transfer_rate)
 		percent_t<double>(15.3), exbibytes_per_second_t<double>(1) / exabytes_per_second_t<double>(1) - 1, 0.005);
 }
 
-TEST_F(UnitConversion, pi)
+TEST_F(ConversionFactor, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<decltype(constants::pi)>);
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<detail::PI>);
@@ -3901,7 +3901,7 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(1.0 / detail::PI_VAL, d.to<double>(), 5.0e-10);
 }
 
-TEST_F(UnitConversion, constants)
+TEST_F(ConversionFactor, constants)
 {
 	// Source: NIST "2014 CODATA recommended values"
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
@@ -3922,7 +3922,7 @@ TEST_F(UnitConversion, constants)
 	EXPECT_NEAR(5.670367e-8, constants::sigma(), 5.0e-14);
 }
 
-TEST_F(UnitConversion, std_chrono)
+TEST_F(ConversionFactor, std_chrono)
 {
 	nanosecond_t<double> a = std::chrono::nanoseconds(10);
 	EXPECT_EQ(nanosecond_t<double>(10), a);
@@ -3951,7 +3951,7 @@ TEST_F(UnitConversion, std_chrono)
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 
-TEST_F(UnitConversion, squaredTemperature)
+TEST_F(ConversionFactor, squaredTemperature)
 {
 	using squared_celsius   = units::compound_conversion_factor<squared<celsius>>;
 	using squared_celsius_t = units::unit<squared_celsius>;
