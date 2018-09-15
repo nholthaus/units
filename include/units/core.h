@@ -607,10 +607,10 @@ namespace units
 	 */
 
 	/**
-	 * @defgroup	UnitTypes Unit Types
-	 * @brief		Defines a series of classes which represent units. These types are tags used by
-	 *				the conversion function, to create compound units, or to create `unit` types.
-	 *				By themselves, they are not containers and have no stored value.
+	 * @defgroup	ConversionFactors Conversion Factors
+	 * @brief		Defines a series of classes which represent compile-time conversion factor between units.
+	 *				These types are tags used by the conversion function, to create compound units,
+	 *				or to create `unit` types.
 	 */
 
 	/**
@@ -1301,7 +1301,7 @@ namespace units
 
 	/**
 	 * @brief		Type representing an arbitrary unit.
-	 * @ingroup		UnitTypes
+	 * @ingroup		ConversionFactor
 	 * @details		`conversion_factor` types are used as tags for the `conversion` function. They are *not* containers
 	 *				(see `unit` for a  container class). Each unit is defined by:
 	 *
@@ -1722,7 +1722,7 @@ namespace units
 	 *				`squared` are supported. E.g. to specify acceleration, on could create
 	 *				`using acceleration = compound_unit<length::meters, inverse<squared<seconds>>;`
 	 * @tparam		U...	units which, when multiplied together, form the desired compound unit.
-	 * @ingroup		UnitTypes
+	 * @ingroup		ConversionFactor
 	 */
 	template<class U, class... Us>
 	using compound_conversion_factor = typename units::detail::compound_impl<U, Us...>::type;

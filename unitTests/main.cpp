@@ -145,7 +145,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_FALSE(traits::is_conversion_factor_v<meter_t<double>>);
 }
 
-TEST_F(TypeTraits, is_unit_t)
+TEST_F(TypeTraits, is_unit)
 {
 	EXPECT_FALSE(traits::is_unit_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_unit_v<double>);
