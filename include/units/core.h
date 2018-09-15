@@ -601,8 +601,8 @@ namespace units
 	//----------------------------------
 
 	/**
-	 * @defgroup	UnitContainers Unit Containers
-	 * @brief		Defines a series of classes which contain dimensioned values. Unit containers
+	 * @defgroup	UnitTypes Unit Types
+	 * @brief		Defines a series of classes which contain dimensioned values. Unit types
 	 *				store a value, and support various arithmetic operations.
 	 */
 
@@ -2316,7 +2316,7 @@ namespace units
 	} // namespace traits
 
 	/**
-	 * @ingroup		UnitContainers
+	 * @ingroup		UnitTypes
 	 * @brief		Container for values which represent quantities of a given unit.
 	 * @details		Stores a value which represents a quantity in the given units. Unit containers
 	 *				(except dimensionless values) are *not* convertible to built-in c++ types, in order to
@@ -2693,7 +2693,7 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @ingroup		UnitContainers
+	 * @ingroup		UnitTypes
 	 * @brief		Constructs a unit container from an arithmetic type.
 	 * @details		make_unit can be used to construct a unit container from an arithmetic type, as an alternative to
 	 *				using the explicit constructor. Unlike the explicit constructor it forces the user to explicitly
