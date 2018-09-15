@@ -691,7 +691,7 @@ namespace units
 	} // namespace traits
 
 	//------------------------------
-	//	UNIT TRAITS
+	//	CONVERSION FACTOR TRAITS
 	//------------------------------
 
 	/**
@@ -1107,7 +1107,7 @@ namespace units
 	}                                                                      // namespace dimension
 
 	//------------------------------
-	//	UNIT CLASSES
+	//	CONVERSION FACTOR CLASSES
 	//------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
@@ -2118,7 +2118,7 @@ namespace units
 	} // namespace traits
 
 	//------------------------------
-	//	UNIT_T TYPE TRAITS
+	//	UNIT TYPE TRAITS
 	//------------------------------
 
 	namespace traits
@@ -2689,7 +2689,7 @@ namespace units
 	};
 
 	//------------------------------
-	//	UNIT_T NON-MEMBER FUNCTIONS
+	//	UNIT NON-MEMBER FUNCTIONS
 	//------------------------------
 
 	/**
@@ -2832,7 +2832,7 @@ namespace std
 namespace units
 {
 	//----------------------------------------
-	//	UNIT_T COMPOUND ASSIGNMENT OPERATORS
+	//	UNIT COMPOUND ASSIGNMENT OPERATORS
 	//----------------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
@@ -2895,7 +2895,7 @@ namespace units
 	}
 
 	//------------------------------
-	//	UNIT_T UNARY OPERATORS
+	//	UNIT UNARY OPERATORS
 	//------------------------------
 
 	// unary addition: +T
