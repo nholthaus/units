@@ -1397,7 +1397,7 @@ namespace units
 
 		/**
 		 * @brief		implementation of `inverse`
-		 * @details		inverts a unit (equivalent to 1/unit). The `dimension` and pi exponents are all multiplied by
+		 * @details		inverts a unit (equivalent to 1/unit). The `dimension_t` and pi exponents are all multiplied by
 		 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
 		 *				ratios are removed.
 		 */
@@ -1429,7 +1429,7 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `squared`
-		 * @details		Squares the conversion ratio, `dimension` exponents, pi exponents, and removes
+		 * @details		Squares the conversion ratio, `dimension_t` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
 		template<class Unit>
