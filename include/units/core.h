@@ -1351,7 +1351,7 @@ namespace units
 		/**
 		 * @brief		implementation of `unit_multiply`.
 		 * @details		multiplies two units. The dimension becomes the dimensions of each with their exponents
-		 *				added together. The conversion factors of each are multiplied by each other. Pi exponent ratios
+		 *				added. The conversion factors of each are multiplied. Pi exponent ratios
 		 *				are added, and datum translations are removed.
 		 */
 		template<class Unit1, class Unit2>
@@ -1374,7 +1374,7 @@ namespace units
 		/**
 		 * @brief		implementation of `unit_divide`.
 		 * @details		divides two units. The dimension becomes the dimensions of each with their exponents
-		 *				subtracted from each other. The conversion factors of each are divided by each other. Pi
+		 *				subtracted. The conversion factors of each are divided. Pi
 		 *				exponent ratios are subtracted, and datum translations are removed.
 		 */
 		template<class Unit1, class Unit2>
