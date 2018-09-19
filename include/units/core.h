@@ -140,11 +140,11 @@ namespace units
 #define UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	inline namespace namespaceName \
 	{ \
-		/** @name UnitConversion (full names plural) */ /** @{ */ struct namePlural : __VA_ARGS__ \
+		/** @name ConversionFactor (full names plural) */ /** @{ */ struct namePlural : __VA_ARGS__ \
 		{ \
-		};                                                                                           /** @} */ \
-		/** @name UnitConversion (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */ \
-		/** @name UnitConversion (abbreviated) */ /** @{ */ using abbreviation         = namePlural; /** @} */ \
+		};                                                                                             /** @} */ \
+		/** @name ConversionFactor (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */ \
+		/** @name ConversionFactor (abbreviated) */ /** @{ */ using abbreviation         = namePlural; /** @} */ \
 	} \
 	namespace traits \
 	{ \
@@ -705,7 +705,7 @@ namespace units
 		 * @brief		Traits class defining the properties of units.
 		 * @details		The units library determines certain properties of the units passed to
 		 *				them and what they represent by using the members of the corresponding
-		 *				unit_traits instantiation.
+		 *				conversion_factor_traits instantiation.
 		 */
 		template<class T>
 		struct conversion_factor_traits
@@ -765,8 +765,8 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		helper type to identify units.
-		 * @details		A non-templated base class for `unit` which enables compile-time testing.
+		 * @brief		helper type to identify conversion factors.
+		 * @details		A non-templated base class for `conversion_factor` which enables compile-time testing.
 		 */
 		struct _conversion_factor
 		{
@@ -779,9 +779,9 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Traits which tests if a class is a `unit`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit_v<T>` to test
-		 *				whether `class T` implements a `unit`.
+		 * @brief		Traits which tests if a class is a `conversion_factor`
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conversion_factor_v<T>` to test
+		 *				whether `class T` implements a `conversion_factor`.
 		 */
 		template<class T>
 		using is_conversion_factor = typename std::is_base_of<units::detail::_conversion_factor, T>::type;
@@ -1147,11 +1147,12 @@ namespace units
 
 		/**
 		 * @brief		dimension_of_t trait implementation
-		 * @details		recursively seeks dimension type that a unit is derived from. Since units can be
-		 *				derived from other units, the `dimension_type` typedef may not represent this type.
+		 * @details		recursively seeks dimension type of a conversion factor.
+		 *				Since their `dimension_type` typedef may be another conversion factor,
+		 *				it may not represent a dimension type.
 		 */
-		template<class UnitConversion>
-		struct dimension_of_impl : dimension_of_impl<conversion_factor_base_t<UnitConversion>>
+		template<class ConversionFactor>
+		struct dimension_of_impl : dimension_of_impl<conversion_factor_base_t<ConversionFactor>>
 		{
 		};
 
@@ -1178,9 +1179,9 @@ namespace units
 	namespace traits
 	{
 		/**
-		 * @brief		Trait which returns the `dimension_t` type that a unit is originally derived from.
-		 * @details		Since units can be derived from other `conversion_factor` types in addition to `dimension_t`
-		 *				types, the `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
+		 * @brief		Names the `dimension_t` of a `conversion_factor`.
+		 * @details		Since `conversion_factor`s nest,
+		 *				their `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
 		 */
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
@@ -1190,7 +1191,7 @@ namespace units
 		struct unit_base;
 	} // namespace traits
 
-	template<class UnitType, typename T, class NumericalScale>
+	template<class ConversionFactor, typename T, class NumericalScale>
 	class unit;
 
 	namespace detail
@@ -1716,13 +1717,14 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	/**
-	 * @brief		Represents a unit type made up from other units.
-	 * @details		Compound units are formed by multiplying the units of all the types provided in
-	 *				the template argument. Types provided must inherit from `unit`. A compound unit can
-	 *				be formed from any number of other units, and unit manipulators like `inverse` and
-	 *				`squared` are supported. E.g. to specify acceleration, on could create
-	 *				`using acceleration = compound_unit<length::meters, inverse<squared<seconds>>;`
-	 * @tparam		U...	units which, when multiplied together, form the desired compound unit.
+	 * @brief		Represents a conversion factor made up from other conversion factors.
+	 * @details		Compound conversion factors are formed by multiplying all the conversion factor template arguments.
+	 *				Types provided must inherit from `conversion_factor`. A compound conversion factor can
+	 *				be formed from any number of other conversion factors, and unit manipulators like `inverse` and
+	 *				`squared` are supported. E.g. to specify acceleration, one could declare
+	 *				`using acceleration = compound_conversion factor<length::meters, inverse<squared<seconds>>;`
+	 * @tparam		U...	conversion factor which, when multiplied together,
+	 *				form the desired compound conversion factor.
 	 * @ingroup		ConversionFactor
 	 */
 	template<class U, class... Us>
@@ -1737,15 +1739,15 @@ namespace units
 	{
 		/**
 		 * @brief		prefix applicator.
-		 * @details		creates a unit type from a prefix and a unit
+		 * @details		creates a conversion factor from a prefix and a conversion factor
 		 */
-		template<class Ratio, class Unit>
+		template<class Ratio, class ConversionFactor>
 		struct prefix
 		{
 			static_assert(traits::is_ratio_v<Ratio>, "Template parameter `Ratio` must be a `std::ratio`.");
-			static_assert(
-				traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `conversion_factor` type.");
-			using type = units::conversion_factor<Ratio, Unit>;
+			static_assert(traits::is_conversion_factor_v<ConversionFactor>,
+				"Template parameter `ConversionFactor` must be a `conversion_factor` type.");
+			using type = units::conversion_factor<Ratio, ConversionFactor>;
 		};
 
 		/// recursive exponential implementation
@@ -2258,11 +2260,11 @@ namespace units
 		 * @brief		Trait which tests if a unit type can be converted to another unit type without truncation error.
 		 * @details		Valid only when the involved units have integral underlying types.
 		 */
-		template<class UnitConversionFrom, class UnitConversionTo>
+		template<class ConversionFactorFrom, class ConversionFactorTo>
 		struct is_non_truncated_convertible_unit : std::false_type
 		{
-			static constexpr bool value = std::ratio_divide<typename UnitConversionFrom::conversion_ratio,
-											  typename UnitConversionTo::conversion_ratio>::den == 1;
+			static constexpr bool value = std::ratio_divide<typename ConversionFactorFrom::conversion_ratio,
+											  typename ConversionFactorTo::conversion_ratio>::den == 1;
 		};
 
 		/**
@@ -2279,9 +2281,9 @@ namespace units
 		/**
 		 * @brief		SFINAE helper to test if a `conversion_factor` is of the time dimension.
 		 */
-		template<class UnitConversion>
+		template<class ConversionFactor>
 		inline constexpr bool is_time_conversion_factor =
-			traits::is_same_dimension_v<UnitConversion, conversion_factor<std::ratio<1>, dimension::time>>;
+			traits::is_same_dimension_v<ConversionFactor, conversion_factor<std::ratio<1>, dimension::time>>;
 
 		/**
 		 * @brief		helper type to identify units.
@@ -2750,17 +2752,17 @@ namespace units
 		return os;
 	}
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NumericalScale>& obj)
+	template<class ConversionFactor, typename T, class NumericalScale>
+	std::ostream& operator<<(std::ostream& os, const unit<ConversionFactor, T, NumericalScale>& obj)
 	{
-		using BaseConversion   = conversion_factor<std::ratio<1>, typename UnitConversion::dimension_type>;
+		using BaseConversion   = conversion_factor<std::ratio<1>, typename ConversionFactor::dimension_type>;
 		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
 		os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
 			BaseUnit, PromotedBaseUnit>(obj)();
 
-		using DimType = traits::dimension_of_t<UnitConversion>;
+		using DimType = traits::dimension_of_t<ConversionFactor>;
 		if constexpr (!DimType::empty)
 		{
 			os << DimType{};
@@ -2796,18 +2798,18 @@ namespace std
 	 *				truncating any value of these conversions, although floating-point units may have round-off errors.
 	 *				If the units have mixed scales, preference is given to `linear_scale` for their common type.
 	 */
-	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty, class NumericalScale>
-	struct common_type<units::unit<UnitConversionLhs, Tx, NumericalScale>,
-		units::unit<UnitConversionRhs, Ty, NumericalScale>>
-	  : std::enable_if<units::traits::is_same_dimension_v<UnitConversionLhs, UnitConversionRhs>,
+	template<class ConversionFactorLhs, class Tx, class ConversionFactorRhs, class Ty, class NumericalScale>
+	struct common_type<units::unit<ConversionFactorLhs, Tx, NumericalScale>,
+		units::unit<ConversionFactorRhs, Ty, NumericalScale>>
+	  : std::enable_if<units::traits::is_same_dimension_v<ConversionFactorLhs, ConversionFactorRhs>,
 			units::unit<units::traits::strong_t<units::conversion_factor<
-							units::detail::ratio_gcd<typename UnitConversionLhs::conversion_ratio,
-								typename UnitConversionRhs::conversion_ratio>,
-							units::traits::dimension_of_t<UnitConversionLhs>,
-							units::detail::ratio_gcd<typename UnitConversionLhs::pi_exponent_ratio,
-								typename UnitConversionRhs::pi_exponent_ratio>,
-							units::detail::ratio_gcd<typename UnitConversionLhs::translation_ratio,
-								typename UnitConversionRhs::translation_ratio>>>,
+							units::detail::ratio_gcd<typename ConversionFactorLhs::conversion_ratio,
+								typename ConversionFactorRhs::conversion_ratio>,
+							units::traits::dimension_of_t<ConversionFactorLhs>,
+							units::detail::ratio_gcd<typename ConversionFactorLhs::pi_exponent_ratio,
+								typename ConversionFactorRhs::pi_exponent_ratio>,
+							units::detail::ratio_gcd<typename ConversionFactorLhs::translation_ratio,
+								typename ConversionFactorRhs::translation_ratio>>>,
 				common_type_t<Tx, Ty>, NumericalScale>>
 	{
 	};
@@ -2816,19 +2818,19 @@ namespace std
 	/**
 	 * @brief		`linear_scale` preferring specializations.
 	 */
-	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty>
-	struct common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>,
-		units::unit<UnitConversionRhs, Ty, units::decibel_scale>>
-	  : common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>,
-			units::unit<UnitConversionRhs, Ty, units::linear_scale>>
+	template<class ConversionFactorLhs, class Tx, class ConversionFactorRhs, class Ty>
+	struct common_type<units::unit<ConversionFactorLhs, Tx, units::linear_scale>,
+		units::unit<ConversionFactorRhs, Ty, units::decibel_scale>>
+	  : common_type<units::unit<ConversionFactorLhs, Tx, units::linear_scale>,
+			units::unit<ConversionFactorRhs, Ty, units::linear_scale>>
 	{
 	};
 
-	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty>
-	struct common_type<units::unit<UnitConversionLhs, Tx, units::decibel_scale>,
-		units::unit<UnitConversionRhs, Ty, units::linear_scale>>
-	  : common_type<units::unit<UnitConversionLhs, Tx, units::linear_scale>,
-			units::unit<UnitConversionRhs, Ty, units::linear_scale>>
+	template<class ConversionFactorLhs, class Tx, class ConversionFactorRhs, class Ty>
+	struct common_type<units::unit<ConversionFactorLhs, Tx, units::decibel_scale>,
+		units::unit<ConversionFactorRhs, Ty, units::linear_scale>>
+	  : common_type<units::unit<ConversionFactorLhs, Tx, units::linear_scale>,
+			units::unit<ConversionFactorRhs, Ty, units::linear_scale>>
 	{
 	};
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -4132,11 +4134,11 @@ namespace units
 
 namespace std
 {
-	template<class UnitConversion, typename T, class NumericalScale>
-	struct hash<units::unit<UnitConversion, T, NumericalScale>>
+	template<class ConversionFactor, typename T, class NumericalScale>
+	struct hash<units::unit<ConversionFactor, T, NumericalScale>>
 	{
 		template<typename U = T>
-		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NumericalScale>& x) const noexcept
+		constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
@@ -4153,8 +4155,8 @@ namespace std
 	//	std::numeric_limits
 	//------------------------------
 
-	template<class UnitConversion, typename T, class NumericalScale>
-	class numeric_limits<units::unit<UnitConversion, T, NumericalScale>> : public std::numeric_limits<T>
+	template<class ConversionFactor, typename T, class NumericalScale>
+	class numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
 	{
 	};
 } // namespace std
