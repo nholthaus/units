@@ -1300,25 +1300,26 @@ namespace units
 	} // namespace traits
 
 	/**
-	 * @brief		Type representing an arbitrary unit.
+	 * @brief		Type representing an arbitrary conversion factor between units.
 	 * @ingroup		ConversionFactor
-	 * @details		`conversion_factor` types are used as tags for the `conversion` function. They are *not* containers
-	 *				(see `unit` for a  container class). Each unit is defined by:
+	 * @details		`conversion_factor`s are used as tags for the `convert` function.
+	 *				Each unit is defined by:
 	 *
 	 *				- A `std::ratio` defining the conversion factor to the dimension type. (e.g. `std::ratio<1,12>` for
 	 *					inches to feet)
 	 *				- A dimension that the unit is derived from (or a unit dimension. Must be of type
-	 *				`conversion_factor` or `dimension`)
+	 *				`conversion_factor` or `dimension_t`)
 	 *				- An exponent representing factors of PI required by the conversion. (e.g. `std::ratio<-1>` for a
 	 *					radians to degrees conversion)
 	 *				- a ratio representing a datum translation required for the conversion (e.g. `std::ratio<32>` for a
 	 *					farenheit to celsius conversion)
 	 *
-	 *				Typically, a specific unit, like `meters`, would be implemented as a type alias
-	 *				of `conversion_factor`, i.e. `using meters = conversion_factor<std::ratio<1>,
-	 *				units::dimension::length>`, or `using inches = conversion_factor<std::ratio<1,12>, feet>`.
+	 *				Typically, a specific conversion factor, like `meters`,
+	 *				would be implemented as a strong type alias of `conversion_factor`, i.e.
+	 *				`struct meters : conversion_factor<std::ratio<1>, units::dimension::length> {};`,
+	 *				or type alias, i.e. `using inches = conversion_factor<std::ratio<1,12>, feet>`.
 	 * @tparam		Conversion	std::ratio representing dimensionless multiplication factor.
-	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension`, or another
+	 * @tparam		BaseUnit	Unit type which this unit is derived from. May be a `dimension_t`, or another
 	 *				`conversion_factor`.
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
