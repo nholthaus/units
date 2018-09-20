@@ -2148,9 +2148,9 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty,
-			std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>,
-				int> = 0>
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
+				0>
 		constexpr unit(const Ty value) noexcept : nls(value)
 		{
 		}
@@ -2192,9 +2192,9 @@ namespace units
 		 * @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		 * @param[in]	rhs value to copy.
 		 */
-		template<class Ty,
-			std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>,
-				int> = 0>
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
+				0>
 		constexpr unit& operator=(const Ty& rhs) noexcept
 		{
 			nls::m_value = rhs;
