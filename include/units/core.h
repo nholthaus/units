@@ -1812,25 +1812,24 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which checks whether two units can be converted to each other
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
-		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic
-		 *				meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters
-		 *				can be converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2,
-		 *				then U2 will be convertible to U1.
-		 * @tparam		U1 Unit to convert from.
-		 * @tparam		U2 Unit to convert to.
+		 * @brief		Trait which checks whether two conversion factors have the same dimension
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_same_dimension_v<Cf1, Cf2>` to test
+		 *				whether the conversion factors `Cf1` and `Cf2` have the same dimension.
+		 *				Note: convertible has both the semantic meaning, (i.e. meters can be converted to feet),
+		 *				and the c++ meaning of conversion (type meters can be converted to type feet).
+		 * @tparam		Cf1 Unit to convert from.
+		 * @tparam		Cf2 Unit to convert to.
 		 * @sa			is_convertible_unit
 		 */
-		template<class U1, class U2>
-		struct is_convertible_conversion_factor
-		  : std::is_same<traits::dimension_of_t<typename units::traits::conversion_factor_traits<U1>::dimension_type>,
-				traits::dimension_of_t<typename units::traits::conversion_factor_traits<U2>::dimension_type>>::type
+		template<class Cf1, class Cf2>
+		struct is_same_dimension
+		  : std::is_same<traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
+				traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>::type
 		{
 		};
 
-		template<class U1, class U2>
-		inline constexpr bool is_convertible_conversion_factor_v = is_convertible_conversion_factor<U1, U2>::value;
+		template<class Cf1, class Cf2>
+		inline constexpr bool is_same_dimension_v = is_same_dimension<Cf1, Cf2>::value;
 	} // namespace traits
 
 	//------------------------------
@@ -1913,11 +1912,11 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		SFINAE helper to test that types are convertible `conversion_factor`s.
+		 * @brief		SFINAE helper to test that types are `conversion_factor`s of the same dimension.
 		 */
-		template<class From, class To>
-		inline constexpr bool is_convertible_conversion_factor = traits::is_conversion_factor_v<From>&&
-			traits::is_conversion_factor_v<To>&& traits::is_convertible_conversion_factor_v<From, To>;
+		template<class Cf1, class Cf2>
+		inline constexpr bool is_same_dimension = traits::is_conversion_factor_v<Cf1>&&
+			traits::is_conversion_factor_v<Cf2>&& traits::is_same_dimension_v<Cf1, Cf2>;
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -1943,7 +1942,7 @@ namespace units
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
 	template<class UnitFrom, class UnitTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
-		std::enable_if_t<detail::is_convertible_conversion_factor<UnitFrom, UnitTo>, int> = 0>
+		std::enable_if_t<detail::is_same_dimension<UnitFrom, UnitTo>, int> = 0>
 	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio   = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
@@ -2042,19 +2041,18 @@ namespace units
 		 *				`conversion_factor` (-Winjected-class-name).
 		 */
 		template<class UnitFrom, class UnitTo>
-		struct delayed_is_convertible_conversion_factor : std::false_type
+		struct delayed_is_same_dimension : std::false_type
 		{
 			static constexpr bool value =
-				traits::is_convertible_conversion_factor_v<typename UnitFrom::conversion_factor,
-					typename UnitTo::conversion_factor>;
+				traits::is_same_dimension_v<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>;
 		};
 
 		/**
 		 * @brief		SFINAE helper to test that types are convertible `unit`s.
 		 */
 		template<class From, class To>
-		inline constexpr bool is_convertible_unit = std::conjunction_v<traits::is_unit<From>, traits::is_unit<To>,
-			delayed_is_convertible_conversion_factor<From, To>>;
+		inline constexpr bool is_convertible_unit =
+			std::conjunction_v<traits::is_unit<From>, traits::is_unit<To>, delayed_is_same_dimension<From, To>>;
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -2194,9 +2192,8 @@ namespace units
 		 * @sa			is_convertible_conversion_factor
 		 */
 		template<class U1, class U2>
-		using is_convertible_unit =
-			is_convertible_conversion_factor<typename units::traits::unit_traits<U1>::conversion_factor,
-				typename units::traits::unit_traits<U2>::conversion_factor>;
+		using is_convertible_unit = is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
+			typename units::traits::unit_traits<U2>::conversion_factor>;
 
 		template<class U1, class U2>
 		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
@@ -2282,8 +2279,8 @@ namespace units
 		 * @brief		SFINAE helper to test if a `conversion_factor` is of the time dimension.
 		 */
 		template<class UnitConversion>
-		inline constexpr bool is_time_conversion_factor = traits::is_convertible_conversion_factor_v<UnitConversion,
-			conversion_factor<std::ratio<1>, dimension::time>>;
+		inline constexpr bool is_time_conversion_factor =
+			traits::is_same_dimension_v<UnitConversion, conversion_factor<std::ratio<1>, dimension::time>>;
 
 		/**
 		 * @brief		helper type to identify units.
@@ -2795,7 +2792,7 @@ namespace std
 	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty, class NumericalScale>
 	struct common_type<units::unit<UnitConversionLhs, Tx, NumericalScale>,
 		units::unit<UnitConversionRhs, Ty, NumericalScale>>
-	  : std::enable_if<units::traits::is_convertible_conversion_factor_v<UnitConversionLhs, UnitConversionRhs>,
+	  : std::enable_if<units::traits::is_same_dimension_v<UnitConversionLhs, UnitConversionRhs>,
 			units::unit<units::traits::strong_t<units::conversion_factor<
 							units::detail::ratio_gcd<typename UnitConversionLhs::conversion_ratio,
 								typename UnitConversionRhs::conversion_ratio>,
@@ -4106,7 +4103,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitMultiply, class UnitAdd,
 		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitMultiply> &&
 				traits::is_unit_v<UnitAdd> &&
-				traits::is_convertible_conversion_factor_v<
+				traits::is_same_dimension_v<
 					compound_conversion_factor<typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor,
 						typename units::traits::unit_traits<UnitMultiply>::conversion_factor>,
 					typename units::traits::unit_traits<UnitAdd>::conversion_factor>,

@@ -191,20 +191,20 @@ TEST_F(TypeTraits, unit_traits)
 	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter_t<double>>::value_type>));
 }
 
-TEST_F(TypeTraits, is_convertible_unit)
+TEST_F(TypeTraits, is_same_dimension)
 {
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, astronomical_units>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, parsecs>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, astronomical_units>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, parsecs>));
 
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<astronomical_units, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<parsecs, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<years, weeks>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_units, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<parsecs, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<years, weeks>));
 
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<meters, seconds>));
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<seconds, meters>));
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<years, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_v<meters, seconds>));
+	EXPECT_FALSE((traits::is_same_dimension_v<seconds, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_v<years, meters>));
 }
 
 TEST_F(TypeTraits, inverse)
