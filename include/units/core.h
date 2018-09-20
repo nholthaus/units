@@ -1922,58 +1922,60 @@ namespace units
 
 	/**
 	 * @ingroup		Conversion
-	 * @brief		converts a <i>value</i> from one type to another.
-	 * @details		Converts a <i>value</i> of a built-in arithmetic type to another unit. E.g. @code double result =
-	 *				convert<length::meters, length::feet>(1.0);	// result == 3.28084 @endcode Intermediate computations
+	 * @brief		converts a <i>value</i> from an unit to another.
+	 * @details		Converts a <i>value</i> of an arithmetic type to another unit. E.g. @code double result =
+	 *				convert<meters, feet>(1.0);	// result == 3.28084 @endcode Intermediate computations
 	 *				are carried in the widest representation before being converted to `To`.
-	 * @sa			unit	for implicit conversion of unit containers.
-	 * @tparam		UnitFrom unit tag to convert <i>value</i> from. Must be a `conversion_factor` type (i.e.
-	 *				is_conversion_factor_v<UnitFrom> == true), and must be convertible to `UnitTo` (i.e.
-	 *				is_convertible_conversion_factor_v<UnitFrom, UnitTo> == true).
-	 * @tparam		UnitTo unit tag to convert <i>value</i> to. Must be a `conversion_factor` type (i.e.
-	 *				is_conversion_factor_v<UnitTo> == true), and must be convertible from `UnitFrom` (i.e.
-	 *				is_convertible_conversion_factor_v<UnitFrom, UnitTo> == true).
-	 * @tparam		From type of <i>value</i>. It is inferred from <i>value</i>, and is expected to be a built-in
-	 *				arithmetic type.
-	 * @param[in]	value Arithmetic value to convert from `UnitFrom` to `UnitTo`. The value should represent
-	 *				a quantity in units of `UnitFrom`.
-	 * @tparam		To arithmetic type of the converted unit value. The value represents a quantity in units of
-	 *				`UnitTo`.
-	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
+	 *				`is_same_dimension_v<ConversionFactorFrom, ConversionFactorTo>` shall be `true`.
+	 * @sa			unit	for implicit conversion of units.
+	 * @tparam		ConversionFactorFrom conversion factor of the unit to convert <i>value</i> from.
+	 *				`is_conversion_factor_v<ConversionFactorFrom>` shall be `true`.
+	 * @tparam		ConversionFactorTo conversion factor of the unit to convert <i>value</i> to.
+	 *				`is_conversion_factor_v<ConversionFactorTo>` shall be `true`.
+	 * @tparam		From type of <i>value</i>. Shall be an arithmetic type.
+	 * @param[in]	value Arithmetic value to convert.
+	 *				The value should represent a quantity in units of `ConversionFactorFrom`.
+	 * @tparam		To type of the converted unit value. Shall be an arithmetic type.
+	 * @returns		value, converted from units of `ConverionFactorFrom` to `ConverionFactorTo`.
+	 *				The value represents a quantity in units of `ConverionFactorTo`.
 	 */
-	template<class UnitFrom, class UnitTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
-		std::enable_if_t<detail::is_same_dimension<UnitFrom, UnitTo>, int> = 0>
+	template<class ConversionFactorFrom, class ConversionFactorTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
+		std::enable_if_t<detail::is_same_dimension<ConversionFactorFrom, ConversionFactorTo> &&
+				std::is_arithmetic_v<To> && std::is_arithmetic_v<From>,
+			int> = 0>
 	constexpr To convert(const From& value) noexcept
 	{
-		using Ratio   = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
-		using PiRatio = std::ratio_subtract<typename UnitFrom::pi_exponent_ratio, typename UnitTo::pi_exponent_ratio>;
-		using Translation = std::ratio_divide<
-			std::ratio_subtract<typename UnitFrom::translation_ratio, typename UnitTo::translation_ratio>,
-			typename UnitTo::conversion_ratio>;
+		using Ratio       = std::ratio_divide<typename ConversionFactorFrom::conversion_ratio,
+            typename ConversionFactorTo::conversion_ratio>;
+		using PiRatio     = std::ratio_subtract<typename ConversionFactorFrom::pi_exponent_ratio,
+            typename ConversionFactorTo::pi_exponent_ratio>;
+		using Translation = std::ratio_divide<std::ratio_subtract<typename ConversionFactorFrom::translation_ratio,
+												  typename ConversionFactorTo::translation_ratio>,
+			typename ConversionFactorTo::conversion_ratio>;
 
 		[[maybe_unused]] constexpr auto normal_convert = [](const auto& value) {
-			using ResolvedUnitFrom =
-				conversion_factor<typename UnitFrom::conversion_ratio, typename UnitFrom::dimension_type>;
-			using ResolvedUnitTo =
-				conversion_factor<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type>;
+			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
+				typename ConversionFactorFrom::dimension_type>;
+			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
+                typename ConversionFactorTo::dimension_type>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
 		[[maybe_unused]] constexpr auto pi_convert = [](const auto& value) {
-			using ResolvedUnitFrom = conversion_factor<typename UnitFrom::conversion_ratio,
-				typename UnitFrom::dimension_type, typename UnitFrom::pi_exponent_ratio>;
-			using ResolvedUnitTo = conversion_factor<typename UnitTo::conversion_ratio, typename UnitTo::dimension_type,
-				typename UnitTo::pi_exponent_ratio>;
+			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
+				typename ConversionFactorFrom::dimension_type, typename ConversionFactorFrom::pi_exponent_ratio>;
+			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
+                typename ConversionFactorTo::dimension_type, typename ConversionFactorTo::pi_exponent_ratio>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
 		// same exact unit on both sides
-		if constexpr (std::is_same_v<UnitFrom, UnitTo>)
+		if constexpr (std::is_same_v<ConversionFactorFrom, ConversionFactorTo>)
 		{
 			return static_cast<To>(value);
 		}
 		// PI REQUIRED, no translation
-		else if constexpr (!std::is_same_v<std::ratio<0>, PiRatio> && !!std::is_same_v<std::ratio<0>, Translation>)
+		else if constexpr (!std::is_same_v<std::ratio<0>, PiRatio> && std::is_same_v<std::ratio<0>, Translation>)
 		{
 			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
 
@@ -1997,7 +1999,7 @@ namespace units
 			}
 		}
 		// Translation required, no pi variable
-		else if constexpr (!!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		else if constexpr (std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
 		{
 			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
 
@@ -2058,15 +2060,14 @@ namespace units
 
 	/**
 	 * @ingroup		Conversion
-	 * @brief		converts a unit to another unit.
-	 * @details		Converts the value of a unit to another unit. E.g. @code length::meter_t result =
-	 *				convert<length::meters>(length::feet(1.0));	// result == 3.28084_m @endcode Intermediate
+	 * @brief		converts an unit to another unit.
+	 * @details		Converts the value of an unit to another unit. E.g. @code meter_t result =
+	 *				convert<meters>(foot_t(1.0));	// result == 3.28084_m @endcode Intermediate
 	 *				computations are carried in the widest representation before being converted to `UnitTo`.
+	 *				`is_convertible_unit_v<UnitFrom, UnitTo>` shall be `true`.
 	 * @sa			unit	for implicit conversion of unit containers.
-	 * @tparam		UnitFrom unit to convert to `UnitTo`. Must be a `unit` type (i.e. is_unit<UnitFrom>::value == true),
-	 *				and must be convertible to `UnitTo` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
-	 * @tparam		UnitTo unit to convert `from` to. Must be a `unit` type (i.e. is_unit<UnitTo>::value == true),
-	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
+	 * @tparam		UnitFrom unit to convert to `UnitTo`. `is_unit_v<UnitFrom>` shall be `true`.
+	 * @tparam		UnitTo unit to convert `from` to. `is_unit_v<UnitTo>` shall be `true`.
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
 	template<class UnitTo, class UnitFrom, std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>, int> = 0>
