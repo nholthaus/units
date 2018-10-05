@@ -2248,10 +2248,10 @@ namespace units
 	namespace detail
 	{
 		/**
-		 * @brief		SFINAE helper to test if an arithmetic conversion is non lossy.
+		 * @brief		SFINAE helper to test if an arithmetic conversion is lossless.
 		 */
 		template<class From, class To>
-		inline constexpr bool is_non_lossy_convertible = std::is_arithmetic_v<From> &&
+		inline constexpr bool is_losslessly_convertible = std::is_arithmetic_v<From> &&
 			(std::is_floating_point_v<To> || !std::is_floating_point_v<From>);
 
 		/**
@@ -2266,10 +2266,10 @@ namespace units
 		};
 
 		/**
-		 * @brief		SFINAE helper to test if a conversion of units is non lossy.
+		 * @brief		SFINAE helper to test if a conversion of units is lossless.
 		 */
 		template<class UnitFrom, class UnitTo>
-		inline constexpr bool is_non_lossy_convertible_unit =
+		inline constexpr bool is_losslessly_convertible_unit =
 			std::conjunction_v<traits::is_convertible_unit<UnitFrom, UnitTo>,
 				std::disjunction<std::is_floating_point<typename UnitTo::underlying_type>,
 					std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
@@ -2402,7 +2402,7 @@ namespace units
 		 * @param[in]	value	unit magnitude.
 		 */
 		template<class Ty, class Cf = UnitType,
-			std::enable_if_t<!traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>,
+			std::enable_if_t<!traits::is_dimensionless_unit<Cf>::value && detail::is_losslessly_convertible<Ty, T>,
 				int> = 0>
 		explicit constexpr unit(const Ty value) noexcept
 		  : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
@@ -2414,7 +2414,7 @@ namespace units
 		 * @details		constructs a new unit with `value`.
 		 * @param[in]	value	linearized unit magnitude.
 		 */
-		template<class Ty, std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>, int> = 0>
+		template<class Ty, std::enable_if_t<detail::is_losslessly_convertible<Ty, T>, int> = 0>
 		explicit constexpr unit(const Ty value, linearized_value_t) noexcept : linearized_value(value)
 		{
 		}
@@ -2425,8 +2425,8 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<class Ty, class Cf = UnitType,
-			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
-				0>
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_losslessly_convertible<Ty, T>,
+				int> = 0>
 		constexpr unit(const Ty value) noexcept : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
 		{
 		}
@@ -2437,7 +2437,8 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<class Rep, class Period, typename U = UnitType,
-			std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_non_lossy_convertible<Rep, T>, int> = 0>
+			std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_losslessly_convertible<Rep, T>, int> =
+				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
 		  : linearized_value(NumericalScale::linearize(units::convert<unit>(
 				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))()))
@@ -2450,7 +2451,7 @@ namespace units
 		 * @param[in]	rhs unit to copy.
 		 */
 		template<class UnitTypeRhs, typename Ty, class NsRhs,
-			std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NsRhs>, unit>, int> = 0>
+			std::enable_if_t<detail::is_losslessly_convertible_unit<unit<UnitTypeRhs, Ty, NsRhs>, unit>, int> = 0>
 		constexpr unit(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) noexcept
 		  : linearized_value(units::convert<unit>(rhs).linearized_value)
 		{
@@ -2655,7 +2656,8 @@ namespace units
 		 * @details		only enabled for time unit types.
 		 */
 		template<class Rep, class Period, typename U = UnitType,
-			std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_non_lossy_convertible<T, Rep>, int> = 0>
+			std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_losslessly_convertible<T, Rep>, int> =
+				0>
 		constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(
@@ -2702,7 +2704,7 @@ namespace units
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
 	template<class UnitType, typename T,
-		std::enable_if_t<detail::is_non_lossy_convertible<T, typename UnitType::underlying_type>, int> = 0>
+		std::enable_if_t<detail::is_losslessly_convertible<T, typename UnitType::underlying_type>, int> = 0>
 	constexpr UnitType make_unit(const T value) noexcept
 	{
 		static_assert(traits::is_unit_v<UnitType>, "Template parameter `UnitType` must be a unit type.");
@@ -2751,8 +2753,8 @@ namespace units
 		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
-		os << std::conditional_t<detail::is_non_lossy_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit,
-			PromotedBaseUnit>(obj)();
+		os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
+			BaseUnit, PromotedBaseUnit>(obj)();
 
 		using DimType = traits::dimension_of_t<UnitConversion>;
 		if constexpr (!DimType::empty)
