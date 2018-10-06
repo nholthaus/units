@@ -63,10 +63,10 @@ namespace units
 	UNIT_ADD(length, mil, mils, mil, conversion_factor<std::ratio<1000>, feet>)
 	UNIT_ADD(length, inch, inches, in, conversion_factor<std::ratio<1, 12>, feet>)
 	UNIT_ADD(length, mile, miles, mi, conversion_factor<std::ratio<5280>, feet>)
-	UNIT_ADD(length, nauticalMile, nauticalMiles, nmi, conversion_factor<std::ratio<1852>, meters>)
-	UNIT_ADD(length, astronomicalUnit, astronomicalUnits, au, conversion_factor<std::ratio<149597870700>, meters>)
+	UNIT_ADD(length, nautical_mile, nautical_miles, nmi, conversion_factor<std::ratio<1852>, meters>)
+	UNIT_ADD(length, astronomical_unit, astronomical_units, au, conversion_factor<std::ratio<149597870700>, meters>)
 	UNIT_ADD(length, lightyear, lightyears, ly, conversion_factor<std::ratio<9460730472580800>, meters>)
-	UNIT_ADD(length, parsec, parsecs, pc, conversion_factor<std::ratio<648000>, astronomicalUnits, std::ratio<-1>>)
+	UNIT_ADD(length, parsec, parsecs, pc, conversion_factor<std::ratio<648000>, astronomical_units, std::ratio<-1>>)
 	UNIT_ADD(length, angstrom, angstroms, angstrom, conversion_factor<std::ratio<1, 10>, nanometers>)
 	UNIT_ADD(length, cubit, cubits, cbt, conversion_factor<std::ratio<18>, inches>)
 	UNIT_ADD(length, fathom, fathoms, ftm, conversion_factor<std::ratio<6>, feet>)
@@ -74,7 +74,7 @@ namespace units
 	UNIT_ADD(length, furlong, furlongs, fur, conversion_factor<std::ratio<10>, chains>)
 	UNIT_ADD(length, hand, hands, hand, conversion_factor<std::ratio<4>, inches>)
 	UNIT_ADD(length, league, leagues, lea, conversion_factor<std::ratio<3>, miles>)
-	UNIT_ADD(length, nauticalLeague, nauticalLeagues, nl, conversion_factor<std::ratio<3>, nauticalMiles>)
+	UNIT_ADD(length, nautical_league, nautical_leagues, nl, conversion_factor<std::ratio<3>, nautical_miles>)
 	UNIT_ADD(length, yard, yards, yd, conversion_factor<std::ratio<3>, feet>)
 
 	// british spelling aliases
