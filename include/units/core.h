@@ -3574,7 +3574,7 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		namespace for unit types and containers for units that have no dimension (dimensionless units)
+	 * @brief		dimensionless unit with decibel scale
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, ::units::decibel_scale, dimensionless_unit)
