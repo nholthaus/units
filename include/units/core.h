@@ -3386,11 +3386,11 @@ namespace units
 	//	DIMENSIONLESS COMPARISONS
 	//----------------------------------
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator==(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator==(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		using CommonUnderlying = std::common_type_t<T, typename DimensionlessUnit::underlying_type>;
 
 		const auto common_lhs = static_cast<CommonUnderlying>(lhs);
 		const auto common_rhs = static_cast<CommonUnderlying>(rhs);
@@ -3407,88 +3407,88 @@ namespace units
 		}
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator==(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator==(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
 		return rhs == lhs;
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator!=(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator!=(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
 		return !(lhs == rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator!=(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator!=(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
 		return !(lhs == rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator>=(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator>=(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		using CommonUnderlying = std::common_type_t<T, typename DimensionlessUnit::underlying_type>;
 		return lhs >= static_cast<CommonUnderlying>(rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator>=(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator>=(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		using CommonUnderlying = std::common_type_t<typename DimensionlessUnit::underlying_type, T>;
 		return static_cast<CommonUnderlying>(lhs) >= rhs;
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator>(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator>(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		using CommonUnderlying = std::common_type_t<T, typename DimensionlessUnit::underlying_type>;
 		return lhs > static_cast<CommonUnderlying>(rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator>(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator>(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		using CommonUnderlying = std::common_type_t<typename DimensionlessUnit::underlying_type, T>;
 		return static_cast<CommonUnderlying>(lhs) > rhs;
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator<=(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator<=(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		using CommonUnderlying = std::common_type_t<T, typename DimensionlessUnit::underlying_type>;
 		return lhs <= static_cast<CommonUnderlying>(rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator<=(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator<=(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		using CommonUnderlying = std::common_type_t<typename DimensionlessUnit::underlying_type, T>;
 		return static_cast<CommonUnderlying>(lhs) <= rhs;
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator<(const T& lhs, const UnitConversion& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator<(const T& lhs, const DimensionlessUnit& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<T, typename UnitConversion::underlying_type>;
+		using CommonUnderlying = std::common_type_t<T, typename DimensionlessUnit::underlying_type>;
 		return lhs < static_cast<CommonUnderlying>(rhs);
 	}
 
-	template<typename UnitConversion, typename T>
-	constexpr std::enable_if_t<units::traits::is_dimensionless_unit_v<UnitConversion> && std::is_arithmetic_v<T>, bool>
-	operator<(const UnitConversion& lhs, const T& rhs) noexcept
+	template<typename DimensionlessUnit, typename T>
+	constexpr std::enable_if_t<traits::is_dimensionless_unit_v<DimensionlessUnit> && std::is_arithmetic_v<T>, bool>
+	operator<(const DimensionlessUnit& lhs, const T& rhs) noexcept
 	{
-		using CommonUnderlying = std::common_type_t<typename UnitConversion::underlying_type, T>;
+		using CommonUnderlying = std::common_type_t<typename DimensionlessUnit::underlying_type, T>;
 		return static_cast<CommonUnderlying>(lhs) < rhs;
 	}
 
