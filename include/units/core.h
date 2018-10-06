@@ -3690,10 +3690,10 @@ namespace units
 	/**
 	 * @namespace	units::literals
 	 * @brief		namespace for unit literal definitions of all categories.
-	 * @details		Literals allow for declaring unit types using suffix values. For example, a type
-	 *				of `meter_t<double>(6.2)` could be declared as `6.2_m`. All literals use an underscore
+	 * @details		Literals allow using unit values by suffixing numbers. For example, a value
+	 *				of `meter_t<double>(6.2)` could be used as `6.2_m`. All literals use an underscore
 	 *				followed by the abbreviation for the unit. To enable literal syntax in your code,
-	 *				include the statement `using namespace units::literals`.
+	 *				include the statement `using namespace units::literals;`.
 	 * @anchor		unitLiterals
 	 * @sa			See unit for more information on unit type containers.
 	 */
