@@ -3450,15 +3450,12 @@ namespace units
 	 */
 	template<int power, class UnitType, std::enable_if_t<traits::has_linear_scale_v<UnitType>, int> = 0>
 	constexpr auto pow(const UnitType& value) noexcept
-		-> unit<traits::strong_t<typename units::detail::power_of_unit<power,
-					typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
+		-> traits::strong_t<unit<traits::strong_t<typename units::detail::power_of_unit<power,
+									 typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>
+			linear_scale>>
 	{
-		return unit<traits::strong_t<typename units::detail::power_of_unit<power,
-						typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
-			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>(pow(value(), power));
+		return decltype(units::pow<power>(value))(pow(value(), power));
 	}
 
 	//------------------------------
@@ -3813,14 +3810,12 @@ namespace units
 	 *				unit type may have errors no larger than `1e-10`.
 	 */
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	constexpr auto sqrt(const UnitType& value) noexcept
-		-> unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
+	constexpr auto sqrt(const UnitType& value) noexcept -> traits::strong_t<
+		unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>
+			linear_scale>>
 	{
-		return unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
-			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>(sqrt(value()));
+		return decltype(units::sqrt(value))(sqrt(value()));
 	}
 
 	/**
