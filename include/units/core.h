@@ -3525,9 +3525,9 @@ namespace units
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<squared<typename units::traits::unit_traits<
-					std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
-			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>
+		-> traits::strong_t<unit<traits::strong_t<squared<typename units::traits::unit_traits<
+									 std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
+			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>>
 	{
 		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 		using CommonUnderlying = typename CommonUnit::underlying_type;
@@ -3541,8 +3541,8 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr unit<typename UnitTypeLhs::conversion_factor,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
+	constexpr traits::replace_underlying_t<UnitTypeLhs,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnderlying =
@@ -3556,8 +3556,8 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr unit<typename UnitTypeRhs::conversion_factor,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
+	constexpr traits::replace_underlying_t<UnitTypeRhs,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnderlying =
@@ -3586,8 +3586,8 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeLhs> && traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr unit<typename UnitTypeLhs::conversion_factor,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
+	constexpr traits::replace_underlying_t<UnitTypeLhs,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnderlying =
@@ -3601,10 +3601,10 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> traits::strong_t<
+		unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>,
-			decibel_scale>
+			decibel_scale>>
 	{
 		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
 		using CommonUnderlying =
