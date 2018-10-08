@@ -2971,9 +2971,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using Dimensionless = decltype(lhs / rhs);
-		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return Dimensionless(CommonUnit(lhs)() / CommonUnit(rhs)());
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return CommonUnit(lhs)() / CommonUnit(rhs)();
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
