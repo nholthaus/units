@@ -170,6 +170,87 @@ namespace units
 	}
 
 /**
+ * @def			UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, definition)
+ * @brief		Macro for generating the boiler-plate code for the scaled unit template definition.
+ * @details		The macro generates the definition of the scaled unit templates as a strong type template alias,
+ *				e.g. `meters`
+ * @param		unitName unit name, e.g. 'meters'
+ * @param		scale the non linear scale template argument of the unit's base
+ * @param		definition - the variadic parameter is used for the definition of the unit
+ *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
+ * @note		a variadic template is used for the definition to allow templates with
+ *				commas to be easily expanded. All the variadic 'arguments' should together
+ *				comprise the unit definition.
+ */
+#define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*definition*/...) \
+	template<class Underlying> \
+	class unitName : public ::units::unit<__VA_ARGS__, Underlying, scale> \
+	{ \
+		using _base = ::units::unit<__VA_ARGS__, Underlying, scale>; \
+\
+	public: \
+		constexpr unitName()                = default; \
+		constexpr unitName(const unitName&) = default; \
+		constexpr unitName(unitName&&)      = default; \
+		constexpr unitName& operator=(const unitName&) = default; \
+		constexpr unitName& operator=(unitName&&) = default; \
+\
+		template<class T, class... Args, \
+			::std::enable_if_t<::std::is_constructible_v<_base, T, Args...> && \
+					(sizeof...(Args) != 0 || !::std::is_convertible_v<T, _base>), \
+				int> = 0> \
+		explicit constexpr unitName(T&& val, Args&&... args) noexcept \
+		  : _base(::std::forward<T>(val), ::std::forward<Args>(args)...) \
+		{ \
+		} \
+\
+		template<class T, \
+			::std::enable_if_t<::std::is_constructible_v<_base, T>&& ::std::is_convertible_v<T, _base>, int> = 0> \
+		constexpr unitName(T&& val) noexcept : _base(::std::forward<T>(val)) \
+		{ \
+		} \
+\
+		template<class T, ::std::enable_if_t<::std::is_assignable_v<_base&, T>, int> = 0> \
+		constexpr unitName& operator=(T&& val) noexcept \
+		{ \
+			static_cast<_base&>(*this) = ::std::forward<T>(val); \
+			return *this; \
+		} \
+\
+		template<class Unit = unitName> \
+		constexpr const char* name() const noexcept \
+		{ \
+			return ::units::unit_name_v<Unit>; \
+		} \
+\
+		template<class Unit = unitName> \
+		constexpr const char* abbreviation() const noexcept \
+		{ \
+			return ::units::unit_abbreviation_v<Unit>; \
+		} \
+	}; \
+\
+	template<class Underlying, class... Args, ::std::enable_if_t<::std::is_arithmetic_v<Underlying>, int> = 0> \
+	unitName(const Underlying&, Args&&...)->unitName<Underlying>; \
+\
+	template<class Underlying> \
+	unitName(unitName<Underlying>)->unitName<Underlying>; \
+\
+	template<template<class> class StrongUnit, class Underlying, \
+		::std::enable_if_t<::std::is_arithmetic_v<Underlying>&& ::units::traits::detail::is_strong_unit_alias_v< \
+							   StrongUnit<Underlying>>, \
+			int> = 0> \
+	unitName(StrongUnit<Underlying>)->unitName<Underlying>; \
+\
+	template<class Cf, class Underlying, class Ns> \
+	unitName(unit<Cf, Underlying, Ns>)->unitName<Underlying>; \
+\
+	template<class Rep, class Period, \
+		::std::enable_if_t<::units::detail::is_time_conversion_factor<typename unitName<Rep>::conversion_factor>, \
+			int> = 0> \
+	unitName(::std::chrono::duration<Rep, Period>)->unitName<Rep>;
+
+/**
  * @def			UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)
  * @brief		Macro for generating the boiler-plate code needed for I/O for a new unit.
  * @details		The macro generates the code to insert units into an ostream. It
