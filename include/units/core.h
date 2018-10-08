@@ -490,12 +490,23 @@ namespace units
 #define UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation) \
 	inline namespace namespaceName \
 	{ \
-		/** @name Unit Containers */ /** @{ */ template<class Underlying> \
-		using abbreviation##_t = unit<nameSingular, Underlying, units::decibel_scale>; /** @} */ \
+		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
+			abbreviation##_t, decibel_scale, nameSingular) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
-	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
-
+	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
+	namespace traits \
+	{ \
+		template<class Underlying> \
+		struct strong<::units::unit<nameSingular, Underlying, decibel_scale>> \
+		{ \
+			using type = namespaceName::abbreviation##_t<Underlying>; \
+		}; \
+	} \
+	} \
+	UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, abbreviation) \
+	namespace units \
+	{
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
  * @brief		Macro to create the `is_dimension_unit` type trait.
