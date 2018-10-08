@@ -887,6 +887,20 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>,
 		std::common_type_t<third_a_radian, half_a_radian>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
+
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<int>>, dimensionless<int>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, traits::unit_base_t<dimensionless<int>>>,
+		dimensionless<int>>);
+	static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, dimensionless<int>>,
+		dimensionless<int>>);
+	static_assert(std::is_same_v<
+		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<int>>>,
+		traits::unit_base_t<dimensionless<int>>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<double>>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<int>>, dimensionless<double>>);
+	static_assert(std::is_same_v<
+		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<double>>>,
+		traits::unit_base_t<dimensionless<double>>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -901,6 +915,10 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<unit<millimeters, int>>()(unit<meters, int>(42))), 42000);
 	EXPECT_EQ((std::hash<unit<millimeters, int>>()(unit<millimeters, int>(42))), 42);
 	EXPECT_EQ((std::hash<unit<kilometers, int>>()(unit<kilometers, int>(42))), 42);
+
+	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
+	EXPECT_EQ((std::hash<unit<dimensionless_unit, double>>()(3.14)), std::hash<double>()(3.14));
+	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<unit<dimensionless_unit, int>>()(42)));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -913,7 +931,7 @@ TEST_F(UnitManipulators, squared)
 	using dimensionless_2 =
 		traits::strong_t<squared<units::dimensionless_unit>>; // this is actually nonsensical, and should also result in
 															  // a dimensionless.
-	bool isSame = std::is_same_v<dimensionless<double>, unit<dimensionless_2>>;
+	bool isSame = std::is_same_v<unit<dimensionless_unit>, unit<dimensionless_2>>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -1010,8 +1028,13 @@ TEST_F(UnitContainer, constructionFromArithmeticType)
 	EXPECT_EQ(1, b_m());
 
 	const unit<meters, int> c_m(1);
-	static_assert(std::is_same_v<int, decltype(c_m())>);
 	EXPECT_EQ(1, c_m());
+
+	const unit<dimensionless_unit, double> d_dim(1.0);
+	EXPECT_EQ(1.0, d_dim());
+
+	const unit<dimensionless_unit, double> e_dim(1);
+	EXPECT_EQ(1, e_dim());
 
 	const dimensionless<double> a_dim(1.0);
 	EXPECT_EQ(1.0, a_dim());
@@ -1020,8 +1043,10 @@ TEST_F(UnitContainer, constructionFromArithmeticType)
 	EXPECT_EQ(1, b_dim());
 
 	const unit<dimensionless_unit, int> c_dim(1);
-	static_assert(std::is_same_v<int, decltype(c_dim())>);
 	EXPECT_EQ(1, c_dim());
+
+	const dimensionless<int> f_dim(1);
+	EXPECT_EQ(1, f_dim());
 }
 
 TEST_F(UnitContainer, constructionFromUnitContainer)
@@ -1048,11 +1073,47 @@ TEST_F(UnitContainer, constructionFromUnitContainer)
 	const unit<dimensionless_unit, int> b_dim(a_dim);
 	EXPECT_EQ(1, b_dim());
 
-	const dimensionless<double> c_dim(b_dim);
+	const dimensionless<int> c_dim(b_dim);
+	EXPECT_EQ(1, c_dim());
+
+	const unit<dimensionless_unit, int> d_dim(c_dim);
+	EXPECT_EQ(1, d_dim());
+
+	const dimensionless<double> e_dim(d_dim);
+	EXPECT_EQ(1, e_dim());
+
+	const dimensionless<double> f_dim(c_dim);
+	EXPECT_EQ(1, f_dim());
+
+	const dimensionless<double> g_dim(f_dim);
+	EXPECT_EQ(1, g_dim());
+}
+
+TEST_F(UnitContainer, assignmentFromArithmeticType)
+{
+	unit<dimensionless_unit, int> a_dim;
+	a_dim = 1;
+	EXPECT_EQ(1, a_dim());
+	a_dim = 1.0;
+	EXPECT_EQ(1.0, a_dim());
+
+	dimensionless<int> b_dim;
+	b_dim = 1;
+	EXPECT_EQ(1, b_dim());
+	b_dim = 1.0;
 	EXPECT_EQ(1, b_dim());
 
-	const dimensionless<double> d_dim(c_dim);
+	unit<dimensionless_unit, double> c_dim;
+	c_dim = 1.0;
+	EXPECT_EQ(1.0, c_dim());
+	c_dim = 1;
+	EXPECT_EQ(1, c_dim());
+
+	dimensionless<double> d_dim;
+	d_dim = 1.0;
 	EXPECT_EQ(1.0, d_dim());
+	d_dim = 1;
+	EXPECT_EQ(1, d_dim());
 }
 
 TEST_F(UnitContainer, assignmentFromUnitContainer)
@@ -1079,19 +1140,26 @@ TEST_F(UnitContainer, assignmentFromUnitContainer)
 	e_m = unit<kilometers, int>(1);
 	EXPECT_EQ(1000.0, e_m());
 
-	const unit<dimensionless_unit, int> a_dim(1);
+	unit<dimensionless_unit, int> a_dim(1);
+	a_dim = +a_dim;
+	EXPECT_EQ(1, a_dim());
 
-	unit<dimensionless_unit, int> b_dim;
+	dimensionless<int> b_dim;
 	b_dim = a_dim;
 	EXPECT_EQ(1, b_dim());
-
-	dimensionless<double> c_dim;
-	c_dim = b_dim;
+	b_dim = +b_dim;
 	EXPECT_EQ(1, b_dim());
 
-	dimensionless<double> d_dim;
-	d_dim = c_dim;
-	EXPECT_EQ(1.0, d_dim());
+	a_dim = b_dim;
+	EXPECT_EQ(1, a_dim());
+
+	dimensionless<double> c_dim;
+	c_dim = a_dim;
+	EXPECT_EQ(1, c_dim());
+	c_dim = b_dim;
+	EXPECT_EQ(1, c_dim());
+	c_dim = +c_dim;
+	EXPECT_EQ(1, c_dim());
 }
 
 TEST_F(UnitContainer, make_unit)
@@ -1210,7 +1278,7 @@ TEST_F(UnitContainer, unitTypeRelational)
 	EXPECT_TRUE(d_m >= a_m);
 	EXPECT_FALSE(a_m >= d_m);
 
-	const dimensionless<double> a_s(0);
+	const unit<dimensionless_unit, double> a_s(0);
 	const unit<dimensionless_unit, int> b_s(1);
 
 	EXPECT_FALSE(a_s < a_s);
@@ -1225,6 +1293,35 @@ TEST_F(UnitContainer, unitTypeRelational)
 	EXPECT_TRUE(a_s >= a_s);
 	EXPECT_TRUE(b_s >= a_s);
 	EXPECT_FALSE(a_s >= b_s);
+
+	const dimensionless<double> c_s(0);
+	const dimensionless<int> d_s(1);
+
+	EXPECT_FALSE(c_s < c_s);
+	EXPECT_FALSE(d_s < c_s);
+	EXPECT_TRUE(c_s < d_s);
+	EXPECT_TRUE(c_s <= c_s);
+	EXPECT_FALSE(d_s <= c_s);
+	EXPECT_TRUE(c_s <= d_s);
+	EXPECT_FALSE(c_s > c_s);
+	EXPECT_TRUE(d_s > c_s);
+	EXPECT_FALSE(c_s > d_s);
+	EXPECT_TRUE(c_s >= c_s);
+	EXPECT_TRUE(d_s >= c_s);
+	EXPECT_FALSE(c_s >= d_s);
+
+	EXPECT_FALSE(a_s < c_s);
+	EXPECT_FALSE(d_s < a_s);
+	EXPECT_TRUE(a_s < d_s);
+	EXPECT_TRUE(c_s <= a_s);
+	EXPECT_FALSE(d_s <= a_s);
+	EXPECT_TRUE(a_s <= d_s);
+	EXPECT_FALSE(a_s > c_s);
+	EXPECT_TRUE(d_s > a_s);
+	EXPECT_FALSE(a_s > d_s);
+	EXPECT_TRUE(c_s >= a_s);
+	EXPECT_TRUE(d_s >= a_s);
+	EXPECT_FALSE(a_s >= d_s);
 }
 
 TEST_F(UnitContainer, unitTypeMixedRelational)
@@ -1261,6 +1358,64 @@ TEST_F(UnitContainer, unitTypeMixedRelational)
 	EXPECT_FALSE(a_f > b_m);
 	EXPECT_TRUE(b_f >= a_m);
 	EXPECT_TRUE(b_m >= a_f);
+}
+
+TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
+{
+	using dimless      = dimensionless<int>;
+	using dimless_base = traits::unit_base_t<dimless>;
+
+	dimless dim;
+	dimless_base base;
+
+	static_assert(std::is_same_v<dimless, decltype(+dim)>);
+	static_assert(std::is_same_v<dimless_base, decltype(+base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(-dim)>);
+	static_assert(std::is_same_v<dimless_base, decltype(-base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(dim + 0)>);
+	static_assert(std::is_same_v<dimless, decltype(0 + dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim + dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim + base)>);
+	static_assert(std::is_same_v<dimless, decltype(base + dim)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base + base)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base + 0)>);
+	static_assert(std::is_same_v<dimless_base, decltype(0 + base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(dim - 0)>);
+	static_assert(std::is_same_v<dimless, decltype(0 - dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim - dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim - base)>);
+	static_assert(std::is_same_v<dimless, decltype(base - dim)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base - base)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base - 0)>);
+	static_assert(std::is_same_v<dimless_base, decltype(0 - base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(dim * 1)>);
+	static_assert(std::is_same_v<dimless, decltype(1 * dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim * dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim * base)>);
+	static_assert(std::is_same_v<dimless, decltype(base * dim)>);
+	static_assert(std::is_same_v<dimless, decltype(base * base)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base * 1)>);
+	static_assert(std::is_same_v<dimless_base, decltype(1 * base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(dim / 1)>);
+	static_assert(std::is_same_v<dimless_base, decltype(1 / dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim / dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim / base)>);
+	static_assert(std::is_same_v<dimless, decltype(base / dim)>);
+	static_assert(std::is_same_v<dimless, decltype(base / base)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base / 1)>);
+	static_assert(std::is_same_v<dimless_base, decltype(1 / base)>);
+
+	static_assert(std::is_same_v<dimless, decltype(dim % 1)>);
+	static_assert(std::is_same_v<dimless, decltype(dim % dim)>);
+	static_assert(std::is_same_v<dimless, decltype(dim % base)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base % dim)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base % 1)>);
+	static_assert(std::is_same_v<dimless_base, decltype(base % base)>);
 }
 
 TEST_F(UnitContainer, unitTypeAddition)

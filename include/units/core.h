@@ -3065,8 +3065,7 @@ namespace units
 	{
 	};
 
-	template<class Underlying>
-	using dimensionless = unit<dimensionless_unit, Underlying>;
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, linear_scale, dimensionless_unit)
 
 	namespace traits
 	{
@@ -3074,6 +3073,12 @@ namespace units
 		struct strong<units::detail::conversion_factor_base_t<dimensionless_unit>>
 		{
 			using type = dimensionless_unit;
+		};
+
+		template<class Underlying>
+		struct strong<unit<dimensionless_unit, Underlying>>
+		{
+			using type = dimensionless<Underlying>;
 		};
 	} // namespace traits
 
@@ -3087,6 +3092,48 @@ namespace units
 #pragma warning(pop)
 #endif
 
+} // namespace units
+
+namespace std
+{
+	template<class Underlying>
+	struct hash<units::dimensionless<Underlying>>
+	  : private hash<units::traits::unit_base_t<units::dimensionless<Underlying>>>
+	{
+		constexpr size_t operator()(const units::dimensionless<Underlying>& x) const noexcept
+		{
+			return hash<units::traits::unit_base_t<units::dimensionless<Underlying>>>()(x);
+		}
+	};
+
+	template<typename Underlying, class ConversionFactor, class T, template<typename> class NonLinearScale>
+	struct common_type<units::dimensionless<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
+	{
+		using type = units::traits::strong_t<common_type_t<units::traits::unit_base_t<units::dimensionless<Underlying>>,
+			units::unit<ConversionFactor, T, NonLinearScale>>>;
+	};
+
+	template<class ConversionFactor, class T, template<typename> class NonLinearScale, typename Underlying>
+	struct common_type<units::unit<ConversionFactor, T, NonLinearScale>, units::dimensionless<Underlying>>
+	  : common_type<units::dimensionless<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
+	{
+	};
+
+	template<typename Underlying1, typename Underlying2>
+	struct common_type<units::dimensionless<Underlying1>, units::dimensionless<Underlying2>>
+	{
+		using type = units::dimensionless<common_type_t<Underlying1, Underlying2>>;
+	};
+
+	template<typename Underlying, class T>
+	struct common_type<units::dimensionless<Underlying>, T>
+	  : common_type<units::traits::unit_base_t<units::dimensionless<Underlying>>, units::traits::unit_base_t<T>>
+	{
+	};
+} // namespace std
+
+namespace units
+{
 	//------------------------------
 	//	LINEAR ARITHMETIC
 	//------------------------------
