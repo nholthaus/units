@@ -3231,10 +3231,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>
 	{
-		return unit<traits::strong_t<typename units::detail::power_of_unit<power,
-						typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
-			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>(pow(value(), power));
+		return decltype(units::pow<power>(value))(pow(value(), power));
 	}
 
 	//------------------------------
@@ -3582,9 +3579,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>
 	{
-		return unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
-			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
-			linear_scale>(sqrt(value()));
+		return decltype(units::sqrt(value))(sqrt(value()));
 	}
 
 	/**
