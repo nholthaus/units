@@ -3619,8 +3619,7 @@ namespace units
 	 * @brief		namespace for unit types and containers for units that have no dimension (dimensionless units)
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	template<class Underlying>
-	using dB_t = unit<dimensionless_unit, Underlying, decibel_scale>;
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, decibel_scale, dimensionless_unit)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
 	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
@@ -3632,6 +3631,47 @@ namespace units
 	template<class Underlying>
 	using dBi_t = dB_t<Underlying>;
 
+} // namespace units
+
+namespace std
+{
+	template<class Underlying>
+	struct hash<units::dB_t<Underlying>> : private hash<units::traits::unit_base_t<units::dB_t<Underlying>>>
+	{
+		constexpr size_t operator()(const units::dB_t<Underlying>& x) const noexcept
+		{
+			return hash<units::traits::unit_base_t<units::dB_t<Underlying>>>()(x);
+		}
+	};
+
+	template<typename Underlying, class ConversionFactor, class T, template<typename> class NonLinearScale>
+	struct common_type<units::dB_t<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
+	{
+		using type = units::traits::strong_t<common_type_t<units::traits::unit_base_t<units::dB_t<Underlying>>,
+			units::unit<ConversionFactor, T, NonLinearScale>>>;
+	};
+
+	template<class ConversionFactor, class T, template<typename> class NonLinearScale, typename Underlying>
+	struct common_type<units::unit<ConversionFactor, T, NonLinearScale>, units::dB_t<Underlying>>
+	  : common_type<units::dB_t<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
+	{
+	};
+
+	template<typename Underlying1, typename Underlying2>
+	struct common_type<units::dB_t<Underlying1>, units::dB_t<Underlying2>>
+	{
+		using type = units::dB_t<common_type_t<Underlying1, Underlying2>>;
+	};
+
+	template<typename Underlying, class T>
+	struct common_type<units::dB_t<Underlying>, T>
+	  : common_type<units::traits::unit_base_t<units::dB_t<Underlying>>, units::traits::unit_base_t<T>>
+	{
+	};
+} // namespace std
+
+namespace units
+{
 	//------------------------------
 	//	DECIBEL ARITHMETIC
 	//------------------------------
