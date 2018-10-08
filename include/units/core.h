@@ -1058,15 +1058,6 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	/** @cond */ // DOXYGEN IGNORE
-	namespace traits
-	{
-		template<typename C, typename U, typename P, typename T>
-		struct strong<conversion_factor<C, U, P, T>>
-		{
-			using type = conversion_factor<C, U, P, T>;
-		};
-	} // namespace traits
-
 	namespace detail
 	{
 		template<typename C, typename U, typename P, typename T>
