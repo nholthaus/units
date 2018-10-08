@@ -1059,14 +1059,29 @@ TEST_F(UnitContainer, constructionFromUnitContainer)
 	const unit<millimeters, int> a_mm(b_m);
 	EXPECT_EQ(1000, a_mm());
 
+	const millimeter_t<int> b_mm(a_mm);
+	EXPECT_EQ(1000, b_mm());
+
+	const millimeter_t<int> c_mm(b_mm);
+	EXPECT_EQ(1000, c_mm());
+
+	const millimeter_t<int> d_mm(b_m);
+	EXPECT_EQ(1000, d_mm());
+
 	const meter_t<double> c_m(b_m);
 	EXPECT_EQ(1.0, c_m());
 
 	const meter_t<double> d_m(a_mm);
 	EXPECT_EQ(1.0, d_m());
 
-	const meter_t<double> e_m(unit<kilometers, int>(1));
-	EXPECT_EQ(1000.0, e_m());
+	const meter_t<double> e_m(b_mm);
+	EXPECT_EQ(1.0, e_m());
+
+	const meter_t<double> f_m(c_m);
+	EXPECT_EQ(1.0, f_m());
+
+	const meter_t<double> g_m(kilometer_t<int>(1));
+	EXPECT_EQ(1000.0, g_m());
 
 	const unit<dimensionless_unit, int> a_dim(1);
 
@@ -1118,27 +1133,38 @@ TEST_F(UnitContainer, assignmentFromArithmeticType)
 
 TEST_F(UnitContainer, assignmentFromUnitContainer)
 {
-	const unit<meters, int> a_m(1);
-
-	unit<meters, int> b_m;
-	b_m = a_m;
-	EXPECT_EQ(1, b_m());
+	unit<meters, int> a_m(1);
+	a_m = +a_m;
+	EXPECT_EQ(1, a_m());
 
 	unit<millimeters, int> a_mm;
-	a_mm = b_m;
+	a_mm = a_m;
+	EXPECT_EQ(1000, a_mm());
+	a_mm = +a_mm;
 	EXPECT_EQ(1000, a_mm());
 
-	meter_t<double> c_m;
-	c_m = b_m;
-	EXPECT_EQ(1.0, c_m());
+	millimeter_t<int> b_mm;
+	b_mm = a_m;
+	EXPECT_EQ(1000, b_mm());
+	b_mm = a_mm;
+	EXPECT_EQ(1000, b_mm());
+	b_mm = +b_mm;
+	EXPECT_EQ(1000, b_mm());
 
-	meter_t<double> d_m;
-	d_m = a_mm;
-	EXPECT_EQ(1.0, d_m());
+	a_mm = b_mm;
+	EXPECT_EQ(1000, a_mm());
 
-	meter_t<double> e_m;
-	e_m = unit<kilometers, int>(1);
-	EXPECT_EQ(1000.0, e_m());
+	meter_t<double> b_m;
+	b_m = a_m;
+	EXPECT_EQ(1, b_m());
+	b_m = a_mm;
+	EXPECT_EQ(1, b_m());
+	b_m = b_mm;
+	EXPECT_EQ(1, b_m());
+	b_m = +b_m;
+	EXPECT_EQ(1, b_m());
+	b_m = unit<kilometers, int>(1);
+	EXPECT_EQ(1000, b_m());
 
 	unit<dimensionless_unit, int> a_dim(1);
 	a_dim = +a_dim;
@@ -1368,11 +1394,26 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	dimless dim;
 	dimless_base base;
 
+	using meter      = meter_t<int>;
+	using meter_base = unit<units::meter, int>;
+
+	meter m;
+	meter_base b_m;
+
+	using squared_meter = square_meter_t<int>;
+	using inverse_meter = unit<inverse<units::meter>, int>;
+
 	static_assert(std::is_same_v<dimless, decltype(+dim)>);
 	static_assert(std::is_same_v<dimless_base, decltype(+base)>);
 
+	static_assert(std::is_same_v<meter, decltype(+m)>);
+	static_assert(std::is_same_v<meter_base, decltype(+b_m)>);
+
 	static_assert(std::is_same_v<dimless, decltype(-dim)>);
 	static_assert(std::is_same_v<dimless_base, decltype(-base)>);
+
+	static_assert(std::is_same_v<meter, decltype(-m)>);
+	static_assert(std::is_same_v<meter_base, decltype(-b_m)>);
 
 	static_assert(std::is_same_v<dimless, decltype(dim + 0)>);
 	static_assert(std::is_same_v<dimless, decltype(0 + dim)>);
@@ -1383,6 +1424,11 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimless_base, decltype(base + 0)>);
 	static_assert(std::is_same_v<dimless_base, decltype(0 + base)>);
 
+	static_assert(std::is_same_v<meter, decltype(m + m)>);
+	static_assert(std::is_same_v<meter, decltype(m + b_m)>);
+	static_assert(std::is_same_v<meter, decltype(b_m + m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m + b_m)>);
+
 	static_assert(std::is_same_v<dimless, decltype(dim - 0)>);
 	static_assert(std::is_same_v<dimless, decltype(0 - dim)>);
 	static_assert(std::is_same_v<dimless, decltype(dim - dim)>);
@@ -1391,6 +1437,11 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimless_base, decltype(base - base)>);
 	static_assert(std::is_same_v<dimless_base, decltype(base - 0)>);
 	static_assert(std::is_same_v<dimless_base, decltype(0 - base)>);
+
+	static_assert(std::is_same_v<meter, decltype(m - m)>);
+	static_assert(std::is_same_v<meter, decltype(m - b_m)>);
+	static_assert(std::is_same_v<meter, decltype(b_m - m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m - b_m)>);
 
 	static_assert(std::is_same_v<dimless, decltype(dim * 1)>);
 	static_assert(std::is_same_v<dimless, decltype(1 * dim)>);
@@ -1401,6 +1452,25 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimless_base, decltype(base * 1)>);
 	static_assert(std::is_same_v<dimless_base, decltype(1 * base)>);
 
+	static_assert(std::is_same_v<meter, decltype(m * 1)>);
+	static_assert(std::is_same_v<meter, decltype(1 * m)>);
+	static_assert(std::is_same_v<meter, decltype(m * dim)>);
+	static_assert(std::is_same_v<meter, decltype(dim * m)>);
+	static_assert(std::is_same_v<meter, decltype(m * base)>);
+	static_assert(std::is_same_v<meter, decltype(base * m)>);
+
+	static_assert(std::is_same_v<meter_base, decltype(b_m * 1)>);
+	static_assert(std::is_same_v<meter_base, decltype(1 * b_m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m * dim)>);
+	static_assert(std::is_same_v<meter_base, decltype(dim * b_m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m * base)>);
+	static_assert(std::is_same_v<meter_base, decltype(base * b_m)>);
+
+	static_assert(std::is_same_v<squared_meter, decltype(m * m)>);
+	static_assert(std::is_same_v<squared_meter, decltype(m * b_m)>);
+	static_assert(std::is_same_v<squared_meter, decltype(b_m * m)>);
+	static_assert(std::is_same_v<squared_meter, decltype(b_m * b_m)>);
+
 	static_assert(std::is_same_v<dimless, decltype(dim / 1)>);
 	static_assert(std::is_same_v<dimless_base, decltype(1 / dim)>);
 	static_assert(std::is_same_v<dimless, decltype(dim / dim)>);
@@ -1410,12 +1480,42 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimless_base, decltype(base / 1)>);
 	static_assert(std::is_same_v<dimless_base, decltype(1 / base)>);
 
+	static_assert(std::is_same_v<meter, decltype(m / 1)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(1 / m)>);
+	static_assert(std::is_same_v<meter, decltype(m / dim)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(dim / m)>);
+	static_assert(std::is_same_v<meter, decltype(m / base)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(base / m)>);
+
+	static_assert(std::is_same_v<meter_base, decltype(b_m / 1)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(1 / b_m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m / dim)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(dim / b_m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m / base)>);
+	static_assert(std::is_same_v<inverse_meter, decltype(base / b_m)>);
+
+	static_assert(std::is_same_v<dimless, decltype(m / m)>);
+	static_assert(std::is_same_v<dimless, decltype(m / b_m)>);
+	static_assert(std::is_same_v<dimless, decltype(b_m / m)>);
+	static_assert(std::is_same_v<dimless, decltype(b_m / b_m)>);
+
 	static_assert(std::is_same_v<dimless, decltype(dim % 1)>);
 	static_assert(std::is_same_v<dimless, decltype(dim % dim)>);
 	static_assert(std::is_same_v<dimless, decltype(dim % base)>);
 	static_assert(std::is_same_v<dimless_base, decltype(base % dim)>);
 	static_assert(std::is_same_v<dimless_base, decltype(base % 1)>);
 	static_assert(std::is_same_v<dimless_base, decltype(base % base)>);
+
+	static_assert(std::is_same_v<meter, decltype(m % 1)>);
+	static_assert(std::is_same_v<meter, decltype(m % dim)>);
+	static_assert(std::is_same_v<meter, decltype(m % base)>);
+	static_assert(std::is_same_v<meter, decltype(m % m)>);
+	static_assert(std::is_same_v<meter, decltype(m % b_m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m % 1)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m % dim)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m % base)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m % m)>);
+	static_assert(std::is_same_v<meter_base, decltype(b_m % b_m)>);
 }
 
 TEST_F(UnitContainer, unitTypeAddition)
@@ -3995,7 +4095,7 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meter>>>>;
+	isSame = std::is_same_v<decltype(cube), traits::strong_t<unit<traits::strong_t<cubed<meter>>>>>;
 	EXPECT_TRUE(isSame);
 
 	auto fourth = pow<4>(value);

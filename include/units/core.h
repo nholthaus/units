@@ -165,8 +165,8 @@ namespace units
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
 	inline namespace namespaceName \
 	{ \
-		/** @name Unit Containers */ /** @{ */ template<class Underlying> \
-		using nameSingular##_t = unit<nameSingular, Underlying>; /** @} */ \
+		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
+			nameSingular##_t, linear_scale, nameSingular) /** @} */ \
 	}
 
 /**
@@ -474,10 +474,12 @@ namespace units
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
-	UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
 	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation) \
-	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
-
+	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation) \
+	} \
+	UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, ::units::linear_scale) \
+	namespace units \
+	{
 /**
  * @def			UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
  * @brief		Macro to create decibel container and literals for an existing unit type.
