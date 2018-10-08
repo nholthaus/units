@@ -1818,7 +1818,7 @@ namespace units
 	{
 		return UnitTo(
 			convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
-				typename UnitTo::underlying_type>(from.template toLinearized<typename UnitFrom::underlying_type>()),
+				typename UnitTo::underlying_type>(from.template to_linearized<typename UnitFrom::underlying_type>()),
 			std::true_type() /*store linear value*/);
 	}
 
@@ -2321,7 +2321,7 @@ namespace units
 		 *				linear scales, this is equivalent to `value`.
 		 */
 		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
-		constexpr Ty toLinearized() const noexcept
+		constexpr Ty to_linearized() const noexcept
 		{
 			return static_cast<Ty>(m_value);
 		}
@@ -3353,8 +3353,8 @@ namespace units
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 
 		return unit<traits::strong_t<squared<typename CommonUnit::conversion_factor>>, CommonUnderlying, decibel_scale>(
-			CommonUnit(lhs).template toLinearized<CommonUnderlying>() *
-				CommonUnit(rhs).template toLinearized<CommonUnderlying>(),
+			CommonUnit(lhs).template to_linearized<CommonUnderlying>() *
+				CommonUnit(rhs).template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3370,7 +3370,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.template toLinearized<CommonUnderlying>() * rhs.template toLinearized<CommonUnderlying>(),
+			lhs.template to_linearized<CommonUnderlying>() * rhs.template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3386,7 +3386,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeRhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.template toLinearized<CommonUnderlying>() * rhs.template toLinearized<CommonUnderlying>(),
+			lhs.template to_linearized<CommonUnderlying>() * rhs.template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3401,8 +3401,8 @@ namespace units
 		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 
-		return dB_t<CommonUnderlying>(CommonUnit(lhs).template toLinearized<CommonUnderlying>() /
-				CommonUnit(rhs).template toLinearized<CommonUnderlying>(),
+		return dB_t<CommonUnderlying>(CommonUnit(lhs).template to_linearized<CommonUnderlying>() /
+				CommonUnit(rhs).template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3418,7 +3418,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.template toLinearized<CommonUnderlying>() / rhs.template toLinearized<CommonUnderlying>(),
+			lhs.template to_linearized<CommonUnderlying>() / rhs.template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3437,7 +3437,7 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 
 		return unit<traits::strong_t<inverse<UnitConversionRhs>>, CommonUnderlying, decibel_scale>(
-			lhs.template toLinearized<CommonUnderlying>() / rhs.template toLinearized<CommonUnderlying>(),
+			lhs.template to_linearized<CommonUnderlying>() / rhs.template to_linearized<CommonUnderlying>(),
 			std::true_type());
 	}
 
@@ -3904,11 +3904,11 @@ namespace std
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
-				return x.template toLinearized<T>();
+				return x.template to_linearized<T>();
 			}
 			else
 			{
-				return hash<T>()(x.template toLinearized<T>());
+				return hash<T>()(x.template to_linearized<T>());
 			}
 		}
 	};
