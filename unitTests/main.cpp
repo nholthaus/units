@@ -1104,6 +1104,119 @@ TEST_F(UnitContainer, constructionFromUnitContainer)
 	EXPECT_EQ(1, g_dim());
 }
 
+TEST_F(UnitContainer, CTADFromUnitContainer)
+{
+	// Underlying type, copy ctor, and same dimensioned units for `int` and `double`.
+	const meter_t a_m(1);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_m)>, meter_t<int>>);
+
+	const meter_t b_m(a_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m)>, meter_t<int>>);
+
+	const millimeter_t a_mm(b_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_mm)>, millimeter_t<int>>);
+
+	const meter_t c_m(1.0);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(c_m)>, meter_t<double>>);
+
+	const meter_t d_m(c_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(d_m)>, meter_t<double>>);
+
+	const millimeter_t b_mm(d_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_mm)>, millimeter_t<double>>);
+
+	const kilometer_t a_km(b_mm);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_km)>, kilometer_t<double>>);
+
+	// Other underlying types.
+	const meter_t e_m(short(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(e_m)>, meter_t<short>>);
+
+	const meter_t f_m(1.0f);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(f_m)>, meter_t<float>>);
+
+	const meter_t g_m(1LL);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(g_m)>, meter_t<long long>>);
+
+	const meter_t h_m(1.0L);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(h_m)>, meter_t<long double>>);
+
+	// `unit`.
+	const meter_t i_m(unit<meter, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(i_m)>, meter_t<int>>);
+
+	const meter_t j_m(unit<meter, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(j_m)>, meter_t<double>>);
+
+	const meter_t k_m(unit<kilometer, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(k_m)>, meter_t<int>>);
+
+	const meter_t l_m(unit<kilometer, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(l_m)>, meter_t<double>>);
+
+	const meter_t m_m(unit<millimeter, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meter_t<double>>);
+
+	// `std::chrono::duration`.
+	using namespace std::chrono_literals;
+
+	const second_t a_s(1_s);
+	static_assert(std::is_integral_v<decltype(a_s())>);
+
+	const second_t b_s(1.0_s);
+	static_assert(std::is_floating_point_v<decltype(b_s())>);
+
+	[[maybe_unused]] const second_t c_s(1_min);
+	[[maybe_unused]] const second_t d_s(1.0_min);
+	[[maybe_unused]] const second_t e_s(1.0_ms);
+
+	// Dimensionless units.
+	const dimensionless a_dim(1);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_dim)>, dimensionless<int>>);
+
+	const dimensionless b_dim(a_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_dim)>, dimensionless<int>>);
+
+	const percent_t a_per(b_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_per)>, percent_t<int>>);
+
+	const dimensionless c_dim(1.0);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(c_dim)>, dimensionless<double>>);
+
+	const dimensionless d_dim(c_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(d_dim)>, dimensionless<double>>);
+
+	const percent_t b_per(d_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_per)>, percent_t<double>>);
+
+	const dimensionless e_dim(short(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(e_dim)>, dimensionless<short>>);
+
+	const dimensionless f_dim(1.0f);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(f_dim)>, dimensionless<float>>);
+
+	const dimensionless g_dim(1LL);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(g_dim)>, dimensionless<long long>>);
+
+	const dimensionless h_dim(1.0L);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(h_dim)>, dimensionless<long double>>);
+
+	const dimensionless i_dim(unit<dimensionless_unit, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(i_dim)>, dimensionless<int>>);
+
+	const dimensionless j_dim(unit<dimensionless_unit, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(j_dim)>, dimensionless<double>>);
+
+	const dimensionless k_dim(unit<conversion_factor<std::kilo, dimensionless_unit>, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(k_dim)>, dimensionless<int>>);
+
+	const dimensionless l_dim(unit<conversion_factor<std::kilo, dimensionless_unit>, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(l_dim)>, dimensionless<double>>);
+
+	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_unit>, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
+}
+
 TEST_F(UnitContainer, assignmentFromArithmeticType)
 {
 	unit<dimensionless_unit, int> a_dim;
