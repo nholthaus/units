@@ -307,17 +307,17 @@ namespace units
  * @def			UNIT_ADD_STRONG(namespaceName, nameSingular, scale)
  * @brief		Macro for generating the boiler-plate code for the strong type trait of the unit.
  * @details		The macro generates the specialization of the strong type trait of the unit.
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		globalConversionFactor the unit's conversion factor prefixed with `::`, e.g. `::units::length::meter`
+ * @param		globalUnitName the unit name prefixed with `::`, e.g. `::units::length::meter_t`
  * @param		scale the `NumericalScale` template template argument of the unit's `unit` base
  */
-#define UNIT_ADD_STRONG(namespaceName, nameSingular, scale) \
+#define UNIT_ADD_STRONG(globalConversionFactor, globalUnitName, scale) \
 	namespace traits \
 	{ \
 		template<class Underlying> \
-		struct strong<::units::unit<namespaceName::nameSingular, Underlying, scale>> \
+		struct strong<::units::unit<globalConversionFactor, Underlying, scale>> \
 		{ \
-			using type = namespaceName::nameSingular##_t<Underlying>; \
+			using type = globalUnitName<Underlying>; \
 		}; \
 	}
 
@@ -335,84 +335,76 @@ namespace units
 	namespace units \
 	{ \
 		UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
-		UNIT_ADD_STRONG(namespaceName, nameSingular, scale) \
+		UNIT_ADD_STRONG(::units::namespaceName::nameSingular, ::units::namespaceName::nameSingular##_t, scale) \
 	}
 
 /**
- * @def			UNIT_ADD_HASH(namespaceName, nameSingular)
+ * @def			UNIT_ADD_HASH(globalUnitName)
  * @brief		Macro for generating `std::hash` specializations for units.
  * @details		The macro generates `std::hash` specializations for units. It should be used from the global namespace.
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		globalUnitName the unit name prefixed with `::`, e.g. `::units::length::meter_t`
  */
-#define UNIT_ADD_HASH(namespaceName, nameSingular) \
+#define UNIT_ADD_HASH(globalUnitName) \
 	namespace std \
 	{ \
 		template<class Underlying> \
-		struct hash<::units::namespaceName::nameSingular##_t<Underlying>> \
-		  : private hash<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>> \
+		struct hash<globalUnitName<Underlying>> \
+		  : private hash<::units::traits::unit_base_t<globalUnitName<Underlying>>> \
 		{ \
-			constexpr size_t operator()(const ::units::namespaceName::nameSingular##_t<Underlying>& x) const noexcept \
+			constexpr size_t operator()(const globalUnitName<Underlying>& x) const noexcept \
 			{ \
-				return hash<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>>()(x); \
+				return hash<::units::traits::unit_base_t<globalUnitName<Underlying>>>()(x); \
 			} \
 		}; \
 	}
 
 /**
- * @def			UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular)
+ * @def			UNIT_ADD_COMMON_TYPE(globalUnitName)
  * @brief		Macro for generating `std::common_type` specializations for units.
  * @details		The macro generates `std::common_type` specializations for units.
  *				It should be used from the global namespace.
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		globalUnitName the unit name prefixed with `::`, e.g. `::units::length::meter_t`
  */
-#define UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular) \
+#define UNIT_ADD_COMMON_TYPE(globalUnitName) \
 	namespace std \
 	{ \
 		template<typename Underlying, class ConversionFactor, class T, class NumericalScale> \
-		struct common_type<::units::namespaceName::nameSingular##_t<Underlying>, \
-			::units::unit<ConversionFactor, T, NumericalScale>> \
+		struct common_type<globalUnitName<Underlying>, ::units::unit<ConversionFactor, T, NumericalScale>> \
 		{ \
-			using type = ::units::traits::strong_t< \
-				common_type_t<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>, \
+			using type = \
+				::units::traits::strong_t<common_type_t<::units::traits::unit_base_t<globalUnitName<Underlying>>, \
 					::units::unit<ConversionFactor, T, NumericalScale>>>; \
 		}; \
 \
 		template<class ConversionFactor, class T, class NumericalScale, typename Underlying> \
-		struct common_type<::units::unit<ConversionFactor, T, NumericalScale>, \
-			::units::namespaceName::nameSingular##_t<Underlying>> \
-		  : common_type<::units::namespaceName::nameSingular##_t<Underlying>, \
-				::units::unit<ConversionFactor, T, NumericalScale>> \
+		struct common_type<::units::unit<ConversionFactor, T, NumericalScale>, globalUnitName<Underlying>> \
+		  : common_type<globalUnitName<Underlying>, ::units::unit<ConversionFactor, T, NumericalScale>> \
 		{ \
 		}; \
 \
 		template<typename Underlying1, typename Underlying2> \
-		struct common_type<::units::namespaceName::nameSingular##_t<Underlying1>, \
-			::units::namespaceName::nameSingular##_t<Underlying2>> \
+		struct common_type<globalUnitName<Underlying1>, globalUnitName<Underlying2>> \
 		{ \
-			using type = ::units::namespaceName::nameSingular##_t<common_type_t<Underlying1, Underlying2>>; \
+			using type = globalUnitName<common_type_t<Underlying1, Underlying2>>; \
 		}; \
 \
 		template<typename Underlying, class T> \
-		struct common_type<::units::namespaceName::nameSingular##_t<Underlying>, T> \
-		  : common_type<::units::traits::unit_base_t<::units::namespaceName::nameSingular##_t<Underlying>>, \
-				::units::traits::unit_base_t<T>> \
+		struct common_type<globalUnitName<Underlying>, T> \
+		  : common_type<::units::traits::unit_base_t<globalUnitName<Underlying>>, ::units::traits::unit_base_t<T>> \
 		{ \
 		}; \
 	}
 
 /**
- * @def			UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular)
+ * @def			UNIT_ADD_STD_SPECIALIZATIONS(globalUnitName)
  * @brief		Macro for generating specializations of standard templates for units.
  *				It should be used from the global namespace.
  * @details		See `UNIT_ADD_HASH`, `UNIT_ADD_COMMON_TYPE`
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		globalUnitName the unit name prefixed with `::`, e.g. `::units::length::meter_t`
  */
-#define UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular) \
-	UNIT_ADD_HASH(namespaceName, nameSingular) \
-	UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular)
+#define UNIT_ADD_STD_SPECIALIZATIONS(globalUnitName) \
+	UNIT_ADD_HASH(globalUnitName) \
+	UNIT_ADD_COMMON_TYPE(globalUnitName)
 
 /**
  * @def			UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale)
@@ -426,7 +418,7 @@ namespace units
  */
 #define UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
 	UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
-	UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, nameSingular)
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::nameSingular##_t)
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -497,16 +489,10 @@ namespace units
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
-	namespace traits \
-	{ \
-		template<class Underlying> \
-		struct strong<::units::unit<nameSingular, Underlying, ::units::decibel_scale>> \
-		{ \
-			using type = namespaceName::abbreviation##_t<Underlying>; \
-		}; \
+	UNIT_ADD_STRONG( \
+		::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation##_t, ::units::decibel_scale) \
 	} \
-	} \
-	UNIT_ADD_STD_SPECIALIZATIONS(namespaceName, abbreviation) \
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation##_t) \
 	namespace units \
 	{
 /**
@@ -3087,13 +3073,9 @@ namespace units
 		{
 			using type = dimensionless_unit;
 		};
-
-		template<class Underlying>
-		struct strong<unit<dimensionless_unit, Underlying>>
-		{
-			using type = dimensionless<Underlying>;
-		};
 	} // namespace traits
+
+	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dimensionless, ::units::linear_scale)
 
 // ignore the redeclaration of the default template parameters
 #if defined(_MSC_VER)
@@ -3107,43 +3089,7 @@ namespace units
 
 } // namespace units
 
-namespace std
-{
-	template<class Underlying>
-	struct hash<units::dimensionless<Underlying>>
-	  : private hash<units::traits::unit_base_t<units::dimensionless<Underlying>>>
-	{
-		constexpr size_t operator()(const units::dimensionless<Underlying>& x) const noexcept
-		{
-			return hash<units::traits::unit_base_t<units::dimensionless<Underlying>>>()(x);
-		}
-	};
-
-	template<typename Underlying, class ConversionFactor, class T, template<typename> class NonLinearScale>
-	struct common_type<units::dimensionless<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
-	{
-		using type = units::traits::strong_t<common_type_t<units::traits::unit_base_t<units::dimensionless<Underlying>>,
-			units::unit<ConversionFactor, T, NonLinearScale>>>;
-	};
-
-	template<class ConversionFactor, class T, template<typename> class NonLinearScale, typename Underlying>
-	struct common_type<units::unit<ConversionFactor, T, NonLinearScale>, units::dimensionless<Underlying>>
-	  : common_type<units::dimensionless<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
-	{
-	};
-
-	template<typename Underlying1, typename Underlying2>
-	struct common_type<units::dimensionless<Underlying1>, units::dimensionless<Underlying2>>
-	{
-		using type = units::dimensionless<common_type_t<Underlying1, Underlying2>>;
-	};
-
-	template<typename Underlying, class T>
-	struct common_type<units::dimensionless<Underlying>, T>
-	  : common_type<units::traits::unit_base_t<units::dimensionless<Underlying>>, units::traits::unit_base_t<T>>
-	{
-	};
-} // namespace std
+UNIT_ADD_STD_SPECIALIZATIONS(::units::dimensionless)
 
 namespace units
 {
@@ -3633,6 +3579,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, ::units::decibel_scale, dimensionless_unit)
+	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dB_t, ::units::decibel_scale)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
 	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
@@ -3646,42 +3593,7 @@ namespace units
 
 } // namespace units
 
-namespace std
-{
-	template<class Underlying>
-	struct hash<units::dB_t<Underlying>> : private hash<units::traits::unit_base_t<units::dB_t<Underlying>>>
-	{
-		constexpr size_t operator()(const units::dB_t<Underlying>& x) const noexcept
-		{
-			return hash<units::traits::unit_base_t<units::dB_t<Underlying>>>()(x);
-		}
-	};
-
-	template<typename Underlying, class ConversionFactor, class T, template<typename> class NonLinearScale>
-	struct common_type<units::dB_t<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
-	{
-		using type = units::traits::strong_t<common_type_t<units::traits::unit_base_t<units::dB_t<Underlying>>,
-			units::unit<ConversionFactor, T, NonLinearScale>>>;
-	};
-
-	template<class ConversionFactor, class T, template<typename> class NonLinearScale, typename Underlying>
-	struct common_type<units::unit<ConversionFactor, T, NonLinearScale>, units::dB_t<Underlying>>
-	  : common_type<units::dB_t<Underlying>, units::unit<ConversionFactor, T, NonLinearScale>>
-	{
-	};
-
-	template<typename Underlying1, typename Underlying2>
-	struct common_type<units::dB_t<Underlying1>, units::dB_t<Underlying2>>
-	{
-		using type = units::dB_t<common_type_t<Underlying1, Underlying2>>;
-	};
-
-	template<typename Underlying, class T>
-	struct common_type<units::dB_t<Underlying>, T>
-	  : common_type<units::traits::unit_base_t<units::dB_t<Underlying>>, units::traits::unit_base_t<T>>
-	{
-	};
-} // namespace std
+UNIT_ADD_STD_SPECIALIZATIONS(::units::dB_t)
 
 namespace units
 {
