@@ -1227,27 +1227,27 @@ namespace units
 			(traits::is_conversion_factor_v<T> ? type::conversion_factor
 											   : (traits::is_unit<T>::value ? type::unit : type::none))>::type;
 
-		template<typename T, class Dim>
-		struct has_dimension_of_impl<T, Dim, type::conversion_factor>
-		  : has_dimension_of<conversion_factor_base_t<T>, Dim>::type
+		template<typename Cf, class Dim>
+		struct has_dimension_of_impl<Cf, Dim, type::conversion_factor>
+		  : has_dimension_of<conversion_factor_base_t<Cf>, Dim>::type
 		{
 		};
 
-		template<typename C, typename U, typename P, typename T, class Dim>
-		struct has_dimension_of_impl<conversion_factor<C, U, P, T>, Dim, type::conversion_factor>
-		  : std::is_same<typename conversion_factor<C, U, P, T>::dimension_type, Dim>::type
+		template<typename C, typename Cf, typename P, typename T, class Dim>
+		struct has_dimension_of_impl<conversion_factor<C, Cf, P, T>, Dim, type::conversion_factor>
+		  : std::is_same<typename conversion_factor<C, Cf, P, T>::dimension_type, Dim>::type
 		{
 		};
 
-		template<typename T, class Dim>
-		struct has_dimension_of_impl<T, Dim, type::unit>
-		  : has_dimension_of<typename traits::unit_base<T>::type, Dim>::type
+		template<typename Cf, class Dim>
+		struct has_dimension_of_impl<Cf, Dim, type::unit>
+		  : has_dimension_of<typename traits::unit_base<Cf>::type, Dim>::type
 		{
 		};
 
-		template<typename U, typename S, class N, class Dim>
-		struct has_dimension_of_impl<unit<U, S, N>, Dim, type::unit>
-		  : std::is_same<traits::dimension_of_t<U>, Dim>::type
+		template<typename Cf, typename T, class Ns, class Dim>
+		struct has_dimension_of_impl<unit<Cf, T, Ns>, Dim, type::unit>
+		  : std::is_same<traits::dimension_of_t<Cf>, Dim>::type
 		{
 		};
 	}               // namespace detail
