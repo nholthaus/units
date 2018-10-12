@@ -166,7 +166,7 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			nameSingular##_t, linear_scale, nameSingular) /** @} */ \
+			nameSingular##_t, ::units::linear_scale, nameSingular) /** @} */ \
 	}
 
 /**
@@ -493,14 +493,14 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation##_t, decibel_scale, nameSingular) /** @} */ \
+			abbreviation##_t, ::units::decibel_scale, nameSingular) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
 	namespace traits \
 	{ \
 		template<class Underlying> \
-		struct strong<::units::unit<nameSingular, Underlying, decibel_scale>> \
+		struct strong<::units::unit<nameSingular, Underlying, ::units::decibel_scale>> \
 		{ \
 			using type = namespaceName::abbreviation##_t<Underlying>; \
 		}; \
@@ -3078,7 +3078,7 @@ namespace units
 	{
 	};
 
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, linear_scale, dimensionless_unit)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, ::units::linear_scale, dimensionless_unit)
 
 	namespace traits
 	{
@@ -3632,7 +3632,7 @@ namespace units
 	 * @brief		namespace for unit types and containers for units that have no dimension (dimensionless units)
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, decibel_scale, dimensionless_unit)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, ::units::decibel_scale, dimensionless_unit)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
 	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
