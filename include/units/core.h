@@ -325,7 +325,7 @@ namespace units
  * @def			UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular)
  * @brief		Macro for generating specializations of `units`'s templates for units. It should be used from the global
  * namespace.
- * @details		See `UNIT_ADD_HASH`, `UNIT_ADD_STRONG`
+ * @details		See `UNIT_ADD_NAME`, `UNIT_ADD_STRONG`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
@@ -415,7 +415,7 @@ namespace units
 	UNIT_ADD_COMMON_TYPE(namespaceName, nameSingular)
 
 /**
- * @def			UNIT_ADD_SPECIALIZATIONS(qualifiedName, singularName, abbreviation, scale)
+ * @def			UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale)
  * @brief		Macro for generating specializations for units.
  *				It should be used from the global namespace.
  * @details		See UNIT_ADD_UNITS_SPECIALIZATIONS and UNIT_ADD_STD_HASH_SPECIALIZATIONS.
