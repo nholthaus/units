@@ -919,7 +919,7 @@ namespace units
 		using density            = dimension_divide<mass, volume>;         ///< Represents an SI derived unit of density
 		using concentration      = make_dimension<volume, std::ratio<-1>>; ///< Represents a unit of concentration
 		using data               = make_dimension<data_tag>;               ///< Represents a unit of data size
-		using data_transfer_rate = make_dimension<data, std::ratio<-1>>;   ///< Represents a unit of data transfer rate
+		using data_transfer_rate = dimension_divide<data, time>;           ///< Represents a unit of data transfer rate
 	}                                                                      // namespace dimension
 
 	//------------------------------
