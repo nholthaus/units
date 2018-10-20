@@ -2119,8 +2119,8 @@ namespace units
 		 * @details		constructs a new unit with `value`.
 		 * @param[in]	value	unit magnitude.
 		 */
-		template<class Ty,
-			std::enable_if_t<!traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>,
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<!traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>,
 				int> = 0>
 		explicit constexpr unit(const Ty value) noexcept
 		  : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
