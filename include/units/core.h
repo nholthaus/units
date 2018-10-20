@@ -2142,9 +2142,9 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty,
-			std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value && detail::is_non_lossy_convertible<Ty, T>,
-				int> = 0>
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
+				0>
 		constexpr unit(const Ty value) noexcept : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
 		{
 		}
