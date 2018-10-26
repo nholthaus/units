@@ -186,13 +186,13 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		template<class Underlying> \
-		inline std::ostream& operator<<(std::ostream& os, const nameSingular##_t<Underlying>& obj) \
+		std::ostream& operator<<(std::ostream& os, const nameSingular##_t<Underlying>& obj) \
 		{ \
 			os << obj() << " " #abbrev; \
 			return os; \
 		} \
 		template<class Underlying> \
-		inline std::string to_string(const nameSingular##_t<Underlying>& obj) \
+		std::string to_string(const nameSingular##_t<Underlying>& obj) \
 		{ \
 			return units::detail::to_string(obj()) + std::string(" " #abbrev); \
 		} \
@@ -3328,7 +3328,7 @@ namespace units
 	using dB_t = unit<dimensionless_unit, Underlying, decibel_scale>;
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
-	inline std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
+	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
 	{
 		os << obj() << " dB";
 		return os;
