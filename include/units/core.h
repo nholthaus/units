@@ -1050,11 +1050,10 @@ namespace units
 			"Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
 
 		using dimension_type    = units::traits::dimension_of_t<BaseUnit>;
-		using conversion_ratio  = typename std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion>;
-		using pi_exponent_ratio = typename std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent>;
-		using translation_ratio =
-			typename std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>,
-				typename BaseUnit::translation_ratio>;
+		using conversion_ratio  = std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion>;
+		using pi_exponent_ratio = std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent>;
+		using translation_ratio = std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>,
+			typename BaseUnit::translation_ratio>;
 	};
 
 	//------------------------------
@@ -1461,7 +1460,7 @@ namespace units
 			static_assert(traits::is_ratio_v<Ratio>, "Template parameter `Ratio` must be a `std::ratio`.");
 			static_assert(
 				traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `conversion_factor` type.");
-			using type = typename units::conversion_factor<Ratio, Unit>;
+			using type = units::conversion_factor<Ratio, Unit>;
 		};
 
 		/// recursive exponential implementation
@@ -2447,7 +2446,7 @@ namespace units
 		os << std::conditional_t<detail::is_non_lossy_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit,
 			PromotedBaseUnit>(obj)();
 
-		using DimType = typename traits::dimension_of_t<UnitConversion>;
+		using DimType = traits::dimension_of_t<UnitConversion>;
 		if constexpr (!DimType::empty)
 		{
 			os << DimType{};
