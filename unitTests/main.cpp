@@ -4095,6 +4095,29 @@ TEST_F(CaseStudies, rightTriangle)
 	EXPECT_EQ(5.0_m, c);
 }
 
+TEST_F(CaseStudies, dataReadSimulation)
+{
+	const megabyte_t<int> data_size             = 100_MB;
+	const megabytes_per_second_t<int> read_rate = 2_MBps;
+	byte_t<int> read_progress                   = 10_MB;
+
+	auto advance_simulation = [&](auto time) {
+		read_progress = units::min(read_progress + time * read_rate, data_size);
+	};
+
+	advance_simulation(10_s);
+	EXPECT_EQ(read_progress, 30_MB);
+
+	advance_simulation(25_s);
+	EXPECT_EQ(read_progress, 80_MB);
+
+	advance_simulation(500_ms);
+	EXPECT_EQ(read_progress, 81_MB);
+
+	advance_simulation(25_s);
+	EXPECT_EQ(read_progress, data_size);
+}
+
 TEST_F(CaseStudies, selfDefinedUnits)
 {
 	using liters_per_second  = decltype(1.0_L / 1.0_s);
