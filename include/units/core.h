@@ -1665,7 +1665,7 @@ namespace units
 	 * @returns		value, converted from units of `UnitFrom` to `UnitTo`.
 	 */
 	template<class UnitFrom, class UnitTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
-		class = std::enable_if_t<detail::is_convertible_conversion_factor<UnitFrom, UnitTo>>>
+		std::enable_if_t<detail::is_convertible_conversion_factor<UnitFrom, UnitTo>, int> = 0>
 	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio   = std::ratio_divide<typename UnitFrom::conversion_ratio, typename UnitTo::conversion_ratio>;
@@ -1793,7 +1793,7 @@ namespace units
 	 *				and must be convertible from `UnitFrom` (i.e. is_convertible_unit<UnitFrom, UnitTo>::value == true).
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitTo, class UnitFrom, class = std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>>>
+	template<class UnitTo, class UnitFrom, std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>, int> = 0>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
 		return UnitTo(
@@ -2126,7 +2126,7 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<class Rep, class Period, typename U = UnitType,
-			class = std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_non_lossy_convertible<Rep, T>>>
+			std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_non_lossy_convertible<Rep, T>, int> = 0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
 		  : linearized_value(NumericalScale::linearize(units::convert<unit>(
 				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))()))
@@ -2139,7 +2139,7 @@ namespace units
 		 * @param[in]	rhs unit to copy.
 		 */
 		template<class UnitTypeRhs, typename Ty, class NsRhs,
-			class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NsRhs>, unit>>>
+			std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NsRhs>, unit>, int> = 0>
 		constexpr unit(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) noexcept
 		  : linearized_value(units::convert<unit>(rhs).linearized_value)
 		{
@@ -2157,8 +2157,10 @@ namespace units
 		 * @details		performs implicit conversions from built-in types ONLY for dimensionless units
 		 * @param[in]	rhs value to copy.
 		 */
-		template<class U = UnitType, class = std::enable_if_t<traits::is_dimensionless_unit<U>::value>>
-		constexpr unit& operator=(const underlying_type& rhs) noexcept
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
+				0>
+		constexpr unit& operator=(const Ty& rhs) noexcept
 		{
 			linearized_value = rhs;
 			return *this;
@@ -2281,7 +2283,7 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit converted to an arithmetic, non-safe type.
 		 */
-		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
+		template<typename Ty, std::enable_if_t<std::is_arithmetic_v<Ty>, int> = 0>
 		constexpr Ty to() const noexcept
 		{
 			return static_cast<Ty>(*this);
@@ -2391,7 +2393,7 @@ namespace units
 	 * @param[in]	value	Arithmetic value that represents a quantity in units of `UnitType`.
 	 */
 	template<class UnitType, typename T,
-		class = std::enable_if_t<detail::is_non_lossy_convertible<T, typename UnitType::underlying_type>>>
+		std::enable_if_t<detail::is_non_lossy_convertible<T, typename UnitType::underlying_type>, int> = 0>
 	constexpr UnitType make_unit(const T value) noexcept
 	{
 		static_assert(traits::is_unit_v<UnitType>, "Template parameter `UnitType` must be a unit type.");
@@ -2581,7 +2583,7 @@ namespace units
 	}
 
 	template<class UnitConversionLhs, typename T, class NumericalScaleLhs, class UnitConversionRhs,
-		class NumericalScaleRhs, class = std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value>>
+		class NumericalScaleRhs, std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value, int> = 0>
 	constexpr unit<UnitConversionLhs, T, NumericalScaleLhs>& operator%=(
 		unit<UnitConversionLhs, T, NumericalScaleLhs>& lhs,
 		const unit<UnitConversionRhs, detail::type_identity_t<T>, NumericalScaleRhs>& rhs) noexcept
@@ -3648,7 +3650,7 @@ namespace units
 	 * @param[in]	x	Unit value to round up.
 	 * @returns		The smallest integral value that is not less than x.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::ceil(x()));
@@ -3661,7 +3663,7 @@ namespace units
 	 * @param[in]	x	Unit value to round down.
 	 * @returns		The value of x rounded downward.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::floor(x()));
@@ -3676,8 +3678,9 @@ namespace units
 	 * @returns		The remainder of dividing the arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-			traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
+				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
+			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
@@ -3693,7 +3696,7 @@ namespace units
 	 * @param[in]	x	Value to truncate
 	 * @returns		The nearest integral value that is not larger in magnitude than x.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::trunc(x()));
@@ -3707,7 +3710,7 @@ namespace units
 	 * @param[in]	x	value to round.
 	 * @returns		The value of x rounded to the nearest integral.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::round(x()));
@@ -3727,7 +3730,7 @@ namespace units
 	 * @returns		value with the magnitude and dimension of x, and the sign of y.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(
@@ -3736,7 +3739,7 @@ namespace units
 
 	/// Overload to copy the sign from a raw double
 	template<class UnitTypeLhs, typename T,
-		class = std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>>>
+		std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x(), y));
@@ -3755,8 +3758,9 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-			traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
+				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
+			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -3773,8 +3777,9 @@ namespace units
 	 * @returns		The maximum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-			traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
+				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
+			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -3792,8 +3797,9 @@ namespace units
 	 * @returns		The minimum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-			traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
+				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
+			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -3812,7 +3818,7 @@ namespace units
 	 * @param[in]	x	Value whose absolute value is returned.
 	 * @returns		The absolute value of x.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::fabs(x()));
@@ -3825,7 +3831,7 @@ namespace units
 	 * @param[in]	x	Value whose absolute value is returned.
 	 * @returns		The absolute value of x.
 	 */
-	template<class UnitType, class = std::enable_if_t<traits::is_unit_v<UnitType>>>
+	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::abs(x()));
@@ -3842,12 +3848,13 @@ namespace units
 	 * @returns		The result of x*y+z
 	 */
 	template<class UnitTypeLhs, class UnitMultiply, class UnitAdd,
-		class = std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitMultiply> &&
-			traits::is_unit_v<UnitAdd> &&
-			traits::is_convertible_conversion_factor_v<
-				compound_conversion_factor<typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor,
-					typename units::traits::unit_traits<UnitMultiply>::conversion_factor>,
-				typename units::traits::unit_traits<UnitAdd>::conversion_factor>>>
+		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitMultiply> &&
+				traits::is_unit_v<UnitAdd> &&
+				traits::is_convertible_conversion_factor_v<
+					compound_conversion_factor<typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor,
+						typename units::traits::unit_traits<UnitMultiply>::conversion_factor>,
+					typename units::traits::unit_traits<UnitAdd>::conversion_factor>,
+			int> = 0>
 	auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept
 		-> std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) *
 								  detail::floating_point_promotion_t<UnitMultiply>(y)),
