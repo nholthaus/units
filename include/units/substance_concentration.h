@@ -36,15 +36,15 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/substance.h
+/// @file	units/substance_concentration.h
 /// @brief	units representing substance concentration values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_substance_h__
-#define units_substance_h__
+#ifndef units_substance_concentration_h__
+#define units_substance_concentration_h__
 
 #include <units/core.h>
 
@@ -59,9 +59,9 @@ namespace units
 	 * @anchor		substanceConcentrationContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(substance_concentration, molar, molars, M, conversion_factor<std::ratio<1, 1000>, units::dimension::substance_concentration>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(substance_concentration, molar, molars, M, conversion_factor<std::ratio<1000>, units::dimension::substance_concentration>)
 
 	UNIT_ADD_DIMENSION_TRAIT(substance_concentration)
 } // namespace units
 
-#endif // units_substance_h__
+#endif // units_substance_concentration_h__

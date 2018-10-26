@@ -36,15 +36,15 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/substance.h
+/// @file	units/substance_mass.h
 /// @brief	units representing substance mass values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_substance_h__
-#define units_substance_h__
+#ifndef units_substance_mass_h__
+#define units_substance_mass_h__
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(substance_mass)
 } // namespace units
 
-#endif // units_substance_h__
+#endif // units_substance_mass_h__
