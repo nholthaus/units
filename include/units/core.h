@@ -273,34 +273,6 @@ namespace units
 	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
 
 /**
- * @def			UNIT_ADD_WITH_CUSTOM_TYPE(namespaceName,nameSingular, namePlural, abbreviation, underlyingType,
- *				definition)
- * @brief		Macro for generating the boiler-plate code needed for a new unit with a non-default underlying type.
- * @details		The macro generates singular, plural, and abbreviated forms
- *				of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
- *				appropriately named unit container (e.g. `meter_t`). A literal suffix is created
- *				using the abbreviation (e.g. `10.0_m`). It also defines a class-specific
- *				cout function which prints both the value and abbreviation of the unit when invoked.
- * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
- *				are placed in the `units::literals` namespace.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
- * @param		namePlural - plural version of the unit name, e.g. 'meters'
- * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @param		underlyingType - the underlying type, e.g. 'int' or 'float'
- * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
- * @note		a variadic template is used for the definition to allow templates with
- *				commas to be easily expanded. All the variadic 'arguments' should together
- *				comprise the unit definition.
- */
-#define UNIT_ADD_WITH_CUSTOM_TYPE( \
-	namespaceName, nameSingular, namePlural, abbreviation, underlyingType, /*definition*/...) \
-	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD_CUSTOM_TYPE_UNIT_DEFINITION(namespaceName, nameSingular, underlyingType) \
-	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation) \
-	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation)
-
-/**
  * @def			UNIT_ADD_DECIBEL(namespaceName, nameSingular, abbreviation)
  * @brief		Macro to create decibel container and literals for an existing unit type.
  * @details		This macro generates the decibel unit container, cout overload, and literal definitions.
