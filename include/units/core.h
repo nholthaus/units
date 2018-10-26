@@ -2292,7 +2292,7 @@ namespace units
 		 * @returns		linearized value of unit which has a (possibly) non-linear scale. For `unit` types with
 		 *				linear scales, this is equivalent to `value`.
 		 */
-		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
+		template<typename Ty = T, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
 		constexpr Ty toLinearized() const noexcept
 		{
 			return static_cast<Ty>(linearized_value);
@@ -3875,11 +3875,11 @@ namespace std
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
-				return x.template toLinearized<T>();
+				return x.toLinearized();
 			}
 			else
 			{
-				return hash<T>()(x.template toLinearized<T>());
+				return hash<T>()(x.toLinearized());
 			}
 		}
 	};
