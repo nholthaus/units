@@ -172,11 +172,11 @@ TEST_F(TypeTraits, unit_traits)
 TEST_F(TypeTraits, is_convertible_unit)
 {
 	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, astronomicalUnits>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, astronomical_units>));
 	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, parsecs>));
 
 	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<astronomicalUnits, meters>));
+	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<astronomical_units, meters>));
 	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<parsecs, meters>));
 	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<years, weeks>));
 
@@ -692,16 +692,16 @@ TEST_F(TypeTraits, is_area_unit)
 {
 	EXPECT_TRUE((traits::is_area_unit_v<square_meter>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit>));
 	EXPECT_FALSE((traits::is_area_unit_v<double>));
 
 	EXPECT_TRUE((traits::is_area_unit_v<square_meter_t<double>>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t<double>>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t<double>&>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare_t<double>>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit_t<double>>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit_t<double>>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare_t<double>, square_meter_t<double>>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomicalUnit_t<double>, square_meter_t<double>>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit_t<double>, square_meter_t<double>>));
 }
 
 TEST_F(TypeTraits, is_volume_unit)
@@ -2512,9 +2512,9 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = inch_t<double>(meter_t<double>(0.0254))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = nauticalMile_t<double>(meter_t<double>(1852.0))();
+	test = nautical_mile_t<double>(meter_t<double>(1852.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = astronomicalUnit_t<double>(meter_t<double>(149597870700.0))();
+	test = astronomical_unit_t<double>(meter_t<double>(149597870700.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = lightyear_t<double>(meter_t<double>(9460730472580800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
@@ -2529,7 +2529,7 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(0.5, test, 5.0e-5);
 	test = foot_t<double>(meter_t<double>(1.0))();
 	EXPECT_NEAR(3.28084, test, 5.0e-5);
-	test = nauticalMile_t<double>(mile_t<double>(6.3))();
+	test = nautical_mile_t<double>(mile_t<double>(6.3))();
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
 	test = meter_t<double>(mile_t<double>(11.0))();
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
