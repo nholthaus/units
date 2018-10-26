@@ -37,7 +37,7 @@
 //--------------------------------------------------------------------------------------------------
 //
 /// @file	units/substance.h
-/// @brief	units representing amount of substance values
+/// @brief	units representing substance mass values
 //
 //--------------------------------------------------------------------------------------------------
 
@@ -51,16 +51,16 @@
 namespace units
 {
 	/**
-	 * @namespace	units::substance
-	 * @brief		namespace for unit types and containers representing substance values
-	 * @details		The SI unit for substance is `moles`, and the corresponding `dimension` dimension is
-	 *				`substance_unit`.
-	 * @anchor		substanceContainers
+	 * @namespace	units::substance_mass
+	 * @brief		namespace for unit types and containers representing substance_mass values
+	 * @details		The SI unit for substance_mass is `kg_per_mole`, and the corresponding
+	 *         `dimension` dimension is `substance_mass_unit`.
+	 * @anchor		substanceMassContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(substance, mole, moles, mol, conversion_factor<std::ratio<1>, units::dimension::substance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(substance_mass, gram_per_mole, grams_per_mole, g_per_mol, conversion_factor<std::ratio<1, 1000>, units::dimension::substance_mass>)
 
-	UNIT_ADD_DIMENSION_TRAIT(substance)
+	UNIT_ADD_DIMENSION_TRAIT(substance_mass)
 } // namespace units
 
 #endif // units_substance_h__
