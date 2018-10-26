@@ -1798,9 +1798,8 @@ namespace units
 	template<class UnitTo, class UnitFrom, std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>, int> = 0>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
-		return UnitTo(
-			convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
-				typename UnitTo::underlying_type>(from.to_linearized()),
+		return UnitTo(convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
+						  typename UnitTo::underlying_type>(from.to_linearized()),
 			linearized_value);
 	}
 
@@ -3327,9 +3326,7 @@ namespace units
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 
 		return unit<traits::strong_t<squared<typename CommonUnit::conversion_factor>>, CommonUnderlying, decibel_scale>(
-			CommonUnit(lhs).to_linearized() *
-				CommonUnit(rhs).to_linearized(),
-			linearized_value);
+			CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3344,8 +3341,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() * rhs.to_linearized(),
-			linearized_value);
+			lhs.to_linearized() * rhs.to_linearized(), linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3360,8 +3356,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeRhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() * rhs.to_linearized(),
-			linearized_value);
+			lhs.to_linearized() * rhs.to_linearized(), linearized_value);
 	}
 
 	/// Subtraction for convertible unit types with a decibel_scale
@@ -3375,9 +3370,8 @@ namespace units
 		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 
-		return dB_t<CommonUnderlying>(CommonUnit(lhs).to_linearized() /
-				CommonUnit(rhs).to_linearized(),
-			linearized_value);
+		return dB_t<CommonUnderlying>(
+			CommonUnit(lhs).to_linearized() / CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3392,8 +3386,7 @@ namespace units
 		using CommonUnderlying =
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() / rhs.to_linearized(),
-			linearized_value);
+			lhs.to_linearized() / rhs.to_linearized(), linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3411,8 +3404,7 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 
 		return unit<traits::strong_t<inverse<UnitConversionRhs>>, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() / rhs.to_linearized(),
-			linearized_value);
+			lhs.to_linearized() / rhs.to_linearized(), linearized_value);
 	}
 
 	//------------------------------
