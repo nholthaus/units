@@ -1012,7 +1012,7 @@ namespace units
 	} // namespace traits
 
 	/** @cond */ // DOXYGEN IGNORE
-	template<class UnitType, typename T, template<typename> class NonLinearScale>
+	template<class UnitType, typename T, class NumericalScale>
 	class unit;
 
 	namespace detail
@@ -1033,7 +1033,7 @@ namespace units
 		{
 		};
 
-		template<typename U, typename S, template<typename> class N, class Dim>
+		template<typename U, typename S, class N, class Dim>
 		struct has_dimension_of_impl<unit<U, S, N>, Dim> : std::is_same<traits::dimension_of_t<U>, Dim>::type
 		{
 		};
@@ -1605,11 +1605,10 @@ namespace units
 		template<typename T>
 		using floating_point_promotion_t = typename floating_point_promotion<T, traits::is_unit<T>::value>::type;
 
-		template<template<class, typename, template<typename> class> class Unit, class UnitConversion, typename T,
-			template<typename> class NonLinearScale>
-		struct floating_point_promotion<Unit<UnitConversion, T, NonLinearScale>, true>
+		template<template<class, typename, class> class Unit, class UnitConversion, typename T, class NumericalScale>
+		struct floating_point_promotion<Unit<UnitConversion, T, NumericalScale>, true>
 		{
-			using type = Unit<UnitConversion, floating_point_promotion_t<T>, NonLinearScale>;
+			using type = Unit<UnitConversion, floating_point_promotion_t<T>, NumericalScale>;
 		};
 	} // namespace detail
 
@@ -1650,6 +1649,16 @@ namespace units
 	//------------------------------
 	//	CONVERSION FUNCTIONS
 	//------------------------------
+
+	/**
+	 * @brief		Tag for `unit` constructors
+	 * @details		Tag to disambiguates the `unit` constructor whose value argument is already linearized.
+	 */
+	struct linearized_value_t
+	{
+		explicit linearized_value_t() = default;
+	};
+	inline constexpr linearized_value_t linearized_value{};
 
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
@@ -1819,64 +1828,46 @@ namespace units
 		return UnitTo(
 			convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
 				typename UnitTo::underlying_type>(from.template toLinearized<typename UnitFrom::underlying_type>()),
-			std::true_type() /*store linear value*/);
+			linearized_value);
 	}
 
 	//----------------------------------
-	//	NON-LINEAR SCALE TRAITS
+	//	NUMERICAL SCALE TRAITS
 	//----------------------------------
 
 	namespace traits
 	{
+		/** @cond */ // DOXYGEN IGNORE
 		namespace detail
 		{
-			/**
-			 * @brief		implementation of has_value_member
-			 * @details		checks for a member named `m_member` with type `Ret`
-			 */
-			template<class T, class Ret>
-			struct has_value_member_impl
+			template<class NumericalScale>
+			struct invocable_scale
 			{
-				template<class U>
-				static constexpr auto test(U* p) -> decltype(p->m_value);
-				template<typename>
-				static constexpr auto test(...) -> std::false_type;
-
-				using type = typename std::is_same<std::decay_t<Ret>, std::decay_t<decltype(test<T>(0))>>::type;
+				template<class T,
+					std::enable_if_t<
+						std::is_same_v<decltype(NumericalScale::linearize(T{})), decltype(NumericalScale::scale(T{}))>,
+						int> = 0>
+				decltype(NumericalScale::scale(T{})) operator()(T);
 			};
-		} // namespace detail
+		}               // namespace detail
+		/** @endcond */ // END DOXYGEN IGNORE
 
-		/**
-		 * @brief		checks for a member named `m_member` with type `Ret`
-		 * @details		used as part of the linear_scale concept checker.
-		 */
-		template<class T, class Ret>
-		using has_value_member = typename traits::detail::has_value_member_impl<T, Ret>::type;
-
-		template<class T, class Ret>
-		inline constexpr bool has_value_member_v = has_value_member<T, Ret>::value;
-	}               // namespace traits
-	/** @endcond */ // END DOXYGEN IGNORE
-
-	namespace traits
-	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests that `class T` meets the requirements for a non-linear scale
-		 * @details		A non-linear scale must:
-		 *				- be default constructible
-		 *				- have an `operator()` member which returns the non-linear value stored in the scale
-		 *				- have an accessible `m_value` data member which stores the linearized value in the scale.
+		 * @brief		Trait which tests whether `T` meets the requirements for a numerical scale
+		 * @details		A numerical scale must have static member functions named `linearize` and `scale`
+		 *				that take one `Ret` argument and return a `Ret` value, where
+		 *				`linearize` returns the linearized input value and
+		 *				`scale` returns the scaled input value.
 		 *
-		 *				Linear/nonlinear scales are used by `units::unit` to store values and scale them
+		 *				Numerical scales are used by `units::unit` to linearize and scale values
 		 *				if they represent things like dB.
 		 */
 		template<class T, class Ret>
-		using is_nonlinear_scale = std::conjunction<std::is_default_constructible<T>, std::is_invocable_r<Ret, T>,
-			has_value_member<T, Ret>, std::is_trivial<T>>;
+		using is_numerical_scale = std::is_invocable_r<Ret, detail::invocable_scale<T>, Ret>;
 
 		template<class T, class Ret>
-		inline constexpr bool is_nonlinear_scale_v = is_nonlinear_scale<T, Ret>::value;
+		inline constexpr bool is_numerical_scale_v = is_numerical_scale<T, Ret>::value;
 	} // namespace traits
 
 	//------------------------------
@@ -1895,10 +1886,10 @@ namespace units
 		template<typename T>
 		struct unit_traits
 		{
-			typedef typename T::non_linear_scale_type
-				non_linear_scale_type; ///< Type of the unit non_linear_scale (e.g. linear_scale, decibel_scale). This
-									   ///< property is used to enable the proper linear or logarithmic arithmetic
-									   ///< functions.
+			typedef typename T::numerical_scale_type
+				numerical_scale_type; ///< Type of the unit numerical_scale (e.g. linear_scale, decibel_scale). This
+									  ///< property is used to enable the proper linear or logarithmic arithmetic
+									  ///< functions.
 			typedef
 				typename T::underlying_type underlying_type; ///< Underlying storage type of the `unit`, e.g. `double`.
 			typedef typename T::value_type
@@ -1916,10 +1907,10 @@ namespace units
 		template<typename T, typename = void>
 		struct unit_traits
 		{
-			using non_linear_scale_type = void;
-			using underlying_type       = void;
-			using value_type            = void;
-			using conversion_factor     = void;
+			using numerical_scale_type = void;
+			using underlying_type      = void;
+			using value_type           = void;
+			using conversion_factor    = void;
 		};
 
 		/**
@@ -1929,13 +1920,13 @@ namespace units
 		 */
 		template<typename T>
 		struct unit_traits<T,
-			std::void_t<typename T::non_linear_scale_type, typename T::underlying_type, typename T::value_type,
+			std::void_t<typename T::numerical_scale_type, typename T::underlying_type, typename T::value_type,
 				typename T::conversion_factor>>
 		{
-			using non_linear_scale_type = typename T::non_linear_scale_type;
-			using underlying_type       = typename T::underlying_type;
-			using value_type            = typename T::value_type;
-			using conversion_factor     = typename T::conversion_factor;
+			using numerical_scale_type = typename T::numerical_scale_type;
+			using underlying_type      = typename T::underlying_type;
+			using value_type           = typename T::value_type;
+			using conversion_factor    = typename T::conversion_factor;
 		};
 		/** @endcond */ // END DOXYGEN IGNORE
 	}                   // namespace traits
@@ -1970,9 +1961,7 @@ namespace units
 
 	/** @cond */ // DOXYGEN IGNORE
 	// forward declaration
-	template<typename T>
 	struct linear_scale;
-	template<typename T>
 	struct decibel_scale;
 
 	namespace detail
@@ -2059,10 +2048,10 @@ namespace units
 	 *				double val = m(); // val == 5.0	@endcode.
 	 * @tparam		UnitConversion unit tag for which type of units the `conversion_factor` represents (e.g. meters)
 	 * @tparam		T underlying type of the storage. Defaults to double.
-	 * @tparam		NonLinearScale optional scale class for the units. Defaults to linear (i.e. does
+	 * @tparam		NumericalScale optional scale class for the units. Defaults to linear (i.e. does
 	 *				not scale the unit value). Examples of non-linear scales could be logarithmic,
-	 *				decibel, or richter scales. Non-linear scales must adhere to the non-linear-scale
-	 *				concept, i.e. `is_nonlinear_scale_v<...>` must be `true`.
+	 *				decibel, or richter scales. Numerical scales must adhere to the numerical-scale
+	 *				concept, i.e. `is_numerical_scale_v<...>` must be `true`.
 	 * @sa
 	 *				- \ref lengthContainers "length unit containers"
 	 *				- \ref massContainers "mass unit containers"
@@ -2098,22 +2087,17 @@ namespace units
 	 *				- \ref concentrationContainers "concentration unit containers"
 	 *				- \ref constantContainers "constant unit containers"
 	 */
-	template<class UnitType, typename T = UNIT_LIB_DEFAULT_TYPE, template<typename> class NonLinearScale = linear_scale>
-	class unit : public NonLinearScale<T>, units::detail::_unit
+	template<class UnitType, typename T = UNIT_LIB_DEFAULT_TYPE, class NumericalScale = linear_scale>
+	class unit : NumericalScale, units::detail::_unit
 	{
 		static_assert(traits::is_conversion_factor_v<UnitType>,
 			"Template parameter `UnitType` must be a unit tag. Check that you aren't using a unit type (_t).");
-		static_assert(traits::is_nonlinear_scale_v<NonLinearScale<T>, T>,
-			"Template parameter `NonLinearScale` does not conform to the `is_nonlinear_scale` concept.");
-
-	protected:
-		using nls = NonLinearScale<T>;
-		using nls::m_value;
+		static_assert(traits::is_numerical_scale_v<NumericalScale, T>,
+			"Template parameter `NumericalScale` does not conform to the `is_numerical_scale` concept.");
 
 	public:
-		using non_linear_scale_type =
-			NonLinearScale<T>;     ///< Type of the non-linear scale of the unit (e.g. linear_scale)
-		using underlying_type = T; ///< Type of the underlying storage of the unit (e.g. double)
+		using numerical_scale_type = NumericalScale; ///< Type of the numerical scale of the unit (e.g. linear_scale)
+		using underlying_type      = T;              ///< Type of the underlying storage of the unit (e.g. double)
 		using value_type =
 			T; ///< Synonym for underlying type. May be removed in future versions. Prefer underlying_type.
 		using conversion_factor = UnitType; ///< Type of `unit` the `unit` represents (e.g. meters)
@@ -2132,14 +2116,24 @@ namespace units
 
 		/**
 		 * @brief		constructor
-		 * @details		constructs a new unit using the non-linear scale's constructor.
-		 * @param[in]	value	unit value magnitude.
-		 * @param[in]	args	additional constructor arguments are forwarded to the non-linear scale constructor.
-		 *				Which args are required depends on which scale is used. For the default (linear) scale, no
-		 *				additional args are necessary.
+		 * @details		constructs a new unit with `value`.
+		 * @param[in]	value	unit magnitude.
 		 */
-		template<class Ty, class... Args, class = std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>>>
-		explicit constexpr unit(const Ty value, const Args&... args) noexcept : nls(value, args...)
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<!traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>,
+				int> = 0>
+		explicit constexpr unit(const Ty value) noexcept
+		  : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
+		{
+		}
+
+		/**
+		 * @brief		constructor
+		 * @details		constructs a new unit with `value`.
+		 * @param[in]	value	linearized unit magnitude.
+		 */
+		template<class Ty, std::enable_if_t<detail::is_non_lossy_convertible<Ty, T>, int> = 0>
+		explicit constexpr unit(const Ty value, linearized_value_t) noexcept : linearized_value(value)
 		{
 		}
 
@@ -2148,10 +2142,10 @@ namespace units
 		 * @details		enable implicit conversions from T types ONLY for linear dimensionless units
 		 * @param[in]	value value of the unit
 		 */
-		template<class Ty,
-			class = std::enable_if_t<traits::is_dimensionless_unit<UnitType>::value &&
-				detail::is_non_lossy_convertible<Ty, T>>>
-		constexpr unit(const Ty value) noexcept : nls(value)
+		template<class Ty, class Cf = UnitType,
+			std::enable_if_t<traits::is_dimensionless_unit<Cf>::value && detail::is_non_lossy_convertible<Ty, T>, int> =
+				0>
+		constexpr unit(const Ty value) noexcept : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
 		{
 		}
 
@@ -2163,8 +2157,8 @@ namespace units
 		template<class Rep, class Period, typename U = UnitType,
 			class = std::enable_if_t<detail::is_time_conversion_factor<U> && detail::is_non_lossy_convertible<Rep, T>>>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : nls(units::convert<unit>(
-				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))())
+		  : linearized_value(NumericalScale::linearize(units::convert<unit>(
+				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))()))
 		{
 		}
 
@@ -2173,10 +2167,10 @@ namespace units
 		 * @details		performs implicit unit conversions if required.
 		 * @param[in]	rhs unit to copy.
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs,
-			class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NlsRhs>, unit>>>
-		constexpr unit(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) noexcept
-		  : nls(units::convert<unit>(rhs).m_value, std::true_type() /*store linear value*/)
+		template<class UnitTypeRhs, typename Ty, class NsRhs,
+			class = std::enable_if_t<detail::is_non_lossy_convertible_unit<unit<UnitTypeRhs, Ty, NsRhs>, unit>>>
+		constexpr unit(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) noexcept
+		  : linearized_value(units::convert<unit>(rhs).linearized_value)
 		{
 		}
 
@@ -2197,7 +2191,7 @@ namespace units
 				detail::is_non_lossy_convertible<Ty, T>>>
 		constexpr unit& operator=(const Ty& rhs) noexcept
 		{
-			nls::m_value = rhs;
+			linearized_value = rhs;
 			return *this;
 		}
 
@@ -2207,11 +2201,11 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than the value of `rhs`
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		constexpr bool operator<(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
+		constexpr bool operator<(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
-			return (CommonUnit(*this).m_value < CommonUnit(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
+			return (CommonUnit(*this).linearized_value < CommonUnit(rhs).linearized_value);
 		}
 
 		/**
@@ -2220,11 +2214,11 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is less than or equal to the value of `rhs`
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
+		constexpr bool operator<=(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
-			return (CommonUnit(*this).m_value <= CommonUnit(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
+			return (CommonUnit(*this).linearized_value <= CommonUnit(rhs).linearized_value);
 		}
 
 		/**
@@ -2233,11 +2227,11 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than the value of `rhs`
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		constexpr bool operator>(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
+		constexpr bool operator>(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
-			return (CommonUnit(*this).m_value > CommonUnit(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
+			return (CommonUnit(*this).linearized_value > CommonUnit(rhs).linearized_value);
 		}
 
 		/**
@@ -2246,11 +2240,11 @@ namespace units
 		 * @param[in]	rhs right-hand side unit for the comparison
 		 * @returns		true IFF the value of `this` is greater than or equal to the value of `rhs`
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
+		constexpr bool operator>=(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
-			return (CommonUnit(*this).m_value >= CommonUnit(rhs).m_value);
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
+			return (CommonUnit(*this).linearized_value >= CommonUnit(rhs).linearized_value);
 		}
 
 		/**
@@ -2260,27 +2254,27 @@ namespace units
 		 * @returns		true IFF the value of `this` exactly equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
 		constexpr std::enable_if_t<std::is_floating_point_v<T> || std::is_floating_point_v<Ty>, bool> operator==(
-			const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+			const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit       = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
+			using CommonUnit       = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
 			using CommonUnderlying = typename CommonUnit::underlying_type;
 
-			const auto common_lhs(CommonUnit(*this).m_value);
-			const auto common_rhs(CommonUnit(rhs).m_value);
+			const auto common_lhs(CommonUnit(*this).linearized_value);
+			const auto common_rhs(CommonUnit(rhs).linearized_value);
 
 			return abs(common_lhs - common_rhs) <
 				std::numeric_limits<CommonUnderlying>::epsilon() * abs(common_lhs + common_rhs) ||
 				abs(common_lhs - common_rhs) < std::numeric_limits<CommonUnderlying>::min();
 		}
 
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
 		constexpr std::enable_if_t<std::is_integral<T>::value && std::is_integral<Ty>::value, bool> operator==(
-			const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+			const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NlsRhs>>;
-			return CommonUnit(*this).m_value == CommonUnit(rhs).m_value;
+			using CommonUnit = std::common_type_t<unit, unit<UnitTypeRhs, Ty, NsRhs>>;
+			return CommonUnit(*this).linearized_value == CommonUnit(rhs).linearized_value;
 		}
 
 		/**
@@ -2290,10 +2284,19 @@ namespace units
 		 * @returns		true IFF the value of `this` is not equal to the value of rhs.
 		 * @note		This may not be suitable for all applications when the underlying_type of unit is a double.
 		 */
-		template<class UnitTypeRhs, typename Ty, template<typename> class NlsRhs>
-		constexpr bool operator!=(const unit<UnitTypeRhs, Ty, NlsRhs>& rhs) const noexcept
+		template<class UnitTypeRhs, typename Ty, class NsRhs>
+		constexpr bool operator!=(const unit<UnitTypeRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			return !(*this == rhs);
+		}
+
+		/**
+		 * @brief		unit value
+		 * @returns		value of the unit in it's underlying, non-safe type.
+		 */
+		constexpr T operator()() const noexcept
+		{
+			return NumericalScale::scale(linearized_value);
 		}
 
 		/**
@@ -2317,13 +2320,13 @@ namespace units
 
 		/**
 		 * @brief		linearized unit value
-		 * @returns		linearized value of unit which has a non-linear scale. For `unit` types with
+		 * @returns		linearized value of unit which has a (possibly) non-linear scale. For `unit` types with
 		 *				linear scales, this is equivalent to `value`.
 		 */
 		template<typename Ty, class = std::enable_if_t<std::is_arithmetic_v<Ty>>>
 		constexpr Ty toLinearized() const noexcept
 		{
-			return static_cast<Ty>(m_value);
+			return static_cast<Ty>(linearized_value);
 		}
 
 		/**
@@ -2354,7 +2357,7 @@ namespace units
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi
 			// ratio.
 			return units::convert<units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>,
-				Ty, NonLinearScale>>(*this)();
+				Ty, NumericalScale>>(*this)();
 		}
 
 		/**
@@ -2399,8 +2402,10 @@ namespace units
 		}
 
 	private:
-		template<class U, typename Ty, template<typename> class Nlt>
+		template<class U, typename Ty, class Ns>
 		friend class unit;
+
+		T linearized_value;
 	};
 
 	//------------------------------
@@ -2460,12 +2465,12 @@ namespace units
 		return os;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NonLinearScale>& obj)
+	template<class UnitConversion, typename T, class NumericalScale>
+	std::ostream& operator<<(std::ostream& os, const unit<UnitConversion, T, NumericalScale>& obj)
 	{
 		using BaseConversion   = conversion_factor<std::ratio<1>, typename UnitConversion::dimension_type>;
-		using BaseUnit         = unit<BaseConversion, T, NonLinearScale>;
-		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NonLinearScale>;
+		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
+		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
 		os << std::conditional_t<detail::is_non_lossy_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit,
 			PromotedBaseUnit>(obj)();
@@ -2506,10 +2511,9 @@ namespace std
 	 *				truncating any value of these conversions, although floating-point units may have round-off errors.
 	 *				If the units have mixed scales, preference is given to `linear_scale` for their common type.
 	 */
-	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty,
-		template<typename> class NonLinearScale>
-	struct common_type<units::unit<UnitConversionLhs, Tx, NonLinearScale>,
-		units::unit<UnitConversionRhs, Ty, NonLinearScale>>
+	template<class UnitConversionLhs, class Tx, class UnitConversionRhs, class Ty, class NumericalScale>
+	struct common_type<units::unit<UnitConversionLhs, Tx, NumericalScale>,
+		units::unit<UnitConversionRhs, Ty, NumericalScale>>
 	  : std::enable_if<units::traits::is_convertible_conversion_factor_v<UnitConversionLhs, UnitConversionRhs>,
 			units::unit<units::traits::strong_t<units::conversion_factor<
 							units::detail::ratio_gcd<typename UnitConversionLhs::conversion_ratio,
@@ -2519,7 +2523,7 @@ namespace std
 								typename UnitConversionRhs::pi_exponent_ratio>,
 							units::detail::ratio_gcd<typename UnitConversionLhs::translation_ratio,
 								typename UnitConversionRhs::translation_ratio>>>,
-				common_type_t<Tx, Ty>, NonLinearScale>>
+				common_type_t<Tx, Ty>, NumericalScale>>
 	{
 	};
 
@@ -2568,60 +2572,59 @@ namespace units
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator+=(unit<UnitConversion, T, NonLinearScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator+=(unit<UnitConversion, T, NumericalScale>& lhs,
+		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator-=(unit<UnitConversion, T, NonLinearScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator-=(unit<UnitConversion, T, NumericalScale>& lhs,
+		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator*=(
-		unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator*=(
+		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
 	{
 		lhs = lhs * rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator/=(
-		unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator/=(
+		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
 	{
 		lhs = lhs / rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator%=(unit<UnitConversion, T, NonLinearScale>& lhs,
-		const detail::type_identity_t<unit<UnitConversion, T, NonLinearScale>>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator%=(unit<UnitConversion, T, NumericalScale>& lhs,
+		const detail::type_identity_t<unit<UnitConversion, T, NumericalScale>>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
 		return lhs;
 	}
 
-	template<class UnitConversionLhs, typename T, template<typename> class NonLinearScaleLhs, class UnitConversionRhs,
-		template<typename> class NonLinearScaleRhs,
-		class = std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value>>
-	constexpr unit<UnitConversionLhs, T, NonLinearScaleLhs>& operator%=(
-		unit<UnitConversionLhs, T, NonLinearScaleLhs>& lhs,
-		const unit<UnitConversionRhs, detail::type_identity_t<T>, NonLinearScaleRhs>& rhs) noexcept
+	template<class UnitConversionLhs, typename T, class NumericalScaleLhs, class UnitConversionRhs,
+		class NumericalScaleRhs, class = std::enable_if_t<traits::is_dimensionless_unit<UnitConversionRhs>::value>>
+	constexpr unit<UnitConversionLhs, T, NumericalScaleLhs>& operator%=(
+		unit<UnitConversionLhs, T, NumericalScaleLhs>& lhs,
+		const unit<UnitConversionRhs, detail::type_identity_t<T>, NumericalScaleRhs>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
 		return lhs;
 	}
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator%=(
-		unit<UnitConversion, T, NonLinearScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator%=(
+		unit<UnitConversion, T, NumericalScale>& lhs, const detail::type_identity_t<T>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
 		return lhs;
@@ -2632,54 +2635,54 @@ namespace units
 	//------------------------------
 
 	// unary addition: +T
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale> operator+(
-		const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale> operator+(
+		const unit<UnitConversion, T, NumericalScale>& u) noexcept
 	{
 		return u;
 	}
 
 	// prefix increment: ++T
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator++(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator++(unit<UnitConversion, T, NumericalScale>& u) noexcept
 	{
-		u = unit<UnitConversion, T, NonLinearScale>(u() + 1);
+		u = unit<UnitConversion, T, NumericalScale>(u() + 1);
 		return u;
 	}
 
 	// postfix increment: T++
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale> operator++(
-		unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale> operator++(
+		unit<UnitConversion, T, NumericalScale>& u, int) noexcept
 	{
 		auto ret = u;
-		u        = unit<UnitConversion, T, NonLinearScale>(u() + 1);
+		u        = unit<UnitConversion, T, NumericalScale>(u() + 1);
 		return ret;
 	}
 
 	// unary addition: -T
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale> operator-(
-		const unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale> operator-(
+		const unit<UnitConversion, T, NumericalScale>& u) noexcept
 	{
-		return unit<UnitConversion, T, NonLinearScale>(-u());
+		return unit<UnitConversion, T, NumericalScale>(-u());
 	}
 
 	// prefix increment: --T
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale>& operator--(unit<UnitConversion, T, NonLinearScale>& u) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale>& operator--(unit<UnitConversion, T, NumericalScale>& u) noexcept
 	{
-		u = unit<UnitConversion, T, NonLinearScale>(u() - 1);
+		u = unit<UnitConversion, T, NumericalScale>(u() - 1);
 		return u;
 	}
 
 	// postfix increment: T--
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	constexpr unit<UnitConversion, T, NonLinearScale> operator--(
-		unit<UnitConversion, T, NonLinearScale>& u, int) noexcept
+	template<class UnitConversion, typename T, class NumericalScale>
+	constexpr unit<UnitConversion, T, NumericalScale> operator--(
+		unit<UnitConversion, T, NumericalScale>& u, int) noexcept
 	{
 		auto ret = u;
-		u        = unit<UnitConversion, T, NonLinearScale>(u() - 1);
+		u        = unit<UnitConversion, T, NumericalScale>(u() - 1);
 		return ret;
 	}
 
@@ -2708,13 +2711,10 @@ namespace units
 	}
 
 	//------------------------------
-	//	NON-LINEAR SCALE TRAITS
+	//	NUMERICAL SCALE TRAITS
 	//------------------------------
 
 	// forward declaration
-	template<typename T>
-	struct decibel_scale;
-
 	namespace traits
 	{
 		/**
@@ -2725,9 +2725,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_linear_scale
-		  : std::conjunction<
-				std::is_base_of<units::linear_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>
+		struct has_linear_scale : std::conjunction<std::is_base_of<units::linear_scale, T>...>
 		{
 		};
 
@@ -2742,9 +2740,7 @@ namespace units
 		 * @tparam		T	one or more types to test.
 		 */
 		template<typename... T>
-		struct has_decibel_scale
-		  : std::conjunction<
-				std::is_base_of<units::decibel_scale<typename units::traits::unit_traits<T>::underlying_type>, T>...>
+		struct has_decibel_scale : std::conjunction<std::is_base_of<units::decibel_scale, T>...>
 		{
 		};
 
@@ -2754,10 +2750,10 @@ namespace units
 	} // namespace traits
 
 	//----------------------------------
-	//	NON-LINEAR SCALES
+	//	NUMERICAL SCALES
 	//----------------------------------
 
-	// Non-linear transforms are used to pre and post scale units which are defined in terms of non-
+	// Non-linear transforms may be used to pre and post scale units which are defined in terms of non-
 	// linear functions of their current value. A good example of a non-linear scale would be a
 	// logarithmic or decibel scale
 
@@ -2766,32 +2762,36 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		unit scale which is linear
-	 * @details		Represents units on a linear scale. This is the appropriate unit scale for almost
+	 * @brief		numerical scale which is linear
+	 * @details		Represents a linear numerical scale. This is the appropriate unit scale for almost
 	 *				all units almost all of the time.
-	 * @tparam		T	underlying storage type
 	 * @sa			unit
 	 */
-	template<typename T>
 	struct linear_scale
 	{
-		constexpr linear_scale()                    = default; ///< default constructor.
-		constexpr linear_scale(const linear_scale&) = default;
-		~linear_scale()                             = default;
-		linear_scale& operator=(const linear_scale&) = default;
-		constexpr linear_scale(linear_scale&&)       = default;
-		linear_scale& operator=(linear_scale&&) = default;
-
-		template<class... Args>
-		constexpr linear_scale(const T& value, Args&&...) noexcept : m_value(value)
+		/**
+		 * @brief		linearizes `value`
+		 * @tparam		T	underlying type of an unit
+		 * @tparam[in]  value value to linearize
+		 * @returns		`value`
+		 */
+		template<class T>
+		static constexpr T linearize(const T value) noexcept
 		{
-		} ///< constructor.
-		constexpr T operator()() const noexcept
-		{
-			return m_value;
-		} ///< returns value.
+			return value;
+		}
 
-		T m_value; ///< linearized value.
+		/**
+		 * @brief		scales `value`
+		 * @tparam		T	underlying type of an unit
+		 * @tparam[in]  value value to scale
+		 * @returns		`value`
+		 */
+		template<class T>
+		static constexpr T scale(const T value) noexcept
+		{
+			return value;
+		}
 	};
 
 	//----------------------------------
@@ -3285,33 +3285,35 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		unit scale for representing decibel values.
-	 * @details		internally stores linearized values. `operator()` returns the value in dB.
-	 * @tparam		T	underlying storage type
+	 * @brief		numerical scale which is decibel
+	 * @details		Represents a decibel numerical scale. Scales a value to dB.
 	 * @sa			unit
 	 */
-	template<typename T>
 	struct decibel_scale
 	{
-		constexpr decibel_scale()                     = default;
-		constexpr decibel_scale(const decibel_scale&) = default;
-		~decibel_scale()                              = default;
-		decibel_scale& operator=(const decibel_scale&) = default;
-		constexpr decibel_scale(decibel_scale&&)       = default;
-		decibel_scale& operator=(decibel_scale&&) = default;
-		constexpr decibel_scale(const T value) noexcept : m_value(std::pow(10, value / 10))
+		/**
+		 * @brief		linearizes `value`
+		 * @tparam		T	underlying type of an unit
+		 * @tparam[in]  value value to linearize
+		 * @returns		`std::pow(10, value / 10)`
+		 */
+		template<class T>
+		static T linearize(const T value) noexcept
 		{
-		}
-		template<class... Args>
-		constexpr decibel_scale(const T value, std::true_type, Args&&...) noexcept : m_value(value)
-		{
-		}
-		constexpr T operator()() const noexcept
-		{
-			return 10 * std::log10(m_value);
+			return std::pow(10, value / 10);
 		}
 
-		T m_value; ///< linearized value
+		/**
+		 * @brief		returns `value` in dB
+		 * @tparam		T	underlying type of an unit
+		 * @tparam[in]  value value to scale
+		 * @returns		`10 * std::log10(value)`
+		 */
+		template<class T>
+		static T scale(const T value) noexcept
+		{
+			return 10 * std::log10(value);
+		}
 	};
 
 	//------------------------------
@@ -3355,7 +3357,7 @@ namespace units
 		return unit<traits::strong_t<squared<typename CommonUnit::conversion_factor>>, CommonUnderlying, decibel_scale>(
 			CommonUnit(lhs).template toLinearized<CommonUnderlying>() *
 				CommonUnit(rhs).template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3371,7 +3373,7 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
 			lhs.template toLinearized<CommonUnderlying>() * rhs.template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3387,7 +3389,7 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeRhs::conversion_factor, CommonUnderlying, decibel_scale>(
 			lhs.template toLinearized<CommonUnderlying>() * rhs.template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	/// Subtraction for convertible unit types with a decibel_scale
@@ -3403,7 +3405,7 @@ namespace units
 
 		return dB_t<CommonUnderlying>(CommonUnit(lhs).template toLinearized<CommonUnderlying>() /
 				CommonUnit(rhs).template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3419,7 +3421,7 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
 		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
 			lhs.template toLinearized<CommonUnderlying>() / rhs.template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3438,7 +3440,7 @@ namespace units
 
 		return unit<traits::strong_t<inverse<UnitConversionRhs>>, CommonUnderlying, decibel_scale>(
 			lhs.template toLinearized<CommonUnderlying>() / rhs.template toLinearized<CommonUnderlying>(),
-			std::true_type());
+			linearized_value);
 	}
 
 	//------------------------------
@@ -3896,11 +3898,11 @@ namespace units
 
 namespace std
 {
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	struct hash<units::unit<UnitConversion, T, NonLinearScale>>
+	template<class UnitConversion, typename T, class NumericalScale>
+	struct hash<units::unit<UnitConversion, T, NumericalScale>>
 	{
 		template<typename U = T>
-		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NonLinearScale>& x) const noexcept
+		constexpr std::size_t operator()(const units::unit<UnitConversion, T, NumericalScale>& x) const noexcept
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
@@ -3917,8 +3919,8 @@ namespace std
 	//	std::numeric_limits
 	//------------------------------
 
-	template<class UnitConversion, typename T, template<typename> class NonLinearScale>
-	class numeric_limits<units::unit<UnitConversion, T, NonLinearScale>> : public std::numeric_limits<T>
+	template<class UnitConversion, typename T, class NumericalScale>
+	class numeric_limits<units::unit<UnitConversion, T, NumericalScale>> : public std::numeric_limits<T>
 	{
 	};
 } // namespace std

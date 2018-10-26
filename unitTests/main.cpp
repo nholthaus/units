@@ -979,12 +979,6 @@ TEST_F(UnitContainer, trivial)
 	EXPECT_TRUE((std::is_trivially_move_constructible_v<dB_t<double>>));
 }
 
-TEST_F(UnitContainer, has_value_member)
-{
-	EXPECT_TRUE((traits::has_value_member_v<linear_scale<double>, double>));
-	EXPECT_FALSE((traits::has_value_member_v<meter, double>));
-}
-
 TEST_F(UnitContainer, constructionFromArithmeticType)
 {
 	const meter_t<double> a_m(1.0);
