@@ -76,6 +76,8 @@
 #include <units/radiation.h>
 #include <units/solid_angle.h>
 #include <units/substance.h>
+#include <units/substance_concentration.h>
+#include <units/substance_mass.h>
 #include <units/temperature.h>
 #include <units/time.h>
 #include <units/torque.h>

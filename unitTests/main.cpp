@@ -2715,6 +2715,12 @@ TEST_F(UnitConversion, luminous_intensity)
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
+TEST_F(UnitConversion, substance)
+{
+	static_assert(1_g / 1_mol == 1_g_per_mol);
+	static_assert(1_mol / 1_g == 1_M);
+}
+
 TEST_F(UnitConversion, solid_angle)
 {
 	double test;

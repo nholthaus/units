@@ -880,10 +880,12 @@ namespace units
 		using inductance = dimension_multiply<impedance, time>; ///< Represents an SI derived unit of inductance
 		using luminous_flux =
 			dimension_multiply<solid_angle, luminous_intensity>; ///< Represents an SI derived unit of luminous flux
-		using illuminance   = make_dimension<luminous_flux, std::ratio<1>, length,
+		using illuminance             = make_dimension<luminous_flux, std::ratio<1>, length,
             std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
-		using radioactivity = make_dimension<length, std::ratio<2>, time,
-			std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
+		using radioactivity           = make_dimension<length, std::ratio<2>, time,
+            std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
+		using substance_mass          = dimension_divide<mass, substance>;
+		using substance_concentration = dimension_divide<substance, mass>;
 
 		// OTHER UNIT TYPES
 		using torque             = dimension_multiply<force, length>;      ///< Represents an SI derived unit of torque
