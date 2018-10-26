@@ -1104,8 +1104,12 @@ TEST_F(UnitContainer, constructionFromUnitContainer)
 	EXPECT_EQ(1, g_dim());
 }
 
-TEST_F(UnitContainer, CTADFromUnitContainer)
+TEST_F(UnitContainer, CTAD)
 {
+	// Default ctor
+	const meter_t z_m{};
+	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meter_t<double>>);
+
 	// Underlying type, copy ctor, and same dimensioned units for `int` and `double`.
 	const meter_t a_m(1);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_m)>, meter_t<int>>);
@@ -1171,6 +1175,9 @@ TEST_F(UnitContainer, CTADFromUnitContainer)
 	[[maybe_unused]] const second_t e_s(1.0_ms);
 
 	// Dimensionless units.
+	const dimensionless z_dim{};
+	static_assert(std::is_same_v<std::remove_const_t<decltype(z_dim)>, dimensionless<double>>);
+
 	const dimensionless a_dim(1);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_dim)>, dimensionless<int>>);
 

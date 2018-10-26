@@ -230,6 +230,8 @@ namespace units
 		} \
 	}; \
 \
+	unitName()->unitName<UNIT_LIB_DEFAULT_TYPE>; \
+\
 	template<class Underlying, class... Args, ::std::enable_if_t<::std::is_arithmetic_v<Underlying>, int> = 0> \
 	unitName(const Underlying&, Args&&...)->unitName<Underlying>; \
 \
