@@ -646,13 +646,10 @@ namespace units
 	//------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
-	namespace constants
+	namespace detail
 	{
-		namespace detail
-		{
-			inline constexpr UNIT_LIB_DEFAULT_TYPE PI_VAL = 3.14159265358979323846264338327950288419716939937510;
-		}
-	}               // namespace constants
+		inline constexpr UNIT_LIB_DEFAULT_TYPE PI_VAL = 3.14159265358979323846264338327950288419716939937510;
+	}
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	//------------------------------
@@ -1984,19 +1981,19 @@ namespace units
 			if constexpr (PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0)
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) *
-					static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))));
+					static_cast<CommonUnderlying>(pow(detail::PI_VAL, PiRatio::num / PiRatio::den))));
 			}
 			// constexpr pi in denominator
 			else if constexpr (PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0)
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) /
-					static_cast<CommonUnderlying>(pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den))));
+					static_cast<CommonUnderlying>(pow(detail::PI_VAL, -PiRatio::num / PiRatio::den))));
 			}
 			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
 			else if constexpr (PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1)
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) *
-					static_cast<CommonUnderlying>(std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den))));
+					static_cast<CommonUnderlying>(std::pow(detail::PI_VAL, PiRatio::num / PiRatio::den))));
 			}
 		}
 		// Translation required, no pi variable

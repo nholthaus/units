@@ -3020,7 +3020,7 @@ TEST_F(UnitConversion, angle)
 	angle::degree_t<double> quarterCircleDeg(90.0);
 	angle::radian_t<double> quarterCircleRad = quarterCircleDeg;
 	EXPECT_NEAR(
-		angle::radian_t<double>(constants::detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
+		angle::radian_t<double>(detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
 
 	double test;
 
@@ -3043,10 +3043,10 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(2.1, test, 5.0e-6);
 	test = angle::gradian_t<double>(angle::arcsecond_t<double>(2.1))();
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
-	test = angle::degree_t<double>(angle::radian_t<double>(constants::detail::PI_VAL))();
+	test = angle::degree_t<double>(angle::radian_t<double>(detail::PI_VAL))();
 	EXPECT_NEAR(180.0, test, 5.0e-6);
 	test = angle::radian_t<double>(angle::degree_t<double>(90.0))();
-	EXPECT_NEAR(constants::detail::PI_VAL / 2, test, 5.0e-6);
+	EXPECT_NEAR(detail::PI_VAL / 2, test, 5.0e-6);
 }
 
 TEST_F(UnitConversion, current)
@@ -3137,10 +3137,10 @@ TEST_F(UnitConversion, solid_angle)
 	test = degree_squared_t<double>(degree_squared_t<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 	test = spat_t<double>(degree_squared_t<double>(3282.8))();
-	EXPECT_NEAR(1.0 / (4 * constants::detail::PI_VAL), test, 5.0e-5);
-	test = steradian_t<double>(spat_t<double>(1.0 / (4 * constants::detail::PI_VAL)))();
+	EXPECT_NEAR(1.0 / (4 * detail::PI_VAL), test, 5.0e-5);
+	test = steradian_t<double>(spat_t<double>(1.0 / (4 * detail::PI_VAL)))();
 	EXPECT_NEAR(1.0, test, 5.0e-14);
-	test = degree_squared_t<double>(spat_t<double>(1.0 / (4 * constants::detail::PI_VAL)))();
+	test = degree_squared_t<double>(spat_t<double>(1.0 / (4 * detail::PI_VAL)))();
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
 	test = spat_t<double>(spat_t<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
@@ -3848,7 +3848,7 @@ TEST_F(UnitConversion, data_transfer_rate)
 TEST_F(UnitConversion, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<decltype(constants::pi)>);
-	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<constants::detail::PI>);
+	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<detail::PI>);
 
 	// implicit conversion/arithmetic
 	EXPECT_NEAR(3.14159, constants::pi, 5.0e-6);
@@ -3857,7 +3857,7 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(0.0, (constants::pi - constants::pi), 5.0e-9);
 	EXPECT_NEAR(31.00627668, pow<3>(constants::pi), 5.0e-10);
 	EXPECT_NEAR(0.0322515344, (1.0 / pow<3>(constants::pi)), 5.0e-11);
-	EXPECT_TRUE(constants::detail::PI_VAL == constants::pi);
+	EXPECT_TRUE(detail::PI_VAL == constants::pi);
 	EXPECT_TRUE(1.0 != constants::pi);
 	EXPECT_TRUE(4.0 > constants::pi);
 	EXPECT_TRUE(3.0 < constants::pi);
@@ -3871,29 +3871,29 @@ TEST_F(UnitConversion, pi)
 	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(constants::pi * meter_t<double>(1))>));
 	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(meter_t<double>(1) * constants::pi)>));
 
-	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi * meter_t<double>(1)).to<double>(), 5.0e-10);
-	EXPECT_NEAR(constants::detail::PI_VAL, (meter_t<double>(1) * constants::pi).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (constants::pi * meter_t<double>(1)).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (meter_t<double>(1) * constants::pi).to<double>(), 5.0e-10);
 
 	// explicit multiplication
 	meter_t<double> a = constants::pi * meter_t<double>(1);
 	meter_t<double> b = meter_t<double>(1) * constants::pi;
 
-	EXPECT_NEAR(constants::detail::PI_VAL, a.to<double>(), 5.0e-10);
-	EXPECT_NEAR(constants::detail::PI_VAL, b.to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, a.to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, b.to<double>(), 5.0e-10);
 
 	// auto division
 	EXPECT_TRUE((std::is_same_v<hertz_t<double>, decltype(constants::pi / second_t<double>(1))>));
 	EXPECT_TRUE((std::is_same_v<second_t<double>, decltype(second_t<double>(1) / constants::pi)>));
 
-	EXPECT_NEAR(constants::detail::PI_VAL, (constants::pi / second_t<double>(1)).to<double>(), 5.0e-10);
-	EXPECT_NEAR(1.0 / constants::detail::PI_VAL, (second_t<double>(1) / constants::pi).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (constants::pi / second_t<double>(1)).to<double>(), 5.0e-10);
+	EXPECT_NEAR(1.0 / detail::PI_VAL, (second_t<double>(1) / constants::pi).to<double>(), 5.0e-10);
 
 	// explicit
 	hertz_t<double> c  = constants::pi / second_t<double>(1);
 	second_t<double> d = second_t<double>(1) / constants::pi;
 
-	EXPECT_NEAR(constants::detail::PI_VAL, c.to<double>(), 5.0e-10);
-	EXPECT_NEAR(1.0 / constants::detail::PI_VAL, d.to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, c.to<double>(), 5.0e-10);
+	EXPECT_NEAR(1.0 / detail::PI_VAL, d.to<double>(), 5.0e-10);
 }
 
 TEST_F(UnitConversion, constants)
@@ -4057,9 +4057,9 @@ TEST_F(UnitMath, atan2)
 		(std::is_same_v<angle::radian_t<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>,
 		decltype(atan2(unit<dimensionless_unit, int>(1), unit<dimensionless_unit, int>(1)))>));
-	EXPECT_NEAR(angle::radian_t<double>(constants::detail::PI_VAL / 4).to<double>(),
+	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 4).to<double>(),
 		atan2(dimensionless<double>(2), dimensionless<double>(2)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::radian_t<double>(constants::detail::PI_VAL / 4).to<double>(),
+	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 4).to<double>(),
 		atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree_t<double>(45).to<double>(),
 		angle::degree_t<double>(atan2(dimensionless<double>(2), dimensionless<double>(2))).to<double>(), 5.0e-12);
@@ -4069,9 +4069,9 @@ TEST_F(UnitMath, atan2)
 
 	EXPECT_TRUE(
 		(std::is_same_v<angle::radian_t<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
-	EXPECT_NEAR(angle::radian_t<double>(constants::detail::PI_VAL / 6).to<double>(),
+	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 6).to<double>(),
 		atan2(dimensionless<double>(1), sqrt(dimensionless<double>(3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::radian_t<double>(constants::detail::PI_VAL / 6).to<double>(),
+	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 6).to<double>(),
 		atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree_t<double>(30).to<double>(),
 		angle::degree_t<double>(atan2(dimensionless<double>(1), sqrt(dimensionless<double>(3)))).to<double>(), 5.0e-12);
