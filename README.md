@@ -403,7 +403,7 @@ To determine the underlying type of the unit container, the (verbose) trait `uni
 
 # Efficiency
 
-Complex, recurively-defined conversions are performed in just 5 instructions:
+Complex, recursively-defined conversions are performed in just 5 instructions:
 
 		year_t twoYears(2.0);
 		week_t twoYearsInWeeks = twoYears;
