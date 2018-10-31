@@ -10,6 +10,14 @@ gtest
 units
 )
 
+# natvis support
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	SET(SOURCE_CODE
+	${SOURCE_CODE}
+	../units.natvis
+	)
+endif()
+
 # coveralls support
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
 option(COVERALLS "Generate coveralls data" OFF)
