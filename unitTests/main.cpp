@@ -47,20 +47,20 @@ namespace
 		void TearDown() override{};
 	};
 
-	class UnitContainer : public ::testing::Test
+	class UnitType : public ::testing::Test
 	{
 	protected:
-		UnitContainer(){};
-		virtual ~UnitContainer(){};
+		UnitType(){};
+		virtual ~UnitType(){};
 		void SetUp() override{};
 		void TearDown() override{};
 	};
 
-	class UnitConversion : public ::testing::Test
+	class ConversionFactor : public ::testing::Test
 	{
 	protected:
-		UnitConversion(){};
-		virtual ~UnitConversion(){};
+		ConversionFactor(){};
+		virtual ~ConversionFactor(){};
 		void SetUp() override{};
 		void TearDown() override{};
 	};
@@ -145,7 +145,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_FALSE(traits::is_conversion_factor_v<meter_t<double>>);
 }
 
-TEST_F(TypeTraits, is_unit_t)
+TEST_F(TypeTraits, is_unit)
 {
 	EXPECT_FALSE(traits::is_unit_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_unit_v<double>);
@@ -191,20 +191,20 @@ TEST_F(TypeTraits, unit_traits)
 	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter_t<double>>::value_type>));
 }
 
-TEST_F(TypeTraits, is_convertible_unit)
+TEST_F(TypeTraits, is_same_dimension)
 {
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, astronomical_units>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, parsecs>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, astronomical_units>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, parsecs>));
 
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<meters, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<astronomical_units, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<parsecs, meters>));
-	EXPECT_TRUE((traits::is_convertible_conversion_factor_v<years, weeks>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_units, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<parsecs, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_v<years, weeks>));
 
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<meters, seconds>));
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<seconds, meters>));
-	EXPECT_FALSE((traits::is_convertible_conversion_factor_v<years, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_v<meters, seconds>));
+	EXPECT_FALSE((traits::is_same_dimension_v<seconds, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_v<years, meters>));
 }
 
 TEST_F(TypeTraits, inverse)
@@ -994,7 +994,7 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
-TEST_F(UnitContainer, trivial)
+TEST_F(UnitType, trivial)
 {
 	EXPECT_TRUE((std::is_trivial_v<meter_t<double>>));
 	EXPECT_TRUE((std::is_trivially_assignable_v<meter_t<double>, meter_t<double>>));
@@ -1019,7 +1019,7 @@ TEST_F(UnitContainer, trivial)
 	EXPECT_TRUE((std::is_trivially_move_constructible_v<dB_t<double>>));
 }
 
-TEST_F(UnitContainer, constructionFromArithmeticType)
+TEST_F(UnitType, constructionFromArithmeticType)
 {
 	const meter_t<double> a_m(1.0);
 	EXPECT_EQ(1.0, a_m());
@@ -1049,7 +1049,7 @@ TEST_F(UnitContainer, constructionFromArithmeticType)
 	EXPECT_EQ(1, f_dim());
 }
 
-TEST_F(UnitContainer, constructionFromUnitContainer)
+TEST_F(UnitType, constructionFromUnitType)
 {
 	const unit<meters, int> a_m(1);
 
@@ -1104,7 +1104,7 @@ TEST_F(UnitContainer, constructionFromUnitContainer)
 	EXPECT_EQ(1, g_dim());
 }
 
-TEST_F(UnitContainer, CTAD)
+TEST_F(UnitType, CTAD)
 {
 	// Default ctor
 	meter_t y_m;
@@ -1230,7 +1230,7 @@ TEST_F(UnitContainer, CTAD)
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
 }
 
-TEST_F(UnitContainer, assignmentFromArithmeticType)
+TEST_F(UnitType, assignmentFromArithmeticType)
 {
 	unit<dimensionless_unit, int> a_dim;
 	a_dim = 1;
@@ -1257,7 +1257,7 @@ TEST_F(UnitContainer, assignmentFromArithmeticType)
 	EXPECT_EQ(1, d_dim());
 }
 
-TEST_F(UnitContainer, assignmentFromUnitContainer)
+TEST_F(UnitType, assignmentFromUnitType)
 {
 	unit<meters, int> a_m(1);
 	a_m = +a_m;
@@ -1314,7 +1314,7 @@ TEST_F(UnitContainer, assignmentFromUnitContainer)
 	EXPECT_EQ(1, c_dim());
 }
 
-TEST_F(UnitContainer, make_unit)
+TEST_F(UnitType, make_unit)
 {
 	const auto a_m = make_unit<meter_t<double>>(5.0);
 	EXPECT_EQ(meter_t<double>(5.0), a_m);
@@ -1335,7 +1335,7 @@ TEST_F(UnitContainer, make_unit)
 	EXPECT_EQ((unit<dimensionless_unit, int>(5)), c_dim);
 }
 
-TEST_F(UnitContainer, unitTypeEquality)
+TEST_F(UnitType, unitTypeEquality)
 {
 	const meter_t<double> a_m(0);
 	const meter_t<double> b_m(1);
@@ -1363,7 +1363,7 @@ TEST_F(UnitContainer, unitTypeEquality)
 	EXPECT_FALSE(d_m != b_m);
 }
 
-TEST_F(UnitContainer, unitTypeMixedEquality)
+TEST_F(UnitType, unitTypeMixedEquality)
 {
 	const meter_t<double> a_m(0);
 	const foot_t<double> a_f(meter_t<double>(1));
@@ -1383,7 +1383,7 @@ TEST_F(UnitContainer, unitTypeMixedEquality)
 	EXPECT_FALSE(b_m != a_f);
 }
 
-TEST_F(UnitContainer, unitTypeRelational)
+TEST_F(UnitType, unitTypeRelational)
 {
 	const meter_t<double> a_m(0);
 	const meter_t<double> b_m(1);
@@ -1476,7 +1476,7 @@ TEST_F(UnitContainer, unitTypeRelational)
 	EXPECT_FALSE(a_s >= d_s);
 }
 
-TEST_F(UnitContainer, unitTypeMixedRelational)
+TEST_F(UnitType, unitTypeMixedRelational)
 {
 	const meter_t<double> a_m(0);
 	const foot_t<double> a_f(meter_t<double>(1));
@@ -1512,7 +1512,7 @@ TEST_F(UnitContainer, unitTypeMixedRelational)
 	EXPECT_TRUE(b_m >= a_f);
 }
 
-TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
+TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 {
 	using dimless      = dimensionless<int>;
 	using dimless_base = traits::unit_base_t<dimless>;
@@ -1644,7 +1644,7 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<meter_base, decltype(b_m % b_m)>);
 }
 
-TEST_F(UnitContainer, unitTypeAddition)
+TEST_F(UnitType, unitTypeAddition)
 {
 	// units
 	meter_t<double> a_m(1.0), c_m;
@@ -1740,7 +1740,7 @@ TEST_F(UnitContainer, unitTypeAddition)
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 }
 
-TEST_F(UnitContainer, unitTypeUnaryAddition)
+TEST_F(UnitType, unitTypeUnaryAddition)
 {
 	meter_t<double> a_m(1.0);
 
@@ -1759,7 +1759,7 @@ TEST_F(UnitContainer, unitTypeUnaryAddition)
 	EXPECT_EQ(b_dBW, dBW_t<double>(3));
 }
 
-TEST_F(UnitContainer, unitTypeSubtraction)
+TEST_F(UnitType, unitTypeSubtraction)
 {
 	meter_t<double> a_m(1.0), c_m;
 	foot_t<double> b_ft(3.28084);
@@ -1848,7 +1848,7 @@ TEST_F(UnitContainer, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 }
 
-TEST_F(UnitContainer, unitTypeUnarySubtraction)
+TEST_F(UnitType, unitTypeUnarySubtraction)
 {
 	meter_t<double> a_m(4.0);
 
@@ -1867,7 +1867,7 @@ TEST_F(UnitContainer, unitTypeUnarySubtraction)
 	EXPECT_EQ(b_dBW, dBW_t<double>(2));
 }
 
-TEST_F(UnitContainer, unitTypeMultiplication)
+TEST_F(UnitType, unitTypeMultiplication)
 {
 	meter_t<double> a_m(1.0), b_m(2.0);
 	foot_t<double> a_ft(3.28084);
@@ -1979,7 +1979,7 @@ TEST_F(UnitContainer, unitTypeMultiplication)
 	EXPECT_NEAR(20.0, result, 5.0e-5);
 }
 
-TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
+TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 {
 	meter_t<double> a_m(1.0);
 	foot_t<double> b_ft(3.28084);
@@ -2074,7 +2074,7 @@ TEST_F(UnitContainer, unitTypeMixedUnitMultiplication)
 	EXPECT_EQ(mps, meters_per_second_t<double>(10));
 }
 
-TEST_F(UnitContainer, unitTypedimensionlessMultiplication)
+TEST_F(UnitType, unitTypedimensionlessMultiplication)
 {
 	meter_t<double> a_m(1.0);
 
@@ -2094,7 +2094,7 @@ TEST_F(UnitContainer, unitTypedimensionlessMultiplication)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitContainer, unitTypeDivision)
+TEST_F(UnitType, unitTypeDivision)
 {
 	meter_t<double> a_m(1.0), b_m(2.0);
 	foot_t<double> a_ft(3.28084);
@@ -2228,7 +2228,7 @@ TEST_F(UnitContainer, unitTypeDivision)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitContainer, unitTypeModulo)
+TEST_F(UnitType, unitTypeModulo)
 {
 	const unit<meters, int> a_m(2200);
 	const unit<meters, int> b_m(1800);
@@ -2262,7 +2262,7 @@ TEST_F(UnitContainer, unitTypeModulo)
 	static_assert(has_equivalent_conversion_factor(d_s, a_s));
 }
 
-TEST_F(UnitContainer, compoundAssignmentAddition)
+TEST_F(UnitType, compoundAssignmentAddition)
 {
 	// units
 	meter_t<double> a(0.0);
@@ -2319,7 +2319,7 @@ TEST_F(UnitContainer, compoundAssignmentAddition)
 	EXPECT_EQ((unit<dimensionless_unit, int>(2)), d);
 }
 
-TEST_F(UnitContainer, compoundAssignmentSubtraction)
+TEST_F(UnitType, compoundAssignmentSubtraction)
 {
 	// units
 	meter_t<double> a(2.0);
@@ -2376,7 +2376,7 @@ TEST_F(UnitContainer, compoundAssignmentSubtraction)
 	EXPECT_EQ((unit<dimensionless_unit, int>(0)), d);
 }
 
-TEST_F(UnitContainer, compoundAssignmentMultiplication)
+TEST_F(UnitType, compoundAssignmentMultiplication)
 {
 	// units
 	meter_t<double> a(2.0);
@@ -2449,7 +2449,7 @@ TEST_F(UnitContainer, compoundAssignmentMultiplication)
 	EXPECT_EQ((unit<dimensionless_unit, int>(32)), d);
 }
 
-TEST_F(UnitContainer, compoundAssignmentDivision)
+TEST_F(UnitType, compoundAssignmentDivision)
 {
 	// units
 	meter_t<double> a(8.0);
@@ -2522,7 +2522,7 @@ TEST_F(UnitContainer, compoundAssignmentDivision)
 	EXPECT_EQ((unit<dimensionless_unit, int>(2)), d);
 }
 
-TEST_F(UnitContainer, compoundAssignmentModulo)
+TEST_F(UnitType, compoundAssignmentModulo)
 {
 	// units
 	unit<meters, int> a_m(2200);
@@ -2561,7 +2561,7 @@ TEST_F(UnitContainer, compoundAssignmentModulo)
 	EXPECT_EQ(2, a_s());
 }
 
-TEST_F(UnitContainer, dimensionlessTypeImplicitConversion)
+TEST_F(UnitType, dimensionlessTypeImplicitConversion)
 {
 	double test = dimensionless<double>(3.0);
 	EXPECT_DOUBLE_EQ(3.0, test);
@@ -2577,7 +2577,7 @@ TEST_F(UnitContainer, dimensionlessTypeImplicitConversion)
 	EXPECT_DOUBLE_EQ(0.000001, test4);
 }
 
-TEST_F(UnitContainer, valueMethod)
+TEST_F(UnitType, valueMethod)
 {
 	double test = meter_t<double>(3.0).to<double>();
 	EXPECT_DOUBLE_EQ(3.0, test);
@@ -2587,14 +2587,14 @@ TEST_F(UnitContainer, valueMethod)
 	EXPECT_TRUE((std::is_same_v<decltype(test2), double>));
 }
 
-TEST_F(UnitContainer, convertMethod)
+TEST_F(UnitType, convertMethod)
 {
 	double test = meter_t<double>(3.0).convert<feet>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
-TEST_F(UnitContainer, cout)
+TEST_F(UnitType, cout)
 {
 	testing::internal::CaptureStdout();
 	std::cout << meters_per_second_t<double>(5);
@@ -2669,7 +2669,7 @@ TEST_F(UnitContainer, cout)
 	EXPECT_STREQ("5.670367e-08 kg K^-4 s^-3", output.c_str());
 }
 
-TEST_F(UnitContainer, to_string)
+TEST_F(UnitType, to_string)
 {
 	foot_t<double> a(3.5);
 	EXPECT_STREQ("3.5 ft", units::length::to_string(a).c_str());
@@ -2678,7 +2678,7 @@ TEST_F(UnitContainer, to_string)
 	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
 }
 
-TEST_F(UnitContainer, to_string_locale)
+TEST_F(UnitType, to_string_locale)
 {
 	struct lconv* lc;
 
@@ -2717,7 +2717,7 @@ TEST_F(UnitContainer, to_string_locale)
 	EXPECT_STREQ("2.5 mi", units::length::to_string(us).c_str());
 }
 
-TEST_F(UnitContainer, nameAndAbbreviation)
+TEST_F(UnitType, nameAndAbbreviation)
 {
 	foot_t<double> a(3.5);
 	EXPECT_STREQ("ft", unit_abbreviation_v<decltype(a)>);
@@ -2731,7 +2731,7 @@ TEST_F(UnitContainer, nameAndAbbreviation)
 }
 #endif
 
-TEST_F(UnitContainer, negative)
+TEST_F(UnitType, negative)
 {
 	meter_t<double> a(5.3);
 	meter_t<double> b(-5.3);
@@ -2748,7 +2748,7 @@ TEST_F(UnitContainer, negative)
 	EXPECT_NEAR(-0.00001, e, 5.0e-10);
 }
 
-TEST_F(UnitContainer, concentration)
+TEST_F(UnitType, concentration)
 {
 	ppb_t<double> a(ppm_t<double>(1));
 	EXPECT_EQ(ppb_t<double>(1000), a);
@@ -2762,7 +2762,7 @@ TEST_F(UnitContainer, concentration)
 	EXPECT_EQ(0.000000001, c);
 }
 
-TEST_F(UnitContainer, dBConversion)
+TEST_F(UnitType, dBConversion)
 {
 	dBW_t<double> a_dbw(23.1);
 	watt_t<double> a_w  = a_dbw;
@@ -2781,7 +2781,7 @@ TEST_F(UnitContainer, dBConversion)
 	EXPECT_NEAR(20.0, b_dbw(), 5.0e-7);
 }
 
-TEST_F(UnitContainer, dBAddition)
+TEST_F(UnitType, dBAddition)
 {
 	bool isSame;
 
@@ -2810,7 +2810,7 @@ TEST_F(UnitContainer, dBAddition)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitContainer, dBSubtraction)
+TEST_F(UnitType, dBSubtraction)
 {
 	bool isSame;
 
@@ -2844,7 +2844,7 @@ TEST_F(UnitContainer, dBSubtraction)
 	EXPECT_TRUE(isSame);
 }
 
-TEST_F(UnitContainer, unit_cast)
+TEST_F(UnitType, unit_cast)
 {
 	meter_t<double> test1(5.7);
 	hectare_t<double> test2(16);
@@ -2863,7 +2863,7 @@ TEST_F(UnitContainer, unit_cast)
 }
 
 // literal syntax is only supported in GCC 4.7+ and MSVC2015+
-TEST_F(UnitContainer, literals)
+TEST_F(UnitType, literals)
 {
 	// basic functionality testing
 	EXPECT_TRUE((std::is_same_v<decltype(16.2_m), meter_t<double>>));
@@ -2894,7 +2894,7 @@ TEST_F(UnitContainer, literals)
 	EXPECT_TRUE(c == 5.0_m);
 }
 
-TEST_F(UnitConversion, length)
+TEST_F(ConversionFactor, length)
 {
 	double test;
 	test = nanometer_t<double>(0.000000001_m)();
@@ -2942,7 +2942,7 @@ TEST_F(UnitConversion, length)
 	EXPECT_EQ(metre_t<double>(1), meter_t<double>(1));
 }
 
-TEST_F(UnitConversion, mass)
+TEST_F(ConversionFactor, mass)
 {
 	double test;
 
@@ -2973,7 +2973,7 @@ TEST_F(UnitConversion, mass)
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
-TEST_F(UnitConversion, time)
+TEST_F(ConversionFactor, time)
 {
 	double result      = 0;
 	double daysPerYear = 365;
@@ -3021,12 +3021,11 @@ TEST_F(UnitConversion, time)
 	EXPECT_NEAR(365.2425, test, 5.0e-14);
 }
 
-TEST_F(UnitConversion, angle)
+TEST_F(ConversionFactor, angle)
 {
 	angle::degree_t<double> quarterCircleDeg(90.0);
 	angle::radian_t<double> quarterCircleRad = quarterCircleDeg;
-	EXPECT_NEAR(
-		angle::radian_t<double>(detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
 
 	double test;
 
@@ -3055,7 +3054,7 @@ TEST_F(UnitConversion, angle)
 	EXPECT_NEAR(detail::PI_VAL / 2, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, current)
+TEST_F(ConversionFactor, current)
 {
 	double test;
 
@@ -3063,7 +3062,7 @@ TEST_F(UnitConversion, current)
 	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, temperature)
+TEST_F(ConversionFactor, temperature)
 {
 	// temp conversion are weird/hard since they involve translations AND scaling.
 	double test;
@@ -3108,7 +3107,7 @@ TEST_F(UnitConversion, temperature)
 	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
-TEST_F(UnitConversion, luminous_intensity)
+TEST_F(ConversionFactor, luminous_intensity)
 {
 	double test;
 
@@ -3118,13 +3117,13 @@ TEST_F(UnitConversion, luminous_intensity)
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, substance)
+TEST_F(ConversionFactor, substance)
 {
 	static_assert(1_g / 1_mol == 1_g_per_mol);
 	static_assert(1_mol / 1_g == 1_M);
 }
 
-TEST_F(UnitConversion, solid_angle)
+TEST_F(ConversionFactor, solid_angle)
 {
 	double test;
 	bool same;
@@ -3152,7 +3151,7 @@ TEST_F(UnitConversion, solid_angle)
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, frequency)
+TEST_F(ConversionFactor, frequency)
 {
 	double test;
 
@@ -3166,7 +3165,7 @@ TEST_F(UnitConversion, frequency)
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, velocity)
+TEST_F(ConversionFactor, velocity)
 {
 	double test;
 	bool same;
@@ -3188,7 +3187,7 @@ TEST_F(UnitConversion, velocity)
 	EXPECT_NEAR(3.048, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, angular_velocity)
+TEST_F(ConversionFactor, angular_velocity)
 {
 	double test;
 	bool same;
@@ -3209,7 +3208,7 @@ TEST_F(UnitConversion, angular_velocity)
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
-TEST_F(UnitConversion, acceleration)
+TEST_F(ConversionFactor, acceleration)
 {
 	double test;
 
@@ -3217,7 +3216,7 @@ TEST_F(UnitConversion, acceleration)
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
 }
 
-TEST_F(UnitConversion, force)
+TEST_F(ConversionFactor, force)
 {
 	double test;
 
@@ -3235,7 +3234,7 @@ TEST_F(UnitConversion, force)
 	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
-TEST_F(UnitConversion, area)
+TEST_F(ConversionFactor, area)
 {
 	double test;
 
@@ -3251,7 +3250,7 @@ TEST_F(UnitConversion, area)
 	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, pressure)
+TEST_F(ConversionFactor, pressure)
 {
 	double test;
 
@@ -3279,7 +3278,7 @@ TEST_F(UnitConversion, pressure)
 	EXPECT_EQ(133.322387415_Pa, 1.0_mmHg);
 }
 
-TEST_F(UnitConversion, charge)
+TEST_F(ConversionFactor, charge)
 {
 	double test;
 
@@ -3289,7 +3288,7 @@ TEST_F(UnitConversion, charge)
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, energy)
+TEST_F(ConversionFactor, energy)
 {
 	double test;
 
@@ -3321,7 +3320,7 @@ TEST_F(UnitConversion, energy)
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, power)
+TEST_F(ConversionFactor, power)
 {
 	double test;
 
@@ -3341,7 +3340,7 @@ TEST_F(UnitConversion, power)
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
-TEST_F(UnitConversion, voltage)
+TEST_F(ConversionFactor, voltage)
 {
 	double test;
 
@@ -3371,7 +3370,7 @@ TEST_F(UnitConversion, voltage)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, capacitance)
+TEST_F(ConversionFactor, capacitance)
 {
 	double test;
 
@@ -3401,7 +3400,7 @@ TEST_F(UnitConversion, capacitance)
 	EXPECT_EQ(1.0_F, one_farad());
 }
 
-TEST_F(UnitConversion, impedance)
+TEST_F(ConversionFactor, impedance)
 {
 	double test;
 
@@ -3423,7 +3422,7 @@ TEST_F(UnitConversion, impedance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, conductance)
+TEST_F(ConversionFactor, conductance)
 {
 	double test;
 
@@ -3445,7 +3444,7 @@ TEST_F(UnitConversion, conductance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, magnetic_flux)
+TEST_F(ConversionFactor, magnetic_flux)
 {
 	double test;
 
@@ -3471,7 +3470,7 @@ TEST_F(UnitConversion, magnetic_flux)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, magnetic_field_strength)
+TEST_F(ConversionFactor, magnetic_field_strength)
 {
 	double test;
 
@@ -3497,7 +3496,7 @@ TEST_F(UnitConversion, magnetic_field_strength)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, inductance)
+TEST_F(ConversionFactor, inductance)
 {
 	double test;
 
@@ -3519,7 +3518,7 @@ TEST_F(UnitConversion, inductance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, luminous_flux)
+TEST_F(ConversionFactor, luminous_flux)
 {
 	double test;
 
@@ -3541,7 +3540,7 @@ TEST_F(UnitConversion, luminous_flux)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, illuminance)
+TEST_F(ConversionFactor, illuminance)
 {
 	double test;
 
@@ -3570,7 +3569,7 @@ TEST_F(UnitConversion, illuminance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, radiation)
+TEST_F(ConversionFactor, radiation)
 {
 	double test;
 
@@ -3633,7 +3632,7 @@ TEST_F(UnitConversion, radiation)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, torque)
+TEST_F(ConversionFactor, torque)
 {
 	double test;
 
@@ -3651,7 +3650,7 @@ TEST_F(UnitConversion, torque)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, volume)
+TEST_F(ConversionFactor, volume)
 {
 	double test;
 
@@ -3719,7 +3718,7 @@ TEST_F(UnitConversion, volume)
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
-TEST_F(UnitConversion, density)
+TEST_F(ConversionFactor, density)
 {
 	double test;
 
@@ -3745,7 +3744,7 @@ TEST_F(UnitConversion, density)
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
-TEST_F(UnitConversion, concentration)
+TEST_F(ConversionFactor, concentration)
 {
 	double test;
 
@@ -3759,7 +3758,7 @@ TEST_F(UnitConversion, concentration)
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
-TEST_F(UnitConversion, data)
+TEST_F(ConversionFactor, data)
 {
 	EXPECT_EQ(8, (bit_t<double>(byte_t<double>(1))()));
 
@@ -3802,7 +3801,7 @@ TEST_F(UnitConversion, data)
 	EXPECT_NEAR(percent_t<double>(15.3), exbibyte_t<double>(1) / exabyte_t<double>(1) - 1, 0.005);
 }
 
-TEST_F(UnitConversion, data_transfer_rate)
+TEST_F(ConversionFactor, data_transfer_rate)
 {
 	EXPECT_EQ(8, (bits_per_second_t<double>(bytes_per_second_t<double>(1))()));
 
@@ -3851,7 +3850,7 @@ TEST_F(UnitConversion, data_transfer_rate)
 		percent_t<double>(15.3), exbibytes_per_second_t<double>(1) / exabytes_per_second_t<double>(1) - 1, 0.005);
 }
 
-TEST_F(UnitConversion, pi)
+TEST_F(ConversionFactor, pi)
 {
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<decltype(constants::pi)>);
 	EXPECT_TRUE(units::traits::is_dimensionless_unit_v<detail::PI>);
@@ -3902,7 +3901,7 @@ TEST_F(UnitConversion, pi)
 	EXPECT_NEAR(1.0 / detail::PI_VAL, d.to<double>(), 5.0e-10);
 }
 
-TEST_F(UnitConversion, constants)
+TEST_F(ConversionFactor, constants)
 {
 	// Source: NIST "2014 CODATA recommended values"
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
@@ -3923,7 +3922,7 @@ TEST_F(UnitConversion, constants)
 	EXPECT_NEAR(5.670367e-8, constants::sigma(), 5.0e-14);
 }
 
-TEST_F(UnitConversion, std_chrono)
+TEST_F(ConversionFactor, std_chrono)
 {
 	nanosecond_t<double> a = std::chrono::nanoseconds(10);
 	EXPECT_EQ(nanosecond_t<double>(10), a);
@@ -3952,7 +3951,7 @@ TEST_F(UnitConversion, std_chrono)
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(l).count(), 3600000000000);
 }
 
-TEST_F(UnitConversion, squaredTemperature)
+TEST_F(ConversionFactor, squaredTemperature)
 {
 	using squared_celsius   = units::compound_conversion_factor<squared<celsius>>;
 	using squared_celsius_t = units::unit<squared_celsius>;
