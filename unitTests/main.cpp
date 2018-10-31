@@ -1049,7 +1049,7 @@ TEST_F(UnitType, constructionFromArithmeticType)
 	EXPECT_EQ(1, f_dim());
 }
 
-TEST_F(UnitType, constructionFromUnitContainer)
+TEST_F(UnitType, constructionFromUnitType)
 {
 	const unit<meters, int> a_m(1);
 
@@ -1104,7 +1104,7 @@ TEST_F(UnitType, constructionFromUnitContainer)
 	EXPECT_EQ(1, g_dim());
 }
 
-TEST_F(UnitContainer, CTAD)
+TEST_F(UnitType, CTAD)
 {
 	// Default ctor
 	meter_t y_m;
@@ -1230,7 +1230,7 @@ TEST_F(UnitContainer, CTAD)
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
 }
 
-TEST_F(UnitContainer, assignmentFromArithmeticType)
+TEST_F(UnitType, assignmentFromArithmeticType)
 {
 	unit<dimensionless_unit, int> a_dim;
 	a_dim = 1;
@@ -1257,7 +1257,7 @@ TEST_F(UnitContainer, assignmentFromArithmeticType)
 	EXPECT_EQ(1, d_dim());
 }
 
-TEST_F(UnitType, assignmentFromUnitContainer)
+TEST_F(UnitType, assignmentFromUnitType)
 {
 	unit<meters, int> a_m(1);
 	a_m = +a_m;
@@ -1512,7 +1512,7 @@ TEST_F(UnitType, unitTypeMixedRelational)
 	EXPECT_TRUE(b_m >= a_f);
 }
 
-TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
+TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 {
 	using dimless      = dimensionless<int>;
 	using dimless_base = traits::unit_base_t<dimless>;
@@ -1644,7 +1644,7 @@ TEST_F(UnitContainer, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<meter_base, decltype(b_m % b_m)>);
 }
 
-TEST_F(UnitContainer, unitTypeAddition)
+TEST_F(UnitType, unitTypeAddition)
 {
 	// units
 	meter_t<double> a_m(1.0), c_m;
