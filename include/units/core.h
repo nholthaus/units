@@ -3142,7 +3142,7 @@ namespace units
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator-(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = decltype(lhs - rhs);
 		return CommonUnit(CommonUnit(lhs)() - CommonUnit(rhs)());
 	}
 
@@ -3183,9 +3183,9 @@ namespace units
 									 std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
 			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>>
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return unit<traits::strong_t<squared<typename units::traits::unit_traits<CommonUnit>::conversion_factor>>,
-			typename CommonUnit::underlying_type>(CommonUnit(lhs)() * CommonUnit(rhs)());
+		using SquaredUnit = decltype(lhs * rhs);
+		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return SquaredUnit(CommonUnit(lhs)() * CommonUnit(rhs)());
 	}
 
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose
@@ -3200,12 +3200,9 @@ namespace units
 			typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<traits::strong_t<compound_conversion_factor<UnitConversionLhs, UnitConversionRhs>>,
-			CommonUnderlying>(static_cast<CommonUnderlying>(lhs) * static_cast<CommonUnderlying>(rhs));
+		using CompoundUnit     = decltype(lhs * rhs);
+		using CommonUnderlying = typename CompoundUnit::underlying_type;
+		return CompoundUnit(static_cast<CommonUnderlying>(lhs) * static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Multiplication by a dimensionless unit for unit types with a linear scale.
@@ -3217,7 +3214,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = decltype(lhs * rhs);
+		using CommonUnit       = decltype(lhs * rhs);
+		using CommonUnderlying = typename CommonUnit::underlying_type;
 		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(CommonUnit(lhs)() * static_cast<typename CommonUnit::underlying_type>(rhs));
 	}
@@ -3231,7 +3229,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = decltype(lhs * rhs);
+		using CommonUnit       = decltype(lhs * rhs);
+		using CommonUnderlying = typename CommonUnit::underlying_type;
 		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs)());
 	}
@@ -3242,8 +3241,7 @@ namespace units
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>
 	operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		using CommonUnit =
-			unit<typename UnitTypeLhs::conversion_factor, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		using CommonUnit = decltype(lhs * rhs);
 		return CommonUnit(CommonUnit(lhs)() * rhs);
 	}
 
@@ -3253,8 +3251,7 @@ namespace units
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit =
-			unit<typename UnitTypeRhs::conversion_factor, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>;
+		using CommonUnit = decltype(lhs * rhs);
 		return CommonUnit(lhs * CommonUnit(rhs)());
 	}
 
@@ -3269,7 +3266,7 @@ namespace units
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return dimensionless<typename CommonUnit::underlying_type>(CommonUnit(lhs)() / CommonUnit(rhs)());
+		return CommonUnit(lhs)() / CommonUnit(rhs)();
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
@@ -3284,12 +3281,9 @@ namespace units
 			inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>>,
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
-		using UnitConversionLhs = typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor;
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<traits::strong_t<compound_conversion_factor<UnitConversionLhs, inverse<UnitConversionRhs>>>,
-			CommonUnderlying>(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
+		using CompoundUnit     = decltype(lhs / rhs);
+		using CommonUnderlying = typename CompoundUnit::underlying_type;
+		return CompoundUnit(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division by a dimensionless unit for unit types with a linear scale
@@ -3301,8 +3295,9 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = decltype(lhs / rhs);
-		return CommonUnit(CommonUnit(lhs)() / static_cast<typename CommonUnit::underlying_type>(rhs));
+		using CommonUnit       = decltype(lhs / rhs);
+		using CommonUnderlying = typename CommonUnit::underlying_type;
+		return CommonUnit(CommonUnit(lhs)() / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division of a dimensionless unit by a unit type with a linear scale
@@ -3314,10 +3309,9 @@ namespace units
 		unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>, CommonUnderlying>(
-			static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
+		using InverseUnit      = decltype(lhs / rhs);
+		using CommonUnderlying = typename InverseUnit::underlying_type;
+		return InverseUnit(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division by a dimensionless for unit types with a linear scale
@@ -3337,10 +3331,11 @@ namespace units
 		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	{
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
-		using CommonUnderlying  = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
-		using CommonUnitRhs     = unit<UnitConversionRhs, CommonUnderlying>;
-		return unit<traits::strong_t<inverse<UnitConversionRhs>>, CommonUnderlying>(lhs / CommonUnitRhs(rhs)());
+		using InverseUnit      = decltype(lhs / rhs);
+		using UnitConversion   = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
+		using CommonUnderlying = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
+		using CommonUnit       = unit<UnitConversion, CommonUnderlying>;
+		return InverseUnit(lhs / CommonUnit(rhs)());
 	}
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
@@ -3366,9 +3361,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		using CommonUnit = unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying>;
+		using CommonUnit       = decltype(lhs % rhs);
+		using CommonUnderlying = typename CommonUnit::underlying_type;
 		return CommonUnit(CommonUnit(lhs)() % static_cast<CommonUnderlying>(rhs));
 	}
 
@@ -3610,11 +3604,10 @@ namespace units
 									 std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
 			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>>
 	{
-		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		using CommonUnderlying = typename CommonUnit::underlying_type;
+		using SquaredUnit = decltype(lhs + rhs);
+		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 
-		return unit<traits::strong_t<squared<typename CommonUnit::conversion_factor>>, CommonUnderlying, decibel_scale>(
-			CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
+		return SquaredUnit(CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3626,10 +3619,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() * rhs.to_linearized(), linearized_value);
+		using CommonUnit = decltype(lhs + rhs);
+		return CommonUnit(lhs.to_linearized() * rhs.to_linearized(), linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units
@@ -3641,10 +3632,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<typename UnitTypeRhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() * rhs.to_linearized(), linearized_value);
+		using CommonUnit = decltype(lhs + rhs);
+		return CommonUnit(lhs.to_linearized() * rhs.to_linearized(), linearized_value);
 	}
 
 	/// Subtraction for convertible unit types with a decibel_scale
@@ -3655,11 +3644,10 @@ namespace units
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> dB_t<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
-		using CommonUnit       = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		using CommonUnderlying = typename CommonUnit::underlying_type;
+		using Dimensionless = decltype(lhs - rhs);
+		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 
-		return dB_t<CommonUnderlying>(
-			CommonUnit(lhs).to_linearized() / CommonUnit(rhs).to_linearized(), linearized_value);
+		return Dimensionless(CommonUnit(lhs).to_linearized() / CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3671,10 +3659,8 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-		return unit<typename UnitTypeLhs::conversion_factor, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() / rhs.to_linearized(), linearized_value);
+		using CommonUnit = decltype(lhs - rhs);
+		return CommonUnit(lhs.to_linearized() / rhs.to_linearized(), linearized_value);
 	}
 
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
@@ -3687,12 +3673,8 @@ namespace units
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>,
 			decibel_scale>>
 	{
-		using UnitConversionRhs = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
-		using CommonUnderlying =
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
-
-		return unit<traits::strong_t<inverse<UnitConversionRhs>>, CommonUnderlying, decibel_scale>(
-			lhs.to_linearized() / rhs.to_linearized(), linearized_value);
+		using InverseUnit = decltype(lhs - rhs);
+		return InverseUnit(lhs.to_linearized() / rhs.to_linearized(), linearized_value);
 	}
 
 	//------------------------------
@@ -3722,7 +3704,7 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = decltype(units::min(lhs, rhs));
 		return (lhs < rhs ? CommonUnit(lhs) : CommonUnit(rhs));
 	}
 
@@ -3730,7 +3712,7 @@ namespace units
 		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = decltype(units::max(lhs, rhs));
 		return (lhs > rhs ? CommonUnit(lhs) : CommonUnit(rhs));
 	}
 
@@ -3908,7 +3890,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(
 		const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::hypot(x, y));
 		return CommonUnit(std::hypot(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -3957,7 +3939,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmod(numer, denom));
 		return CommonUnit(std::fmod(CommonUnit(numer)(), CommonUnit(denom)()));
 	}
 
@@ -4037,7 +4019,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fdim(x, y));
 		return CommonUnit(std::fdim(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -4056,7 +4038,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmax(x, y));
 		return CommonUnit(std::fmax(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -4076,7 +4058,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>;
+		using CommonUnit = decltype(units::fmin(x, y));
 		return CommonUnit(std::fmin(CommonUnit(x)(), CommonUnit(y)()));
 	}
 
@@ -4133,9 +4115,7 @@ namespace units
 								  detail::floating_point_promotion_t<UnitMultiply>(y)),
 			UnitAdd>
 	{
-		using CommonUnit = std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) *
-												  detail::floating_point_promotion_t<UnitMultiply>(y)),
-			UnitAdd>;
+		using CommonUnit = decltype(units::fma(x, y, z));
 		return CommonUnit(std::fma(x(), y(), CommonUnit(z)()));
 	}
 } // end namespace units
