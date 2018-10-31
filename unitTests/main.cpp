@@ -1107,9 +1107,6 @@ TEST_F(UnitType, constructionFromUnitType)
 TEST_F(UnitType, CTAD)
 {
 	// Default ctor
-	meter_t y_m;
-	static_assert(std::is_same_v<decltype(y_m), meter_t<double>>);
-
 	const meter_t z_m = 1.0_m;
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meter_t<double>>);
 
@@ -1178,9 +1175,6 @@ TEST_F(UnitType, CTAD)
 	[[maybe_unused]] const second_t e_s(1.0_ms);
 
 	// Dimensionless units.
-	dimensionless y_dim;
-	static_assert(std::is_same_v<decltype(y_dim), dimensionless<double>>);
-
 	const dimensionless z_dim = 1.0;
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_dim)>, dimensionless<double>>);
 
