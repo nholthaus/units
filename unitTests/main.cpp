@@ -1110,7 +1110,7 @@ TEST_F(UnitContainer, CTAD)
 	meter_t y_m;
 	static_assert(std::is_same_v<decltype(y_m), meter_t<double>>);
 
-	const meter_t z_m{};
+	const meter_t z_m = 1.0_m;
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meter_t<double>>);
 
 	// Underlying type, copy ctor, and same dimensioned units for `int` and `double`.
@@ -1181,7 +1181,7 @@ TEST_F(UnitContainer, CTAD)
 	dimensionless y_dim;
 	static_assert(std::is_same_v<decltype(y_dim), dimensionless<double>>);
 
-	const dimensionless z_dim{};
+	const dimensionless z_dim = 1.0;
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_dim)>, dimensionless<double>>);
 
 	const dimensionless a_dim(1);
