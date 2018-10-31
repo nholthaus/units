@@ -3222,8 +3222,7 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit       = decltype(lhs * rhs);
-		using CommonUnderlying = typename CommonUnit::underlying_type;
+		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(CommonUnit(lhs)() * static_cast<typename CommonUnit::underlying_type>(rhs));
 	}
@@ -3237,8 +3236,7 @@ namespace units
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit       = decltype(lhs * rhs);
-		using CommonUnderlying = typename CommonUnit::underlying_type;
+		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs)());
 	}
