@@ -142,7 +142,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_TRUE(traits::is_conversion_factor_v<meters>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<feet>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<degrees_squared>);
-	EXPECT_FALSE(traits::is_conversion_factor_v<meter_t<double>>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<meter_t<double>>);
 }
 
 TEST_F(TypeTraits, is_unit)
