@@ -59,8 +59,8 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(length, meter, meters, m, conversion_factor<std::ratio<1>, units::dimension::length>)
-	UNIT_ADD(length, foot, feet, ft, conversion_factor<std::ratio<381, 1250>, meters>)
-	UNIT_ADD(length, mil, mils, mil, conversion_factor<std::ratio<1000>, feet>)
+	UNIT_ADD(length, foot, feet, ft, conversion_factor<std::ratio<381, 1250>, meter_t<int>>)
+	UNIT_ADD(length, mil, mils, mil, conversion_factor<std::ratio<1000>, foot_t<int>>)
 	UNIT_ADD(length, inch, inches, in, conversion_factor<std::ratio<1, 12>, feet>)
 	UNIT_ADD(length, mile, miles, mi, conversion_factor<std::ratio<5280>, feet>)
 	UNIT_ADD(length, nautical_mile, nautical_miles, nmi, conversion_factor<std::ratio<1852>, meters>)
