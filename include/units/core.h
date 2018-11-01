@@ -679,9 +679,9 @@ namespace units
 		/** @endcond */ // END DOXYGEN IGNORE
 
 		/**
-		 * @brief		Trait that tests whether a type represents a std::ratio.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio_v<T>` to test
-		 *				whether `class T` implements a std::ratio.
+		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a specialization of `std::ratio`.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_ratio_v<T>` to test whether `T` is a specialization of `std::ratio`.
 		 */
 		template<class T>
 		using is_ratio = detail::is_ratio_impl<T>;
