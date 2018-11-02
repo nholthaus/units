@@ -60,8 +60,8 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(power, watt, watts, W, conversion_factor<std::ratio<1>, units::dimension::power>)
 	UNIT_ADD(power, horsepower, horsepower, hp, conversion_factor<std::ratio<7457, 10>, watt_t<int>>)
-	UNIT_ADD_DECIBEL(power, watt, dBW)
-	UNIT_ADD_DECIBEL(power, milliwatt, dBm)
+	UNIT_ADD_DECIBEL(power, watt_conversion_factor, dBW)
+//	UNIT_ADD_DECIBEL(power, milliwatt_conversion_factor, dBm)
 
 	UNIT_ADD_DIMENSION_TRAIT(power)
 } // namespace units

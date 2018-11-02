@@ -139,9 +139,9 @@ TEST_F(TypeTraits, is_conversion_factor)
 {
 	EXPECT_FALSE(traits::is_conversion_factor_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_conversion_factor_v<double>);
-	EXPECT_TRUE(traits::is_conversion_factor_v<meters>);
-	EXPECT_TRUE(traits::is_conversion_factor_v<feet>);
-	EXPECT_TRUE(traits::is_conversion_factor_v<degrees_squared>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<meter_conversion_factor>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<foot_conversion_factor>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<meter_t<double>>);
 }
 
@@ -149,9 +149,9 @@ TEST_F(TypeTraits, is_unit)
 {
 	EXPECT_FALSE(traits::is_unit_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_unit_v<double>);
-	EXPECT_FALSE(traits::is_unit_v<meters>);
-	EXPECT_FALSE(traits::is_unit_v<feet>);
-	EXPECT_FALSE(traits::is_unit_v<degrees_squared>);
+	EXPECT_FALSE(traits::is_unit_v<meter_conversion_factor>);
+	EXPECT_FALSE(traits::is_unit_v<foot_conversion_factor>);
+	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_unit_v<meter_t<double>>);
 }
 
@@ -163,8 +163,8 @@ TEST_F(TypeTraits, unit_base)
 		unit<dimensionless_unit, int>>));
 	EXPECT_TRUE(
 		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter_t<double>>, unit<meter, double>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter_t<double>>, unit<meter, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter_t<double>>, unit<meter_conversion_factor, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter_t<double>>, unit<meter_conversion_factor, double>>));
 }
 
 TEST_F(TypeTraits, replace_underlying)
@@ -180,7 +180,7 @@ TEST_F(TypeTraits, replace_underlying)
 TEST_F(TypeTraits, conversion_factor_traits)
 {
 	EXPECT_TRUE((std::is_same_v<void, traits::conversion_factor_traits<double>::conversion_ratio>));
-	EXPECT_FALSE((std::is_same_v<void, traits::conversion_factor_traits<meters>::conversion_ratio>));
+	EXPECT_FALSE((std::is_same_v<void, traits::conversion_factor_traits<meter_conversion_factor>::conversion_ratio>));
 }
 
 TEST_F(TypeTraits, unit_traits)
@@ -193,32 +193,32 @@ TEST_F(TypeTraits, unit_traits)
 
 TEST_F(TypeTraits, is_same_dimension)
 {
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, astronomical_units>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, parsecs>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, astronomical_unit_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, parsec_conversion_factor>));
 
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_units, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<parsecs, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<years, weeks>));
+	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_unit_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_v<parsec_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_v<year_conversion_factor, week_conversion_factor>));
 
-	EXPECT_FALSE((traits::is_same_dimension_v<meters, seconds>));
-	EXPECT_FALSE((traits::is_same_dimension_v<seconds, meters>));
-	EXPECT_FALSE((traits::is_same_dimension_v<years, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_v<meter_conversion_factor, second_conversion_factor>));
+	EXPECT_FALSE((traits::is_same_dimension_v<second_conversion_factor, meter_conversion_factor>));
+	EXPECT_FALSE((traits::is_same_dimension_v<year_conversion_factor, meter_conversion_factor>));
 }
 
 TEST_F(TypeTraits, inverse)
 {
 	double test;
 
-	using htz         = traits::strong_t<inverse<seconds>>;
-	bool shouldBeTrue = std::is_same_v<htz, hertz>;
+	using htz         = traits::strong_t<inverse<second_conversion_factor>>;
+	bool shouldBeTrue = std::is_same_v<htz, hertz_conversion_factor>;
 	EXPECT_TRUE(shouldBeTrue);
 
-	test = unit<inverse<fahrenheit>>(unit<inverse<celsius>>(1.0))();
+	test = unit<inverse<fahrenheit_conversion_factor>>(unit<inverse<celsius_conversion_factor>>(1.0))();
 	EXPECT_NEAR(5.0 / 9.0, test, 5.0e-5);
 
-	test = unit<inverse<fahrenheit>>(unit<inverse<kelvin>>(6.0))();
+	test = unit<inverse<fahrenheit_conversion_factor>>(unit<inverse<kelvin_conversion_factor>>(6.0))();
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
 }
 
@@ -226,25 +226,25 @@ TEST_F(TypeTraits, strong)
 {
 	EXPECT_TRUE(
 		(std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
-	EXPECT_TRUE((std::is_same_v<meter, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
-	EXPECT_TRUE((std::is_same_v<kilometer, traits::strong_t<kilo<meter>>>));
-	EXPECT_TRUE((std::is_same_v<square_meter, traits::strong_t<squared<meter>>>));
+	EXPECT_TRUE((std::is_same_v<meter_conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
+	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter_t<int>>>>));
+	EXPECT_TRUE((std::is_same_v<square_meter_conversion_factor, traits::strong_t<squared<meter_conversion_factor>>>));
 }
 
 TEST_F(TypeTraits, dimension_of)
 {
-	using dim = traits::dimension_of_t<years>;
+	using dim = traits::dimension_of_t<year_conversion_factor>;
 
 	EXPECT_TRUE((std::is_same_v<dim, dimension::time>));
 	EXPECT_FALSE((std::is_same_v<dim, dimension::length>));
-	EXPECT_FALSE((std::is_same_v<dim, units::time::days>));
+	EXPECT_FALSE((std::is_same_v<dim, units::time::day_t<int>>));
 
 	using dim2 = typename traits::conversion_factor_traits<
 		typename traits::unit_traits<decltype(meters_per_second_t<double>(5))>::conversion_factor>::dimension_type;
 
 	EXPECT_TRUE((std::is_same_v<dim2, dimension::velocity>));
 	EXPECT_FALSE((std::is_same_v<dim2, dimension::time>));
-	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::miles_per_hour>));
+	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::miles_per_hour_t<int>>));
 }
 
 TEST_F(TypeTraits, has_linear_scale)

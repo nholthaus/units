@@ -62,7 +62,7 @@ namespace units
 	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m,
 		conversion_factor<std::ratio<1>, units::dimension::density>)
 	UNIT_ADD(density, grams_per_milliliter, grams_per_milliliter, g_per_mL,
-		compound_conversion_factor<mass::grams, inverse<volume::milliliter_t<int>>>)
+		compound_conversion_factor<mass::gram_t<int>, inverse<volume::milliliter_t<int>>>)
 	UNIT_ADD(density, kilograms_per_liter, kilograms_per_liter, kg_per_L,
 		conversion_factor<std::ratio<1>,
 			compound_conversion_factor<mass::gram_t<int>, inverse<volume::milliliter_t<int>>>>)
