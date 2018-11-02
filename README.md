@@ -1,5 +1,5 @@
-
 # UNITS
+
 A compile-time, header-only, dimensional analysis library built on C++17 with no dependencies.
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
@@ -11,6 +11,7 @@ If you are using `units.h` in production code, I'd love to hear from you via Git
 # Latest Release - v2.3.1
 
 ## Get it
+
 [![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.1-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.1)
 
 ## New in v2.3.1
@@ -125,7 +126,7 @@ Does this library work on your compiler? If so, let me know!
 
 The library consists of an all-including header ([<units.h>](include/units.h)), per-dimension headers (of the form [<units/dimension.h>](include/units/)), plus unit tests. To incorporate the library into your project, simply copy the [include](include) directory into your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
-The library provides a set of conversion factors, units, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable name suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_.
+The library provides a set of conversion factors, unit types, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable name suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_.
 
 The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
 
@@ -139,9 +140,9 @@ Include `<units.h>` in your sources, along with the `using` directive for litera
 using namespace units::literals;
 ```
 
-Each "dimension" of unit is defined in its own inline namespace. See [the namespaces section](#namespaces) for a complete list. The rest of the guide assumes you're `using namespace units;`.
+Each "dimension" of unit is defined in its own inline namespace. See [the namespaces section](#namespaces) for a list. The rest of the guide assumes you're `using namespace units;`.
 
-**The easiest way to get started with the `units` library is to think of units as arithmetic value wrappers.** Units are typically the units plural name, or the non-plural name with the suffix `_t` (for type), e.g. `meters<int>` or `meter_t` (alias for `meters<double>`). See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
+**The easiest way to get started with the `units` library is to think of unit types as arithmetic value wrappers.** Unit types typically use the unit's plural name, or the non-plural name with the suffix `_t` (for type), e.g. `meters<int>` or `meter_t` (alias for `meters<double>`). See [the documentation](http://nholthaus.github.io/units/namespaces.html) for a complete list.
 
 Units can (_and should!_) be used anywhere arithmetic literals can be used:
 
@@ -186,6 +187,7 @@ units::meter_t c = sqrt(pow<2>(a) + pow<2>(b)); // Pythagorean threorem.
 
 std::cout << c << std::endl;                    // prints: "5 m"
 ```
+
 # Unit initialization
 
 There are several ways to initialize unit values:
@@ -202,16 +204,17 @@ meter_t       distance3(100_ft); // Explicit initialization of `double` unit fro
 - CTAD (Class Template Argument Deduction)
 
 ```cpp
-meters distance0(10);       // meters<int>
-meters distance0(10.0);     // meters<double>
-meters distance0(10_m);     // meters<int>
-meters distance0(100.0_ft); // meters<double>
+meters distance0(10);       // `meters<int>`
+meters distance0(10.0);     // `meters<double>`
+meters distance0(10_m);     // `meters<int>`
+meters distance0(100.0_ft); // `meters<double>`
 ```
 
 # Conversion factors
+
 Conversion factors are the foundation of the dimensional analysis of the units library. Conversion factors are tag types which are never instantiated in user code, but which provide the compile-time information about different units, including how to convert between them, and how to determine their compatibility for conversion.
 
-All conversion factors are defined in namespace nested within the `units` namespace, such as `units::length` or `units::angle`, to avoid name clashes between units of different physical quantities which share the same names (like pounds). SI base units are defined as "dimensions" in the `units::dimension` namespace.
+All conversion factors are defined in namespaces nested within the `units` namespace, such as `units::length` or `units::angle`, to avoid name clashes between units of different physical quantities which share the same names (like pounds). SI base units are defined as "dimensions" in the `units::dimension` namespace.
 
 Units are defined in terms of
  1. A scale factor relative to a base conversion factor.
@@ -252,7 +255,7 @@ using meter_t = units::unit<units::meter_conversion_factor>;
 
 since the underlying type and scale parameters default to `double` and `linear_scale` respectively.
 
-Units of the same dimension (e.g length units) can be implicitly converted/assigned to one another if the conversion would be lossless (i.g. not from `double` to `int` underlying types or truncating). Units (with the exception of dimensionless units) cannot be implicitly converted to/from built-in types, such as `double`.
+Units of the same dimension (e.g length units) can be implicitly converted/assigned to one another if the conversion would be lossless (i.g. non narrowing nor truncating). Units (with the exception of dimensionless units) cannot be implicitly converted to/from built-in types, such as `double`.
 
 Units are constructed from built-in types, and the `value()` method (or `operator()`) can be used to retrieve its underlying value. That said, the user should prefer to operate within the unit type-space as much as is practical, and wrappers of most `<cmath>` functions are provided to enable operating solely in the `unit` domain.
 
@@ -331,11 +334,11 @@ _* with the exception of `Teslas`, which use `_Te` for compatibility with MSVC c
 
 # `<cmath>` Functions
 
-The `units` library include unit type-safe wrapped versions for almost all of the `<cmath>` functions, _including_ the C++11 extensions. These functions can be found through ADL. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code.
+The `units` library includes unit type-safe wrapper versions for almost all of the `<cmath>` functions, _including_ the C++11 extensions. These functions can be found through ADL. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code.
 
 The wrapped functions ensure that only the proper unit types are accepted into the functions, and that the return value type matches the expected units, all without needing to resort to the type-unsafe `value()` member.
 
-In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply fully-qualifiey the function with `units::`, e.g.
+In _rare_ cases, the overload resolution for a given type may be ambiguous. If so, simply fully-qualify the function with `units::`, e.g.
 
 ```cpp
 meter_t x(2.0);
@@ -343,7 +346,7 @@ meter_t y(3.0);
 square_meter_t z(1.0);
 
 double         result = fma(x, y, z);                         // Error: ambiguous
-double         result = fma(x.value(), y.value(), z.value()); // !!!Unsafe!!!
+double         result = fma(x.value(), y.value(), z.value()); // Unsafe!
 square_meter_t result = math::fma(x, y, z);                   // OK.
 ```
 
@@ -459,7 +462,9 @@ Conversion factors are defined in the form: `using [conversion-factor] = units::
 
 Compound conversion factors are defined in a similar manner, with additional helper functions for polynomials:
 
+    ```cpp
 	using acceleration = compound_conversion_factor<meter_conversion_factor, inverse<squared<second_conversion_factor>>>;		// (m / s^2)
+    ```
 
 The available helpers are:
  - `units::inverse<...>`     (inverts the conversion factor, e.g. meters becomes meters^-1, or 1 / meters)
@@ -566,7 +571,7 @@ For some embedded applications, it may be [desirable to remove all references to
 
 If you know that you only need a subset of the units for your application,
 you can use the per-dimension headers for units.
-For example, `#include <units/length.h>` will give you access to the units of length dimension.
+For example, `#include <units/length.h>` will only give you access to the units of length dimension.
 
 # Macro clashes
 
@@ -642,6 +647,7 @@ The unit tests and documentation can be built with CMake. A doxygen installation
 To build the tests:
 
 ## Windows
+
  1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
  3. Open a `cmd` terminal and navigate to the source directory.
@@ -653,6 +659,7 @@ To build the tests:
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
 
 ## Linux
+
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 7 or greater. You can verify this with `gcc --version`.
  3. clone the repository or download the `.tar.gz` package.
