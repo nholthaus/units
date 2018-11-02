@@ -62,7 +62,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(
 		charge, coulomb, coulombs, C, conversion_factor<std::ratio<1>, units::dimension::charge>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		charge, ampere_hour, ampere_hours, Ah, compound_conversion_factor<current::ampere, time::hours>)
+		charge, ampere_hour, ampere_hours, Ah, compound_conversion_factor<current::ampere_t<int>, time::hour_t<int>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(charge)
 } // namespace units

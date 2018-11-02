@@ -62,12 +62,12 @@ namespace units
 	UNIT_ADD(
 		velocity, meters_per_second, meters_per_second, mps, conversion_factor<std::ratio<1>, units::dimension::velocity>)
 	UNIT_ADD(
-		velocity, feet_per_second, feet_per_second, fps, compound_conversion_factor<length::feet, inverse<time::seconds>>)
+		velocity, feet_per_second, feet_per_second, fps, compound_conversion_factor<length::foot_t<int>, inverse<time::second_t<int>>>)
 	UNIT_ADD(
-		velocity, miles_per_hour, miles_per_hour, mph, compound_conversion_factor<length::miles, inverse<time::hour>>)
+		velocity, miles_per_hour, miles_per_hour, mph, compound_conversion_factor<length::mile_t<int>, inverse<time::hour_t<int>>>)
 	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph,
-		compound_conversion_factor<length::kilometers, inverse<time::hour>>)
-	UNIT_ADD(velocity, knot, knots, kts, compound_conversion_factor<length::nautical_miles, inverse<time::hour>>)
+		compound_conversion_factor<length::kilometer_t<int>, inverse<time::hour_t<int>>>)
+	UNIT_ADD(velocity, knot, knots, kts, compound_conversion_factor<length::nautical_mile_t<int>, inverse<time::hour_t<int>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(velocity)
 } // namespace units

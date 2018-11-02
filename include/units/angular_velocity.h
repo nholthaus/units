@@ -62,11 +62,11 @@ namespace units
 	UNIT_ADD(angular_velocity, radians_per_second, radians_per_second, rad_per_s,
 		conversion_factor<std::ratio<1>, units::dimension::angular_velocity>)
 	UNIT_ADD(angular_velocity, degrees_per_second, degrees_per_second, deg_per_s,
-		compound_conversion_factor<angle::degrees, inverse<time::seconds>>)
+		compound_conversion_factor<angle::degrees, inverse<time::second_t<int>>>)
 	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm,
-		conversion_factor<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
+		conversion_factor<std::ratio<2, 60>, radians_per_second_t<int>, std::ratio<1>>)
 	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr,
-		compound_conversion_factor<angle::milliarcseconds, inverse<time::year>>)
+		compound_conversion_factor<angle::milliarcseconds, inverse<time::year_t<int>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(angular_velocity)
 } // namespace units
