@@ -144,7 +144,6 @@ namespace units
 		{ \
 		};                                                                                             /** @} */ \
 		/** @name ConversionFactor (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */ \
-		/** @name ConversionFactor (abbreviated) */ /** @{ */ using abbreviation         = namePlural; /** @} */ \
 	} \
 	namespace traits \
 	{ \

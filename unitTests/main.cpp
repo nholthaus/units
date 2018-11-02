@@ -244,7 +244,7 @@ TEST_F(TypeTraits, dimension_of)
 
 	EXPECT_TRUE((std::is_same_v<dim2, dimension::velocity>));
 	EXPECT_FALSE((std::is_same_v<dim2, dimension::time>));
-	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::mph>));
+	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::miles_per_hour>));
 }
 
 TEST_F(TypeTraits, has_linear_scale)
@@ -389,12 +389,12 @@ TEST_F(TypeTraits, is_substance_unit)
 	EXPECT_FALSE((traits::is_substance_unit_v<year>));
 	EXPECT_FALSE((traits::is_substance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_substance_unit_v<substance::mole_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mole_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mole_t<double>&>));
+	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol_t<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol_t<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol_t<double>&>));
 	EXPECT_FALSE((traits::is_substance_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<substance::mole_t<double>, substance::mole_t<double>>));
-	EXPECT_FALSE((traits::is_substance_unit_v<year_t<double>, substance::mole_t<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol_t<double>, substance::mol_t<double>>));
+	EXPECT_FALSE((traits::is_substance_unit_v<year_t<double>, substance::mol_t<double>>));
 }
 
 TEST_F(TypeTraits, is_luminous_intensity_unit)
@@ -778,8 +778,8 @@ TEST_F(TypeTraits, is_data_unit)
 
 TEST_F(TypeTraits, is_data_transfer_rate_unit)
 {
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<Gbps>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<GBps>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabytes_per_second>));
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year>));
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<double>));
 
@@ -3189,7 +3189,7 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
+	same = traits::is_convertible_unit_v<revolutions_per_minute, radians_per_second>;
 	EXPECT_TRUE(same);
 
 	test = milliarcseconds_per_year_t<double>(radians_per_second_t<double>(1.0))();
