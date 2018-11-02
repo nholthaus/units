@@ -123,7 +123,7 @@ Does this library work on your compiler? If so, let me know!
 
 # Description
 
-The library consists of an all-including header ([<units.h>](include/units.h)), per-dimension headers (of the form [<units/dimension.h>](include/units/)), plus unit tests. To incorporate the library into your project, simply copy the [include] directory into your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
+The library consists of an all-including header ([<units.h>](include/units.h)), per-dimension headers (of the form [<units/dimension.h>](include/units/)), plus unit tests. To incorporate the library into your project, simply copy the [include](include) directory into your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
 The library provides a set of conversion factors, units, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable name suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_.
 
