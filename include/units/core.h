@@ -390,9 +390,10 @@ namespace units
 			using type = globalUnitName<common_type_t<Underlying1, Underlying2>>; \
 		}; \
 \
-		template<typename Underlying, class T> \
-		struct common_type<globalUnitName<Underlying>, T> \
-		  : common_type<::units::traits::unit_base_t<globalUnitName<Underlying>>, ::units::traits::unit_base_t<T>> \
+		template<typename UnderlyingLhs, template<class> class StrongUnit, class UnderlyingRhs> \
+		struct common_type<globalUnitName<UnderlyingLhs>, StrongUnit<UnderlyingRhs>> \
+		  : common_type<globalUnitName<UnderlyingLhs>, \
+				::units::detail::detected_t<::units::traits::unit_base_t, StrongUnit<UnderlyingRhs>>> \
 		{ \
 		}; \
 	}
