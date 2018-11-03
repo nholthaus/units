@@ -509,19 +509,19 @@ namespace units
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
-	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
-	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \
-	 ** 			test the unit represents a unitdimension quantity.*/ \
-	/** @tparam		T	one or more types to test*/ \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/ \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`. \
+	 *				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
+	/** @tparam		T	type to test*/ \
 	namespace traits \
 	{ \
-		template<typename... T> \
+		template<typename T> \
 		struct is_##unitdimension##_unit \
-		  : std::conjunction<::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension>...> \
+		  : ::units::detail::has_dimension_of<std::remove_const_t<T>, units::dimension::unitdimension> \
 		{ \
 		}; \
-		template<typename... T> \
-		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T...>::value; \
+		template<typename T> \
+		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T>::value; \
 	}
 
 /**
@@ -744,9 +744,9 @@ namespace units
 		/** @endcond */ // END DOXYGEN IGNORE
 
 		/**
-		 * @brief		Trait that tests whether a type represents a std::ratio.
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_ratio_v<T>` to test
-		 *				whether `class T` implements a std::ratio.
+		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a specialization of `std::ratio`.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_ratio_v<T>` to test whether `T` is a specialization of `std::ratio`.
 		 */
 		template<class T>
 		using is_ratio = detail::is_ratio_impl<T>;
@@ -844,9 +844,9 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Traits which tests if a class is a `conversion_factor`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conversion_factor_v<T>` to test
-		 *				whether `class T` implements a `conversion_factor`.
+		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a conversion factor.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
++		 *				Use `is_conversion_factor_v<T>` to test whether `T` represents a conversion factor.
 		 */
 		template<class T>
 		using is_conversion_factor = typename std::is_base_of<units::detail::_conversion_factor, T>::type;
@@ -2363,7 +2363,7 @@ namespace units
 	namespace traits
 	{
 		// forward declaration
-		template<typename... T>
+		template<typename T>
 		struct is_dimensionless_unit;
 
 		/**
@@ -3149,15 +3149,7 @@ namespace units
 
 	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dimensionless, ::units::linear_scale)
 
-// ignore the redeclaration of the default template parameters
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4348)
-#endif
 	UNIT_ADD_DIMENSION_TRAIT(dimensionless)
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 } // namespace units
 
