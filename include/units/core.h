@@ -653,6 +653,70 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	//------------------------------
+	//	DETECTION IDIOM
+	//------------------------------
+
+	/** @cond */ // DOXYGEN IGNORE
+	namespace detail
+	{
+		/**
+		 * @brief		Detection idiom implementation.
+		 * @details		Simplifies the implementation of traits and other metaprogramming use-cases.
+		 *				The result is shorter and more expressive code.
+		 * @sa			https://wg21.link/N4502, http://wg21.link/N4758#meta.detect
+		 */
+		template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
+		struct detector
+		{
+			using value_t = std::false_type;
+			using type    = Default;
+		};
+
+		template<class Default, template<class...> class Op, class... Args>
+		struct detector<Default, std::void_t<Op<Args...>>, Op, Args...>
+		{
+			using value_t = std::true_type;
+			using type    = Op<Args...>;
+		};
+
+		struct nonesuch
+		{
+			nonesuch()                = delete;
+			~nonesuch()               = delete;
+			nonesuch(const nonesuch&) = delete;
+			void operator=(const nonesuch&) = delete;
+		};
+
+		template<template<class...> class Op, class... Args>
+		using is_detected = typename detector<nonesuch, void, Op, Args...>::value_t;
+
+		template<template<class...> class Op, class... Args>
+		inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+
+		template<template<class...> class Op, class... Args>
+		using detected_t = typename detector<nonesuch, void, Op, Args...>::type;
+
+		template<class Default, template<class...> class Op, class... Args>
+		using detected_or = detector<Default, void, Op, Args...>;
+
+		template<class Default, template<class...> class Op, class... Args>
+		using detected_or_t = typename detected_or<Default, Op, Args...>::type;
+
+		template<class Expected, template<class...> class Op, class... Args>
+		using is_detected_exact = std::is_same<Expected, detected_t<Op, Args...>>;
+
+		template<class Expected, template<class...> class Op, class... Args>
+		inline constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
+
+		template<class To, template<class...> class Op, class... Args>
+		using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>;
+
+		template<class To, template<class...> class Op, class... Args>
+		inline constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
+	}               // namespace detail
+	/** @endcond */ // END DOXYGEN IGNORE
+
+	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
 
