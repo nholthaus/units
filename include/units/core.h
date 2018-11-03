@@ -779,9 +779,9 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Traits which tests if a class is a `conversion_factor`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_conversion_factor_v<T>` to test
-		 *				whether `class T` implements a `conversion_factor`.
+		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a conversion factor.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
++		 *				Use `is_conversion_factor_v<T>` to test whether `T` represents a conversion factor.
 		 */
 		template<class T>
 		using is_conversion_factor = typename std::is_base_of<units::detail::_conversion_factor, T>::type;
