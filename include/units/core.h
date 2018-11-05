@@ -165,7 +165,7 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			nameSingular##_t, ::units::linear_scale, nameSingular##_conversion_factor) /** @} */ \
+			nameSingular, ::units::linear_scale, nameSingular##_conversion_factor) /** @} */ \
 	}
 
 /**
@@ -268,13 +268,13 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		template<class Underlying> \
-		std::ostream& operator<<(std::ostream& os, const nameSingular##_t<Underlying>& obj) \
+		std::ostream& operator<<(std::ostream& os, const nameSingular<Underlying>& obj) \
 		{ \
 			os << obj() << " " #abbrev; \
 			return os; \
 		} \
 		template<class Underlying> \
-		std::string to_string(const nameSingular##_t<Underlying>& obj) \
+		std::string to_string(const nameSingular<Underlying>& obj) \
 		{ \
 			return units::detail::to_string(obj()) + std::string(" " #abbrev); \
 		} \
@@ -293,13 +293,13 @@ namespace units
  */
 #define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev) \
 	template<class Underlying> \
-	struct unit_name<namespaceName::nameSingular##_t<Underlying>> \
+	struct unit_name<namespaceName::nameSingular<Underlying>> \
 	{ \
 		static constexpr const char* value = #nameSingular; \
 	}; \
 \
 	template<class Underlying> \
-	struct unit_abbreviation<namespaceName::nameSingular##_t<Underlying>> \
+	struct unit_abbreviation<namespaceName::nameSingular<Underlying>> \
 	{ \
 		static constexpr const char* value = #abbrev; \
 	};
@@ -337,7 +337,7 @@ namespace units
 	{ \
 		UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
 		UNIT_ADD_STRONG( \
-			::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::nameSingular##_t, scale) \
+			::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::nameSingular, scale) \
 	}
 
 /**
@@ -420,7 +420,7 @@ namespace units
  */
 #define UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
 	UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
-	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::nameSingular##_t)
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::nameSingular)
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -436,13 +436,13 @@ namespace units
 #define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation) \
 	namespace literals \
 	{ \
-		constexpr namespaceName::nameSingular##_t<double> operator""_##abbreviation(long double d) noexcept \
+		constexpr namespaceName::nameSingular<double> operator""_##abbreviation(long double d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
+			return namespaceName::nameSingular<double>(static_cast<double>(d)); \
 		} \
-		constexpr namespaceName::nameSingular##_t<int> operator""_##abbreviation(unsigned long long d) noexcept \
+		constexpr namespaceName::nameSingular<int> operator""_##abbreviation(unsigned long long d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t<int>(static_cast<int>(d)); \
+			return namespaceName::nameSingular<int>(static_cast<int>(d)); \
 		} \
 	}
 
@@ -487,14 +487,14 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation##_t, ::units::decibel_scale, nameSingular) /** @} */ \
+			abbreviation, ::units::decibel_scale, nameSingular) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_STRONG( \
-			::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation##_t, ::units::decibel_scale) \
+			::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation, ::units::decibel_scale) \
 	/*	}  */\
-	/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation##_t) */
+	/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation) */
 
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
@@ -542,20 +542,20 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<nameSingular##_t<int>>)
+	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<nameSingular<int>>)
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -578,12 +578,12 @@ namespace units
 #define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES( \
 	namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<nameSingular##_t<int>>) \
-	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<nameSingular##_t<int>>)
+	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<nameSingular<int>>) \
+	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<nameSingular<int>>)
 
 //--------------------
 //	UNITS NAMESPACE
@@ -3576,22 +3576,22 @@ namespace units
 	 * @brief		dimensionless unit with decibel scale
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, ::units::decibel_scale, dimensionless_unit)
-	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dB_t, ::units::decibel_scale)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dB, ::units::decibel_scale, dimensionless_unit)
+	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dB, ::units::decibel_scale)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
-	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
+	std::ostream& operator<<(std::ostream& os, const dB<Underlying>& obj)
 	{
 		os << obj() << " dB";
 		return os;
 	}
 #endif
 	template<class Underlying>
-	using dBi_t = dB_t<Underlying>;
+	using dBi_t = dB<Underlying>;
 
 } // namespace units
 
-UNIT_ADD_STD_SPECIALIZATIONS(::units::dB_t)
+UNIT_ADD_STD_SPECIALIZATIONS(::units::dB)
 
 namespace units
 {
@@ -3647,7 +3647,7 @@ namespace units
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> dB_t<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
+		-> dB<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using Dimensionless = decltype(lhs - rhs);
 		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;

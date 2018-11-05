@@ -62,9 +62,9 @@ namespace units
 	UNIT_ADD(acceleration, meters_per_second_squared, meters_per_second_squared, mps_sq,
 		conversion_factor<std::ratio<1>, units::dimension::acceleration>)
 	UNIT_ADD(acceleration, feet_per_second_squared, feet_per_second_squared, fps_sq,
-		compound_conversion_factor<length::foot_t<int>, inverse<squared<time::second_t<int>>>>)
+		compound_conversion_factor<length::foot<int>, inverse<squared<time::second<int>>>>)
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG,
-		conversion_factor<std::ratio<980665, 100000>, meters_per_second_squared_t<int>>)
+		conversion_factor<std::ratio<980665, 100000>, meters_per_second_squared<int>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(acceleration)
 } // namespace units

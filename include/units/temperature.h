@@ -63,11 +63,11 @@ namespace units
 	 */
 	UNIT_ADD(temperature, kelvin, kelvin, K, conversion_factor<std::ratio<1>, units::dimension::temperature>)
 	UNIT_ADD(temperature, celsius, celsius, degC,
-		conversion_factor<std::ratio<1>, kelvin_t<int>, std::ratio<0>, std::ratio<27315, 100>>)
+		conversion_factor<std::ratio<1>, kelvin<int>, std::ratio<0>, std::ratio<27315, 100>>)
 	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF,
-		conversion_factor<std::ratio<5, 9>, celsius_t<int>, std::ratio<0>, std::ratio<-160, 9>>)
-	UNIT_ADD(temperature, reaumur, reaumur, Re, conversion_factor<std::ratio<10, 8>, celsius_t<int>>)
-	UNIT_ADD(temperature, rankine, rankine, Ra, conversion_factor<std::ratio<5, 9>, kelvin_t<int>>)
+		conversion_factor<std::ratio<5, 9>, celsius<int>, std::ratio<0>, std::ratio<-160, 9>>)
+	UNIT_ADD(temperature, reaumur, reaumur, Re, conversion_factor<std::ratio<10, 8>, celsius<int>>)
+	UNIT_ADD(temperature, rankine, rankine, Ra, conversion_factor<std::ratio<5, 9>, kelvin<int>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(temperature)
 } // namespace units

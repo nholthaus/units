@@ -60,9 +60,9 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(
 		data, byte, bytes, B, conversion_factor<std::ratio<1>, units::dimension::data>)
-	UNIT_ADD(data, exabyte, exabytes, EB, conversion_factor<std::ratio<1000>, petabyte_t<int>>)
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, conversion_factor<std::ratio<1, 8>, byte_t<int>>)
-	UNIT_ADD(data, exabit, exabits, Eb, conversion_factor<std::ratio<1000>, petabit_t<int>>)
+	UNIT_ADD(data, exabyte, exabytes, EB, conversion_factor<std::ratio<1000>, petabyte<int>>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bit, bits, b, conversion_factor<std::ratio<1, 8>, byte<int>>)
+	UNIT_ADD(data, exabit, exabits, Eb, conversion_factor<std::ratio<1000>, petabit<int>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(data)
 } // namespace units

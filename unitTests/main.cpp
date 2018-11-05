@@ -142,7 +142,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_TRUE(traits::is_conversion_factor_v<meter_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<foot_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
-	EXPECT_TRUE(traits::is_conversion_factor_v<meter_t<double>>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<meter<double>>);
 }
 
 TEST_F(TypeTraits, is_unit)
@@ -152,7 +152,7 @@ TEST_F(TypeTraits, is_unit)
 	EXPECT_FALSE(traits::is_unit_v<meter_conversion_factor>);
 	EXPECT_FALSE(traits::is_unit_v<foot_conversion_factor>);
 	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
-	EXPECT_TRUE(traits::is_unit_v<meter_t<double>>);
+	EXPECT_TRUE(traits::is_unit_v<meter<double>>);
 }
 
 TEST_F(TypeTraits, unit_base)
@@ -163,8 +163,8 @@ TEST_F(TypeTraits, unit_base)
 		unit<dimensionless_unit, int>>));
 	EXPECT_TRUE(
 		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter_t<double>>, unit<meter_conversion_factor, double>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter_t<double>>, unit<meter_conversion_factor, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter<double>>, unit<meter_conversion_factor, double>>));
+	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter<double>>, unit<meter_conversion_factor, double>>));
 }
 
 TEST_F(TypeTraits, replace_underlying)
@@ -186,9 +186,9 @@ TEST_F(TypeTraits, conversion_factor_traits)
 TEST_F(TypeTraits, unit_traits)
 {
 	EXPECT_TRUE((std::is_same_v<void, traits::unit_traits<double>::underlying_type>));
-	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter_t<double>>::underlying_type>));
+	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter<double>>::underlying_type>));
 	EXPECT_TRUE((std::is_same_v<void, traits::unit_traits<double>::value_type>));
-	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter_t<double>>::value_type>));
+	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter<double>>::value_type>));
 }
 
 TEST_F(TypeTraits, is_same_dimension)
@@ -227,7 +227,7 @@ TEST_F(TypeTraits, strong)
 	EXPECT_TRUE(
 		(std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
 	EXPECT_TRUE((std::is_same_v<meter_conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
-	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter_t<int>>>>));
+	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter<int>>>>));
 	EXPECT_TRUE((std::is_same_v<square_meter_conversion_factor, traits::strong_t<squared<meter_conversion_factor>>>));
 }
 
@@ -237,42 +237,42 @@ TEST_F(TypeTraits, dimension_of)
 
 	EXPECT_TRUE((std::is_same_v<dim, dimension::time>));
 	EXPECT_FALSE((std::is_same_v<dim, dimension::length>));
-	EXPECT_FALSE((std::is_same_v<dim, units::time::day_t<int>>));
+	EXPECT_FALSE((std::is_same_v<dim, units::time::day<int>>));
 
 	using dim2 = typename traits::conversion_factor_traits<
-		typename traits::unit_traits<decltype(meters_per_second_t<double>(5))>::conversion_factor>::dimension_type;
+		typename traits::unit_traits<decltype(meters_per_second<double>(5))>::conversion_factor>::dimension_type;
 
 	EXPECT_TRUE((std::is_same_v<dim2, dimension::velocity>));
 	EXPECT_FALSE((std::is_same_v<dim2, dimension::time>));
-	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::miles_per_hour_t<int>>));
+	EXPECT_FALSE((std::is_same_v<dim2, units::velocity::miles_per_hour<int>>));
 }
 
 TEST_F(TypeTraits, has_linear_scale)
 {
 	EXPECT_TRUE((traits::has_linear_scale_v<dimensionless<double>>));
-	EXPECT_TRUE((traits::has_linear_scale_v<meter_t<double>>));
-	EXPECT_TRUE((traits::has_linear_scale_v<foot_t<double>>));
-	EXPECT_TRUE((traits::has_linear_scale_v<watt_t<double>, dimensionless<double>>));
-	EXPECT_TRUE((traits::has_linear_scale_v<dimensionless<double>, meter_t<double>>));
-	EXPECT_TRUE((traits::has_linear_scale_v<meters_per_second_t<double>>));
-	EXPECT_FALSE((traits::has_linear_scale_v<dB_t<double>>));
-	EXPECT_FALSE((traits::has_linear_scale_v<dB_t<double>, meters_per_second_t<double>>));
+	EXPECT_TRUE((traits::has_linear_scale_v<meter<double>>));
+	EXPECT_TRUE((traits::has_linear_scale_v<foot<double>>));
+	EXPECT_TRUE((traits::has_linear_scale_v<watt<double>, dimensionless<double>>));
+	EXPECT_TRUE((traits::has_linear_scale_v<dimensionless<double>, meter<double>>));
+	EXPECT_TRUE((traits::has_linear_scale_v<meters_per_second<double>>));
+	EXPECT_FALSE((traits::has_linear_scale_v<dB<double>>));
+	EXPECT_FALSE((traits::has_linear_scale_v<dB<double>, meters_per_second<double>>));
 }
 
 TEST_F(TypeTraits, has_decibel_scale)
 {
 	EXPECT_FALSE((traits::has_decibel_scale_v<dimensionless<double>>));
-	EXPECT_FALSE((traits::has_decibel_scale_v<meter_t<double>>));
-	EXPECT_FALSE((traits::has_decibel_scale_v<foot_t<double>>));
-	EXPECT_TRUE((traits::has_decibel_scale_v<dB_t<double>>));
-	EXPECT_TRUE((traits::has_decibel_scale_v<dBW_t<double>>));
+	EXPECT_FALSE((traits::has_decibel_scale_v<meter<double>>));
+	EXPECT_FALSE((traits::has_decibel_scale_v<foot<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dB<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dBW<double>>));
 
-	EXPECT_TRUE((traits::has_decibel_scale_v<dBW_t<double>, dB_t<double>>));
-	EXPECT_TRUE((traits::has_decibel_scale_v<dBW_t<double>, dBm_t<double>>));
-	EXPECT_TRUE((traits::has_decibel_scale_v<dB_t<double>, dB_t<double>>));
-	EXPECT_TRUE((traits::has_decibel_scale_v<dB_t<double>, dB_t<double>, dB_t<double>>));
-	EXPECT_FALSE((traits::has_decibel_scale_v<dB_t<double>, dB_t<double>, meter_t<double>>));
-	EXPECT_FALSE((traits::has_decibel_scale_v<meter_t<double>, dB_t<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dBW<double>, dB<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dBW<double>, dBm<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dB<double>, dB<double>>));
+	EXPECT_TRUE((traits::has_decibel_scale_v<dB<double>, dB<double>, dB<double>>));
+	EXPECT_FALSE((traits::has_decibel_scale_v<dB<double>, dB<double>, meter<double>>));
+	EXPECT_FALSE((traits::has_decibel_scale_v<meter<double>, dB<double>>));
 }
 
 TEST_F(TypeTraits, is_dimensionless_unit)
@@ -281,455 +281,455 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB_t<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB_t<double>, dimensionless<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<ppm_t<double>>));
-	EXPECT_FALSE((traits::is_dimensionless_unit_v<meter_t<double>>));
-	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW_t<double>>));
-	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW_t<double>, dimensionless<double>>));
+	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>>));
+	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>, dimensionless<double>>));
+	EXPECT_TRUE((traits::is_dimensionless_unit_v<ppm<double>>));
+	EXPECT_FALSE((traits::is_dimensionless_unit_v<meter<double>>));
+	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW<double>>));
+	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW<double>, dimensionless<double>>));
 }
 
 TEST_F(TypeTraits, is_length_unit)
 {
 	EXPECT_FALSE((traits::is_length_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_length_unit_v<meter_t<double>>));
-	EXPECT_TRUE((traits::is_length_unit_v<const meter_t<double>>));
-	EXPECT_TRUE((traits::is_length_unit_v<const meter_t<double>&>));
-	EXPECT_TRUE((traits::is_length_unit_v<cubit_t<double>>));
-	EXPECT_FALSE((traits::is_length_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_length_unit_v<meter_t<double>, cubit_t<double>>));
-	EXPECT_FALSE((traits::is_length_unit_v<meter_t<double>, year_t<double>>));
+	EXPECT_TRUE((traits::is_length_unit_v<meter<double>>));
+	EXPECT_TRUE((traits::is_length_unit_v<const meter<double>>));
+	EXPECT_TRUE((traits::is_length_unit_v<const meter<double>&>));
+	EXPECT_TRUE((traits::is_length_unit_v<cubit<double>>));
+	EXPECT_FALSE((traits::is_length_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_length_unit_v<meter<double>, cubit<double>>));
+	EXPECT_FALSE((traits::is_length_unit_v<meter<double>, year<double>>));
 }
 
 TEST_F(TypeTraits, is_mass_unit)
 {
 	EXPECT_FALSE((traits::is_mass_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_mass_unit_v<kilogram_t<double>>));
-	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram_t<double>>));
-	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram_t<double>&>));
-	EXPECT_TRUE((traits::is_mass_unit_v<stone_t<double>>));
-	EXPECT_FALSE((traits::is_mass_unit_v<meter_t<double>>));
-	EXPECT_TRUE((traits::is_mass_unit_v<kilogram_t<double>, stone_t<double>>));
-	EXPECT_FALSE((traits::is_mass_unit_v<kilogram_t<double>, meter_t<double>>));
+	EXPECT_TRUE((traits::is_mass_unit_v<kilogram<double>>));
+	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram<double>>));
+	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram<double>&>));
+	EXPECT_TRUE((traits::is_mass_unit_v<stone<double>>));
+	EXPECT_FALSE((traits::is_mass_unit_v<meter<double>>));
+	EXPECT_TRUE((traits::is_mass_unit_v<kilogram<double>, stone<double>>));
+	EXPECT_FALSE((traits::is_mass_unit_v<kilogram<double>, meter<double>>));
 }
 
 TEST_F(TypeTraits, is_time_unit)
 {
 	EXPECT_FALSE((traits::is_time_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_time_unit_v<second_t<double>>));
-	EXPECT_TRUE((traits::is_time_unit_v<const second_t<double>>));
-	EXPECT_TRUE((traits::is_time_unit_v<const second_t<double>&>));
-	EXPECT_TRUE((traits::is_time_unit_v<year_t<double>>));
-	EXPECT_FALSE((traits::is_time_unit_v<meter_t<double>>));
-	EXPECT_TRUE((traits::is_time_unit_v<second_t<double>, year_t<double>>));
-	EXPECT_FALSE((traits::is_time_unit_v<second_t<double>, meter_t<double>>));
+	EXPECT_TRUE((traits::is_time_unit_v<second<double>>));
+	EXPECT_TRUE((traits::is_time_unit_v<const second<double>>));
+	EXPECT_TRUE((traits::is_time_unit_v<const second<double>&>));
+	EXPECT_TRUE((traits::is_time_unit_v<year<double>>));
+	EXPECT_FALSE((traits::is_time_unit_v<meter<double>>));
+	EXPECT_TRUE((traits::is_time_unit_v<second<double>, year<double>>));
+	EXPECT_FALSE((traits::is_time_unit_v<second<double>, meter<double>>));
 }
 
 TEST_F(TypeTraits, is_angle_unit)
 {
 	EXPECT_FALSE((traits::is_angle_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian_t<double>>));
-	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian_t<double>>));
-	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian_t<double>&>));
-	EXPECT_TRUE((traits::is_angle_unit_v<angle::degree_t<double>>));
-	EXPECT_FALSE((traits::is_angle_unit_v<watt_t<double>>));
-	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian_t<double>, angle::degree_t<double>>));
-	EXPECT_FALSE((traits::is_angle_unit_v<angle::radian_t<double>, watt_t<double>>));
+	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian<double>>));
+	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian<double>>));
+	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian<double>&>));
+	EXPECT_TRUE((traits::is_angle_unit_v<angle::degree<double>>));
+	EXPECT_FALSE((traits::is_angle_unit_v<watt<double>>));
+	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian<double>, angle::degree<double>>));
+	EXPECT_FALSE((traits::is_angle_unit_v<angle::radian<double>, watt<double>>));
 }
 
 TEST_F(TypeTraits, is_current_unit)
 {
 	EXPECT_FALSE((traits::is_current_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_current_unit_v<current::ampere_t<double>>));
-	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere_t<double>>));
-	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere_t<double>&>));
-	EXPECT_FALSE((traits::is_current_unit_v<volt_t<double>>));
-	EXPECT_TRUE((traits::is_current_unit_v<current::ampere_t<double>, current::milliampere_t<double>>));
-	EXPECT_FALSE((traits::is_current_unit_v<current::ampere_t<double>, volt_t<double>>));
+	EXPECT_TRUE((traits::is_current_unit_v<current::ampere<double>>));
+	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere<double>>));
+	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere<double>&>));
+	EXPECT_FALSE((traits::is_current_unit_v<volt<double>>));
+	EXPECT_TRUE((traits::is_current_unit_v<current::ampere<double>, current::milliampere<double>>));
+	EXPECT_FALSE((traits::is_current_unit_v<current::ampere<double>, volt<double>>));
 }
 
 TEST_F(TypeTraits, is_temperature_unit)
 {
 	EXPECT_FALSE((traits::is_temperature_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit_t<double>>));
-	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit_t<double>>));
-	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit_t<double>&>));
-	EXPECT_TRUE((traits::is_temperature_unit_v<kelvin_t<double>>));
-	EXPECT_FALSE((traits::is_temperature_unit_v<cubit_t<double>>));
-	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit_t<double>, kelvin_t<double>>));
-	EXPECT_FALSE((traits::is_temperature_unit_v<cubit_t<double>, fahrenheit_t<double>>));
+	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit<double>>));
+	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit<double>>));
+	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit<double>&>));
+	EXPECT_TRUE((traits::is_temperature_unit_v<kelvin<double>>));
+	EXPECT_FALSE((traits::is_temperature_unit_v<cubit<double>>));
+	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit<double>, kelvin<double>>));
+	EXPECT_FALSE((traits::is_temperature_unit_v<cubit<double>, fahrenheit<double>>));
 }
 
 TEST_F(TypeTraits, is_substance_unit)
 {
 	EXPECT_FALSE((traits::is_substance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol_t<double>&>));
-	EXPECT_FALSE((traits::is_substance_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol_t<double>, substance::mol_t<double>>));
-	EXPECT_FALSE((traits::is_substance_unit_v<year_t<double>, substance::mol_t<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol<double>&>));
+	EXPECT_FALSE((traits::is_substance_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol<double>, substance::mol<double>>));
+	EXPECT_FALSE((traits::is_substance_unit_v<year<double>, substance::mol<double>>));
 }
 
 TEST_F(TypeTraits, is_luminous_intensity_unit)
 {
 	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela_t<double>&>));
-	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela_t<double>, candela_t<double>>));
-	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad_t<double>, candela_t<double>>));
+	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela<double>>));
+	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela<double>>));
+	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela<double>&>));
+	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad<double>>));
+	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela<double>, candela<double>>));
+	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad<double>, candela<double>>));
 }
 
 TEST_F(TypeTraits, is_solid_angle_unit)
 {
 	EXPECT_FALSE((traits::is_solid_angle_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_solid_angle_unit_v<steradian_t<double>>));
-	EXPECT_TRUE((traits::is_solid_angle_unit_v<const steradian_t<double>>));
-	EXPECT_TRUE((traits::is_solid_angle_unit_v<const degree_squared_t<double>&>));
-	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree_t<double>>));
-	EXPECT_TRUE((traits::is_solid_angle_unit_v<degree_squared_t<double>, steradian_t<double>>));
-	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree_t<double>, steradian_t<double>>));
+	EXPECT_TRUE((traits::is_solid_angle_unit_v<steradian<double>>));
+	EXPECT_TRUE((traits::is_solid_angle_unit_v<const steradian<double>>));
+	EXPECT_TRUE((traits::is_solid_angle_unit_v<const degree_squared<double>&>));
+	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree<double>>));
+	EXPECT_TRUE((traits::is_solid_angle_unit_v<degree_squared<double>, steradian<double>>));
+	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree<double>, steradian<double>>));
 }
 
 TEST_F(TypeTraits, is_frequency_unit)
 {
 	EXPECT_FALSE((traits::is_frequency_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_frequency_unit_v<hertz_t<double>>));
-	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz_t<double>>));
-	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz_t<double>&>));
-	EXPECT_FALSE((traits::is_frequency_unit_v<second_t<double>>));
-	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz_t<double>&, gigahertz_t<double>>));
-	EXPECT_FALSE((traits::is_frequency_unit_v<second_t<double>, hertz_t<double>>));
+	EXPECT_TRUE((traits::is_frequency_unit_v<hertz<double>>));
+	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>>));
+	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>&>));
+	EXPECT_FALSE((traits::is_frequency_unit_v<second<double>>));
+	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>&, gigahertz<double>>));
+	EXPECT_FALSE((traits::is_frequency_unit_v<second<double>, hertz<double>>));
 }
 
 TEST_F(TypeTraits, is_velocity_unit)
 {
 	EXPECT_FALSE((traits::is_velocity_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_velocity_unit_v<meters_per_second_t<double>>));
-	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second_t<double>>));
-	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second_t<double>&>));
-	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour_t<double>>));
-	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared_t<double>>));
-	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour_t<double>, meters_per_second_t<double>>));
-	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared_t<double>, meters_per_second_t<double>>));
+	EXPECT_TRUE((traits::is_velocity_unit_v<meters_per_second<double>>));
+	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second<double>>));
+	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second<double>&>));
+	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour<double>>));
+	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared<double>>));
+	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour<double>, meters_per_second<double>>));
+	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared<double>, meters_per_second<double>>));
 }
 
 TEST_F(TypeTraits, is_acceleration_unit)
 {
 	EXPECT_FALSE((traits::is_acceleration_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_acceleration_unit_v<meters_per_second_squared_t<double>>));
-	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared_t<double>>));
-	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared_t<double>&>));
-	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity_t<double>>));
-	EXPECT_FALSE((traits::is_acceleration_unit_v<inch_t<double>>));
-	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity_t<double>, meters_per_second_squared_t<double>>));
-	EXPECT_FALSE((traits::is_acceleration_unit_v<inch_t<double>, meters_per_second_squared_t<double>>));
+	EXPECT_TRUE((traits::is_acceleration_unit_v<meters_per_second_squared<double>>));
+	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared<double>>));
+	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared<double>&>));
+	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity<double>>));
+	EXPECT_FALSE((traits::is_acceleration_unit_v<inch<double>>));
+	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity<double>, meters_per_second_squared<double>>));
+	EXPECT_FALSE((traits::is_acceleration_unit_v<inch<double>, meters_per_second_squared<double>>));
 }
 
 TEST_F(TypeTraits, is_force_unit)
 {
 	EXPECT_FALSE((traits::is_force_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_force_unit_v<units::force::newton_t<double>>));
-	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton_t<double>>));
-	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton_t<double>&>));
-	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne_t<double>>));
-	EXPECT_FALSE((traits::is_force_unit_v<watt_t<double>>));
-	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne_t<double>, units::force::newton_t<double>>));
-	EXPECT_FALSE((traits::is_force_unit_v<watt_t<double>, units::force::newton_t<double>>));
+	EXPECT_TRUE((traits::is_force_unit_v<units::force::newton<double>>));
+	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton<double>>));
+	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton<double>&>));
+	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne<double>>));
+	EXPECT_FALSE((traits::is_force_unit_v<watt<double>>));
+	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne<double>, units::force::newton<double>>));
+	EXPECT_FALSE((traits::is_force_unit_v<watt<double>, units::force::newton<double>>));
 }
 
 TEST_F(TypeTraits, is_pressure_unit)
 {
 	EXPECT_FALSE((traits::is_pressure_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_pressure_unit_v<pascal_t<double>>));
-	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal_t<double>>));
-	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal_t<double>&>));
-	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere_t<double>>));
-	EXPECT_FALSE((traits::is_pressure_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere_t<double>, pressure::pascal_t<double>>));
-	EXPECT_FALSE((traits::is_pressure_unit_v<year_t<double>, pressure::pascal_t<double>>));
+	EXPECT_TRUE((traits::is_pressure_unit_v<pascal<double>>));
+	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal<double>>));
+	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal<double>&>));
+	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere<double>>));
+	EXPECT_FALSE((traits::is_pressure_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere<double>, pressure::pascal<double>>));
+	EXPECT_FALSE((traits::is_pressure_unit_v<year<double>, pressure::pascal<double>>));
 }
 
 TEST_F(TypeTraits, is_charge_unit)
 {
 	EXPECT_FALSE((traits::is_charge_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_charge_unit_v<coulomb_t<double>>));
-	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb_t<double>>));
-	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb_t<double>&>));
-	EXPECT_FALSE((traits::is_charge_unit_v<watt_t<double>>));
-	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb_t<double>&, coulomb_t<double>>));
-	EXPECT_FALSE((traits::is_charge_unit_v<watt_t<double>, coulomb_t<double>>));
+	EXPECT_TRUE((traits::is_charge_unit_v<coulomb<double>>));
+	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>>));
+	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>&>));
+	EXPECT_FALSE((traits::is_charge_unit_v<watt<double>>));
+	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>&, coulomb<double>>));
+	EXPECT_FALSE((traits::is_charge_unit_v<watt<double>, coulomb<double>>));
 }
 
 TEST_F(TypeTraits, is_energy_unit)
 {
 	EXPECT_FALSE((traits::is_energy_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_energy_unit_v<joule_t<double>>));
-	EXPECT_TRUE((traits::is_energy_unit_v<const joule_t<double>>));
-	EXPECT_TRUE((traits::is_energy_unit_v<const joule_t<double>&>));
-	EXPECT_TRUE((traits::is_energy_unit_v<calorie_t<double>>));
-	EXPECT_FALSE((traits::is_energy_unit_v<watt_t<double>>));
-	EXPECT_TRUE((traits::is_energy_unit_v<calorie_t<double>, joule_t<double>>));
-	EXPECT_FALSE((traits::is_energy_unit_v<watt_t<double>, joule_t<double>>));
+	EXPECT_TRUE((traits::is_energy_unit_v<joule<double>>));
+	EXPECT_TRUE((traits::is_energy_unit_v<const joule<double>>));
+	EXPECT_TRUE((traits::is_energy_unit_v<const joule<double>&>));
+	EXPECT_TRUE((traits::is_energy_unit_v<calorie<double>>));
+	EXPECT_FALSE((traits::is_energy_unit_v<watt<double>>));
+	EXPECT_TRUE((traits::is_energy_unit_v<calorie<double>, joule<double>>));
+	EXPECT_FALSE((traits::is_energy_unit_v<watt<double>, joule<double>>));
 }
 
 TEST_F(TypeTraits, is_power_unit)
 {
 	EXPECT_FALSE((traits::is_power_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_power_unit_v<watt_t<double>>));
-	EXPECT_TRUE((traits::is_power_unit_v<const watt_t<double>>));
-	EXPECT_TRUE((traits::is_power_unit_v<const watt_t<double>&>));
-	EXPECT_FALSE((traits::is_power_unit_v<henry_t<double>>));
-	EXPECT_TRUE((traits::is_power_unit_v<const watt_t<double>&, watt_t<double>>));
-	EXPECT_FALSE((traits::is_power_unit_v<henry_t<double>, watt_t<double>>));
+	EXPECT_TRUE((traits::is_power_unit_v<watt<double>>));
+	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>>));
+	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>&>));
+	EXPECT_FALSE((traits::is_power_unit_v<henry<double>>));
+	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>&, watt<double>>));
+	EXPECT_FALSE((traits::is_power_unit_v<henry<double>, watt<double>>));
 }
 
 TEST_F(TypeTraits, is_voltage_unit)
 {
 	EXPECT_FALSE((traits::is_voltage_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_voltage_unit_v<volt_t<double>>));
-	EXPECT_TRUE((traits::is_voltage_unit_v<const volt_t<double>>));
-	EXPECT_TRUE((traits::is_voltage_unit_v<const volt_t<double>&>));
-	EXPECT_FALSE((traits::is_voltage_unit_v<henry_t<double>>));
-	EXPECT_TRUE((traits::is_voltage_unit_v<const volt_t<double>&, volt_t<double>>));
-	EXPECT_FALSE((traits::is_voltage_unit_v<henry_t<double>, volt_t<double>>));
+	EXPECT_TRUE((traits::is_voltage_unit_v<volt<double>>));
+	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>>));
+	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>&>));
+	EXPECT_FALSE((traits::is_voltage_unit_v<henry<double>>));
+	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>&, volt<double>>));
+	EXPECT_FALSE((traits::is_voltage_unit_v<henry<double>, volt<double>>));
 }
 
 TEST_F(TypeTraits, is_capacitance_unit)
 {
 	EXPECT_FALSE((traits::is_capacitance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_capacitance_unit_v<farad_t<double>>));
-	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad_t<double>>));
-	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad_t<double>&>));
-	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm_t<double>>));
-	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad_t<double>&, millifarad_t<double>>));
-	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm_t<double>, farad_t<double>>));
+	EXPECT_TRUE((traits::is_capacitance_unit_v<farad<double>>));
+	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>>));
+	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>&>));
+	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm<double>>));
+	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>&, millifarad<double>>));
+	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm<double>, farad<double>>));
 }
 
 TEST_F(TypeTraits, is_impedance_unit)
 {
 	EXPECT_FALSE((traits::is_impedance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_impedance_unit_v<ohm_t<double>>));
-	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm_t<double>>));
-	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm_t<double>&>));
-	EXPECT_FALSE((traits::is_impedance_unit_v<farad_t<double>>));
-	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm_t<double>&, milliohm_t<double>>));
-	EXPECT_FALSE((traits::is_impedance_unit_v<farad_t<double>, ohm_t<double>>));
+	EXPECT_TRUE((traits::is_impedance_unit_v<ohm<double>>));
+	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>>));
+	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>&>));
+	EXPECT_FALSE((traits::is_impedance_unit_v<farad<double>>));
+	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>&, milliohm<double>>));
+	EXPECT_FALSE((traits::is_impedance_unit_v<farad<double>, ohm<double>>));
 }
 
 TEST_F(TypeTraits, is_conductance_unit)
 {
 	EXPECT_FALSE((traits::is_conductance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_conductance_unit_v<siemens_t<double>>));
-	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens_t<double>>));
-	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens_t<double>&>));
-	EXPECT_FALSE((traits::is_conductance_unit_v<volt_t<double>>));
-	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens_t<double>&, millisiemens_t<double>>));
-	EXPECT_FALSE((traits::is_conductance_unit_v<volt_t<double>, siemens_t<double>>));
+	EXPECT_TRUE((traits::is_conductance_unit_v<siemens<double>>));
+	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>>));
+	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>&>));
+	EXPECT_FALSE((traits::is_conductance_unit_v<volt<double>>));
+	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>&, millisiemens<double>>));
+	EXPECT_FALSE((traits::is_conductance_unit_v<volt<double>, siemens<double>>));
 }
 
 TEST_F(TypeTraits, is_magnetic_flux_unit)
 {
 	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<weber_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber_t<double>&>));
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell_t<double>>));
-	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell_t<double>, weber_t<double>>));
-	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch_t<double>, weber_t<double>>));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<weber<double>>));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber<double>>));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber<double>&>));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell<double>>));
+	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch<double>>));
+	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell<double>, weber<double>>));
+	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch<double>, weber<double>>));
 }
 
 TEST_F(TypeTraits, is_magnetic_field_strength_unit)
 {
 	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<tesla_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla_t<double>&>));
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss_t<double>>));
-	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt_t<double>>));
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss_t<double>, tesla_t<double>>));
-	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt_t<double>, tesla_t<double>>));
+	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<tesla<double>>));
+	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla<double>>));
+	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla<double>&>));
+	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss<double>>));
+	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt<double>>));
+	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss<double>, tesla<double>>));
+	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt<double>, tesla<double>>));
 }
 
 TEST_F(TypeTraits, is_inductance_unit)
 {
 	EXPECT_FALSE((traits::is_inductance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_inductance_unit_v<henry_t<double>>));
-	EXPECT_TRUE((traits::is_inductance_unit_v<const henry_t<double>>));
-	EXPECT_TRUE((traits::is_inductance_unit_v<const henry_t<double>&>));
-	EXPECT_FALSE((traits::is_inductance_unit_v<farad_t<double>>));
-	EXPECT_TRUE((traits::is_inductance_unit_v<const henry_t<double>&, millihenry_t<double>>));
-	EXPECT_FALSE((traits::is_inductance_unit_v<farad_t<double>, henry_t<double>>));
+	EXPECT_TRUE((traits::is_inductance_unit_v<henry<double>>));
+	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>>));
+	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>&>));
+	EXPECT_FALSE((traits::is_inductance_unit_v<farad<double>>));
+	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>&, millihenry<double>>));
+	EXPECT_FALSE((traits::is_inductance_unit_v<farad<double>, henry<double>>));
 }
 
 TEST_F(TypeTraits, is_luminous_flux_unit)
 {
 	EXPECT_FALSE((traits::is_luminous_flux_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_luminous_flux_unit_v<lumen_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t<double>&>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound_t<double>>));
-	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen_t<double>&, millilumen_t<double>>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound_t<double>, lumen_t<double>>));
+	EXPECT_TRUE((traits::is_luminous_flux_unit_v<lumen<double>>));
+	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>>));
+	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>&>));
+	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound<double>>));
+	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>&, millilumen<double>>));
+	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound<double>, lumen<double>>));
 }
 
 TEST_F(TypeTraits, is_illuminance_unit)
 {
 	EXPECT_FALSE((traits::is_illuminance_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_illuminance_unit_v<footcandle_t<double>>));
-	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle_t<double>>));
-	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle_t<double>&>));
-	EXPECT_TRUE((traits::is_illuminance_unit_v<lux_t<double>>));
-	EXPECT_FALSE((traits::is_illuminance_unit_v<meter_t<double>>));
-	EXPECT_TRUE((traits::is_illuminance_unit_v<lux_t<double>, footcandle_t<double>>));
-	EXPECT_FALSE((traits::is_illuminance_unit_v<meter_t<double>, footcandle_t<double>>));
+	EXPECT_TRUE((traits::is_illuminance_unit_v<footcandle<double>>));
+	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle<double>>));
+	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle<double>&>));
+	EXPECT_TRUE((traits::is_illuminance_unit_v<lux<double>>));
+	EXPECT_FALSE((traits::is_illuminance_unit_v<meter<double>>));
+	EXPECT_TRUE((traits::is_illuminance_unit_v<lux<double>, footcandle<double>>));
+	EXPECT_FALSE((traits::is_illuminance_unit_v<meter<double>, footcandle<double>>));
 }
 
 TEST_F(TypeTraits, is_radioactivity_unit)
 {
 	EXPECT_FALSE((traits::is_radioactivity_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_radioactivity_unit_v<sievert_t<double>>));
-	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert_t<double>>));
-	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert_t<double>&>));
-	EXPECT_FALSE((traits::is_radioactivity_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert_t<double>&, millisievert_t<double>>));
-	EXPECT_FALSE((traits::is_radioactivity_unit_v<year_t<double>, sievert_t<double>>));
+	EXPECT_TRUE((traits::is_radioactivity_unit_v<sievert<double>>));
+	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>>));
+	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>&>));
+	EXPECT_FALSE((traits::is_radioactivity_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>&, millisievert<double>>));
+	EXPECT_FALSE((traits::is_radioactivity_unit_v<year<double>, sievert<double>>));
 }
 
 TEST_F(TypeTraits, is_torque_unit)
 {
 	EXPECT_FALSE((traits::is_torque_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_torque_unit_v<torque::newton_meter_t<double>>));
-	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter_t<double>>));
-	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter_t<double>&>));
-	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound_t<double>>));
-	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter_t<double>>));
-	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound_t<double>, torque::newton_meter_t<double>>));
-	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter_t<double>, torque::newton_meter_t<double>>));
+	EXPECT_TRUE((traits::is_torque_unit_v<torque::newton_meter<double>>));
+	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter<double>>));
+	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter<double>&>));
+	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound<double>>));
+	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter<double>>));
+	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound<double>, torque::newton_meter<double>>));
+	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter<double>, torque::newton_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_area_unit)
 {
 	EXPECT_FALSE((traits::is_area_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_area_unit_v<square_meter_t<double>>));
-	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t<double>>));
-	EXPECT_TRUE((traits::is_area_unit_v<const square_meter_t<double>&>));
-	EXPECT_TRUE((traits::is_area_unit_v<hectare_t<double>>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit_t<double>>));
-	EXPECT_TRUE((traits::is_area_unit_v<hectare_t<double>, square_meter_t<double>>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit_t<double>, square_meter_t<double>>));
+	EXPECT_TRUE((traits::is_area_unit_v<square_meter<double>>));
+	EXPECT_TRUE((traits::is_area_unit_v<const square_meter<double>>));
+	EXPECT_TRUE((traits::is_area_unit_v<const square_meter<double>&>));
+	EXPECT_TRUE((traits::is_area_unit_v<hectare<double>>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit<double>>));
+	EXPECT_TRUE((traits::is_area_unit_v<hectare<double>, square_meter<double>>));
+	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit<double>, square_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_volume_unit)
 {
 	EXPECT_FALSE((traits::is_volume_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_volume_unit_v<cubic_meter_t<double>>));
-	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter_t<double>>));
-	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter_t<double>&>));
-	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch_t<double>>));
-	EXPECT_FALSE((traits::is_volume_unit_v<foot_t<double>>));
-	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch_t<double>, cubic_meter_t<double>>));
-	EXPECT_FALSE((traits::is_volume_unit_v<foot_t<double>, cubic_meter_t<double>>));
+	EXPECT_TRUE((traits::is_volume_unit_v<cubic_meter<double>>));
+	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter<double>>));
+	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter<double>&>));
+	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch<double>>));
+	EXPECT_FALSE((traits::is_volume_unit_v<foot<double>>));
+	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch<double>, cubic_meter<double>>));
+	EXPECT_FALSE((traits::is_volume_unit_v<foot<double>, cubic_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_density_unit)
 {
 	EXPECT_FALSE((traits::is_density_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_density_unit_v<kilograms_per_cubic_meter_t<double>>));
-	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter_t<double>>));
-	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter_t<double>&>));
-	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot_t<double>>));
-	EXPECT_FALSE((traits::is_density_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot_t<double>, kilograms_per_cubic_meter_t<double>>));
-	EXPECT_FALSE((traits::is_density_unit_v<year_t<double>, kilograms_per_cubic_meter_t<double>>));
+	EXPECT_TRUE((traits::is_density_unit_v<kilograms_per_cubic_meter<double>>));
+	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter<double>>));
+	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter<double>&>));
+	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot<double>>));
+	EXPECT_FALSE((traits::is_density_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot<double>, kilograms_per_cubic_meter<double>>));
+	EXPECT_FALSE((traits::is_density_unit_v<year<double>, kilograms_per_cubic_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_data_unit)
 {
 	EXPECT_FALSE((traits::is_data_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_data_unit_v<bit_t<double>>));
-	EXPECT_TRUE((traits::is_data_unit_v<const bit_t<double>>));
-	EXPECT_TRUE((traits::is_data_unit_v<const bit_t<double>&>));
-	EXPECT_TRUE((traits::is_data_unit_v<byte_t<double>>));
-	EXPECT_FALSE((traits::is_data_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_data_unit_v<bit_t<double>, byte_t<double>>));
-	EXPECT_FALSE((traits::is_data_unit_v<year_t<double>, byte_t<double>>));
+	EXPECT_TRUE((traits::is_data_unit_v<bit<double>>));
+	EXPECT_TRUE((traits::is_data_unit_v<const bit<double>>));
+	EXPECT_TRUE((traits::is_data_unit_v<const bit<double>&>));
+	EXPECT_TRUE((traits::is_data_unit_v<byte<double>>));
+	EXPECT_FALSE((traits::is_data_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_data_unit_v<bit<double>, byte<double>>));
+	EXPECT_FALSE((traits::is_data_unit_v<year<double>, byte<double>>));
 }
 
 TEST_F(TypeTraits, is_data_transfer_rate_unit)
 {
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<double>));
 
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second_t<double>>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second_t<double>>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second_t<double>&>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabytes_per_second_t<double>>));
-	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year_t<double>>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second_t<double>, gigabytes_per_second_t<double>>));
-	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year_t<double>, gigabytes_per_second_t<double>>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second<double>>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second<double>>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second<double>&>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabytes_per_second<double>>));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year<double>>));
+	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second<double>, gigabytes_per_second<double>>));
+	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year<double>, gigabytes_per_second<double>>));
 }
 
 TEST_F(STDTypeTraits, std_common_type)
 {
 	static_assert(
-		has_equivalent_conversion_factor(std::common_type_t<meter_t<double>, meter_t<double>>(), meter_t<double>()));
+		has_equivalent_conversion_factor(std::common_type_t<meter<double>, meter<double>>(), meter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kilometer_t<double>, kilometer_t<double>>(), kilometer_t<double>()));
+		std::common_type_t<kilometer<double>, kilometer<double>>(), kilometer<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<millimeter_t<double>, millimeter_t<double>>(), millimeter_t<double>()));
+		std::common_type_t<millimeter<double>, millimeter<double>>(), millimeter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<meter_t<double>, kilometer_t<double>>(), meter_t<double>()));
+		std::common_type_t<meter<double>, kilometer<double>>(), meter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kilometer_t<double>, meter_t<double>>(), meter_t<double>()));
+		std::common_type_t<kilometer<double>, meter<double>>(), meter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<meter_t<double>, millimeter_t<double>>(), millimeter_t<double>()));
+		std::common_type_t<meter<double>, millimeter<double>>(), millimeter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<millimeter_t<double>, meter_t<double>>(), millimeter_t<double>()));
+		std::common_type_t<millimeter<double>, meter<double>>(), millimeter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<millimeter_t<double>, kilometer_t<double>>(), millimeter_t<double>()));
+		std::common_type_t<millimeter<double>, kilometer<double>>(), millimeter<double>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kilometer_t<double>, millimeter_t<double>>(), millimeter_t<double>()));
-	static_assert(std::is_same_v<std::common_type_t<meter_t<double>, kilometer_t<double>>,
-		std::common_type_t<kilometer_t<double>, meter_t<double>>>);
-	static_assert(std::is_same_v<std::common_type_t<meter_t<double>, millimeter_t<double>>,
-		std::common_type_t<millimeter_t<double>, meter_t<double>>>);
-	static_assert(std::is_same_v<std::common_type_t<millimeter_t<double>, kilometer_t<double>>,
-		std::common_type_t<kilometer_t<double>, millimeter_t<double>>>);
+		std::common_type_t<kilometer<double>, millimeter<double>>(), millimeter<double>()));
+	static_assert(std::is_same_v<std::common_type_t<meter<double>, kilometer<double>>,
+		std::common_type_t<kilometer<double>, meter<double>>>);
+	static_assert(std::is_same_v<std::common_type_t<meter<double>, millimeter<double>>,
+		std::common_type_t<millimeter<double>, meter<double>>>);
+	static_assert(std::is_same_v<std::common_type_t<millimeter<double>, kilometer<double>>,
+		std::common_type_t<kilometer<double>, millimeter<double>>>);
 
 	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<unit<meter_conversion_factor, int>, unit<meter_conversion_factor, int>>(), unit<meter_conversion_factor, int>()));
@@ -767,11 +767,11 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
 
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kelvin_t<double>, celsius_t<double>>{}, celsius_t<double>{}));
+		std::common_type_t<kelvin<double>, celsius<double>>{}, celsius<double>{}));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<celsius_t<double>, kelvin_t<double>>{}, celsius_t<double>{}));
-	static_assert(std::is_same_v<std::common_type_t<kelvin_t<double>, celsius_t<double>>,
-		std::common_type_t<celsius_t<double>, kelvin_t<double>>>);
+		std::common_type_t<celsius<double>, kelvin<double>>{}, celsius<double>{}));
+	static_assert(std::is_same_v<std::common_type_t<kelvin<double>, celsius<double>>,
+		std::common_type_t<celsius<double>, kelvin<double>>>);
 
 	using half_a_kelvin  = unit<conversion_factor<std::ratio<1, 2>, kelvin_conversion_factor>, double>;
 	using third_a_kelvin = unit<conversion_factor<std::ratio<1, 3>, kelvin_conversion_factor>, int>;
@@ -784,11 +784,11 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_kelvin, third_a_kelvin>::underlying_type, double>);
 
 	static_assert(
-		has_equivalent_conversion_factor(std::common_type_t<radian_t<double>, degree_t<double>>{}, degree_t<double>{}));
+		has_equivalent_conversion_factor(std::common_type_t<radian<double>, degree<double>>{}, degree<double>{}));
 	static_assert(
-		has_equivalent_conversion_factor(std::common_type_t<degree_t<double>, radian_t<double>>{}, degree_t<double>{}));
-	static_assert(std::is_same_v<std::common_type_t<radian_t<double>, degree_t<double>>,
-		std::common_type_t<degree_t<double>, radian_t<double>>>);
+		has_equivalent_conversion_factor(std::common_type_t<degree<double>, radian<double>>{}, degree<double>{}));
+	static_assert(std::is_same_v<std::common_type_t<radian<double>, degree<double>>,
+		std::common_type_t<degree<double>, radian<double>>>);
 
 	using half_a_radian  = unit<conversion_factor<std::ratio<1, 2>, radian_conversion_factor>, int>;
 	using third_a_radian = unit<conversion_factor<std::ratio<1, 3>, radian_conversion_factor>, double>;
@@ -817,11 +817,11 @@ TEST_F(STDTypeTraits, std_common_type)
 
 TEST_F(STDSpecializations, hash)
 {
-	EXPECT_EQ(std::hash<meter_t<double>>()(3.14_m), std::hash<double>()(3.14));
-	EXPECT_EQ(std::hash<millimeter_t<double>>()(3.14_m), std::hash<double>()(3.14e3));
-	EXPECT_EQ(std::hash<millimeter_t<double>>()(3.14_mm), std::hash<double>()(3.14));
-	EXPECT_EQ(std::hash<kilometer_t<double>>()(3.14_m), std::hash<double>()(3.14e-3));
-	EXPECT_EQ(std::hash<kilometer_t<double>>()(3.14_km), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<meter<double>>()(3.14_m), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<millimeter<double>>()(3.14_m), std::hash<double>()(3.14e3));
+	EXPECT_EQ(std::hash<millimeter<double>>()(3.14_mm), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<kilometer<double>>()(3.14_m), std::hash<double>()(3.14e-3));
+	EXPECT_EQ(std::hash<kilometer<double>>()(3.14_km), std::hash<double>()(3.14));
 
 	EXPECT_EQ((std::hash<unit<meter_conversion_factor, int>>()(unit<meter_conversion_factor, int>(42))), 42);
 	EXPECT_EQ((std::hash<unit<millimeter_conversion_factor, int>>()(unit<meter_conversion_factor, int>(42))), 42000);
@@ -859,7 +859,7 @@ TEST_F(UnitManipulators, square_root)
 {
 	double test;
 
-	test = meter_t<double>(unit<square_root<square_kilometer_conversion_factor>>(1.0))();
+	test = meter<double>(unit<square_root<square_kilometer_conversion_factor>>(1.0))();
 	EXPECT_TRUE(
 		(traits::is_convertible_unit_v<square_root<square_kilometer_conversion_factor>, kilometer_conversion_factor>));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
@@ -909,35 +909,35 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 
 TEST_F(UnitType, trivial)
 {
-	EXPECT_TRUE((std::is_trivial_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_assignable_v<meter_t<double>, meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_constructible_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copy_assignable_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copy_constructible_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copyable_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_default_constructible_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_destructible_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_move_assignable_v<meter_t<double>>));
-	EXPECT_TRUE((std::is_trivially_move_constructible_v<meter_t<double>>));
+	EXPECT_TRUE((std::is_trivial_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_assignable_v<meter<double>, meter<double>>));
+	EXPECT_TRUE((std::is_trivially_constructible_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_copy_assignable_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_copy_constructible_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_copyable_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_default_constructible_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_destructible_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_move_assignable_v<meter<double>>));
+	EXPECT_TRUE((std::is_trivially_move_constructible_v<meter<double>>));
 
-	EXPECT_TRUE((std::is_trivial_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_assignable_v<dB_t<double>, dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_constructible_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copy_assignable_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copy_constructible_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_copyable_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_default_constructible_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_destructible_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_move_assignable_v<dB_t<double>>));
-	EXPECT_TRUE((std::is_trivially_move_constructible_v<dB_t<double>>));
+	EXPECT_TRUE((std::is_trivial_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_assignable_v<dB<double>, dB<double>>));
+	EXPECT_TRUE((std::is_trivially_constructible_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_copy_assignable_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_copy_constructible_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_copyable_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_default_constructible_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_destructible_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_move_assignable_v<dB<double>>));
+	EXPECT_TRUE((std::is_trivially_move_constructible_v<dB<double>>));
 }
 
 TEST_F(UnitType, constructionFromArithmeticType)
 {
-	const meter_t<double> a_m(1.0);
+	const meter<double> a_m(1.0);
 	EXPECT_EQ(1.0, a_m());
 
-	const meter_t<double> b_m(1);
+	const meter<double> b_m(1);
 	EXPECT_EQ(1, b_m());
 
 	const unit<meter_conversion_factor, int> c_m(1);
@@ -972,28 +972,28 @@ TEST_F(UnitType, constructionFromUnitType)
 	const unit<millimeter_conversion_factor, int> a_mm(b_m);
 	EXPECT_EQ(1000, a_mm());
 
-	const millimeter_t<int> b_mm(a_mm);
+	const millimeter<int> b_mm(a_mm);
 	EXPECT_EQ(1000, b_mm());
 
-	const millimeter_t<int> c_mm(b_mm);
+	const millimeter<int> c_mm(b_mm);
 	EXPECT_EQ(1000, c_mm());
 
-	const millimeter_t<int> d_mm(b_m);
+	const millimeter<int> d_mm(b_m);
 	EXPECT_EQ(1000, d_mm());
 
-	const meter_t<double> c_m(b_m);
+	const meter<double> c_m(b_m);
 	EXPECT_EQ(1.0, c_m());
 
-	const meter_t<double> d_m(a_mm);
+	const meter<double> d_m(a_mm);
 	EXPECT_EQ(1.0, d_m());
 
-	const meter_t<double> e_m(b_mm);
+	const meter<double> e_m(b_mm);
 	EXPECT_EQ(1.0, e_m());
 
-	const meter_t<double> f_m(c_m);
+	const meter<double> f_m(c_m);
 	EXPECT_EQ(1.0, f_m());
 
-	const meter_t<double> g_m(kilometer_t<int>(1));
+	const meter<double> g_m(kilometer<int>(1));
 	EXPECT_EQ(1000.0, g_m());
 
 	const unit<dimensionless_unit, int> a_dim(1);
@@ -1020,72 +1020,72 @@ TEST_F(UnitType, constructionFromUnitType)
 TEST_F(UnitType, CTAD)
 {
 	// Default ctor
-	const meter_t z_m = 1.0_m;
-	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meter_t<double>>);
+	const meter z_m = 1.0_m;
+	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meter<double>>);
 
 	// Underlying type, copy ctor, and same dimensioned units for `int` and `double`.
-	const meter_t a_m(1);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(a_m)>, meter_t<int>>);
+	const meter a_m(1);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_m)>, meter<int>>);
 
-	const meter_t b_m(a_m);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m)>, meter_t<int>>);
+	const meter b_m(a_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m)>, meter<int>>);
 
-	const millimeter_t a_mm(b_m);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(a_mm)>, millimeter_t<int>>);
+	const millimeter a_mm(b_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_mm)>, millimeter<int>>);
 
-	const meter_t c_m(1.0);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(c_m)>, meter_t<double>>);
+	const meter c_m(1.0);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(c_m)>, meter<double>>);
 
-	const meter_t d_m(c_m);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(d_m)>, meter_t<double>>);
+	const meter d_m(c_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(d_m)>, meter<double>>);
 
-	const millimeter_t b_mm(d_m);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(b_mm)>, millimeter_t<double>>);
+	const millimeter b_mm(d_m);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_mm)>, millimeter<double>>);
 
-	const kilometer_t a_km(b_mm);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(a_km)>, kilometer_t<double>>);
+	const kilometer a_km(b_mm);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_km)>, kilometer<double>>);
 
 	// Other underlying types.
-	const meter_t e_m(short(1));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(e_m)>, meter_t<short>>);
+	const meter e_m(short(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(e_m)>, meter<short>>);
 
-	const meter_t f_m(1.0f);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(f_m)>, meter_t<float>>);
+	const meter f_m(1.0f);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(f_m)>, meter<float>>);
 
-	const meter_t g_m(1LL);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(g_m)>, meter_t<long long>>);
+	const meter g_m(1LL);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(g_m)>, meter<long long>>);
 
-	const meter_t h_m(1.0L);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(h_m)>, meter_t<long double>>);
+	const meter h_m(1.0L);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(h_m)>, meter<long double>>);
 
 	// `unit`.
-	const meter_t i_m(unit<meter_conversion_factor, int>(1));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(i_m)>, meter_t<int>>);
+	const meter i_m(unit<meter_conversion_factor, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(i_m)>, meter<int>>);
 
-	const meter_t j_m(unit<meter_conversion_factor, double>(1.0));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(j_m)>, meter_t<double>>);
+	const meter j_m(unit<meter_conversion_factor, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(j_m)>, meter<double>>);
 
-	const meter_t k_m(unit<kilometer_conversion_factor, int>(1));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(k_m)>, meter_t<int>>);
+	const meter k_m(unit<kilometer_conversion_factor, int>(1));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(k_m)>, meter<int>>);
 
-	const meter_t l_m(unit<kilometer_conversion_factor, double>(1.0));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(l_m)>, meter_t<double>>);
+	const meter l_m(unit<kilometer_conversion_factor, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(l_m)>, meter<double>>);
 
-	const meter_t m_m(unit<millimeter_conversion_factor, double>(1.0));
-	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meter_t<double>>);
+	const meter m_m(unit<millimeter_conversion_factor, double>(1.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meter<double>>);
 
 	// `std::chrono::duration`.
 	using namespace std::chrono_literals;
 
-	const second_t a_s(1_s);
+	const second a_s(1_s);
 	static_assert(std::is_integral_v<decltype(a_s())>);
 
-	const second_t b_s(1.0_s);
+	const second b_s(1.0_s);
 	static_assert(std::is_floating_point_v<decltype(b_s())>);
 
-	[[maybe_unused]] const second_t c_s(1_min);
-	[[maybe_unused]] const second_t d_s(1.0_min);
-	[[maybe_unused]] const second_t e_s(1.0_ms);
+	[[maybe_unused]] const second c_s(1_min);
+	[[maybe_unused]] const second d_s(1.0_min);
+	[[maybe_unused]] const second e_s(1.0_ms);
 
 	// Dimensionless units.
 	const dimensionless z_dim = 1.0;
@@ -1097,8 +1097,8 @@ TEST_F(UnitType, CTAD)
 	const dimensionless b_dim(a_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_dim)>, dimensionless<int>>);
 
-	const percent_t a_per(b_dim);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(a_per)>, percent_t<int>>);
+	const percent a_per(b_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(a_per)>, percent<int>>);
 
 	const dimensionless c_dim(1.0);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(c_dim)>, dimensionless<double>>);
@@ -1106,8 +1106,8 @@ TEST_F(UnitType, CTAD)
 	const dimensionless d_dim(c_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(d_dim)>, dimensionless<double>>);
 
-	const percent_t b_per(d_dim);
-	static_assert(std::is_same_v<std::remove_const_t<decltype(b_per)>, percent_t<double>>);
+	const percent b_per(d_dim);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_per)>, percent<double>>);
 
 	const dimensionless e_dim(short(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(e_dim)>, dimensionless<short>>);
@@ -1176,7 +1176,7 @@ TEST_F(UnitType, assignmentFromUnitType)
 	a_mm = +a_mm;
 	EXPECT_EQ(1000, a_mm());
 
-	millimeter_t<int> b_mm;
+	millimeter<int> b_mm;
 	b_mm = a_m;
 	EXPECT_EQ(1000, b_mm());
 	b_mm = a_mm;
@@ -1187,7 +1187,7 @@ TEST_F(UnitType, assignmentFromUnitType)
 	a_mm = b_mm;
 	EXPECT_EQ(1000, a_mm());
 
-	meter_t<double> b_m;
+	meter<double> b_m;
 	b_m = a_m;
 	EXPECT_EQ(1, b_m());
 	b_m = a_mm;
@@ -1223,11 +1223,11 @@ TEST_F(UnitType, assignmentFromUnitType)
 
 TEST_F(UnitType, make_unit)
 {
-	const auto a_m = make_unit<meter_t<double>>(5.0);
-	EXPECT_EQ(meter_t<double>(5.0), a_m);
+	const auto a_m = make_unit<meter<double>>(5.0);
+	EXPECT_EQ(meter<double>(5.0), a_m);
 
-	const auto b_m = make_unit<meter_t<double>>(5);
-	EXPECT_EQ(meter_t<double>(5), b_m);
+	const auto b_m = make_unit<meter<double>>(5);
+	EXPECT_EQ(meter<double>(5), b_m);
 
 	const auto c_m = make_unit<unit<meter_conversion_factor, int>>(5);
 	EXPECT_EQ((unit<meter_conversion_factor, int>(5)), c_m);
@@ -1244,8 +1244,8 @@ TEST_F(UnitType, make_unit)
 
 TEST_F(UnitType, unitTypeEquality)
 {
-	const meter_t<double> a_m(0);
-	const meter_t<double> b_m(1);
+	const meter<double> a_m(0);
+	const meter<double> b_m(1);
 
 	EXPECT_TRUE(a_m == a_m);
 	EXPECT_FALSE(a_m == b_m);
@@ -1272,8 +1272,8 @@ TEST_F(UnitType, unitTypeEquality)
 
 TEST_F(UnitType, unitTypeMixedEquality)
 {
-	const meter_t<double> a_m(0);
-	const foot_t<double> a_f(meter_t<double>(1));
+	const meter<double> a_m(0);
+	const foot<double> a_f(meter<double>(1));
 
 	EXPECT_FALSE(a_m == a_f);
 	EXPECT_TRUE(a_m != a_f);
@@ -1292,8 +1292,8 @@ TEST_F(UnitType, unitTypeMixedEquality)
 
 TEST_F(UnitType, unitTypeRelational)
 {
-	const meter_t<double> a_m(0);
-	const meter_t<double> b_m(1);
+	const meter<double> a_m(0);
+	const meter<double> b_m(1);
 
 	EXPECT_FALSE(a_m < a_m);
 	EXPECT_FALSE(b_m < a_m);
@@ -1385,8 +1385,8 @@ TEST_F(UnitType, unitTypeRelational)
 
 TEST_F(UnitType, unitTypeMixedRelational)
 {
-	const meter_t<double> a_m(0);
-	const foot_t<double> a_f(meter_t<double>(1));
+	const meter<double> a_m(0);
+	const foot<double> a_f(meter<double>(1));
 
 	EXPECT_FALSE(a_f < a_m);
 	EXPECT_TRUE(a_m < a_f);
@@ -1427,13 +1427,13 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	dimless dim;
 	dimless_base base;
 
-	using meter_conversion_factor      = meter_t<int>;
+	using meter_conversion_factor      = meter<int>;
 	using meter_base = unit<units::meter_conversion_factor, int>;
 
 	meter_conversion_factor m;
 	meter_base b_m;
 
-	using squared_meter = square_meter_t<int>;
+	using squared_meter = square_meter<int>;
 	using inverse_meter = unit<inverse<units::meter_conversion_factor>, int>;
 
 	static_assert(std::is_same_v<dimless, decltype(+dim)>);
@@ -1554,14 +1554,14 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 TEST_F(UnitType, unitTypeAddition)
 {
 	// units
-	meter_t<double> a_m(1.0), c_m;
-	foot_t<double> b_ft(3.28084);
+	meter<double> a_m(1.0), c_m;
+	foot<double> b_ft(3.28084);
 	const unit<meter_conversion_factor, int> f_m(1);
 	const std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>> g(f_m);
 
-	double d = meter_t<double>(b_ft)();
+	double d = meter<double>(b_ft)();
 	EXPECT_NEAR(1.0, d, 5.0e-5);
-	d = meter_t<double>(g)();
+	d = meter<double>(g)();
 	EXPECT_NEAR(1.0, d, 5.0e-5);
 
 	c_m = a_m + b_ft;
@@ -1573,22 +1573,22 @@ TEST_F(UnitType, unitTypeAddition)
 	c_m = f_m + b_ft;
 	EXPECT_NEAR(2.0, c_m(), 5.0e-5);
 
-	c_m = b_ft + meter_t<double>(3);
+	c_m = b_ft + meter<double>(3);
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 	c_m = g + unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 	c_m = b_ft + unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
-	c_m = g + meter_t<double>(3);
+	c_m = g + meter<double>(3);
 	EXPECT_NEAR(4.0, c_m(), 5.0e-5);
 
-	foot_t<double> e_ft = b_ft + meter_t<double>(3);
+	foot<double> e_ft = b_ft + meter<double>(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 	e_ft = g + unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 	e_ft = b_ft + unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
-	e_ft = g + meter_t<double>(3);
+	e_ft = g + meter<double>(3);
 	EXPECT_NEAR(13.12336, e_ft(), 5.0e-6);
 
 	// dimensionless
@@ -1649,27 +1649,27 @@ TEST_F(UnitType, unitTypeAddition)
 
 TEST_F(UnitType, unitTypeUnaryAddition)
 {
-	meter_t<double> a_m(1.0);
+	meter<double> a_m(1.0);
 
-	EXPECT_EQ(++a_m, meter_t<double>(2));
-	EXPECT_EQ(a_m++, meter_t<double>(2));
-	EXPECT_EQ(a_m, meter_t<double>(3));
-	EXPECT_EQ(+a_m, meter_t<double>(3));
-	EXPECT_EQ(a_m, meter_t<double>(3));
+	EXPECT_EQ(++a_m, meter<double>(2));
+	EXPECT_EQ(a_m++, meter<double>(2));
+	EXPECT_EQ(a_m, meter<double>(3));
+	EXPECT_EQ(+a_m, meter<double>(3));
+	EXPECT_EQ(a_m, meter<double>(3));
 
-	dBW_t<double> b_dBW(1.0);
+	dBW<double> b_dBW(1.0);
 
-	EXPECT_EQ(++b_dBW, dBW_t<double>(2));
-	EXPECT_EQ(b_dBW++, dBW_t<double>(2));
-	EXPECT_EQ(b_dBW, dBW_t<double>(3));
-	EXPECT_EQ(+b_dBW, dBW_t<double>(3));
-	EXPECT_EQ(b_dBW, dBW_t<double>(3));
+	EXPECT_EQ(++b_dBW, dBW<double>(2));
+	EXPECT_EQ(b_dBW++, dBW<double>(2));
+	EXPECT_EQ(b_dBW, dBW<double>(3));
+	EXPECT_EQ(+b_dBW, dBW<double>(3));
+	EXPECT_EQ(b_dBW, dBW<double>(3));
 }
 
 TEST_F(UnitType, unitTypeSubtraction)
 {
-	meter_t<double> a_m(1.0), c_m;
-	foot_t<double> b_ft(3.28084);
+	meter<double> a_m(1.0), c_m;
+	foot<double> b_ft(3.28084);
 	const unit<meter_conversion_factor, int> f_m(1);
 	const std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>> g(f_m);
 
@@ -1682,22 +1682,22 @@ TEST_F(UnitType, unitTypeSubtraction)
 	c_m = f_m - b_ft;
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
 
-	c_m = b_ft - meter_t<double>(1);
+	c_m = b_ft - meter<double>(1);
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
 	c_m = g - unit<meter_conversion_factor, int>(1);
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
 	c_m = b_ft - unit<meter_conversion_factor, int>(1);
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
-	c_m = g - meter_t<double>(1);
+	c_m = g - meter<double>(1);
 	EXPECT_NEAR(0.0, c_m(), 5.0e-5);
 
-	foot_t<double> e_ft = b_ft - meter_t<double>(1);
+	foot<double> e_ft = b_ft - meter<double>(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
 	e_ft = g - unit<meter_conversion_factor, int>(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
 	e_ft = b_ft - unit<meter_conversion_factor, int>(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
-	e_ft = g - meter_t<double>(1);
+	e_ft = g - meter<double>(1);
 	EXPECT_NEAR(0.0, e_ft(), 5.0e-6);
 
 	dimensionless<double> sresult = dimensionless<double>(1.0) - dimensionless<double>(1.0);
@@ -1757,27 +1757,27 @@ TEST_F(UnitType, unitTypeSubtraction)
 
 TEST_F(UnitType, unitTypeUnarySubtraction)
 {
-	meter_t<double> a_m(4.0);
+	meter<double> a_m(4.0);
 
-	EXPECT_EQ(--a_m, meter_t<double>(3));
-	EXPECT_EQ(a_m--, meter_t<double>(3));
-	EXPECT_EQ(a_m, meter_t<double>(2));
-	EXPECT_EQ(-a_m, meter_t<double>(-2));
-	EXPECT_EQ(a_m, meter_t<double>(2));
+	EXPECT_EQ(--a_m, meter<double>(3));
+	EXPECT_EQ(a_m--, meter<double>(3));
+	EXPECT_EQ(a_m, meter<double>(2));
+	EXPECT_EQ(-a_m, meter<double>(-2));
+	EXPECT_EQ(a_m, meter<double>(2));
 
-	dBW_t<double> b_dBW(4.0);
+	dBW<double> b_dBW(4.0);
 
-	EXPECT_EQ(--b_dBW, dBW_t<double>(3));
-	EXPECT_EQ(b_dBW--, dBW_t<double>(3));
-	EXPECT_EQ(b_dBW, dBW_t<double>(2));
-	EXPECT_EQ(-b_dBW, dBW_t<double>(-2));
-	EXPECT_EQ(b_dBW, dBW_t<double>(2));
+	EXPECT_EQ(--b_dBW, dBW<double>(3));
+	EXPECT_EQ(b_dBW--, dBW<double>(3));
+	EXPECT_EQ(b_dBW, dBW<double>(2));
+	EXPECT_EQ(-b_dBW, dBW<double>(-2));
+	EXPECT_EQ(b_dBW, dBW<double>(2));
 }
 
 TEST_F(UnitType, unitTypeMultiplication)
 {
-	meter_t<double> a_m(1.0), b_m(2.0);
-	foot_t<double> a_ft(3.28084);
+	meter<double> a_m(1.0), b_m(2.0);
+	foot<double> a_ft(3.28084);
 	const unit<meter_conversion_factor, int> d_m(1), e_m(2);
 	const std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>> f(d_m);
 
@@ -1790,13 +1790,13 @@ TEST_F(UnitType, unitTypeMultiplication)
 	c_m2 = d_m * b_m;
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
 
-	c_m2 = b_m * meter_t<double>(2);
+	c_m2 = b_m * meter<double>(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
 	c_m2 = e_m * unit<meter_conversion_factor, int>(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
 	c_m2 = b_m * unit<meter_conversion_factor, int>(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
-	c_m2 = e_m * meter_t<double>(2);
+	c_m2 = e_m * meter<double>(2);
 	EXPECT_NEAR(4.0, c_m2(), 5.0e-5);
 
 	c_m2 = b_m * a_ft;
@@ -1888,8 +1888,8 @@ TEST_F(UnitType, unitTypeMultiplication)
 
 TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 {
-	meter_t<double> a_m(1.0);
-	foot_t<double> b_ft(3.28084);
+	meter<double> a_m(1.0);
+	foot<double> b_ft(3.28084);
 	unit<inverse<meter_conversion_factor>> i_m(2.0);
 	const unit<meter_conversion_factor, int> b_m(1);
 	const std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>> f(b_m);
@@ -1915,7 +1915,7 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 	c_ft2 = f * a_m;
 	EXPECT_NEAR(10.7639111056, c_ft2(), 5.0e-6);
 
-	square_meter_t<double> d_m2 = b_ft * a_m;
+	square_meter<double> d_m2 = b_ft * a_m;
 	EXPECT_NEAR(1.0, d_m2(), 5.0e-5);
 	d_m2 = f * b_m;
 	EXPECT_NEAR(1.0, d_m2(), 5.0e-5);
@@ -1925,7 +1925,7 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 	EXPECT_NEAR(1.0, d_m2(), 5.0e-5);
 
 	// a unit times a sclar ends up with the same units.
-	meter_t<double> e_m = a_m * dimensionless<double>(3.0);
+	meter<double> e_m = a_m * dimensionless<double>(3.0);
 	EXPECT_NEAR(3.0, e_m(), 5.0e-5);
 	e_m = b_m * unit<dimensionless_unit, int>(3);
 	EXPECT_NEAR(3.0, e_m(), 5.0e-5);
@@ -1953,37 +1953,37 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 	s = b_m * i_m;
 	EXPECT_NEAR(2.0, s, 5.0e-5);
 
-	c_m2 = b_ft * meter_t<double>(2);
+	c_m2 = b_ft * meter<double>(2);
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
 	c_m2 = f * unit<meter_conversion_factor, int>(2);
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
 	c_m2 = b_ft * unit<meter_conversion_factor, int>(2);
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
-	c_m2 = f * meter_t<double>(2);
+	c_m2 = f * meter<double>(2);
 	EXPECT_NEAR(2.0, c_m2(), 5.0e-5);
 
-	unit<squared<foot_conversion_factor>> e_ft2 = b_ft * meter_t<double>(3);
+	unit<squared<foot_conversion_factor>> e_ft2 = b_ft * meter<double>(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 	e_ft2 = f * unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 	e_ft2 = b_ft * unit<meter_conversion_factor, int>(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
-	e_ft2 = f * meter_t<double>(3);
+	e_ft2 = f * meter<double>(3);
 	EXPECT_NEAR(32.2917333168, e_ft2(), 5.0e-6);
 
-	auto mps = meter_t<double>(10.0) * unit<inverse<second_conversion_factor>>(1.0);
-	EXPECT_EQ(mps, meters_per_second_t<double>(10));
+	auto mps = meter<double>(10.0) * unit<inverse<second_conversion_factor>>(1.0);
+	EXPECT_EQ(mps, meters_per_second<double>(10));
 	mps = unit<meter_conversion_factor, int>(10) * unit<inverse<second_conversion_factor>, int>(1);
-	EXPECT_EQ(mps, meters_per_second_t<double>(10));
-	mps = meter_t<double>(10.0) * unit<inverse<second_conversion_factor>, int>(1);
-	EXPECT_EQ(mps, meters_per_second_t<double>(10));
+	EXPECT_EQ(mps, meters_per_second<double>(10));
+	mps = meter<double>(10.0) * unit<inverse<second_conversion_factor>, int>(1);
+	EXPECT_EQ(mps, meters_per_second<double>(10));
 	mps = unit<meter_conversion_factor, int>(10) * unit<inverse<second_conversion_factor>>(1.0);
-	EXPECT_EQ(mps, meters_per_second_t<double>(10));
+	EXPECT_EQ(mps, meters_per_second<double>(10));
 }
 
 TEST_F(UnitType, unitTypedimensionlessMultiplication)
 {
-	meter_t<double> a_m(1.0);
+	meter<double> a_m(1.0);
 
 	auto result_m = dimensionless<double>(3.0) * a_m;
 	EXPECT_NEAR(3.0, result_m(), 5.0e-5);
@@ -1997,15 +1997,15 @@ TEST_F(UnitType, unitTypedimensionlessMultiplication)
 	result_m = a_m * 4.0;
 	EXPECT_NEAR(4.0, result_m(), 5.0e-5);
 
-	bool isSame = std::is_same_v<decltype(result_m), meter_t<double>>;
+	bool isSame = std::is_same_v<decltype(result_m), meter<double>>;
 	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitType, unitTypeDivision)
 {
-	meter_t<double> a_m(1.0), b_m(2.0);
-	foot_t<double> a_ft(3.28084);
-	second_t<double> a_sec(10.0);
+	meter<double> a_m(1.0), b_m(2.0);
+	foot<double> a_ft(3.28084);
+	second<double> a_sec(10.0);
 	const unit<meter_conversion_factor, int> d_m(1), e_m(2);
 	const std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>> j(d_m);
 	const unit<second_conversion_factor, int> b_sec(10);
@@ -2077,7 +2077,7 @@ TEST_F(UnitType, unitTypeDivision)
 	EXPECT_NEAR(0.1, e(), 5.0e-5);
 	e = d_m / a_sec;
 	EXPECT_NEAR(0.1, e(), 5.0e-5);
-	isSame = std::is_same_v<decltype(e), meters_per_second_t<double>>;
+	isSame = std::is_same_v<decltype(e), meters_per_second<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto f = a_m / 8.0;
@@ -2088,7 +2088,7 @@ TEST_F(UnitType, unitTypeDivision)
 	EXPECT_NEAR(0.125, f(), 5.0e-5);
 	f = d_m / 8.0;
 	EXPECT_NEAR(0.125, f(), 5.0e-5);
-	isSame = std::is_same_v<decltype(f), meter_t<double>>;
+	isSame = std::is_same_v<decltype(f), meter<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto g = 4.0 / b_m;
@@ -2102,14 +2102,14 @@ TEST_F(UnitType, unitTypeDivision)
 	isSame = std::is_same_v<decltype(g), unit<inverse<meter_conversion_factor>>>;
 	EXPECT_TRUE(isSame);
 
-	auto mph                        = mile_t<double>(60.0) / hour_t<double>(1.0);
-	meters_per_second_t<double> mps = mph;
+	auto mph                        = mile<double>(60.0) / hour<double>(1.0);
+	meters_per_second<double> mps = mph;
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 	mps = unit<mile_conversion_factor, int>(60) / unit<hour_conversion_factor, int>(1);
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
-	mps = mile_t<double>(60.0) / unit<hour_conversion_factor, int>(1);
+	mps = mile<double>(60.0) / unit<hour_conversion_factor, int>(1);
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
-	mps = unit<mile_conversion_factor, int>(60) / hour_t<double>(1.0);
+	mps = unit<mile_conversion_factor, int>(60) / hour<double>(1.0);
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 
 	auto h = 10.0_rad / 2.0_rad;
@@ -2173,22 +2173,22 @@ TEST_F(UnitType, unitTypeModulo)
 TEST_F(UnitType, compoundAssignmentAddition)
 {
 	// units
-	meter_t<double> a(0.0);
-	a += meter_t<double>(1.0);
+	meter<double> a(0.0);
+	a += meter<double>(1.0);
 
-	EXPECT_EQ(meter_t<double>(1.0), a);
+	EXPECT_EQ(meter<double>(1.0), a);
 
-	a += foot_t<double>(meter_t<double>(1));
+	a += foot<double>(meter<double>(1));
 
-	EXPECT_EQ(meter_t<double>(2.0), a);
+	EXPECT_EQ(meter<double>(2.0), a);
 
 	a += unit<meter_conversion_factor, int>(1);
 
-	EXPECT_EQ(meter_t<double>(3.0), a);
+	EXPECT_EQ(meter<double>(3.0), a);
 
 	a += std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(unit<meter_conversion_factor, int>(1));
 
-	EXPECT_EQ(meter_t<double>(4.0), a);
+	EXPECT_EQ(meter<double>(4.0), a);
 
 	unit<meter_conversion_factor, int> c(0);
 	c += unit<meter_conversion_factor, int>(1);
@@ -2230,22 +2230,22 @@ TEST_F(UnitType, compoundAssignmentAddition)
 TEST_F(UnitType, compoundAssignmentSubtraction)
 {
 	// units
-	meter_t<double> a(2.0);
-	a -= meter_t<double>(1.0);
+	meter<double> a(2.0);
+	a -= meter<double>(1.0);
 
-	EXPECT_EQ(meter_t<double>(1.0), a);
+	EXPECT_EQ(meter<double>(1.0), a);
 
-	a -= foot_t<double>(meter_t<double>(1));
+	a -= foot<double>(meter<double>(1));
 
-	EXPECT_EQ(meter_t<double>(0.0), a);
+	EXPECT_EQ(meter<double>(0.0), a);
 
 	a -= unit<meter_conversion_factor, int>(1);
 
-	EXPECT_EQ(meter_t<double>(-1.0), a);
+	EXPECT_EQ(meter<double>(-1.0), a);
 
 	a -= std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(unit<meter_conversion_factor, int>(1));
 
-	EXPECT_EQ(meter_t<double>(-2.0), a);
+	EXPECT_EQ(meter<double>(-2.0), a);
 
 	unit<meter_conversion_factor, int> c(1);
 	c -= unit<meter_conversion_factor, int>(1);
@@ -2287,22 +2287,22 @@ TEST_F(UnitType, compoundAssignmentSubtraction)
 TEST_F(UnitType, compoundAssignmentMultiplication)
 {
 	// units
-	meter_t<double> a(2.0);
+	meter<double> a(2.0);
 	a *= dimensionless<double>(2.0);
 
-	EXPECT_EQ(meter_t<double>(4.0), a);
+	EXPECT_EQ(meter<double>(4.0), a);
 
 	a *= 2.0;
 
-	EXPECT_EQ(meter_t<double>(8.0), a);
+	EXPECT_EQ(meter<double>(8.0), a);
 
 	a *= unit<dimensionless_unit, int>(2);
 
-	EXPECT_EQ(meter_t<double>(16), a);
+	EXPECT_EQ(meter<double>(16), a);
 
 	a *= 2;
 
-	EXPECT_EQ(meter_t<double>(32), a);
+	EXPECT_EQ(meter<double>(32), a);
 
 	unit<meter_conversion_factor, int> c(2);
 	c *= unit<dimensionless_unit, int>(2);
@@ -2360,22 +2360,22 @@ TEST_F(UnitType, compoundAssignmentMultiplication)
 TEST_F(UnitType, compoundAssignmentDivision)
 {
 	// units
-	meter_t<double> a(8.0);
+	meter<double> a(8.0);
 	a /= dimensionless<double>(2.0);
 
-	EXPECT_EQ(meter_t<double>(4.0), a);
+	EXPECT_EQ(meter<double>(4.0), a);
 
 	a /= 2.0;
 
-	EXPECT_EQ(meter_t<double>(2.0), a);
+	EXPECT_EQ(meter<double>(2.0), a);
 
 	a /= unit<dimensionless_unit, int>(2);
 
-	EXPECT_EQ(meter_t<double>(1), a);
+	EXPECT_EQ(meter<double>(1), a);
 
 	a /= 2;
 
-	EXPECT_EQ(meter_t<double>(0.5), a);
+	EXPECT_EQ(meter<double>(0.5), a);
 
 	unit<meter_conversion_factor, int> c(32);
 	c /= unit<dimensionless_unit, int>(2);
@@ -2477,27 +2477,27 @@ TEST_F(UnitType, dimensionlessTypeImplicitConversion)
 	dimensionless<double> testS = 3.0;
 	EXPECT_DOUBLE_EQ(3.0, testS);
 
-	dimensionless<double> test3(ppm_t<double>(10));
+	dimensionless<double> test3(ppm<double>(10));
 	EXPECT_DOUBLE_EQ(0.00001, test3);
 
 	dimensionless<double> test4;
-	test4 = ppm_t<double>(1);
+	test4 = ppm<double>(1);
 	EXPECT_DOUBLE_EQ(0.000001, test4);
 }
 
 TEST_F(UnitType, valueMethod)
 {
-	double test = meter_t<double>(3.0).to<double>();
+	double test = meter<double>(3.0).to<double>();
 	EXPECT_DOUBLE_EQ(3.0, test);
 
-	auto test2 = meter_t<double>(4.0).value();
+	auto test2 = meter<double>(4.0).value();
 	EXPECT_DOUBLE_EQ(4.0, test2);
 	EXPECT_TRUE((std::is_same_v<decltype(test2), double>));
 }
 
 TEST_F(UnitType, convertMethod)
 {
-	double test = meter_t<double>(3.0).convert<foot_conversion_factor>().to<double>();
+	double test = meter<double>(3.0).convert<foot_conversion_factor>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 }
 
@@ -2505,58 +2505,58 @@ TEST_F(UnitType, convertMethod)
 TEST_F(UnitType, cout)
 {
 	testing::internal::CaptureStdout();
-	std::cout << meters_per_second_t<double>(5);
+	std::cout << meters_per_second<double>(5);
 	std::string output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("5 mps", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << degree_t<double>(349.87);
+	std::cout << degree<double>(349.87);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("349.87 deg", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << meter_t<double>(1.0);
+	std::cout << meter<double>(1.0);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("1 m", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << dB_t<double>(31.0);
+	std::cout << dB<double>(31.0);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("31 dB", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << volt_t<double>(21.79);
+	std::cout << volt<double>(21.79);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("21.79 V", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << dBW_t<double>(12.0);
+	std::cout << dBW<double>(12.0);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("12 dBW", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << dBm_t<double>(120.0);
+	std::cout << dBm<double>(120.0);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("120 dBm", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << miles_per_hour_t<double>(72.1);
+	std::cout << miles_per_hour<double>(72.1);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("72.1 mph", output.c_str());
 
 	// undefined unit
 	testing::internal::CaptureStdout();
-	std::cout << pow<4>(meter_t<double>(2));
+	std::cout << pow<4>(meter<double>(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("16 m^4", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << pow<3>(foot_t<double>(2));
+	std::cout << pow<3>(foot<double>(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("8 cu_ft", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(9) << pow<4>(foot_t<double>(2));
+	std::cout << std::setprecision(9) << pow<4>(foot<double>(2));
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("0.138095597 m^4", output.c_str());
 
@@ -2579,10 +2579,10 @@ TEST_F(UnitType, cout)
 
 TEST_F(UnitType, to_string)
 {
-	foot_t<double> a(3.5);
+	foot<double> a(3.5);
 	EXPECT_STREQ("3.5 ft", units::length::to_string(a).c_str());
 
-	meter_t<double> b(8);
+	meter<double> b(8);
 	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
 }
 
@@ -2601,7 +2601,7 @@ TEST_F(UnitType, to_string_locale)
 	char point_de = *lc->decimal_point;
 	EXPECT_EQ(point_de, ',');
 
-	kilometer_t<double> de = 2.0_km;
+	kilometer<double> de = 2.0_km;
 	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
 
 	de = 2.5_km;
@@ -2618,7 +2618,7 @@ TEST_F(UnitType, to_string_locale)
 	char point_us = *lc->decimal_point;
 	EXPECT_EQ(point_us, '.');
 
-	mile_t<double> us = 2.0_mi;
+	mile<double> us = 2.0_mi;
 	EXPECT_STREQ("2 mi", units::length::to_string(us).c_str());
 
 	us = 2.5_mi;
@@ -2627,12 +2627,12 @@ TEST_F(UnitType, to_string_locale)
 
 TEST_F(UnitType, nameAndAbbreviation)
 {
-	foot_t<double> a(3.5);
+	foot<double> a(3.5);
 	EXPECT_STREQ("ft", unit_abbreviation_v<decltype(a)>);
 	EXPECT_STREQ("ft", a.abbreviation());
 	EXPECT_STREQ("foot", a.name());
 
-	meter_t<double> b(8);
+	meter<double> b(8);
 	EXPECT_STREQ("m", unit_abbreviation_v<decltype(b)>);
 	EXPECT_STREQ("m", b.abbreviation());
 	EXPECT_STREQ("meter", b.name());
@@ -2641,48 +2641,48 @@ TEST_F(UnitType, nameAndAbbreviation)
 
 TEST_F(UnitType, negative)
 {
-	meter_t<double> a(5.3);
-	meter_t<double> b(-5.3);
+	meter<double> a(5.3);
+	meter<double> b(-5.3);
 	EXPECT_NEAR(a.to<double>(), -b.to<double>(), 5.0e-320);
 	EXPECT_NEAR(b.to<double>(), -a.to<double>(), 5.0e-320);
 
-	dB_t<double> c(2.87);
-	dB_t<double> d(-2.87);
+	dB<double> c(2.87);
+	dB<double> d(-2.87);
 	EXPECT_NEAR(c.to<double>(), -d.to<double>(), 5.0e-320);
 	EXPECT_NEAR(d.to<double>(), -c.to<double>(), 5.0e-320);
 
-	ppm_t<double> e = -1 * ppm_t<double>(10);
-	EXPECT_EQ(e, -ppm_t<double>(10));
+	ppm<double> e = -1 * ppm<double>(10);
+	EXPECT_EQ(e, -ppm<double>(10));
 	EXPECT_NEAR(-0.00001, e, 5.0e-10);
 }
 
 TEST_F(UnitType, concentration)
 {
-	ppb_t<double> a(ppm_t<double>(1));
-	EXPECT_EQ(ppb_t<double>(1000), a);
+	ppb<double> a(ppm<double>(1));
+	EXPECT_EQ(ppb<double>(1000), a);
 	EXPECT_EQ(0.000001, a);
 	EXPECT_EQ(0.000001, a.to<double>());
 
-	dimensionless<double> b(ppm_t<double>(1));
+	dimensionless<double> b(ppm<double>(1));
 	EXPECT_EQ(0.000001, b);
 
-	dimensionless<double> c = ppb_t<double>(1);
+	dimensionless<double> c = ppb<double>(1);
 	EXPECT_EQ(0.000000001, c);
 }
 
 TEST_F(UnitType, dBConversion)
 {
-	dBW_t<double> a_dbw(23.1);
-	watt_t<double> a_w  = a_dbw;
-	dBm_t<double> a_dbm = a_dbw;
+	dBW<double> a_dbw(23.1);
+	watt<double> a_w  = a_dbw;
+	dBm<double> a_dbm = a_dbw;
 
 	EXPECT_NEAR(204.173794, a_w(), 5.0e-7);
 	EXPECT_NEAR(53.1, a_dbm(), 5.0e-7);
 
-	milliwatt_t<double> b_mw(100000.0);
-	watt_t<double> b_w  = b_mw;
-	dBm_t<double> b_dbm = b_mw;
-	dBW_t<double> b_dbw = b_mw;
+	milliwatt<double> b_mw(100000.0);
+	watt<double> b_w  = b_mw;
+	dBm<double> b_dbm = b_mw;
+	dBW<double> b_dbw = b_mw;
 
 	EXPECT_NEAR(100.0, b_w(), 5.0e-7);
 	EXPECT_NEAR(50.0, b_dbm(), 5.0e-7);
@@ -2693,27 +2693,27 @@ TEST_F(UnitType, dBAddition)
 {
 	bool isSame;
 
-	auto result_dbw = dBW_t<double>(10.0) + dB_t<double>(30.0);
+	auto result_dbw = dBW<double>(10.0) + dB<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
 	result_dbw =
 		unit<watt_conversion_factor, int, decibel_scale>(10) + unit<dimensionless_unit, int, decibel_scale>(30);
 	EXPECT_NEAR(40.0, result_dbw(), 5.0e-5);
-	result_dbw = dB_t<double>(12.0) + dBW_t<double>(30.0);
+	result_dbw = dB<double>(12.0) + dBW<double>(30.0);
 	EXPECT_NEAR(42.0, result_dbw(), 5.0e-5);
 	result_dbw =
 		unit<dimensionless_unit, int, decibel_scale>(12) + unit<watt_conversion_factor, int, decibel_scale>(30);
 	EXPECT_NEAR(42.0, result_dbw(), 2);
-	isSame = std::is_same_v<decltype(result_dbw), dBW_t<double>>;
+	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto result_dbm = dB_t<double>(30.0) + dBm_t<double>(20.0);
+	auto result_dbm = dB<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
 	result_dbm =
 		unit<dimensionless_unit, int, decibel_scale>(30) + unit<milliwatt_conversion_factor, int, decibel_scale>(20);
 	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
-	auto result_dBW2 = dBW_t<double>(10.0) + dBm_t<double>(40.0);
+	auto result_dBW2 = dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
 	EXPECT_NEAR(20.0, result_dBW2.value(), 5.0e-5);
 	result_dBW2 = unit<watt_conversion_factor, int, decibel_scale>(10) +
@@ -2728,43 +2728,43 @@ TEST_F(UnitType, dBSubtraction)
 {
 	bool isSame;
 
-	auto result_dbw = dBW_t<double>(10.0) - dB_t<double>(30.0);
+	auto result_dbw = dBW<double>(10.0) - dB<double>(30.0);
 	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
 	result_dbw =
 		unit<watt_conversion_factor, int, decibel_scale>(10) - unit<dimensionless_unit, int, decibel_scale>(30);
 	EXPECT_EQ(-INFINITY, result_dbw());
-	isSame = std::is_same_v<decltype(result_dbw), dBW_t<double>>;
+	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto result_dbm = dBm_t<double>(100.0) - dB_t<double>(30.0);
+	auto result_dbm = dBm<double>(100.0) - dB<double>(30.0);
 	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
 	result_dbm = unit<milliwatt_conversion_factor, int, decibel_scale>(100) -
 		unit<dimensionless_unit, int, decibel_scale>(30); // NaN
 	//	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_dbm), dBm_t<double>>;
+	isSame = std::is_same_v<decltype(result_dbm), dBm<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto result_db = dBW_t<double>(100.0) - dBW_t<double>(80.0);
+	auto result_db = dBW<double>(100.0) - dBW<double>(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	result_db = unit<watt_conversion_factor, int, decibel_scale>(100) -
 		unit<watt_conversion_factor, int, decibel_scale>(80); // NaN
 	//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_db), dB_t<double>>;
+	isSame = std::is_same_v<decltype(result_db), dB<double>>;
 	EXPECT_TRUE(isSame);
 
-	result_db = dB_t<double>(100.0) - dB_t<double>(80.0);
+	result_db = dB<double>(100.0) - dB<double>(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	result_db =
 		unit<dimensionless_unit, int, decibel_scale>(100) - unit<dimensionless_unit, int, decibel_scale>(80); // NaN
 	//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_db), dB_t<double>>;
+	isSame = std::is_same_v<decltype(result_db), dB<double>>;
 	EXPECT_TRUE(isSame);
 }
 
 TEST_F(UnitType, unit_cast)
 {
-	meter_t<double> test1(5.7);
-	hectare_t<double> test2(16);
+	meter<double> test1(5.7);
+	hectare<double> test2(16);
 
 	double dResult1 = 5.7;
 
@@ -2783,110 +2783,110 @@ TEST_F(UnitType, unit_cast)
 TEST_F(UnitType, literals)
 {
 	// basic functionality testing
-	EXPECT_TRUE((std::is_same_v<decltype(16.2_m), meter_t<double>>));
-	EXPECT_TRUE((std::is_same_v<decltype(16_m), meter_t<int>>));
-	EXPECT_TRUE(meter_t<double>(16.2) == 16.2_m);
-	EXPECT_TRUE(meter_t<double>(16) == 16.0_m);
-	EXPECT_TRUE(meter_t<int>(16) == 16_m);
+	EXPECT_TRUE((std::is_same_v<decltype(16.2_m), meter<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(16_m), meter<int>>));
+	EXPECT_TRUE(meter<double>(16.2) == 16.2_m);
+	EXPECT_TRUE(meter<double>(16) == 16.0_m);
+	EXPECT_TRUE(meter<int>(16) == 16_m);
 
-	EXPECT_TRUE((std::is_same_v<decltype(11.2_ft), foot_t<double>>));
-	EXPECT_TRUE((std::is_same_v<decltype(11_ft), foot_t<int>>));
-	EXPECT_TRUE(foot_t<double>(11.2) == 11.2_ft);
-	EXPECT_TRUE(foot_t<double>(11) == 11.0_ft);
-	EXPECT_TRUE(foot_t<int>(11) == 11_ft);
+	EXPECT_TRUE((std::is_same_v<decltype(11.2_ft), foot<double>>));
+	EXPECT_TRUE((std::is_same_v<decltype(11_ft), foot<int>>));
+	EXPECT_TRUE(foot<double>(11.2) == 11.2_ft);
+	EXPECT_TRUE(foot<double>(11) == 11.0_ft);
+	EXPECT_TRUE(foot<int>(11) == 11_ft);
 
 	// auto using literal syntax
 	auto x = 10.0_m;
-	EXPECT_TRUE((std::is_same_v<decltype(x), meter_t<double>>));
-	EXPECT_TRUE(meter_t<double>(10) == x);
+	EXPECT_TRUE((std::is_same_v<decltype(x), meter<double>>));
+	EXPECT_TRUE(meter<double>(10) == x);
 
 	// conversion using literal syntax
-	foot_t<double> y = 0.3048_m;
+	foot<double> y = 0.3048_m;
 	EXPECT_TRUE(1.0_ft == y);
 
 	// Pythagorean theorem
-	meter_t<double> a = 3.0_m;
-	meter_t<double> b = 4.0_m;
-	meter_t<double> c = sqrt(pow<2>(a) + pow<2>(b));
+	meter<double> a = 3.0_m;
+	meter<double> b = 4.0_m;
+	meter<double> c = sqrt(pow<2>(a) + pow<2>(b));
 	EXPECT_TRUE(c == 5.0_m);
 }
 
 TEST_F(ConversionFactor, length)
 {
 	double test;
-	test = nanometer_t<double>(0.000000001_m)();
+	test = nanometer<double>(0.000000001_m)();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = micrometer_t<double>(meter_t<double>(0.000001))();
+	test = micrometer<double>(meter<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = millimeter_t<double>(meter_t<double>(0.001))();
+	test = millimeter<double>(meter<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = centimeter_t<double>(meter_t<double>(0.01))();
+	test = centimeter<double>(meter<double>(0.01))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = kilometer_t<double>(meter_t<double>(1000.0))();
+	test = kilometer<double>(meter<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = meter_t<double>(meter_t<double>(1.0))();
+	test = meter<double>(meter<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = foot_t<double>(meter_t<double>(0.3048))();
+	test = foot<double>(meter<double>(0.3048))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = mile_t<double>(meter_t<double>(1609.344))();
+	test = mile<double>(meter<double>(1609.344))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = inch_t<double>(meter_t<double>(0.0254))();
+	test = inch<double>(meter<double>(0.0254))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = nautical_mile_t<double>(meter_t<double>(1852.0))();
+	test = nautical_mile<double>(meter<double>(1852.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = astronomical_unit_t<double>(meter_t<double>(149597870700.0))();
+	test = astronomical_unit<double>(meter<double>(149597870700.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = lightyear_t<double>(meter_t<double>(9460730472580800.0))();
+	test = lightyear<double>(meter<double>(9460730472580800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = parsec_t<double>(meter_t<double>(3.08567758e16))();
+	test = parsec<double>(meter<double>(3.08567758e16))();
 	EXPECT_NEAR(1.0, test, 5.0e7);
 
-	test = foot_t<double>(foot_t<double>(6.3))();
+	test = foot<double>(foot<double>(6.3))();
 	EXPECT_NEAR(6.3, test, 5.0e-5);
-	test = inch_t<double>(foot_t<double>(6.0))();
+	test = inch<double>(foot<double>(6.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = foot_t<double>(inch_t<double>(6.0))();
+	test = foot<double>(inch<double>(6.0))();
 	EXPECT_NEAR(0.5, test, 5.0e-5);
-	test = foot_t<double>(meter_t<double>(1.0))();
+	test = foot<double>(meter<double>(1.0))();
 	EXPECT_NEAR(3.28084, test, 5.0e-5);
-	test = nautical_mile_t<double>(mile_t<double>(6.3))();
+	test = nautical_mile<double>(mile<double>(6.3))();
 	EXPECT_NEAR(5.47455, test, 5.0e-6);
-	test = meter_t<double>(mile_t<double>(11.0))();
+	test = meter<double>(mile<double>(11.0))();
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
-	test = chain_t<double>(meter_t<double>(1.0))();
+	test = chain<double>(meter<double>(1.0))();
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
 
-	EXPECT_EQ(metre_t<double>(1), meter_t<double>(1));
+	EXPECT_EQ(metre<double>(1), meter<double>(1));
 }
 
 TEST_F(ConversionFactor, mass)
 {
 	double test;
 
-	test = gram_t<double>(kilogram_t<double>(1.0e-3))();
+	test = gram<double>(kilogram<double>(1.0e-3))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = microgram_t<double>(kilogram_t<double>(1.0e-9))();
+	test = microgram<double>(kilogram<double>(1.0e-9))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = milligram_t<double>(kilogram_t<double>(1.0e-6))();
+	test = milligram<double>(kilogram<double>(1.0e-6))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = kilogram_t<double>(kilogram_t<double>(1.0))();
+	test = kilogram<double>(kilogram<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = metric_ton_t<double>(kilogram_t<double>(1000.0))();
+	test = metric_ton<double>(kilogram<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = mass::pound_t<double>(kilogram_t<double>(0.453592))();
+	test = mass::pound<double>(kilogram<double>(0.453592))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = long_ton_t<double>(kilogram_t<double>(1016.05))();
+	test = long_ton<double>(kilogram<double>(1016.05))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = short_ton_t<double>(kilogram_t<double>(907.185))();
+	test = short_ton<double>(kilogram<double>(907.185))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = mass::ounce_t<double>(kilogram_t<double>(0.0283495))();
+	test = mass::ounce<double>(kilogram<double>(0.0283495))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = carat_t<double>(kilogram_t<double>(0.0002))();
+	test = carat<double>(kilogram<double>(0.0002))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = kilogram_t<double>(slug_t<double>(1.0))();
+	test = kilogram<double>(slug<double>(1.0))();
 	EXPECT_NEAR(14.593903, test, 5.0e-7);
 
-	test = carat_t<double>(mass::pound_t<double>(6.3))();
+	test = carat<double>(mass::pound<double>(6.3))();
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
 }
 
@@ -2903,71 +2903,71 @@ TEST_F(ConversionFactor, time)
 		(1 / hoursPerDay) * (1 / daysPerWeek);
 	EXPECT_NEAR(104.286, result, 5.0e-4);
 
-	year_t<double> twoYears(2.0);
-	week_t<double> twoYearsInWeeks = twoYears;
-	EXPECT_NEAR(week_t<double>(104.286).to<double>(), twoYearsInWeeks.to<double>(), 5.0e-4);
+	year<double> twoYears(2.0);
+	week<double> twoYearsInWeeks = twoYears;
+	EXPECT_NEAR(week<double>(104.286).to<double>(), twoYearsInWeeks.to<double>(), 5.0e-4);
 
 	double test;
 
-	test = second_t<double>(second_t<double>(1.0))();
+	test = second<double>(second<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = nanosecond_t<double>(second_t<double>(1.0e-9))();
+	test = nanosecond<double>(second<double>(1.0e-9))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = microsecond_t<double>(second_t<double>(1.0e-6))();
+	test = microsecond<double>(second<double>(1.0e-6))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = millisecond_t<double>(second_t<double>(1.0e-3))();
+	test = millisecond<double>(second<double>(1.0e-3))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = minute_t<double>(second_t<double>(60.0))();
+	test = minute<double>(second<double>(60.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = hour_t<double>(second_t<double>(3600.0))();
+	test = hour<double>(second<double>(3600.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = day_t<double>(second_t<double>(86400.0))();
+	test = day<double>(second<double>(86400.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = week_t<double>(second_t<double>(604800.0))();
+	test = week<double>(second<double>(604800.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = year_t<double>(second_t<double>(3.154e7))();
+	test = year<double>(second<double>(3.154e7))();
 	EXPECT_NEAR(1.0, test, 5.0e3);
 
-	test = week_t<double>(year_t<double>(2.0))();
+	test = week<double>(year<double>(2.0))();
 	EXPECT_NEAR(104.2857142857143, test, 5.0e-14);
-	test = minute_t<double>(hour_t<double>(4.0))();
+	test = minute<double>(hour<double>(4.0))();
 	EXPECT_NEAR(240.0, test, 5.0e-14);
-	test = day_t<double>(julian_year_t<double>(1.0))();
+	test = day<double>(julian_year<double>(1.0))();
 	EXPECT_NEAR(365.25, test, 5.0e-14);
-	test = day_t<double>(gregorian_year_t<double>(1.0))();
+	test = day<double>(gregorian_year<double>(1.0))();
 	EXPECT_NEAR(365.2425, test, 5.0e-14);
 }
 
 TEST_F(ConversionFactor, angle)
 {
-	angle::degree_t<double> quarterCircleDeg(90.0);
-	angle::radian_t<double> quarterCircleRad = quarterCircleDeg;
-	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
+	angle::degree<double> quarterCircleDeg(90.0);
+	angle::radian<double> quarterCircleRad = quarterCircleDeg;
+	EXPECT_NEAR(angle::radian<double>(detail::PI_VAL / 2.0).to<double>(), quarterCircleRad.to<double>(), 5.0e-12);
 
 	double test;
 
-	test = angle::radian_t<double>(angle::radian_t<double>(1.0))();
+	test = angle::radian<double>(angle::radian<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = angle::milliradian_t<double>(angle::radian_t<double>(0.001))();
+	test = angle::milliradian<double>(angle::radian<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-4);
-	test = angle::degree_t<double>(angle::radian_t<double>(0.0174533))();
+	test = angle::degree<double>(angle::radian<double>(0.0174533))();
 	EXPECT_NEAR(1.0, test, 5.0e-7);
-	test = angle::arcminute_t<double>(angle::radian_t<double>(0.000290888))();
+	test = angle::arcminute<double>(angle::radian<double>(0.000290888))();
 	EXPECT_NEAR(0.99999928265913, test, 5.0e-8);
-	test = angle::arcsecond_t<double>(angle::radian_t<double>(4.8481e-6))();
+	test = angle::arcsecond<double>(angle::radian<double>(4.8481e-6))();
 	EXPECT_NEAR(0.999992407, test, 5.0e-10);
-	test = angle::turn_t<double>(angle::radian_t<double>(6.28319))();
+	test = angle::turn<double>(angle::radian<double>(6.28319))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = angle::gradian_t<double>(angle::radian_t<double>(0.015708))();
+	test = angle::gradian<double>(angle::radian<double>(0.015708))();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 
-	test = angle::radian_t<double>(angle::radian_t<double>(2.1))();
+	test = angle::radian<double>(angle::radian<double>(2.1))();
 	EXPECT_NEAR(2.1, test, 5.0e-6);
-	test = angle::gradian_t<double>(angle::arcsecond_t<double>(2.1))();
+	test = angle::gradian<double>(angle::arcsecond<double>(2.1))();
 	EXPECT_NEAR(0.000648148, test, 5.0e-6);
-	test = angle::degree_t<double>(angle::radian_t<double>(detail::PI_VAL))();
+	test = angle::degree<double>(angle::radian<double>(detail::PI_VAL))();
 	EXPECT_NEAR(180.0, test, 5.0e-6);
-	test = angle::radian_t<double>(angle::degree_t<double>(90.0))();
+	test = angle::radian<double>(angle::degree<double>(90.0))();
 	EXPECT_NEAR(detail::PI_VAL / 2, test, 5.0e-6);
 }
 
@@ -2975,7 +2975,7 @@ TEST_F(ConversionFactor, current)
 {
 	double test;
 
-	test = current::milliampere_t<double>(current::ampere_t<double>(2.1))();
+	test = current::milliampere<double>(current::ampere<double>(2.1))();
 	EXPECT_NEAR(2100.0, test, 5.0e-6);
 }
 
@@ -2984,43 +2984,43 @@ TEST_F(ConversionFactor, temperature)
 	// temp conversion are weird/hard since they involve translations AND scaling.
 	double test;
 
-	test = kelvin_t<double>(kelvin_t<double>(72.0))();
+	test = kelvin<double>(kelvin<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = fahrenheit_t<double>(fahrenheit_t<double>(72.0))();
+	test = fahrenheit<double>(fahrenheit<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = fahrenheit_t<double>(kelvin_t<double>(300.0))();
+	test = fahrenheit<double>(kelvin<double>(300.0))();
 	EXPECT_NEAR(80.33, test, 5.0e-5);
-	test = kelvin_t<double>(fahrenheit_t<double>(451.0))();
+	test = kelvin<double>(fahrenheit<double>(451.0))();
 	EXPECT_NEAR(505.928, test, 5.0e-4);
-	test = celsius_t<double>(kelvin_t<double>(300.0))();
+	test = celsius<double>(kelvin<double>(300.0))();
 	EXPECT_NEAR(26.85, test, 5.0e-3);
-	test = kelvin_t<double>(celsius_t<double>(451.0))();
+	test = kelvin<double>(celsius<double>(451.0))();
 	EXPECT_NEAR(724.15, test, 5.0e-3);
-	test = celsius_t<double>(fahrenheit_t<double>(72.0))();
+	test = celsius<double>(fahrenheit<double>(72.0))();
 	EXPECT_NEAR(22.2222, test, 5.0e-5);
-	test = fahrenheit_t<double>(celsius_t<double>(100.0))();
+	test = fahrenheit<double>(celsius<double>(100.0))();
 	EXPECT_NEAR(212.0, test, 5.0e-5);
-	test = celsius_t<double>(fahrenheit_t<double>(32.0))();
+	test = celsius<double>(fahrenheit<double>(32.0))();
 	EXPECT_NEAR(0.0, test, 5.0e-5);
-	test = fahrenheit_t<double>(celsius_t<double>(0.0))();
+	test = fahrenheit<double>(celsius<double>(0.0))();
 	EXPECT_NEAR(32.0, test, 5.0e-5);
-	test = kelvin_t<double>(rankine_t<double>(100.0))();
+	test = kelvin<double>(rankine<double>(100.0))();
 	EXPECT_NEAR(55.5556, test, 5.0e-5);
-	test = rankine_t<double>(kelvin_t<double>(100.0))();
+	test = rankine<double>(kelvin<double>(100.0))();
 	EXPECT_NEAR(180.0, test, 5.0e-5);
-	test = rankine_t<double>(fahrenheit_t<double>(100.0))();
+	test = rankine<double>(fahrenheit<double>(100.0))();
 	EXPECT_NEAR(559.67, test, 5.0e-5);
-	test = fahrenheit_t<double>(rankine_t<double>(72.0))();
+	test = fahrenheit<double>(rankine<double>(72.0))();
 	EXPECT_NEAR(-387.67, test, 5.0e-5);
-	test = kelvin_t<double>(reaumur_t<double>(100.0))();
+	test = kelvin<double>(reaumur<double>(100.0))();
 	EXPECT_NEAR(398.0, test, 5.0e-1);
-	test = celsius_t<double>(reaumur_t<double>(80.0))();
+	test = celsius<double>(reaumur<double>(80.0))();
 	EXPECT_NEAR(100.0, test, 5.0e-5);
-	test = reaumur_t<double>(celsius_t<double>(212.0))();
+	test = reaumur<double>(celsius<double>(212.0))();
 	EXPECT_NEAR(169.6, test, 5.0e-2);
-	test = fahrenheit_t<double>(reaumur_t<double>(80.0))();
+	test = fahrenheit<double>(reaumur<double>(80.0))();
 	EXPECT_NEAR(212.0, test, 5.0e-5);
-	test = reaumur_t<double>(fahrenheit_t<double>(37.0))();
+	test = reaumur<double>(fahrenheit<double>(37.0))();
 	EXPECT_NEAR(2.222, test, 5.0e-3);
 }
 
@@ -3028,9 +3028,9 @@ TEST_F(ConversionFactor, luminous_intensity)
 {
 	double test;
 
-	test = millicandela_t<double>(candela_t<double>(72.0))();
+	test = millicandela<double>(candela<double>(72.0))();
 	EXPECT_NEAR(72000.0, test, 5.0e-5);
-	test = candela_t<double>(millicandela_t<double>(376.0))();
+	test = candela<double>(millicandela<double>(376.0))();
 	EXPECT_NEAR(0.376, test, 5.0e-5);
 }
 
@@ -3049,23 +3049,23 @@ TEST_F(ConversionFactor, solid_angle)
 		traits::dimension_of_t<degree_squared_conversion_factor>>;
 	EXPECT_TRUE(same);
 
-	test = steradian_t<double>(steradian_t<double>(72.0))();
+	test = steradian<double>(steradian<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = degree_squared_t<double>(steradian_t<double>(1.0))();
+	test = degree_squared<double>(steradian<double>(1.0))();
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
-	test = spat_t<double>(steradian_t<double>(8.0))();
+	test = spat<double>(steradian<double>(8.0))();
 	EXPECT_NEAR(0.636619772367582, test, 5.0e-14);
-	test = steradian_t<double>(degree_squared_t<double>(3282.8))();
+	test = steradian<double>(degree_squared<double>(3282.8))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = degree_squared_t<double>(degree_squared_t<double>(72.0))();
+	test = degree_squared<double>(degree_squared<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
-	test = spat_t<double>(degree_squared_t<double>(3282.8))();
+	test = spat<double>(degree_squared<double>(3282.8))();
 	EXPECT_NEAR(1.0 / (4 * detail::PI_VAL), test, 5.0e-5);
-	test = steradian_t<double>(spat_t<double>(1.0 / (4 * detail::PI_VAL)))();
+	test = steradian<double>(spat<double>(1.0 / (4 * detail::PI_VAL)))();
 	EXPECT_NEAR(1.0, test, 5.0e-14);
-	test = degree_squared_t<double>(spat_t<double>(1.0 / (4 * detail::PI_VAL)))();
+	test = degree_squared<double>(spat<double>(1.0 / (4 * detail::PI_VAL)))();
 	EXPECT_NEAR(3282.8, test, 5.0e-2);
-	test = spat_t<double>(spat_t<double>(72.0))();
+	test = spat<double>(spat<double>(72.0))();
 	EXPECT_NEAR(72.0, test, 5.0e-5);
 }
 
@@ -3073,13 +3073,13 @@ TEST_F(ConversionFactor, frequency)
 {
 	double test;
 
-	test = kilohertz_t<double>(hertz_t<double>(63000.0))();
+	test = kilohertz<double>(hertz<double>(63000.0))();
 	EXPECT_NEAR(63.0, test, 5.0e-5);
-	test = hertz_t<double>(hertz_t<double>(6.3))();
+	test = hertz<double>(hertz<double>(6.3))();
 	EXPECT_NEAR(6.3, test, 5.0e-5);
-	test = hertz_t<double>(kilohertz_t<double>(5.0))();
+	test = hertz<double>(kilohertz<double>(5.0))();
 	EXPECT_NEAR(5000.0, test, 5.0e-5);
-	test = hertz_t<double>(megahertz_t<double>(1.0))();
+	test = hertz<double>(megahertz<double>(1.0))();
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
@@ -3094,15 +3094,15 @@ TEST_F(ConversionFactor, velocity)
 	same = traits::is_convertible_unit_v<miles_per_hour_conversion_factor, meters_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
-	test = miles_per_hour_t<double>(meters_per_second_t<double>(1250.0))();
+	test = miles_per_hour<double>(meters_per_second<double>(1250.0))();
 	EXPECT_NEAR(2796.17, test, 5.0e-3);
-	test = kilometers_per_hour_t<double>(feet_per_second_t<double>(2796.17))();
+	test = kilometers_per_hour<double>(feet_per_second<double>(2796.17))();
 	EXPECT_NEAR(3068.181418, test, 5.0e-7);
-	test = miles_per_hour_t<double>(knot_t<double>(600.0))();
+	test = miles_per_hour<double>(knot<double>(600.0))();
 	EXPECT_NEAR(690.468, test, 5.0e-4);
-	test = feet_per_second_t<double>(miles_per_hour_t<double>(120.0))();
+	test = feet_per_second<double>(miles_per_hour<double>(120.0))();
 	EXPECT_NEAR(176.0, test, 5.0e-5);
-	test = meters_per_second_t<double>(feet_per_second_t<double>(10.0))();
+	test = meters_per_second<double>(feet_per_second<double>(10.0))();
 	EXPECT_NEAR(3.048, test, 5.0e-5);
 }
 
@@ -3118,13 +3118,13 @@ TEST_F(ConversionFactor, angular_velocity)
 		traits::is_convertible_unit_v<revolutions_per_minute_conversion_factor, radians_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
-	test = milliarcseconds_per_year_t<double>(radians_per_second_t<double>(1.0))();
+	test = milliarcseconds_per_year<double>(radians_per_second<double>(1.0))();
 	EXPECT_NEAR(6.504e15, test, 1.0e12);
-	test = radians_per_second_t<double>(degrees_per_second_t<double>(1.0))();
+	test = radians_per_second<double>(degrees_per_second<double>(1.0))();
 	EXPECT_NEAR(0.0174533, test, 5.0e-8);
-	test = radians_per_second_t<double>(revolutions_per_minute_t<double>(1.0))();
+	test = radians_per_second<double>(revolutions_per_minute<double>(1.0))();
 	EXPECT_NEAR(0.10471975512, test, 5.0e-13);
-	test = radians_per_second_t<double>(milliarcseconds_per_year_t<double>(1.0))();
+	test = radians_per_second<double>(milliarcseconds_per_year<double>(1.0))();
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
@@ -3132,7 +3132,7 @@ TEST_F(ConversionFactor, acceleration)
 {
 	double test;
 
-	test = meters_per_second_squared_t<double>(standard_gravity_t<double>(1.0))();
+	test = meters_per_second_squared<double>(standard_gravity<double>(1.0))();
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
 }
 
@@ -3140,17 +3140,17 @@ TEST_F(ConversionFactor, force)
 {
 	double test;
 
-	test = units::force::newton_t<double>(units::force::newton_t<double>(1.0))();
+	test = units::force::newton<double>(units::force::newton<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = units::force::pound_t<double>(units::force::newton_t<double>(6.3))();
+	test = units::force::pound<double>(units::force::newton<double>(6.3))();
 	EXPECT_NEAR(1.4163, test, 5.0e-5);
-	test = units::force::dyne_t<double>(units::force::newton_t<double>(5.0))();
+	test = units::force::dyne<double>(units::force::newton<double>(5.0))();
 	EXPECT_NEAR(500000.0, test, 5.0e-5);
-	test = units::force::poundal_t<double>(units::force::newton_t<double>(2.1))();
+	test = units::force::poundal<double>(units::force::newton<double>(2.1))();
 	EXPECT_NEAR(15.1893, test, 5.0e-5);
-	test = units::force::kilopond_t<double>(units::force::newton_t<double>(173.0))();
+	test = units::force::kilopond<double>(units::force::newton<double>(173.0))();
 	EXPECT_NEAR(17.6411, test, 5.0e-5);
-	test = units::force::kilopond_t<double>(units::force::poundal_t<double>(21.879))();
+	test = units::force::kilopond<double>(units::force::poundal<double>(21.879))();
 	EXPECT_NEAR(0.308451933, test, 5.0e-10);
 }
 
@@ -3158,15 +3158,15 @@ TEST_F(ConversionFactor, area)
 {
 	double test;
 
-	test = acre_t<double>(hectare_t<double>(6.3))();
+	test = acre<double>(hectare<double>(6.3))();
 	EXPECT_NEAR(15.5676, test, 5.0e-5);
-	test = square_kilometer_t<double>(square_mile_t<double>(10.0))();
+	test = square_kilometer<double>(square_mile<double>(10.0))();
 	EXPECT_NEAR(25.8999, test, 5.0e-5);
-	test = square_meter_t<double>(square_inch_t<double>(4.0))();
+	test = square_meter<double>(square_inch<double>(4.0))();
 	EXPECT_NEAR(0.00258064, test, 5.0e-9);
-	test = square_foot_t<double>(acre_t<double>(5.0))();
+	test = square_foot<double>(acre<double>(5.0))();
 	EXPECT_NEAR(217800.0, test, 5.0e-5);
-	test = square_foot_t<double>(square_meter_t<double>(1.0))();
+	test = square_foot<double>(square_meter<double>(1.0))();
 	EXPECT_NEAR(10.7639, test, 5.0e-5);
 }
 
@@ -3174,25 +3174,25 @@ TEST_F(ConversionFactor, pressure)
 {
 	double test;
 
-	test = torr_t<double>(pascal_t<double>(1.0))();
+	test = torr<double>(pascal<double>(1.0))();
 	EXPECT_NEAR(0.00750062, test, 5.0e-5);
-	test = pounds_per_square_inch_t<double>(bar_t<double>(2.2))();
+	test = pounds_per_square_inch<double>(bar<double>(2.2))();
 	EXPECT_NEAR(31.9083, test, 5.0e-5);
-	test = bar_t<double>(atmosphere_t<double>(4.0))();
+	test = bar<double>(atmosphere<double>(4.0))();
 	EXPECT_NEAR(4.053, test, 5.0e-5);
-	test = pascal_t<double>(torr_t<double>(800.0))();
+	test = pascal<double>(torr<double>(800.0))();
 	EXPECT_NEAR(106657.89474, test, 5.0e-5);
-	test = atmosphere_t<double>(pounds_per_square_inch_t<double>(38.0))();
+	test = atmosphere<double>(pounds_per_square_inch<double>(38.0))();
 	EXPECT_NEAR(2.58575, test, 5.0e-5);
-	test = pascal_t<double>(pounds_per_square_inch_t<double>(1.0))();
+	test = pascal<double>(pounds_per_square_inch<double>(1.0))();
 	EXPECT_NEAR(6894.76, test, 5.0e-3);
-	test = bar_t<double>(pascal_t<double>(0.25))();
+	test = bar<double>(pascal<double>(0.25))();
 	EXPECT_NEAR(2.5e-6, test, 5.0e-5);
-	test = atmosphere_t<double>(torr_t<double>(9.0))();
+	test = atmosphere<double>(torr<double>(9.0))();
 	EXPECT_NEAR(0.0118421, test, 5.0e-8);
-	test = torr_t<double>(bar_t<double>(12.0))();
+	test = torr<double>(bar<double>(12.0))();
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
-	test = pounds_per_square_inch_t<double>(atmosphere_t<double>(1.0))();
+	test = pounds_per_square_inch<double>(atmosphere<double>(1.0))();
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
 
 	EXPECT_EQ(133.322387415_Pa, 1.0_mmHg);
@@ -3202,9 +3202,9 @@ TEST_F(ConversionFactor, charge)
 {
 	double test;
 
-	test = ampere_hour_t<double>(coulomb_t<double>(4.0))();
+	test = ampere_hour<double>(coulomb<double>(4.0))();
 	EXPECT_NEAR(0.00111111, test, 5.0e-9);
-	test = coulomb_t<double>(ampere_hour_t<double>(1.0))();
+	test = coulomb<double>(ampere_hour<double>(1.0))();
 	EXPECT_NEAR(3600.0, test, 5.0e-6);
 }
 
@@ -3212,31 +3212,31 @@ TEST_F(ConversionFactor, energy)
 {
 	double test;
 
-	test = calorie_t<double>(joule_t<double>(8000.000464))();
+	test = calorie<double>(joule<double>(8000.000464))();
 	EXPECT_NEAR(1912.046, test, 5.0e-4);
-	test = joule_t<double>(therm_t<double>(12.0))();
+	test = joule<double>(therm<double>(12.0))();
 	EXPECT_NEAR(1.266e+9, test, 5.0e5);
-	test = watt_hour_t<double>(megajoule_t<double>(100.0))();
+	test = watt_hour<double>(megajoule<double>(100.0))();
 	EXPECT_NEAR(27777.778, test, 5.0e-4);
-	test = megajoule_t<double>(kilocalorie_t<double>(56.0))();
+	test = megajoule<double>(kilocalorie<double>(56.0))();
 	EXPECT_NEAR(0.234304, test, 5.0e-7);
-	test = therm_t<double>(kilojoule_t<double>(56.0))();
+	test = therm<double>(kilojoule<double>(56.0))();
 	EXPECT_NEAR(0.000530904, test, 5.0e-5);
-	test = kilojoule_t<double>(british_thermal_unit_t<double>(18.56399995447))();
+	test = kilojoule<double>(british_thermal_unit<double>(18.56399995447))();
 	EXPECT_NEAR(19.5860568, test, 5.0e-5);
-	test = energy::foot_pound_t<double>(calorie_t<double>(18.56399995447))();
+	test = energy::foot_pound<double>(calorie<double>(18.56399995447))();
 	EXPECT_NEAR(57.28776190423856, test, 5.0e-5);
-	test = calorie_t<double>(megajoule_t<double>(1.0))();
+	test = calorie<double>(megajoule<double>(1.0))();
 	EXPECT_NEAR(239006.0, test, 5.0e-1);
-	test = kilowatt_hour_t<double>(kilocalorie_t<double>(2.0))();
+	test = kilowatt_hour<double>(kilocalorie<double>(2.0))();
 	EXPECT_NEAR(0.00232444, test, 5.0e-9);
-	test = kilocalorie_t<double>(therm_t<double>(0.1))();
+	test = kilocalorie<double>(therm<double>(0.1))();
 	EXPECT_NEAR(2521.04, test, 5.0e-3);
-	test = megajoule_t<double>(watt_hour_t<double>(67.0))();
+	test = megajoule<double>(watt_hour<double>(67.0))();
 	EXPECT_NEAR(0.2412, test, 5.0e-5);
-	test = watt_hour_t<double>(british_thermal_unit_t<double>(100.0))();
+	test = watt_hour<double>(british_thermal_unit<double>(100.0))();
 	EXPECT_NEAR(29.3071, test, 5.0e-5);
-	test = british_thermal_unit_t<double>(calorie_t<double>(100.0))();
+	test = british_thermal_unit<double>(calorie<double>(100.0))();
 	EXPECT_NEAR(0.396567, test, 5.0e-5);
 }
 
@@ -3244,21 +3244,21 @@ TEST_F(ConversionFactor, power)
 {
 	double test;
 
-	test = watt_t<double>(
+	test = watt<double>(
 		unit<compound_conversion_factor<energy::foot_pound_conversion_factor, inverse<second_conversion_factor>>>(
 			550.0))();
 	EXPECT_NEAR(745.7, test, 5.0e-2);
-	test = gigawatt_t<double>(watt_t<double>(1000000000.0))();
+	test = gigawatt<double>(watt<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-4);
-	test = watt_t<double>(microwatt_t<double>(200000.0))();
+	test = watt<double>(microwatt<double>(200000.0))();
 	EXPECT_NEAR(0.2, test, 5.0e-4);
-	test = watt_t<double>(horsepower_t<double>(100.0))();
+	test = watt<double>(horsepower<double>(100.0))();
 	EXPECT_NEAR(74570.0, test, 5.0e-1);
-	test = megawatt_t<double>(horsepower_t<double>(5.0))();
+	test = megawatt<double>(horsepower<double>(5.0))();
 	EXPECT_NEAR(0.0037284994, test, 5.0e-7);
-	test = horsepower_t<double>(kilowatt_t<double>(232.0))();
+	test = horsepower<double>(kilowatt<double>(232.0))();
 	EXPECT_NEAR(311.117, test, 5.0e-4);
-	test = horsepower_t<double>(milliwatt_t<double>(1001.0))();
+	test = horsepower<double>(milliwatt<double>(1001.0))();
 	EXPECT_NEAR(0.001342363, test, 5.0e-9);
 }
 
@@ -3266,29 +3266,29 @@ TEST_F(ConversionFactor, voltage)
 {
 	double test;
 
-	test = millivolt_t<double>(volt_t<double>(10.0))();
+	test = millivolt<double>(volt<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = volt_t<double>(picovolt_t<double>(1000000000000.0))();
+	test = volt<double>(picovolt<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(nanovolt_t<double>(1000000000.0))();
+	test = volt<double>(nanovolt<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(microvolt_t<double>(1000000.0))();
+	test = volt<double>(microvolt<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(millivolt_t<double>(1000.0))();
+	test = volt<double>(millivolt<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(kilovolt_t<double>(0.001))();
+	test = volt<double>(kilovolt<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(megavolt_t<double>(0.000001))();
+	test = volt<double>(megavolt<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(gigavolt_t<double>(0.000000001))();
+	test = volt<double>(gigavolt<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volt_t<double>(statvolt_t<double>(299.792458))();
+	test = volt<double>(statvolt<double>(299.792458))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = statvolt_t<double>(millivolt_t<double>(1000.0))();
+	test = statvolt<double>(millivolt<double>(1000.0))();
 	EXPECT_NEAR(299.792458, test, 5.0e-5);
-	test = nanovolt_t<double>(abvolt_t<double>(0.1))();
+	test = nanovolt<double>(abvolt<double>(0.1))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = abvolt_t<double>(microvolt_t<double>(0.01))();
+	test = abvolt<double>(microvolt<double>(0.01))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3296,28 +3296,28 @@ TEST_F(ConversionFactor, capacitance)
 {
 	double test;
 
-	test = millifarad_t<double>(farad_t<double>(10.0))();
+	test = millifarad<double>(farad<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = farad_t<double>(picofarad_t<double>(1000000000000.0))();
+	test = farad<double>(picofarad<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(nanofarad_t<double>(1000000000.0))();
+	test = farad<double>(nanofarad<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(microfarad_t<double>(1000000.0))();
+	test = farad<double>(microfarad<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(millifarad_t<double>(1000.0))();
+	test = farad<double>(millifarad<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(kilofarad_t<double>(0.001))();
+	test = farad<double>(kilofarad<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(megafarad_t<double>(0.000001))();
+	test = farad<double>(megafarad<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = farad_t<double>(gigafarad_t<double>(0.000000001))();
+	test = farad<double>(gigafarad<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	auto f             = coulomb_t<double>(1) / volt_t<double>(1);
-	farad_t<double> f2 = coulomb_t<double>(1) / volt_t<double>(1);
-	EXPECT_TRUE((std::is_convertible_v<decltype(f), farad_t<double>>));
+	auto f             = coulomb<double>(1) / volt<double>(1);
+	farad<double> f2 = coulomb<double>(1) / volt<double>(1);
+	EXPECT_TRUE((std::is_convertible_v<decltype(f), farad<double>>));
 
-	auto one_farad = []() -> farad_t<double> { return coulomb_t<double>(1) / volt_t<double>(1); };
+	auto one_farad = []() -> farad<double> { return coulomb<double>(1) / volt<double>(1); };
 
 	EXPECT_EQ(1.0_F, one_farad());
 }
@@ -3326,21 +3326,21 @@ TEST_F(ConversionFactor, impedance)
 {
 	double test;
 
-	test = milliohm_t<double>(ohm_t<double>(10.0))();
+	test = milliohm<double>(ohm<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = ohm_t<double>(picoohm_t<double>(1000000000000.0))();
+	test = ohm<double>(picoohm<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(nanoohm_t<double>(1000000000.0))();
+	test = ohm<double>(nanoohm<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(microohm_t<double>(1000000.0))();
+	test = ohm<double>(microohm<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(milliohm_t<double>(1000.0))();
+	test = ohm<double>(milliohm<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(kiloohm_t<double>(0.001))();
+	test = ohm<double>(kiloohm<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(megaohm_t<double>(0.000001))();
+	test = ohm<double>(megaohm<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = ohm_t<double>(gigaohm_t<double>(0.000000001))();
+	test = ohm<double>(gigaohm<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3348,21 +3348,21 @@ TEST_F(ConversionFactor, conductance)
 {
 	double test;
 
-	test = millisiemens_t<double>(siemens_t<double>(10.0))();
+	test = millisiemens<double>(siemens<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = siemens_t<double>(picosiemens_t<double>(1000000000000.0))();
+	test = siemens<double>(picosiemens<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(nanosiemens_t<double>(1000000000.0))();
+	test = siemens<double>(nanosiemens<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(microsiemens_t<double>(1000000.0))();
+	test = siemens<double>(microsiemens<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(millisiemens_t<double>(1000.0))();
+	test = siemens<double>(millisiemens<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(kilosiemens_t<double>(0.001))();
+	test = siemens<double>(kilosiemens<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(megasiemens_t<double>(0.000001))();
+	test = siemens<double>(megasiemens<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = siemens_t<double>(gigasiemens_t<double>(0.000000001))();
+	test = siemens<double>(gigasiemens<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3370,25 +3370,25 @@ TEST_F(ConversionFactor, magnetic_flux)
 {
 	double test;
 
-	test = milliweber_t<double>(weber_t<double>(10.0))();
+	test = milliweber<double>(weber<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = weber_t<double>(picoweber_t<double>(1000000000000.0))();
+	test = weber<double>(picoweber<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(nanoweber_t<double>(1000000000.0))();
+	test = weber<double>(nanoweber<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(microweber_t<double>(1000000.0))();
+	test = weber<double>(microweber<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(milliweber_t<double>(1000.0))();
+	test = weber<double>(milliweber<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(kiloweber_t<double>(0.001))();
+	test = weber<double>(kiloweber<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(megaweber_t<double>(0.000001))();
+	test = weber<double>(megaweber<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(gigaweber_t<double>(0.000000001))();
+	test = weber<double>(gigaweber<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = weber_t<double>(maxwell_t<double>(100000000.0))();
+	test = weber<double>(maxwell<double>(100000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = maxwell_t<double>(nanoweber_t<double>(10.0))();
+	test = maxwell<double>(nanoweber<double>(10.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3396,25 +3396,25 @@ TEST_F(ConversionFactor, magnetic_field_strength)
 {
 	double test;
 
-	test = millitesla_t<double>(tesla_t<double>(10.0))();
+	test = millitesla<double>(tesla<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = tesla_t<double>(picotesla_t<double>(1000000000000.0))();
+	test = tesla<double>(picotesla<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(nanotesla_t<double>(1000000000.0))();
+	test = tesla<double>(nanotesla<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(microtesla_t<double>(1000000.0))();
+	test = tesla<double>(microtesla<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(millitesla_t<double>(1000.0))();
+	test = tesla<double>(millitesla<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(kilotesla_t<double>(0.001))();
+	test = tesla<double>(kilotesla<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(megatesla_t<double>(0.000001))();
+	test = tesla<double>(megatesla<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(gigatesla_t<double>(0.000000001))();
+	test = tesla<double>(gigatesla<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = tesla_t<double>(gauss_t<double>(10000.0))();
+	test = tesla<double>(gauss<double>(10000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gauss_t<double>(nanotesla_t<double>(100000.0))();
+	test = gauss<double>(nanotesla<double>(100000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3422,21 +3422,21 @@ TEST_F(ConversionFactor, inductance)
 {
 	double test;
 
-	test = millihenry_t<double>(henry_t<double>(10.0))();
+	test = millihenry<double>(henry<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = henry_t<double>(picohenry_t<double>(1000000000000.0))();
+	test = henry<double>(picohenry<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(nanohenry_t<double>(1000000000.0))();
+	test = henry<double>(nanohenry<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(microhenry_t<double>(1000000.0))();
+	test = henry<double>(microhenry<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(millihenry_t<double>(1000.0))();
+	test = henry<double>(millihenry<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(kilohenry_t<double>(0.001))();
+	test = henry<double>(kilohenry<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(megahenry_t<double>(0.000001))();
+	test = henry<double>(megahenry<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = henry_t<double>(gigahenry_t<double>(0.000000001))();
+	test = henry<double>(gigahenry<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3444,21 +3444,21 @@ TEST_F(ConversionFactor, luminous_flux)
 {
 	double test;
 
-	test = millilumen_t<double>(lumen_t<double>(10.0))();
+	test = millilumen<double>(lumen<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = lumen_t<double>(picolumen_t<double>(1000000000000.0))();
+	test = lumen<double>(picolumen<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(nanolumen_t<double>(1000000000.0))();
+	test = lumen<double>(nanolumen<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(microlumen_t<double>(1000000.0))();
+	test = lumen<double>(microlumen<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(millilumen_t<double>(1000.0))();
+	test = lumen<double>(millilumen<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(kilolumen_t<double>(0.001))();
+	test = lumen<double>(kilolumen<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(megalumen_t<double>(0.000001))();
+	test = lumen<double>(megalumen<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumen_t<double>(gigalumen_t<double>(0.000000001))();
+	test = lumen<double>(gigalumen<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3466,28 +3466,28 @@ TEST_F(ConversionFactor, illuminance)
 {
 	double test;
 
-	test = millilux_t<double>(lux_t<double>(10.0))();
+	test = millilux<double>(lux<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = lux_t<double>(picolux_t<double>(1000000000000.0))();
+	test = lux<double>(picolux<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(nanolux_t<double>(1000000000.0))();
+	test = lux<double>(nanolux<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(microlux_t<double>(1000000.0))();
+	test = lux<double>(microlux<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(millilux_t<double>(1000.0))();
+	test = lux<double>(millilux<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(kilolux_t<double>(0.001))();
+	test = lux<double>(kilolux<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(megalux_t<double>(0.000001))();
+	test = lux<double>(megalux<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lux_t<double>(gigalux_t<double>(0.000000001))();
+	test = lux<double>(gigalux<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	// 	test = lux_t<double>(footcandle_t<double>(0.092903))();
+	// 	test = lux<double>(footcandle<double>(0.092903))();
 	// 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = lumens_per_square_inch_t<double>(lux_t<double>(1550.0031000062))();
+	test = lumens_per_square_inch<double>(lux<double>(1550.0031000062))();
 	EXPECT_NEAR(1.0, test, 5.0e-13);
-	test = lux_t<double>(phot_t<double>(0.0001))();
+	test = lux<double>(phot<double>(0.0001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3495,62 +3495,62 @@ TEST_F(ConversionFactor, radiation)
 {
 	double test;
 
-	test = millibecquerel_t<double>(becquerel_t<double>(10.0))();
+	test = millibecquerel<double>(becquerel<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = becquerel_t<double>(picobecquerel_t<double>(1000000000000.0))();
+	test = becquerel<double>(picobecquerel<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(nanobecquerel_t<double>(1000000000.0))();
+	test = becquerel<double>(nanobecquerel<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(microbecquerel_t<double>(1000000.0))();
+	test = becquerel<double>(microbecquerel<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(millibecquerel_t<double>(1000.0))();
+	test = becquerel<double>(millibecquerel<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(kilobecquerel_t<double>(0.001))();
+	test = becquerel<double>(kilobecquerel<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(megabecquerel_t<double>(0.000001))();
+	test = becquerel<double>(megabecquerel<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = becquerel_t<double>(gigabecquerel_t<double>(0.000000001))();
+	test = becquerel<double>(gigabecquerel<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = milligray_t<double>(gray_t<double>(10.0))();
+	test = milligray<double>(gray<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = gray_t<double>(picogray_t<double>(1000000000000.0))();
+	test = gray<double>(picogray<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(nanogray_t<double>(1000000000.0))();
+	test = gray<double>(nanogray<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(microgray_t<double>(1000000.0))();
+	test = gray<double>(microgray<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(milligray_t<double>(1000.0))();
+	test = gray<double>(milligray<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(kilogray_t<double>(0.001))();
+	test = gray<double>(kilogray<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(megagray_t<double>(0.000001))();
+	test = gray<double>(megagray<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(gigagray_t<double>(0.000000001))();
+	test = gray<double>(gigagray<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = millisievert_t<double>(sievert_t<double>(10.0))();
+	test = millisievert<double>(sievert<double>(10.0))();
 	EXPECT_NEAR(10000.0, test, 5.0e-5);
-	test = sievert_t<double>(picosievert_t<double>(1000000000000.0))();
+	test = sievert<double>(picosievert<double>(1000000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(nanosievert_t<double>(1000000000.0))();
+	test = sievert<double>(nanosievert<double>(1000000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(microsievert_t<double>(1000000.0))();
+	test = sievert<double>(microsievert<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(millisievert_t<double>(1000.0))();
+	test = sievert<double>(millisievert<double>(1000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(kilosievert_t<double>(0.001))();
+	test = sievert<double>(kilosievert<double>(0.001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(megasievert_t<double>(0.000001))();
+	test = sievert<double>(megasievert<double>(0.000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = sievert_t<double>(gigasievert_t<double>(0.000000001))();
+	test = sievert<double>(gigasievert<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	test = curie_t<double>(becquerel_t<double>(37.0e9))();
+	test = curie<double>(becquerel<double>(37.0e9))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = rutherford_t<double>(becquerel_t<double>(1000000.0))();
+	test = rutherford<double>(becquerel<double>(1000000.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = gray_t<double>(rad_t<double>(100.0))();
+	test = gray<double>(rad<double>(100.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3558,17 +3558,17 @@ TEST_F(ConversionFactor, torque)
 {
 	double test;
 
-	test = newton_meter_t<double>(torque::foot_pound_t<double>(1.0))();
+	test = newton_meter<double>(torque::foot_pound<double>(1.0))();
 	EXPECT_NEAR(1.355817948, test, 5.0e-5);
-	test = newton_meter_t<double>(inch_pound_t<double>(1.0))();
+	test = newton_meter<double>(inch_pound<double>(1.0))();
 	EXPECT_NEAR(0.112984829, test, 5.0e-5);
-	test = newton_meter_t<double>(foot_poundal_t<double>(1.0))();
+	test = newton_meter<double>(foot_poundal<double>(1.0))();
 	EXPECT_NEAR(4.214011009e-2, test, 5.0e-5);
-	test = newton_meter_t<double>(meter_kilogram_t<double>(1.0))();
+	test = newton_meter<double>(meter_kilogram<double>(1.0))();
 	EXPECT_NEAR(9.80665, test, 5.0e-5);
-	test = meter_kilogram_t<double>(inch_pound_t<double>(86.79616930855788))();
+	test = meter_kilogram<double>(inch_pound<double>(86.79616930855788))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = inch_pound_t<double>(foot_poundal_t<double>(2.681170713))();
+	test = inch_pound<double>(foot_poundal<double>(2.681170713))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -3576,67 +3576,67 @@ TEST_F(ConversionFactor, volume)
 {
 	double test;
 
-	test = cubic_meter_t<double>(cubic_meter_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_meter<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = cubic_meter_t<double>(cubic_millimeter_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_millimeter<double>(1.0))();
 	EXPECT_NEAR(1.0e-9, test, 5.0e-5);
-	test = cubic_meter_t<double>(cubic_kilometer_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_kilometer<double>(1.0))();
 	EXPECT_NEAR(1.0e9, test, 5.0e-5);
-	test = cubic_meter_t<double>(liter_t<double>(1.0))();
+	test = cubic_meter<double>(liter<double>(1.0))();
 	EXPECT_NEAR(0.001, test, 5.0e-5);
-	test = cubic_meter_t<double>(milliliter_t<double>(1.0))();
+	test = cubic_meter<double>(milliliter<double>(1.0))();
 	EXPECT_NEAR(1.0e-6, test, 5.0e-5);
-	test = cubic_meter_t<double>(cubic_inch_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_inch<double>(1.0))();
 	EXPECT_NEAR(1.6387e-5, test, 5.0e-10);
-	test = cubic_meter_t<double>(cubic_foot_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_foot<double>(1.0))();
 	EXPECT_NEAR(0.0283168, test, 5.0e-8);
-	test = cubic_meter_t<double>(cubic_yard_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_yard<double>(1.0))();
 	EXPECT_NEAR(0.764555, test, 5.0e-7);
-	test = cubic_meter_t<double>(cubic_mile_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_mile<double>(1.0))();
 	EXPECT_NEAR(4.168e+9, test, 5.0e5);
-	test = cubic_meter_t<double>(gallon_t<double>(1.0))();
+	test = cubic_meter<double>(gallon<double>(1.0))();
 	EXPECT_NEAR(0.00378541, test, 5.0e-8);
-	test = cubic_meter_t<double>(quart_t<double>(1.0))();
+	test = cubic_meter<double>(quart<double>(1.0))();
 	EXPECT_NEAR(0.000946353, test, 5.0e-10);
-	test = cubic_meter_t<double>(pint_t<double>(1.0))();
+	test = cubic_meter<double>(pint<double>(1.0))();
 	EXPECT_NEAR(0.000473176, test, 5.0e-10);
-	test = cubic_meter_t<double>(cup_t<double>(1.0))();
+	test = cubic_meter<double>(cup<double>(1.0))();
 	EXPECT_NEAR(0.00024, test, 5.0e-6);
-	test = cubic_meter_t<double>(volume::fluid_ounce_t<double>(1.0))();
+	test = cubic_meter<double>(volume::fluid_ounce<double>(1.0))();
 	EXPECT_NEAR(2.9574e-5, test, 5.0e-5);
-	test = cubic_meter_t<double>(barrel_t<double>(1.0))();
+	test = cubic_meter<double>(barrel<double>(1.0))();
 	EXPECT_NEAR(0.158987294928, test, 5.0e-13);
-	test = cubic_meter_t<double>(bushel_t<double>(1.0))();
+	test = cubic_meter<double>(bushel<double>(1.0))();
 	EXPECT_NEAR(0.0352391, test, 5.0e-8);
-	test = cubic_meter_t<double>(cord_t<double>(1.0))();
+	test = cubic_meter<double>(cord<double>(1.0))();
 	EXPECT_NEAR(3.62456, test, 5.0e-6);
-	test = cubic_meter_t<double>(cubic_fathom_t<double>(1.0))();
+	test = cubic_meter<double>(cubic_fathom<double>(1.0))();
 	EXPECT_NEAR(6.11644, test, 5.0e-6);
-	test = cubic_meter_t<double>(tablespoon_t<double>(1.0))();
+	test = cubic_meter<double>(tablespoon<double>(1.0))();
 	EXPECT_NEAR(1.4787e-5, test, 5.0e-10);
-	test = cubic_meter_t<double>(teaspoon_t<double>(1.0))();
+	test = cubic_meter<double>(teaspoon<double>(1.0))();
 	EXPECT_NEAR(4.9289e-6, test, 5.0e-11);
-	test = cubic_meter_t<double>(pinch_t<double>(1.0))();
+	test = cubic_meter<double>(pinch<double>(1.0))();
 	EXPECT_NEAR(616.11519921875e-9, test, 5.0e-20);
-	test = cubic_meter_t<double>(dash_t<double>(1.0))();
+	test = cubic_meter<double>(dash<double>(1.0))();
 	EXPECT_NEAR(308.057599609375e-9, test, 5.0e-20);
-	test = cubic_meter_t<double>(drop_t<double>(1.0))();
+	test = cubic_meter<double>(drop<double>(1.0))();
 	EXPECT_NEAR(82.14869322916e-9, test, 5.0e-9);
-	test = cubic_meter_t<double>(fifth_t<double>(1.0))();
+	test = cubic_meter<double>(fifth<double>(1.0))();
 	EXPECT_NEAR(0.00075708236, test, 5.0e-12);
-	test = cubic_meter_t<double>(dram_t<double>(1.0))();
+	test = cubic_meter<double>(dram<double>(1.0))();
 	EXPECT_NEAR(3.69669e-6, test, 5.0e-12);
-	test = cubic_meter_t<double>(gill_t<double>(1.0))();
+	test = cubic_meter<double>(gill<double>(1.0))();
 	EXPECT_NEAR(0.000118294, test, 5.0e-10);
-	test = cubic_meter_t<double>(peck_t<double>(1.0))();
+	test = cubic_meter<double>(peck<double>(1.0))();
 	EXPECT_NEAR(0.00880977, test, 5.0e-9);
-	test = cubic_meter_t<double>(sack_t<double>(9.4591978))();
+	test = cubic_meter<double>(sack<double>(9.4591978))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = cubic_meter_t<double>(shot_t<double>(1.0))();
+	test = cubic_meter<double>(shot<double>(1.0))();
 	EXPECT_NEAR(4.43603e-5, test, 5.0e-11);
-	test = cubic_meter_t<double>(strike_t<double>(1.0))();
+	test = cubic_meter<double>(strike<double>(1.0))();
 	EXPECT_NEAR(0.07047814033376, test, 5.0e-5);
-	test = milliliter_t<double>(volume::fluid_ounce_t<double>(1.0))();
+	test = milliliter<double>(volume::fluid_ounce<double>(1.0))();
 	EXPECT_NEAR(29.5735, test, 5.0e-5);
 }
 
@@ -3644,25 +3644,25 @@ TEST_F(ConversionFactor, density)
 {
 	double test;
 
-	test = kilograms_per_cubic_meter_t<double>(kilograms_per_cubic_meter_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(kilograms_per_cubic_meter<double>(1.0))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = kilograms_per_cubic_meter_t<double>(grams_per_milliliter_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(grams_per_milliliter<double>(1.0))();
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = kilograms_per_cubic_meter_t<double>(kilograms_per_liter_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(kilograms_per_liter<double>(1.0))();
 	EXPECT_NEAR(1000.0, test, 5.0e-5);
-	test = kilograms_per_cubic_meter_t<double>(ounces_per_cubic_foot_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(ounces_per_cubic_foot<double>(1.0))();
 	EXPECT_NEAR(1.001153961, test, 5.0e-10);
-	test = kilograms_per_cubic_meter_t<double>(ounces_per_cubic_inch_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(ounces_per_cubic_inch<double>(1.0))();
 	EXPECT_NEAR(1.729994044e3, test, 5.0e-7);
-	test = kilograms_per_cubic_meter_t<double>(ounces_per_gallon_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(ounces_per_gallon<double>(1.0))();
 	EXPECT_NEAR(7.489151707, test, 5.0e-10);
-	test = kilograms_per_cubic_meter_t<double>(pounds_per_cubic_foot_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(pounds_per_cubic_foot<double>(1.0))();
 	EXPECT_NEAR(16.01846337, test, 5.0e-9);
-	test = kilograms_per_cubic_meter_t<double>(pounds_per_cubic_inch_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(pounds_per_cubic_inch<double>(1.0))();
 	EXPECT_NEAR(2.767990471e4, test, 5.0e-6);
-	test = kilograms_per_cubic_meter_t<double>(pounds_per_gallon_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(pounds_per_gallon<double>(1.0))();
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
-	test = kilograms_per_cubic_meter_t<double>(slugs_per_cubic_foot_t<double>(1.0))();
+	test = kilograms_per_cubic_meter<double>(slugs_per_cubic_foot<double>(1.0))();
 	EXPECT_NEAR(515.3788184, test, 5.0e-6);
 }
 
@@ -3670,106 +3670,106 @@ TEST_F(ConversionFactor, concentration)
 {
 	double test;
 
-	test = ppm_t<double>(1.0);
+	test = ppm<double>(1.0);
 	EXPECT_NEAR(1.0e-6, test, 5.0e-12);
-	test = ppb_t<double>(1.0);
+	test = ppb<double>(1.0);
 	EXPECT_NEAR(1.0e-9, test, 5.0e-12);
-	test = ppt_t<double>(1.0);
+	test = ppt<double>(1.0);
 	EXPECT_NEAR(1.0e-12, test, 5.0e-12);
-	test = percent_t<double>(18.0);
+	test = percent<double>(18.0);
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 }
 
 TEST_F(ConversionFactor, data)
 {
-	EXPECT_EQ(8, (bit_t<double>(byte_t<double>(1))()));
+	EXPECT_EQ(8, (bit<double>(byte<double>(1))()));
 
-	EXPECT_EQ(1000, (byte_t<double>(kilobyte_t<double>(1))()));
-	EXPECT_EQ(1000, (kilobyte_t<double>(megabyte_t<double>(1))()));
-	EXPECT_EQ(1000, (megabyte_t<double>(gigabyte_t<double>(1))()));
-	EXPECT_EQ(1000, (gigabyte_t<double>(terabyte_t<double>(1))()));
-	EXPECT_EQ(1000, (terabyte_t<double>(petabyte_t<double>(1))()));
-	EXPECT_EQ(1000, (petabyte_t<double>(exabyte_t<double>(1))()));
+	EXPECT_EQ(1000, (byte<double>(kilobyte<double>(1))()));
+	EXPECT_EQ(1000, (kilobyte<double>(megabyte<double>(1))()));
+	EXPECT_EQ(1000, (megabyte<double>(gigabyte<double>(1))()));
+	EXPECT_EQ(1000, (gigabyte<double>(terabyte<double>(1))()));
+	EXPECT_EQ(1000, (terabyte<double>(petabyte<double>(1))()));
+	EXPECT_EQ(1000, (petabyte<double>(exabyte<double>(1))()));
 
-	EXPECT_EQ(1024, (byte_t<double>(kibibyte_t<double>(1))()));
-	EXPECT_EQ(1024, (kibibyte_t<double>(mebibyte_t<double>(1))()));
-	EXPECT_EQ(1024, (mebibyte_t<double>(gibibyte_t<double>(1))()));
-	EXPECT_EQ(1024, (gibibyte_t<double>(tebibyte_t<double>(1))()));
-	EXPECT_EQ(1024, (tebibyte_t<double>(pebibyte_t<double>(1))()));
-	EXPECT_EQ(1024, (pebibyte_t<double>(exbibyte_t<double>(1))()));
+	EXPECT_EQ(1024, (byte<double>(kibibyte<double>(1))()));
+	EXPECT_EQ(1024, (kibibyte<double>(mebibyte<double>(1))()));
+	EXPECT_EQ(1024, (mebibyte<double>(gibibyte<double>(1))()));
+	EXPECT_EQ(1024, (gibibyte<double>(tebibyte<double>(1))()));
+	EXPECT_EQ(1024, (tebibyte<double>(pebibyte<double>(1))()));
+	EXPECT_EQ(1024, (pebibyte<double>(exbibyte<double>(1))()));
 
-	EXPECT_EQ(93750000, (kibibit_t<double>(gigabyte_t<double>(12))()));
+	EXPECT_EQ(93750000, (kibibit<double>(gigabyte<double>(12))()));
 
-	EXPECT_EQ(1000, (bit_t<double>(kilobit_t<double>(1))()));
-	EXPECT_EQ(1000, (kilobit_t<double>(megabit_t<double>(1))()));
-	EXPECT_EQ(1000, (megabit_t<double>(gigabit_t<double>(1))()));
-	EXPECT_EQ(1000, (gigabit_t<double>(terabit_t<double>(1))()));
-	EXPECT_EQ(1000, (terabit_t<double>(petabit_t<double>(1))()));
-	EXPECT_EQ(1000, (petabit_t<double>(exabit_t<double>(1))()));
+	EXPECT_EQ(1000, (bit<double>(kilobit<double>(1))()));
+	EXPECT_EQ(1000, (kilobit<double>(megabit<double>(1))()));
+	EXPECT_EQ(1000, (megabit<double>(gigabit<double>(1))()));
+	EXPECT_EQ(1000, (gigabit<double>(terabit<double>(1))()));
+	EXPECT_EQ(1000, (terabit<double>(petabit<double>(1))()));
+	EXPECT_EQ(1000, (petabit<double>(exabit<double>(1))()));
 
-	EXPECT_EQ(1024, (bit_t<double>(kibibit_t<double>(1))()));
-	EXPECT_EQ(1024, (kibibit_t<double>(mebibit_t<double>(1))()));
-	EXPECT_EQ(1024, (mebibit_t<double>(gibibit_t<double>(1))()));
-	EXPECT_EQ(1024, (gibibit_t<double>(tebibit_t<double>(1))()));
-	EXPECT_EQ(1024, (tebibit_t<double>(pebibit_t<double>(1))()));
-	EXPECT_EQ(1024, (pebibit_t<double>(exbibit_t<double>(1))()));
+	EXPECT_EQ(1024, (bit<double>(kibibit<double>(1))()));
+	EXPECT_EQ(1024, (kibibit<double>(mebibit<double>(1))()));
+	EXPECT_EQ(1024, (mebibit<double>(gibibit<double>(1))()));
+	EXPECT_EQ(1024, (gibibit<double>(tebibit<double>(1))()));
+	EXPECT_EQ(1024, (tebibit<double>(pebibit<double>(1))()));
+	EXPECT_EQ(1024, (pebibit<double>(exbibit<double>(1))()));
 
 	// Source: https://en.wikipedia.org/wiki/Binary_prefix
-	EXPECT_NEAR(percent_t<double>(2.4), kibibyte_t<double>(1) / kilobyte_t<double>(1) - 1, 0.005);
-	EXPECT_NEAR(percent_t<double>(4.9), mebibyte_t<double>(1) / megabyte_t<double>(1) - 1, 0.005);
-	EXPECT_NEAR(percent_t<double>(7.4), gibibyte_t<double>(1) / gigabyte_t<double>(1) - 1, 0.005);
-	EXPECT_NEAR(percent_t<double>(10.0), tebibyte_t<double>(1) / terabyte_t<double>(1) - 1, 0.005);
-	EXPECT_NEAR(percent_t<double>(12.6), pebibyte_t<double>(1) / petabyte_t<double>(1) - 1, 0.005);
-	EXPECT_NEAR(percent_t<double>(15.3), exbibyte_t<double>(1) / exabyte_t<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(2.4), kibibyte<double>(1) / kilobyte<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(4.9), mebibyte<double>(1) / megabyte<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(7.4), gibibyte<double>(1) / gigabyte<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(10.0), tebibyte<double>(1) / terabyte<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(12.6), pebibyte<double>(1) / petabyte<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(15.3), exbibyte<double>(1) / exabyte<double>(1) - 1, 0.005);
 }
 
 TEST_F(ConversionFactor, data_transfer_rate)
 {
-	EXPECT_EQ(8, (bits_per_second_t<double>(bytes_per_second_t<double>(1))()));
+	EXPECT_EQ(8, (bits_per_second<double>(bytes_per_second<double>(1))()));
 
-	EXPECT_EQ(1000, (bytes_per_second_t<double>(kilobytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (kilobytes_per_second_t<double>(megabytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (megabytes_per_second_t<double>(gigabytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (gigabytes_per_second_t<double>(terabytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (terabytes_per_second_t<double>(petabytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (petabytes_per_second_t<double>(exabytes_per_second_t<double>(1))()));
+	EXPECT_EQ(1000, (bytes_per_second<double>(kilobytes_per_second<double>(1))()));
+	EXPECT_EQ(1000, (kilobytes_per_second<double>(megabytes_per_second<double>(1))()));
+	EXPECT_EQ(1000, (megabytes_per_second<double>(gigabytes_per_second<double>(1))()));
+	EXPECT_EQ(1000, (gigabytes_per_second<double>(terabytes_per_second<double>(1))()));
+	EXPECT_EQ(1000, (terabytes_per_second<double>(petabytes_per_second<double>(1))()));
+	EXPECT_EQ(1000, (petabytes_per_second<double>(exabytes_per_second<double>(1))()));
 
-	EXPECT_EQ(1024, (bytes_per_second_t<double>(kibibytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (kibibytes_per_second_t<double>(mebibytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (mebibytes_per_second_t<double>(gibibytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (gibibytes_per_second_t<double>(tebibytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (tebibytes_per_second_t<double>(pebibytes_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (pebibytes_per_second_t<double>(exbibytes_per_second_t<double>(1))()));
+	EXPECT_EQ(1024, (bytes_per_second<double>(kibibytes_per_second<double>(1))()));
+	EXPECT_EQ(1024, (kibibytes_per_second<double>(mebibytes_per_second<double>(1))()));
+	EXPECT_EQ(1024, (mebibytes_per_second<double>(gibibytes_per_second<double>(1))()));
+	EXPECT_EQ(1024, (gibibytes_per_second<double>(tebibytes_per_second<double>(1))()));
+	EXPECT_EQ(1024, (tebibytes_per_second<double>(pebibytes_per_second<double>(1))()));
+	EXPECT_EQ(1024, (pebibytes_per_second<double>(exbibytes_per_second<double>(1))()));
 
-	EXPECT_EQ(93750000, (kibibits_per_second_t<double>(gigabytes_per_second_t<double>(12))()));
+	EXPECT_EQ(93750000, (kibibits_per_second<double>(gigabytes_per_second<double>(12))()));
 
-	EXPECT_EQ(1000, (bits_per_second_t<double>(kilobits_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (kilobits_per_second_t<double>(megabits_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (megabits_per_second_t<double>(gigabits_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (gigabits_per_second_t<double>(terabits_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (terabits_per_second_t<double>(petabits_per_second_t<double>(1))()));
-	EXPECT_EQ(1000, (petabits_per_second_t<double>(exabits_per_second_t<double>(1))()));
+	EXPECT_EQ(1000, (bits_per_second<double>(kilobits_per_second<double>(1))()));
+	EXPECT_EQ(1000, (kilobits_per_second<double>(megabits_per_second<double>(1))()));
+	EXPECT_EQ(1000, (megabits_per_second<double>(gigabits_per_second<double>(1))()));
+	EXPECT_EQ(1000, (gigabits_per_second<double>(terabits_per_second<double>(1))()));
+	EXPECT_EQ(1000, (terabits_per_second<double>(petabits_per_second<double>(1))()));
+	EXPECT_EQ(1000, (petabits_per_second<double>(exabits_per_second<double>(1))()));
 
-	EXPECT_EQ(1024, (bits_per_second_t<double>(kibibits_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (kibibits_per_second_t<double>(mebibits_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (mebibits_per_second_t<double>(gibibits_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (gibibits_per_second_t<double>(tebibits_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (tebibits_per_second_t<double>(pebibits_per_second_t<double>(1))()));
-	EXPECT_EQ(1024, (pebibits_per_second_t<double>(exbibits_per_second_t<double>(1))()));
+	EXPECT_EQ(1024, (bits_per_second<double>(kibibits_per_second<double>(1))()));
+	EXPECT_EQ(1024, (kibibits_per_second<double>(mebibits_per_second<double>(1))()));
+	EXPECT_EQ(1024, (mebibits_per_second<double>(gibibits_per_second<double>(1))()));
+	EXPECT_EQ(1024, (gibibits_per_second<double>(tebibits_per_second<double>(1))()));
+	EXPECT_EQ(1024, (tebibits_per_second<double>(pebibits_per_second<double>(1))()));
+	EXPECT_EQ(1024, (pebibits_per_second<double>(exbibits_per_second<double>(1))()));
 
 	// Source: https://en.wikipedia.org/wiki/Binary_prefix
 	EXPECT_NEAR(
-		percent_t<double>(2.4), kibibytes_per_second_t<double>(1) / kilobytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(2.4), kibibytes_per_second<double>(1) / kilobytes_per_second<double>(1) - 1, 0.005);
 	EXPECT_NEAR(
-		percent_t<double>(4.9), mebibytes_per_second_t<double>(1) / megabytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(4.9), mebibytes_per_second<double>(1) / megabytes_per_second<double>(1) - 1, 0.005);
 	EXPECT_NEAR(
-		percent_t<double>(7.4), gibibytes_per_second_t<double>(1) / gigabytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(7.4), gibibytes_per_second<double>(1) / gigabytes_per_second<double>(1) - 1, 0.005);
 	EXPECT_NEAR(
-		percent_t<double>(10.0), tebibytes_per_second_t<double>(1) / terabytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(10.0), tebibytes_per_second<double>(1) / terabytes_per_second<double>(1) - 1, 0.005);
 	EXPECT_NEAR(
-		percent_t<double>(12.6), pebibytes_per_second_t<double>(1) / petabytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(12.6), pebibytes_per_second<double>(1) / petabytes_per_second<double>(1) - 1, 0.005);
 	EXPECT_NEAR(
-		percent_t<double>(15.3), exbibytes_per_second_t<double>(1) / exabytes_per_second_t<double>(1) - 1, 0.005);
+		percent<double>(15.3), exbibytes_per_second<double>(1) / exabytes_per_second<double>(1) - 1, 0.005);
 }
 
 TEST_F(ConversionFactor, pi)
@@ -3795,29 +3795,29 @@ TEST_F(ConversionFactor, pi)
 	EXPECT_NEAR(3.14159, constants::pi.to<double>(), 5.0e-6);
 
 	// auto multiplication
-	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(constants::pi * meter_t<double>(1))>));
-	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(meter_t<double>(1) * constants::pi)>));
+	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(constants::pi * meter<double>(1))>));
+	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(meter<double>(1) * constants::pi)>));
 
-	EXPECT_NEAR(detail::PI_VAL, (constants::pi * meter_t<double>(1)).to<double>(), 5.0e-10);
-	EXPECT_NEAR(detail::PI_VAL, (meter_t<double>(1) * constants::pi).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (constants::pi * meter<double>(1)).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (meter<double>(1) * constants::pi).to<double>(), 5.0e-10);
 
 	// explicit multiplication
-	meter_t<double> a = constants::pi * meter_t<double>(1);
-	meter_t<double> b = meter_t<double>(1) * constants::pi;
+	meter<double> a = constants::pi * meter<double>(1);
+	meter<double> b = meter<double>(1) * constants::pi;
 
 	EXPECT_NEAR(detail::PI_VAL, a.to<double>(), 5.0e-10);
 	EXPECT_NEAR(detail::PI_VAL, b.to<double>(), 5.0e-10);
 
 	// auto division
-	EXPECT_TRUE((std::is_same_v<hertz_t<double>, decltype(constants::pi / second_t<double>(1))>));
-	EXPECT_TRUE((std::is_same_v<second_t<double>, decltype(second_t<double>(1) / constants::pi)>));
+	EXPECT_TRUE((std::is_same_v<hertz<double>, decltype(constants::pi / second<double>(1))>));
+	EXPECT_TRUE((std::is_same_v<second<double>, decltype(second<double>(1) / constants::pi)>));
 
-	EXPECT_NEAR(detail::PI_VAL, (constants::pi / second_t<double>(1)).to<double>(), 5.0e-10);
-	EXPECT_NEAR(1.0 / detail::PI_VAL, (second_t<double>(1) / constants::pi).to<double>(), 5.0e-10);
+	EXPECT_NEAR(detail::PI_VAL, (constants::pi / second<double>(1)).to<double>(), 5.0e-10);
+	EXPECT_NEAR(1.0 / detail::PI_VAL, (second<double>(1) / constants::pi).to<double>(), 5.0e-10);
 
 	// explicit
-	hertz_t<double> c  = constants::pi / second_t<double>(1);
-	second_t<double> d = second_t<double>(1) / constants::pi;
+	hertz<double> c  = constants::pi / second<double>(1);
+	second<double> d = second<double>(1) / constants::pi;
 
 	EXPECT_NEAR(detail::PI_VAL, c.to<double>(), 5.0e-10);
 	EXPECT_NEAR(1.0 / detail::PI_VAL, d.to<double>(), 5.0e-10);
@@ -3846,18 +3846,18 @@ TEST_F(ConversionFactor, constants)
 
 TEST_F(ConversionFactor, std_chrono)
 {
-	nanosecond_t<double> a = std::chrono::nanoseconds(10);
-	EXPECT_EQ(nanosecond_t<double>(10), a);
-	microsecond_t<double> b = std::chrono::microseconds(10);
-	EXPECT_EQ(microsecond_t<double>(10), b);
-	millisecond_t<double> c = std::chrono::milliseconds(10);
-	EXPECT_EQ(millisecond_t<double>(10), c);
-	second_t<double> d = std::chrono::seconds(1);
-	EXPECT_EQ(second_t<double>(1), d);
-	minute_t<double> e = std::chrono::minutes(120);
-	EXPECT_EQ(minute_t<double>(120), e);
-	hour_t<double> f = std::chrono::hours(2);
-	EXPECT_EQ(hour_t<double>(2), f);
+	nanosecond<double> a = std::chrono::nanoseconds(10);
+	EXPECT_EQ(nanosecond<double>(10), a);
+	microsecond<double> b = std::chrono::microseconds(10);
+	EXPECT_EQ(microsecond<double>(10), b);
+	millisecond<double> c = std::chrono::milliseconds(10);
+	EXPECT_EQ(millisecond<double>(10), c);
+	second<double> d = std::chrono::seconds(1);
+	EXPECT_EQ(second<double>(1), d);
+	minute<double> e = std::chrono::minutes(120);
+	EXPECT_EQ(minute<double>(120), e);
+	hour<double> f = std::chrono::hours(2);
+	EXPECT_EQ(hour<double>(2), f);
 
 	std::chrono::nanoseconds g = unit<nanosecond_conversion_factor, int>(100);
 	EXPECT_EQ(std::chrono::duration_cast<std::chrono::nanoseconds>(g).count(), 100);
@@ -3878,14 +3878,14 @@ TEST_F(ConversionFactor, squaredTemperature)
 	using squared_celsius   = units::compound_conversion_factor<squared<celsius_conversion_factor>>;
 	using squared_celsius_t = units::unit<squared_celsius>;
 	const squared_celsius_t right(100);
-	const celsius_t<double> rootRight = sqrt(right);
-	EXPECT_EQ(celsius_t<double>(10), rootRight);
+	const celsius<double> rootRight = sqrt(right);
+	EXPECT_EQ(celsius<double>(10), rootRight);
 }
 
 TEST_F(UnitMath, min)
 {
-	meter_t<double> a(1);
-	foot_t<double> c(1);
+	meter<double> a(1);
+	foot<double> c(1);
 	EXPECT_EQ(c, units::min(a, c));
 
 	const unit<meter_conversion_factor> d(1);
@@ -3895,8 +3895,8 @@ TEST_F(UnitMath, min)
 
 TEST_F(UnitMath, max)
 {
-	meter_t<double> a(1);
-	foot_t<double> c(1);
+	meter<double> a(1);
+	foot<double> c(1);
 	EXPECT_EQ(a, max(a, c));
 
 	const unit<meter_conversion_factor> d(1);
@@ -3906,177 +3906,177 @@ TEST_F(UnitMath, max)
 
 TEST_F(UnitMath, cos)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cos(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cos(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cos(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(-0.41614683654), cos(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(-0.41614683654), cos(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(-0.41614683654), cos(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(-0.70710678118), cos(angle::degree_t<double>(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(-0.70710678118), cos(angle::degree<double>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(-0.70710678118), cos(unit<degree_conversion_factor, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, sin)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sin(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sin(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sin(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(0.90929742682), sin(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(0.90929742682), sin(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.90929742682), sin(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0.70710678118), sin(angle::degree_t<double>(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(0.70710678118), sin(angle::degree<double>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.70710678118), sin(unit<degree_conversion_factor, int>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0), sin(1.0_rad * units::constants::pi), 5.0e-16);
 }
 
 TEST_F(UnitMath, tan)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tan(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tan(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tan(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(-2.18503986326), tan(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(-2.18503986326), tan(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(-2.18503986326), tan(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(-1.0), tan(angle::degree_t<double>(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(-1.0), tan(angle::degree<double>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(-1.0), tan(unit<degree_conversion_factor, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, acos)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(acos(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(acos(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acos(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acos(unit<dimensionless_unit, int>(0)))>));
 	EXPECT_NEAR(
-		angle::radian_t<double>(2).to<double>(), acos(dimensionless<double>(-0.41614683654)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radian_t<double>(1.570796326795).to<double>(),
+		angle::radian<double>(2).to<double>(), acos(dimensionless<double>(-0.41614683654)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(),
 		acos(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degree_t<double>(135).to<double>(),
-		angle::degree_t<double>(acos(dimensionless<double>(-0.70710678118654752440084436210485))).to<double>(),
+	EXPECT_NEAR(angle::degree<double>(135).to<double>(),
+		angle::degree<double>(acos(dimensionless<double>(-0.70710678118654752440084436210485))).to<double>(),
 		5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(90).to<double>(),
-		angle::degree_t<double>(acos(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(90).to<double>(),
+		angle::degree<double>(acos(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asin)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(asin(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(asin(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian_t<double>(1.14159265).to<double>(),
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asin(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asin(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_NEAR(angle::radian<double>(1.14159265).to<double>(),
 		asin(dimensionless<double>(0.90929742682)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radian_t<double>(1.570796326795).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(),
 		asin(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degree_t<double>(45).to<double>(),
-		angle::degree_t<double>(asin(dimensionless<double>(0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(90).to<double>(),
-		angle::degree_t<double>(asin(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
+		angle::degree<double>(asin(dimensionless<double>(0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(90).to<double>(),
+		angle::degree<double>(asin(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(atan(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(atan(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian_t<double>(-1.14159265).to<double>(),
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atan(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atan(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_NEAR(angle::radian<double>(-1.14159265).to<double>(),
 		atan(dimensionless<double>(-2.18503986326)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radian_t<double>(0.785398163397).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(0.785398163397).to<double>(),
 		atan(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degree_t<double>(-45).to<double>(),
-		angle::degree_t<double>(atan(dimensionless<double>(-1.0))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(45).to<double>(),
-		angle::degree_t<double>(atan(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(-45).to<double>(),
+		angle::degree<double>(atan(dimensionless<double>(-1.0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
+		angle::degree<double>(atan(unit<dimensionless_unit, int>(1))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan2)
 {
 	EXPECT_TRUE(
-		(std::is_same_v<angle::radian_t<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>,
+		(std::is_same_v<angle::radian<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>,
 		decltype(atan2(unit<dimensionless_unit, int>(1), unit<dimensionless_unit, int>(1)))>));
-	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 4).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(detail::PI_VAL / 4).to<double>(),
 		atan2(dimensionless<double>(2), dimensionless<double>(2)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 4).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(detail::PI_VAL / 4).to<double>(),
 		atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(45).to<double>(),
-		angle::degree_t<double>(atan2(dimensionless<double>(2), dimensionless<double>(2))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(45).to<double>(),
-		angle::degree_t<double>(atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2))).to<double>(),
+	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
+		angle::degree<double>(atan2(dimensionless<double>(2), dimensionless<double>(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
+		angle::degree<double>(atan2(unit<dimensionless_unit, int>(2), unit<dimensionless_unit, int>(2))).to<double>(),
 		5.0e-12);
 
 	EXPECT_TRUE(
-		(std::is_same_v<angle::radian_t<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
-	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 6).to<double>(),
+		(std::is_same_v<angle::radian<double>, decltype(atan2(dimensionless<double>(1), dimensionless<double>(1)))>));
+	EXPECT_NEAR(angle::radian<double>(detail::PI_VAL / 6).to<double>(),
 		atan2(dimensionless<double>(1), sqrt(dimensionless<double>(3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::radian_t<double>(detail::PI_VAL / 6).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(detail::PI_VAL / 6).to<double>(),
 		atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(30).to<double>(),
-		angle::degree_t<double>(atan2(dimensionless<double>(1), sqrt(dimensionless<double>(3)))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(30).to<double>(),
-		angle::degree_t<double>(atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3))))
+	EXPECT_NEAR(angle::degree<double>(30).to<double>(),
+		angle::degree<double>(atan2(dimensionless<double>(1), sqrt(dimensionless<double>(3)))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(30).to<double>(),
+		angle::degree<double>(atan2(unit<dimensionless_unit, int>(1), sqrt(unit<dimensionless_unit, int>(3))))
 			.to<double>(),
 		5.0e-12);
 }
 
 TEST_F(UnitMath, cosh)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cosh(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cosh(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(cosh(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(3.76219569108), cosh(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(3.76219569108), cosh(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(3.76219569108), cosh(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(5.32275215), cosh(angle::degree_t<double>(135)), 5.0e-9);
+	EXPECT_NEAR(dimensionless<double>(5.32275215), cosh(angle::degree<double>(135)), 5.0e-9);
 	EXPECT_NEAR(dimensionless<double>(5.32275215), cosh(unit<degree_conversion_factor, int>(135)), 5.0e-9);
 }
 
 TEST_F(UnitMath, sinh)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sinh(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sinh(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(sinh(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(3.62686040785), sinh(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(3.62686040785), sinh(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(3.62686040785), sinh(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(5.22797192), sinh(angle::degree_t<double>(135)), 5.0e-9);
+	EXPECT_NEAR(dimensionless<double>(5.22797192), sinh(angle::degree<double>(135)), 5.0e-9);
 	EXPECT_NEAR(dimensionless<double>(5.22797192), sinh(unit<degree_conversion_factor, int>(135)), 5.0e-9);
 }
 
 TEST_F(UnitMath, tanh)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tanh(angle::radian_t<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tanh(angle::radian<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<dimensionless<double>, decltype(tanh(unit<degree_conversion_factor, int>(0)))>));
-	EXPECT_NEAR(dimensionless<double>(0.96402758007), tanh(angle::radian_t<double>(2)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(0.96402758007), tanh(angle::radian<double>(2)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.96402758007), tanh(unit<radian_conversion_factor, int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0.98219338), tanh(angle::degree_t<double>(135)), 5.0e-11);
+	EXPECT_NEAR(dimensionless<double>(0.98219338), tanh(angle::degree<double>(135)), 5.0e-11);
 	EXPECT_NEAR(dimensionless<double>(0.98219338), tanh(unit<degree_conversion_factor, int>(135)), 5.0e-11);
 }
 
 TEST_F(UnitMath, acosh)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(acosh(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(acosh(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian_t<double>(1.316957896924817).to<double>(), acosh(dimensionless<double>(2.0)).to<double>(),
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acosh(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acosh(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_NEAR(angle::radian<double>(1.316957896924817).to<double>(), acosh(dimensionless<double>(2.0)).to<double>(),
 		5.0e-11);
-	EXPECT_NEAR(angle::radian_t<double>(1.316957896924817).to<double>(),
+	EXPECT_NEAR(angle::radian<double>(1.316957896924817).to<double>(),
 		acosh(unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degree_t<double>(75.456129290216893).to<double>(),
-		angle::degree_t<double>(acosh(dimensionless<double>(2.0))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(75.456129290216893).to<double>(),
-		angle::degree_t<double>(acosh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(75.456129290216893).to<double>(),
+		angle::degree<double>(acosh(dimensionless<double>(2.0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(75.456129290216893).to<double>(),
+		angle::degree<double>(acosh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asinh)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(asinh(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(asinh(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asinh(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asinh(unit<dimensionless_unit, int>(0)))>));
 	EXPECT_NEAR(
-		angle::radian_t<double>(1.443635475178810).to<double>(), asinh(dimensionless<double>(2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radian_t<double>(1.443635475178810).to<double>(),
+		angle::radian<double>(1.443635475178810).to<double>(), asinh(dimensionless<double>(2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian<double>(1.443635475178810).to<double>(),
 		asinh(unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degree_t<double>(82.714219883108939).to<double>(),
-		angle::degree_t<double>(asinh(dimensionless<double>(2))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(82.714219883108939).to<double>(),
-		angle::degree_t<double>(asinh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(82.714219883108939).to<double>(),
+		angle::degree<double>(asinh(dimensionless<double>(2))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(82.714219883108939).to<double>(),
+		angle::degree<double>(asinh(unit<dimensionless_unit, int>(2))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atanh)
 {
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(atanh(dimensionless<double>(0)))>));
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(atanh(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian_t<double>(0.549306144334055).to<double>(), atanh(dimensionless<double>(0.5)).to<double>(),
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atanh(dimensionless<double>(0)))>));
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atanh(unit<dimensionless_unit, int>(0)))>));
+	EXPECT_NEAR(angle::radian<double>(0.549306144334055).to<double>(), atanh(dimensionless<double>(0.5)).to<double>(),
 		5.0e-9);
-	EXPECT_NEAR(angle::radian_t<double>(0).to<double>(), atanh(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degree_t<double>(31.472923730945389).to<double>(),
-		angle::degree_t<double>(atanh(dimensionless<double>(0.5))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degree_t<double>(0).to<double>(),
-		angle::degree_t<double>(atanh(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::radian<double>(0).to<double>(), atanh(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degree<double>(31.472923730945389).to<double>(),
+		angle::degree<double>(atanh(dimensionless<double>(0.5))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degree<double>(0).to<double>(),
+		angle::degree<double>(atanh(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, exp)
@@ -4133,11 +4133,11 @@ TEST_F(UnitMath, log2)
 TEST_F(UnitMath, pow)
 {
 	bool isSame;
-	meter_t<double> value(10.0);
+	meter<double> value(10.0);
 
 	auto sq = pow<2>(value);
 	EXPECT_NEAR(100.0, sq(), 5.0e-2);
-	isSame = std::is_same_v<decltype(sq), square_meter_t<double>>;
+	isSame = std::is_same_v<decltype(sq), square_meter<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto cube = pow<3>(value);
@@ -4153,38 +4153,38 @@ TEST_F(UnitMath, pow)
 
 TEST_F(UnitMath, sqrt)
 {
-	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(sqrt(square_meter_t<double>(4.0)))>));
-	EXPECT_NEAR(meter_t<double>(2.0).to<double>(), sqrt(square_meter_t<double>(4.0)).to<double>(), 5.0e-9);
+	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(sqrt(square_meter<double>(4.0)))>));
+	EXPECT_NEAR(meter<double>(2.0).to<double>(), sqrt(square_meter<double>(4.0)).to<double>(), 5.0e-9);
 
-	EXPECT_TRUE((std::is_same_v<angle::radian_t<double>, decltype(sqrt(steradian_t<double>(16.0)))>));
-	EXPECT_NEAR(angle::radian_t<double>(4.0).to<double>(), sqrt(steradian_t<double>(16.0)).to<double>(), 5.0e-9);
+	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(sqrt(steradian<double>(16.0)))>));
+	EXPECT_NEAR(angle::radian<double>(4.0).to<double>(), sqrt(steradian<double>(16.0)).to<double>(), 5.0e-9);
 
-	EXPECT_TRUE((std::is_convertible_v<foot_t<double>, decltype(sqrt(square_foot_t<double>(10.0)))>));
+	EXPECT_TRUE((std::is_convertible_v<foot<double>, decltype(sqrt(square_foot<double>(10.0)))>));
 
 	// for rational conversion (i.e. no integral root) let's check a bunch of different ways this could go wrong
-	foot_t<double> resultFt = sqrt(square_foot_t<double>(10.0));
-	EXPECT_NEAR(foot_t<double>(3.16227766017).to<double>(), sqrt(square_foot_t<double>(10.0)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(foot_t<double>(3.16227766017).to<double>(), resultFt.to<double>(), 5.0e-9);
-	EXPECT_EQ(resultFt, sqrt(square_foot_t<double>(10.0)));
+	foot<double> resultFt = sqrt(square_foot<double>(10.0));
+	EXPECT_NEAR(foot<double>(3.16227766017).to<double>(), sqrt(square_foot<double>(10.0)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(foot<double>(3.16227766017).to<double>(), resultFt.to<double>(), 5.0e-9);
+	EXPECT_EQ(resultFt, sqrt(square_foot<double>(10.0)));
 }
 
 TEST_F(UnitMath, hypot)
 {
-	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(hypot(meter_t<double>(3.0), meter_t<double>(4.0)))>));
+	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(hypot(meter<double>(3.0), meter<double>(4.0)))>));
 	EXPECT_NEAR(
-		meter_t<double>(5.0).to<double>(), (hypot(meter_t<double>(3.0), meter_t<double>(4.0))).to<double>(), 5.0e-9);
+		meter<double>(5.0).to<double>(), (hypot(meter<double>(3.0), meter<double>(4.0))).to<double>(), 5.0e-9);
 
 	static_assert(
-		traits::is_convertible_unit_v<foot_t<double>, decltype(hypot(foot_t<double>(3.0), meter_t<double>(1.2192)))>);
-	EXPECT_NEAR(foot_t<double>(5.0).to<double>(),
-		foot_t<double>(hypot(foot_t<double>(3.0), meter_t<double>(1.2192))).to<double>(), 5.0e-9);
+		traits::is_convertible_unit_v<foot<double>, decltype(hypot(foot<double>(3.0), meter<double>(1.2192)))>);
+	EXPECT_NEAR(foot<double>(5.0).to<double>(),
+		foot<double>(hypot(foot<double>(3.0), meter<double>(1.2192))).to<double>(), 5.0e-9);
 }
 
 TEST_F(UnitMath, ceil)
 {
 	double val = 101.1;
-	EXPECT_EQ(ceil(val), ceil(meter_t<double>(val)).to<double>());
-	EXPECT_TRUE((std::is_same_v<meter_t<double>, decltype(ceil(meter_t<double>(val)))>));
+	EXPECT_EQ(ceil(val), ceil(meter<double>(val)).to<double>());
+	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(ceil(meter<double>(val)))>));
 }
 
 TEST_F(UnitMath, floor)
@@ -4195,7 +4195,7 @@ TEST_F(UnitMath, floor)
 
 TEST_F(UnitMath, fmod)
 {
-	EXPECT_EQ(fmod(100.0, 101.2), fmod(meter_t<double>(100.0), meter_t<double>(101.2)).to<double>());
+	EXPECT_EQ(fmod(100.0, 101.2), fmod(meter<double>(100.0), meter<double>(101.2)).to<double>());
 }
 
 TEST_F(UnitMath, trunc)
@@ -4213,67 +4213,67 @@ TEST_F(UnitMath, round)
 TEST_F(UnitMath, copysign)
 {
 	double sign = -1;
-	meter_t<double> val(5.0);
-	EXPECT_EQ(meter_t<double>(-5.0), copysign(val, sign));
-	EXPECT_EQ(meter_t<double>(-5.0), copysign(val, angle::radian_t<double>(sign)));
+	meter<double> val(5.0);
+	EXPECT_EQ(meter<double>(-5.0), copysign(val, sign));
+	EXPECT_EQ(meter<double>(-5.0), copysign(val, angle::radian<double>(sign)));
 }
 
 TEST_F(UnitMath, fdim)
 {
-	EXPECT_EQ(meter_t<double>(0.0), fdim(meter_t<double>(8.0), meter_t<double>(10.0)));
-	EXPECT_EQ(meter_t<double>(2.0), fdim(meter_t<double>(10.0), meter_t<double>(8.0)));
-	EXPECT_NEAR(meter_t<double>(9.3904).to<double>(),
-		meter_t<double>(fdim(meter_t<double>(10.0), foot_t<double>(2.0))).to<double>(),
+	EXPECT_EQ(meter<double>(0.0), fdim(meter<double>(8.0), meter<double>(10.0)));
+	EXPECT_EQ(meter<double>(2.0), fdim(meter<double>(10.0), meter<double>(8.0)));
+	EXPECT_NEAR(meter<double>(9.3904).to<double>(),
+		meter<double>(fdim(meter<double>(10.0), foot<double>(2.0))).to<double>(),
 		5.0e-320); // not sure why they aren't comparing exactly equal, but clearly they are.
 }
 
 TEST_F(UnitMath, fmin)
 {
-	EXPECT_EQ(meter_t<double>(8.0), fmin(meter_t<double>(8.0), meter_t<double>(10.0)));
-	EXPECT_EQ(meter_t<double>(8.0), fmin(meter_t<double>(10.0), meter_t<double>(8.0)));
-	EXPECT_EQ(foot_t<double>(2.0), fmin(meter_t<double>(10.0), foot_t<double>(2.0)));
+	EXPECT_EQ(meter<double>(8.0), fmin(meter<double>(8.0), meter<double>(10.0)));
+	EXPECT_EQ(meter<double>(8.0), fmin(meter<double>(10.0), meter<double>(8.0)));
+	EXPECT_EQ(foot<double>(2.0), fmin(meter<double>(10.0), foot<double>(2.0)));
 }
 
 TEST_F(UnitMath, fmax)
 {
-	EXPECT_EQ(meter_t<double>(10.0), fmax(meter_t<double>(8.0), meter_t<double>(10.0)));
-	EXPECT_EQ(meter_t<double>(10.0), fmax(meter_t<double>(10.0), meter_t<double>(8.0)));
-	EXPECT_EQ(meter_t<double>(10.0), fmax(meter_t<double>(10.0), foot_t<double>(2.0)));
+	EXPECT_EQ(meter<double>(10.0), fmax(meter<double>(8.0), meter<double>(10.0)));
+	EXPECT_EQ(meter<double>(10.0), fmax(meter<double>(10.0), meter<double>(8.0)));
+	EXPECT_EQ(meter<double>(10.0), fmax(meter<double>(10.0), foot<double>(2.0)));
 }
 
 TEST_F(UnitMath, fabs)
 {
-	EXPECT_EQ(meter_t<double>(10.0), fabs(meter_t<double>(-10.0)));
-	EXPECT_EQ(meter_t<double>(10.0), fabs(meter_t<double>(10.0)));
+	EXPECT_EQ(meter<double>(10.0), fabs(meter<double>(-10.0)));
+	EXPECT_EQ(meter<double>(10.0), fabs(meter<double>(10.0)));
 }
 
 TEST_F(UnitMath, abs)
 {
-	EXPECT_EQ(meter_t<double>(10.0), abs(meter_t<double>(-10.0)));
-	EXPECT_EQ(meter_t<double>(10.0), abs(meter_t<double>(10.0)));
+	EXPECT_EQ(meter<double>(10.0), abs(meter<double>(-10.0)));
+	EXPECT_EQ(meter<double>(10.0), abs(meter<double>(10.0)));
 }
 
 TEST_F(UnitMath, fma)
 {
-	meter_t<double> x(2.0);
-	meter_t<double> y(3.0);
-	square_meter_t<double> z(1.0);
-	EXPECT_EQ(square_meter_t<double>(7.0), (units::fma(x, y, z)));
+	meter<double> x(2.0);
+	meter<double> y(3.0);
+	square_meter<double> z(1.0);
+	EXPECT_EQ(square_meter<double>(7.0), (units::fma(x, y, z)));
 }
 
 // Constexpr
 TEST_F(Constexpr, construction)
 {
-	constexpr meter_t<double> result0(0);
-	constexpr auto result1 = make_unit<meter_t<double>>(1);
-	constexpr auto result2 = meter_t<double>(2);
+	constexpr meter<double> result0(0);
+	constexpr auto result1 = make_unit<meter<double>>(1);
+	constexpr auto result2 = meter<double>(2);
 
-	EXPECT_EQ(meter_t<double>(0), result0);
-	EXPECT_EQ(meter_t<double>(1), result1);
-	EXPECT_EQ(meter_t<double>(2), result2);
+	EXPECT_EQ(meter<double>(0), result0);
+	EXPECT_EQ(meter<double>(1), result1);
+	EXPECT_EQ(meter<double>(2), result2);
 
-	EXPECT_TRUE(noexcept(meter_t<double>(0)));
-	EXPECT_TRUE(noexcept(make_unit<meter_t<double>>(1)));
+	EXPECT_TRUE(noexcept(meter<double>(0)));
+	EXPECT_TRUE(noexcept(make_unit<meter<double>>(1)));
 }
 
 TEST_F(Constexpr, constants)
@@ -4302,11 +4302,11 @@ TEST_F(Constexpr, arithmetic)
 	[[maybe_unused]] constexpr auto result1(1.0_m - 1.0_m);
 	[[maybe_unused]] constexpr auto result2(1.0_m * 1.0_m);
 	[[maybe_unused]] constexpr auto result3(1.0_m / 1.0_m);
-	[[maybe_unused]] constexpr auto result4(meter_t<double>(1) + meter_t<double>(1));
-	[[maybe_unused]] constexpr auto result5(meter_t<double>(1) - meter_t<double>(1));
-	[[maybe_unused]] constexpr auto result6(meter_t<double>(1) * meter_t<double>(1));
-	[[maybe_unused]] constexpr auto result7(meter_t<double>(1) / meter_t<double>(1));
-	[[maybe_unused]] constexpr auto result8(pow<2>(meter_t<double>(2)));
+	[[maybe_unused]] constexpr auto result4(meter<double>(1) + meter<double>(1));
+	[[maybe_unused]] constexpr auto result5(meter<double>(1) - meter<double>(1));
+	[[maybe_unused]] constexpr auto result6(meter<double>(1) * meter<double>(1));
+	[[maybe_unused]] constexpr auto result7(meter<double>(1) / meter<double>(1));
+	[[maybe_unused]] constexpr auto result8(pow<2>(meter<double>(2)));
 	constexpr auto result9  = pow<3>(2.0_m);
 	constexpr auto result10 = 2.0_m * 2.0_m;
 
@@ -4314,15 +4314,15 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(1.0_m - 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m * 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m / 1.0_m));
-	EXPECT_TRUE(noexcept(meter_t<double>(1) + meter_t<double>(1)));
-	EXPECT_TRUE(noexcept(meter_t<double>(1) - meter_t<double>(1)));
-	EXPECT_TRUE(noexcept(meter_t<double>(1) * meter_t<double>(1)));
-	EXPECT_TRUE(noexcept(meter_t<double>(1) / meter_t<double>(1)));
-	EXPECT_TRUE(noexcept(pow<2>(meter_t<double>(2))));
+	EXPECT_TRUE(noexcept(meter<double>(1) + meter<double>(1)));
+	EXPECT_TRUE(noexcept(meter<double>(1) - meter<double>(1)));
+	EXPECT_TRUE(noexcept(meter<double>(1) * meter<double>(1)));
+	EXPECT_TRUE(noexcept(meter<double>(1) / meter<double>(1)));
+	EXPECT_TRUE(noexcept(pow<2>(meter<double>(2))));
 	EXPECT_TRUE(noexcept(pow<3>(2.0_m)));
 	EXPECT_TRUE(noexcept(2.0_m * 2.0_m));
 
-	meter_t<double> m{42};
+	meter<double> m{42};
 	EXPECT_TRUE(noexcept(+m));
 	EXPECT_TRUE(noexcept(-m));
 	EXPECT_TRUE(noexcept(++m));
@@ -4338,7 +4338,7 @@ TEST_F(Constexpr, assignment)
 {
 	auto testConstexpr = []() constexpr noexcept
 	{
-		meter_t<double> m{42};
+		meter<double> m{42};
 		+m;
 		-m;
 		++m;
@@ -4386,30 +4386,30 @@ TEST_F(Constexpr, realtional)
 
 TEST_F(Constexpr, stdArray)
 {
-	constexpr std::array<meter_t<double>, 5> arr{{0.0_m, 1.0_m, 2.0_m, 3.0_m, 4.0_m}};
+	constexpr std::array<meter<double>, 5> arr{{0.0_m, 1.0_m, 2.0_m, 3.0_m, 4.0_m}};
 	constexpr bool equal = (arr[3] == 3.0_m);
 	EXPECT_TRUE(equal);
 }
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-	watt_t<double> P_t;           // transmit power
+	watt<double> P_t;           // transmit power
 	dimensionless<double> G;      // gain
-	meter_t<double> lambda;       // wavelength
-	square_meter_t<double> sigma; // radar cross section
-	meter_t<double> R;            // range
-	kelvin_t<double> T_s;         // system noise temp
-	hertz_t<double> B_n;          // bandwidth
+	meter<double> lambda;       // wavelength
+	square_meter<double> sigma; // radar cross section
+	meter<double> R;            // range
+	kelvin<double> T_s;         // system noise temp
+	hertz<double> B_n;          // bandwidth
 	dimensionless<double> L;      // loss
 
-	P_t    = megawatt_t<double>(1.4);
-	G      = dB_t<double>(33.0);
-	lambda = constants::c / megahertz_t<double>(2800);
-	sigma  = square_meter_t<double>(1.0);
-	R      = meter_t<double>(111000.0);
-	T_s    = kelvin_t<double>(950.0);
-	B_n    = megahertz_t<double>(1.67);
-	L      = dB_t<double>(8.0);
+	P_t    = megawatt<double>(1.4);
+	G      = dB<double>(33.0);
+	lambda = constants::c / megahertz<double>(2800);
+	sigma  = square_meter<double>(1.0);
+	R      = meter<double>(111000.0);
+	T_s    = kelvin<double>(950.0);
+	B_n    = megahertz<double>(1.67);
+	L      = dB<double>(8.0);
 
 	dimensionless<double> SNR = (P_t * pow<2>(G) * pow<2>(lambda) * sigma) /
 		(pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);
@@ -4427,9 +4427,9 @@ TEST_F(CaseStudies, rightTriangle)
 
 TEST_F(CaseStudies, dataReadSimulation)
 {
-	const megabyte_t<int> data_size             = 100_MB;
-	const megabytes_per_second_t<int> read_rate = 2_MBps;
-	byte_t<int> read_progress                   = 10_MB;
+	const megabyte<int> data_size             = 100_MB;
+	const megabytes_per_second<int> read_rate = 2_MBps;
+	byte<int> read_progress                   = 10_MB;
 
 	auto advance_simulation = [&](auto time) {
 		read_progress = units::min(read_progress + time * read_rate, data_size);
