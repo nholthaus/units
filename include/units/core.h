@@ -513,7 +513,7 @@ namespace units
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/ \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`. \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`. \ \ \ \ \
 	 *				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	type to test*/ \
 	namespace traits \
@@ -2511,7 +2511,8 @@ namespace units
 			std::enable_if_t<detail::is_time_conversion_factor<Cf> && detail::is_losslessly_convertible<Rep, T>, int> =
 				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(NumericalScale::linearize(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))
+		  : linearized_value(NumericalScale::linearize(
+				units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))
 					.value()))
 		{
 		}
@@ -2701,7 +2702,8 @@ namespace units
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi
 			// ratio.
 			return units::convert<units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>,
-				Ty, NumericalScale>>(*this).value();
+				Ty, NumericalScale>>(*this)
+				.value();
 		}
 
 		/**
