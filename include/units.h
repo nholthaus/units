@@ -117,7 +117,7 @@ namespace units
 		inline constexpr const velocity::meters_per_second<double>																								c(299792458.0);									///< Speed of light in vacuum.
 		inline constexpr const unit<compound_conversion_factor<cubed<length::meter_t>, inverse<mass::kilogram_t>, inverse<squared<time::second_t>>>>			G(6.67408e-11);									///< Newtonian constant of gravitation.
 		inline constexpr const unit<compound_conversion_factor<energy::joule_t, time::second_t>>																h(6.626070040e-34);								///< Planck constant.
-		inline constexpr const unit<compound_conversion_factor<force::newton_t, inverse<squared<current::ampere_t>>>>											mu0(pi * 4.0e-7 * force::newton<double>(1) / pow<2>(current::ampere<double>(1)));	///< vacuum permeability.
+		inline constexpr const unit<compound_conversion_factor<force::newton_t, inverse<squared<current::ampere_t>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));	///< vacuum permeability.
 		inline constexpr const unit<compound_conversion_factor<capacitance::farad_t, inverse<length::meter_t>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
 		inline constexpr const impedance::ohm<double>																											Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		inline constexpr const unit<compound_conversion_factor<force::newton_t, area::square_meter_t, inverse<squared<charge::coulomb_t>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.

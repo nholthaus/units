@@ -90,7 +90,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::cos(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -106,7 +106,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::sin(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 	/**
 	 * @ingroup		UnitMath
@@ -121,7 +121,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::tan(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -136,7 +136,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::acos(x()));
+			std::acos(x.value()));
 	}
 
 	/**
@@ -151,7 +151,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::asin(x()));
+			std::asin(x.value()));
 	}
 
 	/**
@@ -170,7 +170,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::atan(x()));
+			std::atan(x.value()));
 	}
 
 	/**
@@ -191,7 +191,7 @@ namespace units
 		using CommonUnit = std::common_type_t<X, Y>;
 		// X and Y could be different length units, so normalize them
 		return radian<detail::floating_point_promotion_t<typename CommonUnit::underlying_type>>(
-			std::atan2(CommonUnit(y)(), CommonUnit(x)()));
+			std::atan2(CommonUnit(y).value(), CommonUnit(x).value()));
 	}
 
 	//----------------------------------
@@ -211,7 +211,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::cosh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -227,7 +227,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::sinh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -243,7 +243,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::tanh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle)());
+			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -259,7 +259,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::acosh(x()));
+			std::acosh(x.value()));
 	}
 
 	/**
@@ -274,7 +274,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::asinh(x()));
+			std::asinh(x.value()));
 	}
 
 	/**
@@ -291,7 +291,7 @@ namespace units
 		const dimensionlessUnit x) noexcept
 	{
 		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::atanh(x()));
+			std::atanh(x.value()));
 	}
 } // namespace units
 

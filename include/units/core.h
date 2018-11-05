@@ -273,13 +273,13 @@ namespace units
 		template<class Underlying> \
 		std::ostream& operator<<(std::ostream& os, const nameSingular<Underlying>& obj) \
 		{ \
-			os << obj() << " " #abbrev; \
+			os << obj.value() << " " #abbrev; \
 			return os; \
 		} \
 		template<class Underlying> \
 		std::string to_string(const nameSingular<Underlying>& obj) \
 		{ \
-			return units::detail::to_string(obj()) + std::string(" " #abbrev); \
+			return units::detail::to_string(obj.value()) + std::string(" " #abbrev); \
 		} \
 	}
 #endif
@@ -2511,8 +2511,8 @@ namespace units
 			std::enable_if_t<detail::is_time_conversion_factor<Cf> && detail::is_losslessly_convertible<Rep, T>, int> =
 				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(NumericalScale::linearize(units::convert<unit>(
-				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))()))
+		  : linearized_value(NumericalScale::linearize(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))
+					.value()))
 		{
 		}
 
@@ -2647,18 +2647,9 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		constexpr T operator()() const noexcept
-		{
-			return NumericalScale::scale(linearized_value);
-		}
-
-		/**
-		 * @brief		unit value
-		 * @returns		value of the unit in it's underlying, non-safe type.
-		 */
 		constexpr underlying_type value() const noexcept
 		{
-			return static_cast<underlying_type>(*this);
+			return static_cast<underlying_type>(NumericalScale::scale(linearized_value));
 		}
 
 		/**
@@ -2710,7 +2701,7 @@ namespace units
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi
 			// ratio.
 			return units::convert<units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>,
-				Ty, NumericalScale>>(*this)();
+				Ty, NumericalScale>>(*this).value();
 		}
 
 		/**
@@ -2722,7 +2713,7 @@ namespace units
 				int> = 0>
 		constexpr explicit operator Ty() const noexcept
 		{
-			return static_cast<Ty>((*this)());
+			return static_cast<Ty>(this->value());
 		}
 
 		/**
@@ -2735,7 +2726,7 @@ namespace units
 		constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(
-				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(*this)());
+				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(*this).value());
 		}
 
 		/**
@@ -2828,7 +2819,8 @@ namespace units
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
 		os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
-			BaseUnit, PromotedBaseUnit>(obj)();
+			BaseUnit, PromotedBaseUnit>(obj)
+				  .value();
 
 		using DimType = traits::dimension_of_t<ConversionFactor>;
 		if constexpr (!DimType::empty)
@@ -2984,7 +2976,7 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs& operator++(UnitTypeLhs& u) noexcept
 	{
-		u = UnitTypeLhs(u() + 1);
+		u = UnitTypeLhs(u.value() + 1);
 		return u;
 	}
 
@@ -2993,7 +2985,7 @@ namespace units
 	constexpr UnitTypeLhs operator++(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = UnitTypeLhs(u() + 1);
+		u        = UnitTypeLhs(u.value() + 1);
 		return ret;
 	}
 
@@ -3001,14 +2993,14 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
-		return UnitTypeLhs(-u());
+		return UnitTypeLhs(-u.value());
 	}
 
 	// prefix increment: --T
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs& operator--(UnitTypeLhs& u) noexcept
 	{
-		u = UnitTypeLhs(u() - 1);
+		u = UnitTypeLhs(u.value() - 1);
 		return u;
 	}
 
@@ -3017,7 +3009,7 @@ namespace units
 	constexpr UnitTypeLhs operator--(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = UnitTypeLhs(u() - 1);
+		u        = UnitTypeLhs(u.value() - 1);
 		return ret;
 	}
 
@@ -3173,7 +3165,7 @@ namespace units
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(CommonUnit(lhs)() + CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() + CommonUnit(rhs).value());
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3186,7 +3178,7 @@ namespace units
 	operator+(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(CommonUnit(lhs)() + rhs);
+		return CommonUnit(CommonUnit(lhs).value() + rhs);
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3199,7 +3191,7 @@ namespace units
 	operator+(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(lhs + CommonUnit(rhs)());
+		return CommonUnit(lhs + CommonUnit(rhs).value());
 	}
 
 	/// Subtraction operator for unit types with a linear_scale.
@@ -3211,7 +3203,7 @@ namespace units
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(CommonUnit(lhs)() - CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() - CommonUnit(rhs).value());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3224,7 +3216,7 @@ namespace units
 	operator-(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(CommonUnit(lhs)() - rhs);
+		return CommonUnit(CommonUnit(lhs).value() - rhs);
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3237,7 +3229,7 @@ namespace units
 	operator-(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(lhs - CommonUnit(rhs)());
+		return CommonUnit(lhs - CommonUnit(rhs).value());
 	}
 
 	/// Multiplication type for convertible unit types with a linear scale. @returns the multiplied value, with the same
@@ -3253,7 +3245,7 @@ namespace units
 	{
 		using SquaredUnit = decltype(lhs * rhs);
 		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return SquaredUnit(CommonUnit(lhs)() * CommonUnit(rhs)());
+		return SquaredUnit(CommonUnit(lhs).value() * CommonUnit(rhs).value());
 	}
 
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose
@@ -3284,7 +3276,7 @@ namespace units
 	{
 		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
-		return CommonUnit(CommonUnit(lhs)() * static_cast<typename CommonUnit::underlying_type>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() * static_cast<typename CommonUnit::underlying_type>(rhs));
 	}
 
 	/// Multiplication by a dimensionless unit for unit types with a linear scale.
@@ -3298,7 +3290,7 @@ namespace units
 	{
 		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
-		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs)());
+		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs).value());
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
@@ -3308,7 +3300,7 @@ namespace units
 	operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		return CommonUnit(CommonUnit(lhs)() * rhs);
+		return CommonUnit(CommonUnit(lhs).value() * rhs);
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
@@ -3318,7 +3310,7 @@ namespace units
 	operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		return CommonUnit(lhs * CommonUnit(rhs)());
+		return CommonUnit(lhs * CommonUnit(rhs).value());
 	}
 
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a
@@ -3332,7 +3324,7 @@ namespace units
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return CommonUnit(lhs)() / CommonUnit(rhs)();
+		return CommonUnit(lhs).value() / CommonUnit(rhs).value();
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
@@ -3363,7 +3355,7 @@ namespace units
 	{
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
-		return CommonUnit(CommonUnit(lhs)() / static_cast<CommonUnderlying>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division of a dimensionless unit by a unit type with a linear scale
@@ -3387,7 +3379,7 @@ namespace units
 	operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs / rhs);
-		return CommonUnit(CommonUnit(lhs)() / rhs);
+		return CommonUnit(CommonUnit(lhs).value() / rhs);
 	}
 
 	/// Division of a dimensionless by a unit type with a linear scale
@@ -3401,7 +3393,7 @@ namespace units
 		using UnitConversion   = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
 		using CommonUnderlying = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
 		using CommonUnit       = unit<UnitConversion, CommonUnderlying>;
-		return InverseUnit(lhs / CommonUnit(rhs)());
+		return InverseUnit(lhs / CommonUnit(rhs).value());
 	}
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
@@ -3415,7 +3407,7 @@ namespace units
 	operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
-		return CommonUnit(CommonUnit(lhs)() % CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() % CommonUnit(rhs).value());
 	}
 
 	/// Modulo by a dimensionless for unit types with a linear scale
@@ -3429,7 +3421,7 @@ namespace units
 	{
 		using CommonUnit       = decltype(lhs % rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
-		return CommonUnit(CommonUnit(lhs)() % static_cast<CommonUnderlying>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() % static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Modulo by a dimensionless for unit types with a linear scale
@@ -3439,7 +3431,7 @@ namespace units
 	operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
-		return CommonUnit(CommonUnit(lhs)() % rhs);
+		return CommonUnit(CommonUnit(lhs).value() % rhs);
 	}
 
 	//----------------------------------
@@ -3590,7 +3582,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>>
 	{
-		return decltype(units::pow<power>(value))(pow(value(), power));
+		return decltype(units::pow<power>(value))(pow(value.value(), power));
 	}
 
 	//------------------------------
@@ -3643,7 +3635,7 @@ namespace units
 	template<class Underlying>
 	std::ostream& operator<<(std::ostream& os, const dB<Underlying>& obj)
 	{
-		os << obj() << " dB";
+		os << obj.value() << " dB";
 		return os;
 	}
 #endif
@@ -3802,7 +3794,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> exp(const dimensionlessUnit x) noexcept
 	{
-		return std::exp(x());
+		return std::exp(x.value());
 	}
 
 	/**
@@ -3817,7 +3809,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log(const dimensionlessUnit x) noexcept
 	{
-		return std::log(x());
+		return std::log(x.value());
 	}
 
 	/**
@@ -3831,7 +3823,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log10(const dimensionlessUnit x) noexcept
 	{
-		return std::log10(x());
+		return std::log10(x.value());
 	}
 
 	/**
@@ -3852,7 +3844,7 @@ namespace units
 	dimensionlessUnit modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
-		dimensionlessUnit fracpart = std::modf(x(), &intp);
+		dimensionlessUnit fracpart = std::modf(x.value(), &intp);
 		*intpart                   = intp;
 		return fracpart;
 	}
@@ -3867,7 +3859,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> exp2(const dimensionlessUnit x) noexcept
 	{
-		return std::exp2(x());
+		return std::exp2(x.value());
 	}
 
 	/**
@@ -3881,7 +3873,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> expm1(const dimensionlessUnit x) noexcept
 	{
-		return std::expm1(x());
+		return std::expm1(x.value());
 	}
 
 	/**
@@ -3896,7 +3888,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log1p(const dimensionlessUnit x) noexcept
 	{
-		return std::log1p(x());
+		return std::log1p(x.value());
 	}
 
 	/**
@@ -3910,7 +3902,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log2(const dimensionlessUnit x) noexcept
 	{
-		return std::log2(x());
+		return std::log2(x.value());
 	}
 
 	//----------------------------------
@@ -3937,7 +3929,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>>
 	{
-		return decltype(units::sqrt(value))(sqrt(value()));
+		return decltype(units::sqrt(value))(sqrt(value.value()));
 	}
 
 	/**
@@ -3957,7 +3949,7 @@ namespace units
 		const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		using CommonUnit = decltype(units::hypot(x, y));
-		return CommonUnit(std::hypot(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::hypot(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	//----------------------------------
@@ -3974,7 +3966,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::ceil(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.value()));
 	}
 
 	/**
@@ -3987,7 +3979,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::floor(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::floor(x.value()));
 	}
 
 	/**
@@ -4006,7 +3998,7 @@ namespace units
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using CommonUnit = decltype(units::fmod(numer, denom));
-		return CommonUnit(std::fmod(CommonUnit(numer)(), CommonUnit(denom)()));
+		return CommonUnit(std::fmod(CommonUnit(numer).value(), CommonUnit(denom).value()));
 	}
 
 	/**
@@ -4020,7 +4012,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::trunc(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.value()));
 	}
 
 	/**
@@ -4034,7 +4026,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::round(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::round(x.value()));
 	}
 
 	//----------------------------------
@@ -4055,7 +4047,7 @@ namespace units
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(
-			std::copysign(x(), y())); // no need for conversion to get the correct sign.
+			std::copysign(x.value(), y.value())); // no need for conversion to get the correct sign.
 	}
 
 	/// Overload to copy the sign from a raw double
@@ -4063,7 +4055,7 @@ namespace units
 		std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x(), y));
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y));
 	}
 
 	//----------------------------------
@@ -4086,7 +4078,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fdim(x, y));
-		return CommonUnit(std::fdim(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fdim(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	/**
@@ -4105,7 +4097,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmax(x, y));
-		return CommonUnit(std::fmax(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fmax(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	/**
@@ -4125,7 +4117,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmin(x, y));
-		return CommonUnit(std::fmin(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fmin(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	//----------------------------------
@@ -4142,7 +4134,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::fabs(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.value()));
 	}
 
 	/**
@@ -4155,7 +4147,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	UnitType abs(const UnitType x) noexcept
 	{
-		return UnitType(std::abs(x()));
+		return UnitType(std::abs(x.value()));
 	}
 
 	/**
@@ -4182,7 +4174,7 @@ namespace units
 			UnitAdd>
 	{
 		using CommonUnit = decltype(units::fma(x, y, z));
-		return CommonUnit(std::fma(x(), y(), CommonUnit(z)()));
+		return CommonUnit(std::fma(x.value(), y.value(), CommonUnit(z).value()));
 	}
 } // end namespace units
 
