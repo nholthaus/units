@@ -845,6 +845,8 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
 	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
+
+	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW(2.0).to_linearized()));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -2740,15 +2742,10 @@ TEST_F(UnitType, dBAddition)
 	EXPECT_NEAR(50.0, result_dbm(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
-	auto result_dBW2 = dBW<double>(10.0) + dBm<double>(40.0);
+	unit<squared<dBW<double>>> result_dBW2 = ::units::power::dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
-	EXPECT_NEAR(20.0, result_dBW2.value(), 5.0e-5);
-	result_dBW2 = dBW(10) +
-		dBm(40);
-	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
-	EXPECT_NEAR(20.0, result_dBW2.value(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_dBW2), unit<squared<watt_conversion_factor>, double, decibel_scale>>;
-	EXPECT_TRUE(isSame);
+	unit<squared<dBW<int>>> result_dBW3 = dBW<int>(10) + dBm<int>(40);
+	EXPECT_NEAR(100.0, result_dBW3.to_linearized(), 5.0e-5);
 }
 
 TEST_F(UnitType, dBSubtraction)
@@ -2757,33 +2754,21 @@ TEST_F(UnitType, dBSubtraction)
 
 	auto result_dbw = dBW<double>(10.0) - dB<double>(30.0);
 	EXPECT_NEAR(-20.0, result_dbw(), 5.0e-5);
-	result_dbw =
-		dBW(10) - dB(30);
-	EXPECT_EQ(-INFINITY, result_dbw());
 	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto result_dbm = dBm<double>(100.0) - dB<double>(30.0);
 	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
-	result_dbm = dBm(100) -
-		dB(30); // NaN
-//	EXPECT_NEAR(70.0, result_dbm(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbm), dBm<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto result_db = dBW<double>(100.0) - dBW<double>(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-	result_db = dBW(100) -
-		dBW(80); // NaN
-//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_db), dB<double>>;
 	EXPECT_TRUE(isSame);
 
 	result_db = dB<double>(100.0) - dB<double>(80.0);
 	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
-	result_db =
-		dB(100) - dB(80); // NaN
-//	EXPECT_NEAR(20.0, result_db(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_db), dB<double>>;
 	EXPECT_TRUE(isSame);
 }

@@ -490,15 +490,16 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation, ::units::decibel_scale, nameSingular) /** @} */ \
+			abbreviation, ::units::decibel_scale, nameSingular##_conversion_factor) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
-	UNIT_ADD_STRONG( \
-		::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation, ::units::decibel_scale) \
-	/*	}  */ \
-	/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation) */
-
+	UNIT_ADD_STRONG(::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::abbreviation, \
+		::units::decibel_scale) \
+	} \
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation) \
+	namespace units \
+	{
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
  * @brief		Macro to create the `is_dimension_unit` type trait.
@@ -511,10 +512,8 @@ namespace units
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
-	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \ \
-	 *\ \
-	 *\ \ \
-	 ** 			test the unit represents a unitdimension quantity.*/ \
+	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to*/ \
+	/** 			test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	one or more types to test*/ \
 	namespace traits \
 	{ \
