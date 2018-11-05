@@ -520,7 +520,7 @@ namespace units
 	{ \
 		template<typename T> \
 		struct is_##unitdimension##_unit \
-		  : ::units::detail::has_dimension_of<std::remove_const_t<T>, units::dimension::unitdimension> \
+		  : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension> \
 		{ \
 		}; \
 		template<typename T> \

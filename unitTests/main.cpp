@@ -281,7 +281,7 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 {
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>>));
-	EXPECT_FALSE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
+	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<ppm<double>>));
