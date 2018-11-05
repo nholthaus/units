@@ -98,7 +98,7 @@ namespace units
 		}
 	} // namespace detail
 } // namespace units
-#endif
+#endif // !defined(UNIT_LIB_DISABLE_IOSTREAM)
 
 //------------------------------
 //	FORWARD DECLARATIONS
@@ -140,9 +140,10 @@ namespace units
 #define UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	inline namespace namespaceName \
 	{ \
-		/** @name ConversionFactor (full names plural) */ /** @{ */ struct nameSingular##_conversion_factor : __VA_ARGS__ \
+		/** @name ConversionFactor (full names plural) */ /** @{ */ struct nameSingular##_conversion_factor \
+		  : __VA_ARGS__ \
 		{ \
-		};/** @} */ \
+		}; /** @} */ \
 	} \
 	namespace traits \
 	{ \
@@ -335,7 +336,8 @@ namespace units
 	namespace units \
 	{ \
 		UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
-		UNIT_ADD_STRONG(::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::nameSingular##_t, scale) \
+		UNIT_ADD_STRONG( \
+			::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::nameSingular##_t, scale) \
 	}
 
 /**
@@ -485,14 +487,14 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation, ::units::decibel_scale, nameSingular) /** @} */ \
+			abbreviation##_t, ::units::decibel_scale, nameSingular) /** @} */ \
 	} \
-/*	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) */\
-/*	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) */\
+	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
+	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_STRONG( \
-		::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation##_t, ::units::decibel_scale) \
-/*	} */\
-/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation##_t) */\
+			::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation##_t, ::units::decibel_scale) \
+	/*	}  */\
+	/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation##_t) */
 
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
@@ -506,7 +508,7 @@ namespace units
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
-	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \
+	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \ \
 	 ** 			test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	one or more types to test*/ \
 	namespace traits \
