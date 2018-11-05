@@ -281,429 +281,328 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 {
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
+	EXPECT_FALSE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>, dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<ppm<double>>));
 	EXPECT_FALSE((traits::is_dimensionless_unit_v<meter<double>>));
 	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW<double>>));
-	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW<double>, dimensionless<double>>));
 }
 
 TEST_F(TypeTraits, is_length_unit)
 {
 	EXPECT_FALSE((traits::is_length_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_length_unit_v<meter<double>>));
 	EXPECT_TRUE((traits::is_length_unit_v<const meter<double>>));
 	EXPECT_TRUE((traits::is_length_unit_v<const meter<double>&>));
 	EXPECT_TRUE((traits::is_length_unit_v<cubit<double>>));
 	EXPECT_FALSE((traits::is_length_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_length_unit_v<meter<double>, cubit<double>>));
-	EXPECT_FALSE((traits::is_length_unit_v<meter<double>, year<double>>));
 }
 
 TEST_F(TypeTraits, is_mass_unit)
 {
 	EXPECT_FALSE((traits::is_mass_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_mass_unit_v<kilogram<double>>));
 	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram<double>>));
 	EXPECT_TRUE((traits::is_mass_unit_v<const kilogram<double>&>));
 	EXPECT_TRUE((traits::is_mass_unit_v<stone<double>>));
 	EXPECT_FALSE((traits::is_mass_unit_v<meter<double>>));
-	EXPECT_TRUE((traits::is_mass_unit_v<kilogram<double>, stone<double>>));
-	EXPECT_FALSE((traits::is_mass_unit_v<kilogram<double>, meter<double>>));
 }
 
 TEST_F(TypeTraits, is_time_unit)
 {
 	EXPECT_FALSE((traits::is_time_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_time_unit_v<second<double>>));
 	EXPECT_TRUE((traits::is_time_unit_v<const second<double>>));
 	EXPECT_TRUE((traits::is_time_unit_v<const second<double>&>));
 	EXPECT_TRUE((traits::is_time_unit_v<year<double>>));
 	EXPECT_FALSE((traits::is_time_unit_v<meter<double>>));
-	EXPECT_TRUE((traits::is_time_unit_v<second<double>, year<double>>));
-	EXPECT_FALSE((traits::is_time_unit_v<second<double>, meter<double>>));
 }
 
 TEST_F(TypeTraits, is_angle_unit)
 {
 	EXPECT_FALSE((traits::is_angle_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian<double>>));
 	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian<double>>));
 	EXPECT_TRUE((traits::is_angle_unit_v<const angle::radian<double>&>));
 	EXPECT_TRUE((traits::is_angle_unit_v<angle::degree<double>>));
 	EXPECT_FALSE((traits::is_angle_unit_v<watt<double>>));
-	EXPECT_TRUE((traits::is_angle_unit_v<angle::radian<double>, angle::degree<double>>));
-	EXPECT_FALSE((traits::is_angle_unit_v<angle::radian<double>, watt<double>>));
 }
 
 TEST_F(TypeTraits, is_current_unit)
 {
 	EXPECT_FALSE((traits::is_current_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_current_unit_v<current::ampere<double>>));
 	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere<double>>));
 	EXPECT_TRUE((traits::is_current_unit_v<const current::ampere<double>&>));
 	EXPECT_FALSE((traits::is_current_unit_v<volt<double>>));
-	EXPECT_TRUE((traits::is_current_unit_v<current::ampere<double>, current::milliampere<double>>));
-	EXPECT_FALSE((traits::is_current_unit_v<current::ampere<double>, volt<double>>));
 }
 
 TEST_F(TypeTraits, is_temperature_unit)
 {
 	EXPECT_FALSE((traits::is_temperature_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit<double>>));
 	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit<double>>));
 	EXPECT_TRUE((traits::is_temperature_unit_v<const fahrenheit<double>&>));
 	EXPECT_TRUE((traits::is_temperature_unit_v<kelvin<double>>));
 	EXPECT_FALSE((traits::is_temperature_unit_v<cubit<double>>));
-	EXPECT_TRUE((traits::is_temperature_unit_v<fahrenheit<double>, kelvin<double>>));
-	EXPECT_FALSE((traits::is_temperature_unit_v<cubit<double>, fahrenheit<double>>));
 }
 
 TEST_F(TypeTraits, is_substance_unit)
 {
 	EXPECT_FALSE((traits::is_substance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol<double>>));
 	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol<double>>));
 	EXPECT_TRUE((traits::is_substance_unit_v<const substance::mol<double>&>));
 	EXPECT_FALSE((traits::is_substance_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_substance_unit_v<substance::mol<double>, substance::mol<double>>));
-	EXPECT_FALSE((traits::is_substance_unit_v<year<double>, substance::mol<double>>));
 }
 
 TEST_F(TypeTraits, is_luminous_intensity_unit)
 {
 	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela<double>>));
 	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela<double>>));
 	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<const candela<double>&>));
 	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad<double>>));
-	EXPECT_TRUE((traits::is_luminous_intensity_unit_v<candela<double>, candela<double>>));
-	EXPECT_FALSE((traits::is_luminous_intensity_unit_v<rad<double>, candela<double>>));
 }
 
 TEST_F(TypeTraits, is_solid_angle_unit)
 {
 	EXPECT_FALSE((traits::is_solid_angle_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_solid_angle_unit_v<steradian<double>>));
 	EXPECT_TRUE((traits::is_solid_angle_unit_v<const steradian<double>>));
 	EXPECT_TRUE((traits::is_solid_angle_unit_v<const degree_squared<double>&>));
 	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree<double>>));
-	EXPECT_TRUE((traits::is_solid_angle_unit_v<degree_squared<double>, steradian<double>>));
-	EXPECT_FALSE((traits::is_solid_angle_unit_v<angle::degree<double>, steradian<double>>));
 }
 
 TEST_F(TypeTraits, is_frequency_unit)
 {
 	EXPECT_FALSE((traits::is_frequency_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_frequency_unit_v<hertz<double>>));
 	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>>));
 	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>&>));
 	EXPECT_FALSE((traits::is_frequency_unit_v<second<double>>));
-	EXPECT_TRUE((traits::is_frequency_unit_v<const hertz<double>&, gigahertz<double>>));
-	EXPECT_FALSE((traits::is_frequency_unit_v<second<double>, hertz<double>>));
 }
 
 TEST_F(TypeTraits, is_velocity_unit)
 {
 	EXPECT_FALSE((traits::is_velocity_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_velocity_unit_v<meters_per_second<double>>));
 	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second<double>>));
 	EXPECT_TRUE((traits::is_velocity_unit_v<const meters_per_second<double>&>));
 	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour<double>>));
 	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared<double>>));
-	EXPECT_TRUE((traits::is_velocity_unit_v<miles_per_hour<double>, meters_per_second<double>>));
-	EXPECT_FALSE((traits::is_velocity_unit_v<meters_per_second_squared<double>, meters_per_second<double>>));
 }
 
 TEST_F(TypeTraits, is_acceleration_unit)
 {
 	EXPECT_FALSE((traits::is_acceleration_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_acceleration_unit_v<meters_per_second_squared<double>>));
 	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared<double>>));
 	EXPECT_TRUE((traits::is_acceleration_unit_v<const meters_per_second_squared<double>&>));
 	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity<double>>));
 	EXPECT_FALSE((traits::is_acceleration_unit_v<inch<double>>));
-	EXPECT_TRUE((traits::is_acceleration_unit_v<standard_gravity<double>, meters_per_second_squared<double>>));
-	EXPECT_FALSE((traits::is_acceleration_unit_v<inch<double>, meters_per_second_squared<double>>));
 }
 
 TEST_F(TypeTraits, is_force_unit)
 {
 	EXPECT_FALSE((traits::is_force_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_force_unit_v<units::force::newton<double>>));
 	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton<double>>));
 	EXPECT_TRUE((traits::is_force_unit_v<const units::force::newton<double>&>));
 	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne<double>>));
 	EXPECT_FALSE((traits::is_force_unit_v<watt<double>>));
-	EXPECT_TRUE((traits::is_force_unit_v<units::force::dyne<double>, units::force::newton<double>>));
-	EXPECT_FALSE((traits::is_force_unit_v<watt<double>, units::force::newton<double>>));
 }
 
 TEST_F(TypeTraits, is_pressure_unit)
 {
 	EXPECT_FALSE((traits::is_pressure_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_pressure_unit_v<pascal<double>>));
 	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal<double>>));
 	EXPECT_TRUE((traits::is_pressure_unit_v<const pascal<double>&>));
 	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere<double>>));
 	EXPECT_FALSE((traits::is_pressure_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_pressure_unit_v<atmosphere<double>, pressure::pascal<double>>));
-	EXPECT_FALSE((traits::is_pressure_unit_v<year<double>, pressure::pascal<double>>));
 }
 
 TEST_F(TypeTraits, is_charge_unit)
 {
 	EXPECT_FALSE((traits::is_charge_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_charge_unit_v<coulomb<double>>));
 	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>>));
 	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>&>));
 	EXPECT_FALSE((traits::is_charge_unit_v<watt<double>>));
-	EXPECT_TRUE((traits::is_charge_unit_v<const coulomb<double>&, coulomb<double>>));
-	EXPECT_FALSE((traits::is_charge_unit_v<watt<double>, coulomb<double>>));
 }
 
 TEST_F(TypeTraits, is_energy_unit)
 {
 	EXPECT_FALSE((traits::is_energy_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_energy_unit_v<joule<double>>));
 	EXPECT_TRUE((traits::is_energy_unit_v<const joule<double>>));
 	EXPECT_TRUE((traits::is_energy_unit_v<const joule<double>&>));
 	EXPECT_TRUE((traits::is_energy_unit_v<calorie<double>>));
 	EXPECT_FALSE((traits::is_energy_unit_v<watt<double>>));
-	EXPECT_TRUE((traits::is_energy_unit_v<calorie<double>, joule<double>>));
-	EXPECT_FALSE((traits::is_energy_unit_v<watt<double>, joule<double>>));
 }
 
 TEST_F(TypeTraits, is_power_unit)
 {
 	EXPECT_FALSE((traits::is_power_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_power_unit_v<watt<double>>));
 	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>>));
 	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>&>));
 	EXPECT_FALSE((traits::is_power_unit_v<henry<double>>));
-	EXPECT_TRUE((traits::is_power_unit_v<const watt<double>&, watt<double>>));
-	EXPECT_FALSE((traits::is_power_unit_v<henry<double>, watt<double>>));
 }
 
 TEST_F(TypeTraits, is_voltage_unit)
 {
 	EXPECT_FALSE((traits::is_voltage_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_voltage_unit_v<volt<double>>));
 	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>>));
 	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>&>));
 	EXPECT_FALSE((traits::is_voltage_unit_v<henry<double>>));
-	EXPECT_TRUE((traits::is_voltage_unit_v<const volt<double>&, volt<double>>));
-	EXPECT_FALSE((traits::is_voltage_unit_v<henry<double>, volt<double>>));
 }
 
 TEST_F(TypeTraits, is_capacitance_unit)
 {
 	EXPECT_FALSE((traits::is_capacitance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_capacitance_unit_v<farad<double>>));
 	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>>));
 	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>&>));
 	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm<double>>));
-	EXPECT_TRUE((traits::is_capacitance_unit_v<const farad<double>&, millifarad<double>>));
-	EXPECT_FALSE((traits::is_capacitance_unit_v<ohm<double>, farad<double>>));
 }
 
 TEST_F(TypeTraits, is_impedance_unit)
 {
 	EXPECT_FALSE((traits::is_impedance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_impedance_unit_v<ohm<double>>));
 	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>>));
 	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>&>));
 	EXPECT_FALSE((traits::is_impedance_unit_v<farad<double>>));
-	EXPECT_TRUE((traits::is_impedance_unit_v<const ohm<double>&, milliohm<double>>));
-	EXPECT_FALSE((traits::is_impedance_unit_v<farad<double>, ohm<double>>));
 }
 
 TEST_F(TypeTraits, is_conductance_unit)
 {
 	EXPECT_FALSE((traits::is_conductance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_conductance_unit_v<siemens<double>>));
 	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>>));
 	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>&>));
 	EXPECT_FALSE((traits::is_conductance_unit_v<volt<double>>));
-	EXPECT_TRUE((traits::is_conductance_unit_v<const siemens<double>&, millisiemens<double>>));
-	EXPECT_FALSE((traits::is_conductance_unit_v<volt<double>, siemens<double>>));
 }
 
 TEST_F(TypeTraits, is_magnetic_flux_unit)
 {
 	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<weber<double>>));
 	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber<double>>));
 	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<const weber<double>&>));
 	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell<double>>));
 	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch<double>>));
-	EXPECT_TRUE((traits::is_magnetic_flux_unit_v<maxwell<double>, weber<double>>));
-	EXPECT_FALSE((traits::is_magnetic_flux_unit_v<inch<double>, weber<double>>));
 }
 
 TEST_F(TypeTraits, is_magnetic_field_strength_unit)
 {
 	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<tesla<double>>));
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla<double>>));
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<const tesla<double>&>));
 	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss<double>>));
 	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt<double>>));
-	EXPECT_TRUE((traits::is_magnetic_field_strength_unit_v<gauss<double>, tesla<double>>));
-	EXPECT_FALSE((traits::is_magnetic_field_strength_unit_v<volt<double>, tesla<double>>));
 }
 
 TEST_F(TypeTraits, is_inductance_unit)
 {
 	EXPECT_FALSE((traits::is_inductance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_inductance_unit_v<henry<double>>));
 	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>>));
 	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>&>));
 	EXPECT_FALSE((traits::is_inductance_unit_v<farad<double>>));
-	EXPECT_TRUE((traits::is_inductance_unit_v<const henry<double>&, millihenry<double>>));
-	EXPECT_FALSE((traits::is_inductance_unit_v<farad<double>, henry<double>>));
 }
 
 TEST_F(TypeTraits, is_luminous_flux_unit)
 {
 	EXPECT_FALSE((traits::is_luminous_flux_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<lumen<double>>));
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>>));
 	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>&>));
 	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound<double>>));
-	EXPECT_TRUE((traits::is_luminous_flux_unit_v<const lumen<double>&, millilumen<double>>));
-	EXPECT_FALSE((traits::is_luminous_flux_unit_v<mass::pound<double>, lumen<double>>));
 }
 
 TEST_F(TypeTraits, is_illuminance_unit)
 {
 	EXPECT_FALSE((traits::is_illuminance_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_illuminance_unit_v<footcandle<double>>));
 	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle<double>>));
 	EXPECT_TRUE((traits::is_illuminance_unit_v<const footcandle<double>&>));
 	EXPECT_TRUE((traits::is_illuminance_unit_v<lux<double>>));
 	EXPECT_FALSE((traits::is_illuminance_unit_v<meter<double>>));
-	EXPECT_TRUE((traits::is_illuminance_unit_v<lux<double>, footcandle<double>>));
-	EXPECT_FALSE((traits::is_illuminance_unit_v<meter<double>, footcandle<double>>));
 }
 
 TEST_F(TypeTraits, is_radioactivity_unit)
 {
 	EXPECT_FALSE((traits::is_radioactivity_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_radioactivity_unit_v<sievert<double>>));
 	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>>));
 	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>&>));
 	EXPECT_FALSE((traits::is_radioactivity_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_radioactivity_unit_v<const sievert<double>&, millisievert<double>>));
-	EXPECT_FALSE((traits::is_radioactivity_unit_v<year<double>, sievert<double>>));
 }
 
 TEST_F(TypeTraits, is_torque_unit)
 {
 	EXPECT_FALSE((traits::is_torque_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_torque_unit_v<torque::newton_meter<double>>));
 	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter<double>>));
 	EXPECT_TRUE((traits::is_torque_unit_v<const torque::newton_meter<double>&>));
 	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound<double>>));
 	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter<double>>));
-	EXPECT_TRUE((traits::is_torque_unit_v<torque::foot_pound<double>, torque::newton_meter<double>>));
-	EXPECT_FALSE((traits::is_torque_unit_v<volume::cubic_meter<double>, torque::newton_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_area_unit)
 {
 	EXPECT_FALSE((traits::is_area_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_area_unit_v<square_meter<double>>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter<double>>));
 	EXPECT_TRUE((traits::is_area_unit_v<const square_meter<double>&>));
 	EXPECT_TRUE((traits::is_area_unit_v<hectare<double>>));
 	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit<double>>));
-	EXPECT_TRUE((traits::is_area_unit_v<hectare<double>, square_meter<double>>));
-	EXPECT_FALSE((traits::is_area_unit_v<astronomical_unit<double>, square_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_volume_unit)
 {
 	EXPECT_FALSE((traits::is_volume_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_volume_unit_v<cubic_meter<double>>));
 	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter<double>>));
 	EXPECT_TRUE((traits::is_volume_unit_v<const cubic_meter<double>&>));
 	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch<double>>));
 	EXPECT_FALSE((traits::is_volume_unit_v<foot<double>>));
-	EXPECT_TRUE((traits::is_volume_unit_v<cubic_inch<double>, cubic_meter<double>>));
-	EXPECT_FALSE((traits::is_volume_unit_v<foot<double>, cubic_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_density_unit)
 {
 	EXPECT_FALSE((traits::is_density_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_density_unit_v<kilograms_per_cubic_meter<double>>));
 	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter<double>>));
 	EXPECT_TRUE((traits::is_density_unit_v<const kilograms_per_cubic_meter<double>&>));
 	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot<double>>));
 	EXPECT_FALSE((traits::is_density_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_density_unit_v<ounces_per_cubic_foot<double>, kilograms_per_cubic_meter<double>>));
-	EXPECT_FALSE((traits::is_density_unit_v<year<double>, kilograms_per_cubic_meter<double>>));
 }
 
 TEST_F(TypeTraits, is_data_unit)
 {
 	EXPECT_FALSE((traits::is_data_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_data_unit_v<bit<double>>));
 	EXPECT_TRUE((traits::is_data_unit_v<const bit<double>>));
 	EXPECT_TRUE((traits::is_data_unit_v<const bit<double>&>));
 	EXPECT_TRUE((traits::is_data_unit_v<byte<double>>));
 	EXPECT_FALSE((traits::is_data_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_data_unit_v<bit<double>, byte<double>>));
-	EXPECT_FALSE((traits::is_data_unit_v<year<double>, byte<double>>));
 }
 
 TEST_F(TypeTraits, is_data_transfer_rate_unit)
 {
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<double>));
-
 	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second<double>>));
 	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second<double>>));
 	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<const gigabytes_per_second<double>&>));
 	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabytes_per_second<double>>));
 	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year<double>>));
-	EXPECT_TRUE((traits::is_data_transfer_rate_unit_v<gigabits_per_second<double>, gigabytes_per_second<double>>));
-	EXPECT_FALSE((traits::is_data_transfer_rate_unit_v<year<double>, gigabytes_per_second<double>>));
 }
 
 TEST_F(STDTypeTraits, std_common_type)
@@ -827,6 +726,31 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<
 		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<double>>>,
 		traits::unit_base_t<dimensionless<double>>>);
+
+	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
+	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
+	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, double>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<int>>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, int>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
+	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, int>,
+	// 	traits::unit_base_t<dimensionless<int>>>);
+	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<int>>>,
+	// 	traits::unit_base_t<dimensionless<int>>>);
+	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, double>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
+	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<int>>>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
+	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, int>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
+	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<double>>>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
+	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, double>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
+	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<double>>>,
+	// 	traits::unit_base_t<dimensionless<double>>>);
 }
 
 TEST_F(STDSpecializations, hash)
