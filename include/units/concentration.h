@@ -61,9 +61,9 @@ namespace units
 	UNIT_ADD(concentration, ppm, parts_per_million, ppm,
 		conversion_factor<std::ratio<1, 1000000>, units::dimension::dimensionless>)
 	UNIT_ADD(
-		concentration, ppb, parts_per_billion, ppb, conversion_factor<std::ratio<1, 1000>, ppm<int>>)
+		concentration, ppb, parts_per_billion, ppb, conversion_factor<std::ratio<1, 1000>, ppm_t>)
 	UNIT_ADD(
-		concentration, ppt, parts_per_trillion, ppt, conversion_factor<std::ratio<1, 1000>, ppb<int>>)
+		concentration, ppt, parts_per_trillion, ppt, conversion_factor<std::ratio<1, 1000>, ppb_t>)
 	UNIT_ADD(concentration, percent, percent, pct, conversion_factor<std::ratio<1, 100>, units::dimension::dimensionless>)
 
 	UNIT_ADD_DIMENSION_TRAIT(concentration)

@@ -113,23 +113,23 @@ namespace units
 
 
 		// clang-format off
-		inline constexpr const unit<detail::PI>																																pi(1);											///< Ratio of a circle's circumference to its diameter.
-		inline constexpr const velocity::meters_per_second<double>																											c(299792458.0);									///< Speed of light in vacuum.
-		inline constexpr const unit<compound_conversion_factor<cubed<length::meter<int>>, inverse<mass::kilogram<int>>, inverse<squared<time::second<int>>>>>				G(6.67408e-11);									///< Newtonian constant of gravitation.
-		inline constexpr const unit<compound_conversion_factor<energy::joule<int>, time::second<int>>>																		h(6.626070040e-34);								///< Planck constant.
-		inline constexpr const unit<compound_conversion_factor<force::newton<int>, inverse<squared<current::ampere<int>>>>>													mu0(pi * 4.0e-7 * force::newton<double>(1) / pow<2>(current::ampere<double>(1)));	///< vacuum permeability.
-		inline constexpr const unit<compound_conversion_factor<capacitance::farad<int>, inverse<length::meter<int>>>>														epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
-		inline constexpr const impedance::ohm<double>																														Z0(mu0 * c);									///< characteristic impedance of vacuum.
-		inline constexpr const unit<compound_conversion_factor<force::newton<int>, area::square_meter<int>, inverse<squared<charge::coulomb<int>>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
-		inline constexpr const charge::coulomb<double>																														e(1.6021766208e-19);							///< elementary charge.
-		inline constexpr const mass::kilogram<double>																														m_e(9.10938356e-31);							///< electron mass.
-		inline constexpr const mass::kilogram<double>																														m_p(1.672621898e-27);							///< proton mass.
-		inline constexpr const unit<compound_conversion_factor<energy::joule<int>, inverse<magnetic_field_strength::tesla<int>>>>											mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
-		inline constexpr const unit<inverse<substance::mol<int>>>																											N_A(6.022140857e23);							///< Avagadro's Number.
-		inline constexpr const unit<compound_conversion_factor<energy::joule<int>, inverse<temperature::kelvin<int>>, inverse<substance::mol<int>>>>						R(8.3144598);									///< Gas constant.
-		inline constexpr const unit<compound_conversion_factor<energy::joule<int>, inverse<temperature::kelvin<int>>>>														k_B(R / N_A);									///< Boltzmann constant.
-		inline constexpr const unit<compound_conversion_factor<charge::coulomb<int>, inverse<substance::mol<int>>>>															F(N_A * e);										///< Faraday constant.
-		inline constexpr const unit<compound_conversion_factor<power::watt<int>, inverse<area::square_meter<int>>, inverse<squared<squared<temperature::kelvin<int>>>>>>	sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
+		inline constexpr const unit<detail::PI>																													pi(1);											///< Ratio of a circle's circumference to its diameter.
+		inline constexpr const velocity::meters_per_second<double>																								c(299792458.0);									///< Speed of light in vacuum.
+		inline constexpr const unit<compound_conversion_factor<cubed<length::meter_t>, inverse<mass::kilogram_t>, inverse<squared<time::second_t>>>>			G(6.67408e-11);									///< Newtonian constant of gravitation.
+		inline constexpr const unit<compound_conversion_factor<energy::joule_t, time::second_t>>																h(6.626070040e-34);								///< Planck constant.
+		inline constexpr const unit<compound_conversion_factor<force::newton_t, inverse<squared<current::ampere_t>>>>											mu0(pi * 4.0e-7 * force::newton<double>(1) / pow<2>(current::ampere<double>(1)));	///< vacuum permeability.
+		inline constexpr const unit<compound_conversion_factor<capacitance::farad_t, inverse<length::meter_t>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
+		inline constexpr const impedance::ohm<double>																											Z0(mu0 * c);									///< characteristic impedance of vacuum.
+		inline constexpr const unit<compound_conversion_factor<force::newton_t, area::square_meter_t, inverse<squared<charge::coulomb_t>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
+		inline constexpr const charge::coulomb<double>																											e(1.6021766208e-19);							///< elementary charge.
+		inline constexpr const mass::kilogram<double>																											m_e(9.10938356e-31);							///< electron mass.
+		inline constexpr const mass::kilogram<double>																											m_p(1.672621898e-27);							///< proton mass.
+		inline constexpr const unit<compound_conversion_factor<energy::joule_t, inverse<magnetic_field_strength::tesla_t>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
+		inline constexpr const unit<inverse<substance::mol_t>>																									N_A(6.022140857e23);							///< Avagadro's Number.
+		inline constexpr const unit<compound_conversion_factor<energy::joule_t, inverse<temperature::kelvin_t>, inverse<substance::mol_t>>>						R(8.3144598);									///< Gas constant.
+		inline constexpr const unit<compound_conversion_factor<energy::joule_t, inverse<temperature::kelvin_t>>>												k_B(R / N_A);									///< Boltzmann constant.
+		inline constexpr const unit<compound_conversion_factor<charge::coulomb_t, inverse<substance::mol_t>>>													F(N_A * e);										///< Faraday constant.
+		inline constexpr const unit<compound_conversion_factor<power::watt_t, inverse<area::square_meter_t>, inverse<squared<squared<temperature::kelvin_t>>>>>	sigma((2 * pow<5>(pi) * pow<4>(R)) / (15 * pow<3>(h) * pow<2>(c) * pow<4>(N_A)));	///< Stefan-Boltzmann constant.
 		/** @} */
 		// clang-format on
 	} // namespace constants

@@ -59,8 +59,8 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(voltage, volt, volts, V, conversion_factor<std::ratio<1>, units::dimension::voltage>)
-	UNIT_ADD(voltage, statvolt, statvolts, statV, conversion_factor<std::ratio<1000000, 299792458>, volt<int>>)
-	UNIT_ADD(voltage, abvolt, abvolts, abV, conversion_factor<std::ratio<1, 100000000>, volt<int>>)
+	UNIT_ADD(voltage, statvolt, statvolts, statV, conversion_factor<std::ratio<1000000, 299792458>, volt_t>)
+	UNIT_ADD(voltage, abvolt, abvolts, abV, conversion_factor<std::ratio<1, 100000000>, volt_t>)
 
 	UNIT_ADD_DIMENSION_TRAIT(voltage)
 } // namespace units

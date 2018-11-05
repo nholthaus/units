@@ -60,8 +60,8 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
 		solid_angle, steradian, steradians, sr, conversion_factor<std::ratio<1>, units::dimension::solid_angle>)
-	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degree<int>>)
-	UNIT_ADD(solid_angle, spat, spats, sp, conversion_factor<std::ratio<4>, steradian<int>, std::ratio<1>>)
+	UNIT_ADD(solid_angle, degree_squared, degrees_squared, sq_deg, squared<angle::degree_t>)
+	UNIT_ADD(solid_angle, spat, spats, sp, conversion_factor<std::ratio<4>, steradian_t, std::ratio<1>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(solid_angle)
 } // namespace units

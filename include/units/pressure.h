@@ -66,13 +66,13 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
 		pressure, pascal, pascals, Pa, conversion_factor<std::ratio<1>, units::dimension::pressure>)
-	UNIT_ADD(pressure, bar, bars, bar, conversion_factor<std::ratio<100>, kilo<pascal<int>>>)
-	UNIT_ADD(pressure, millibar, millibars, mbar, conversion_factor<std::ratio<1>, milli<bar<int>>>)
-	UNIT_ADD(pressure, atmosphere, atmospheres, atm, conversion_factor<std::ratio<101325>, pascal<int>>)
+	UNIT_ADD(pressure, bar, bars, bar, conversion_factor<std::ratio<100>, kilo<pascal_t>>)
+	UNIT_ADD(pressure, millibar, millibars, mbar, conversion_factor<std::ratio<1>, milli<bar_t>>)
+	UNIT_ADD(pressure, atmosphere, atmospheres, atm, conversion_factor<std::ratio<101325>, pascal_t>)
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi,
-		compound_conversion_factor<force::pound<int>, inverse<squared<length::inch<int>>>>)
-	UNIT_ADD(pressure, torr, torrs, torr, conversion_factor<std::ratio<1, 760>, atmosphere<int>>)
-	UNIT_ADD(pressure, mmHg, mmHg, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascal<int>>)
+		compound_conversion_factor<force::pound_t, inverse<squared<length::inch_t>>>)
+	UNIT_ADD(pressure, torr, torrs, torr, conversion_factor<std::ratio<1, 760>, atmosphere_t>)
+	UNIT_ADD(pressure, mmHg, mmHg, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascal_t>)
 
 	UNIT_ADD_DIMENSION_TRAIT(pressure)
 } // namespace units

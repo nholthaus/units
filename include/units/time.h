@@ -71,13 +71,13 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, conversion_factor<std::ratio<1>, units::dimension::time>)
-	UNIT_ADD_WITH_PLURAL_TAG(time, minute, minutes, min, conversion_factor<std::ratio<60>, second<int>>)
-	UNIT_ADD(time, hour, hours, hr, conversion_factor<std::ratio<60>, minute<int>>)
-	UNIT_ADD(time, day, days, d, conversion_factor<std::ratio<24>, hour<int>>)
-	UNIT_ADD(time, week, weeks, wk, conversion_factor<std::ratio<7>, day<int>>)
-	UNIT_ADD(time, year, years, yr, conversion_factor<std::ratio<365>, day<int>>)
-	UNIT_ADD(time, julian_year, julian_years, a_j, conversion_factor<std::ratio<31557600>, second<int>>)
-	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, second<int>>)
+	UNIT_ADD_WITH_PLURAL_TAG(time, minute, minutes, min, conversion_factor<std::ratio<60>, second_t>)
+	UNIT_ADD(time, hour, hours, hr, conversion_factor<std::ratio<60>, minute_t>)
+	UNIT_ADD(time, day, days, d, conversion_factor<std::ratio<24>, hour_t>)
+	UNIT_ADD(time, week, weeks, wk, conversion_factor<std::ratio<7>, day_t>)
+	UNIT_ADD(time, year, years, yr, conversion_factor<std::ratio<365>, day_t>)
+	UNIT_ADD(time, julian_year, julian_years, a_j, conversion_factor<std::ratio<31557600>, second_t>)
+	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, second_t>)
 
 	UNIT_ADD_DIMENSION_TRAIT(time)
 } // namespace units

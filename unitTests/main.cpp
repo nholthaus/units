@@ -164,7 +164,8 @@ TEST_F(TypeTraits, unit_base)
 	EXPECT_TRUE(
 		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
 	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meter<double>>, unit<meter_conversion_factor, double>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile meter<double>>, unit<meter_conversion_factor, double>>));
+	EXPECT_TRUE(
+		(std::is_same_v<traits::unit_base_t<const volatile meter<double>>, unit<meter_conversion_factor, double>>));
 }
 
 TEST_F(TypeTraits, replace_underlying)
@@ -226,7 +227,8 @@ TEST_F(TypeTraits, strong)
 {
 	EXPECT_TRUE(
 		(std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
-	EXPECT_TRUE((std::is_same_v<meter_conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
+	EXPECT_TRUE((std::is_same_v<meter_conversion_factor,
+		traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
 	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter<int>>>>));
 	EXPECT_TRUE((std::is_same_v<square_meter_conversion_factor, traits::strong_t<squared<meter_conversion_factor>>>));
 }
@@ -712,10 +714,10 @@ TEST_F(STDTypeTraits, std_common_type)
 		std::common_type_t<kilometer<double>, kilometer<double>>(), kilometer<double>()));
 	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<millimeter<double>, millimeter<double>>(), millimeter<double>()));
-	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<meter<double>, kilometer<double>>(), meter<double>()));
-	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kilometer<double>, meter<double>>(), meter<double>()));
+	static_assert(
+		has_equivalent_conversion_factor(std::common_type_t<meter<double>, kilometer<double>>(), meter<double>()));
+	static_assert(
+		has_equivalent_conversion_factor(std::common_type_t<kilometer<double>, meter<double>>(), meter<double>()));
 	static_assert(has_equivalent_conversion_factor(
 		std::common_type_t<meter<double>, millimeter<double>>(), millimeter<double>()));
 	static_assert(has_equivalent_conversion_factor(
@@ -732,28 +734,40 @@ TEST_F(STDTypeTraits, std_common_type)
 		std::common_type_t<kilometer<double>, millimeter<double>>>);
 
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<meter_conversion_factor, int>, unit<meter_conversion_factor, int>>(), unit<meter_conversion_factor, int>()));
+		std::common_type_t<unit<meter_conversion_factor, int>, unit<meter_conversion_factor, int>>(),
+		unit<meter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(), unit<kilometer_conversion_factor, int>()));
+		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(),
+		unit<kilometer_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(), unit<millimeter_conversion_factor, int>()));
+		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(),
+		unit<millimeter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<meter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(), unit<meter_conversion_factor, int>()));
+		std::common_type_t<unit<meter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(),
+		unit<meter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<meter_conversion_factor, int>>(), unit<meter_conversion_factor, int>()));
+		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<meter_conversion_factor, int>>(),
+		unit<meter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<meter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(), unit<millimeter_conversion_factor, int>()));
+		std::common_type_t<unit<meter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(),
+		unit<millimeter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<meter_conversion_factor, int>>(), unit<millimeter_conversion_factor, int>()));
+		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<meter_conversion_factor, int>>(),
+		unit<millimeter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(), unit<millimeter_conversion_factor, int>()));
+		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>(),
+		unit<millimeter_conversion_factor, int>()));
 	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(), unit<millimeter_conversion_factor, int>()));
-	static_assert(std::is_same_v<std::common_type_t<unit<meter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>,
-		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<meter_conversion_factor, int>>>);
-	static_assert(std::is_same_v<std::common_type_t<unit<meter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>,
-		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<meter_conversion_factor, int>>>);
-	static_assert(std::is_same_v<std::common_type_t<unit<millimeter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>,
+		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<millimeter_conversion_factor, int>>(),
+		unit<millimeter_conversion_factor, int>()));
+	static_assert(
+		std::is_same_v<std::common_type_t<unit<meter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>,
+			std::common_type_t<unit<kilometer_conversion_factor, int>, unit<meter_conversion_factor, int>>>);
+	static_assert(
+		std::is_same_v<std::common_type_t<unit<meter_conversion_factor, int>, unit<millimeter_conversion_factor, int>>,
+			std::common_type_t<unit<millimeter_conversion_factor, int>, unit<meter_conversion_factor, int>>>);
+	static_assert(std::is_same_v<
+		std::common_type_t<unit<millimeter_conversion_factor, int>, unit<kilometer_conversion_factor, int>>,
 		std::common_type_t<unit<kilometer_conversion_factor, int>, unit<millimeter_conversion_factor, int>>>);
 
 	using half_a_second  = unit<conversion_factor<std::ratio<1, 2>, second_conversion_factor>, int>;
@@ -766,10 +780,10 @@ TEST_F(STDTypeTraits, std_common_type)
 		std::common_type_t<third_a_second, half_a_second>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
 
-	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<kelvin<double>, celsius<double>>{}, celsius<double>{}));
-	static_assert(has_equivalent_conversion_factor(
-		std::common_type_t<celsius<double>, kelvin<double>>{}, celsius<double>{}));
+	static_assert(
+		has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, celsius<double>{}));
+	static_assert(
+		has_equivalent_conversion_factor(std::common_type_t<celsius<double>, kelvin<double>>{}, celsius<double>{}));
 	static_assert(std::is_same_v<std::common_type_t<kelvin<double>, celsius<double>>,
 		std::common_type_t<celsius<double>, kelvin<double>>>);
 
@@ -868,11 +882,14 @@ TEST_F(UnitManipulators, square_root)
 TEST_F(UnitManipulators, compound_unit)
 {
 	using acceleration1 = conversion_factor<std::ratio<1>, dimension::acceleration>;
-	using acceleration2 = compound_conversion_factor<meter_conversion_factor, inverse<second_conversion_factor>, inverse<second_conversion_factor>>;
+	using acceleration2 = compound_conversion_factor<meter_conversion_factor, inverse<second_conversion_factor>,
+		inverse<second_conversion_factor>>;
 	using acceleration3 = conversion_factor<std::ratio<1>,
 		make_dimension<dimension::length, std::ratio<1>, dimension::time, std::ratio<-2>>>;
-	using acceleration4 = compound_conversion_factor<meter_conversion_factor, inverse<squared<second_conversion_factor>>>;
-	using acceleration5 = compound_conversion_factor<meter_conversion_factor, squared<inverse<second_conversion_factor>>>;
+	using acceleration4 =
+		compound_conversion_factor<meter_conversion_factor, inverse<squared<second_conversion_factor>>>;
+	using acceleration5 =
+		compound_conversion_factor<meter_conversion_factor, squared<inverse<second_conversion_factor>>>;
 
 	bool areSame12 = std::is_same_v<acceleration1, acceleration2>;
 	bool areSame23 = std::is_same_v<acceleration2, acceleration3>;
@@ -902,7 +919,8 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 
 	using acceleration1 = conversion_factor<std::ratio<1>, dimension::acceleration>;
-	using acceleration2 = units::detail::unit_divide<meter_conversion_factor, units::detail::unit_multiply<second_conversion_factor, second_conversion_factor>>;
+	using acceleration2 = units::detail::unit_divide<meter_conversion_factor,
+		units::detail::unit_multiply<second_conversion_factor, second_conversion_factor>>;
 	shouldBeTrue        = std::is_same_v<acceleration1, acceleration2>;
 	EXPECT_TRUE(shouldBeTrue);
 }
@@ -1427,8 +1445,8 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	dimless dim;
 	dimless_base base;
 
-	using meter_conversion_factor      = meter<int>;
-	using meter_base = unit<units::meter_conversion_factor, int>;
+	using meter_conversion_factor = meter<int>;
+	using meter_base              = unit<units::meter_conversion_factor, int>;
 
 	meter_conversion_factor m;
 	meter_base b_m;
@@ -2102,7 +2120,7 @@ TEST_F(UnitType, unitTypeDivision)
 	isSame = std::is_same_v<decltype(g), unit<inverse<meter_conversion_factor>>>;
 	EXPECT_TRUE(isSame);
 
-	auto mph                        = mile<double>(60.0) / hour<double>(1.0);
+	auto mph                      = mile<double>(60.0) / hour<double>(1.0);
 	meters_per_second<double> mps = mph;
 	EXPECT_NEAR(26.8224, mps(), 5.0e-5);
 	mps = unit<mile_conversion_factor, int>(60) / unit<hour_conversion_factor, int>(1);
@@ -2186,7 +2204,8 @@ TEST_F(UnitType, compoundAssignmentAddition)
 
 	EXPECT_EQ(meter<double>(3.0), a);
 
-	a += std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(unit<meter_conversion_factor, int>(1));
+	a += std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(
+		unit<meter_conversion_factor, int>(1));
 
 	EXPECT_EQ(meter<double>(4.0), a);
 
@@ -2243,7 +2262,8 @@ TEST_F(UnitType, compoundAssignmentSubtraction)
 
 	EXPECT_EQ(meter<double>(-1.0), a);
 
-	a -= std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(unit<meter_conversion_factor, int>(1));
+	a -= std::common_type_t<unit<meter_conversion_factor, int>, unit<foot_conversion_factor, int>>(
+		unit<meter_conversion_factor, int>(1));
 
 	EXPECT_EQ(meter<double>(-2.0), a);
 
@@ -2499,6 +2519,13 @@ TEST_F(UnitType, convertMethod)
 {
 	double test = meter<double>(3.0).convert<foot_conversion_factor>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
+}
+
+TEST_F(UnitType, unit_tSyntax)
+{
+	EXPECT_TRUE((std::is_same_v<meter_t, meter<double>>));
+	EXPECT_FALSE((std::is_same_v<meter_t, meter<int>>));
+	EXPECT_FALSE((std::is_same_v<meter_t, foot<int>>));
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
@@ -3313,7 +3340,7 @@ TEST_F(ConversionFactor, capacitance)
 	test = farad<double>(gigafarad<double>(0.000000001))();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	auto f             = coulomb<double>(1) / volt<double>(1);
+	auto f           = coulomb<double>(1) / volt<double>(1);
 	farad<double> f2 = coulomb<double>(1) / volt<double>(1);
 	EXPECT_TRUE((std::is_convertible_v<decltype(f), farad<double>>));
 
@@ -3758,18 +3785,12 @@ TEST_F(ConversionFactor, data_transfer_rate)
 	EXPECT_EQ(1024, (pebibits_per_second<double>(exbibits_per_second<double>(1))()));
 
 	// Source: https://en.wikipedia.org/wiki/Binary_prefix
-	EXPECT_NEAR(
-		percent<double>(2.4), kibibytes_per_second<double>(1) / kilobytes_per_second<double>(1) - 1, 0.005);
-	EXPECT_NEAR(
-		percent<double>(4.9), mebibytes_per_second<double>(1) / megabytes_per_second<double>(1) - 1, 0.005);
-	EXPECT_NEAR(
-		percent<double>(7.4), gibibytes_per_second<double>(1) / gigabytes_per_second<double>(1) - 1, 0.005);
-	EXPECT_NEAR(
-		percent<double>(10.0), tebibytes_per_second<double>(1) / terabytes_per_second<double>(1) - 1, 0.005);
-	EXPECT_NEAR(
-		percent<double>(12.6), pebibytes_per_second<double>(1) / petabytes_per_second<double>(1) - 1, 0.005);
-	EXPECT_NEAR(
-		percent<double>(15.3), exbibytes_per_second<double>(1) / exabytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(2.4), kibibytes_per_second<double>(1) / kilobytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(4.9), mebibytes_per_second<double>(1) / megabytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(7.4), gibibytes_per_second<double>(1) / gigabytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(10.0), tebibytes_per_second<double>(1) / terabytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(12.6), pebibytes_per_second<double>(1) / petabytes_per_second<double>(1) - 1, 0.005);
+	EXPECT_NEAR(percent<double>(15.3), exbibytes_per_second<double>(1) / exabytes_per_second<double>(1) - 1, 0.005);
 }
 
 TEST_F(ConversionFactor, pi)
@@ -3941,11 +3962,10 @@ TEST_F(UnitMath, acos)
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acos(unit<dimensionless_unit, int>(0)))>));
 	EXPECT_NEAR(
 		angle::radian<double>(2).to<double>(), acos(dimensionless<double>(-0.41614683654)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(),
-		acos(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(), acos(unit<dimensionless_unit, int>(0)).to<double>(),
+		5.0e-11);
 	EXPECT_NEAR(angle::degree<double>(135).to<double>(),
-		angle::degree<double>(acos(dimensionless<double>(-0.70710678118654752440084436210485))).to<double>(),
-		5.0e-12);
+		angle::degree<double>(acos(dimensionless<double>(-0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree<double>(90).to<double>(),
 		angle::degree<double>(acos(unit<dimensionless_unit, int>(0))).to<double>(), 5.0e-12);
 }
@@ -3954,10 +3974,10 @@ TEST_F(UnitMath, asin)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asin(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(asin(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian<double>(1.14159265).to<double>(),
-		asin(dimensionless<double>(0.90929742682)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(),
-		asin(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian<double>(1.14159265).to<double>(), asin(dimensionless<double>(0.90929742682)).to<double>(),
+		5.0e-9);
+	EXPECT_NEAR(angle::radian<double>(1.570796326795).to<double>(), asin(unit<dimensionless_unit, int>(1)).to<double>(),
+		5.0e-9);
 	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
 		angle::degree<double>(asin(dimensionless<double>(0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree<double>(90).to<double>(),
@@ -3970,8 +3990,8 @@ TEST_F(UnitMath, atan)
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atan(unit<dimensionless_unit, int>(0)))>));
 	EXPECT_NEAR(angle::radian<double>(-1.14159265).to<double>(),
 		atan(dimensionless<double>(-2.18503986326)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radian<double>(0.785398163397).to<double>(),
-		atan(unit<dimensionless_unit, int>(1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radian<double>(0.785398163397).to<double>(), atan(unit<dimensionless_unit, int>(1)).to<double>(),
+		5.0e-9);
 	EXPECT_NEAR(angle::degree<double>(-45).to<double>(),
 		angle::degree<double>(atan(dimensionless<double>(-1.0))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degree<double>(45).to<double>(),
@@ -4042,8 +4062,8 @@ TEST_F(UnitMath, acosh)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acosh(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(acosh(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian<double>(1.316957896924817).to<double>(), acosh(dimensionless<double>(2.0)).to<double>(),
-		5.0e-11);
+	EXPECT_NEAR(
+		angle::radian<double>(1.316957896924817).to<double>(), acosh(dimensionless<double>(2.0)).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::radian<double>(1.316957896924817).to<double>(),
 		acosh(unit<dimensionless_unit, int>(2)).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::degree<double>(75.456129290216893).to<double>(),
@@ -4070,8 +4090,8 @@ TEST_F(UnitMath, atanh)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atanh(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radian<double>, decltype(atanh(unit<dimensionless_unit, int>(0)))>));
-	EXPECT_NEAR(angle::radian<double>(0.549306144334055).to<double>(), atanh(dimensionless<double>(0.5)).to<double>(),
-		5.0e-9);
+	EXPECT_NEAR(
+		angle::radian<double>(0.549306144334055).to<double>(), atanh(dimensionless<double>(0.5)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::radian<double>(0).to<double>(), atanh(unit<dimensionless_unit, int>(0)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degree<double>(31.472923730945389).to<double>(),
 		angle::degree<double>(atanh(dimensionless<double>(0.5))).to<double>(), 5.0e-12);
@@ -4147,7 +4167,8 @@ TEST_F(UnitMath, pow)
 
 	auto fourth = pow<4>(value);
 	EXPECT_NEAR(10000.0, fourth(), 5.0e-2);
-	isSame = std::is_same_v<decltype(fourth), unit<compound_conversion_factor<squared<meter_conversion_factor>, squared<meter_conversion_factor>>>>;
+	isSame = std::is_same_v<decltype(fourth),
+		unit<compound_conversion_factor<squared<meter_conversion_factor>, squared<meter_conversion_factor>>>>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -4171,8 +4192,7 @@ TEST_F(UnitMath, sqrt)
 TEST_F(UnitMath, hypot)
 {
 	EXPECT_TRUE((std::is_same_v<meter<double>, decltype(hypot(meter<double>(3.0), meter<double>(4.0)))>));
-	EXPECT_NEAR(
-		meter<double>(5.0).to<double>(), (hypot(meter<double>(3.0), meter<double>(4.0))).to<double>(), 5.0e-9);
+	EXPECT_NEAR(meter<double>(5.0).to<double>(), (hypot(meter<double>(3.0), meter<double>(4.0))).to<double>(), 5.0e-9);
 
 	static_assert(
 		traits::is_convertible_unit_v<foot<double>, decltype(hypot(foot<double>(3.0), meter<double>(1.2192)))>);
@@ -4394,13 +4414,13 @@ TEST_F(Constexpr, stdArray)
 TEST_F(CaseStudies, radarRangeEquation)
 {
 	watt<double> P_t;           // transmit power
-	dimensionless<double> G;      // gain
+	dimensionless<double> G;    // gain
 	meter<double> lambda;       // wavelength
 	square_meter<double> sigma; // radar cross section
 	meter<double> R;            // range
 	kelvin<double> T_s;         // system noise temp
 	hertz<double> B_n;          // bandwidth
-	dimensionless<double> L;      // loss
+	dimensionless<double> L;    // loss
 
 	P_t    = megawatt<double>(1.4);
 	G      = dB<double>(33.0);

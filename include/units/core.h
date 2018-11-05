@@ -229,6 +229,9 @@ namespace units
 		} \
 	}; \
 \
+	using unitName##_t = unitName<UNIT_LIB_DEFAULT_TYPE>; \
+\
+	/* DEDUCTION GUIDES */ \
 	unitName()->unitName<UNIT_LIB_DEFAULT_TYPE>; \
 \
 	template<class Underlying, class... Args, ::std::enable_if_t<::std::is_arithmetic_v<Underlying>, int> = 0> \
@@ -492,8 +495,8 @@ namespace units
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_STRONG( \
-			::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation, ::units::decibel_scale) \
-	/*	}  */\
+		::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation, ::units::decibel_scale) \
+	/*	}  */ \
 	/*	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation) */
 
 /**
@@ -509,6 +512,8 @@ namespace units
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		Trait which tests whether a type represents a unit of unitdimension*/ \
 	/** @details	Inherits from `std::true_type` or `std::false_type`. Use `is_ ## unitdimension ## _unit_v<T>` to \ \
+	 *\ \
+	 *\ \ \
 	 ** 			test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	one or more types to test*/ \
 	namespace traits \

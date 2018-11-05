@@ -63,13 +63,13 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		radiation, becquerel, becquerels, Bq, conversion_factor<std::ratio<1>, units::frequency::hertz<int>>)
+		radiation, becquerel, becquerels, Bq, conversion_factor<std::ratio<1>, units::frequency::hertz_t>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(
-		radiation, gray, grays, Gy, compound_conversion_factor<energy::joule<int>, inverse<mass::kilogram<int>>>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, conversion_factor<std::ratio<1>, gray<int>>)
-	UNIT_ADD(radiation, curie, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerel<int>>)
-	UNIT_ADD(radiation, rutherford, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerel<int>>)
-	UNIT_ADD(radiation, rad, rads, rads, conversion_factor<std::ratio<1>, centigray<int>>)
+		radiation, gray, grays, Gy, compound_conversion_factor<energy::joule_t, inverse<mass::kilogram_t>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, conversion_factor<std::ratio<1>, gray_t>)
+	UNIT_ADD(radiation, curie, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerel_t>)
+	UNIT_ADD(radiation, rutherford, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerel_t>)
+	UNIT_ADD(radiation, rad, rads, rads, conversion_factor<std::ratio<1>, centigray_t>)
 
 	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units
