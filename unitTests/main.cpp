@@ -96,7 +96,7 @@ namespace
 	constexpr auto has_equivalent_conversion_factor = [](const auto& t, const auto& u) {
 		using T = std::decay_t<decltype(t)>;
 		using U = std::decay_t<decltype(u)>;
-		return units::traits::is_convertible_unit_v<T, U> &&
+		return units::traits::is_same_dimension_unit_v<T, U> &&
 			std::ratio_equal_v<typename T::conversion_factor::conversion_ratio,
 				typename U::conversion_factor::conversion_ratio>;
 	};
@@ -4203,8 +4203,8 @@ TEST_F(UnitMath, hypot)
 	EXPECT_NEAR(
 		meter_t<double>(5.0).to<double>(), (hypot(meter_t<double>(3.0), meter_t<double>(4.0))).to<double>(), 5.0e-9);
 
-	static_assert(
-		traits::is_convertible_unit_v<foot_t<double>, decltype(hypot(foot_t<double>(3.0), meter_t<double>(1.2192)))>);
+	static_assert(traits::is_same_dimension_unit_v<foot_t<double>,
+		decltype(hypot(foot_t<double>(3.0), meter_t<double>(1.2192)))>);
 	EXPECT_NEAR(foot_t<double>(5.0).to<double>(),
 		foot_t<double>(hypot(foot_t<double>(3.0), meter_t<double>(1.2192))).to<double>(), 5.0e-9);
 }

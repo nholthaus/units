@@ -1886,7 +1886,7 @@ namespace units
 		 *				and the c++ meaning of conversion (type meters can be converted to type feet).
 		 * @tparam		Cf1 Unit to convert from.
 		 * @tparam		Cf2 Unit to convert to.
-		 * @sa			is_convertible_unit
+		 * @sa			is_same_dimension_unit
 		 */
 		template<class Cf1, class Cf2>
 		struct is_same_dimension
@@ -2120,7 +2120,7 @@ namespace units
 	namespace traits
 	{
 		template<class U1, class U2>
-		struct is_convertible_unit;
+		struct is_same_dimension_unit;
 	}               // namespace traits
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -2130,14 +2130,14 @@ namespace units
 	 * @details		Converts the value of an unit to another unit. E.g. @code meter_t result =
 	 *				convert<meters>(foot_t(1.0));	// result == 3.28084_m @endcode Intermediate
 	 *				computations are carried in the widest representation before being converted to `UnitTo`.
-	 *				`is_convertible_unit_v<UnitFrom, UnitTo>` shall be `true`.
+	 *				`is_same_dimension_unit_v<UnitFrom, UnitTo>` shall be `true`.
 	 * @sa			unit	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit to convert to `UnitTo`. `is_unit_v<UnitFrom>` shall be `true`.
 	 * @tparam		UnitTo unit to convert `from` to. `is_unit_v<UnitTo>` shall be `true`.
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
 	template<class UnitTo, class UnitFrom,
-		std::enable_if_t<traits::is_convertible_unit<UnitFrom, UnitTo>::value, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit<UnitFrom, UnitTo>::value, int> = 0>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
 		return UnitTo(convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
@@ -2251,21 +2251,22 @@ namespace units
 		 * @ingroup		TypeTraits
 		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are units of the same dimension.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
-		 *				Use `is_convertible_unit_v<U1, U2>` to test whether `U1` and `U2`
+		 *				Use `is_same_dimension_unit_v<U1, U2>` to test whether `U1` and `U2`
 		 *				are units of the same dimension.
 		 * @tparam		U1 Unit to query.
 		 * @tparam		U2 Unit to query.
 		 * @sa			is_same_dimension
 		 */
 		template<class U1, class U2>
-		struct is_convertible_unit : std::conjunction<is_unit<U1>, is_unit<U2>,
-										 is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
-											 typename units::traits::unit_traits<U2>::conversion_factor>>
+		struct is_same_dimension_unit
+		  : std::conjunction<is_unit<U1>, is_unit<U2>,
+				is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
+					typename units::traits::unit_traits<U2>::conversion_factor>>
 		{
 		};
 
 		template<class U1, class U2>
-		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
+		inline constexpr bool is_same_dimension_unit_v = is_same_dimension_unit<U1, U2>::value;
 
 		/** @cond */ // DOXYGEN IGNORE
 		namespace detail
@@ -2338,7 +2339,7 @@ namespace units
 		 */
 		template<class UnitFrom, class UnitTo>
 		inline constexpr bool is_losslessly_convertible_unit =
-			std::conjunction_v<traits::is_convertible_unit<UnitFrom, UnitTo>,
+			std::conjunction_v<traits::is_same_dimension_unit<UnitFrom, UnitTo>,
 				std::disjunction<std::is_floating_point<typename UnitTo::underlying_type>,
 					std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
 						detail::is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor,
@@ -3164,7 +3165,7 @@ namespace units
 
 	/// Addition operator for unit types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(
@@ -3202,7 +3203,7 @@ namespace units
 
 	/// Subtraction operator for unit types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator-(
@@ -3241,7 +3242,7 @@ namespace units
 	/// Multiplication type for convertible unit types with a linear scale. @returns the multiplied value, with the same
 	/// type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3257,7 +3258,7 @@ namespace units
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose
 	/// type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<!traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
@@ -3322,7 +3323,7 @@ namespace units
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a
 	/// dimensionless
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr dimensionless<
@@ -3336,7 +3337,7 @@ namespace units
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
 	/// compound unit type of lhs/rhs
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<!traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
@@ -3405,7 +3406,7 @@ namespace units
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
 	/// is their common type
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr traits::replace_underlying_t<UnitTypeLhs,
@@ -3660,7 +3661,7 @@ namespace units
 
 	/// Addition for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3702,7 +3703,7 @@ namespace units
 
 	/// Subtraction for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3765,7 +3766,7 @@ namespace units
 	//----------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using CommonUnit = decltype(units::min(lhs, rhs));
@@ -3773,7 +3774,7 @@ namespace units
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using CommonUnit = decltype(units::max(lhs, rhs));
@@ -3948,7 +3949,7 @@ namespace units
 	 *				as x.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(
@@ -3997,7 +3998,7 @@ namespace units
 	 * @returns		The remainder of dividing the arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
@@ -4075,7 +4076,7 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4092,7 +4093,7 @@ namespace units
 	 * @returns		The maximum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4110,7 +4111,7 @@ namespace units
 	 * @returns		The minimum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
