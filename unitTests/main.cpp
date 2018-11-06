@@ -284,7 +284,7 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<const dimensionless<double>&>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dimensionless<double>>));
 	EXPECT_TRUE((traits::is_dimensionless_unit_v<dB<double>>));
-	EXPECT_TRUE((traits::is_dimensionless_unit_v<ppm<double>>));
+	EXPECT_TRUE((traits::is_dimensionless_unit_v<parts_per_million<double>>));
 	EXPECT_FALSE((traits::is_dimensionless_unit_v<meters<double>>));
 	EXPECT_FALSE((traits::is_dimensionless_unit_v<dBW<double>>));
 
@@ -2407,11 +2407,11 @@ TEST_F(UnitType, dimensionlessTypeImplicitConversion)
 	dimensionless<double> testS = 3.0;
 	EXPECT_DOUBLE_EQ(3.0, testS);
 
-	dimensionless<double> test3(ppm<double>(10));
+	dimensionless<double> test3(parts_per_million<double>(10));
 	EXPECT_DOUBLE_EQ(0.00001, test3);
 
 	dimensionless<double> test4;
-	test4 = ppm<double>(1);
+	test4 = parts_per_million<double>(1);
 	EXPECT_DOUBLE_EQ(0.000001, test4);
 }
 
@@ -2588,22 +2588,22 @@ TEST_F(UnitType, negative)
 	EXPECT_NEAR(c.to<double>(), -d.to<double>(), 5.0e-320);
 	EXPECT_NEAR(d.to<double>(), -c.to<double>(), 5.0e-320);
 
-	ppm<double> e = -1 * ppm<double>(10);
-	EXPECT_EQ(e, -ppm<double>(10));
+	parts_per_million<double> e = -1 * parts_per_million<double>(10);
+	EXPECT_EQ(e, -parts_per_million<double>(10));
 	EXPECT_NEAR(-0.00001, e, 5.0e-10);
 }
 
 TEST_F(UnitType, concentration)
 {
-	ppb<double> a(ppm<double>(1));
-	EXPECT_EQ(ppb<double>(1000), a);
+	parts_per_billion<double> a(parts_per_million<double>(1));
+	EXPECT_EQ(parts_per_billion<double>(1000), a);
 	EXPECT_EQ(0.000001, a);
 	EXPECT_EQ(0.000001, a.to<double>());
 
-	dimensionless<double> b(ppm<double>(1));
+	dimensionless<double> b(parts_per_million<double>(1));
 	EXPECT_EQ(0.000001, b);
 
-	dimensionless<double> c = ppb<double>(1);
+	dimensionless<double> c = parts_per_billion<double>(1);
 	EXPECT_EQ(0.000000001, c);
 }
 
@@ -3588,11 +3588,11 @@ TEST_F(ConversionFactor, concentration)
 {
 	double test;
 
-	test = ppm<double>(1.0);
+	test = parts_per_million<double>(1.0);
 	EXPECT_NEAR(1.0e-6, test, 5.0e-12);
-	test = ppb<double>(1.0);
+	test = parts_per_billion<double>(1.0);
 	EXPECT_NEAR(1.0e-9, test, 5.0e-12);
-	test = ppt<double>(1.0);
+	test = parts_per_trillion<double>(1.0);
 	EXPECT_NEAR(1.0e-12, test, 5.0e-12);
 	test = percent<double>(18.0);
 	EXPECT_NEAR(0.18, test, 5.0e-12);
