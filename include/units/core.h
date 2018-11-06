@@ -2115,14 +2115,13 @@ namespace units
 			static constexpr bool value =
 				traits::is_same_dimension_v<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>;
 		};
+	} // namespace detail
 
-		/**
-		 * @brief		SFINAE helper to test that types are convertible `unit`s.
-		 */
-		template<class From, class To>
-		inline constexpr bool is_convertible_unit =
-			std::conjunction_v<traits::is_unit<From>, traits::is_unit<To>, delayed_is_same_dimension<From, To>>;
-	}               // namespace detail
+	namespace traits
+	{
+		template<class U1, class U2>
+		struct is_convertible_unit;
+	}               // namespace traits
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	/**
@@ -2137,7 +2136,8 @@ namespace units
 	 * @tparam		UnitTo unit to convert `from` to. `is_unit_v<UnitTo>` shall be `true`.
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitTo, class UnitFrom, std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>, int> = 0>
+	template<class UnitTo, class UnitFrom,
+		std::enable_if_t<traits::is_convertible_unit<UnitFrom, UnitTo>::value, int> = 0>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
 		return UnitTo(convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
@@ -2249,19 +2249,20 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether two container types derived from `unit` are convertible to each other
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
-		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic
-		 *				meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters
-		 *				can be converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2,
-		 *				then U2 will be convertible to U1.
-		 * @tparam		U1 Unit to convert from.
-		 * @tparam		U2 Unit to convert to.
-		 * @sa			is_convertible_conversion_factor
+		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are units of the same dimension.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_convertible_unit_v<U1, U2>` to test whether `U1` and `U2`
+		 *				are units of the same dimension.
+		 * @tparam		U1 Unit to query.
+		 * @tparam		U2 Unit to query.
+		 * @sa			is_same_dimension
 		 */
 		template<class U1, class U2>
-		using is_convertible_unit = is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
-			typename units::traits::unit_traits<U2>::conversion_factor>;
+		struct is_convertible_unit : std::conjunction<is_unit<U1>, is_unit<U2>,
+										 is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
+											 typename units::traits::unit_traits<U2>::conversion_factor>>
+		{
+		};
 
 		template<class U1, class U2>
 		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
@@ -3996,9 +3997,7 @@ namespace units
 	 * @returns		The remainder of dividing the arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
@@ -4076,9 +4075,7 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4095,9 +4092,7 @@ namespace units
 	 * @returns		The maximum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4115,9 +4110,7 @@ namespace units
 	 * @returns		The minimum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{

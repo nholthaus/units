@@ -905,7 +905,7 @@ TEST_F(UnitManipulators, square_root)
 	double test;
 
 	test = meter_t<double>(unit<square_root<square_kilometer>>(1.0))();
-	EXPECT_TRUE((traits::is_convertible_unit_v<square_root<square_kilometer>, kilometer>));
+	EXPECT_TRUE((traits::is_same_dimension_v<square_root<square_kilometer>, kilometer>));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
 
@@ -3123,7 +3123,7 @@ TEST_F(ConversionFactor, velocity)
 
 	same = std::is_same_v<meters_per_second, traits::strong_t<conversion_factor<std::ratio<1>, dimension::velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<miles_per_hour, meters_per_second>;
+	same = traits::is_same_dimension_v<miles_per_hour, meters_per_second>;
 	EXPECT_TRUE(same);
 
 	test = miles_per_hour_t<double>(meters_per_second_t<double>(1250.0))();
@@ -3146,7 +3146,7 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
+	same = traits::is_same_dimension_v<rpm, radians_per_second>;
 	EXPECT_TRUE(same);
 
 	test = milliarcseconds_per_year_t<double>(radians_per_second_t<double>(1.0))();
