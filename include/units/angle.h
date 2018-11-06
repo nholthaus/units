@@ -90,7 +90,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::cos(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -106,7 +106,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::sin(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 	/**
 	 * @ingroup		UnitMath
@@ -121,7 +121,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::tan(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -132,10 +132,10 @@ namespace units
 	 * @returns		Principal arc cosine of x, in the interval [0,pi] radians.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acos(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acos(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::acos(x.value()));
 	}
 
@@ -147,10 +147,10 @@ namespace units
 	 * @returns		Principal arc sine of x, in the interval [-pi/2,+pi/2] radians.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asin(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asin(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::asin(x.value()));
 	}
 
@@ -166,10 +166,10 @@ namespace units
 	 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atan(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atan(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::atan(x.value()));
 	}
 
@@ -184,13 +184,13 @@ namespace units
 	 */
 	template<class Y, class X,
 		std::enable_if_t<traits::is_dimensionless_unit_v<decltype(std::declval<Y>() / std::declval<X>())>, int> = 0>
-	radian<detail::floating_point_promotion_t<
+	radians<detail::floating_point_promotion_t<
 		std::common_type_t<typename X::underlying_type, typename Y::underlying_type>>>
 	atan2(const Y y, const X x) noexcept
 	{
 		using CommonUnit = std::common_type_t<X, Y>;
 		// X and Y could be different length units, so normalize them
-		return radian<detail::floating_point_promotion_t<typename CommonUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename CommonUnit::underlying_type>>(
 			std::atan2(CommonUnit(y).value(), CommonUnit(x).value()));
 	}
 
@@ -211,7 +211,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::cosh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -227,7 +227,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::sinh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -243,7 +243,7 @@ namespace units
 		const AngleUnit angle) noexcept
 	{
 		return std::tanh(
-			convert<radian<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
+			convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
 	}
 
 	/**
@@ -255,10 +255,10 @@ namespace units
 	 * @returns		Nonnegative arc hyperbolic cosine of x, in the interval [0,+INFINITY] radians.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acosh(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acosh(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::acosh(x.value()));
 	}
 
@@ -270,10 +270,10 @@ namespace units
 	 * @returns		Arc hyperbolic sine of x, in radians.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asinh(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asinh(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::asinh(x.value()));
 	}
 
@@ -287,10 +287,10 @@ namespace units
 	 * @returns		units::angle::radian
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atanh(
+	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atanh(
 		const dimensionlessUnit x) noexcept
 	{
-		return radian<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
+		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::atanh(x.value()));
 	}
 } // namespace units

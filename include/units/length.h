@@ -79,7 +79,7 @@ namespace units
 
 	// british spelling aliases
 	template<class Underlying>
-	using metre = meter<Underlying>;
+	using metres = meters<Underlying>;
 
 	UNIT_ADD_DIMENSION_TRAIT(length)
 } // namespace units

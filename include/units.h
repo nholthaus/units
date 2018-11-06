@@ -117,11 +117,11 @@ namespace units
 		inline constexpr const unit<compound_conversion_factor<energy::joule_t, time::second_t>>																h(6.626070040e-34);								///< Planck constant.
 		inline constexpr const unit<compound_conversion_factor<force::newton_t, inverse<squared<current::ampere_t>>>>											mu0(pi * 4.0e-7 * force::newton_t(1) / pow<2>(current::ampere_t(1)));	///< vacuum permeability.
 		inline constexpr const unit<compound_conversion_factor<capacitance::farad_t, inverse<length::meter_t>>>													epsilon0(1.0 / (mu0 * pow<2>(c)));				///< vacuum permitivity.
-		inline constexpr const impedance::ohm<double>																											Z0(mu0 * c);									///< characteristic impedance of vacuum.
+		inline constexpr const impedance::ohms<double>																											Z0(mu0 * c);									///< characteristic impedance of vacuum.
 		inline constexpr const unit<compound_conversion_factor<force::newton_t, area::square_meter_t, inverse<squared<charge::coulomb_t>>>>						k_e(1.0 / (4 * pi * epsilon0));					///< Coulomb's constant.
-		inline constexpr const charge::coulomb<double>																											e(1.6021766208e-19);							///< elementary charge.
-		inline constexpr const mass::kilogram<double>																											m_e(9.10938356e-31);							///< electron mass.
-		inline constexpr const mass::kilogram<double>																											m_p(1.672621898e-27);							///< proton mass.
+		inline constexpr const coulombs<double>																													e(1.6021766208e-19);							///< elementary charge.
+		inline constexpr const kilograms<double>																												m_e(9.10938356e-31);							///< electron mass.
+		inline constexpr const kilograms<double>																												m_p(1.672621898e-27);							///< proton mass.
 		inline constexpr const unit<compound_conversion_factor<energy::joule_t, inverse<magnetic_field_strength::tesla_t>>>										mu_B(e * h / (4 * pi *m_e));					///< Bohr magneton.
 		inline constexpr const unit<inverse<substance::mol_t>>																									N_A(6.022140857e23);							///< Avagadro's Number.
 		inline constexpr const unit<compound_conversion_factor<energy::joule_t, inverse<temperature::kelvin_t>, inverse<substance::mol_t>>>						R(8.3144598);									///< Gas constant.
