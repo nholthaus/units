@@ -526,8 +526,9 @@ namespace units
 	 *\ \ \ \ \ \ \
 	 *\ \ \ \ \ \ \ \
 	 *\ \ \ \ \ \ \ \ \
+	 *\ \ \ \ \ \ \ \ \ \
 	 *\ \ \ \ \ \ \ \ \ Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension \ \ \ \ \ \
-	 *\ \ \ quantity.*/ \
+	 *\ \ \ \ quantity.*/ \
 	/** @tparam		T	type to test*/ \
 	namespace traits \
 	{ \
@@ -2453,7 +2454,7 @@ namespace units
 	 *				- \ref constantUnits "constant units"
 	 */
 	template<class ConversionFactor, typename T = UNIT_LIB_DEFAULT_TYPE, class NumericalScale = linear_scale>
-	class unit : public ConversionFactor, private NumericalScale, units::detail::_unit
+	class unit : public ConversionFactor, NumericalScale, units::detail::_unit
 	{
 		static_assert(traits::is_conversion_factor_v<ConversionFactor>,
 			"Template parameter `ConversionFactor` must be a conversion factor. Check that you aren't using an unit "
