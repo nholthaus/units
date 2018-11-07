@@ -1879,19 +1879,21 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which checks whether two conversion factors have the same dimension
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use
-		 *`is_same_dimension_conversion_factor_v<Cf1, Cf2>` to test whether the conversion factors `Cf1` and `Cf2` have
-		 *the same dimension. Note: convertible has both the semantic meaning, (i.e. meters can be converted to feet),
-		 *				and the c++ meaning of conversion (type meters can be converted to type feet).
-		 * @tparam		Cf1 Unit to convert from.
-		 * @tparam		Cf2 Unit to convert to.
+		 * @brief		`BinaryTypeTrait` for querying whether `Cf1` and `Cf2`
+		 *				are conversion factors to the same dimension.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_same_dimension_conversion_factor_v<Cf1, Cf2>` to test whether `Cf1` and `Cf2`
+		 *				are conversion factors to the same dimension.
+		 * @tparam		Cf1 Conversion factor to query.
+		 * @tparam		Cf2 Conversion factor to query.
 		 * @sa			is_same_dimension_unit
 		 */
 		template<class Cf1, class Cf2>
 		struct is_same_dimension_conversion_factor
-		  : std::is_same<traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
-				traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>::type
+		  : std::conjunction<is_conversion_factor<Cf1>, is_conversion_factor<Cf2>,
+				std::is_same<
+					traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
+					traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>>
 		{
 		};
 
@@ -1976,18 +1978,6 @@ namespace units
 	};
 	inline constexpr linearized_value_t linearized_value{};
 
-	/** @cond */ // DOXYGEN IGNORE
-	namespace detail
-	{
-		/**
-		 * @brief		SFINAE helper to test that types are `conversion_factor`s of the same dimension.
-		 */
-		template<class Cf1, class Cf2>
-		inline constexpr bool is_same_dimension_conversion_factor = traits::is_conversion_factor_v<Cf1>&&
-			traits::is_conversion_factor_v<Cf2>&& traits::is_same_dimension_conversion_factor_v<Cf1, Cf2>;
-	}               // namespace detail
-	/** @endcond */ // END DOXYGEN IGNORE
-
 	/**
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from an unit to another.
@@ -2008,7 +1998,7 @@ namespace units
 	 *				The value represents a quantity in units of `ConverionFactorTo`.
 	 */
 	template<class ConversionFactorFrom, class ConversionFactorTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
-		std::enable_if_t<detail::is_same_dimension_conversion_factor<ConversionFactorFrom, ConversionFactorTo> &&
+		std::enable_if_t<traits::is_same_dimension_conversion_factor_v<ConversionFactorFrom, ConversionFactorTo> &&
 				std::is_arithmetic_v<To> && std::is_arithmetic_v<From>,
 			int> = 0>
 	constexpr To convert(const From& value) noexcept
