@@ -74,6 +74,7 @@
 //--------------------
 
 #include <chrono>
+#include <cstddef>
 #include <ratio>
 #include <type_traits>
 #include <cstdint>
@@ -1523,11 +1524,51 @@ namespace units
 			return value;
 		}
 
+		template<std::size_t Ratio_num, std::size_t Ratio_den>
+		struct normal_convert
+		{
+			template<typename T>
+			inline constexpr T operator()(const T& value) const noexcept
+			{
+				return value * Ratio_num / Ratio_den;
+			}
+		};
+
+		template<std::size_t Ratio_num>
+		struct normal_convert<Ratio_num, 1>
+		{
+			template<typename T>
+			inline constexpr T operator()(const T& value) const noexcept
+			{
+				return value * Ratio_num;
+			}
+		};
+
+		template<std::size_t Ratio_den>
+		struct normal_convert<1, Ratio_den>
+		{
+			template<typename T>
+			inline constexpr T operator()(const T& value) const noexcept
+			{
+				return value / Ratio_den;
+			}
+		};
+
+		template<>
+		struct normal_convert<1, 1>
+		{
+			template<typename T>
+			inline constexpr T operator()(const T& value) const noexcept
+			{
+				return value;
+			}
+		};
+
 		/// convert dispatch for units of different types w/ no translation and no PI
 		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::false_type) noexcept
 		{
-			return ((value * Ratio::num) / Ratio::den);
+			return normal_convert<Ratio::num, Ratio::den>{}(value);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
