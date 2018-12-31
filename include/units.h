@@ -1518,7 +1518,7 @@ namespace units
 		}
 
 		/// convert dispatch for units which are both the same
-		template<class Ratio, bool piRequired, bool translationRequired, typename T>
+		template<class Ratio, class PiRatio, class Translation, bool piRequired, bool translationRequired, typename T>
 		static inline constexpr T convert(const T& value, std::true_type, std::integral_constant<bool, piRequired>, std::integral_constant<bool, translationRequired>) noexcept
 		{
 			return value;
