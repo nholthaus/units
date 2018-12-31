@@ -1578,7 +1578,7 @@ namespace units
 		std::enable_if_t<(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0), T>
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
 		{
-			return ((value * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den);
+			return normal_convert<Ratio::num, Ratio::den>{}(value) * pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den);
 		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in denominator
@@ -1588,7 +1588,7 @@ namespace units
 		std::enable_if_t<(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0), T>
  		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
  		{
- 			return (value * Ratio::num) / (Ratio::den * pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den));
+ 			return normal_convert<Ratio::num, Ratio::den>{}(value) / pow(constants::detail::PI_VAL, -PiRatio::num / PiRatio::den);
  		}
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
@@ -1598,7 +1598,7 @@ namespace units
 		std::enable_if_t<(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1), T>
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
 		{
-			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den)  * Ratio::num) / Ratio::den);
+			return normal_convert<Ratio::num, Ratio::den>{}(value) * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den);
 		}
 
 		/// convert dispatch for units of different types with a translation, but no PI
