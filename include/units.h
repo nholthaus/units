@@ -1610,9 +1610,9 @@ namespace units
 
 		/// convert dispatch for units of different types with a translation AND PI
 		template<class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, const std::false_type, const std::true_type, const std::true_type) noexcept
+		static inline constexpr T convert(const T& value, std::false_type isSame, std::true_type piRequired, std::true_type) noexcept
 		{
-			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+            return convert<Ratio, PiRatio, Translation>(value, isSame, piRequired, std::false_type()) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
 		}
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
