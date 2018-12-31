@@ -1517,29 +1517,8 @@ namespace units
 		}
 
 		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::false_type, std::false_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::false_type, std::true_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::true_type, std::false_type) noexcept
-		{
-			return value;
-		}
-
-		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
-		static inline constexpr T convert(const T& value, std::true_type, std::true_type, std::true_type) noexcept
+		template<class UnitFrom, class UnitTo, class Ratio, bool piRequired, bool translationRequired, typename T>
+		static inline constexpr T convert(const T& value, std::true_type, std::integral_constant<bool, piRequired>, std::integral_constant<bool, translationRequired>) noexcept
 		{
 			return value;
 		}
