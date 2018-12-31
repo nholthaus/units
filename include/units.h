@@ -1647,7 +1647,7 @@ namespace units
 		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, PiRatio>::value)>;
 		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, Translation>::value)>;
 
-		return units::detail::convert<Ratio, PiRatio, Translation, T>
+		return units::detail::convert<Ratio, PiRatio, Translation>
 			(value, isSame{}, piRequired{}, translationRequired{});
 	}
 
