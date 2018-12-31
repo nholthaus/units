@@ -1605,7 +1605,7 @@ namespace units
 		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::true_type) noexcept
 		{
-			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
+			return normal_convert<Ratio::num, Ratio::den>{}(value) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
 		}
 
 		/// convert dispatch for units of different types with a translation AND PI
