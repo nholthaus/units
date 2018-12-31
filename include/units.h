@@ -1517,14 +1517,14 @@ namespace units
 		}
 
 		/// convert dispatch for units which are both the same
-		template<class UnitFrom, class UnitTo, class Ratio, bool piRequired, bool translationRequired, typename T>
+		template<class Ratio, bool piRequired, bool translationRequired, typename T>
 		static inline constexpr T convert(const T& value, std::true_type, std::integral_constant<bool, piRequired>, std::integral_constant<bool, translationRequired>) noexcept
 		{
 			return value;
 		}
 
 		/// convert dispatch for units of different types w/ no translation and no PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::false_type) noexcept
 		{
 			return ((value * Ratio::num) / Ratio::den);
@@ -1532,7 +1532,7 @@ namespace units
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
 		// constepxr with PI in numerator
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr
 		std::enable_if_t<(PiRatio::num / PiRatio::den >= 1 && PiRatio::num % PiRatio::den == 0), T>
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
@@ -1542,7 +1542,7 @@ namespace units
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in denominator
 		// constexpr with PI in denominator
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr
 		std::enable_if_t<(PiRatio::num / PiRatio::den <= -1 && PiRatio::num % PiRatio::den == 0), T>
  		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
@@ -1552,7 +1552,7 @@ namespace units
 
 		/// convert dispatch for units of different types w/ no translation, but has PI in numerator
 		// Not constexpr - uses std::pow
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline // sorry, this can't be constexpr!
 		std::enable_if_t<(PiRatio::num / PiRatio::den < 1 && PiRatio::num / PiRatio::den > -1), T>
 		convert(const T& value, std::false_type, std::true_type, std::false_type) noexcept
@@ -1561,14 +1561,14 @@ namespace units
 		}
 
 		/// convert dispatch for units of different types with a translation, but no PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, std::false_type, std::false_type, std::true_type) noexcept
 		{
 			return ((value * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
 		}
 
 		/// convert dispatch for units of different types with a translation AND PI
-		template<class UnitFrom, class UnitTo, class Ratio, class PiRatio, class Translation, typename T>
+		template<class Ratio, class PiRatio, class Translation, typename T>
 		static inline constexpr T convert(const T& value, const std::false_type, const std::true_type, const std::true_type) noexcept
 		{
 			return ((value * std::pow(constants::detail::PI_VAL, PiRatio::num / PiRatio::den) * Ratio::num) / Ratio::den) + (static_cast<UNIT_LIB_DEFAULT_TYPE>(Translation::num) / Translation::den);
@@ -1606,7 +1606,7 @@ namespace units
 		using piRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, PiRatio>::value)>;
 		using translationRequired = std::integral_constant<bool, !(std::is_same<std::ratio<0>, Translation>::value)>;
 
-		return units::detail::convert<UnitFrom, UnitTo, Ratio, PiRatio, Translation, T>
+		return units::detail::convert<Ratio, PiRatio, Translation, T>
 			(value, isSame{}, piRequired{}, translationRequired{});
 	}
 
