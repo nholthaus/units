@@ -2289,7 +2289,7 @@ namespace units
 
 	// unary addition: +T
 	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit_t<Units, T, NonLinearScale> operator+(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	constexpr inline unit_t<Units, T, NonLinearScale> operator+(const unit_t<Units, T, NonLinearScale>& u) noexcept
 	{
 		return u;
 	}
@@ -2313,7 +2313,7 @@ namespace units
 
 	// unary addition: -T
 	template<class Units, typename T, template<typename> class NonLinearScale>
-	inline unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& u) noexcept
+	constexpr inline unit_t<Units, T, NonLinearScale> operator-(const unit_t<Units, T, NonLinearScale>& u) noexcept
 	{
 		return unit_t<Units, T, NonLinearScale>(-u());
 	}
