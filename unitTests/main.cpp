@@ -2817,9 +2817,9 @@ TEST_F(UnitMath, pow)
 	bool isSame;
 	meter_t value(10.0);
 
-	auto sqrt = pow<-2>(value);
-	EXPECT_NEAR(0.01, sqrt(), 5.0e-5);
-	isSame = std::is_same<decltype(sqrt), unit_t<inverse<square_meter>>>::value;
+	auto inv_sq = pow<-2>(value);
+	EXPECT_NEAR(0.01, inv_sq(), 5.0e-5);
+	isSame = std::is_same<decltype(inv_sq), unit_t<inverse<square_meter>>>::value;
 	EXPECT_TRUE(isSame);
 
 	auto inv = pow<-1>(value);
