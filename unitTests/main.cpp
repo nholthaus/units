@@ -3036,9 +3036,10 @@ TEST_F(Constexpr, realtional)
 
 TEST_F(Constexpr, stdArray)
 {
-	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
-	constexpr bool equal = (arr[3] == 3_m);
-	EXPECT_TRUE(equal);
+	constexpr std::array<meter_t, 3> arr = { -5_m, 0_m, 3_m };
+	EXPECT_EQ(arr[0], -5_m);
+	EXPECT_EQ(arr[1], 0_m);
+	EXPECT_EQ(arr[2], 3_m);
 }
 
 #endif
