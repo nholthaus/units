@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 
 cache: 
@@ -19,8 +19,8 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.9
-      - g++-4.9
+      - gcc-5
+      - g++-5
       - clang
 
 branches:
@@ -36,7 +36,7 @@ env:
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq lcov curl language-pack-de
-  - if [[ "$CXX" = "g++" ]]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [[ "$CXX" = "g++" ]]; then export CXX="g++-5" CC="gcc-5"; fi
   - pwd
   - ls
   - if [[ ! -f "cmake-3.4.3-Linux-x86_64/bin/cmake" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz && tar -xvf cmake-3.4.3-Linux-x86_64.tar.gz; fi
