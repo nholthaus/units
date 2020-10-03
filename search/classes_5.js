@@ -1,12 +1,4 @@
 var searchData=
 [
-  ['unit',['unit',['../structunits_1_1unit.html',1,'units']]],
-  ['unit_5ft',['unit_t',['../classunits_1_1unit__t.html',1,'units']]],
-  ['unit_5fvalue_5fadd',['unit_value_add',['../structunits_1_1unit__value__add.html',1,'units']]],
-  ['unit_5fvalue_5fdivide',['unit_value_divide',['../structunits_1_1unit__value__divide.html',1,'units']]],
-  ['unit_5fvalue_5fmultiply',['unit_value_multiply',['../structunits_1_1unit__value__multiply.html',1,'units']]],
-  ['unit_5fvalue_5fpower',['unit_value_power',['../structunits_1_1unit__value__power.html',1,'units']]],
-  ['unit_5fvalue_5fsqrt',['unit_value_sqrt',['../structunits_1_1unit__value__sqrt.html',1,'units']]],
-  ['unit_5fvalue_5fsubtract',['unit_value_subtract',['../structunits_1_1unit__value__subtract.html',1,'units']]],
-  ['unit_5fvalue_5ft',['unit_value_t',['../structunits_1_1unit__value__t.html',1,'units']]]
+  ['numeric_5flimits_3c_20units_3a_3aunit_5ft_3c_20units_2c_20t_2c_20nonlinearscale_20_3e_20_3e_325',['numeric_limits&lt; units::unit_t&lt; Units, T, NonLinearScale &gt; &gt;',['../classstd_1_1numeric__limits_3_01units_1_1unit__t_3_01_units_00_01_t_00_01_non_linear_scale_01_4_01_4.html',1,'std']]]
 ];
