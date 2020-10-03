@@ -96,7 +96,7 @@ namespace
 	constexpr auto has_equivalent_conversion_factor = [](const auto& t, const auto& u) {
 		using T = std::decay_t<decltype(t)>;
 		using U = std::decay_t<decltype(u)>;
-		return units::traits::is_convertible_unit_v<T, U> &&
+		return units::traits::is_same_dimension_unit_v<T, U> &&
 			std::ratio_equal_v<typename T::conversion_factor::conversion_ratio,
 				typename U::conversion_factor::conversion_ratio>;
 	};
@@ -191,20 +191,20 @@ TEST_F(TypeTraits, unit_traits)
 	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meter_t<double>>::value_type>));
 }
 
-TEST_F(TypeTraits, is_same_dimension)
+TEST_F(TypeTraits, is_same_dimension_conversion_factor)
 {
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, astronomical_units>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, parsecs>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meters, astronomical_units>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meters, parsecs>));
 
-	EXPECT_TRUE((traits::is_same_dimension_v<meters, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_units, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<parsecs, meters>));
-	EXPECT_TRUE((traits::is_same_dimension_v<years, weeks>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meters, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<astronomical_units, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<parsecs, meters>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<years, weeks>));
 
-	EXPECT_FALSE((traits::is_same_dimension_v<meters, seconds>));
-	EXPECT_FALSE((traits::is_same_dimension_v<seconds, meters>));
-	EXPECT_FALSE((traits::is_same_dimension_v<years, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<meters, seconds>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<seconds, meters>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<years, meters>));
 }
 
 TEST_F(TypeTraits, inverse)
@@ -905,7 +905,7 @@ TEST_F(UnitManipulators, square_root)
 	double test;
 
 	test = meter_t<double>(unit<square_root<square_kilometer>>(1.0))();
-	EXPECT_TRUE((traits::is_convertible_unit_v<square_root<square_kilometer>, kilometer>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<square_root<square_kilometer>, kilometer>));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
 
@@ -3123,7 +3123,7 @@ TEST_F(ConversionFactor, velocity)
 
 	same = std::is_same_v<meters_per_second, traits::strong_t<conversion_factor<std::ratio<1>, dimension::velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<miles_per_hour, meters_per_second>;
+	same = traits::is_same_dimension_conversion_factor_v<miles_per_hour, meters_per_second>;
 	EXPECT_TRUE(same);
 
 	test = miles_per_hour_t<double>(meters_per_second_t<double>(1250.0))();
@@ -3146,7 +3146,7 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<rpm, radians_per_second>;
+	same = traits::is_same_dimension_conversion_factor_v<rpm, radians_per_second>;
 	EXPECT_TRUE(same);
 
 	test = milliarcseconds_per_year_t<double>(radians_per_second_t<double>(1.0))();
@@ -4203,8 +4203,8 @@ TEST_F(UnitMath, hypot)
 	EXPECT_NEAR(
 		meter_t<double>(5.0).to<double>(), (hypot(meter_t<double>(3.0), meter_t<double>(4.0))).to<double>(), 5.0e-9);
 
-	static_assert(
-		traits::is_convertible_unit_v<foot_t<double>, decltype(hypot(foot_t<double>(3.0), meter_t<double>(1.2192)))>);
+	static_assert(traits::is_same_dimension_unit_v<foot_t<double>,
+		decltype(hypot(foot_t<double>(3.0), meter_t<double>(1.2192)))>);
 	EXPECT_NEAR(foot_t<double>(5.0).to<double>(),
 		foot_t<double>(hypot(foot_t<double>(3.0), meter_t<double>(1.2192))).to<double>(), 5.0e-9);
 }
