@@ -1885,24 +1885,27 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which checks whether two conversion factors have the same dimension
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_same_dimension_v<Cf1, Cf2>` to test
-		 *				whether the conversion factors `Cf1` and `Cf2` have the same dimension.
-		 *				Note: convertible has both the semantic meaning, (i.e. meters can be converted to feet),
-		 *				and the c++ meaning of conversion (type meters can be converted to type feet).
-		 * @tparam		Cf1 Unit to convert from.
-		 * @tparam		Cf2 Unit to convert to.
-		 * @sa			is_convertible_unit
+		 * @brief		`BinaryTypeTrait` for querying whether `Cf1` and `Cf2`
+		 *				are conversion factors to the same dimension.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_same_dimension_conversion_factor_v<Cf1, Cf2>` to test whether `Cf1` and `Cf2`
+		 *				are conversion factors to the same dimension.
+		 * @tparam		Cf1 Conversion factor to query.
+		 * @tparam		Cf2 Conversion factor to query.
+		 * @sa			is_same_dimension_unit
 		 */
 		template<class Cf1, class Cf2>
-		struct is_same_dimension
-		  : std::is_same<traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
-				traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>::type
+		struct is_same_dimension_conversion_factor
+		  : std::conjunction<is_conversion_factor<Cf1>, is_conversion_factor<Cf2>,
+				std::is_same<
+					traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
+					traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>>
 		{
 		};
 
 		template<class Cf1, class Cf2>
-		inline constexpr bool is_same_dimension_v = is_same_dimension<Cf1, Cf2>::value;
+		inline constexpr bool is_same_dimension_conversion_factor_v =
+			is_same_dimension_conversion_factor<Cf1, Cf2>::value;
 	} // namespace traits
 
 	//------------------------------
@@ -1981,25 +1984,13 @@ namespace units
 	};
 	inline constexpr linearized_value_t linearized_value{};
 
-	/** @cond */ // DOXYGEN IGNORE
-	namespace detail
-	{
-		/**
-		 * @brief		SFINAE helper to test that types are `conversion_factor`s of the same dimension.
-		 */
-		template<class Cf1, class Cf2>
-		inline constexpr bool is_same_dimension = traits::is_conversion_factor_v<Cf1>&&
-			traits::is_conversion_factor_v<Cf2>&& traits::is_same_dimension_v<Cf1, Cf2>;
-	}               // namespace detail
-	/** @endcond */ // END DOXYGEN IGNORE
-
 	/**
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from an unit to another.
 	 * @details		Converts a <i>value</i> of an arithmetic type to another unit. E.g. @code double result =
 	 *				convert<meters, feet>(1.0);	// result == 3.28084 @endcode Intermediate computations
 	 *				are carried in the widest representation before being converted to `To`.
-	 *				`is_same_dimension_v<ConversionFactorFrom, ConversionFactorTo>` shall be `true`.
+	 *				`is_same_dimension_conversion_factor_v<ConversionFactorFrom, ConversionFactorTo>` shall be `true`.
 	 * @sa			unit	for implicit conversion of units.
 	 * @tparam		ConversionFactorFrom conversion factor of the unit to convert <i>value</i> from.
 	 *				`is_conversion_factor_v<ConversionFactorFrom>` shall be `true`.
@@ -2013,7 +2004,7 @@ namespace units
 	 *				The value represents a quantity in units of `ConverionFactorTo`.
 	 */
 	template<class ConversionFactorFrom, class ConversionFactorTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From,
-		std::enable_if_t<detail::is_same_dimension<ConversionFactorFrom, ConversionFactorTo> &&
+		std::enable_if_t<traits::is_same_dimension_conversion_factor_v<ConversionFactorFrom, ConversionFactorTo> &&
 				std::is_arithmetic_v<To> && std::is_arithmetic_v<From>,
 			int> = 0>
 	constexpr To convert(const From& value) noexcept
@@ -2116,19 +2107,19 @@ namespace units
 		 *				`conversion_factor` (-Winjected-class-name).
 		 */
 		template<class UnitFrom, class UnitTo>
-		struct delayed_is_same_dimension : std::false_type
+		struct delayed_is_same_dimension_conversion_factor : std::false_type
 		{
 			static constexpr bool value =
-				traits::is_same_dimension_v<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>;
+				traits::is_same_dimension_conversion_factor_v<typename UnitFrom::conversion_factor,
+					typename UnitTo::conversion_factor>;
 		};
+	} // namespace detail
 
-		/**
-		 * @brief		SFINAE helper to test that types are convertible `unit`s.
-		 */
-		template<class From, class To>
-		inline constexpr bool is_convertible_unit =
-			std::conjunction_v<traits::is_unit<From>, traits::is_unit<To>, delayed_is_same_dimension<From, To>>;
-	}               // namespace detail
+	namespace traits
+	{
+		template<class U1, class U2>
+		struct is_same_dimension_unit;
+	}               // namespace traits
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	/**
@@ -2137,13 +2128,14 @@ namespace units
 	 * @details		Converts the value of an unit to another unit. E.g. @code meter_t result =
 	 *				convert<meters>(foot_t(1.0));	// result == 3.28084_m @endcode Intermediate
 	 *				computations are carried in the widest representation before being converted to `UnitTo`.
-	 *				`is_convertible_unit_v<UnitFrom, UnitTo>` shall be `true`.
+	 *				`is_same_dimension_unit_v<UnitFrom, UnitTo>` shall be `true`.
 	 * @sa			unit	for implicit conversion of unit containers.
 	 * @tparam		UnitFrom unit to convert to `UnitTo`. `is_unit_v<UnitFrom>` shall be `true`.
 	 * @tparam		UnitTo unit to convert `from` to. `is_unit_v<UnitTo>` shall be `true`.
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitTo, class UnitFrom, std::enable_if_t<detail::is_convertible_unit<UnitFrom, UnitTo>, int> = 0>
+	template<class UnitTo, class UnitFrom,
+		std::enable_if_t<traits::is_same_dimension_unit<UnitFrom, UnitTo>::value, int> = 0>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
 		return UnitTo(convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor,
@@ -2255,22 +2247,24 @@ namespace units
 	{
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether two container types derived from `unit` are convertible to each other
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_convertible_unit_v<U1, U2>` to test
-		 *				whether `class U1` is convertible to `class U2`. Note: convertible has both the semantic
-		 *				meaning, (i.e. meters can be converted to feet), and the c++ meaning of conversion (type meters
-		 *				can be converted to type feet). Conversion is always symmetric, so if U1 is convertible to U2,
-		 *				then U2 will be convertible to U1.
-		 * @tparam		U1 Unit to convert from.
-		 * @tparam		U2 Unit to convert to.
-		 * @sa			is_convertible_conversion_factor
+		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are units of the same dimension.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
+		 *				Use `is_same_dimension_unit_v<U1, U2>` to test whether `U1` and `U2`
+		 *				are units of the same dimension.
+		 * @tparam		U1 Unit to query.
+		 * @tparam		U2 Unit to query.
+		 * @sa			is_same_dimension_conversion_factor
 		 */
 		template<class U1, class U2>
-		using is_convertible_unit = is_same_dimension<typename units::traits::unit_traits<U1>::conversion_factor,
-			typename units::traits::unit_traits<U2>::conversion_factor>;
+		struct is_same_dimension_unit
+		  : std::conjunction<is_unit<U1>, is_unit<U2>,
+				is_same_dimension_conversion_factor<typename units::traits::unit_traits<U1>::conversion_factor,
+					typename units::traits::unit_traits<U2>::conversion_factor>>
+		{
+		};
 
 		template<class U1, class U2>
-		inline constexpr bool is_convertible_unit_v = is_convertible_unit<U1, U2>::value;
+		inline constexpr bool is_same_dimension_unit_v = is_same_dimension_unit<U1, U2>::value;
 
 		/** @cond */ // DOXYGEN IGNORE
 		namespace detail
@@ -2343,7 +2337,7 @@ namespace units
 		 */
 		template<class UnitFrom, class UnitTo>
 		inline constexpr bool is_losslessly_convertible_unit =
-			std::conjunction_v<traits::is_convertible_unit<UnitFrom, UnitTo>,
+			std::conjunction_v<traits::is_same_dimension_unit<UnitFrom, UnitTo>,
 				std::disjunction<std::is_floating_point<typename UnitTo::underlying_type>,
 					std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
 						detail::is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor,
@@ -2354,7 +2348,8 @@ namespace units
 		 */
 		template<class ConversionFactor>
 		inline constexpr bool is_time_conversion_factor =
-			traits::is_same_dimension_v<ConversionFactor, conversion_factor<std::ratio<1>, dimension::time>>;
+			traits::is_same_dimension_conversion_factor_v<ConversionFactor,
+				conversion_factor<std::ratio<1>, dimension::time>>;
 
 		/**
 		 * @brief		helper type to identify units.
@@ -2864,7 +2859,7 @@ namespace std
 	template<class ConversionFactorLhs, class Tx, class ConversionFactorRhs, class Ty, class NumericalScale>
 	struct common_type<units::unit<ConversionFactorLhs, Tx, NumericalScale>,
 		units::unit<ConversionFactorRhs, Ty, NumericalScale>>
-	  : std::enable_if<units::traits::is_same_dimension_v<ConversionFactorLhs, ConversionFactorRhs>,
+	  : std::enable_if<units::traits::is_same_dimension_conversion_factor_v<ConversionFactorLhs, ConversionFactorRhs>,
 			units::unit<units::traits::strong_t<units::conversion_factor<
 							units::detail::ratio_gcd<typename ConversionFactorLhs::conversion_ratio,
 								typename ConversionFactorRhs::conversion_ratio>,
@@ -3161,7 +3156,7 @@ namespace units
 
 	/// Addition operator for unit types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(
@@ -3199,7 +3194,7 @@ namespace units
 
 	/// Subtraction operator for unit types with a linear_scale.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator-(
@@ -3238,7 +3233,7 @@ namespace units
 	/// Multiplication type for convertible unit types with a linear scale. @returns the multiplied value, with the same
 	/// type as left-hand side unit.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3254,7 +3249,7 @@ namespace units
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose
 	/// type is a compound unit of the left and right hand side values.
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<!traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
@@ -3319,7 +3314,7 @@ namespace units
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a
 	/// dimensionless
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr dimensionless<
@@ -3333,7 +3328,7 @@ namespace units
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
 	/// compound unit type of lhs/rhs
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<!traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<!traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
@@ -3402,7 +3397,7 @@ namespace units
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
 	/// is their common type
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr traits::replace_underlying_t<UnitTypeLhs,
@@ -3657,7 +3652,7 @@ namespace units
 
 	/// Addition for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3699,7 +3694,7 @@ namespace units
 
 	/// Subtraction for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
@@ -3762,7 +3757,7 @@ namespace units
 	//----------------------------------
 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using CommonUnit = decltype(units::min(lhs, rhs));
@@ -3770,7 +3765,7 @@ namespace units
 	}
 
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using CommonUnit = decltype(units::max(lhs, rhs));
@@ -3945,7 +3940,7 @@ namespace units
 	 *				as x.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs> &&
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(
@@ -3994,9 +3989,7 @@ namespace units
 	 * @returns		The remainder of dividing the arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
@@ -4074,9 +4067,7 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4093,9 +4084,7 @@ namespace units
 	 * @returns		The maximum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4113,9 +4102,7 @@ namespace units
 	 * @returns		The minimum numeric value of its arguments.
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs,
-		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs> &&
-				traits::is_convertible_unit_v<UnitTypeLhs, UnitTypeRhs>,
-			int> = 0>
+		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
@@ -4166,7 +4153,7 @@ namespace units
 	template<class UnitTypeLhs, class UnitMultiply, class UnitAdd,
 		std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitMultiply> &&
 				traits::is_unit_v<UnitAdd> &&
-				traits::is_same_dimension_v<
+				traits::is_same_dimension_conversion_factor_v<
 					compound_conversion_factor<typename units::traits::unit_traits<UnitTypeLhs>::conversion_factor,
 						typename units::traits::unit_traits<UnitMultiply>::conversion_factor>,
 					typename units::traits::unit_traits<UnitAdd>::conversion_factor>,
