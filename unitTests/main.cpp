@@ -227,8 +227,9 @@ TEST_F(TypeTraits, strong)
 {
 	EXPECT_TRUE(
 		(std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
-	EXPECT_TRUE((std::is_same_v<meter_conversion_factor,
-		traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
+//	std::cout << decltype(traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>{});
+//	std::cout << decltype(traits::strong_t<kilo<traits::strong_t<meter_conversion_factor>>>{});
+	EXPECT_TRUE((std::is_same_v<meter_conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
 	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter_conversion_factor>>>));
 	EXPECT_TRUE((std::is_same_v<square_meter_conversion_factor, traits::strong_t<squared<meter_conversion_factor>>>));
 }

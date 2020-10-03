@@ -517,18 +517,8 @@ namespace units
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/ \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`. \ \ \ \ \ \ \ \ \
-	 *\ \
-	 *\ \ \
-	 *\ \ \ \
-	 *\ \ \ \ \
-	 *\ \ \ \ \ \
-	 *\ \ \ \ \ \ \
-	 *\ \ \ \ \ \ \ \
-	 *\ \ \ \ \ \ \ \ \
-	 *\ \ \ \ \ \ \ \ \ \
-	 *\ \ \ \ \ \ \ \ \ Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension \ \ \ \ \ \
-	 *\ \ \ \ quantity.*/ \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/ \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	type to test*/ \
 	namespace traits \
 	{ \
@@ -561,7 +551,7 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##nameSingular##, femto##namePlural, f##abbreviation, femto<nameSingular##_t>) \
+	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular##_t>) \
 	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular##_t>) \
 	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular##_t>) \
 	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular##_t>) \
@@ -882,11 +872,10 @@ namespace units
 		 *					strong type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member.
 		 *					This may be specialized only if `T` depends on a program-defined type.
 		 */
-		template<class T>
-		struct strong
-		  : std::enable_if<(is_conversion_factor_v<T> || is_unit<T>::value) && std::is_same_v<T, std::remove_cv_t<T>>,
-				T>
+		template<class T, class = std::enable_if<(is_conversion_factor_v<T> || is_unit<T>::value) && std::is_same_v<T, std::remove_cv_t<T>>>>
+		struct strong : T
 		{
+			typedef T type;
 		};
 
 		template<class T>
@@ -2525,9 +2514,7 @@ namespace units
 			std::enable_if_t<detail::is_time_conversion_factor<Cf> && detail::is_losslessly_convertible<Rep, T>, int> =
 				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(NumericalScale::linearize(
-				units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))
-					.value()))
+		  : linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count())).linearized_value)
 		{
 		}
 
@@ -3621,7 +3608,7 @@ namespace units
 		template<class T>
 		static T linearize(const T value) noexcept
 		{
-			return std::pow(10, value / 10);
+			return static_cast<T>(std::pow(10, value / 10));
 		}
 
 		/**
@@ -3633,7 +3620,7 @@ namespace units
 		template<class T>
 		static T scale(const T value) noexcept
 		{
-			return 10 * std::log10(value);
+			return static_cast<T>(10 * std::log10(value));
 		}
 	};
 
