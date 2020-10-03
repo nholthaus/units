@@ -32,6 +32,10 @@ bld/
 [Bb]uild*/
 [Mm][Ss][Vv][Cc]*
 [Gg][Cc][Cc]*
+cmake-build*
+
+#CLion
+.idea/
 
 #Visual studio code
 .vscode
