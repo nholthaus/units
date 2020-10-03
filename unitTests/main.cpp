@@ -96,7 +96,7 @@ namespace
 	constexpr auto has_equivalent_conversion_factor = [](const auto& t, const auto& u) {
 		using T = std::decay_t<decltype(t)>;
 		using U = std::decay_t<decltype(u)>;
-		return units::traits::is_convertible_unit_v<T, U> &&
+		return units::traits::is_same_dimension_unit_v<T, U> &&
 			std::ratio_equal_v<typename T::conversion_factor::conversion_ratio,
 				typename U::conversion_factor::conversion_ratio>;
 	};
@@ -192,20 +192,20 @@ TEST_F(TypeTraits, unit_traits)
 	EXPECT_TRUE((std::is_same_v<double, traits::unit_traits<meters<double>>::value_type>));
 }
 
-TEST_F(TypeTraits, is_same_dimension)
+TEST_F(TypeTraits, is_same_dimension_conversion_factor)
 {
-	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, meter_conversion_factor>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, astronomical_unit_conversion_factor>));
-	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, parsec_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meter_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meter_conversion_factor, astronomical_unit_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meter_conversion_factor, parsec_conversion_factor>));
 
-	EXPECT_TRUE((traits::is_same_dimension_v<meter_conversion_factor, meter_conversion_factor>));
-	EXPECT_TRUE((traits::is_same_dimension_v<astronomical_unit_conversion_factor, meter_conversion_factor>));
-	EXPECT_TRUE((traits::is_same_dimension_v<parsec_conversion_factor, meter_conversion_factor>));
-	EXPECT_TRUE((traits::is_same_dimension_v<year_conversion_factor, week_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<meter_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<astronomical_unit_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<parsec_conversion_factor, meter_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<year_conversion_factor, week_conversion_factor>));
 
-	EXPECT_FALSE((traits::is_same_dimension_v<meter_conversion_factor, second_conversion_factor>));
-	EXPECT_FALSE((traits::is_same_dimension_v<second_conversion_factor, meter_conversion_factor>));
-	EXPECT_FALSE((traits::is_same_dimension_v<year_conversion_factor, meter_conversion_factor>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<meter_conversion_factor, second_conversion_factor>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<second_conversion_factor, meter_conversion_factor>));
+	EXPECT_FALSE((traits::is_same_dimension_conversion_factor_v<year_conversion_factor, meter_conversion_factor>));
 }
 
 TEST_F(TypeTraits, inverse)
@@ -785,8 +785,7 @@ TEST_F(UnitManipulators, square_root)
 	double test;
 
 	test = meters<double>(unit<square_root<square_kilometer_conversion_factor>>(1.0)).value();
-	EXPECT_TRUE(
-		(traits::is_convertible_unit_v<square_root<square_kilometer_conversion_factor>, kilometer_conversion_factor>));
+	EXPECT_TRUE((traits::is_same_dimension_conversion_factor_v<square_root<square_kilometer_conversion_factor>, kilometer_conversion_factor>));
 	EXPECT_NEAR(1000.0, test, 5.0e-13);
 }
 
@@ -2999,7 +2998,8 @@ TEST_F(ConversionFactor, velocity)
 	same = std::is_same_v<meters_per_second_conversion_factor,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::velocity>>>;
 	EXPECT_TRUE(same);
-	same = traits::is_convertible_unit_v<miles_per_hour_conversion_factor, meters_per_second_conversion_factor>;
+
+	same = traits::is_same_dimension_conversion_factor_v<miles_per_hour_conversion_factor, meters_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
 	test = miles_per_hour<double>(meters_per_second<double>(1250.0)).value();
@@ -3022,8 +3022,8 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second_conversion_factor,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-	same =
-		traits::is_convertible_unit_v<revolutions_per_minute_conversion_factor, radians_per_second_conversion_factor>;
+  
+	same = traits::is_same_dimension_conversion_factor_v<revolutions_per_minute_conversion_factor, radians_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
 	test = milliarcseconds_per_year<double>(radians_per_second<double>(1.0)).value();
@@ -4072,7 +4072,7 @@ TEST_F(UnitMath, hypot)
 		meters<double>(5.0).to<double>(), (hypot(meters<double>(3.0), meters<double>(4.0))).to<double>(), 5.0e-9);
 
 	static_assert(
-		traits::is_convertible_unit_v<feet<double>, decltype(hypot(feet<double>(3.0), meters<double>(1.2192)))>);
+		traits::is_same_dimension_unit_v<feet<double>, decltype(hypot(feet<double>(3.0), meters<double>(1.2192)))>);
 	EXPECT_NEAR(feet<double>(5.0).to<double>(),
 		feet<double>(hypot(feet<double>(3.0), meters<double>(1.2192))).to<double>(), 5.0e-9);
 }
