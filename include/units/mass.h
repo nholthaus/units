@@ -59,14 +59,14 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(mass, gram, grams, g, conversion_factor<std::ratio<1, 1000>, units::dimension::mass>)
-	UNIT_ADD(mass, metric_ton, metric_tons, t, conversion_factor<std::ratio<1000>, kilogram_t>)
-	UNIT_ADD(mass, pound, pounds, lb, conversion_factor<std::ratio<45359237, 100000000>, kilogram_t>)
-	UNIT_ADD(mass, long_ton, long_tons, ln_t, conversion_factor<std::ratio<2240>, pound_t>)
-	UNIT_ADD(mass, short_ton, short_tons, sh_t, conversion_factor<std::ratio<2000>, pound_t>)
-	UNIT_ADD(mass, stone, stone, st, conversion_factor<std::ratio<14>, pound_t>)
-	UNIT_ADD(mass, ounce, ounces, oz, conversion_factor<std::ratio<1, 16>, pound_t>)
-	UNIT_ADD(mass, carat, carats, ct, conversion_factor<std::ratio<200>, milligram_t>)
-	UNIT_ADD(mass, slug, slugs, slug, conversion_factor<std::ratio<145939029, 10000000>, kilogram_t>)
+	UNIT_ADD(mass, metric_ton, metric_tons, t, conversion_factor<std::ratio<1000>, kilogram_conversion_factor>)
+	UNIT_ADD(mass, pound, pounds, lb, conversion_factor<std::ratio<45359237, 100000000>, kilogram_conversion_factor>)
+	UNIT_ADD(mass, long_ton, long_tons, ln_conversion_factor, conversion_factor<std::ratio<2240>, pound_conversion_factor>)
+	UNIT_ADD(mass, short_ton, short_tons, sh_conversion_factor, conversion_factor<std::ratio<2000>, pound_conversion_factor>)
+	UNIT_ADD(mass, stone, stone, st, conversion_factor<std::ratio<14>, pound_conversion_factor>)
+	UNIT_ADD(mass, ounce, ounces, oz, conversion_factor<std::ratio<1, 16>, pound_conversion_factor>)
+	UNIT_ADD(mass, carat, carats, ct, conversion_factor<std::ratio<200>, milligram_conversion_factor>)
+	UNIT_ADD(mass, slug, slugs, slug, conversion_factor<std::ratio<145939029, 10000000>, kilogram_conversion_factor>)
 
 	UNIT_ADD_DIMENSION_TRAIT(mass)
 } // namespace units

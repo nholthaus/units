@@ -216,10 +216,10 @@ TEST_F(TypeTraits, inverse)
 	bool shouldBeTrue = std::is_same_v<htz, hertz_conversion_factor>;
 	EXPECT_TRUE(shouldBeTrue);
 
-	test = unit<inverse<fahrenheit_t>>(unit<inverse<celsius_t>>(1.0)).value();
+	test = unit<inverse<fahrenheit_conversion_factor>>(unit<inverse<celsius_conversion_factor>>(1.0)).value();
 	EXPECT_NEAR(5.0 / 9.0, test, 5.0e-5);
 
-	test = unit<inverse<fahrenheit_t>>(unit<inverse<kelvin_t>>(6.0)).value();
+	test = unit<inverse<fahrenheit_conversion_factor>>(unit<inverse<kelvin_conversion_factor>>(6.0)).value();
 	EXPECT_NEAR(10.0 / 3.0, test, 5.0e-5);
 }
 
@@ -227,7 +227,7 @@ TEST_F(TypeTraits, strong)
 {
 	EXPECT_TRUE((std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
 	EXPECT_TRUE((std::is_same_v<meter_conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
-	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter_t>>>));
+	EXPECT_TRUE((std::is_same_v<kilometer_conversion_factor, traits::strong_t<kilo<meter_conversion_factor>>>));
 	EXPECT_TRUE((std::is_same_v<square_meter_conversion_factor, traits::strong_t<squared<meter_conversion_factor>>>));
 }
 
@@ -752,7 +752,7 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<kilometers<int>>()(kilometers<int>(42))), 42);
 
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
-	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
+	EXPECT_EQ((std::hash<unit<dimensionless_unit, double>>()(3.14)), std::hash<double>()(3.14));
 	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
 
 	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW(2.0).to_linearized()));
@@ -1363,7 +1363,7 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	meter_base b_m;
 
 	using squared_meter = square_meters<int>;
-	using inverse_meter = unit<inverse<units::meter_t>, int>;
+	using inverse_meter = unit<inverse<meter_conversion_factor>, int>;
 
 	static_assert(std::is_same_v<dimless, decltype(+dim)>);
 	static_assert(std::is_same_v<dimless_base, decltype(+base)>);
@@ -1822,7 +1822,7 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 	unit<inverse<meter_conversion_factor>> i_m(2.0);
 	const meters<int> b_m(1);
 	const std::common_type_t<meters<int>, feet<int>> f(b_m);
-	const unit<inverse<meter_t>, int> i_i_m(2);
+	const unit<inverse<meter_conversion_factor>, int> i_i_m(2);
 
 	// resultant unit is square of the common type unit
 	// you can get whatever (compatible) type you want if you ask explicitly
@@ -1902,11 +1902,11 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 
 	auto mps = meters<double>(10.0) * unit<inverse<second_conversion_factor>>(1.0);
 	EXPECT_EQ(mps, meters_per_second<double>(10));
-	mps = meters<int>(10) * unit<inverse<second_t>, int>(1);
+	mps = meters<int>(10) * unit<inverse<second_conversion_factor>, int>(1);
 	EXPECT_EQ(mps, meters_per_second<double>(10));
-	mps = meters<double>(10.0) * unit<inverse<second_t>, int>(1);
+	mps = meters<double>(10.0) * unit<inverse<second_conversion_factor>, int>(1);
 	EXPECT_EQ(mps, meters_per_second<double>(10));
-	mps = meters<int>(10) * unit<inverse<second_t>>(1.0);
+	mps = meters<int>(10) * unit<inverse<second_conversion_factor>>(1.0);
 	EXPECT_EQ(mps, meters_per_second<double>(10));
 }
 
@@ -2427,13 +2427,6 @@ TEST_F(UnitType, convertMethod)
 {
 	double test = meters<double>(3.0).convert<foot_conversion_factor>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
-}
-
-TEST_F(UnitType, unit_tSyntax)
-{
-	EXPECT_TRUE((std::is_same_v<meter_t, meters<double>>));
-	EXPECT_FALSE((std::is_same_v<meter_t, meters<int>>));
-	EXPECT_FALSE((std::is_same_v<meter_t, feet<int>>));
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
@@ -4206,11 +4199,11 @@ TEST_F(Constexpr, arithmetic)
 	[[maybe_unused]] constexpr auto result1(1.0_m - 1.0_m);
 	[[maybe_unused]] constexpr auto result2(1.0_m * 1.0_m);
 	[[maybe_unused]] constexpr auto result3(1.0_m / 1.0_m);
-	[[maybe_unused]] constexpr auto result4(meters<double>(1) + meters<double>(1));
-	[[maybe_unused]] constexpr auto result5(meters<double>(1) - meters<double>(1));
-	[[maybe_unused]] constexpr auto result6(meters<double>(1) * meters<double>(1));
-	[[maybe_unused]] constexpr auto result7(meters<double>(1) / meters<double>(1));
-	[[maybe_unused]] constexpr auto result8(pow<2>(meters<double>(2)));
+	[[maybe_unused]] constexpr auto result4(meters(1) + meters(1));
+	[[maybe_unused]] constexpr auto result5(meters(1) - meters(1));
+	[[maybe_unused]] constexpr auto result6(meters(1) * meters(1));
+	[[maybe_unused]] constexpr auto result7(meters(1) / meters(1));
+	[[maybe_unused]] constexpr auto result8(pow<2>(meters(2)));
 	constexpr auto result9  = pow<3>(2.0_m);
 	constexpr auto result10 = 2.0_m * 2.0_m;
 
@@ -4218,10 +4211,10 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(1.0_m - 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m * 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m / 1.0_m));
-	EXPECT_TRUE(noexcept(meters<double>(1) + meters<double>(1)));
-	EXPECT_TRUE(noexcept(meters<double>(1) - meters<double>(1)));
-	EXPECT_TRUE(noexcept(meters<double>(1) * meters<double>(1)));
-	EXPECT_TRUE(noexcept(meters<double>(1) / meters<double>(1)));
+	EXPECT_TRUE(noexcept(meters(1) + meters(1)));
+	EXPECT_TRUE(noexcept(meters(1) - meters(1)));
+	EXPECT_TRUE(noexcept(meters(1) * meters(1)));
+	EXPECT_TRUE(noexcept(meters(1) / meters(1)));
 	EXPECT_TRUE(noexcept(pow<2>(meters<double>(2))));
 	EXPECT_TRUE(noexcept(pow<3>(2.0_m)));
 	EXPECT_TRUE(noexcept(2.0_m * 2.0_m));
@@ -4242,7 +4235,7 @@ TEST_F(Constexpr, assignment)
 {
 	auto testConstexpr = []() constexpr noexcept
 	{
-		meters<double> m{42};
+		meters m{42.};
 		+m;
 		-m;
 		++m;
@@ -4297,23 +4290,23 @@ TEST_F(Constexpr, stdArray)
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-	watts<double> P_t;           // transmit power
-	dimensionless<double> G;     // gain
-	meters<double> lambda;       // wavelength
-	square_meters<double> sigma; // radar cross section
-	meters<double> R;            // range
-	kelvin<double> T_s;          // system noise temp
-	hertz<double> B_n;           // bandwidth
-	dimensionless<double> L;     // loss
+	watts P_t;           // transmit power
+	dimensionless G;     // gain
+	meters lambda;       // wavelength
+	square_meters sigma; // radar cross section
+	meters R;            // range
+	kelvin T_s;          // system noise temp
+	hertz B_n;           // bandwidth
+	dimensionless L;     // loss
 
-	P_t    = megawatts<double>(1.4);
-	G      = dB<double>(33.0);
-	lambda = constants::c / megahertz<double>(2800);
-	sigma  = square_meters<double>(1.0);
-	R      = meters<double>(111000.0);
-	T_s    = kelvin<double>(950.0);
-	B_n    = megahertz<double>(1.67);
-	L      = dB<double>(8.0);
+	P_t    = megawatts(1.4);
+	G      = dB(33.0);
+	lambda = constants::c / megahertz(2800);
+	sigma  = square_meters(1.0);
+	R      = meters(111000.0);
+	T_s    = kelvin(950.0);
+	B_n    = megahertz(1.67);
+	L      = dB(8.0);
 
 	dimensionless<double> SNR = (P_t * pow<2>(G) * pow<2>(lambda) * sigma) /
 		(pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);

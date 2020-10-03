@@ -231,8 +231,6 @@ namespace units
 		} \
 	}; \
 \
-	using nameSingular##_t = unitName<UNIT_LIB_DEFAULT_TYPE>; \
-\
 	/* DEDUCTION GUIDES */ \
 	unitName()->unitName<UNIT_LIB_DEFAULT_TYPE>; \
 \
@@ -551,20 +549,20 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<nameSingular##_t>)
+	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<nameSingular##_conversion_factor>)
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -587,12 +585,12 @@ namespace units
 #define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES( \
 	namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<nameSingular##_t>) \
-	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<nameSingular##_t>)
+	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<nameSingular##_conversion_factor>)
 
 //--------------------
 //	UNITS NAMESPACE
