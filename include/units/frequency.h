@@ -58,8 +58,7 @@ namespace units
 	 * @anchor		frequencyContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(
-		frequency, hertz, hertz, Hz, conversion_factor<std::ratio<1>, units::dimension::frequency>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, hertz, Hz, conversion_factor<std::ratio<1>, units::dimension::frequency>)
 
 	UNIT_ADD_DIMENSION_TRAIT(frequency)
 } // namespace units

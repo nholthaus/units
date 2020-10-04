@@ -1,7 +1,10 @@
 PROJECT(unitLibTest)
 
+FILE(GLOB headers ../include/units/*.h)
+
 SET(SOURCE_CODE
 ../include/units.h
+${headers}
 main.cpp
 )
 

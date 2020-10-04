@@ -59,12 +59,12 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(area, square_meter, square_meters, sq_m, conversion_factor<std::ratio<1>, units::dimension::area>)
-	UNIT_ADD(area, square_foot, square_feet, sq_ft, squared<length::feet>)
-	UNIT_ADD(area, square_inch, square_inches, sq_in, squared<length::inch>)
-	UNIT_ADD(area, square_mile, square_miles, sq_mi, squared<length::miles>)
-	UNIT_ADD(area, square_kilometer, square_kilometers, sq_km, squared<length::kilometers>)
-	UNIT_ADD(area, hectare, hectares, ha, conversion_factor<std::ratio<10000>, square_meters>)
-	UNIT_ADD(area, acre, acres, acre, conversion_factor<std::ratio<43560>, square_feet>)
+	UNIT_ADD(area, square_foot, square_feet, sq_ft, squared<length::foot_conversion_factor>)
+	UNIT_ADD(area, square_inch, square_inches, sq_in, squared<length::inch_conversion_factor>)
+	UNIT_ADD(area, square_mile, square_miles, sq_mi, squared<length::mile_conversion_factor>)
+	UNIT_ADD(area, square_kilometer, square_kilometers, sq_km, squared<length::kilometer_conversion_factor>)
+	UNIT_ADD(area, hectare, hectares, ha, conversion_factor<std::ratio<10000>, square_meter_conversion_factor>)
+	UNIT_ADD(area, acre, acres, acre, conversion_factor<std::ratio<43560>, square_foot_conversion_factor>)
 
 	UNIT_ADD_DIMENSION_TRAIT(area)
 } // namespace units

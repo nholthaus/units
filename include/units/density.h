@@ -59,26 +59,16 @@ namespace units
 	 * @anchor		densityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m,
-		conversion_factor<std::ratio<1>, units::dimension::density>)
-	UNIT_ADD(density, grams_per_milliliter, grams_per_milliliter, g_per_mL,
-		compound_conversion_factor<mass::grams, inverse<volume::milliliter>>)
-	UNIT_ADD(density, kilograms_per_liter, kilograms_per_liter, kg_per_L,
-		conversion_factor<std::ratio<1>, compound_conversion_factor<mass::grams, inverse<volume::milliliter>>>)
-	UNIT_ADD(density, ounces_per_cubic_foot, ounces_per_cubic_foot, oz_per_cu_ft,
-		compound_conversion_factor<mass::ounces, inverse<volume::cubic_foot>>)
-	UNIT_ADD(density, ounces_per_cubic_inch, ounces_per_cubic_inch, oz_per_cu_in,
-		compound_conversion_factor<mass::ounces, inverse<volume::cubic_inch>>)
-	UNIT_ADD(density, ounces_per_gallon, ounces_per_gallon, oz_per_gal,
-		compound_conversion_factor<mass::ounces, inverse<volume::gallon>>)
-	UNIT_ADD(density, pounds_per_cubic_foot, pounds_per_cubic_foot, lb_per_cu_ft,
-		compound_conversion_factor<mass::pounds, inverse<volume::cubic_foot>>)
-	UNIT_ADD(density, pounds_per_cubic_inch, pounds_per_cubic_inch, lb_per_cu_in,
-		compound_conversion_factor<mass::pounds, inverse<volume::cubic_inch>>)
-	UNIT_ADD(density, pounds_per_gallon, pounds_per_gallon, lb_per_gal,
-		compound_conversion_factor<mass::pounds, inverse<volume::gallon>>)
-	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft,
-		compound_conversion_factor<mass::slugs, inverse<volume::cubic_foot>>)
+	UNIT_ADD(density, kilograms_per_cubic_meter, kilograms_per_cubic_meter, kg_per_cu_m, conversion_factor<std::ratio<1>, units::dimension::density>)
+	UNIT_ADD(density, grams_per_milliliter, grams_per_milliliter, g_per_mL, compound_conversion_factor<mass::gram_conversion_factor, inverse<volume::milliliter_conversion_factor>>)
+	UNIT_ADD(density, kilograms_per_liter, kilograms_per_liter, kg_per_L, conversion_factor<std::ratio<1>, compound_conversion_factor<mass::gram_conversion_factor, inverse<volume::milliliter_conversion_factor>>>)
+	UNIT_ADD(density, ounces_per_cubic_foot, ounces_per_cubic_foot, oz_per_cu_ft, compound_conversion_factor<mass::ounce_conversion_factor, inverse<volume::cubic_foot_conversion_factor>>)
+	UNIT_ADD(density, ounces_per_cubic_inch, ounces_per_cubic_inch, oz_per_cu_in, compound_conversion_factor<mass::ounce_conversion_factor, inverse<volume::cubic_inch_conversion_factor>>)
+	UNIT_ADD(density, ounces_per_gallon, ounces_per_gallon, oz_per_gal, compound_conversion_factor<mass::ounce_conversion_factor, inverse<volume::gallon_conversion_factor>>)
+	UNIT_ADD(density, pounds_per_cubic_foot, pounds_per_cubic_foot, lb_per_cu_ft, compound_conversion_factor<mass::pound_conversion_factor, inverse<volume::cubic_foot_conversion_factor>>)
+	UNIT_ADD(density, pounds_per_cubic_inch, pounds_per_cubic_inch, lb_per_cu_in, compound_conversion_factor<mass::pound_conversion_factor, inverse<volume::cubic_inch_conversion_factor>>)
+	UNIT_ADD(density, pounds_per_gallon, pounds_per_gallon, lb_per_gal, compound_conversion_factor<mass::pound_conversion_factor, inverse<volume::gallon_conversion_factor>>)
+	UNIT_ADD(density, slugs_per_cubic_foot, slugs_per_cubic_foot, slug_per_cu_ft, compound_conversion_factor<mass::slug_conversion_factor, inverse<volume::cubic_foot_conversion_factor>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(density)
 } // namespace units

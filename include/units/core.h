@@ -98,7 +98,7 @@ namespace units
 		}
 	} // namespace detail
 } // namespace units
-#endif
+#endif // !defined(UNIT_LIB_DISABLE_IOSTREAM)
 
 //------------------------------
 //	FORWARD DECLARATIONS
@@ -140,33 +140,33 @@ namespace units
 #define UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	inline namespace namespaceName \
 	{ \
-		/** @name ConversionFactor (full names plural) */ /** @{ */ struct namePlural : __VA_ARGS__ \
+		/** @name ConversionFactor (full names plural) */ /** @{ */ struct nameSingular##_conversion_factor \
+		  : __VA_ARGS__ \
 		{ \
-		};                                                                                             /** @} */ \
-		/** @name ConversionFactor (full names singular) */ /** @{ */ using nameSingular = namePlural; /** @} */ \
-		/** @name ConversionFactor (abbreviated) */ /** @{ */ using abbreviation         = namePlural; /** @} */ \
+		}; /** @} */ \
 	} \
 	namespace traits \
 	{ \
 		template<> \
 		struct strong<__VA_ARGS__> \
 		{ \
-			using type = namespaceName::namePlural; \
+			using type = namespaceName::nameSingular##_conversion_factor; \
 		}; \
 	}
 
 /**
  * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)
  * @brief		Macro for generating the boiler-plate code for the unit type definition.
- * @details		The macro generates the definition of the unit container types, e.g. `meter_t`
+ * @details		The macro generates the definition of the unit container types, e.g. `meter`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  */
-#define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
+#define UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular, namePlural) \
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			nameSingular##_t, ::units::linear_scale, nameSingular) /** @} */ \
+			nameSingular, namePlural, ::units::linear_scale, nameSingular##_conversion_factor) /** @} */ \
 	}
 
 /**
@@ -174,6 +174,7 @@ namespace units
  * @brief		Macro for generating the boiler-plate code for the scaled unit template definition.
  * @details		The macro generates the definition of the scaled unit templates as a strong type template alias,
  *				e.g. `meters`
+ * @param		nameSingular singular version of the unit name, e.g. 'meter'
  * @param		unitName unit name, e.g. 'meters'
  * @param		scale the non linear scale template argument of the unit's base
  * @param		definition - the variadic parameter is used for the definition of the unit
@@ -182,7 +183,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*definition*/...) \
+#define UNIT_ADD_SCALED_UNIT_DEFINITION(nameSingular, unitName, scale, /*definition*/...) \
 	template<class Underlying> \
 	class unitName : public ::units::unit<__VA_ARGS__, Underlying, scale> \
 	{ \
@@ -230,6 +231,7 @@ namespace units
 		} \
 	}; \
 \
+	/* DEDUCTION GUIDES */ \
 	unitName()->unitName<UNIT_LIB_DEFAULT_TYPE>; \
 \
 	template<class Underlying, class... Args, ::std::enable_if_t<::std::is_arithmetic_v<Underlying>, int> = 0> \
@@ -258,26 +260,26 @@ namespace units
  * @details		The macro generates the code to insert units into an ostream. It
  *				prints both the value and abbreviation of the unit when invoked.
  * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbrev - abbreviated unit name, e.g. 'm'
  * @note		When UNIT_LIB_DISABLE_IOSTREAM is defined, the macro does not generate any code
  */
 #if defined(UNIT_LIB_DISABLE_IOSTREAM)
-#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev)
+#define UNIT_ADD_IO(namespaceName, namePlural, abbrev)
 #else
-#define UNIT_ADD_IO(namespaceName, nameSingular, abbrev) \
+#define UNIT_ADD_IO(namespaceName, namePlural, abbrev) \
 	inline namespace namespaceName \
 	{ \
 		template<class Underlying> \
-		std::ostream& operator<<(std::ostream& os, const nameSingular##_t<Underlying>& obj) \
+		std::ostream& operator<<(std::ostream& os, const namePlural<Underlying>& obj) \
 		{ \
-			os << obj() << " " #abbrev; \
+			os << obj.value() << " " #abbrev; \
 			return os; \
 		} \
 		template<class Underlying> \
-		std::string to_string(const nameSingular##_t<Underlying>& obj) \
+		std::string to_string(const namePlural<Underlying>& obj) \
 		{ \
-			return units::detail::to_string(obj()) + std::string(" " #abbrev); \
+			return units::detail::to_string(obj.value()) + std::string(" " #abbrev); \
 		} \
 	}
 #endif
@@ -289,18 +291,18 @@ namespace units
  *				abbreviation would be "m".
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  */
-#define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev) \
+#define UNIT_ADD_NAME(namespaceName, namePlural, abbrev) \
 	template<class Underlying> \
-	struct unit_name<namespaceName::nameSingular##_t<Underlying>> \
+	struct unit_name<namespaceName::namePlural<Underlying>> \
 	{ \
-		static constexpr const char* value = #nameSingular; \
+		static constexpr const char* value = #namePlural; \
 	}; \
 \
 	template<class Underlying> \
-	struct unit_abbreviation<namespaceName::nameSingular##_t<Underlying>> \
+	struct unit_abbreviation<namespaceName::namePlural<Underlying>> \
 	{ \
 		static constexpr const char* value = #abbrev; \
 	};
@@ -330,14 +332,16 @@ namespace units
  * @details		See `UNIT_ADD_NAME`, `UNIT_ADD_STRONG`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		scale the `NumericalScale` template template argument of the unit's `unit` base
  */
-#define UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
+#define UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, namePlural, abbreviation, scale) \
 	namespace units \
 	{ \
-		UNIT_ADD_NAME(namespaceName, nameSingular, abbreviation) \
-		UNIT_ADD_STRONG(::units::namespaceName::nameSingular, ::units::namespaceName::nameSingular##_t, scale) \
+		UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
+		UNIT_ADD_STRONG( \
+			::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::namePlural, scale) \
 	}
 
 /**
@@ -416,12 +420,13 @@ namespace units
  * @details		See UNIT_ADD_UNITS_SPECIALIZATIONS and UNIT_ADD_STD_HASH_SPECIALIZATIONS.
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @param		scale the non linear scale template argument of the unit's base
  */
-#define UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
-	UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, scale) \
-	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::nameSingular##_t)
+#define UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, namePlural, abbreviation, scale) \
+	UNIT_ADD_UNITS_SPECIALIZATIONS(namespaceName, nameSingular, namePlural, abbreviation, scale) \
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::namePlural)
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,nameSingular,abbreviation)
@@ -430,20 +435,20 @@ namespace units
  *				using the abbreviation (e.g. `10.0_m`).
  * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
  *				are placed in the `units::literals` namespace.
- * @param		nameSingular singular version of the unit name, e.g. 'meter'
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @note		When UNIT_HAS_LITERAL_SUPPORT is not defined, the macro does not generate any code
  */
-#define UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation) \
+#define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation) \
 	namespace literals \
 	{ \
-		constexpr namespaceName::nameSingular##_t<double> operator""_##abbreviation(long double d) noexcept \
+		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t<double>(static_cast<double>(d)); \
+			return namespaceName::namePlural<double>(static_cast<double>(d)); \
 		} \
-		constexpr namespaceName::nameSingular##_t<int> operator""_##abbreviation(unsigned long long d) noexcept \
+		constexpr namespaceName::namePlural<int> operator""_##abbreviation(unsigned long long d) noexcept \
 		{ \
-			return namespaceName::nameSingular##_t<int>(static_cast<int>(d)); \
+			return namespaceName::namePlural<int>(static_cast<int>(d)); \
 		} \
 	}
 
@@ -468,11 +473,11 @@ namespace units
  */
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular) \
-	UNIT_ADD_IO(namespaceName, nameSingular, abbreviation) \
-	UNIT_ADD_LITERALS(namespaceName, nameSingular, abbreviation) \
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular, namePlural) \
+	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
+	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation) \
 	} \
-	UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, abbreviation, ::units::linear_scale) \
+	UNIT_ADD_SPECIALIZATIONS(namespaceName, nameSingular, namePlural, abbreviation, ::units::linear_scale) \
 	namespace units \
 	{
 /**
@@ -488,14 +493,14 @@ namespace units
 	inline namespace namespaceName \
 	{ \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation##_t, ::units::decibel_scale, nameSingular) /** @} */ \
+			abbreviation, abbreviation, ::units::decibel_scale, nameSingular##_conversion_factor) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation) \
-	UNIT_ADD_STRONG( \
-		::units::namespaceName::nameSingular, ::units::namespaceName::abbreviation##_t, ::units::decibel_scale) \
+	UNIT_ADD_STRONG(::units::namespaceName::nameSingular##_conversion_factor, ::units::namespaceName::abbreviation, \
+		::units::decibel_scale) \
 	} \
-	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation##_t) \
+	UNIT_ADD_STD_SPECIALIZATIONS(::units::namespaceName::abbreviation) \
 	namespace units \
 	{
 /**
@@ -510,14 +515,14 @@ namespace units
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
 	/** @ingroup	TypeTraits*/ \
 	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/ \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`. \
-	 *				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/ \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
 	/** @tparam		T	type to test*/ \
 	namespace traits \
 	{ \
 		template<typename T> \
 		struct is_##unitdimension##_unit \
-		  : ::units::detail::has_dimension_of<std::remove_const_t<T>, units::dimension::unitdimension> \
+		  : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension> \
 		{ \
 		}; \
 		template<typename T> \
@@ -544,20 +549,20 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<namePlural>) \
-	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<namePlural>) \
-	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<namePlural>) \
-	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<namePlural>) \
-	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<namePlural>) \
-	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<namePlural>) \
-	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<namePlural>) \
-	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<namePlural>) \
-	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<namePlural>) \
-	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<namePlural>) \
-	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<namePlural>) \
-	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<namePlural>) \
-	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<namePlural>) \
-	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<namePlural>)
+	UNIT_ADD(namespaceName, femto##nameSingular, femto##namePlural, f##abbreviation, femto<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, pico##nameSingular, pico##namePlural, p##abbreviation, pico<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, nano##nameSingular, nano##namePlural, n##abbreviation, nano<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, micro##nameSingular, micro##namePlural, u##abbreviation, micro<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, milli##nameSingular, milli##namePlural, m##abbreviation, milli<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, centi##nameSingular, centi##namePlural, c##abbreviation, centi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, deci##nameSingular, deci##namePlural, d##abbreviation, deci<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, deca##nameSingular, deca##namePlural, da##abbreviation, deca<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, hecto##nameSingular, hecto##namePlural, h##abbreviation, hecto<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, kilo##nameSingular, kilo##namePlural, k##abbreviation, kilo<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, mega##nameSingular, mega##namePlural, M##abbreviation, mega<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, giga##nameSingular, giga##namePlural, G##abbreviation, giga<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, tera##nameSingular, tera##namePlural, T##abbreviation, tera<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, peta##nameSingular, peta##namePlural, P##abbreviation, peta<nameSingular##_conversion_factor>)
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(nameSingular, namePlural, abbreviation, definition)
@@ -580,12 +585,12 @@ namespace units
 #define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES( \
 	namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<namePlural>) \
-	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<namePlural>) \
-	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<namePlural>) \
-	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<namePlural>) \
-	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<namePlural>) \
-	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<namePlural>)
+	UNIT_ADD(namespaceName, kibi##nameSingular, kibi##namePlural, Ki##abbreviation, kibi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, mebi##nameSingular, mebi##namePlural, Mi##abbreviation, mebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, gibi##nameSingular, gibi##namePlural, Gi##abbreviation, gibi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, tebi##nameSingular, tebi##namePlural, Ti##abbreviation, tebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, pebi##nameSingular, pebi##namePlural, Pi##abbreviation, pebi<nameSingular##_conversion_factor>) \
+	UNIT_ADD(namespaceName, exbi##nameSingular, exbi##namePlural, Ei##abbreviation, exbi<nameSingular##_conversion_factor>)
 
 //--------------------
 //	UNITS NAMESPACE
@@ -865,11 +870,10 @@ namespace units
 		 *					strong type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member.
 		 *					This may be specialized only if `T` depends on a program-defined type.
 		 */
-		template<class T>
-		struct strong
-		  : std::enable_if<(is_conversion_factor_v<T> || is_unit<T>::value) && std::is_same_v<T, std::remove_cv_t<T>>,
-				T>
+		template<class T, class = std::enable_if<(is_conversion_factor_v<T> || is_unit<T>::value) && std::is_same_v<T, std::remove_cv_t<T>>>>
+		struct strong : T
 		{
+			typedef T type;
 		};
 
 		template<class T>
@@ -2432,7 +2436,7 @@ namespace units
 	 *				- \ref constantUnits "constant units"
 	 */
 	template<class ConversionFactor, typename T = UNIT_LIB_DEFAULT_TYPE, class NumericalScale = linear_scale>
-	class unit : NumericalScale, units::detail::_unit
+	class unit : public ConversionFactor, NumericalScale, units::detail::_unit
 	{
 		static_assert(traits::is_conversion_factor_v<ConversionFactor>,
 			"Template parameter `ConversionFactor` must be a conversion factor. Check that you aren't using an unit "
@@ -2503,8 +2507,7 @@ namespace units
 			std::enable_if_t<detail::is_time_conversion_factor<Cf> && detail::is_losslessly_convertible<Rep, T>, int> =
 				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(NumericalScale::linearize(units::convert<unit>(
-				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))()))
+		  : linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count())).linearized_value)
 		{
 		}
 
@@ -2639,18 +2642,9 @@ namespace units
 		 * @brief		unit value
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 */
-		constexpr T operator()() const noexcept
-		{
-			return NumericalScale::scale(linearized_value);
-		}
-
-		/**
-		 * @brief		unit value
-		 * @returns		value of the unit in it's underlying, non-safe type.
-		 */
 		constexpr underlying_type value() const noexcept
 		{
-			return static_cast<underlying_type>(*this);
+			return static_cast<underlying_type>(NumericalScale::scale(linearized_value));
 		}
 
 		/**
@@ -2702,7 +2696,8 @@ namespace units
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi
 			// ratio.
 			return units::convert<units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>,
-				Ty, NumericalScale>>(*this)();
+				Ty, NumericalScale>>(*this)
+				.value();
 		}
 
 		/**
@@ -2714,7 +2709,7 @@ namespace units
 				int> = 0>
 		constexpr explicit operator Ty() const noexcept
 		{
-			return static_cast<Ty>((*this)());
+			return static_cast<Ty>(this->value());
 		}
 
 		/**
@@ -2727,7 +2722,7 @@ namespace units
 		constexpr operator std::chrono::duration<Rep, Period>() const noexcept
 		{
 			return std::chrono::duration<Rep, Period>(
-				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(*this)());
+				units::unit<units::conversion_factor<Period, dimension::time>, Rep>(*this).value());
 		}
 
 		/**
@@ -2820,7 +2815,8 @@ namespace units
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
 		os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
-			BaseUnit, PromotedBaseUnit>(obj)();
+			BaseUnit, PromotedBaseUnit>(obj)
+				  .value();
 
 		using DimType = traits::dimension_of_t<ConversionFactor>;
 		if constexpr (!DimType::empty)
@@ -2976,7 +2972,7 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs& operator++(UnitTypeLhs& u) noexcept
 	{
-		u = UnitTypeLhs(u() + 1);
+		u = UnitTypeLhs(u.value() + 1);
 		return u;
 	}
 
@@ -2985,7 +2981,7 @@ namespace units
 	constexpr UnitTypeLhs operator++(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = UnitTypeLhs(u() + 1);
+		u        = UnitTypeLhs(u.value() + 1);
 		return ret;
 	}
 
@@ -2993,14 +2989,14 @@ namespace units
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
-		return UnitTypeLhs(-u());
+		return UnitTypeLhs(-u.value());
 	}
 
 	// prefix increment: --T
 	template<class UnitTypeLhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	constexpr UnitTypeLhs& operator--(UnitTypeLhs& u) noexcept
 	{
-		u = UnitTypeLhs(u() - 1);
+		u = UnitTypeLhs(u.value() - 1);
 		return u;
 	}
 
@@ -3009,7 +3005,7 @@ namespace units
 	constexpr UnitTypeLhs operator--(UnitTypeLhs& u, int) noexcept
 	{
 		auto ret = u;
-		u        = UnitTypeLhs(u() - 1);
+		u        = UnitTypeLhs(u.value() - 1);
 		return ret;
 	}
 
@@ -3131,7 +3127,7 @@ namespace units
 	{
 	};
 
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, ::units::linear_scale, dimensionless_unit)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, dimensionless, ::units::linear_scale, dimensionless_unit)
 
 	namespace traits
 	{
@@ -3165,7 +3161,7 @@ namespace units
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(CommonUnit(lhs)() + CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() + CommonUnit(rhs).value());
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3178,7 +3174,7 @@ namespace units
 	operator+(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(CommonUnit(lhs)() + rhs);
+		return CommonUnit(CommonUnit(lhs).value() + rhs);
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3191,7 +3187,7 @@ namespace units
 	operator+(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs + rhs);
-		return CommonUnit(lhs + CommonUnit(rhs)());
+		return CommonUnit(lhs + CommonUnit(rhs).value());
 	}
 
 	/// Subtraction operator for unit types with a linear_scale.
@@ -3203,7 +3199,7 @@ namespace units
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(CommonUnit(lhs)() - CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() - CommonUnit(rhs).value());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3216,7 +3212,7 @@ namespace units
 	operator-(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(CommonUnit(lhs)() - rhs);
+		return CommonUnit(CommonUnit(lhs).value() - rhs);
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -3229,7 +3225,7 @@ namespace units
 	operator-(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(lhs - CommonUnit(rhs)());
+		return CommonUnit(lhs - CommonUnit(rhs).value());
 	}
 
 	/// Multiplication type for convertible unit types with a linear scale. @returns the multiplied value, with the same
@@ -3245,7 +3241,7 @@ namespace units
 	{
 		using SquaredUnit = decltype(lhs * rhs);
 		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return SquaredUnit(CommonUnit(lhs)() * CommonUnit(rhs)());
+		return SquaredUnit(CommonUnit(lhs).value() * CommonUnit(rhs).value());
 	}
 
 	/// Multiplication type for non-convertible unit types with a linear scale. @returns the multiplied value, whose
@@ -3276,7 +3272,7 @@ namespace units
 	{
 		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
-		return CommonUnit(CommonUnit(lhs)() * static_cast<typename CommonUnit::underlying_type>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() * static_cast<typename CommonUnit::underlying_type>(rhs));
 	}
 
 	/// Multiplication by a dimensionless unit for unit types with a linear scale.
@@ -3290,7 +3286,7 @@ namespace units
 	{
 		using CommonUnit = decltype(lhs * rhs);
 		// the cast makes sure factors of PI are handled as expected
-		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs)());
+		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs).value());
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
@@ -3300,7 +3296,7 @@ namespace units
 	operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		return CommonUnit(CommonUnit(lhs)() * rhs);
+		return CommonUnit(CommonUnit(lhs).value() * rhs);
 	}
 
 	/// Multiplication by a dimensionless for unit types with a linear scale.
@@ -3310,7 +3306,7 @@ namespace units
 	operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		return CommonUnit(lhs * CommonUnit(rhs)());
+		return CommonUnit(lhs * CommonUnit(rhs).value());
 	}
 
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a
@@ -3324,7 +3320,7 @@ namespace units
 	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return CommonUnit(lhs)() / CommonUnit(rhs)();
+		return CommonUnit(lhs).value() / CommonUnit(rhs).value();
 	}
 
 	/// Division for non-convertible unit types with a linear scale. @returns the lhs divided by the rhs, with a
@@ -3355,7 +3351,7 @@ namespace units
 	{
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
-		return CommonUnit(CommonUnit(lhs)() / static_cast<CommonUnderlying>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() / static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Division of a dimensionless unit by a unit type with a linear scale
@@ -3379,7 +3375,7 @@ namespace units
 	operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs / rhs);
-		return CommonUnit(CommonUnit(lhs)() / rhs);
+		return CommonUnit(CommonUnit(lhs).value() / rhs);
 	}
 
 	/// Division of a dimensionless by a unit type with a linear scale
@@ -3393,7 +3389,7 @@ namespace units
 		using UnitConversion   = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
 		using CommonUnderlying = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
 		using CommonUnit       = unit<UnitConversion, CommonUnderlying>;
-		return InverseUnit(lhs / CommonUnit(rhs)());
+		return InverseUnit(lhs / CommonUnit(rhs).value());
 	}
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
@@ -3407,7 +3403,7 @@ namespace units
 	operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
-		return CommonUnit(CommonUnit(lhs)() % CommonUnit(rhs)());
+		return CommonUnit(CommonUnit(lhs).value() % CommonUnit(rhs).value());
 	}
 
 	/// Modulo by a dimensionless for unit types with a linear scale
@@ -3421,7 +3417,7 @@ namespace units
 	{
 		using CommonUnit       = decltype(lhs % rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
-		return CommonUnit(CommonUnit(lhs)() % static_cast<CommonUnderlying>(rhs));
+		return CommonUnit(CommonUnit(lhs).value() % static_cast<CommonUnderlying>(rhs));
 	}
 
 	/// Modulo by a dimensionless for unit types with a linear scale
@@ -3431,7 +3427,7 @@ namespace units
 	operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
-		return CommonUnit(CommonUnit(lhs)() % rhs);
+		return CommonUnit(CommonUnit(lhs).value() % rhs);
 	}
 
 	//----------------------------------
@@ -3582,7 +3578,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>>
 	{
-		return decltype(units::pow<power>(value))(pow(value(), power));
+		return decltype(units::pow<power>(value))(pow(value.value(), power));
 	}
 
 	//------------------------------
@@ -3605,7 +3601,7 @@ namespace units
 		template<class T>
 		static T linearize(const T value) noexcept
 		{
-			return std::pow(10, value / 10);
+			return static_cast<T>(std::pow(10, value / 10));
 		}
 
 		/**
@@ -3617,7 +3613,7 @@ namespace units
 		template<class T>
 		static T scale(const T value) noexcept
 		{
-			return 10 * std::log10(value);
+			return static_cast<T>(10 * std::log10(value));
 		}
 	};
 
@@ -3629,22 +3625,22 @@ namespace units
 	 * @brief		dimensionless unit with decibel scale
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dB_t, ::units::decibel_scale, dimensionless_unit)
-	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dB_t, ::units::decibel_scale)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(dB, dB, ::units::decibel_scale, dimensionless_unit)
+	UNIT_ADD_STRONG(::units::dimensionless_unit, ::units::dB, ::units::decibel_scale)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
-	std::ostream& operator<<(std::ostream& os, const dB_t<Underlying>& obj)
+	std::ostream& operator<<(std::ostream& os, const dB<Underlying>& obj)
 	{
-		os << obj() << " dB";
+		os << obj.value() << " dB";
 		return os;
 	}
 #endif
 	template<class Underlying>
-	using dBi_t = dB_t<Underlying>;
+	using dBi_t = dB<Underlying>;
 
 } // namespace units
 
-UNIT_ADD_STD_SPECIALIZATIONS(::units::dB_t)
+UNIT_ADD_STD_SPECIALIZATIONS(::units::dB)
 
 namespace units
 {
@@ -3700,7 +3696,7 @@ namespace units
 				traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>,
 			int> = 0>
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> dB_t<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
+		-> dB<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using Dimensionless = decltype(lhs - rhs);
 		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -3794,7 +3790,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> exp(const dimensionlessUnit x) noexcept
 	{
-		return std::exp(x());
+		return std::exp(x.value());
 	}
 
 	/**
@@ -3809,7 +3805,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log(const dimensionlessUnit x) noexcept
 	{
-		return std::log(x());
+		return std::log(x.value());
 	}
 
 	/**
@@ -3823,7 +3819,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log10(const dimensionlessUnit x) noexcept
 	{
-		return std::log10(x());
+		return std::log10(x.value());
 	}
 
 	/**
@@ -3844,7 +3840,7 @@ namespace units
 	dimensionlessUnit modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
-		dimensionlessUnit fracpart = std::modf(x(), &intp);
+		dimensionlessUnit fracpart = std::modf(x.value(), &intp);
 		*intpart                   = intp;
 		return fracpart;
 	}
@@ -3859,7 +3855,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> exp2(const dimensionlessUnit x) noexcept
 	{
-		return std::exp2(x());
+		return std::exp2(x.value());
 	}
 
 	/**
@@ -3873,7 +3869,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> expm1(const dimensionlessUnit x) noexcept
 	{
-		return std::expm1(x());
+		return std::expm1(x.value());
 	}
 
 	/**
@@ -3888,7 +3884,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log1p(const dimensionlessUnit x) noexcept
 	{
-		return std::log1p(x());
+		return std::log1p(x.value());
 	}
 
 	/**
@@ -3902,7 +3898,7 @@ namespace units
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
 	detail::floating_point_promotion_t<dimensionlessUnit> log2(const dimensionlessUnit x) noexcept
 	{
-		return std::log2(x());
+		return std::log2(x.value());
 	}
 
 	//----------------------------------
@@ -3929,7 +3925,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>>
 	{
-		return decltype(units::sqrt(value))(sqrt(value()));
+		return decltype(units::sqrt(value))(sqrt(value.value()));
 	}
 
 	/**
@@ -3949,7 +3945,7 @@ namespace units
 		const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		using CommonUnit = decltype(units::hypot(x, y));
-		return CommonUnit(std::hypot(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::hypot(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	//----------------------------------
@@ -3966,7 +3962,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::ceil(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.value()));
 	}
 
 	/**
@@ -3979,7 +3975,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::floor(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::floor(x.value()));
 	}
 
 	/**
@@ -3996,7 +3992,7 @@ namespace units
 		const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using CommonUnit = decltype(units::fmod(numer, denom));
-		return CommonUnit(std::fmod(CommonUnit(numer)(), CommonUnit(denom)()));
+		return CommonUnit(std::fmod(CommonUnit(numer).value(), CommonUnit(denom).value()));
 	}
 
 	/**
@@ -4010,7 +4006,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::trunc(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.value()));
 	}
 
 	/**
@@ -4024,7 +4020,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::round(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::round(x.value()));
 	}
 
 	//----------------------------------
@@ -4045,7 +4041,7 @@ namespace units
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(
-			std::copysign(x(), y())); // no need for conversion to get the correct sign.
+			std::copysign(x.value(), y.value())); // no need for conversion to get the correct sign.
 	}
 
 	/// Overload to copy the sign from a raw double
@@ -4053,7 +4049,7 @@ namespace units
 		std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x(), y));
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y));
 	}
 
 	//----------------------------------
@@ -4074,7 +4070,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fdim(x, y));
-		return CommonUnit(std::fdim(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fdim(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	/**
@@ -4091,7 +4087,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmax(x, y));
-		return CommonUnit(std::fmax(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fmax(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	/**
@@ -4109,7 +4105,7 @@ namespace units
 		const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmin(x, y));
-		return CommonUnit(std::fmin(CommonUnit(x)(), CommonUnit(y)()));
+		return CommonUnit(std::fmin(CommonUnit(x).value(), CommonUnit(y).value()));
 	}
 
 	//----------------------------------
@@ -4126,7 +4122,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::fabs(x()));
+		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.value()));
 	}
 
 	/**
@@ -4139,7 +4135,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	UnitType abs(const UnitType x) noexcept
 	{
-		return UnitType(std::abs(x()));
+		return UnitType(std::abs(x.value()));
 	}
 
 	/**
@@ -4166,7 +4162,7 @@ namespace units
 			UnitAdd>
 	{
 		using CommonUnit = decltype(units::fma(x, y, z));
-		return CommonUnit(std::fma(x(), y(), CommonUnit(z)()));
+		return CommonUnit(std::fma(x.value(), y.value(), CommonUnit(z).value()));
 	}
 } // end namespace units
 

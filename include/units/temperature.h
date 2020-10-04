@@ -62,12 +62,10 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(temperature, kelvin, kelvin, K, conversion_factor<std::ratio<1>, units::dimension::temperature>)
-	UNIT_ADD(temperature, celsius, celsius, degC,
-		conversion_factor<std::ratio<1>, kelvin, std::ratio<0>, std::ratio<27315, 100>>)
-	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF,
-		conversion_factor<std::ratio<5, 9>, celsius, std::ratio<0>, std::ratio<-160, 9>>)
-	UNIT_ADD(temperature, reaumur, reaumur, Re, conversion_factor<std::ratio<10, 8>, celsius>)
-	UNIT_ADD(temperature, rankine, rankine, Ra, conversion_factor<std::ratio<5, 9>, kelvin>)
+	UNIT_ADD(temperature, celsius, celsius, degC,conversion_factor<std::ratio<1>, kelvin_conversion_factor, std::ratio<0>, std::ratio<27315, 100>>)
+	UNIT_ADD(temperature, fahrenheit, fahrenheit, degF,conversion_factor<std::ratio<5, 9>, celsius_conversion_factor, std::ratio<0>, std::ratio<-160, 9>>)
+	UNIT_ADD(temperature, reaumur, reaumur, Re, conversion_factor<std::ratio<10, 8>, celsius_conversion_factor>)
+	UNIT_ADD(temperature, rankine, rankine, Ra, conversion_factor<std::ratio<5, 9>, kelvin_conversion_factor>)
 
 	UNIT_ADD_DIMENSION_TRAIT(temperature)
 } // namespace units
