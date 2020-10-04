@@ -1,5 +1,5 @@
 sudo: required
-dist: xenial
+dist: focal
 language: cpp
 
 cache:
@@ -34,10 +34,10 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-7.0
+            - llvm-toolchain-7
           packages:
             - g++-7
-            - clang-7.0
+            - clang-7
       env:
         - MATRIX_EVAL="CC=clang-7.0 && CXX=clang++-7.0"
       branches:
