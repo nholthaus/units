@@ -59,10 +59,10 @@ namespace units
 	 * @anchor		illuminanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, lux, lx, conversion_factor<std::ratio<1>, units::dimension::illuminance>)
-	UNIT_ADD(illuminance, footcandle, footcandles, fc, compound_conversion_factor<luminous_flux::lumen_conversion_factor, inverse<squared<length::foot_conversion_factor>>>)
-	UNIT_ADD(illuminance, lumens_per_square_inch, lumens_per_square_inch, lm_per_in_sq, compound_conversion_factor<luminous_flux::lumen_conversion_factor, inverse<squared<length::inch_conversion_factor>>>)
-	UNIT_ADD(illuminance, phot, phots, ph, compound_conversion_factor<luminous_flux::lumen_conversion_factor, inverse<squared<length::centimeter_conversion_factor>>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, lx, conversion_factor<std::ratio<1>, units::dimension::illuminance>)
+	UNIT_ADD(illuminance, footcandles, fc, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::feet<double>>>>)
+	UNIT_ADD(illuminance, lumens_per_square_inch, lm_per_in_sq, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::inches<double>>>>)
+	UNIT_ADD(illuminance, phots, ph, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::centimeters<double>>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(illuminance)
 } // namespace units

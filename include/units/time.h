@@ -49,13 +49,12 @@
 #include <units/core.h>
 
 /**
- * @def			UNIT_ADD_WITH_PLURAL_TAG(namespaceName, nameSingular, namePlural, abbreviation, definition)
+ * @def			UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, definition)
  * @brief		Like `UNIT_ADD`, but the abbreviated unit is plural, e.g. `5_min` would have type `unit<mins>`
  * @sa			`UNIT_ADD`
  */
-#define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
-	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation##s, __VA_ARGS__) \
-	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular, namePlural) \
+#define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, /*definition*/...) \
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
@@ -70,14 +69,14 @@ namespace units
 	 * @anchor		timeContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(time, second, seconds, s, conversion_factor<std::ratio<1>, units::dimension::time>)
-	UNIT_ADD_WITH_PLURAL_TAG(time, minute, minutes, min, conversion_factor<std::ratio<60>, second_conversion_factor>)
-	UNIT_ADD(time, hour, hours, hr, conversion_factor<std::ratio<60>, minute_conversion_factor>)
-	UNIT_ADD(time, day, days, d, conversion_factor<std::ratio<24>, hour_conversion_factor>)
-	UNIT_ADD(time, week, weeks, wk, conversion_factor<std::ratio<7>, day_conversion_factor>)
-	UNIT_ADD(time, year, years, yr, conversion_factor<std::ratio<365>, day_conversion_factor>)
-	UNIT_ADD(time, julian_year, julian_years, a_j, conversion_factor<std::ratio<31557600>, second_conversion_factor>)
-	UNIT_ADD(time, gregorian_year, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, second_conversion_factor>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(time, seconds, s, conversion_factor<std::ratio<1>, units::dimension::time>)
+	UNIT_ADD_WITH_PLURAL_TAG(time, minutes, min, conversion_factor<std::ratio<60>, seconds<double>>)
+	UNIT_ADD(time, hours, hr, conversion_factor<std::ratio<60>, minutes<double>>)
+	UNIT_ADD(time, days, d, conversion_factor<std::ratio<24>, hours<double>>)
+	UNIT_ADD(time, weeks, wk, conversion_factor<std::ratio<7>, days<double>>)
+	UNIT_ADD(time, years, yr, conversion_factor<std::ratio<365>, days<double>>)
+	UNIT_ADD(time, julian_years, a_j, conversion_factor<std::ratio<31557600>, seconds<double>>)
+	UNIT_ADD(time, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, seconds<double>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(time)
 } // namespace units

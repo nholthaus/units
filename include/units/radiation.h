@@ -62,12 +62,12 @@ namespace units
 	 * @anchor		radiationContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerel, becquerels, Bq, conversion_factor<std::ratio<1>, units::frequency::hertz_conversion_factor>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, gray, grays, Gy, compound_conversion_factor<energy::joule_conversion_factor, inverse<mass::kilogram_conversion_factor>>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sievert, sieverts, Sv, conversion_factor<std::ratio<1>, gray_conversion_factor>)
-	UNIT_ADD(radiation, curie, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerel_conversion_factor>)
-	UNIT_ADD(radiation, rutherford, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerel_conversion_factor>)
-	UNIT_ADD(radiation, rad, rads, rads, conversion_factor<std::ratio<1>, centigray_conversion_factor>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerels, Bq, conversion_factor<std::ratio<1>, units::frequency::hertz<double>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, grays, Gy, compound_conversion_factor<energy::joules<double>, inverse<mass::kilograms<double>>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sieverts, Sv, conversion_factor<std::ratio<1>, grays<double>>)
+	UNIT_ADD(radiation, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerels<double>>)
+	UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<double>>)
+	UNIT_ADD(radiation, rads, rads, conversion_factor<std::ratio<1>, centigrays<double>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units
