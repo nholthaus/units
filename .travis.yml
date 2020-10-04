@@ -1,8 +1,8 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 
-cache: 
+cache:
   ccache: true
   directories:
     - cmake-3.11.1-Linux-x86_64/bin
@@ -34,10 +34,10 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-7.0
+            - llvm-toolchain-xenial-7.0
           packages:
             - g++-7
-            - clang-6.0
+            - clang-7.0
       env:
         - MATRIX_EVAL="CC=clang-7.0 && CXX=clang++-7.0"
       branches:
