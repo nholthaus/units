@@ -3223,7 +3223,7 @@ TEST_F(ConversionFactor, capacitance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
 	auto f            = coulombs<double>(1) / volts<double>(1);
-	farads<double> f2 = coulombs<double>(1) / volts<double>(1);
+	[[maybe_unused]] farads<double> f2 = coulombs<double>(1) / volts<double>(1);
 	EXPECT_TRUE((std::is_convertible_v<decltype(f), farads<double>>));
 
 	auto one_farad = []() -> farads<double> { return coulombs<double>(1) / volts<double>(1); };
@@ -4301,7 +4301,7 @@ TEST_F(CaseStudies, radarRangeEquation)
 
 	P_t    = megawatts(1.4);
 	G      = dB(33.0);
-	lambda = constants::c / megahertz(2800);
+	lambda = constants::c / megahertz(2800.0);
 	sigma  = square_meters(1.0);
 	R      = meters(111000.0);
 	T_s    = kelvin(950.0);
