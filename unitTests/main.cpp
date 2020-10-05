@@ -900,9 +900,10 @@ TEST_F(UnitType, constructionFromUnitType)
 	const dimensionless<double> g_dim(f_dim);
 	EXPECT_EQ(1, g_dim.value());
 }
-#if 0 && defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
+
 TEST_F(UnitType, CTAD)
 {
+#if 0 && defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 	// Default ctor
 	const meters z_m{};
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meters<double>>);
@@ -957,15 +958,23 @@ TEST_F(UnitType, CTAD)
 
 	const meters m_m(millimeters<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meters<double>>);
+#endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 
 	// `std::chrono::duration`.
 	using namespace std::chrono_literals;
 
-	const seconds a_s(1_s);
-	static_assert(std::is_integral_v<decltype(a_s.value())>);
+	constexpr unit a_s(1s);
+	static_assert(seconds<int>(1s) == a_s && std::is_integral_v<decltype(a_s.value())>);
 
-	const seconds b_s(1.0_s);
-	static_assert(std::is_floating_point_v<decltype(b_s.value())>);
+	constexpr unit a_min(1.0min);
+	static_assert(minutes<double>(1.0) == a_min && std::is_floating_point_v<decltype(a_min.value())>);
+
+#if 0 && defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
+	const seconds b_s(1_s);
+	static_assert(std::is_integral_v<decltype(b_s.value())>);
+
+	const seconds c_s(1.0_s);
+	static_assert(std::is_floating_point_v<decltype(c_s.value())>);
 
 	[[maybe_unused]] const seconds c_s(1_min);
 	[[maybe_unused]] const seconds d_s(1.0_min);
@@ -1019,8 +1028,9 @@ TEST_F(UnitType, CTAD)
 
 	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_unit>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
-}
 #endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
+}
+
 TEST_F(UnitType, assignmentFromArithmeticType)
 {
 	dimensionless<int> a_dim;
