@@ -9,7 +9,7 @@ OPTION(BUILD_DOCS "Build the documentation" OFF)
 OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_STANDARD 17)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
