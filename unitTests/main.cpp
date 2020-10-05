@@ -141,7 +141,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_FALSE(traits::is_conversion_factor_v<double>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<meter_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<foot_conversion_factor>);
-//	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
+	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<meters<double>>);
 }
 
@@ -151,7 +151,7 @@ TEST_F(TypeTraits, is_unit)
 	EXPECT_FALSE(traits::is_unit_v<double>);
 	EXPECT_FALSE(traits::is_unit_v<meter_conversion_factor>);
 	EXPECT_FALSE(traits::is_unit_v<foot_conversion_factor>);
-//	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
+	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_unit_v<meters<double>>);
 }
 
