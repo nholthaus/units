@@ -18,9 +18,9 @@ SET(CMAKE_CXX_STANDARD 17)
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
 
-target_include_directories(${PROJECT_NAME} 
-	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-	$<INSTALL_INTERFACE:include> 
+target_include_directories(${PROJECT_NAME}
+	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

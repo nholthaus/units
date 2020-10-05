@@ -155,25 +155,8 @@ TEST_F(TypeTraits, is_unit)
 	EXPECT_TRUE(traits::is_unit_v<meters<double>>);
 }
 
-TEST_F(TypeTraits, unit_base)
-{
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<unit<dimensionless_unit, int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile unit<dimensionless_unit, int>>,
-		unit<dimensionless_unit, int>>));
-	EXPECT_TRUE(
-		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meters<double>>, unit<meter_conversion_factor, double>>));
-	EXPECT_TRUE(
-		(std::is_same_v<traits::unit_base_t<const volatile meters<double>>, unit<meter_conversion_factor, double>>));
-}
-
 TEST_F(TypeTraits, replace_underlying)
 {
-	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, int>,
-		unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, double>,
-		unit<dimensionless_unit, double>>));
 	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, int>, dimensionless<int>>));
 	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, double>, dimensionless<double>>));
 }
@@ -699,18 +682,8 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
 
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<int>>, dimensionless<int>>);
-	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, traits::unit_base_t<dimensionless<int>>>,
-		dimensionless<int>>);
-	static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, dimensionless<int>>,
-		dimensionless<int>>);
-	static_assert(std::is_same_v<
-		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<int>>>,
-		traits::unit_base_t<dimensionless<int>>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<double>>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<int>>, dimensionless<double>>);
-	static_assert(std::is_same_v<
-		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<double>>>,
-		traits::unit_base_t<dimensionless<double>>>);
 
 	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
 	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
@@ -720,22 +693,6 @@ TEST_F(STDTypeTraits, std_common_type)
 	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
 	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
 	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, int>,
-	// 	traits::unit_base_t<dimensionless<int>>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<int>>>,
-	// 	traits::unit_base_t<dimensionless<int>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, double>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<int>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, int>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<double>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, double>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<double>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -752,10 +709,9 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<kilometers<int>>()(kilometers<int>(42))), 42);
 
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
-	EXPECT_EQ((std::hash<unit<dimensionless_unit, double>>()(3.14)), std::hash<double>()(3.14));
 	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
 
-	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW(2.0).to_linearized()));
+	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW<>(2.0).to_linearized()));
 }
 
 TEST_F(UnitManipulators, squared)
@@ -944,7 +900,7 @@ TEST_F(UnitType, constructionFromUnitType)
 	const dimensionless<double> g_dim(f_dim);
 	EXPECT_EQ(1, g_dim.value());
 }
-
+#if 0 && defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 TEST_F(UnitType, CTAD)
 {
 	// Default ctor
@@ -1064,7 +1020,7 @@ TEST_F(UnitType, CTAD)
 	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_unit>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
 }
-
+#endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 TEST_F(UnitType, assignmentFromArithmeticType)
 {
 	dimensionless<int> a_dim;
@@ -1349,134 +1305,55 @@ TEST_F(UnitType, unitTypeMixedRelational)
 
 TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 {
-	using dimless      = dimensionless<int>;
-	using dimless_base = traits::unit_base_t<dimless>;
+	dimensionless<int> dim;
+	meters<int> m;
 
-	dimless dim;
-	dimless_base base;
+	static_assert(std::is_same_v<dimensionless<int>, decltype(+dim)>);
+	static_assert(std::is_same_v<meters<int>, decltype(+m)>);
 
-	using meter_conversion_factor = meters<int>;
-	using meter_base              = units::meters<int>;
+	static_assert(std::is_same_v<dimensionless<int>, decltype(-dim)>);
+	static_assert(std::is_same_v<meters<int>, decltype(-m)>);
 
-	meter_conversion_factor m;
-	meter_base b_m;
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim + 0)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(0 + dim)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim + dim)>);
 
-	using squared_meter = square_meters<int>;
-	using inverse_meter = unit<inverse<meter_conversion_factor>, int>;
+	static_assert(std::is_same_v<meters<int>, decltype(m + m)>);
 
-	static_assert(std::is_same_v<dimless, decltype(+dim)>);
-	static_assert(std::is_same_v<dimless_base, decltype(+base)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim - 0)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(0 - dim)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim - dim)>);
 
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(+m)>);
-	static_assert(std::is_same_v<meter_base, decltype(+b_m)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m - m)>);
 
-	static_assert(std::is_same_v<dimless, decltype(-dim)>);
-	static_assert(std::is_same_v<dimless_base, decltype(-base)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim * 1)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(1 * dim)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim * dim)>);
 
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(-m)>);
-	static_assert(std::is_same_v<meter_base, decltype(-b_m)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m * 1)>);
+	static_assert(std::is_same_v<meters<int>, decltype(1 * m)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m * dim)>);
+	static_assert(std::is_same_v<meters<int>, decltype(dim * m)>);
 
-	static_assert(std::is_same_v<dimless, decltype(dim + 0)>);
-	static_assert(std::is_same_v<dimless, decltype(0 + dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim + dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim + base)>);
-	static_assert(std::is_same_v<dimless, decltype(base + dim)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base + base)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base + 0)>);
-	static_assert(std::is_same_v<dimless_base, decltype(0 + base)>);
+	static_assert(std::is_same_v<square_meters<int>, decltype(m * m)>);
 
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m + m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m + b_m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(b_m + m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m + b_m)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim / 1)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(1 / dim)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim / dim)>);
 
-	static_assert(std::is_same_v<dimless, decltype(dim - 0)>);
-	static_assert(std::is_same_v<dimless, decltype(0 - dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim - dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim - base)>);
-	static_assert(std::is_same_v<dimless, decltype(base - dim)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base - base)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base - 0)>);
-	static_assert(std::is_same_v<dimless_base, decltype(0 - base)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m / 1)>);
+	static_assert(std::is_same_v<unit<inverse<meter_conversion_factor>, int>, decltype(1 / m)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m / dim)>);
+	static_assert(std::is_same_v<unit<inverse<meter_conversion_factor>, int>, decltype(dim / m)>);
 
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m - m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m - b_m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(b_m - m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m - b_m)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(m / m)>);
 
-	static_assert(std::is_same_v<dimless, decltype(dim * 1)>);
-	static_assert(std::is_same_v<dimless, decltype(1 * dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim * dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim * base)>);
-	static_assert(std::is_same_v<dimless, decltype(base * dim)>);
-	static_assert(std::is_same_v<dimless, decltype(base * base)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base * 1)>);
-	static_assert(std::is_same_v<dimless_base, decltype(1 * base)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim % 1)>);
+	static_assert(std::is_same_v<dimensionless<int>, decltype(dim % dim)>);
 
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m * 1)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(1 * m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m * dim)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(dim * m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m * base)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(base * m)>);
-
-	static_assert(std::is_same_v<meter_base, decltype(b_m * 1)>);
-	static_assert(std::is_same_v<meter_base, decltype(1 * b_m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m * dim)>);
-	static_assert(std::is_same_v<meter_base, decltype(dim * b_m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m * base)>);
-	static_assert(std::is_same_v<meter_base, decltype(base * b_m)>);
-
-	static_assert(std::is_same_v<squared_meter, decltype(m * m)>);
-	static_assert(std::is_same_v<squared_meter, decltype(m * b_m)>);
-	static_assert(std::is_same_v<squared_meter, decltype(b_m * m)>);
-	static_assert(std::is_same_v<squared_meter, decltype(b_m * b_m)>);
-
-	static_assert(std::is_same_v<dimless, decltype(dim / 1)>);
-	static_assert(std::is_same_v<dimless_base, decltype(1 / dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim / dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim / base)>);
-	static_assert(std::is_same_v<dimless, decltype(base / dim)>);
-	static_assert(std::is_same_v<dimless, decltype(base / base)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base / 1)>);
-	static_assert(std::is_same_v<dimless_base, decltype(1 / base)>);
-
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m / 1)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(1 / m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m / dim)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(dim / m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m / base)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(base / m)>);
-
-	static_assert(std::is_same_v<meter_base, decltype(b_m / 1)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(1 / b_m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m / dim)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(dim / b_m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m / base)>);
-	static_assert(std::is_same_v<inverse_meter, decltype(base / b_m)>);
-
-	static_assert(std::is_same_v<dimless, decltype(m / m)>);
-	static_assert(std::is_same_v<dimless, decltype(m / b_m)>);
-	static_assert(std::is_same_v<dimless, decltype(b_m / m)>);
-	static_assert(std::is_same_v<dimless, decltype(b_m / b_m)>);
-
-	static_assert(std::is_same_v<dimless, decltype(dim % 1)>);
-	static_assert(std::is_same_v<dimless, decltype(dim % dim)>);
-	static_assert(std::is_same_v<dimless, decltype(dim % base)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base % dim)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base % 1)>);
-	static_assert(std::is_same_v<dimless_base, decltype(base % base)>);
-
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m % 1)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m % dim)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m % base)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m % m)>);
-	static_assert(std::is_same_v<meter_conversion_factor, decltype(m % b_m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m % 1)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m % dim)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m % base)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m % m)>);
-	static_assert(std::is_same_v<meter_base, decltype(b_m % b_m)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m % 1)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m % dim)>);
+	static_assert(std::is_same_v<meters<int>, decltype(m % m)>);
 }
 
 TEST_F(UnitType, unitTypeAddition)
@@ -3022,7 +2899,7 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second_conversion_factor,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-  
+
 	same = traits::is_same_dimension_conversion_factor_v<revolutions_per_minute_conversion_factor, radians_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
@@ -4038,7 +3915,7 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube.value(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), traits::strong_t<unit<traits::strong_t<cubed<meter_conversion_factor>>>>>;
+	isSame = std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meter_conversion_factor>>>>;
 	EXPECT_TRUE(isSame);
 
 	auto fourth = pow<4>(value);
@@ -4199,11 +4076,11 @@ TEST_F(Constexpr, arithmetic)
 	[[maybe_unused]] constexpr auto result1(1.0_m - 1.0_m);
 	[[maybe_unused]] constexpr auto result2(1.0_m * 1.0_m);
 	[[maybe_unused]] constexpr auto result3(1.0_m / 1.0_m);
-	[[maybe_unused]] constexpr auto result4(meters(1) + meters(1));
-	[[maybe_unused]] constexpr auto result5(meters(1) - meters(1));
-	[[maybe_unused]] constexpr auto result6(meters(1) * meters(1));
-	[[maybe_unused]] constexpr auto result7(meters(1) / meters(1));
-	[[maybe_unused]] constexpr auto result8(pow<2>(meters(2)));
+	[[maybe_unused]] constexpr auto result4(meters<int>(1) + meters<int>(1));
+	[[maybe_unused]] constexpr auto result5(meters<int>(1) - meters<int>(1));
+	[[maybe_unused]] constexpr auto result6(meters<int>(1) * meters<int>(1));
+	[[maybe_unused]] constexpr auto result7(meters<int>(1) / meters<int>(1));
+	[[maybe_unused]] constexpr auto result8(pow<2>(meters<int>(2)));
 	constexpr auto result9  = pow<3>(2.0_m);
 	constexpr auto result10 = 2.0_m * 2.0_m;
 
@@ -4211,10 +4088,10 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(1.0_m - 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m * 1.0_m));
 	EXPECT_TRUE(noexcept(1.0_m / 1.0_m));
-	EXPECT_TRUE(noexcept(meters(1) + meters(1)));
-	EXPECT_TRUE(noexcept(meters(1) - meters(1)));
-	EXPECT_TRUE(noexcept(meters(1) * meters(1)));
-	EXPECT_TRUE(noexcept(meters(1) / meters(1)));
+	EXPECT_TRUE(noexcept(meters<int>(1) + meters<int>(1)));
+	EXPECT_TRUE(noexcept(meters<int>(1) - meters<int>(1)));
+	EXPECT_TRUE(noexcept(meters<int>(1) * meters<int>(1)));
+	EXPECT_TRUE(noexcept(meters<int>(1) / meters<int>(1)));
 	EXPECT_TRUE(noexcept(pow<2>(meters<double>(2))));
 	EXPECT_TRUE(noexcept(pow<3>(2.0_m)));
 	EXPECT_TRUE(noexcept(2.0_m * 2.0_m));
@@ -4235,7 +4112,7 @@ TEST_F(Constexpr, assignment)
 {
 	auto testConstexpr = []() constexpr noexcept
 	{
-		meters m{42.};
+		meters<double> m{42.};
 		+m;
 		-m;
 		++m;
@@ -4290,23 +4167,23 @@ TEST_F(Constexpr, stdArray)
 
 TEST_F(CaseStudies, radarRangeEquation)
 {
-	watts P_t;           // transmit power
-	dimensionless G;     // gain
-	meters lambda;       // wavelength
-	square_meters sigma; // radar cross section
-	meters R;            // range
-	kelvin T_s;          // system noise temp
-	hertz B_n;           // bandwidth
-	dimensionless L;     // loss
+	watts<> P_t;           // transmit power
+	dimensionless<> G;     // gain
+	meters<> lambda;       // wavelength
+	square_meters<> sigma; // radar cross section
+	meters<> R;            // range
+	kelvin<> T_s;          // system noise temp
+	hertz<> B_n;           // bandwidth
+	dimensionless<> L;     // loss
 
-	P_t    = megawatts(1.4);
-	G      = dB(33.0);
-	lambda = constants::c / megahertz(2800.0);
-	sigma  = square_meters(1.0);
-	R      = meters(111000.0);
-	T_s    = kelvin(950.0);
-	B_n    = megahertz(1.67);
-	L      = dB(8.0);
+	P_t    = megawatts<>(1.4);
+	G      = dB<>(33.0);
+	lambda = constants::c / megahertz<>(2800.0);
+	sigma  = square_meters<>(1.0);
+	R      = meters<>(111000.0);
+	T_s    = kelvin<>(950.0);
+	B_n    = megahertz<>(1.67);
+	L      = dB<>(8.0);
 
 	dimensionless<double> SNR = (P_t * pow<2>(G) * pow<2>(lambda) * sigma) /
 		(pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);
