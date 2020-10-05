@@ -141,7 +141,7 @@ TEST_F(TypeTraits, is_conversion_factor)
 	EXPECT_FALSE(traits::is_conversion_factor_v<double>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<meter_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<foot_conversion_factor>);
-	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
+//	EXPECT_TRUE(traits::is_conversion_factor_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_conversion_factor_v<meters<double>>);
 }
 
@@ -151,29 +151,12 @@ TEST_F(TypeTraits, is_unit)
 	EXPECT_FALSE(traits::is_unit_v<double>);
 	EXPECT_FALSE(traits::is_unit_v<meter_conversion_factor>);
 	EXPECT_FALSE(traits::is_unit_v<foot_conversion_factor>);
-	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
+//	EXPECT_FALSE(traits::is_unit_v<degree_squared_conversion_factor>);
 	EXPECT_TRUE(traits::is_unit_v<meters<double>>);
-}
-
-TEST_F(TypeTraits, unit_base)
-{
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<unit<dimensionless_unit, int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<const volatile unit<dimensionless_unit, int>>,
-		unit<dimensionless_unit, int>>));
-	EXPECT_TRUE(
-		(std::is_same_v<traits::unit_base_t<const volatile dimensionless<int>>, unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::unit_base_t<meters<double>>, unit<meter_conversion_factor, double>>));
-	EXPECT_TRUE(
-		(std::is_same_v<traits::unit_base_t<const volatile meters<double>>, unit<meter_conversion_factor, double>>));
 }
 
 TEST_F(TypeTraits, replace_underlying)
 {
-	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, int>,
-		unit<dimensionless_unit, int>>));
-	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<unit<dimensionless_unit, int>, double>,
-		unit<dimensionless_unit, double>>));
 	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, int>, dimensionless<int>>));
 	EXPECT_TRUE((std::is_same_v<traits::replace_underlying_t<dimensionless<int>, double>, dimensionless<double>>));
 }
@@ -699,18 +682,8 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
 
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<int>>, dimensionless<int>>);
-	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, traits::unit_base_t<dimensionless<int>>>,
-		dimensionless<int>>);
-	static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, dimensionless<int>>,
-		dimensionless<int>>);
-	static_assert(std::is_same_v<
-		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<int>>>,
-		traits::unit_base_t<dimensionless<int>>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<double>>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<int>>, dimensionless<double>>);
-	static_assert(std::is_same_v<
-		std::common_type_t<traits::unit_base_t<dimensionless<int>>, traits::unit_base_t<dimensionless<double>>>,
-		traits::unit_base_t<dimensionless<double>>>);
 
 	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
 	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
@@ -720,22 +693,6 @@ TEST_F(STDTypeTraits, std_common_type)
 	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
 	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
 	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, int>,
-	// 	traits::unit_base_t<dimensionless<int>>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<int>>>,
-	// 	traits::unit_base_t<dimensionless<int>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<int>>, double>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<int>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, int>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, traits::unit_base_t<dimensionless<double>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<traits::unit_base_t<dimensionless<double>>, double>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, traits::unit_base_t<dimensionless<double>>>,
-	// 	traits::unit_base_t<dimensionless<double>>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -752,7 +709,6 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<kilometers<int>>()(kilometers<int>(42))), 42);
 
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
-	EXPECT_EQ((std::hash<unit<dimensionless_unit, double>>()(3.14)), std::hash<double>()(3.14));
 	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
 
 	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW(2.0).to_linearized()));
@@ -3022,7 +2978,7 @@ TEST_F(ConversionFactor, angular_velocity)
 	same = std::is_same_v<radians_per_second_conversion_factor,
 		traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_velocity>>>;
 	EXPECT_TRUE(same);
-  
+
 	same = traits::is_same_dimension_conversion_factor_v<revolutions_per_minute_conversion_factor, radians_per_second_conversion_factor>;
 	EXPECT_TRUE(same);
 
@@ -4038,7 +3994,7 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube.value(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), traits::strong_t<unit<traits::strong_t<cubed<meter_conversion_factor>>>>>;
+	isSame = std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meter_conversion_factor>>>>;
 	EXPECT_TRUE(isSame);
 
 	auto fourth = pow<4>(value);

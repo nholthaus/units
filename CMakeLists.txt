@@ -9,7 +9,7 @@ OPTION(BUILD_DOCS "Build the documentation" OFF)
 OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD 20)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
@@ -18,9 +18,9 @@ SET(CMAKE_CXX_STANDARD 17)
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
 
-target_include_directories(${PROJECT_NAME} 
-	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-	$<INSTALL_INTERFACE:include> 
+target_include_directories(${PROJECT_NAME}
+	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
