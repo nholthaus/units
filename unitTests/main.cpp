@@ -4194,7 +4194,6 @@ TEST_F(CaseStudies, radarRangeEquation)
 TEST_F(CaseStudies, rightTriangle)
 {
 	constexpr auto a = 3.0_m;
-
 	constexpr auto b = 4.0_m;
 	constexpr auto c = sqrt(pow<2>(a) + pow<2>(b));
 	EXPECT_EQ(5.0_m, c);

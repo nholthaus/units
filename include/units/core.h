@@ -286,7 +286,7 @@ namespace units
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_UNIT_TAGS(namespaceName, nameSingular, namePlural, abbreviation, __VA_ARGS__) \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, nameSingular, namePlural) \
-    UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
+	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
@@ -961,9 +961,9 @@ namespace units
 		using luminous_flux =
 			dimension_multiply<solid_angle, luminous_intensity>; ///< Represents an SI derived unit of luminous flux
 		using illuminance             = make_dimension<luminous_flux, std::ratio<1>, length,
-            std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
+			std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
 		using radioactivity           = make_dimension<length, std::ratio<2>, time,
-            std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
+			std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
 		using substance_mass          = dimension_divide<mass, substance>;
 		using substance_concentration = dimension_divide<substance, mass>;
 
@@ -1255,8 +1255,8 @@ namespace units
 			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>,
-                dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-                std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
+				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
 		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1476,8 +1476,8 @@ namespace units
 			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<ratio_sqrt<Conversion, Eps>,
-                dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-                std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+				dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
+				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
 		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1762,9 +1762,9 @@ namespace units
 	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio       = std::ratio_divide<typename ConversionFactorFrom::conversion_ratio,
-            typename ConversionFactorTo::conversion_ratio>;
+			typename ConversionFactorTo::conversion_ratio>;
 		using PiRatio     = std::ratio_subtract<typename ConversionFactorFrom::pi_exponent_ratio,
-            typename ConversionFactorTo::pi_exponent_ratio>;
+			typename ConversionFactorTo::pi_exponent_ratio>;
 		using Translation = std::ratio_divide<std::ratio_subtract<typename ConversionFactorFrom::translation_ratio,
 												  typename ConversionFactorTo::translation_ratio>,
 			typename ConversionFactorTo::conversion_ratio>;
@@ -1773,7 +1773,7 @@ namespace units
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
 				typename ConversionFactorFrom::dimension_type>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
-                typename ConversionFactorTo::dimension_type>;
+				typename ConversionFactorTo::dimension_type>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
@@ -1781,7 +1781,7 @@ namespace units
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
 				typename ConversionFactorFrom::dimension_type, typename ConversionFactorFrom::pi_exponent_ratio>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
-                typename ConversionFactorTo::dimension_type, typename ConversionFactorTo::pi_exponent_ratio>;
+				typename ConversionFactorTo::dimension_type, typename ConversionFactorTo::pi_exponent_ratio>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
