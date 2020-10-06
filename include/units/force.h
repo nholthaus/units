@@ -62,10 +62,10 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(force, newtons, N, conversion_factor<std::ratio<1>, units::dimension::force>)
-	UNIT_ADD(force, pounds, lbf, compound_conversion_factor<mass::slugs<double>, length::feet<double>, inverse<squared<time::seconds<double>>>>)
-	UNIT_ADD(force, dynes, dyn, conversion_factor<std::ratio<1, 100000>, newtons<double>>)
-	UNIT_ADD(force, kiloponds, kp, compound_conversion_factor<acceleration::standard_gravity<double>, mass::kilograms<double>>)
-	UNIT_ADD(force, poundals, pdl, compound_conversion_factor<mass::pounds<double>, length::feet<double>, inverse<squared<time::seconds<double>>>>)
+	UNIT_ADD(force, pounds, lbf, compound_conversion_factor<mass::slugs<>, length::feet<>, inverse<squared<time::seconds<>>>>)
+	UNIT_ADD(force, dynes, dyn, conversion_factor<std::ratio<1, 100000>, newtons<>>)
+	UNIT_ADD(force, kiloponds, kp, compound_conversion_factor<acceleration::standard_gravity<>, mass::kilograms<>>)
+	UNIT_ADD(force, poundals, pdl, compound_conversion_factor<mass::pounds<>, length::feet<>, inverse<squared<time::seconds<>>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(force)
 } // namespace units

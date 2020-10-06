@@ -59,14 +59,14 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joules, J, conversion_factor<std::ratio<1>, units::dimension::energy>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calories, cal, conversion_factor<std::ratio<4184, 1000>, joules<double>>)
-	UNIT_ADD(energy, kilowatt_hours, kWh, conversion_factor<std::ratio<36, 10>, megajoules<double>>)
-	UNIT_ADD(energy, watt_hours, Wh, conversion_factor<std::ratio<1, 1000>, kilowatt_hours<double>>)
-	UNIT_ADD(energy, british_thermal_units, BTU, conversion_factor<std::ratio<105505585262, 100000000>, joules<double>>)
-	UNIT_ADD(energy, british_thermal_units_iso, BTU_iso, conversion_factor<std::ratio<1055056, 1000>, joules<double>>)
-	UNIT_ADD(energy, british_thermal_units_59, BTU59, conversion_factor<std::ratio<1054804, 1000>, joules<double>>)
-	UNIT_ADD(energy, therms, thm, conversion_factor<std::ratio<100000>, british_thermal_units_59<double>>)
-	UNIT_ADD(energy, foot_pounds, ftlbf, conversion_factor<std::ratio<13558179483314004, 10000000000000000>, joules<double>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calories, cal, conversion_factor<std::ratio<4184, 1000>, joules<>>)
+	UNIT_ADD(energy, kilowatt_hours, kWh, conversion_factor<std::ratio<36, 10>, megajoules<>>)
+	UNIT_ADD(energy, watt_hours, Wh, conversion_factor<std::ratio<1, 1000>, kilowatt_hours<>>)
+	UNIT_ADD(energy, british_thermal_units, BTU, conversion_factor<std::ratio<105505585262, 100000000>, joules<>>)
+	UNIT_ADD(energy, british_thermal_units_iso, BTU_iso, conversion_factor<std::ratio<1055056, 1000>, joules<>>)
+	UNIT_ADD(energy, british_thermal_units_59, BTU59, conversion_factor<std::ratio<1054804, 1000>, joules<>>)
+	UNIT_ADD(energy, therms, thm, conversion_factor<std::ratio<100000>, british_thermal_units_59<>>)
+	UNIT_ADD(energy, foot_pounds, ftlbf, conversion_factor<std::ratio<13558179483314004, 10000000000000000>, joules<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(energy)
 } // namespace units

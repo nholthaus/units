@@ -59,12 +59,12 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(angle, radians, rad, conversion_factor<std::ratio<1>, units::dimension::angle>)
-	UNIT_ADD(angle, degrees, deg, conversion_factor<std::ratio<1, 180>, radians<double>, std::ratio<1>>)
-	UNIT_ADD(angle, arcminutes, arcmin, conversion_factor<std::ratio<1, 60>, degrees<double>>)
-	UNIT_ADD(angle, arcseconds, arcsec, conversion_factor<std::ratio<1, 60>, arcminutes<double>>)
-	UNIT_ADD(angle, milliarcseconds, mas, milli<arcseconds<double>>)
-	UNIT_ADD(angle, turns, tr, conversion_factor<std::ratio<2>, radians<double>, std::ratio<1>>)
-	UNIT_ADD(angle, gradians, gon, conversion_factor<std::ratio<1, 400>, turns<double>>)
+	UNIT_ADD(angle, degrees, deg, conversion_factor<std::ratio<1, 180>, radians<>, std::ratio<1>>)
+	UNIT_ADD(angle, arcminutes, arcmin, conversion_factor<std::ratio<1, 60>, degrees<>>)
+	UNIT_ADD(angle, arcseconds, arcsec, conversion_factor<std::ratio<1, 60>, arcminutes<>>)
+	UNIT_ADD(angle, milliarcseconds, mas, milli<arcseconds<>>)
+	UNIT_ADD(angle, turns, tr, conversion_factor<std::ratio<2>, radians<>, std::ratio<1>>)
+	UNIT_ADD(angle, gradians, gon, conversion_factor<std::ratio<1, 400>, turns<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(angle)
 

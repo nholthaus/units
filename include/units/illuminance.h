@@ -60,9 +60,9 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(illuminance, lux, lx, conversion_factor<std::ratio<1>, units::dimension::illuminance>)
-	UNIT_ADD(illuminance, footcandles, fc, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::feet<double>>>>)
-	UNIT_ADD(illuminance, lumens_per_square_inch, lm_per_in_sq, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::inches<double>>>>)
-	UNIT_ADD(illuminance, phots, ph, compound_conversion_factor<luminous_flux::lumens<double>, inverse<squared<length::centimeters<double>>>>)
+	UNIT_ADD(illuminance, footcandles, fc, compound_conversion_factor<luminous_flux::lumens<>, inverse<squared<length::feet<>>>>)
+	UNIT_ADD(illuminance, lumens_per_square_inch, lm_per_in_sq, compound_conversion_factor<luminous_flux::lumens<>, inverse<squared<length::inches<>>>>)
+	UNIT_ADD(illuminance, phots, ph, compound_conversion_factor<luminous_flux::lumens<>, inverse<squared<length::centimeters<>>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(illuminance)
 } // namespace units
