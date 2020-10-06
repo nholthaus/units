@@ -44,7 +44,7 @@ install:
 script:
   - mkdir build && cd build
   - cmake --version
-  - cmake _DUNITS_BUILD_TESTS=ON ..
+  - cmake -DUNITS_BUILD_TESTS=ON ..
   - cmake --build . --config Release -- -Werror
   - cmake --build . --config Debug -- -Werror
   - cd .. && mkdir coverallsBuild && cd coverallsBuild
