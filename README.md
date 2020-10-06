@@ -1,20 +1,25 @@
 # UNITS
+<a id="markdown-units" name="units"></a>
 
 A compile-time, header-only, dimensional analysis library built on C++17 with no dependencies.
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
 # Get in touch
+<a id="markdown-get-in-touch" name="get-in-touch"></a>
 
 If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
 
 # Latest Release - v2.3.1
+<a id="markdown-latest-release---v2.3.1" name="latest-release---v2.3.1"></a>
 
 ## Get it
+<a id="markdown-get-it" name="get-it"></a>
 
 [![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.1-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.1)
 
 ## New in v2.3.1
+<a id="markdown-new-in-v2.3.1" name="new-in-v2.3.1"></a>
 
 **This version removes support for the Visual Studio 2013 compiler.**
 
@@ -28,6 +33,7 @@ Bug fixs:
 - fixed compilation error when iostream was disabled
 
 ## New in v2.3.0
+<a id="markdown-new-in-v2.3.0" name="new-in-v2.3.0"></a>
 
 Features:
 - 5x compile time improvement on MSVC.
@@ -68,6 +74,7 @@ Bug fixes:
 - fixed exponential temperature conversions (Thanks @guarndt)
 
 ## Tested on
+<a id="markdown-tested-on" name="tested-on"></a>
 
  - gcc-7
  - clang-5
@@ -76,6 +83,7 @@ Bug fixes:
 Does this library work on your compiler? If so, let me know!
 
 # Contents
+<a id="markdown-contents" name="contents"></a>
 
 <!-- TOC -->
 
@@ -94,19 +102,21 @@ Does this library work on your compiler? If so, let me know!
 - [Conversion factors](#conversion-factors)
 - [Unit types](#unit-types)
 - [Unit Literals](#unit-literals)
-- [`<cmath>` Functions](#cmath-functions)
+- [<cmath> Functions](#cmath-functions)
 - [Exponentials and Square Roots](#exponentials-and-square-roots)
 - [Removing type safety](#removing-type-safety)
 - [Efficiency](#efficiency)
-- [`constexpr` support](#constexpr-support)
+- [constexpr support](#constexpr-support)
 - [Conversion without unit types](#conversion-without-unit-types)
 - [Namespaces](#namespaces)
 - [Defining new units](#defining-new-units)
 - [Unit definition macros](#unit-definition-macros)
 - [Unit Type Traits](#unit-type-traits)
-- [Underlying types of units](#underlying-types-of-units)
+- [Underlying type of units](#underlying-type-of-units)
 - [Disabling IOStream](#disabling-iostream)
-- [Improve compilation time through per-dimension headers](#improve-compilation-time-through-per-dimension-headers)
+- [Improve compilation time](#improve-compilation-time)
+- [MSVC compile options](#msvc-compile-options)
+	- [Per-Dimension Headers](#per-dimension-headers)
 - [Macro clashes](#macro-clashes)
 	- [Windows macros](#windows-macros)
 	- [ARM macros](#arm-macros)
@@ -119,10 +129,12 @@ Does this library work on your compiler? If so, let me know!
 <!-- /TOC -->
 
 # Documentation
+<a id="markdown-documentation" name="documentation"></a>
 
 [The full documentation is available ***here***](http://nholthaus.github.io/units).
 
 # Description
+<a id="markdown-description" name="description"></a>
 
 The library consists of an all-including header ([<units.h>](include/units.h)), per-dimension headers (of the form [<units/dimension.h>](include/units/)), plus unit tests. To incorporate the library into your project, simply copy the [include](include) directory into your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
@@ -131,6 +143,7 @@ The library provides a set of conversion factors, unit types, and traits to solv
 The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
 
 # Getting started guide
+<a id="markdown-getting-started-guide" name="getting-started-guide"></a>
 
 Include `<units.h>` in your sources, along with the `using` directive for literals
 
@@ -189,6 +202,7 @@ std::cout << c << std::endl;                    // prints: "5 m"
 ```
 
 # Unit initialization
+<a id="markdown-unit-initialization" name="unit-initialization"></a>
 
 There are several ways to initialize unit values:
 
@@ -211,6 +225,7 @@ meters distance0(100.0_ft); // `meters<double>`
 ```
 
 # Conversion factors
+<a id="markdown-conversion-factors" name="conversion-factors"></a>
 
 Conversion factors are the foundation of the dimensional analysis of the units library. Conversion factors are tag types which are never instantiated in user code, but which provide the compile-time information about different units, including how to convert between them, and how to determine their compatibility for conversion.
 
@@ -235,6 +250,7 @@ inline namespace length
 ```
 
 # Unit types
+<a id="markdown-unit-types" name="unit-types"></a>
 
 Unit types are the primary classes which will be used in user code. They can be thought of as essentially equivalent to a `double` (in the case of `_t` units), except that they have conversion factors associated with them. They can be used wherever a `double` would be used to store a dimensioned quantity. Unit types are derived from the `unit` class, and have the form `[singular-unit-name]_t`, e.g. `meter_t`, `radian_t` or `[plural-unit-name]<underlying-type>`, e.g. `meters<int>`, `radians<double>`.
 
@@ -309,6 +325,7 @@ auto result = a_m + square_meter_t(1.0);    // Error. Incompatible units.
 By providing explicit return types for unit functions, the compiler can be used to verify the accuracy of the dimensional analysis, and thus avoiding costly errors.
 
 # Unit Literals
+<a id="markdown-unit-literals" name="unit-literals"></a>
 
 Unit literals can be a convenient way to initialize and work with unit values:
 
@@ -333,6 +350,7 @@ All literals are defined in the `units::literals` namespace, and in order to use
 _* with the exception of `Teslas`, which use `_Te` for compatibility with MSVC compilers._
 
 # `<cmath>` Functions
+<a id="markdown-%3Ccmath%3E-functions" name="%3Ccmath%3E-functions"></a>
 
 The `units` library includes unit type-safe wrapper versions for almost all of the `<cmath>` functions, _including_ the C++11 extensions. These functions can be found through ADL. The `units` library versions don't conflict with `<cmath>`, and it's possible to use both libraries in the same code.
 
@@ -351,6 +369,7 @@ square_meter_t result = math::fma(x, y, z);                   // OK.
 ```
 
 # Exponentials and Square Roots
+<a id="markdown-exponentials-and-square-roots" name="exponentials-and-square-roots"></a>
 
 Many functions require units to be raised to some power. This can be accomplished using the `units::pow` function:
 
@@ -367,6 +386,7 @@ meter_t m = units::sqrt(square_meter_t(4.0));		// m == 2.0
 ```
 
 # Removing type safety
+<a id="markdown-removing-type-safety" name="removing-type-safety"></a>
 
 When interfacing with APIs, libraries, and frameworks which aren't `unit` enabled, it may be necessary (if regrettable) to remove the type-safety of a unit type and expose its underlying value. This is possible using the `unit_cast` function, or the `to<>` member function.
 
@@ -388,6 +408,7 @@ Both functions produce the same results, the choice of syntax is simply a user p
 To determine the underlying type of the unit container, the (verbose) trait `units::traits::unit_traits<decltype(dist)>::underlying_type` could be used.
 
 # Efficiency
+<a id="markdown-efficiency" name="efficiency"></a>
 
 Complex, recurively-defined conversions are performed in just 5 instructions:
 
@@ -408,12 +429,14 @@ but the total conversion ratio is computed at compile-time and the math is optim
 Unit conversions between equivalent types are optimized away completely, and generate _no machine code_.
 
 # `constexpr` support
+<a id="markdown-constexpr-support" name="constexpr-support"></a>
 
 In many cases, unit equations are used to determine derived values from a set of values which are known at compile-time. In these situations, it would be optimal to pre-compute the derived values _at compile time_, thus generating no machine code and incurring no run-time penalty.
 
 The unit types of `units` are mostly `constexpr` enabled to perform compile-time arithmetic. The limits are the `<cmath>` wrappers, which wrap non-`constexpr` `<cmath>` functions, and the decibel units which use them.
 
 # Conversion without unit types
+<a id="markdown-conversion-without-unit-types" name="conversion-without-unit-types"></a>
 
 The preferred method of conversion is implicitly though the use of unit types, however unit conversion can be accomplished using `units::convert` for arithmetic types:
 
@@ -424,6 +447,7 @@ double val_in = convert<feet_conversion_factor, inch_conversion_factor>(1.0);	//
 For type-safe conversion, prefer implicit conversion via unit type construction/assignment.
 
 # Namespaces
+<a id="markdown-namespaces" name="namespaces"></a>
 
 The following namespaces are nested within the `units` namespace.
 
@@ -438,6 +462,7 @@ The ADL-enabled mathematical operations, like `sin`, `log`, `floor`, etc are def
 `units::traits`: namespace with definitions of type traits that you can use to query unit types.
 
 # Defining new units
+<a id="markdown-defining-new-units" name="defining-new-units"></a>
 
 The units library strives to provide unit types for every conceivable unit, and before defining your own units you should double-check the headers to make sure it's not already included. That said, if you need to roll your own units, the library is extensible by design.
 
@@ -474,6 +499,7 @@ The available helpers are:
  - `units::atto<...>` through `units::exa<...>` metric prefixes
 
 # Unit definition macros
+<a id="markdown-unit-definition-macros" name="unit-definition-macros"></a>
 
 Version `2.1.0` of the units library simplifies the task of adding new units by introducing a set of macros for unit definitions:
 
@@ -515,6 +541,7 @@ Version `2.1.0` of the units library simplifies the task of adding new units by 
   Adds the `units::traits::is_length_unit` trait.
 
 # Unit Type Traits
+<a id="markdown-unit-type-traits" name="unit-type-traits"></a>
 
 The units library provides a comprehensive set of type-traits, which can be used in templated user code to enforce that the unit types have certain properties.
 
@@ -542,6 +569,7 @@ bool isMinimumSize(Units x)
 See the `units::traits` namespace for a list of all the supported traits.
 
 # Underlying type of units
+<a id="markdown-underlying-type-of-units" name="underlying-type-of-units"></a>
 
 The default underlying type for `_t` units is `double`.
 However, you can use the plural-named units, which are template entities,
@@ -550,6 +578,7 @@ For example, `1_m` has type `meters<int>`,
 while `1.0_m` has type `meter_t`, which is an alias for `meters<double>`.
 
 # Disabling IOStream
+<a id="markdown-disabling-iostream" name="disabling-iostream"></a>
 
 For some embedded applications, it may be [desirable to remove all references to `<iostream>` in order to reduce compiled binary size and RAM requirements](https://github.com/nholthaus/units/issues/32). There are two ways to accomplish this:
 
@@ -567,17 +596,36 @@ For some embedded applications, it may be [desirable to remove all references to
    cmake --build . --config Release
    ```
 
-# Improve compilation time through per-dimension headers
+# Improve compilation time
+<a id="markdown-improve-compilation-time" name="improve-compilation-time"></a>
+
+# MSVC compile options
+<a id="markdown-msvc-compile-options" name="msvc-compile-options"></a>
+
+enabling parallel builds in CMake:
+
+`set(ENV{CL} /MP)`
+
+and disabling microsoft-specific compiler extensions:
+
+`target_compile_definitions(${PROJECT_NAME} INTERFACE "/permissive-")`
+
+can improve the build times by a substantial margin (up to 5x in the authors testing).
+
+## Per-Dimension Headers
+<a id="markdown-per-dimension-headers" name="per-dimension-headers"></a>
 
 If you know that you only need a subset of the units for your application,
 you can use the per-dimension headers for units.
 For example, `#include <units/length.h>` will only give you access to the units of length dimension.
 
 # Macro clashes
+<a id="markdown-macro-clashes" name="macro-clashes"></a>
 
 With certain compilers, it is possible that system header files like `<ctype.h>` will define macros which conflict with the unit literals, which use SI abbreviations. In these cases, it is general safe and advisable to `#undef` the offending macros.
 
 ## Windows macros
+<a id="markdown-windows-macros" name="windows-macros"></a>
 
 `_T` is known to conflict, but is hardcoded into the compiler and can't be disabled. For this reason, `Tesla` units use the `_Te` abbreviation.
 
@@ -589,6 +637,7 @@ The following macros may need to be undefined on the Windows platform to use `un
    ```
 
 ## ARM macros
+<a id="markdown-arm-macros" name="arm-macros"></a>
 
 The following macros may need to be undefined on the ARM platform to use `units::literals`:
 
@@ -608,6 +657,7 @@ The following macros may need to be undefined on the ARM platform to use `units:
    It's best to undefine macros on an as-needed basis.
 
 # CMake Instructions
+<a id="markdown-cmake-instructions" name="cmake-instructions"></a>
 
 There are several ways to incorporate `<units.h>` into your project. The simplest is to just copy `include/*` into your project include directory (which the licensing allows you to do). However, you'll have to properly set up the necessary compilation flags for C++17 (`-std=c++17` on gcc).
 
@@ -639,6 +689,7 @@ If you don't care about the unit tests, you can minimize compile time by invokin
    ```
 
 # Build Instructions
+<a id="markdown-build-instructions" name="build-instructions"></a>
 
 The library itself consists of an all-including header [`<units.h>`](include/units.h) and finer-grained headers in [include/units/](include/units/), and can be included into your project without being built.
 
@@ -647,6 +698,7 @@ The unit tests and documentation can be built with CMake. A doxygen installation
 To build the tests:
 
 ## Windows
+<a id="markdown-windows" name="windows"></a>
 
  1. Ensure [`cmake`](https://cmake.org/download/) is installed, and that the `bin` directory is in your `%PATH%` variable, and that a compiler like [`Visual Studio 2015 Community Edition`](https://www.visualstudio.com/post-download-vs?sku=community&clcid=0x409&downloadrename=true#) is installed.
  2. clone the repository or download the `.zip` package.
@@ -659,6 +711,7 @@ To build the tests:
  5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
 
 ## Linux
+<a id="markdown-linux" name="linux"></a>
 
  1. Ensure you are using cmake 3.2 or later. You can verify this with `cmake --version`.
  2. Ensure you are using gcc version 7 or greater. You can verify this with `gcc --version`.
@@ -672,6 +725,7 @@ To build the tests:
  6. The tests will be created in an executable called `unitLibTest` in the folder `build/unitTests`.
 
 # Previous Releases
+<a id="markdown-previous-releases" name="previous-releases"></a>
 
  - [`v2.0.3`](https://github.com/nholthaus/units/releases/tag/v2.0.3)
    - `unit_t` types are now trivial types.

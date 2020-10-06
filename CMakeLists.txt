@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
-PROJECT(units LANGUAGES CXX)
-set(units_VERSION 3.0.0)
+PROJECT(units VERSION 3.0.0 LANGUAGES CXX)
 
 # cmake options
-OPTION(BUILD_TESTS "Build unit tests" ON)
-OPTION(BUILD_DOCS "Build the documentation" OFF)
-OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+OPTION(UNITS_BUILD_TESTS "Build unit tests" OFF)
+OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
+OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
-SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 SET(CMAKE_CXX_STANDARD 17)
 
 # header-only library target. To use this project as a subdirectory,
@@ -23,24 +21,14 @@ target_include_directories(${PROJECT_NAME}
 	$<INSTALL_INTERFACE:include>
 )
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	add_compile_options(-Wall -Wextra -pedantic)
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	# enable parallel build
-	set( ENV{CL} /MP )
-#	target_compile_definitions(${PROJECT_NAME} INTERFACE "/permissive-")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	# Increase warning levels
-	add_compile_options(-Wall -Wextra -pedantic)
-endif()
-
 # Remove IOStream from the library (useful for embdedded development)
 if(DISABLE_IOSTREAM)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
 endif(DISABLE_IOSTREAM)
 
 # unit tests
-if(BUILD_TESTS)
+include(CTest)
+if(BUILD_TESTING AND BUILD_TESTS)
 	enable_testing()
 	find_package(Threads)
 	add_subdirectory(3rdParty/googletest-1.10.0)
