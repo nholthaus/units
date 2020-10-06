@@ -150,7 +150,7 @@ namespace units
  */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(nameSingular, unitName, scale, /*definition*/...) \
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE> \
-	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>;
+	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>; \
 
 /**
  * @def			UNIT_ADD_IO(namespaceName,namePlural, abbreviation)
@@ -250,6 +250,7 @@ namespace units
 #define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversion_factor*/...) \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
 	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
+	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
 /**
@@ -315,20 +316,20 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, nano##namePlural, n##abbreviation, nano<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, micro##namePlural, u##abbreviation, micro<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, milli##namePlural, m##abbreviation, milli<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, centi##namePlural, c##abbreviation, centi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, deci##namePlural, d##abbreviation, deci<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, deca##namePlural, da##abbreviation, deca<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, hecto##namePlural, h##abbreviation, hecto<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, kilo##namePlural, k##abbreviation, kilo<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, mega##namePlural, M##abbreviation, mega<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, giga##namePlural, G##abbreviation, giga<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, tera##namePlural, T##abbreviation, tera<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, peta##namePlural, P##abbreviation, peta<namePlural<UNIT_LIB_DEFAULT_TYPE>>)
+	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>) \
+	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>) \
+	UNIT_ADD(namespaceName, nano##namePlural, n##abbreviation, nano<namePlural<>>) \
+	UNIT_ADD(namespaceName, micro##namePlural, u##abbreviation, micro<namePlural<>>) \
+	UNIT_ADD(namespaceName, milli##namePlural, m##abbreviation, milli<namePlural<>>) \
+	UNIT_ADD(namespaceName, centi##namePlural, c##abbreviation, centi<namePlural<>>) \
+	UNIT_ADD(namespaceName, deci##namePlural, d##abbreviation, deci<namePlural<>>) \
+	UNIT_ADD(namespaceName, deca##namePlural, da##abbreviation, deca<namePlural<>>) \
+	UNIT_ADD(namespaceName, hecto##namePlural, h##abbreviation, hecto<namePlural<>>) \
+	UNIT_ADD(namespaceName, kilo##namePlural, k##abbreviation, kilo<namePlural<>>) \
+	UNIT_ADD(namespaceName, mega##namePlural, M##abbreviation, mega<namePlural<>>) \
+	UNIT_ADD(namespaceName, giga##namePlural, G##abbreviation, giga<namePlural<>>) \
+	UNIT_ADD(namespaceName, tera##namePlural, T##abbreviation, tera<namePlural<>>) \
+	UNIT_ADD(namespaceName, peta##namePlural, P##abbreviation, peta<namePlural<>>)
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, definition)

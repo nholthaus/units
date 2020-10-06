@@ -721,7 +721,7 @@ TEST_F(UnitManipulators, squared)
 {
 	double test;
 
-	test = square_feet(unit<squared<meters<double>>>(0.092903)).value();
+	test = square_feet<double>(unit<squared<meters<double>>>(0.092903)).value();
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using dimensionless_2 =
@@ -1345,9 +1345,9 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim / dim)>);
 
 	static_assert(std::is_same_v<meters<int>, decltype(m / 1)>);
-	static_assert(std::is_same_v<unit<inverse<meter_conversion_factor>, int>, decltype(1 / m)>);
+	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(1 / m)>);
 	static_assert(std::is_same_v<meters<int>, decltype(m / dim)>);
-	static_assert(std::is_same_v<unit<inverse<meter_conversion_factor>, int>, decltype(dim / m)>);
+	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(dim / m)>);
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(m / m)>);
 
@@ -2304,10 +2304,10 @@ TEST_F(UnitType, valueMethod)
 
 TEST_F(UnitType, convertMethod)
 {
-	double test = meters(3.0).convert<feet<double>::conversion_factor>().to<double>();
+	double test = meters<double>(3.0).convert<feet<double>::conversion_factor>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 
-	auto unit2 = meters(3.0).convert<feet>();
+	auto unit2 = meters<double>(3.0).convert<feet>();
 	double test2 = unit2.to<double>();
 	EXPECT_NEAR(9.84252, test2, 5.0e-6);
 }
@@ -3675,8 +3675,8 @@ TEST_F(UnitMath, min)
 	feet<double> c(1);
 	EXPECT_EQ(c, units::min(a, c));
 
-	const meters d(1);
-	const centimeters e(99);
+	const meters<int> d(1);
+	const centimeters<int> e(99);
 	EXPECT_EQ(e, units::min(d, e));
 }
 
@@ -3686,8 +3686,8 @@ TEST_F(UnitMath, max)
 	feet<double> c(1);
 	EXPECT_EQ(a, max(a, c));
 
-	meters d(1);
-	centimeters e(101);
+	meters<int> d(1);
+	centimeters<int> e(101);
 	EXPECT_EQ(e, max(d, e));
 }
 
