@@ -148,7 +148,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_SCALED_UNIT_DEFINITION(nameSingular, unitName, scale, /*definition*/...) \
+#define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...) \
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE> \
 	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>; \
 
@@ -247,7 +247,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversion_factor*/...) \
+#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
 	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
@@ -314,7 +314,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*definition*/...) \
+#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
 	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>) \
 	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>) \
@@ -349,7 +349,7 @@ namespace units
  *				comprise the unit definition.
  */
 #define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES( \
-	namespaceName, namePlural, abbreviation, /*definition*/...) \
+	namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
 	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
 	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
