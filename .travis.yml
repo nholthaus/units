@@ -48,7 +48,7 @@ script:
   - cmake --build . --config Release -- -Werror
   - cmake --build . --config Debug -- -Werror
   - cd .. && mkdir coverallsBuild && cd coverallsBuild
-  - cmake -DUNITS_BUILD_TESTS -DUNITS_CODE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
+  - cmake -DUNITS_BUILD_TESTS=ON -DUNITS_CODE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
 
 after_success:
   - cd test
