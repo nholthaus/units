@@ -15,8 +15,7 @@ units
 
 # coveralls support
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
-option(COVERALLS "Generate coveralls data" OFF)
-if (COVERALLS)
+if (UNITS_CODE_COVERAGE)
 
 	# use absolute paths to help coveralls
 	get_filename_component(MAIN main.cpp ABSOLUTE)
@@ -25,9 +24,7 @@ if (COVERALLS)
 
 	include(Coveralls)
 	coveralls_turn_on_coverage()
-	coveralls_setup("${FILES}" # The source files.
-		ON   
-	)
+	coveralls_setup("${FILES}" ON)
 	
 endif()
 

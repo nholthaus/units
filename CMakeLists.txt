@@ -6,6 +6,7 @@ PROJECT(units VERSION 3.0.0 LANGUAGES CXX)
 OPTION(UNITS_BUILD_TESTS "Build unit tests" OFF)
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+option(UNITS_CODE_COVERAGE "Generate coveralls code coverage data" OFF)
 
 SET(CMAKE_CXX_STANDARD 17)
 
@@ -33,7 +34,7 @@ if(BUILD_TESTING AND BUILD_TESTS)
 	find_package(Threads)
 	add_subdirectory(3rdParty/googletest-1.10.0)
 	add_subdirectory(unitTests)
-endif(BUILD_TESTS)
+endif()
 
 # add a target to generate API documentation with Doxygen
 if(BUILD_DOCS)
@@ -46,7 +47,7 @@ if(BUILD_DOCS)
 			COMMENT "Generating API documentation with Doxygen" VERBATIM
 		)
 	endif(DOXYGEN_FOUND)
-endif(BUILD_DOCS)
+endif()
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
