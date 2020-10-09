@@ -64,11 +64,11 @@ namespace units
 	 * @anchor		pressureContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascals, Pa, conversion_factor<std::ratio<1>, units::dimension::pressure>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascals, Pa, conversion_factor<std::ratio<1>, dimension::pressure>)
 	UNIT_ADD(pressure, bars, bar, conversion_factor<std::ratio<100>, kilo<pascals<>>>)
 	UNIT_ADD(pressure, millibars, mbar, conversion_factor<std::ratio<1>, milli<bars<>>>)
 	UNIT_ADD(pressure, atmospheres, atm, conversion_factor<std::ratio<101325>, pascals<>>)
-	UNIT_ADD(pressure, pounds_per_square_inch, psi, compound_conversion_factor<force::pounds<>, inverse<squared<length::inches<>>>>)
+	UNIT_ADD(pressure, pounds_per_square_inch, psi, compound_conversion_factor<force::pounds<>, inverse<squared<inches<>>>>)
 	UNIT_ADD(pressure, torrs, torr, conversion_factor<std::ratio<1, 760>, atmospheres<>>)
 	UNIT_ADD(pressure, mmHg, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascals<>>)
 

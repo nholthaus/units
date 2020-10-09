@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		lengthContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(length, meters, m, conversion_factor<std::ratio<1>, units::dimension::length>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(length, meters, m, conversion_factor<std::ratio<1>, dimension::length>)
 	UNIT_ADD(length, feet, ft, conversion_factor<std::ratio<381, 1250>, meters<>>)
 	UNIT_ADD(length, inches, in, conversion_factor<std::ratio<1, 12>, feet<>>)
 	UNIT_ADD(length, mils, mil, conversion_factor<std::ratio<1000>, inches<>>)

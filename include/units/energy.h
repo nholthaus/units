@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		energyContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joules, J, conversion_factor<std::ratio<1>, units::dimension::energy>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joules, J, conversion_factor<std::ratio<1>, dimension::energy>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calories, cal, conversion_factor<std::ratio<4184, 1000>, joules<>>)
 	UNIT_ADD(energy, kilowatt_hours, kWh, conversion_factor<std::ratio<36, 10>, megajoules<>>)
 	UNIT_ADD(energy, watt_hours, Wh, conversion_factor<std::ratio<1, 1000>, kilowatt_hours<>>)

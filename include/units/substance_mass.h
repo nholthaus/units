@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		substanceMassContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(substance_mass, grams_per_mole, g_per_mol, conversion_factor<std::ratio<1, 1000>, units::dimension::substance_mass>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(substance_mass, grams_per_mole, g_per_mol, conversion_factor<std::ratio<1, 1000>, dimension::substance_mass>)
 
 	UNIT_ADD_DIMENSION_TRAIT(substance_mass)
 } // namespace units

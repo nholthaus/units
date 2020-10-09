@@ -58,10 +58,10 @@ namespace units
 	 * @anchor		concentrationContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(concentration, parts_per_million, ppm, conversion_factor<std::ratio<1, 1000000>, units::dimension::dimensionless>)
+	UNIT_ADD(concentration, parts_per_million, ppm, conversion_factor<std::ratio<1, 1000000>, dimension::dimensionless>)
 	UNIT_ADD(concentration, parts_per_billion, ppb, conversion_factor<std::ratio<1, 1000>, parts_per_million<>>)
 	UNIT_ADD(concentration, parts_per_trillion, ppt, conversion_factor<std::ratio<1, 1000>, parts_per_billion<>>)
-	UNIT_ADD(concentration, percent, pct, conversion_factor<std::ratio<1, 100>, units::dimension::dimensionless>)
+	UNIT_ADD(concentration, percent, pct, conversion_factor<std::ratio<1, 100>, dimension::dimensionless>)
 
 	UNIT_ADD_DIMENSION_TRAIT(concentration)
 } // namespace units

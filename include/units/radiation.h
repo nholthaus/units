@@ -62,8 +62,8 @@ namespace units
 	 * @anchor		radiationContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerels, Bq, conversion_factor<std::ratio<1>, units::frequency::hertz<>>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, grays, Gy, compound_conversion_factor<energy::joules<>, inverse<mass::kilograms<>>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerels, Bq, conversion_factor<std::ratio<1>, frequency::hertz<>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, grays, Gy, compound_conversion_factor<joules<>, inverse<kilograms<>>>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sieverts, Sv, conversion_factor<std::ratio<1>, grays<>>)
 	UNIT_ADD(radiation, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerels<>>)
 	UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<>>)

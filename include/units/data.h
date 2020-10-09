@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		dataContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bytes, B, conversion_factor<std::ratio<1>, units::dimension::data>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bytes, B, conversion_factor<std::ratio<1>, dimension::data>)
 	UNIT_ADD(data, exabytes, EB, conversion_factor<std::ratio<1000>, petabytes<>>)
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bits, b, conversion_factor<std::ratio<1, 8>, bytes<>>)
 	UNIT_ADD(data, exabits, Eb, conversion_factor<std::ratio<1000>, petabits<>>)
