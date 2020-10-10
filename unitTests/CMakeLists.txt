@@ -46,3 +46,4 @@ if(GTAGS)
 endif(GTAGS)
 
 
+ADD_SUBDIRECTORY(floatTypeSupport)
