@@ -307,7 +307,7 @@ namespace units
 	inline namespace namespaceName                                                                                     \
 	{                                                                                                                  \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale,   \
-			typename ::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE>::conversion_factor) /** @} */           \
+			typename ::units::namespaceName::namePlural<>::conversion_factor) /** @} */                                \
 	}                                                                                                                  \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation)                                                             \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
@@ -393,12 +393,12 @@ namespace units
  */
 #define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)     \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                \
-	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
-	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
-	UNIT_ADD(namespaceName, gibi##namePlural, Gi##abbreviation, gibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
-	UNIT_ADD(namespaceName, tebi##namePlural, Ti##abbreviation, tebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
-	UNIT_ADD(namespaceName, pebi##namePlural, Pi##abbreviation, pebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
-	UNIT_ADD(namespaceName, exbi##namePlural, Ei##abbreviation, exbi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)
+	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, gibi##namePlural, Gi##abbreviation, gibi<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, tebi##namePlural, Ti##abbreviation, tebi<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, pebi##namePlural, Pi##abbreviation, pebi<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, exbi##namePlural, Ei##abbreviation, exbi<namePlural<>>)
 
 //--------------------
 //	UNITS NAMESPACE
