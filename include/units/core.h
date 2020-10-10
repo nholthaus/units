@@ -83,7 +83,7 @@ namespace units
 		std::string to_string(const T& t)
 		{
 			std::string str{std::to_string(t)};
-			int offset{1};
+			unsigned int offset{1};
 
 			// remove trailing decimal points for integer value units. Locale aware!
 			struct std::lconv* lc;
@@ -3923,11 +3923,11 @@ namespace std
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
-				return x.to_linearized();
+				return static_cast<std::size_t>(x.to_linearized());
 			}
 			else
 			{
-				return hash<T>()(x.to_linearized());
+				return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
 			}
 		}
 	};
