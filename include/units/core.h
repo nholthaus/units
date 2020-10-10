@@ -122,9 +122,7 @@ namespace units
 //------------------------------
 
 /**
-/**
- * @def			UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, definition)
- * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,namePlural)
+ * @def			UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)
  * @brief		Helper macro for generating the boiler-plate code generating the tags of a new unit.
  * @details		The macro generates singular, plural, and abbreviated forms
  *				of the unit definition (e.g. `meter`, `meters`, and `m`), as aliases for the
@@ -133,17 +131,24 @@ namespace units
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
- *              represents the full conversion factor type.
+ *              represents the full conversion factor type. e.g. `meters<>`.
  * @note        the purpose of this trait is primarily to improve the readability of
  *              conversion error messages.
  */
 #define UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, /*conversion factor*/...)                         \
+	inline namespace namespaceName                                                                                     \
+	{                                                                                                                  \
+		/** @name ConversionFactor (full names plural) */ /** @{ */ struct namePlural##_conversion_factor              \
+		  : __VA_ARGS__                                                                                                \
+		{                                                                                                              \
+		}; /** @} */                                                                                                   \
+	}                                                                                                                  \
 	namespace traits                                                                                                   \
 	{                                                                                                                  \
 		template<>                                                                                                     \
 		struct strong<__VA_ARGS__>                                                                                     \
 		{                                                                                                              \
-			using type = typename ::units::namespaceName::namePlural<>::conversion_factor;                             \
+			using type = ::units::namespaceName::namePlural##_conversion_factor;                                       \
 		};                                                                                                             \
                                                                                                                        \
 		template<class ConversionFactor>                                                                               \
@@ -156,6 +161,9 @@ namespace units
  * @details		The macro generates the definition of the unit container types, e.g. `meter`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type. e.g. `meters<>`.
  */
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                   \
 	inline namespace namespaceName                                                                                     \
@@ -173,13 +181,16 @@ namespace units
  * @param		scale the non linear scale template argument of the unit's base
  * @param		definition - the variadic parameter is used for the definition of the unit
  *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...)                                      \
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE>                                                                 \
-	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>;
+	using unitName = ::units::unit<traits::strong_t<__VA_ARGS__>, Underlying, scale>;
 
 /**
  * @def			UNIT_ADD_IO(namespaceName,namePlural, abbreviation)
@@ -277,6 +288,7 @@ namespace units
  *				comprise the unit definition.
  */
 #define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                     \
+	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                          \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                   \
 	UNIT_ADD_IO(namespaceName, namePlural, abbreviation)                                                               \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                             \
