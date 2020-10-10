@@ -137,17 +137,17 @@ namespace units
  * @note        the purpose of this trait is primarily to improve the readability of
  *              conversion error messages.
  */
-#define UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, /*conversion factor*/...) \
-	namespace traits \
-	{ \
-		template<> \
-		struct strong<__VA_ARGS__> \
-		{ \
-			using type = typename ::units::namespaceName::namePlural<>::conversion_factor; \
-		}; \
-\
-		template<class ConversionFactor> \
-		using strong_t = typename strong<ConversionFactor>::type; \
+#define UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, /*conversion factor*/...)                         \
+	namespace traits                                                                                                   \
+	{                                                                                                                  \
+		template<>                                                                                                     \
+		struct strong<__VA_ARGS__>                                                                                     \
+		{                                                                                                              \
+			using type = typename ::units::namespaceName::namePlural<>::conversion_factor;                             \
+		};                                                                                                             \
+                                                                                                                       \
+		template<class ConversionFactor>                                                                               \
+		using strong_t = typename strong<ConversionFactor>::type;                                                      \
 	}
 
 /**
@@ -157,11 +157,11 @@ namespace units
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  */
-#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...) \
-	inline namespace namespaceName \
-	{ \
-		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			namePlural, ::units::linear_scale, __VA_ARGS__) /** @} */ \
+#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                   \
+	inline namespace namespaceName                                                                                     \
+	{                                                                                                                  \
+		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(                                        \
+			namePlural, ::units::linear_scale, __VA_ARGS__) /** @} */                                                  \
 	}
 
 /**
@@ -177,8 +177,8 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...) \
-	template<class Underlying = UNIT_LIB_DEFAULT_TYPE> \
+#define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...)                                      \
+	template<class Underlying = UNIT_LIB_DEFAULT_TYPE>                                                                 \
 	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>;
 
 /**
@@ -194,20 +194,20 @@ namespace units
 #if defined(UNIT_LIB_DISABLE_IOSTREAM)
 #define UNIT_ADD_IO(namespaceName, namePlural, abbrev)
 #else
-#define UNIT_ADD_IO(namespaceName, namePlural, abbrev) \
-	inline namespace namespaceName \
-	{ \
-		template<class Underlying> \
-		std::ostream& operator<<(std::ostream& os, const namePlural<Underlying>& obj) \
-		{ \
-			os << obj.value() << " " #abbrev; \
-			return os; \
-		} \
-		template<class Underlying> \
-		std::string to_string(const namePlural<Underlying>& obj) \
-		{ \
-			return units::detail::to_string(obj.value()) + std::string(" " #abbrev); \
-		} \
+#define UNIT_ADD_IO(namespaceName, namePlural, abbrev)                                                                 \
+	inline namespace namespaceName                                                                                     \
+	{                                                                                                                  \
+		template<class Underlying>                                                                                     \
+		std::ostream& operator<<(std::ostream& os, const namePlural<Underlying>& obj)                                  \
+		{                                                                                                              \
+			os << obj.value() << " " #abbrev;                                                                          \
+			return os;                                                                                                 \
+		}                                                                                                              \
+		template<class Underlying>                                                                                     \
+		std::string to_string(const namePlural<Underlying>& obj)                                                       \
+		{                                                                                                              \
+			return units::detail::to_string(obj.value()) + std::string(" " #abbrev);                                   \
+		}                                                                                                              \
 	}
 #endif
 
@@ -221,17 +221,17 @@ namespace units
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  */
-#define UNIT_ADD_NAME(namespaceName, namePlural, abbrev) \
-	template<class Underlying> \
-	struct unit_name<namespaceName::namePlural<Underlying>> \
-	{ \
-		static constexpr const char* value = #namePlural; \
-	}; \
-\
-	template<class Underlying> \
-	struct unit_abbreviation<namespaceName::namePlural<Underlying>> \
-	{ \
-		static constexpr const char* value = #abbrev; \
+#define UNIT_ADD_NAME(namespaceName, namePlural, abbrev)                                                               \
+	template<class Underlying>                                                                                         \
+	struct unit_name<namespaceName::namePlural<Underlying>>                                                            \
+	{                                                                                                                  \
+		static constexpr const char* value = #namePlural;                                                              \
+	};                                                                                                                 \
+                                                                                                                       \
+	template<class Underlying>                                                                                         \
+	struct unit_abbreviation<namespaceName::namePlural<Underlying>>                                                    \
+	{                                                                                                                  \
+		static constexpr const char* value = #abbrev;                                                                  \
 	};
 
 /**
@@ -245,17 +245,17 @@ namespace units
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
  * @note		When UNIT_HAS_LITERAL_SUPPORT is not defined, the macro does not generate any code
  */
-#define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation) \
-	namespace literals \
-	{ \
-		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept \
-		{ \
-			return namespaceName::namePlural<double>(static_cast<double>(d)); \
-		} \
-		constexpr namespaceName::namePlural<int> operator""_##abbreviation(unsigned long long d) noexcept \
-		{ \
-			return namespaceName::namePlural<int>(static_cast<int>(d)); \
-		} \
+#define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)                                                     \
+	namespace literals                                                                                                 \
+	{                                                                                                                  \
+		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept                  \
+		{                                                                                                              \
+			return namespaceName::namePlural<double>(static_cast<double>(d));                                          \
+		}                                                                                                              \
+		constexpr namespaceName::namePlural<int> operator""_##abbreviation(unsigned long long d) noexcept              \
+		{                                                                                                              \
+			return namespaceName::namePlural<int>(static_cast<int>(d));                                                \
+		}                                                                                                              \
 	}
 
 /**
@@ -276,10 +276,10 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
-	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
-	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
-	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
+#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                     \
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                   \
+	UNIT_ADD_IO(namespaceName, namePlural, abbreviation)                                                               \
+	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                             \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
 /**
@@ -291,13 +291,13 @@ namespace units
  * @param		namePlural plural version of the dimension name, e.g. 'watts'
  * @param		abbreviation - abbreviated decibel unit name, e.g. 'dBW'
  */
-#define UNIT_ADD_DECIBEL(namespaceName, namePlural, abbreviation) \
-	inline namespace namespaceName \
-	{ \
-		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale, \
-			typename ::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE>::conversion_factor) /** @} */ \
-	} \
-	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
+#define UNIT_ADD_DECIBEL(namespaceName, namePlural, abbreviation)                                                      \
+	inline namespace namespaceName                                                                                     \
+	{                                                                                                                  \
+		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale,   \
+			typename ::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE>::conversion_factor) /** @} */           \
+	}                                                                                                                  \
+	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation)                                                             \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
@@ -309,21 +309,21 @@ namespace units
  * @param		unitdimension The name of the dimension of unit, e.g. length or mass.
  */
 
-#define UNIT_ADD_DIMENSION_TRAIT(unitdimension) \
-	/** @ingroup	TypeTraits*/ \
-	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/ \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/ \
-	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/ \
-	/** @tparam		T	type to test*/ \
-	namespace traits \
-	{ \
-		template<typename T> \
-		struct is_##unitdimension##_unit \
-		  : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension> \
-		{ \
-		}; \
-		template<typename T> \
-		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T>::value; \
+#define UNIT_ADD_DIMENSION_TRAIT(unitdimension)                                                                        \
+	/** @ingroup	TypeTraits*/                                                                                          \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                         \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                   \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/            \
+	/** @tparam		T	type to test*/                                                                                      \
+	namespace traits                                                                                                   \
+	{                                                                                                                  \
+		template<typename T>                                                                                           \
+		struct is_##unitdimension##_unit                                                                               \
+		  : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension>                        \
+		{                                                                                                              \
+		};                                                                                                             \
+		template<typename T>                                                                                           \
+		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T>::value;                       \
 	}
 
 /**
@@ -343,21 +343,21 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
-	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>) \
-	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>) \
-	UNIT_ADD(namespaceName, nano##namePlural, n##abbreviation, nano<namePlural<>>) \
-	UNIT_ADD(namespaceName, micro##namePlural, u##abbreviation, micro<namePlural<>>) \
-	UNIT_ADD(namespaceName, milli##namePlural, m##abbreviation, milli<namePlural<>>) \
-	UNIT_ADD(namespaceName, centi##namePlural, c##abbreviation, centi<namePlural<>>) \
-	UNIT_ADD(namespaceName, deci##namePlural, d##abbreviation, deci<namePlural<>>) \
-	UNIT_ADD(namespaceName, deca##namePlural, da##abbreviation, deca<namePlural<>>) \
-	UNIT_ADD(namespaceName, hecto##namePlural, h##abbreviation, hecto<namePlural<>>) \
-	UNIT_ADD(namespaceName, kilo##namePlural, k##abbreviation, kilo<namePlural<>>) \
-	UNIT_ADD(namespaceName, mega##namePlural, M##abbreviation, mega<namePlural<>>) \
-	UNIT_ADD(namespaceName, giga##namePlural, G##abbreviation, giga<namePlural<>>) \
-	UNIT_ADD(namespaceName, tera##namePlural, T##abbreviation, tera<namePlural<>>) \
+#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                \
+	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                     \
+	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>)                                   \
+	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, nano##namePlural, n##abbreviation, nano<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, micro##namePlural, u##abbreviation, micro<namePlural<>>)                                   \
+	UNIT_ADD(namespaceName, milli##namePlural, m##abbreviation, milli<namePlural<>>)                                   \
+	UNIT_ADD(namespaceName, centi##namePlural, c##abbreviation, centi<namePlural<>>)                                   \
+	UNIT_ADD(namespaceName, deci##namePlural, d##abbreviation, deci<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, deca##namePlural, da##abbreviation, deca<namePlural<>>)                                    \
+	UNIT_ADD(namespaceName, hecto##namePlural, h##abbreviation, hecto<namePlural<>>)                                   \
+	UNIT_ADD(namespaceName, kilo##namePlural, k##abbreviation, kilo<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, mega##namePlural, M##abbreviation, mega<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, giga##namePlural, G##abbreviation, giga<namePlural<>>)                                     \
+	UNIT_ADD(namespaceName, tera##namePlural, T##abbreviation, tera<namePlural<>>)                                     \
 	UNIT_ADD(namespaceName, peta##namePlural, P##abbreviation, peta<namePlural<>>)
 
 /**
@@ -377,13 +377,13 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
-	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
-	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, gibi##namePlural, Gi##abbreviation, gibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, tebi##namePlural, Ti##abbreviation, tebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
-	UNIT_ADD(namespaceName, pebi##namePlural, Pi##abbreviation, pebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
+#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)     \
+	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                \
+	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
+	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
+	UNIT_ADD(namespaceName, gibi##namePlural, Gi##abbreviation, gibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
+	UNIT_ADD(namespaceName, tebi##namePlural, Ti##abbreviation, tebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
+	UNIT_ADD(namespaceName, pebi##namePlural, Pi##abbreviation, pebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)               \
 	UNIT_ADD(namespaceName, exbi##namePlural, Ei##abbreviation, exbi<namePlural<UNIT_LIB_DEFAULT_TYPE>>)
 
 //--------------------
