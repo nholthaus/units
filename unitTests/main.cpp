@@ -773,7 +773,7 @@ TEST_F(UnitManipulators, compound_unit)
 	// test that thing with translations still compile
 	using arbitrary1 = compound_conversion_factor<meters<double>, inverse<celsius<double>>>;
 	using arbitrary2 = compound_conversion_factor<meters<double>, celsius<double>>;
-	using arbitrary3 = compound_conversion_factor<arbitrary1, arbitrary2>;
+	using arbitrary3 = traits::strong_t<compound_conversion_factor<arbitrary1, arbitrary2>>;
 	EXPECT_TRUE((std::is_same_v<square_meters<double>::conversion_factor, arbitrary3>));
 }
 
@@ -3924,6 +3924,21 @@ TEST_F(UnitMath, pow)
 {
 	bool isSame;
 	meters<double> value(10.0);
+
+	auto inv_sq = pow<-2>(value);
+	EXPECT_NEAR(0.01, inv_sq.value(), 5.0e-5);
+	isSame = std::is_same<decltype(inv_sq), unit<inverse<square_meters<>>>>::value;
+	EXPECT_TRUE(isSame);
+
+	auto inv = pow<-1>(value);
+	EXPECT_NEAR(0.1, inv.value(), 5.0e-4);
+	isSame = std::is_same<decltype(inv), unit<inverse<meters<>>>>::value;
+	EXPECT_TRUE(isSame);
+
+	auto scalar = pow<0>(value);
+	//	EXPECT_NEAR(1, scalar.value(), 5.0e-3);
+	//	isSame = std::is_same<decltype(scalar), dimensionless<>>::value;
+	//	EXPECT_TRUE(isSame);
 
 	auto sq = pow<2>(value);
 	EXPECT_NEAR(100.0, sq.value(), 5.0e-2);

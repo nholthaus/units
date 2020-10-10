@@ -83,7 +83,7 @@ namespace units
 		std::string to_string(const T& t)
 		{
 			std::string str{std::to_string(t)};
-			int offset{1};
+			unsigned int offset{1};
 
 			// remove trailing decimal points for integer value units. Locale aware!
 			struct std::lconv* lc;
@@ -1703,8 +1703,16 @@ namespace units
 			: std::numeric_limits<FloatingPoint>::quiet_NaN();
 	}
 
-	template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-	constexpr detail::floating_point_promotion_t<T> pow(T x, unsigned long long y)
+	template<typename T1, typename T2,
+		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>, int> = 0>
+	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
+	{
+		return y == 0 ? 1.0 : (y < 0 ? 1.0 / x * pow(x, y + 1) : x * pow(x, static_cast<unsigned long long>(y - 1)));
+	}
+
+	template<typename T1, typename T2,
+		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>, int> = 0>
+	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
 	{
 		return y == 0 ? 1.0 : x * pow(x, y - 1);
 	}
@@ -3299,14 +3307,34 @@ namespace units
 		template<int N, class U>
 		struct power_of_unit
 		{
-			using type = typename units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type>;
+			template<bool isPos, int V>
+			struct power_of_unit_impl;
+
+			template<int V>
+			struct power_of_unit_impl<true, V>
+			{
+				typedef units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type> type;
+			};
+
+			template<int V>
+			struct power_of_unit_impl<false, V>
+			{
+				typedef units::inverse<typename power_of_unit<-N, U>::type> type;
+			};
+
+			typedef typename power_of_unit_impl<(N > 0), N>::type type;
 		};
 
 		/// End recursion
 		template<class U>
 		struct power_of_unit<1, U>
 		{
-			using type = U;
+			typedef U type;
+		};
+		template<class U>
+		struct power_of_unit<0, U>
+		{
+			typedef units::dimensionless_unit type;
 		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -3923,11 +3951,11 @@ namespace std
 		{
 			if constexpr (std::is_integral_v<U>)
 			{
-				return x.to_linearized();
+				return static_cast<std::size_t>(x.to_linearized());
 			}
 			else
 			{
-				return hash<T>()(x.to_linearized());
+				return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
 			}
 		}
 	};
