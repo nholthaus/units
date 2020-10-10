@@ -886,7 +886,7 @@ TEST_F(UnitManipulators, dimensionalAnalysis)
 	EXPECT_TRUE(shouldBeTrue);
 }
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #	if (_MSC_VER >= 1900)
 TEST_F(UnitContainer, trivial)
 {
@@ -1412,11 +1412,11 @@ TEST_F(UnitContainer, to_string)
 TEST_F(UnitContainer, to_string_locale)
 {
 	struct lconv * lc;
-	
+
 	// German locale
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "de-DE");
-#else	
+#else
 	EXPECT_STREQ("de_DE.utf8",setlocale(LC_ALL, "de_DE.utf8"));
 #endif
 
@@ -1426,7 +1426,7 @@ TEST_F(UnitContainer, to_string_locale)
 
 	kilometer_t de = 2_km;
 	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
-	
+
 	de = 2.5_km;
 	EXPECT_STREQ("2,5 km", units::length::to_string(de).c_str());
 
@@ -2593,13 +2593,13 @@ TEST_F(UnitConversion, pi)
 
 TEST_F(UnitConversion, constants)
 {
-	// Source: NIST "2014 CODATA recommended values" 
+	// Source: NIST "2014 CODATA recommended values"
 	EXPECT_NEAR(299792458, constants::c(), 5.0e-9);
 	EXPECT_NEAR(6.67408e-11, constants::G(), 5.0e-17);
 	EXPECT_NEAR(6.626070040e-34, constants::h(), 5.0e-44);
 	EXPECT_NEAR(1.2566370614e-6, constants::mu0(), 5.0e-17);
 	EXPECT_NEAR(8.854187817e-12, constants::epsilon0(), 5.0e-21);
-	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12); 
+	EXPECT_NEAR(376.73031346177, constants::Z0(), 5.0e-12);
 	EXPECT_NEAR(8987551787.3681764, constants::k_e(), 5.0e-6);
 	EXPECT_NEAR(1.6021766208e-19, constants::e(), 5.0e-29);
 	EXPECT_NEAR(9.10938356e-31, constants::m_e(), 5.0e-40);
@@ -2960,7 +2960,7 @@ TEST_F(Constexpr, construction)
 	constexpr meter_t result0(0);
 	constexpr auto result1 = make_unit<meter_t>(1);
 	constexpr auto result2 = meter_t(2);
-	
+
 	EXPECT_EQ(meter_t(0), result0);
 	EXPECT_EQ(meter_t(1), result1);
 	EXPECT_EQ(meter_t(2), result2);
@@ -3051,9 +3051,10 @@ TEST_F(Constexpr, realtional)
 
 TEST_F(Constexpr, stdArray)
 {
-	constexpr std::array<meter_t, 5> arr = { 0_m, 1_m, 2_m, 3_m, 4_m };
-	constexpr bool equal = (arr[3] == 3_m);
-	EXPECT_TRUE(equal);
+	constexpr std::array<meter_t, 3> arr = { -5_m, 0_m, 3_m };
+	EXPECT_EQ(arr[0], -5_m);
+	EXPECT_EQ(arr[1], 0_m);
+	EXPECT_EQ(arr[2], 3_m);
 }
 
 #endif
