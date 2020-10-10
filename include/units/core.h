@@ -138,8 +138,7 @@ namespace units
 #define UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, /*conversion factor*/...)                         \
 	inline namespace namespaceName                                                                                     \
 	{                                                                                                                  \
-		/** @name ConversionFactor (full names plural) */ /** @{ */ struct namePlural##_conversion_factor              \
-		  : __VA_ARGS__                                                                                                \
+		/** @name ConversionFactor (full names plural) */ /** @{ */ struct namePlural##_ : __VA_ARGS__                 \
 		{                                                                                                              \
 		}; /** @} */                                                                                                   \
 	}                                                                                                                  \
@@ -148,7 +147,7 @@ namespace units
 		template<>                                                                                                     \
 		struct strong<__VA_ARGS__>                                                                                     \
 		{                                                                                                              \
-			using type = ::units::namespaceName::namePlural##_conversion_factor;                                       \
+			using type = ::units::namespaceName::namePlural##_;                                                        \
 		};                                                                                                             \
                                                                                                                        \
 		template<class ConversionFactor>                                                                               \
