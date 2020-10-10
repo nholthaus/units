@@ -2756,13 +2756,29 @@ namespace units
 		/// recursive exponential implementation
 		template <int N, class U> struct power_of_unit
 		{
-			typedef typename units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type> type;
+			template<bool isPos, int V> struct power_of_unit_impl;
+
+			template<int V> struct power_of_unit_impl<true, V>
+			{
+				typedef units::detail::unit_multiply<U, typename power_of_unit<N - 1, U>::type> type;
+			};
+
+			template<int V> struct power_of_unit_impl<false, V>
+			{
+				typedef units::inverse<typename power_of_unit<-N, U>::type> type;
+			};
+
+			typedef typename power_of_unit_impl<(N > 0), N>::type type;
 		};
 
 		/// End recursion
 		template <class U> struct power_of_unit<1, U>
 		{
 			typedef U type;
+		};
+		template <class U> struct power_of_unit<0, U>
+		{
+			typedef units::dimensionless::dimensionless type;
 		};
 	}
 	/** @endcond */	// END DOXYGEN IGNORE
