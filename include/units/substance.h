@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		substanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(substance, mol, mols, mol, conversion_factor<std::ratio<1>, units::dimension::substance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(substance, mols, mol, conversion_factor<std::ratio<1>, dimension::substance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(substance)
 } // namespace units

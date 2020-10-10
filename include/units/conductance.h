@@ -62,7 +62,7 @@ namespace units
 	 * @anchor		conductanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, siemens, S, conversion_factor<std::ratio<1>, units::dimension::conductance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, S, conversion_factor<std::ratio<1>, dimension::conductance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(conductance)
 } // namespace units

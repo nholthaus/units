@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		impedanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohm, ohms, Ohm, conversion_factor<std::ratio<1>, units::dimension::impedance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohms, Ohm, conversion_factor<std::ratio<1>, dimension::impedance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(impedance)
 } // namespace units

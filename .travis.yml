@@ -40,17 +40,18 @@ install:
   - pwd
   - ls
   - pip install --user --upgrade cmake
+  - pip install --user cpp-coveralls
 
 script:
   - mkdir build && cd build
   - cmake --version
-  - cmake ..
-  - cmake --build . --config Release
-  - cmake --build . --config Debug
-  - cd .. && mkdir coverallsBuild && cd coverallsBuild
-  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
+  - cmake -DUNITS_BUILD_TESTS=ON -DUNITS_CODE_COVERAGE=ON ..
+  - cmake --build . --config Release -- -Werror
+  - cmake --build . --config Debug -- -Werror
 
-after_success:
+test:
   - cd test
   - ctest -C Release -V
 
+after_success:
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'

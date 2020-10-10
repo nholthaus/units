@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		capacitanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farad, farads, F, conversion_factor<std::ratio<1>, units::dimension::capacitance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farads, F, conversion_factor<std::ratio<1>, dimension::capacitance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(capacitance)
 } // namespace units

@@ -58,7 +58,7 @@ namespace units
 	 * @anchor		currentContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(current, ampere, amperes, A, conversion_factor<std::ratio<1>, units::dimension::current>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(current, amperes, A, conversion_factor<std::ratio<1>, dimension::current>)
 
 	UNIT_ADD_DIMENSION_TRAIT(current)
 } // namespace units

@@ -58,10 +58,10 @@ namespace units
 	 * @anchor		dataContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, bytes_per_second, Bps, conversion_factor<std::ratio<1>, units::dimension::data_transfer_rate>)
-	UNIT_ADD(data_transfer_rate, exabytes_per_second, exabytes_per_second, EBps, conversion_factor<std::ratio<1000>, petabytes_per_second_conversion_factor>)
-	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bits_per_second, bits_per_second, bps, conversion_factor<std::ratio<1, 8>, bytes_per_second_conversion_factor>)
-	UNIT_ADD(data_transfer_rate, exabits_per_second, exabits_per_second, Ebps, conversion_factor<std::ratio<1000>, petabits_per_second_conversion_factor>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, Bps, conversion_factor<std::ratio<1>, dimension::data_transfer_rate>)
+	UNIT_ADD(data_transfer_rate, exabytes_per_second, EBps, conversion_factor<std::ratio<1000>, petabytes_per_second<>>)
+	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bits_per_second, bps, conversion_factor<std::ratio<1, 8>, bytes_per_second<>>)
+	UNIT_ADD(data_transfer_rate, exabits_per_second, Ebps, conversion_factor<std::ratio<1000>, petabits_per_second<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(data_transfer_rate)
 } // namespace units

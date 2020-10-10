@@ -60,11 +60,11 @@ namespace units
 	 * @anchor		torqueContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(torque, newton_meter, newton_meters, Nm, conversion_factor<std::ratio<1>, units::energy::joule_conversion_factor>)
-	UNIT_ADD(torque, foot_pound, foot_pounds, ftlb, compound_conversion_factor<length::foot_conversion_factor, force::pound_conversion_factor>)
-	UNIT_ADD(torque, foot_poundal, foot_poundals, ftpdl, compound_conversion_factor<length::foot_conversion_factor, force::poundal_conversion_factor>)
-	UNIT_ADD(torque, inch_pound, inch_pounds, inlb, compound_conversion_factor<length::inch_conversion_factor, force::pound_conversion_factor>)
-	UNIT_ADD(torque, meter_kilogram, meter_kilograms, mkgf, compound_conversion_factor<length::meter_conversion_factor, force::kilopond_conversion_factor>)
+	UNIT_ADD(torque, newton_meters, Nm, conversion_factor<std::ratio<1>, joules<>>)
+	UNIT_ADD(torque, foot_pounds, ftlb, compound_conversion_factor<feet<>, force::pounds<>>)
+	UNIT_ADD(torque, foot_poundals, ftpdl, compound_conversion_factor<feet<>, poundals<>>)
+	UNIT_ADD(torque, inch_pounds, inlb, compound_conversion_factor<inches<>, force::pounds<>>)
+	UNIT_ADD(torque, meter_kilograms, mkgf, compound_conversion_factor<meters<>, kiloponds<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(torque)
 } // namespace units
