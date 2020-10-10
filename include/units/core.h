@@ -280,8 +280,9 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -348,8 +349,9 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -382,8 +384,9 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'bytes'
  * @param		abbreviation - abbreviated unit name, e.g. 'B'
- * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::data>`)
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
