@@ -4854,6 +4854,8 @@ namespace std
 		{
 			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
 		}
+		static constexpr bool is_integer = std::numeric_limits<T>::is_integer;
+		static constexpr bool is_signed = std::numeric_limits<T>::is_signed;
 	};
 }
 
