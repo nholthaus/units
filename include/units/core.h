@@ -2053,13 +2053,16 @@ namespace units
 						detail::is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor,
 							typename UnitTo::conversion_factor>>>>;
 
+		template<class Ratio>
+		using time_conversion_factor = conversion_factor<Ratio, dimension::time>;
+
 		/**
 		 * @brief		SFINAE helper to test if a `conversion_factor` is of the time dimension.
 		 */
 		template<class ConversionFactor>
 		inline constexpr bool is_time_conversion_factor =
 			traits::is_same_dimension_conversion_factor_v<ConversionFactor,
-				conversion_factor<std::ratio<1>, dimension::time>>;
+				time_conversion_factor<std::ratio<1>>>;
 
 		/**
 		 * @brief		helper type to identify units.
@@ -2601,6 +2604,22 @@ namespace std
 							units::detail::ratio_gcd<typename ConversionFactorLhs::translation_ratio,
 								typename ConversionFactorRhs::translation_ratio>>>,
 				common_type_t<Tx, Ty>, NumericalScale>>
+	{
+	};
+
+	template<class Ratio, class T, class NumericalScale, class Rep, class Period>
+	struct common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>,
+		chrono::duration<Rep, Period>>
+	  : std::common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>,
+			decltype(units::unit{chrono::duration<Rep, Period>{}})>
+	{
+	};
+
+	template<class ConversionFactor, class T, class NumericalScale, class Rep, class Period>
+	struct common_type<chrono::duration<Rep, Period>,
+			units::unit<ConversionFactor, T, NumericalScale>>
+	  : std::common_type<units::unit<ConversionFactor, T, NumericalScale>,
+			chrono::duration<Rep, Period>>
 	{
 	};
 
