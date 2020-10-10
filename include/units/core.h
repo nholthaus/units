@@ -122,6 +122,35 @@ namespace units
 //------------------------------
 
 /**
+/**
+ * @def			UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, definition)
+ * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,namePlural)
+ * @brief		Helper macro for generating the boiler-plate code generating the tags of a new unit.
+ * @details		The macro generates singular, plural, and abbreviated forms
+ *				of the unit definition (e.g. `meter`, `meters`, and `m`), as aliases for the
+ *				unit tag.
+ * @param		namespaceName namespace in which the new units will be encapsulated.
+ * @param		namePlural - plural version of the unit name, e.g. 'meters'
+ * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
+ *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
+ *              represents the full conversion factor type.
+ * @note        the purpose of this trait is primarily to improve the readability of
+ *              conversion error messages.
+ */
+#define UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, /*conversion factor*/...) \
+	namespace traits \
+	{ \
+		template<> \
+		struct strong<__VA_ARGS__> \
+		{ \
+			using type = typename ::units::namespaceName::namePlural<>::conversion_factor; \
+		}; \
+\
+		template<class ConversionFactor> \
+		using strong_t = typename strong<ConversionFactor>::type; \
+	}
+
+/**
  * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,namePlural)
  * @brief		Macro for generating the boiler-plate code for the unit type definition.
  * @details		The macro generates the definition of the unit container types, e.g. `meter`
@@ -150,7 +179,7 @@ namespace units
  */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...) \
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE> \
-	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>; \
+	using unitName = ::units::unit<__VA_ARGS__, Underlying, scale>;
 
 /**
  * @def			UNIT_ADD_IO(namespaceName,namePlural, abbreviation)
@@ -265,8 +294,8 @@ namespace units
 #define UNIT_ADD_DECIBEL(namespaceName, namePlural, abbreviation) \
 	inline namespace namespaceName \
 	{ \
-		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION( \
-			abbreviation, ::units::decibel_scale, typename ::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE>::conversion_factor) /** @} */ \
+		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale, \
+			typename ::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE>::conversion_factor) /** @} */ \
 	} \
 	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
@@ -348,8 +377,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES( \
-	namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
+#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...) \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__) \
 	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
 	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<UNIT_LIB_DEFAULT_TYPE>>) \
@@ -915,9 +943,9 @@ namespace units
 		using luminous_flux =
 			dimension_multiply<solid_angle, luminous_intensity>; ///< Represents an SI derived unit of luminous flux
 		using illuminance             = make_dimension<luminous_flux, std::ratio<1>, length,
-			std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
+            std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
 		using radioactivity           = make_dimension<length, std::ratio<2>, time,
-			std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
+            std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
 		using substance_mass          = dimension_divide<mass, substance>;
 		using substance_concentration = dimension_divide<substance, mass>;
 
@@ -1022,12 +1050,10 @@ namespace units
 		};
 
 		template<typename T, class Dim>
-		using has_dimension_of = typename has_dimension_of_impl<T, Dim,
-			traits::is_conversion_factor_v<T>>::type;
+		using has_dimension_of = typename has_dimension_of_impl<T, Dim, traits::is_conversion_factor_v<T>>::type;
 
 		template<typename Cf, class Dim>
-		struct has_dimension_of_impl<Cf, Dim, true>
-		  : has_dimension_of<conversion_factor_base_t<Cf>, Dim>::type
+		struct has_dimension_of_impl<Cf, Dim, true> : has_dimension_of<conversion_factor_base_t<Cf>, Dim>::type
 		{
 		};
 
@@ -1038,8 +1064,7 @@ namespace units
 		};
 
 		template<typename Cf, typename T, class Ns, class Dim>
-		struct has_dimension_of_impl<unit<Cf, T, Ns>, Dim>
-		  : std::is_same<traits::dimension_of_t<Cf>, Dim>::type
+		struct has_dimension_of_impl<unit<Cf, T, Ns>, Dim> : std::is_same<traits::dimension_of_t<Cf>, Dim>::type
 		{
 		};
 	}               // namespace detail
@@ -1209,8 +1234,8 @@ namespace units
 			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>,
-				dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-				std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+                dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
+                std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
 		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1430,8 +1455,8 @@ namespace units
 			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<ratio_sqrt<Conversion, Eps>,
-				dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+                dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
+                std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
 		};
 	}               // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1635,7 +1660,7 @@ namespace units
 		template<typename T>
 		using floating_point_promotion_t = typename floating_point_promotion<T>::type;
 
- 		template<class Cf, typename T, class Ns>
+		template<class Cf, typename T, class Ns>
 		struct floating_point_promotion<unit<Cf, T, Ns>>
 		{
 			using type = unit<Cf, floating_point_promotion_t<T>, Ns>;
@@ -1716,9 +1741,9 @@ namespace units
 	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio       = std::ratio_divide<typename ConversionFactorFrom::conversion_ratio,
-			typename ConversionFactorTo::conversion_ratio>;
+            typename ConversionFactorTo::conversion_ratio>;
 		using PiRatio     = std::ratio_subtract<typename ConversionFactorFrom::pi_exponent_ratio,
-			typename ConversionFactorTo::pi_exponent_ratio>;
+            typename ConversionFactorTo::pi_exponent_ratio>;
 		using Translation = std::ratio_divide<std::ratio_subtract<typename ConversionFactorFrom::translation_ratio,
 												  typename ConversionFactorTo::translation_ratio>,
 			typename ConversionFactorTo::conversion_ratio>;
@@ -1727,7 +1752,7 @@ namespace units
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
 				typename ConversionFactorFrom::dimension_type>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
-				typename ConversionFactorTo::dimension_type>;
+                typename ConversionFactorTo::dimension_type>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
@@ -1735,7 +1760,7 @@ namespace units
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio,
 				typename ConversionFactorFrom::dimension_type, typename ConversionFactorFrom::pi_exponent_ratio>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio,
-				typename ConversionFactorTo::dimension_type, typename ConversionFactorTo::pi_exponent_ratio>;
+                typename ConversionFactorTo::dimension_type, typename ConversionFactorTo::pi_exponent_ratio>;
 			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
 		};
 
@@ -2180,7 +2205,9 @@ namespace units
 			std::enable_if_t<detail::is_time_conversion_factor<Cf> && detail::is_losslessly_convertible<Rep, T>, int> =
 				0>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count())).linearized_value)
+		  : linearized_value(
+				units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))
+					.linearized_value)
 		{
 		}
 
@@ -2367,7 +2394,8 @@ namespace units
 		 * @returns		a unit with the specified parameters containing the equivalent value to
 		 *				*this.
 		 */
-		template<template <class> class UnitType, class = std::enable_if_t<traits::is_same_dimension_unit_v<UnitType<T>, unit>>>
+		template<template<class> class UnitType,
+			class = std::enable_if_t<traits::is_same_dimension_unit_v<UnitType<T>, unit>>>
 		constexpr UnitType<T> convert() noexcept
 		{
 			return UnitType<T>(*this);
@@ -2440,7 +2468,7 @@ namespace units
 	};
 
 	template<class Rep, class Period>
-	unit(std::chrono::duration<Rep, Period>)->unit<conversion_factor<Period, dimension::time>, Rep>;
+	unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
 
 	//------------------------------
 	//	UNIT NON-MEMBER FUNCTIONS
@@ -2923,7 +2951,7 @@ namespace units
 			int> = 0>
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> unit<traits::strong_t<squared<typename units::traits::unit_traits<
-									 std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
+					std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
 			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using SquaredUnit = decltype(lhs * rhs);
@@ -3046,8 +3074,8 @@ namespace units
 		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->
-		unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
 		using InverseUnit      = decltype(lhs / rhs);
@@ -3261,7 +3289,7 @@ namespace units
 	template<int power, class UnitType, std::enable_if_t<traits::has_linear_scale_v<UnitType>, int> = 0>
 	constexpr auto pow(const UnitType& value) noexcept
 		-> unit<traits::strong_t<typename units::detail::power_of_unit<power,
-									 typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
+					typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>
 	{
@@ -3337,7 +3365,7 @@ namespace units
 			int> = 0>
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> unit<traits::strong_t<squared<typename units::traits::unit_traits<
-									 std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
+					std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
 			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>
 	{
 		using SquaredUnit = decltype(lhs + rhs);
@@ -3404,8 +3432,8 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 				traits::is_dimensionless_unit_v<UnitTypeLhs> && !traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept ->
-		unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>,
 			decibel_scale>
 	{
@@ -3602,8 +3630,8 @@ namespace units
 	 *				unit type may have errors no larger than `1e-10`.
 	 */
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	constexpr auto sqrt(const UnitType& value) noexcept ->
-		unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
+	constexpr auto sqrt(const UnitType& value) noexcept
+		-> unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>
 	{
