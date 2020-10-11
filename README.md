@@ -10,6 +10,22 @@ A compile-time, header-only, dimensional analysis library built on C++17 with no
 
 If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
 
+# Next Release - v3.0.0
+
+## New in v3.0.0
+
+> I got enamoured with this library because with a few lines
+I could have a powerful type representing my domain-specific concept.
+Being able to clearly express your domain in code leads to better designs.
+My `Pixels` unit is as well-supported as any other unit in this library.
+It has access to the expressiveness and dimensional analysis
+that the library-defined units have.
+It's amazing how this library lets me define this expressive domain unit
+so succinctly and have access to so many useful things
+in such a short amount of code. \
+-- Johel Ernesto Guerrero Peña (@johelegp),
+https://github.com/nholthaus/units/issues/124#issuecomment-390773279
+
 # Latest Release - v2.3.1
 <a id="markdown-latest-release---v2.3.1" name="latest-release---v2.3.1"></a>
 
