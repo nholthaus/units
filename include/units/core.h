@@ -1704,17 +1704,17 @@ namespace units
 	}
 
 	template<typename T1, typename T2,
-		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>, int> = 0>
-	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
-	{
-		return y == 0 ? 1.0 : (y < 0 ? 1.0 / x * pow(x, y + 1) : x * pow(x, static_cast<unsigned long long>(y - 1)));
-	}
-
-	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>, int> = 0>
 	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
 	{
 		return y == 0 ? 1.0 : x * pow(x, y - 1);
+	}
+
+	template<typename T1, typename T2,
+		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>, int> = 0>
+	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
+	{
+		return y == 0 ? 1.0 : (y < 0 ? 1.0 / x * pow(x, y + 1) : x * pow(x, static_cast<unsigned long long>(y - 1)));
 	}
 
 	template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
