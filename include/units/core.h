@@ -1703,18 +1703,40 @@ namespace units
 			: std::numeric_limits<FloatingPoint>::quiet_NaN();
 	}
 
+	namespace detail
+	{
+		template<typename T1, typename T2>
+		constexpr auto pow_acc(T1 acc, T1 x, T2 y)
+		{
+			if (y == 0)
+			{
+				return acc;
+			}
+			if (y % 2 == 0)
+			{
+				return pow_acc(acc, x * x, y / 2);
+			}
+			return pow_acc(acc * x, x * x, (y - 1) / 2);
+		}
+	}
+
 	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>, int> = 0>
 	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
 	{
-		return y == 0 ? 1.0 : x * pow(x, y - 1);
+		using promoted_t = detail::floating_point_promotion_t<T1>;
+		return detail::pow_acc(static_cast<promoted_t>(1.0), static_cast<promoted_t>(x), y);
 	}
 
 	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>, int> = 0>
 	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
 	{
-		return y == 0 ? 1.0 : (y < 0 ? 1.0 / x * pow(x, y + 1) : x * pow(x, static_cast<unsigned long long>(y - 1)));
+		if (y >= 0)
+		{
+			return pow(x, static_cast<unsigned long long>(y));
+		}
+		return 1 / (x * pow(x, static_cast<unsigned long long>(-(y + 1))));
 	}
 
 	template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
