@@ -662,7 +662,16 @@ The generic algorithm is
   1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
   2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
 
-Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project.
+Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project. Alternatively, you can use `add_definitions()` in your cmake file to set macros globally::
+
+  ```cpp
+  // Only use length and time
+  add_definitions(
+  	-DDISABLE_PREDEFINED_UNITS
+  	-DENABLE_PREDEFINED_LENGTH_UNITS
+  	-DENABLE_PREDEFINED_TIME_UNITS
+  )
+  ```
 
 # Macro clashes
 
