@@ -340,6 +340,25 @@ auto area = 5_m * 10_m;							// with literals
 
 All literals* are defined by their SI abbreviation preceded by an underscore, e.g. `_m` for meter. "Square" units are preceded by `_sq`, e.g. `_sq_m` for square meters. Non SI units use their most common abbreviations.
 
+All literals can be used with a metric prefix as table shows:
+
+| Metric Prefix | Litereal |  Example  |
+|:-------------:|:--------:|:---------:|
+|     femto     |     f    |  `10_fm`  |
+|      pico     |     p    |  `10_pm`  |
+|      nano     |     n    |  `10_nm`  |
+|     micro     |     u    |  `10_um`  |
+|     milli     |     m    |  `10_mm`  |
+|     centi     |     c    |  `10_cm`  |
+|      deci     |     d    |  `10_dm`  |
+|      deca     |    da    |  `10_dam` |
+|     hecto     |     h    |  `10_hm`  |
+|      kilo     |     k    |  `10_km`  |
+|      mega     |     M    |  `10_Mm`  |
+|      giga     |     G    |  `10_Gm`  |
+|      tera     |     T    |  `10_Tm`  |
+|      peta     |     P    |  `10_Pm`  |
+
 All literals are defined in the `units::literals` namespace, and in order to use literals in your code ***you must include the line `using units::literals`*** (since there is no way to put a namespace on an operator).
 
 _* with the exception of `Teslas`, which use `_Te` for compatibility with MSVC compilers._
