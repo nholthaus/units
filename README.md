@@ -691,6 +691,24 @@ Additionally, for `CMake` users, there are equivalently-named cmake options defi
   	-DENABLE_PREDEFINED_TIME_UNITS
   )
   ```
+  
+Be aware, some units depend on others. See the unit dependencies table bellow:
+
+|           Unit          |           Dependencies           |
+|:-----------------------:|:--------------------------------:|
+|       ACCELERATION      |           LENGTH, TIME           |
+|     ANGULAR_VELOCITY    |            ANGLE, TIME           |
+|           AREA          |              LENGTH              |
+|         DENSITY         |           MASS, VOLUME           |
+|          FORCE          | ACCELERATION, LENGTH, MASS, TIME |
+|       ILLUMINANCE       |       LENGTH, LUMINOUS_FLUX      |
+| MAGNETIC_FIELD_STRENGTH |           MAGNETIC_FLUX          |
+|         PRESSURE        |           FORCE, LENGTH          |
+|        RADIATION        |           ENERGY, MASS           |
+|       SOLID_ANGLE       |               ANGLE              |
+|          TORQUE         |           FORCE, LENGTH          |
+|         VELOCITY        |           LENGTH, TIME           |
+|          VOLUME         |              LENGTH              |
 
 # Macro clashes
 
