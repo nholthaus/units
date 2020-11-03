@@ -1706,6 +1706,41 @@ namespace units
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
 	{
+		template<unsigned long long Exp, typename B>
+		constexpr auto pow_acc(B acc, B base) noexcept
+		{
+			if constexpr (Exp == 0)
+			{
+				return static_cast<B>(acc);
+			}
+			else if constexpr ((Exp & 1) == 0)
+			{
+				return pow_acc<Exp / 2>(acc, base * base);
+			}
+			else
+			{
+				return pow_acc<(Exp - 1) / 2>(acc * base, base * base);
+			}
+		}
+	}
+	/** @endcond */ // END DOXYGEN IGNORE
+
+	template<signed long long Exp, typename B, std::enable_if_t<std::is_arithmetic_v<B>, int> = 0>
+	constexpr detail::floating_point_promotion_t<B> pow(B base) noexcept
+	{
+		using promoted_t = detail::floating_point_promotion_t<B>;
+		constexpr auto one = static_cast<promoted_t>(1);
+		if constexpr (Exp >= 0)
+		{
+			return detail::pow_acc<Exp>(one, static_cast<promoted_t>(base));
+		}
+		constexpr auto new_exp = static_cast<unsigned long long>(-(Exp + 1));
+		return 1 / (base * detail::pow_acc<new_exp>(one, static_cast<promoted_t>(base)));
+	}
+
+	/** @cond */ // DOXYGEN IGNORE
+	namespace detail
+	{
 		template<typename T1, typename T2>
 		constexpr auto pow_acc(T1 acc, T1 x, T2 y) noexcept
 		{
