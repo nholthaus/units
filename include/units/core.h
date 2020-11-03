@@ -3413,7 +3413,7 @@ namespace units
 			detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>,
 			linear_scale>
 	{
-		return decltype(units::pow<power>(value))(pow(value.value(), power));
+		return decltype(units::pow<power>(value))(pow<power>(value.value()));
 	}
 
 	//------------------------------
