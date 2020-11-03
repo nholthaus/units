@@ -1707,7 +1707,7 @@ namespace units
 	namespace detail
 	{
 		template<typename T1, typename T2>
-		constexpr auto pow_acc(T1 acc, T1 x, T2 y)
+		constexpr auto pow_acc(T1 acc, T1 x, T2 y) noexcept
 		{
 			if (y == 0)
 			{
@@ -1724,7 +1724,7 @@ namespace units
 
 	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>, int> = 0>
-	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
+	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y) noexcept
 	{
 		using promoted_t = detail::floating_point_promotion_t<T1>;
 		return detail::pow_acc(static_cast<promoted_t>(1.0), static_cast<promoted_t>(x), y);
@@ -1732,7 +1732,7 @@ namespace units
 
 	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>, int> = 0>
-	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y)
+	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y) noexcept
 	{
 		if (y >= 0)
 		{
