@@ -1703,6 +1703,7 @@ namespace units
 			: std::numeric_limits<FloatingPoint>::quiet_NaN();
 	}
 
+	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T1, typename T2>
@@ -1719,6 +1720,7 @@ namespace units
 			return pow_acc(acc * x, x * x, (y - 1) / 2);
 		}
 	}
+	/** @endcond */ // END DOXYGEN IGNORE
 
 	template<typename T1, typename T2,
 		std::enable_if_t<std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>, int> = 0>
