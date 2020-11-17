@@ -342,7 +342,7 @@ All literals* are defined by their SI abbreviation preceded by an underscore, e.
 
 All literals can be used with a metric prefix as table shows:
 
-| Metric Prefix | Litereal |  Example  |
+| Metric Prefix | Literal |  Example  |
 |:-------------:|:--------:|:---------:|
 |     femto     |     f    |  `10_fm`  |
 |      pico     |     p    |  `10_pm`  |
