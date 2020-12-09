@@ -3,8 +3,14 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 PROJECT(units LANGUAGES CXX)
 set(units_VERSION 2.3.1)
 
+# check if this is the main project
+set(MAIN_PROJECT OFF)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  	set(MAIN_PROJECT ON)
+endif()
+
 # cmake options
-OPTION(BUILD_TESTS "Build unit tests" ON)
+OPTION(BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(BUILD_DOCS "Build the documentation" OFF)
 OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
@@ -57,6 +63,7 @@ SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # add_subdirectory(units) # or whatever you named the directory
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
+add_library(units::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} 
 	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
