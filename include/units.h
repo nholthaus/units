@@ -4154,7 +4154,7 @@ namespace units
 	 * @brief		namespace for physical constants like PI and Avogadro's Number.
 	 * @sa			See unit_t for more information on unit type containers.
 	 */
-#if !defined(DISABLE_PREDEFINED_UNITS)
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_CONSTANTS_UNITS)
 	namespace constants
 	{
 		/**
