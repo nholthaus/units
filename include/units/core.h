@@ -83,17 +83,21 @@ namespace units
 		std::string to_string(const T& t)
 		{
 			std::string str{std::to_string(t)};
-			unsigned int offset{1};
 
-			// remove trailing decimal points for integer value units. Locale aware!
-			struct std::lconv* lc;
-			lc                = std::localeconv();
-			char decimalPoint = *lc->decimal_point;
-			if (str.find_last_not_of('0') == str.find(decimalPoint))
+			if constexpr (std::is_floating_point_v<T>)
 			{
-				offset = 0;
+				unsigned int offset{1};
+
+				// remove trailing decimal points for integer value units. Locale aware!
+				struct std::lconv* lc;
+				lc                = std::localeconv();
+				char decimalPoint = *lc->decimal_point;
+				if (str.find_last_not_of('0') == str.find(decimalPoint))
+				{
+					offset = 0;
+				}
+				str.erase(str.find_last_not_of('0') + offset, std::string::npos);
 			}
-			str.erase(str.find_last_not_of('0') + offset, std::string::npos);
 			return str;
 		}
 	} // namespace detail
@@ -1707,7 +1711,7 @@ namespace units
 	namespace detail
 	{
 		template<unsigned long long Exp, typename B>
-		constexpr auto pow_acc(B acc, B base) noexcept
+		constexpr auto pow_acc(B acc, B base [[maybe_unused]]) noexcept
 		{
 			if constexpr (Exp == 0)
 			{
