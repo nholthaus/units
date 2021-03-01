@@ -1711,7 +1711,7 @@ namespace units
 	namespace detail
 	{
 		template<unsigned long long Exp, typename B>
-		constexpr auto pow_acc(B acc, B base) noexcept
+		constexpr auto pow_acc(B acc, B base [[maybe_unused]]) noexcept
 		{
 			if constexpr (Exp == 0)
 			{
