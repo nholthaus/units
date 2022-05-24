@@ -4468,7 +4468,7 @@ namespace units
 		dimensionless::scalar_t exp(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::exp(x()));
+			return dimensionless::scalar_t(std::exp(x.value()));
 		}
 
 		/**
@@ -4484,7 +4484,7 @@ namespace units
 		dimensionless::scalar_t log(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log(x()));
+			return dimensionless::scalar_t(std::log(x.value()));
 		}
 
 		/**
@@ -4499,7 +4499,7 @@ namespace units
 		dimensionless::scalar_t log10(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log10(x()));
+			return dimensionless::scalar_t(std::log10(x.value()));
 		}
 
 		/**
@@ -4519,7 +4519,7 @@ namespace units
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
 
 			UNIT_LIB_DEFAULT_TYPE intp;
-			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x(), &intp));
+			dimensionless::scalar_t fracpart = dimensionless::scalar_t(std::modf(x.value(), &intp));
 			*intpart = intp;
 			return fracpart;
 		}
@@ -4535,7 +4535,7 @@ namespace units
 		dimensionless::scalar_t exp2(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::exp2(x()));
+			return dimensionless::scalar_t(std::exp2(x.value()));
 		}
 
 		/**
@@ -4550,7 +4550,7 @@ namespace units
 		dimensionless::scalar_t expm1(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::expm1(x()));
+			return dimensionless::scalar_t(std::expm1(x.value()));
 		}
 
 		/**
@@ -4566,7 +4566,7 @@ namespace units
 		dimensionless::scalar_t log1p(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log1p(x()));
+			return dimensionless::scalar_t(std::log1p(x.value()));
 		}
 
 		/**
@@ -4581,7 +4581,7 @@ namespace units
 		dimensionless::scalar_t log2(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return dimensionless::scalar_t(std::log2(x()));
+			return dimensionless::scalar_t(std::log2(x.value()));
 		}
 
 		//----------------------------------

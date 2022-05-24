@@ -2765,18 +2765,24 @@ TEST_F(UnitMath, exp)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::exp(val), exp(scalar_t(val)));
+	auto uval = 5.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::exp(uval.value()), units::math::exp(uval));
 }
 
 TEST_F(UnitMath, log)
 {
 	double val = 100.0;
 	EXPECT_EQ(std::log(val), log(scalar_t(val)));
+	auto uval = 50.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::log(uval.value()), units::math::log(uval));
 }
 
 TEST_F(UnitMath, log10)
 {
 	double val = 100.0;
 	EXPECT_EQ(std::log10(val), log10(scalar_t(val)));
+	auto uval = 50.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::log10(uval.value()), units::math::log10(uval));
 }
 
 TEST_F(UnitMath, modf)
@@ -2786,30 +2792,44 @@ TEST_F(UnitMath, modf)
 	scalar_t modfr2;
 	EXPECT_EQ(std::modf(val, &modfr1), modf(scalar_t(val), &modfr2));
 	EXPECT_EQ(modfr1, modfr2);
+
+	auto uval = 50.0_m * (2 / 1000_mm);
+	double umodfr1;
+	decltype(uval) umodfr2;
+	EXPECT_EQ(std::modf(uval.value(), &umodfr1), units::math::modf(uval, &umodfr2));
+	EXPECT_EQ(modfr1, modfr2);
 }
 
 TEST_F(UnitMath, exp2)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::exp2(val), exp2(scalar_t(val)));
+	auto uval = 5.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::exp2(uval.value()), units::math::exp2(uval));
 }
 
 TEST_F(UnitMath, expm1)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::expm1(val), expm1(scalar_t(val)));
+	auto uval = 5.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::expm1(uval.value()), units::math::expm1(uval));
 }
 
 TEST_F(UnitMath, log1p)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::log1p(val), log1p(scalar_t(val)));
+	auto uval = 5.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::log1p(uval.value()), units::math::log1p(uval));
 }
 
 TEST_F(UnitMath, log2)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::log2(val), log2(scalar_t(val)));
+	auto uval = 5.0_m * (2 / 1000_mm);
+	EXPECT_EQ(std::log2(uval.value()), units::math::log2(uval));
 }
 
 TEST_F(UnitMath, pow)
