@@ -4283,7 +4283,7 @@ namespace units
 		angle::radian_t acos(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::acos(x()));
+			return angle::radian_t(std::acos(x.value()));
 		}
 #endif
 
@@ -4299,7 +4299,7 @@ namespace units
 		angle::radian_t asin(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::asin(x()));
+			return angle::radian_t(std::asin(x.value()));
 		}
 #endif
 
@@ -4319,7 +4319,7 @@ namespace units
 		angle::radian_t atan(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::atan(x()));
+			return angle::radian_t(std::atan(x.value()));
 		}
 #endif
 
@@ -4410,7 +4410,7 @@ namespace units
 		angle::radian_t acosh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::acosh(x()));
+			return angle::radian_t(std::acosh(x.value()));
 		}
 #endif
 
@@ -4426,7 +4426,7 @@ namespace units
 		angle::radian_t asinh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::asinh(x()));
+			return angle::radian_t(std::asinh(x.value()));
 		}
 #endif
 
@@ -4444,7 +4444,7 @@ namespace units
 		angle::radian_t atanh(const ScalarUnit x) noexcept
 		{
 			static_assert(traits::is_dimensionless_unit<ScalarUnit>::value, "Type `ScalarUnit` must be a dimensionless unit derived from `unit_t`.");
-			return angle::radian_t(std::atanh(x()));
+			return angle::radian_t(std::atanh(x.value()));
 		}
 #endif
 
