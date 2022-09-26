@@ -12,3 +12,4 @@
   The occasional class can be resolved using the full namespace (e.g units::mass::pounds vs. units::force::pounds)
 - added support for nlohmann json
 - NaN support
+- add `Gal` unit of acceleration

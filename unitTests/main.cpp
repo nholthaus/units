@@ -2951,6 +2951,10 @@ TEST_F(ConversionFactor, acceleration)
 
 	test = meters_per_second_squared<double>(standard_gravity<double>(1.0)).value();
 	EXPECT_NEAR(9.80665, test, 5.0e-10);
+	test = standard_gravity<double>(feet_per_second_squared<double>(1.0)).value();
+	EXPECT_NEAR(0.0310810, test, 5.0e-6);
+	test = feet_per_second_squared<double>(gals<double>(1.0)).value();
+	EXPECT_NEAR(0.0328084, test, 5.0e-6);
 }
 
 TEST_F(ConversionFactor, force)
