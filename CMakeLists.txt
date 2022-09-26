@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 PROJECT(units VERSION 3.0.0 LANGUAGES CXX)
 
+# check if this is the main project
+set(MAIN_PROJECT OFF)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	set(MAIN_PROJECT ON)
+endif()
+
 # cmake options
-OPTION(UNITS_BUILD_TESTS "Build unit tests" OFF)
+OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 option(UNITS_CODE_COVERAGE "Generate coveralls code coverage data" OFF)
@@ -16,6 +22,7 @@ SET(CMAKE_CXX_STANDARD 17)
 # add_subdirectory(units) # or whatever you named the directory
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
+add_library(units::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
 	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -32,7 +39,7 @@ include(CTest)
 if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	enable_testing()
 	find_package(Threads)
-	add_subdirectory(3rdParty/googletest-1.10.0)
+	add_subdirectory(3rdParty/googletest-1.12.1)
 	add_subdirectory(unitTests)
 endif()
 
