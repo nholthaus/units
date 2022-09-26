@@ -1,3 +1,11 @@
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+set(gtest_force_shared_crt ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(FetchContent)
 FetchContent_Declare(
         googletest

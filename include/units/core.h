@@ -3998,6 +3998,42 @@ namespace units
 		using CommonUnit = decltype(units::fma(x, y, z));
 		return CommonUnit(std::fma(x.value(), y.value(), CommonUnit(z).value()));
 	}
+
+	//----------------------------
+	//  NAN support
+	//----------------------------
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isnan(const UnitType& x) noexcept
+	{
+		return std::isnan(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isinf(const UnitType& x) noexcept
+	{
+		return std::isinf(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isfinite(const UnitType& x) noexcept
+	{
+		return std::isfinite(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isnormal(const UnitType& x) noexcept
+	{
+		return std::isnormal(x.value());
+	}
+
+	template<typename UnitTypeLhs, typename UnitTypeRhs,
+		typename = std::enable_if_t<units::traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+	inline bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return std::isunordered(lhs.value(), rhs.value());
+	}
+
 } // end namespace units
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -4034,41 +4070,6 @@ namespace std
 	class numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
 	{
 	};
-
-	//----------------------------
-	//  NAN support
-	//----------------------------
-
-	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
-	inline bool isnan(const UnitType& x)
-	{
-		return std::isnan(x.value());
-	}
-
-	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
-	inline bool isinf(const UnitType& x)
-	{
-		return std::isinf(x.value());
-	}
-
-	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
-	inline bool isfinite(const UnitType& x)
-	{
-		return std::isfinite(x.value());
-	}
-
-	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
-	inline bool isnormal(const UnitType& x)
-	{
-		return std::isnormal(x.value());
-	}
-
-	template<typename UnitTypeLhs, typename UnitTypeRhs,
-	    typename = std::enable_if_t<units::traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>>>
-	inline bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
-	{
-		return std::isunordered(lhs.value(), rhs.value());
-	}
 } // namespace std
 
 //----------------------------------------------------------------------------------------------------------------------

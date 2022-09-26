@@ -4092,12 +4092,12 @@ TEST_F(UnitMath, isnan)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 
-	EXPECT_TRUE(std::isnan(nan));
-	EXPECT_FALSE(std::isnan(inf));
-	EXPECT_FALSE(std::isnan(0.0_m));
-	EXPECT_FALSE(std::isnan(DBL_MIN/2.0 * 1_m));
-	EXPECT_TRUE(std::isnan(zero / zero));
-	EXPECT_TRUE(std::isnan(inf - inf));
+fix:	EXPECT_TRUE(units::isnan(nan));
+	EXPECT_FALSE(units::isnan(inf));
+	EXPECT_FALSE(units::isnan(0.0_m));
+	EXPECT_FALSE(units::isnan(DBL_MIN/2.0 * 1_m));
+	EXPECT_TRUE(units::isnan(zero / zero));
+	EXPECT_TRUE(units::isnan(inf - inf));
 }
 
 TEST_F(UnitMath, isinf)
@@ -4106,11 +4106,11 @@ TEST_F(UnitMath, isinf)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 
-	EXPECT_FALSE(std::isinf(nan));
-	EXPECT_TRUE(std::isinf(inf));
-	EXPECT_FALSE(std::isinf(0.0_m));
-	EXPECT_TRUE(std::isinf(exp(1600_rad / 2_rad)));
-	EXPECT_FALSE(std::isinf(DBL_MIN/2.0 * 1_m));
+	EXPECT_FALSE(units::isinf(nan));
+	EXPECT_TRUE(units::isinf(inf));
+	EXPECT_FALSE(units::isinf(0.0_m));
+	EXPECT_TRUE(units::isinf(exp(1600_rad / 2_rad)));
+	EXPECT_FALSE(units::isinf(DBL_MIN/2.0 * 1_m));
 }
 
 TEST_F(UnitMath, isfinite)
@@ -4119,11 +4119,11 @@ TEST_F(UnitMath, isfinite)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 
-	EXPECT_FALSE(std::isfinite(nan));
-	EXPECT_FALSE(std::isfinite(inf));
-	EXPECT_TRUE(std::isfinite(0.0_m));
-	EXPECT_FALSE(std::isfinite(exp(1600_rad / 2_rad)));
-	EXPECT_TRUE(std::isfinite(DBL_MIN/2.0 * 1_m));
+	EXPECT_FALSE(units::isfinite(nan));
+	EXPECT_FALSE(units::isfinite(inf));
+	EXPECT_TRUE(units::isfinite(0.0_m));
+	EXPECT_FALSE(units::isfinite(exp(1600_rad / 2_rad)));
+	EXPECT_TRUE(units::isfinite(DBL_MIN/2.0 * 1_m));
 }
 
 TEST_F(UnitMath, isnormal)
@@ -4132,10 +4132,10 @@ TEST_F(UnitMath, isnormal)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 	
-	EXPECT_FALSE(std::isnormal(nan));
-	EXPECT_FALSE(std::isnormal(inf));
-	EXPECT_FALSE(std::isnormal(0.0_m));
-	EXPECT_TRUE(std::isnormal(1_m));
+	EXPECT_FALSE(units::isnormal(nan));
+	EXPECT_FALSE(units::isnormal(inf));
+	EXPECT_FALSE(units::isnormal(0.0_m));
+	EXPECT_TRUE(units::isnormal(1.0_m));
 }
 
 TEST_F(UnitMath, isunordered)
@@ -4144,9 +4144,9 @@ TEST_F(UnitMath, isunordered)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 
-	EXPECT_TRUE(std::isunordered(nan, zero));
-	EXPECT_TRUE(std::isunordered(zero, nan));
-	EXPECT_FALSE(std::isunordered(zero, zero));
+	EXPECT_TRUE(units::isunordered(nan, zero));
+	EXPECT_TRUE(units::isunordered(zero, nan));
+	EXPECT_FALSE(units::isunordered(zero, zero));
 }
 
 // Constexpr
