@@ -29,7 +29,7 @@ endif(DISABLE_IOSTREAM)
 
 # unit tests
 include(CTest)
-if(BUILD_TESTING AND BUILD_TESTS)
+if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	enable_testing()
 	find_package(Threads)
 	add_subdirectory(3rdParty/googletest-1.10.0)
