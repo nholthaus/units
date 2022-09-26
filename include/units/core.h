@@ -4033,6 +4033,33 @@ namespace std
 	};
 } // namespace std
 
+//----------------------------
+//  JSON SUPPORT
+//----------------------------
+
+#if defined __has_include
+#  if __has_include (<nlohmann/json.hpp>)
+#    include <nlohmann/json.hpp>
+namespace units
+{
+	template<class UnitType, class = std::enable_if<units::traits::is_unit_v<UnitType>>>
+	void from_json(const nlohmann::json& j, UnitType& u)
+	{
+		using underlying = typename units::traits::unit_traits<UnitType>::underlying_type;
+		underlying value;
+		j.get_to(value);
+		u = UnitType(value);
+	}
+
+	template<class UnitType, class = std::enable_if<units::traits::is_unit_v<UnitType>>>
+	void to_json(nlohmann::json& j, const UnitType& u)
+	{
+		j = u.value();
+	}
+}    // namespace units
+#  endif
+#endif
+
 #endif // units_core_h__
 
 // For Emacs

@@ -1034,6 +1034,21 @@ TEST_F(UnitType, CTAD)
 #endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 }
 
+TEST_F(UnitType, implicitChronoConversions)
+{
+	using namespace std::chrono_literals;
+	std::chrono::seconds chronoSec(1);
+	units::seconds<int> unitsSec = chronoSec;
+	chronoSec = unitsSec;
+	EXPECT_EQ(unitsSec, 1_s);
+	EXPECT_EQ(chronoSec, 1s);
+}
+
+TEST_F(UnitType, negativeConstexprLiterals)
+{
+	static constexpr units::angle::radians<double> kAngularValue{-30.0_deg};
+}
+
 TEST_F(UnitType, assignmentFromArithmeticType)
 {
 	dimensionless<int> a_dim;
