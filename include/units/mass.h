@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(mass, grams, g, conversion_factor<std::ratio<1, 1000>, dimension::mass>)
-	UNIT_ADD(mass, metric_tons, t, conversion_factor<std::ratio<1000>, kilograms<>>)
+	UNIT_ADD(mass, tonnes, t, conversion_factor<std::ratio<1000>, kilograms<>>)
 	UNIT_ADD(mass, pounds, lb, conversion_factor<std::ratio<45359237, 100000000>, kilograms<>>)
 	UNIT_ADD(mass, long_tons, ln_conversion_factor, conversion_factor<std::ratio<2240>, pounds<>>)
 	UNIT_ADD(mass, short_tons, sh_conversion_factor, conversion_factor<std::ratio<2000>, pounds<>>)

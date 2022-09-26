@@ -1,5 +1,6 @@
 #include <array>
 #include <chrono>
+#include <complex>
 #include <gtest/gtest.h>
 #include <ratio>
 #include <string>
@@ -817,6 +818,12 @@ TEST_F(UnitType, trivial)
 	EXPECT_TRUE((std::is_trivially_destructible_v<dB<double>>));
 	EXPECT_TRUE((std::is_trivially_move_assignable_v<dB<double>>));
 	EXPECT_TRUE((std::is_trivially_move_constructible_v<dB<double>>));
+}
+
+TEST_F(UnitType, complexUnits)
+{
+	std::complex<meters<>> x(3_m,4_m);
+	EXPECT_TRUE((std::conj(x) == std::complex<meters<>>{3_m, -4_m}));
 }
 
 TEST_F(UnitType, constructionFromArithmeticType)
@@ -2702,7 +2709,7 @@ TEST_F(ConversionFactor, mass)
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = kilograms<double>(kilograms<double>(1.0)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
-	test = metric_tons<double>(kilograms<double>(1000.0)).value();
+	test = tonnes<double>(kilograms<double>(1000.0)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = mass::pounds<double>(kilograms<double>(0.453592)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
