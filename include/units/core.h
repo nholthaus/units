@@ -4000,12 +4000,15 @@ namespace units
 	}
 } // end namespace units
 
-//------------------------------
-//	std::hash
-//------------------------------
-
+//----------------------------------------------------------------------------------------------------------------------
+//      STD Namespace extensions
+//----------------------------------------------------------------------------------------------------------------------
 namespace std
 {
+	//------------------------------
+	//	std::hash
+	//------------------------------
+
 	template<class ConversionFactor, typename T, class NumericalScale>
 	struct hash<units::unit<ConversionFactor, T, NumericalScale>>
 	{
@@ -4031,11 +4034,46 @@ namespace std
 	class numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
 	{
 	};
+
+	//----------------------------
+	//  NAN support
+	//----------------------------
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isnan(const UnitType& x)
+	{
+		return std::isnan(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isinf(const UnitType& x)
+	{
+		return std::isinf(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isfinite(const UnitType& x)
+	{
+		return std::isfinite(x.value());
+	}
+
+	template<typename UnitType, typename = std::enable_if_t<units::traits::is_unit_v<UnitType>>>
+	inline bool isnormal(const UnitType& x)
+	{
+		return std::isnormal(x.value());
+	}
+
+	template<typename UnitTypeLhs, typename UnitTypeRhs,
+	    typename = std::enable_if_t<units::traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>>>
+	inline bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	{
+		return std::isunordered(lhs.value(), rhs.value());
+	}
 } // namespace std
 
-//----------------------------
+//----------------------------------------------------------------------------------------------------------------------
 //  JSON SUPPORT
-//----------------------------
+//----------------------------------------------------------------------------------------------------------------------
 
 #if defined __has_include
 #  if __has_include (<nlohmann/json.hpp>)
@@ -4061,11 +4099,3 @@ namespace units
 #endif
 
 #endif // units_core_h__
-
-// For Emacs
-// Local Variables:
-// Mode: C++
-// c-basic-offset: 2
-// fill-column: 116
-// tab-width: 4
-// End:
