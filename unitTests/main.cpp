@@ -2416,21 +2416,26 @@ TEST_F(UnitType, cout)
 TEST_F(UnitType, to_string)
 {
 	feet<double> a(3.5);
-	EXPECT_STREQ("3.5 ft", units::length::to_string(a).c_str());
+	EXPECT_STREQ("3.5 ft", to_string(a).c_str());
 
 	meters<double> b(8);
-	EXPECT_STREQ("8 m", units::length::to_string(b).c_str());
+	EXPECT_STREQ("8 m", to_string(b).c_str());
 }
 
 TEST_F(UnitType, to_string_locale)
 {
 	struct lconv* lc;
+	std::string output;
+	std::stringstream os1;
+	std::stringstream os2;
 
 	// German locale
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "de-DE");
+	os1.imbue(std::locale("de-DE"));
 #else
 	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8"));
+	os1.imbue(std::locale("de_DE.utf8"));
 #endif
 
 	lc            = localeconv();
@@ -2438,16 +2443,22 @@ TEST_F(UnitType, to_string_locale)
 	EXPECT_EQ(point_de, ',');
 
 	kilometers<double> de = 2.0_km;
-	EXPECT_STREQ("2 km", units::length::to_string(de).c_str());
+	EXPECT_STREQ("2 km", to_string(de).c_str());
 
 	de = 2.5_km;
-	EXPECT_STREQ("2,5 km", units::length::to_string(de).c_str());
+	EXPECT_STREQ("2,5 km", to_string(de).c_str());
+
+	os1 << std::setprecision(9) << constants::mu_B;
+	output = os1.str();
+	EXPECT_STREQ("9,27400999e-24 A m^2", output.c_str());
 
 	// US locale
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "en-US");
+	os2.imbue(std::locale("en-US"));
 #else
 	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8"));
+	os2.imbue("en_US.utf8");
 #endif
 
 	lc            = localeconv();
@@ -2455,10 +2466,14 @@ TEST_F(UnitType, to_string_locale)
 	EXPECT_EQ(point_us, '.');
 
 	miles<double> us = 2.0_mi;
-	EXPECT_STREQ("2 mi", units::length::to_string(us).c_str());
+	EXPECT_STREQ("2 mi", to_string(us).c_str());
 
 	us = 2.5_mi;
-	EXPECT_STREQ("2.5 mi", units::length::to_string(us).c_str());
+	EXPECT_STREQ("2.5 mi", to_string(us).c_str());
+
+	os2 << std::setprecision(9) << constants::mu_B;
+	output = os2.str();
+	EXPECT_STREQ("9.27400999e-24 A m^2", output.c_str());
 }
 
 TEST_F(UnitType, nameAndAbbreviation)
@@ -4092,7 +4107,7 @@ TEST_F(UnitMath, isnan)
 	meters<> nan(NAN);
 	meters<> inf(INFINITY);
 
-fix:	EXPECT_TRUE(units::isnan(nan));
+	EXPECT_TRUE(units::isnan(nan));
 	EXPECT_FALSE(units::isnan(inf));
 	EXPECT_FALSE(units::isnan(0.0_m));
 	EXPECT_FALSE(units::isnan(DBL_MIN/2.0 * 1_m));

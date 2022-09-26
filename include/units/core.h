@@ -111,9 +111,15 @@ namespace units
 namespace units
 {
 	template<class Unit>
-	struct unit_name;
+	struct unit_name
+	{
+		static constexpr const char* value = nullptr;
+	};
 	template<class Unit>
-	struct unit_abbreviation;
+	struct unit_abbreviation
+	{
+		static constexpr const char* value = nullptr;
+	};
 
 	template<class Unit>
 	inline constexpr const char* unit_name_v = unit_name<Unit>::value;
@@ -196,36 +202,6 @@ namespace units
 	using unitName = ::units::unit<traits::strong_t<__VA_ARGS__>, Underlying, scale>;
 
 /**
- * @def			UNIT_ADD_IO(namespaceName,namePlural, abbreviation)
- * @brief		Macro for generating the boiler-plate code needed for I/O for a new unit.
- * @details		The macro generates the code to insert units into an ostream. It
- *				prints both the value and abbreviation of the unit when invoked.
- * @param		namespaceName namespace in which the new units will be encapsulated.
- * @param		namePlural - plural version of the unit name, e.g. 'meters'
- * @param		abbrev - abbreviated unit name, e.g. 'm'
- * @note		When UNIT_LIB_DISABLE_IOSTREAM is defined, the macro does not generate any code
- */
-#if defined(UNIT_LIB_DISABLE_IOSTREAM)
-#define UNIT_ADD_IO(namespaceName, namePlural, abbrev)
-#else
-#define UNIT_ADD_IO(namespaceName, namePlural, abbrev)                                                                 \
-	inline namespace namespaceName                                                                                     \
-	{                                                                                                                  \
-		template<class Underlying>                                                                                     \
-		std::ostream& operator<<(std::ostream& os, const namePlural<Underlying>& obj)                                  \
-		{                                                                                                              \
-			os << obj.value() << " " #abbrev;                                                                          \
-			return os;                                                                                                 \
-		}                                                                                                              \
-		template<class Underlying>                                                                                     \
-		std::string to_string(const namePlural<Underlying>& obj)                                                       \
-		{                                                                                                              \
-			return units::detail::to_string(obj.value()) + std::string(" " #abbrev);                                   \
-		}                                                                                                              \
-	}
-#endif
-
-/**
  * @def		UNIT_ADD_NAME(namespaceName,namePlural,abbreviation)
  * @brief		Macro for generating constexpr names/abbreviations for units.
  * @details	The macro generates names for units. E.g. name() of 1_m would be "meter", and
@@ -294,7 +270,6 @@ namespace units
 #define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                     \
 	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                          \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                   \
-	UNIT_ADD_IO(namespaceName, namePlural, abbreviation)                                                               \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                             \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
@@ -313,7 +288,7 @@ namespace units
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale,   \
 			typename ::units::namespaceName::namePlural<>::conversion_factor) /** @} */                                \
 	}                                                                                                                  \
-	UNIT_ADD_IO(namespaceName, abbreviation, abbreviation)                                                             \
+	UNIT_ADD_NAME(namespaceName, abbreviation, abbreviation)                                                           \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
@@ -326,11 +301,11 @@ namespace units
  */
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension)                                                                        \
-	/** @ingroup	TypeTraits*/                                                                                          \
-	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                         \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                   \
-	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/            \
-	/** @tparam		T	type to test*/                                                                                      \
+	/** @ingroup	TypeTraits*/                                                                                       \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                     \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/   \
+	/** @tparam		T	type to test*/                                                                                 \
 	namespace traits                                                                                                   \
 	{                                                                                                                  \
 		template<typename T>                                                                                           \
@@ -2622,17 +2597,56 @@ namespace units
 		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
-		os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
-			BaseUnit, PromotedBaseUnit>(obj)
-				  .value();
-
-		using DimType = traits::dimension_of_t<ConversionFactor>;
-		if constexpr (!DimType::empty)
+		std::locale loc;
+		if constexpr(unit_abbreviation_v<unit<ConversionFactor, T, NumericalScale>>)
 		{
-			os << DimType{};
+			os << obj.value() << " " << obj.abbreviation();
+		}
+		else
+		{
+			os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
+				BaseUnit, PromotedBaseUnit>(obj).value();
+
+			using DimType = traits::dimension_of_t<ConversionFactor>;
+			if constexpr (!DimType::empty)
+			{
+				os << DimType{};
+			}
 		}
 
 		return os;
+	}
+
+	//----------------------------
+	//  to_string
+	//----------------------------
+
+	template<class ConversionFactor, typename T, class NumericalScale>
+	std::string to_string(const unit<ConversionFactor, T, NumericalScale>& obj)
+	{
+		using BaseConversion   = conversion_factor<std::ratio<1>, typename ConversionFactor::dimension_type>;
+		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
+		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
+
+		if constexpr(unit_abbreviation_v<unit<ConversionFactor, T, NumericalScale>>)
+		{
+			std::string s = units::detail::to_string(obj.value());
+			s.append(" ").append(obj.abbreviation());
+			return s;
+		}
+		else
+		{
+			std::string s = units::detail::to_string(std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>,
+				BaseUnit, PromotedBaseUnit>(obj)
+					  .value());
+
+			using DimType = traits::dimension_of_t<ConversionFactor>;
+			if constexpr (!DimType::empty)
+			{
+				s.append(" ").append(DimType{});
+			}
+			return s;
+		}
 	}
 #endif
 

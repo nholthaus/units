@@ -56,7 +56,6 @@
 #define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, /*definition*/...) \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
-	UNIT_ADD_IO(namespaceName, namePlural, abbreviation) \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
 namespace units
