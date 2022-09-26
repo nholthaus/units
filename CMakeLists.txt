@@ -23,9 +23,9 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Remove IOStream from the library (useful for embdedded development)
-if(DISABLE_IOSTREAM)
+if(UNITS_DISABLE_IOSTREAM)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
-endif(DISABLE_IOSTREAM)
+endif(UNITS_DISABLE_IOSTREAM)
 
 # unit tests
 include(CTest)
@@ -37,7 +37,7 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 endif()
 
 # add a target to generate API documentation with Doxygen
-if(BUILD_DOCS)
+if(UNITS_BUILD_DOCS)
 	find_package(Doxygen)
 	if(DOXYGEN_FOUND)
 		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
