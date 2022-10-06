@@ -3632,9 +3632,10 @@ namespace units
 	 *				error occurs
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> exp(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::exp(x.value());
+		return std::exp(x.template to<typename dimensionlessUnit::underlying_type>());
 	}
 
 	/**
@@ -3647,9 +3648,10 @@ namespace units
 	 * @returns		Natural logarithm of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> log(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::log(x.value());
+		return std::log(x.template to<typename dimensionlessUnit::underlying_type>());
 	}
 
 	/**
@@ -3661,9 +3663,10 @@ namespace units
 	 * @returns		Common logarithm of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> log10(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log10(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::log10(x.value());
+		return std::log10(x.template to<typename dimensionlessUnit::underlying_type>());
 	}
 
 	/**
@@ -3681,10 +3684,11 @@ namespace units
 		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> &&
 				std::is_floating_point_v<typename dimensionlessUnit::underlying_type>,
 			int> = 0>
-	dimensionlessUnit modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
+	dimensionless<typename dimensionlessUnit::underlying_type> modf(
+		const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
-		dimensionlessUnit fracpart = std::modf(x.value(), &intp);
+		dimensionlessUnit fracpart = std::modf(x.template to<decltype(intp)>(), &intp);
 		*intpart                   = intp;
 		return fracpart;
 	}
@@ -3697,9 +3701,10 @@ namespace units
 	 * @returns		2 raised to the power of x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> exp2(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp2(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::exp2(x.value());
+		return std::exp2(static_cast<typename dimensionlessUnit::underlying_type>(x));
 	}
 
 	/**
@@ -3711,9 +3716,10 @@ namespace units
 	 * @returns		e raised to the power of x, minus one.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> expm1(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> expm1(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::expm1(x.value());
+		return std::expm1(static_cast<typename dimensionlessUnit::underlying_type>(x));
 	}
 
 	/**
@@ -3726,9 +3732,10 @@ namespace units
 	 * @returns		The natural logarithm of (1+x).
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> log1p(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log1p(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::log1p(x.value());
+		return std::log1p(static_cast<typename dimensionlessUnit::underlying_type>(x));
 	}
 
 	/**
@@ -3740,9 +3747,10 @@ namespace units
 	 * @returns		The binary logarithm of x: log2x.
 	 */
 	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
-	detail::floating_point_promotion_t<dimensionlessUnit> log2(const dimensionlessUnit x) noexcept
+	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log2(
+		const dimensionlessUnit x) noexcept
 	{
-		return std::log2(x.value());
+		return std::log2(static_cast<typename dimensionlessUnit::underlying_type>(x));
 	}
 
 	//----------------------------------

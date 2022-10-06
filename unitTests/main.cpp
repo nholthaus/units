@@ -3914,18 +3914,25 @@ TEST_F(UnitMath, exp)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::exp(val), exp(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(static_cast<double>(uval), static_cast<typename decltype(uval)::underlying_type>(uval));
+	EXPECT_EQ(std::exp(uval.to<double>()), units::exp(uval));
 }
 
 TEST_F(UnitMath, log)
 {
 	double val = 100.0;
 	EXPECT_EQ(std::log(val), log(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::log(uval.to<double>()), units::log(uval));
 }
 
 TEST_F(UnitMath, log10)
 {
 	double val = 100.0;
 	EXPECT_EQ(std::log10(val), log10(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::log10(uval.to<double>()), units::log10(uval));
 }
 
 TEST_F(UnitMath, modf)
@@ -3935,30 +3942,42 @@ TEST_F(UnitMath, modf)
 	dimensionless<double> modfr2;
 	EXPECT_EQ(std::modf(val, &modfr1), modf(dimensionless<double>(val), &modfr2));
 	EXPECT_EQ(modfr1, modfr2);
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	double umodfr1;
+	decltype(uval) umodfr2;
+	EXPECT_EQ(std::modf(uval.to<double>(), &umodfr1), units::modf(uval, &umodfr2));
 }
 
 TEST_F(UnitMath, exp2)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::exp2(val), exp2(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::exp2(uval.to<double>()), units::exp2(uval));
 }
 
 TEST_F(UnitMath, expm1)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::expm1(val), expm1(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::expm1(uval.to<double>()), units::expm1(uval));
 }
 
 TEST_F(UnitMath, log1p)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::log1p(val), log1p(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::log1p(uval.to<double>()), units::log1p(uval));
 }
 
 TEST_F(UnitMath, log2)
 {
 	double val = 10.0;
 	EXPECT_EQ(std::log2(val), log2(dimensionless<double>(val)));
+	auto uval = 5.0_m * (2.0 / 1000.0_mm);
+	EXPECT_EQ(std::log2(uval.to<double>()), units::log2(uval));
 }
 
 TEST_F(UnitMath, pow)
