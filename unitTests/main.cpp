@@ -3777,39 +3777,84 @@ TEST_F(UnitMath, acos)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(acos(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(acos(dimensionless<int>(0)))>));
-	EXPECT_NEAR(
-		angle::radians<double>(2).to<double>(), acos(dimensionless<double>(-0.41614683654)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radians<double>(1.570796326795).to<double>(), acos(dimensionless<int>(0)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degrees<double>(135).to<double>(),
-		angle::degrees<double>(acos(dimensionless<double>(-0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(90).to<double>(),
-		angle::degrees<double>(acos(dimensionless<int>(0))).to<double>(), 5.0e-12);
+	auto in1  = -0.41614683654;
+	auto in2  = 0;
+	auto in3  = -0.70710678118654752440084436210485;
+	auto in4  = 0;
+	auto out1 = 2;
+	auto out2 = 1.570796326795;
+	auto out3 = 135;
+	auto out4 = 90;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acos(dimensionless<double>(in1)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), acos(dimensionless<int>(in2)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(),
+		angle::degrees<double>(acos(dimensionless<double>(in3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(),
+		angle::degrees<double>(acos(dimensionless<int>(in4))).to<double>(), 5.0e-12);
+	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acos(uin1).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), acos(uin2).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(acos(uin3)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(acos(uin4)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asin)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(asin(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(asin(dimensionless<int>(0)))>));
-	EXPECT_NEAR(angle::radians<double>(1.14159265).to<double>(),
-		asin(dimensionless<double>(0.90929742682)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(1.570796326795).to<double>(), asin(dimensionless<int>(1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(45).to<double>(),
-		angle::degrees<double>(asin(dimensionless<double>(0.70710678118654752440084436210485))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(90).to<double>(),
-		angle::degrees<double>(asin(dimensionless<int>(1))).to<double>(), 5.0e-12);
+	auto in1  = 0.90929742682;
+	auto in2  = 1;
+	auto in3  = 0.70710678118654752440084436210485;
+	auto in4  = 1;
+	auto out1 = 1.14159265;
+	auto out2 = 1.570796326795;
+	auto out3 = 45;
+	auto out4 = 90;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asin(dimensionless<double>(in1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), asin(dimensionless<int>(in2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(),
+		angle::degrees<double>(asin(dimensionless<double>(in3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(),
+		angle::degrees<double>(asin(dimensionless<int>(in4))).to<double>(), 5.0e-12);
+	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asin(uin1).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), asin(uin2).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(asin(uin3)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(asin(uin4)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(atan(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(atan(dimensionless<int>(0)))>));
-	EXPECT_NEAR(angle::radians<double>(-1.14159265).to<double>(),
-		atan(dimensionless<double>(-2.18503986326)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(0.785398163397).to<double>(), atan(dimensionless<int>(1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(-45).to<double>(),
-		angle::degrees<double>(atan(dimensionless<double>(-1.0))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(45).to<double>(),
-		angle::degrees<double>(atan(dimensionless<int>(1))).to<double>(), 5.0e-12);
+	auto in1  = -2.18503986326;
+	auto in2  = 1;
+	auto in3  = -1;
+	auto in4  = 1;
+	auto out1 = -1.14159265;
+	auto out2 = 0.785398163397;
+	auto out3 = -45;
+	auto out4 = 45;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atan(dimensionless<double>(in1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), atan(dimensionless<int>(in2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(),
+		angle::degrees<double>(atan(dimensionless<double>(in3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(),
+		angle::degrees<double>(atan(dimensionless<int>(in4))).to<double>(), 5.0e-12);
+	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atan(uin1).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), atan(uin2).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(atan(uin3)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(atan(uin4)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atan2)
@@ -3873,41 +3918,60 @@ TEST_F(UnitMath, acosh)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(acosh(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(acosh(dimensionless<int>(0)))>));
-	EXPECT_NEAR(angle::radians<double>(1.316957896924817).to<double>(), acosh(dimensionless<double>(2.0)).to<double>(),
-		5.0e-11);
-	EXPECT_NEAR(
-		angle::radians<double>(1.316957896924817).to<double>(), acosh(dimensionless<int>(2)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degrees<double>(75.456129290216893).to<double>(),
-		angle::degrees<double>(acosh(dimensionless<double>(2.0))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(75.456129290216893).to<double>(),
-		angle::degrees<double>(acosh(dimensionless<int>(2))).to<double>(), 5.0e-12);
+	auto ins  = 2;
+	auto out1 = 1.316957896924817;
+	auto out2 = 75.456129290216893;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(dimensionless<double>(ins)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(dimensionless<int>(ins)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(),
+		angle::degrees<double>(acosh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(),
+		angle::degrees<double>(acosh(dimensionless<int>(ins))).to<double>(), 5.0e-12);
+	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(uins).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(uins).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(uins)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(uins)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, asinh)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(asinh(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(asinh(dimensionless<int>(0)))>));
-	EXPECT_NEAR(
-		angle::radians<double>(1.443635475178810).to<double>(), asinh(dimensionless<double>(2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(
-		angle::radians<double>(1.443635475178810).to<double>(), asinh(dimensionless<int>(2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(82.714219883108939).to<double>(),
-		angle::degrees<double>(asinh(dimensionless<double>(2))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(82.714219883108939).to<double>(),
-		angle::degrees<double>(asinh(dimensionless<int>(2))).to<double>(), 5.0e-12);
+	auto ins  = 2;
+	auto out1 = 1.443635475178810;
+	auto out2 = 82.714219883108939;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(dimensionless<double>(ins)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(dimensionless<int>(ins)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(),
+		angle::degrees<double>(asinh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(),
+		angle::degrees<double>(asinh(dimensionless<int>(ins))).to<double>(), 5.0e-12);
+	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(uins).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(uins).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(uins)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(uins)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, atanh)
 {
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(atanh(dimensionless<double>(0)))>));
 	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(atanh(dimensionless<int>(0)))>));
-	EXPECT_NEAR(
-		angle::radians<double>(0.549306144334055).to<double>(), atanh(dimensionless<double>(0.5)).to<double>(), 5.0e-9);
+	auto ins  = 0.5;
+	auto out1 = 0.549306144334055;
+	auto out2 = 31.472923730945389;
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(dimensionless<double>(ins)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::radians<double>(0).to<double>(), atanh(dimensionless<int>(0)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(31.472923730945389).to<double>(),
-		angle::degrees<double>(atanh(dimensionless<double>(0.5))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(),
+		angle::degrees<double>(atanh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
 	EXPECT_NEAR(angle::degrees<double>(0).to<double>(),
 		angle::degrees<double>(atanh(dimensionless<int>(0))).to<double>(), 5.0e-12);
+	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(uins).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(uins).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(atanh(uins)).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(atanh(uins)).to<double>(), 5.0e-12);
 }
 
 TEST_F(UnitMath, exp)
