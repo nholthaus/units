@@ -2465,7 +2465,7 @@ TEST_F(UnitType, to_string_locale)
 	os2.imbue(std::locale("en-US"));
 #else
 	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8"));
-	os2.imbue("en_US.utf8");
+	os2.imbue(std::locale("en_US.utf8"));
 #endif
 
 	lc            = localeconv();
