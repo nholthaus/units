@@ -37,8 +37,6 @@ before_install:
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq lcov curl language-pack-de
-  - pwd
-  - ls
   - pip install --user --upgrade cmake
   - pip install --user cpp-coveralls
 
