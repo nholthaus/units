@@ -53,9 +53,9 @@
  * @brief		Like `UNIT_ADD`, but the abbreviated unit is plural, e.g. `5_min` would have type `unit<mins>`
  * @sa			`UNIT_ADD`
  */
-#define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, /*definition*/...) \
-	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__) \
-	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation) \
+#define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, /*definition*/...)                                                                   \
+	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                           \
+	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                     \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
 namespace units
