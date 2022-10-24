@@ -3953,6 +3953,30 @@ TEST_F(ConversionFactor, illuminance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
+TEST_F(ConversionFactor, luminance)
+{
+	candelas_per_square_meter<double> test;
+
+	test = stilbs<double>(1.0);
+	EXPECT_DOUBLE_EQ(test.value(), pow<4>(10.0));
+	test = apostilbs<double>(2.0);
+	EXPECT_DOUBLE_EQ(test.value(), 0.63661977236758138);
+	test = brils<double>(1.0);
+	EXPECT_DOUBLE_EQ(test.value(), 3.1830988618379068e-08);
+	test = skots<double>(1.0);
+	EXPECT_DOUBLE_EQ(test.value(), 0.0003183098861837907);
+	test = lamberts<double>(1.0);
+	EXPECT_DOUBLE_EQ(test.value(), 3183.098861837907);
+	test = foot_lamberts<double>(1.0);
+	EXPECT_DOUBLE_EQ(test.value(), 3.4262590996353905);
+
+	brils<double> test2 = foot_lamberts<double>(89.46);
+	EXPECT_DOUBLE_EQ(test2.value(), 9629394258.788517);
+
+	millilamberts<double> test3 = blondels<double>(89.46);
+	EXPECT_DOUBLE_EQ(test3.value(), 8.946);
+}
+
 TEST_F(ConversionFactor, radiation)
 {
 	double test;

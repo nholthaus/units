@@ -897,32 +897,31 @@ namespace units
 		using angle         = make_dimension<angle_tag>; ///< Represents a quantity of angle
 
 		// SI DERIVED UNIT TYPES
-		using solid_angle             = dimension_pow<angle, std::ratio<2>>;    ///< Represents an SI derived unit of solid angle
-		using frequency               = make_dimension<time, std::ratio<-1>>;   ///< Represents an SI derived unit of frequency
-		using velocity                = dimension_divide<length, time>;         ///< Represents an SI derived unit of velocity
-		using angular_velocity        = dimension_divide<angle, time>;          ///< Represents an SI derived unit of angular velocity
-		using acceleration            = dimension_divide<velocity, time>;       ///< Represents an SI derived unit of acceleration
-		using force                   = dimension_multiply<mass, acceleration>; ///< Represents an SI derived unit of force
-		using area                    = dimension_pow<length, std::ratio<2>>;   ///< Represents an SI derived unit of area
-		using pressure                = dimension_divide<force, area>;          ///< Represents an SI derived unit of pressure
-		using charge                  = dimension_multiply<time, current>;      ///< Represents an SI derived unit of charge
-		using energy                  = dimension_multiply<force, length>;      ///< Represents an SI derived unit of energy
-		using power                   = dimension_divide<energy, time>;         ///< Represents an SI derived unit of power
-		using voltage                 = dimension_divide<power, current>;       ///< Represents an SI derived unit of voltage
-		using capacitance             = dimension_divide<charge, voltage>;      ///< Represents an SI derived unit of capacitance
-		using impedance               = dimension_divide<voltage, current>;     ///< Represents an SI derived unit of impedance
-		using conductance             = dimension_divide<current, voltage>;     ///< Represents an SI derived unit of conductance
-		using magnetic_flux           = dimension_divide<energy, current>;      ///< Represents an SI derived unit of magnetic flux
-		using magnetic_field_strength = make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current,
-			std::ratio<-1>>;                                                                 ///< Represents an SI derived unit of magnetic field strength
-		using inductance              = dimension_multiply<impedance, time>;                 ///< Represents an SI derived unit of inductance
-		using luminous_flux           = dimension_multiply<solid_angle, luminous_intensity>; ///< Represents an SI derived unit of luminous flux
-		using illuminance             = make_dimension<luminous_flux, std::ratio<1>, length,
-            std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
-		using radioactivity           = make_dimension<length, std::ratio<2>, time,
-            std::ratio<-2>>; ///< Represents an SI derived unit of radioactivity
-		using substance_mass          = dimension_divide<mass, substance>;
+		using solid_angle      = dimension_pow<angle, std::ratio<2>>;                                  ///< Represents an SI derived unit of solid angle
+		using frequency        = make_dimension<time, std::ratio<-1>>;                                 ///< Represents an SI derived unit of frequency
+		using velocity         = dimension_divide<length, time>;                                       ///< Represents an SI derived unit of velocity
+		using angular_velocity = dimension_divide<angle, time>;                                        ///< Represents an SI derived unit of angular velocity
+		using acceleration     = dimension_divide<velocity, time>;                                     ///< Represents an SI derived unit of acceleration
+		using force            = dimension_multiply<mass, acceleration>;                               ///< Represents an SI derived unit of force
+		using area             = dimension_pow<length, std::ratio<2>>;                                 ///< Represents an SI derived unit of area
+		using pressure         = dimension_divide<force, area>;                                        ///< Represents an SI derived unit of pressure
+		using charge           = dimension_multiply<time, current>;                                    ///< Represents an SI derived unit of charge
+		using energy           = dimension_multiply<force, length>;                                    ///< Represents an SI derived unit of energy
+		using power            = dimension_divide<energy, time>;                                       ///< Represents an SI derived unit of power
+		using voltage          = dimension_divide<power, current>;                                     ///< Represents an SI derived unit of voltage
+		using capacitance      = dimension_divide<charge, voltage>;                                    ///< Represents an SI derived unit of capacitance
+		using impedance        = dimension_divide<voltage, current>;                                   ///< Represents an SI derived unit of impedance
+		using conductance      = dimension_divide<current, voltage>;                                   ///< Represents an SI derived unit of conductance
+		using magnetic_flux    = dimension_divide<energy, current>;                                    ///< Represents an SI derived unit of magnetic flux
+		using inductance       = dimension_multiply<impedance, time>;                                  ///< Represents an SI derived unit of inductance
+		using luminous_flux    = dimension_multiply<solid_angle, luminous_intensity>;                  ///< Represents an SI derived unit of luminous flux
+		using illuminance      = make_dimension<luminous_flux, std::ratio<1>, length, std::ratio<-2>>; ///< Represents an SI derived unit of illuminance
+		using luminance        = make_dimension<luminous_intensity, std::ratio<1>, length, std::ratio<-2>>; ///< Represents an SI derived unit of luminance
+		using radioactivity    = make_dimension<length, std::ratio<2>, time, std::ratio<-2>>;               ///< Represents an SI derived unit of radioactivity
+		using substance_mass   = dimension_divide<mass, substance>;
 		using substance_concentration = dimension_divide<substance, mass>;
+		using magnetic_field_strength =
+			make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>; ///< Represents an SI derived unit of magnetic field strength
 
 		// OTHER UNIT TYPES
 		using torque             = dimension_multiply<force, length>;      ///< Represents an SI derived unit of torque

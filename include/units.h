@@ -66,6 +66,7 @@
 #include <units/impedance.h>
 #include <units/inductance.h>
 #include <units/length.h>
+#include <units/luminance.h>
 #include <units/luminous_flux.h>
 #include <units/luminous_intensity.h>
 #include <units/magnetic_field_strength.h>
