@@ -2941,17 +2941,17 @@ TEST_F(UnitType, cout)
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(8) << constants::k_B;
 	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("1.3806485e-23 m^2 kg K^-1 s^-2", output.c_str());
+	EXPECT_STREQ("1.380649e-23 m^2 kg K^-1 s^-2", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(9) << constants::mu_B;
+	std::cout << std::setprecision(11) << constants::mu_B;
 	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("9.27400999e-24 A m^2", output.c_str());
+	EXPECT_STREQ("9.2740100783e-24 A m^2", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << std::setprecision(7) << constants::sigma;
+	std::cout << std::setprecision(10) << constants::sigma;
 	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("5.670367e-08 kg K^-4 s^-3", output.c_str());
+	EXPECT_STREQ("5.670374419e-08 kg K^-4 s^-3", output.c_str());
 
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(7) << 51_pct;
@@ -3002,9 +3002,9 @@ TEST_F(UnitType, to_string_locale)
 	de = 2.5_km;
 	EXPECT_STREQ("2,5 km", to_string(de).c_str());
 
-	os1 << std::setprecision(9) << constants::mu_B;
+	os1 << std::setprecision(11) << constants::mu_B;
 	output = os1.str();
-	EXPECT_STREQ("9,27400999e-24 A m^2", output.c_str());
+	EXPECT_STREQ("9,2740100783e-24 A m^2", output.c_str());
 
 	// US locale
 #if defined(_MSC_VER)
@@ -3025,9 +3025,9 @@ TEST_F(UnitType, to_string_locale)
 	us = 2.5_mi;
 	EXPECT_STREQ("2.5 mi", to_string(us).c_str());
 
-	os2 << std::setprecision(9) << constants::mu_B;
+	os2 << std::setprecision(11) << constants::mu_B;
 	output = os2.str();
-	EXPECT_STREQ("9.27400999e-24 A m^2", output.c_str());
+	EXPECT_STREQ("9.2740100783e-24 A m^2", output.c_str());
 }
 
 TEST_F(UnitType, nameAndAbbreviation)
@@ -4313,23 +4313,25 @@ TEST_F(ConversionFactor, pi)
 
 TEST_F(ConversionFactor, constants)
 {
-	// Source: NIST "2014 CODATA recommended values"
-	EXPECT_NEAR(299792458, constants::c.value(), 5.0e-9);
-	EXPECT_NEAR(6.67408e-11, constants::G.value(), 5.0e-17);
-	EXPECT_NEAR(6.626070040e-34, constants::h.value(), 5.0e-44);
-	EXPECT_NEAR(1.2566370614e-6, constants::mu0.value(), 5.0e-17);
-	EXPECT_NEAR(8.854187817e-12, constants::epsilon0.value(), 5.0e-21);
-	EXPECT_NEAR(376.73031346177, constants::Z0.value(), 5.0e-12);
-	EXPECT_NEAR(8987551787.3681764, constants::k_e.value(), 5.0e-6);
-	EXPECT_NEAR(1.6021766208e-19, constants::e.value(), 5.0e-29);
-	EXPECT_NEAR(9.10938356e-31, constants::m_e.value(), 5.0e-40);
-	EXPECT_NEAR(1.672621898e-27, constants::m_p.value(), 5.0e-37);
-	EXPECT_NEAR(9.274009994e-24, constants::mu_B.value(), 5.0e-32);
-	EXPECT_NEAR(6.022140857e23, constants::N_A.value(), 5.0e14);
-	EXPECT_NEAR(8.3144598, constants::R.value(), 5.0e-8);
-	EXPECT_NEAR(1.38064852e-23, constants::k_B.value(), 5.0e-31);
-	EXPECT_NEAR(96485.33289, constants::F.value(), 5.0e-5);
-	EXPECT_NEAR(5.670367e-8, constants::sigma.value(), 5.0e-14);
+	// Source: https://physics.nist.gov/cuu/Constants/index.html
+	EXPECT_DOUBLE_EQ(3.141592653589793, constants::pi);
+	EXPECT_DOUBLE_EQ(299792458.0, constants::c.value());
+	EXPECT_DOUBLE_EQ(6.67430e-11, constants::G.value());
+	EXPECT_DOUBLE_EQ(6.62607015e-34, constants::h.value());
+	EXPECT_DOUBLE_EQ(1.054571817e-34, constants::h_bar.value());
+	EXPECT_DOUBLE_EQ(1.25663706212e-6, constants::mu0.value());
+	EXPECT_DOUBLE_EQ(8.8541878128e-12, constants::epsilon0.value());
+	EXPECT_DOUBLE_EQ(376.730313668, constants::Z0.value());
+	EXPECT_DOUBLE_EQ(8.9875517923e9, constants::k_e.value());
+	EXPECT_DOUBLE_EQ(1.602176634e-19, constants::e.value());
+	EXPECT_DOUBLE_EQ(9.1093837015e-31, constants::m_e.value());
+	EXPECT_DOUBLE_EQ(1.67262192369e-27, constants::m_p.value());
+	EXPECT_DOUBLE_EQ(9.2740100783e-24, constants::mu_B.value());
+	EXPECT_DOUBLE_EQ(6.02214076e23, constants::N_A.value());
+	EXPECT_DOUBLE_EQ(8.314462618, constants::R.value());
+	EXPECT_DOUBLE_EQ(1.380649e-23, constants::k_B.value());
+	EXPECT_DOUBLE_EQ(96485.33212, constants::F.value());
+	EXPECT_DOUBLE_EQ(5.670374419e-8, constants::sigma.value());
 }
 
 TEST_F(ConversionFactor, std_chrono)
