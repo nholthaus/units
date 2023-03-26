@@ -3654,7 +3654,7 @@ namespace units
 	dimensionless<typename dimensionlessUnit::underlying_type> modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
-		dimensionlessUnit                           fracpart = std::modf(x.template to<decltype(intp)>(), &intp);
+		dimensionlessUnit                           fracpart = dimensionless<>{std::modf(x.template to<decltype(intp)>(), &intp)};
 		*intpart                                             = intp;
 		return fracpart;
 	}

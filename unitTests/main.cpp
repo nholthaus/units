@@ -4642,6 +4642,12 @@ TEST_F(UnitMath, modf)
 	double         umodfr1;
 	decltype(uval) umodfr2;
 	EXPECT_EQ(std::modf(uval.to<double>(), &umodfr1), units::modf(uval, &umodfr2));
+	EXPECT_EQ(umodfr1, umodfr2);
+	percent<>      pval{202.5};
+	double         pmodfr1;
+	decltype(pval) pmodfr2;
+	EXPECT_EQ(std::modf(pval.to<double>(), &pmodfr1), units::modf(pval, &pmodfr2));
+	EXPECT_EQ(pmodfr1, pmodfr2);
 }
 
 TEST_F(UnitMath, exp2)
