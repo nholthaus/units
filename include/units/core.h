@@ -232,8 +232,11 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @note		When UNIT_HAS_LITERAL_SUPPORT is not defined, the macro does not generate any code
+ * @note		When UNIT_NO_LITERAL_SUPPORT is not defined, the macro does not generate any code
  */
+#ifdef UNIT_NO_LITERAL_SUPPORT
+#define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
+#else
 #define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)                                                                                             \
 	namespace literals                                                                                                                                         \
 	{                                                                                                                                                          \
@@ -246,7 +249,7 @@ namespace units
 			return namespaceName::namePlural<int>(static_cast<int>(d));                                                                                        \
 		}                                                                                                                                                      \
 	}
-
+#endif
 /**
  * @def			UNIT_ADD(namespaceName, namePlural, abbreviation, definition)
  * @brief		Macro for generating the boiler-plate code needed for a new unit.
