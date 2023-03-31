@@ -59,15 +59,11 @@ namespace units
 	 * @anchor		velocityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(
-		velocity, meters_per_second, meters_per_second, mps, conversion_factor<std::ratio<1>, units::dimension::velocity>)
-	UNIT_ADD(
-		velocity, feet_per_second, feet_per_second, fps, compound_conversion_factor<length::feet, inverse<time::seconds>>)
-	UNIT_ADD(
-		velocity, miles_per_hour, miles_per_hour, mph, compound_conversion_factor<length::miles, inverse<time::hour>>)
-	UNIT_ADD(velocity, kilometers_per_hour, kilometers_per_hour, kph,
-		compound_conversion_factor<length::kilometers, inverse<time::hour>>)
-	UNIT_ADD(velocity, knot, knots, kts, compound_conversion_factor<length::nauticalMiles, inverse<time::hour>>)
+	UNIT_ADD(velocity, meters_per_second, mps, conversion_factor<std::ratio<1>, dimension::velocity>)
+	UNIT_ADD(velocity, feet_per_second, fps, compound_conversion_factor<feet<>, inverse<seconds<>>>)
+	UNIT_ADD(velocity, miles_per_hour, mph, compound_conversion_factor<miles<>, inverse<hours<>>>)
+	UNIT_ADD(velocity, kilometers_per_hour, kph, compound_conversion_factor<kilometers<>, inverse<hours<>>>)
+	UNIT_ADD(velocity, knots, kts, compound_conversion_factor<nautical_miles<>, inverse<hours<>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(velocity)
 } // namespace units

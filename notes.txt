@@ -10,3 +10,8 @@
 - added constexpr sqrt function
 - dimension namespaces are inlined now so you can use `units::meters` instead of `units::length::meters`. 
   The occasional class can be resolved using the full namespace (e.g units::mass::pounds vs. units::force::pounds)
+--- alpha 3
+- added support for nlohmann json
+- NaN support
+- add `Gal` unit of acceleration
+--- beta

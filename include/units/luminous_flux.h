@@ -58,8 +58,7 @@ namespace units
 	 * @anchor		luminousFluxContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(
-		luminous_flux, lumen, lumens, lm, conversion_factor<std::ratio<1>, units::dimension::luminous_flux>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumens, lm, conversion_factor<std::ratio<1>, dimension::luminous_flux>)
 
 	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
 } // namespace units

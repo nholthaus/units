@@ -1,7 +1,10 @@
 PROJECT(unitLibTest)
 
+FILE(GLOB headers ../include/units/*.h)
+
 SET(SOURCE_CODE
 ../include/units.h
+${headers}
 main.cpp
 )
 
@@ -12,8 +15,7 @@ units
 
 # coveralls support
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/3rdParty/coveralls)
-option(COVERALLS "Generate coveralls data" OFF)
-if (COVERALLS)
+if (UNITS_CODE_COVERAGE)
 
 	# use absolute paths to help coveralls
 	get_filename_component(MAIN main.cpp ABSOLUTE)
@@ -22,9 +24,7 @@ if (COVERALLS)
 
 	include(Coveralls)
 	coveralls_turn_on_coverage()
-	coveralls_setup("${FILES}" # The source files.
-		ON   
-	)
+	coveralls_setup("${FILES}" ON)
 	
 endif()
 
@@ -32,10 +32,10 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_CODE})
 SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
-IF(WIN32)
-	add_definitions(/D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
-	set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/machine:x64")
-ENDIF(WIN32)
+
+IF(NOT MSVC)
+	target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wconversion)
+ENDIF()
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
