@@ -32,38 +32,51 @@
 // http://stackoverflow.com/questions/35069778/create-comparison-trait-for-template-classes-whose-parameters-are-in-a-different
 // http://stackoverflow.com/questions/28253399/check-traits-for-all-variadic-template-arguments/28253503
 // http://stackoverflow.com/questions/36321295/rational-approximation-of-square-root-of-stdratio-at-compile-time?noredirect=1#comment60266601_36321295
+// https://en.wikipedia.org/wiki/Luminance
 // https://github.com/swatanabe/cppnow17-units
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/concentration.h
-/// @brief	units representing concentration values
+/// @file	units/luminance.h
+/// @brief	units representing luminance values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_concentration_h__
-#define units_concentration_h__
+#ifndef units_luminance_h__
+#define units_luminance_h__
 
-#include <units/core.h>
+#include <units/length.h>
+#include <units/luminous_intensity.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::concentration
-	 * @brief		namespace for unit types and containers representing concentration values
-	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `dimension` dimension is
-	 *				`dimensionless_unit`.
-	 * @anchor		concentrationContainers
+	 * @namespace	units::luminance
+	 * @brief		namespace for unit types and containers representing luminance values
+	 * @details		The SI unit for illuminance is `candelas per square meter`, and the corresponding `dimension` dimension is
+	 *				`luminance_unit`.
+	 * @anchor		luminanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(concentration, parts_per_million, ppm, conversion_factor<std::ratio<1, 1000000>, dimension::dimensionless>)
-	UNIT_ADD(concentration, parts_per_billion, ppb, conversion_factor<std::ratio<1, 1000>, parts_per_million<>>)
-	UNIT_ADD(concentration, parts_per_trillion, ppt, conversion_factor<std::ratio<1, 1000>, parts_per_billion<>>)
-	UNIT_ADD(concentration, percent, pct, conversion_factor<std::ratio<1, 100>, dimension::dimensionless>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(luminance, candelas_per_square_meter, cd_per_m_sq, conversion_factor<std::ratio<1>, dimension::luminance>)
+	UNIT_ADD(luminance, stilbs, sb, conversion_factor<std::ratio<10'000>, candelas_per_square_meter<>>)
+	UNIT_ADD(luminance, apostilbs, asb, conversion_factor<std::ratio<1>, candelas_per_square_meter<>, std::ratio<-1>>)
+	UNIT_ADD(luminance, brils, bril, conversion_factor<std::ratio<1, 10'000'000>, candelas_per_square_meter<>, std::ratio<-1>>)
+	UNIT_ADD(luminance, skots, sk, conversion_factor<std::ratio<1, 1'000>, candelas_per_square_meter<>, std::ratio<-1>>)
+	UNIT_ADD(luminance, lamberts, la, conversion_factor<std::ratio<1>, stilbs<>, std::ratio<-1>>)
+	UNIT_ADD(luminance, millilamberts, mla, conversion_factor<std::ratio<1, 1'000>, lamberts<>>)
+	UNIT_ADD(luminance, foot_lamberts, ftL, compound_conversion_factor<conversion_factor<std::ratio<1>, dimension::dimensionless, std::ratio<-1>>, candelas<>, inverse<squared<feet<>>>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(concentration)
+	// Aliases
+	template<class T>
+	using nits = candelas_per_square_meter<T>;
+
+	template<class T>
+	using blondels = apostilbs<T>;
+
+	UNIT_ADD_DIMENSION_TRAIT(luminance)
 } // namespace units
 
-#endif // units_concentration_h__
+#endif // units_luminance_h__

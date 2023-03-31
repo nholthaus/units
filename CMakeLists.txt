@@ -1,14 +1,19 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
-PROJECT(units LANGUAGES CXX)
-set(units_VERSION 3.0.0)
+PROJECT(units VERSION 3.0.0 LANGUAGES CXX)
+
+# check if this is the main project
+set(MAIN_PROJECT OFF)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	set(MAIN_PROJECT ON)
+endif()
 
 # cmake options
-OPTION(BUILD_TESTS "Build unit tests" ON)
-OPTION(BUILD_DOCS "Build the documentation" OFF)
-OPTION(DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
+OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
+OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+option(UNITS_CODE_COVERAGE "Generate coveralls code coverage data" OFF)
 
-SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 SET(CMAKE_CXX_STANDARD 17)
 
 # header-only library target. To use this project as a subdirectory,
@@ -17,38 +22,32 @@ SET(CMAKE_CXX_STANDARD 17)
 # add_subdirectory(units) # or whatever you named the directory
 # target_link_libraries(${PROJECT_NAME} units)
 add_library(${PROJECT_NAME} INTERFACE)
+add_library(units::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} 
-	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-	$<INSTALL_INTERFACE:include> 
+target_include_directories(${PROJECT_NAME}
+	INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
 )
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	add_compile_options(-Wall -Wextra -pedantic)
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	# enable parallel build
-	set( ENV{CL} /MP )
-	target_compile_definitions(${PROJECT_NAME} INTERFACE "/permissive-")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	# Increase warning levels
-	add_compile_options(-Wall -Wextra -pedantic)
-endif()
-
 # Remove IOStream from the library (useful for embdedded development)
-if(DISABLE_IOSTREAM)
+if(UNITS_DISABLE_IOSTREAM)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
-endif(DISABLE_IOSTREAM)
+endif(UNITS_DISABLE_IOSTREAM)
 
 # unit tests
-if(BUILD_TESTS)
-	set(VERSION_GTEST "1.8.0" CACHE STRING "Google Test framework version")
+include(CTest)
+if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	enable_testing()
-	add_subdirectory(3rdParty/gtest)
+	find_package(Threads)
+	find_package(GTest 1.12.1)
+	if (NOT GTest_FOUND)
+		add_subdirectory(3rdParty/googletest-1.12.1)
+	endif()
 	add_subdirectory(unitTests)
-endif(BUILD_TESTS)
+endif()
 
 # add a target to generate API documentation with Doxygen
-if(BUILD_DOCS)
+if(UNITS_BUILD_DOCS)
 	find_package(Doxygen)
 	if(DOXYGEN_FOUND)
 		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -58,7 +57,7 @@ if(BUILD_DOCS)
 			COMMENT "Generating API documentation with Doxygen" VERBATIM
 		)
 	endif(DOXYGEN_FOUND)
-endif(BUILD_DOCS)
+endif()
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(

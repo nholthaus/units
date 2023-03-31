@@ -1,26 +1,16 @@
 sudo: required
-dist: trusty
+dist: focal
 language: cpp
 
-cache: 
+cache:
   ccache: true
-  directories:
-    - cmake-3.11.1-Linux-x86_64/bin
-    - cmake-3.11.1-Linux-x86_64/plugins
-    - cmake-3.11.1-Linux-x86_64/share
 
 matrix:
   include:
-    # gcc-7
+    # gcc
     - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc && CXX=g++"
         - COVERALLS_SERVICE_NAME=travis-ci
         - secure: H8JjZT7juIz0CNHmV01gPLhTWPBjVV9RNCvSQtxtGxCn4y0GwsSFB7T3nFLw2cSYYjBNkcYsierIrPau68fV2B03cdr+9GnRM+eFFHbiLIzzvZoysfHTZvl2ElCLc96fS6bko++vPc7FQEdNAphvSKZSN05UbR5sFKtgeykViEEAdmFYPG+ZMex7Exq+2YUANjQxBVGhPQ4/t3FNhKc+ByvQzxlO8MfmxNVLUwJsW9W/wb0ruXl1CFc15bXBts/DBAn+voJpqvl7+1GtlvcahMiSbKBi0aiqihlAcohw6c6x7IYXFekO0cNcAhFNeF2VM6b2DBY8wFQ07K2o0tXKovBdSdxTSmmfAKlKyYXYdtI47vtF0mIcx08nkuPNEbzeWyPOgMxKd6Ffa9XMf2e9zN6+2XwjvoIb3SjPl0mz41pp0MRSSxkTQdifUfXQthMFYPPTq734O4J/aIpB4AygkqeGnZtg140erqSeUG2prVB4EekCZwPAqk/4LCA2VIGf+PtqrCZDFk0dRW1SXViz67/7GqyIu4dkOMitEOLtqjO09roQHK9TP/QuWtlGWtJ+oaANNK7D+ciCM3gP5FmH6Se/OrqyUgJN+LLI/wJscDSPgiXPXNs44d85tLdsbG+hzrvj0IaMR0anqT5pDqaHYlKRhfFHZbbJyQ+yeItWhk8=
       branches:
@@ -28,18 +18,14 @@ matrix:
         - gh-pages
         - documentation
 
-    # clang 5
+    # clang
     - os: linux
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-5.0
           packages:
-            - g++-7
-            - clang-5.0
+            - clang
       env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+        - MATRIX_EVAL="CC=clang && CXX=clang++"
       branches:
       except:
         - gh-pages
@@ -54,17 +40,18 @@ install:
   - pwd
   - ls
   - pip install --user --upgrade cmake
+  - pip install --user cpp-coveralls
 
 script:
   - mkdir build && cd build
   - cmake --version
-  - cmake ..
-  - cmake --build . --config Release
-  - cmake --build . --config Debug
-  - cd .. && mkdir coverallsBuild && cd coverallsBuild
-  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && cmake --build . --target coveralls
+  - cmake -DUNITS_BUILD_TESTS=ON -DUNITS_CODE_COVERAGE=ON ..
+  - cmake --build . --config Release -- -Werror
+  - cmake --build . --config Debug -- -Werror
 
-after_success:
+test:
   - cd test
   - ctest -C Release -V
 
+after_success:
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'

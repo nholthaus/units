@@ -36,34 +36,32 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/concentration.h
-/// @brief	units representing concentration values
+/// @file	units/substance_concentration.h
+/// @brief	units representing substance concentration values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_concentration_h__
-#define units_concentration_h__
+#ifndef units_substance_concentration_h__
+#define units_substance_concentration_h__
 
 #include <units/core.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::concentration
-	 * @brief		namespace for unit types and containers representing concentration values
-	 * @details		The SI unit for concentration is `parts_per_million`, and the corresponding `dimension` dimension is
-	 *				`dimensionless_unit`.
-	 * @anchor		concentrationContainers
+	 * @namespace	units::substance_concentration
+	 * @brief		namespace for unit types and containers representing substance concentration values
+	 * @details		The SI unit for substance concentration is `moles_per_kg`, though the most
+	 *				most commonly used unit is `molars`, and the corresponding `dimension` dimension is
+	 *        `substance_concentration_unit`.
+	 * @anchor		substanceConcentrationContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(concentration, parts_per_million, ppm, conversion_factor<std::ratio<1, 1000000>, dimension::dimensionless>)
-	UNIT_ADD(concentration, parts_per_billion, ppb, conversion_factor<std::ratio<1, 1000>, parts_per_million<>>)
-	UNIT_ADD(concentration, parts_per_trillion, ppt, conversion_factor<std::ratio<1, 1000>, parts_per_billion<>>)
-	UNIT_ADD(concentration, percent, pct, conversion_factor<std::ratio<1, 100>, dimension::dimensionless>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(substance_concentration, molars, M, conversion_factor<std::ratio<1000>, dimension::substance_concentration>)
 
-	UNIT_ADD_DIMENSION_TRAIT(concentration)
+	UNIT_ADD_DIMENSION_TRAIT(substance_concentration)
 } // namespace units
 
-#endif // units_concentration_h__
+#endif // units_substance_concentration_h__
