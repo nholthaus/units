@@ -2523,6 +2523,16 @@ namespace std
 	{
 	};
 
+	// In the case the two units are the same type, just use that type as common type
+	// instead of some dummy conversion_factor of 1.
+	template<class UnitConversionT, class T,
+		template<typename> class NonLinearScale>
+	struct common_type<units::unit<UnitConversionT, T, NonLinearScale>,
+		units::unit<UnitConversionT, T, NonLinearScale>>
+	{
+		using type = units::unit<UnitConversionT, T, NonLinearScale>;
+	};
+
 	/** @cond */ // DOXYGEN IGNORE
 	/**
 	 * @brief		`linear_scale` preferring specializations.

@@ -865,6 +865,10 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>,
 		std::common_type_t<third_a_radian, half_a_radian>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>::underlying_type, double>);
+
+	static_assert(std::is_same_v<std::common_type_t<degree_t<double>, degree_t<double>>, degree_t<double>>);
+	static_assert(std::is_same_v<std::common_type_t<celsius_t<double>, celsius_t<double>>, celsius_t<double>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<double>>, dimensionless<double>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -2991,6 +2995,7 @@ TEST_F(UnitConversion, capacitance)
 
 	auto f             = coulomb_t<double>(1) / volt_t<double>(1);
 	farad_t<double> f2 = coulomb_t<double>(1) / volt_t<double>(1);
+	(void) f2;
 	EXPECT_TRUE((std::is_convertible_v<decltype(f), farad_t<double>>));
 
 	auto one_farad = []() -> farad_t<double> { return coulomb_t<double>(1) / volt_t<double>(1); };
