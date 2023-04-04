@@ -2134,8 +2134,15 @@ namespace units
 	 *				- \ref concentrationUnits "concentration units"
 	 *				- \ref constantUnits "constant units"
 	 */
+#ifdef _WIN32
+// Microsoft compiler requires explicit activation of empty base class optimization
+// so that sizeof(unit<..., double, ...>) == sizeof(double)
+#define MSVC_EBO __declspec(empty_bases)
+#else
+#define MSVC_EBO
+#endif
 	template<class ConversionFactor, typename T = UNIT_LIB_DEFAULT_TYPE, class NumericalScale = linear_scale>
-	class unit : public ConversionFactor, NumericalScale, units::detail::_unit
+	class MSVC_EBO unit : public ConversionFactor, NumericalScale, units::detail::_unit
 	{
 		static_assert(traits::is_conversion_factor_v<ConversionFactor>,
 			"Template parameter `ConversionFactor` must be a conversion factor. Check that you aren't using an unit "
