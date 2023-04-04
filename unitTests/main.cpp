@@ -116,9 +116,15 @@ namespace
 	};
 } // namespace
 
+TEST_F(TypeTraits, sizeOf) {
+    static_assert(sizeof(dimensionless<double>) == sizeof(double));
+    static_assert(sizeof(meters<double>) == sizeof(double));
+    static_assert(sizeof(degrees_squared<double>) == sizeof(double));
+}
+
 TEST_F(TypeTraits, isRatio)
 {
-	EXPECT_TRUE(traits::is_ratio_v<std::ratio<1>>);
+    EXPECT_TRUE(traits::is_ratio_v<std::ratio<1>>);
 	EXPECT_FALSE(traits::is_ratio_v<double>);
 }
 
