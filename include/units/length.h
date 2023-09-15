@@ -61,7 +61,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(length, meters, m, conversion_factor<std::ratio<1>, dimension::length>)
 	UNIT_ADD(length, feet, ft, conversion_factor<std::ratio<381, 1250>, meters<>>)
 	UNIT_ADD(length, inches, in, conversion_factor<std::ratio<1, 12>, feet<>>)
-	UNIT_ADD(length, mils, mil, conversion_factor<std::ratio<1000>, inches<>>)
+	UNIT_ADD(length, mils, mil, conversion_factor<std::ratio<1, 1000>, inches<>>)
 	UNIT_ADD(length, miles, mi, conversion_factor<std::ratio<5280>, feet<>>)
 	UNIT_ADD(length, nautical_miles, nmi, conversion_factor<std::ratio<1852>, meters<>>)
 	UNIT_ADD(length, astronomical_units, au, conversion_factor<std::ratio<149597870700>, meters<>>)
