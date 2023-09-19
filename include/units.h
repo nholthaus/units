@@ -1535,7 +1535,7 @@ namespace units
 			return value;
 		}
 
-		template<std::size_t Ratio_num, std::size_t Ratio_den>
+		template<std::intmax_t  Ratio_num, std::intmax_t Ratio_den>
 		struct normal_convert
 		{
 			template<typename T>
@@ -1545,7 +1545,7 @@ namespace units
 			}
 		};
 
-		template<std::size_t Ratio_num>
+		template<std::intmax_t  Ratio_num>
 		struct normal_convert<Ratio_num, 1>
 		{
 			template<typename T>
@@ -1555,7 +1555,7 @@ namespace units
 			}
 		};
 
-		template<std::size_t Ratio_den>
+		template<std::intmax_t  Ratio_den>
 		struct normal_convert<1, Ratio_den>
 		{
 			template<typename T>
