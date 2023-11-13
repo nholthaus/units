@@ -60,6 +60,11 @@
 #	endif // _MSC_VER < 1800
 #endif // _MSC_VER
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma push_macro("pascal")
+#	undef pascal
+#endif // __MINGW64__ or __MINGW32__
+
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 #   define UNIT_HAS_LITERAL_SUPPORT
 #   define UNIT_HAS_VARIADIC_TEMPLATE_SUPPORT
@@ -4870,6 +4875,10 @@ namespace std
 #	endif // _MSC_VER < 1800
 #	pragma pop_macro("pascal")
 #endif // _MSC_VER
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma pop_macro("pascal")
+#endif // __MINGW64__ or __MINGW32__
 
 #endif // units_h__
 
