@@ -781,6 +781,7 @@ namespace units
 		typedef base_unit<detail::meter_ratio<1>,	std::ratio<0>,	std::ratio<-1>>																										velocity_unit;					///< Represents an SI derived unit of velocity
 		typedef base_unit<detail::meter_ratio<0>,	std::ratio<0>,	std::ratio<-1>,	std::ratio<1>>																						angular_velocity_unit;			///< Represents an SI derived unit of angular velocity
 		typedef base_unit<detail::meter_ratio<1>,	std::ratio<0>,	std::ratio<-2>>																										acceleration_unit;				///< Represents an SI derived unit of acceleration
+        typedef base_unit<detail::meter_ratio<1>,   std::ratio<0>,  std::ratio<-3>>                                                                                                     jerk_unit;                      ///< Represents an SI derived unit of jerk
 		typedef base_unit<detail::meter_ratio<1>,	std::ratio<1>,	std::ratio<-2>>																										force_unit;						///< Represents an SI derived unit of force
 		typedef base_unit<detail::meter_ratio<-1>,	std::ratio<1>,	std::ratio<-2>>																										pressure_unit;					///< Represents an SI derived unit of pressure
 		typedef base_unit<detail::meter_ratio<0>,	std::ratio<0>,	std::ratio<1>,	std::ratio<0>,	std::ratio<1>>																		charge_unit;					///< Represents an SI derived unit of charge
@@ -1884,6 +1885,7 @@ namespace units
 	 *				- \ref velocityContainers "velocity unit containers"
 	 *				- \ref angularVelocityContainers "angular velocity unit containers"
 	 *				- \ref accelerationContainers "acceleration unit containers"
+     *              - \ref jerkContainers "jerk unit containers"
 	 *				- \ref forceContainers "force unit containers"
 	 *				- \ref pressureContainers "pressure unit containers"
 	 *				- \ref chargeContainers "charge unit containers"
@@ -3633,6 +3635,7 @@ namespace units
 	UNIT_ADD(angular_velocity, radians_per_second, radians_per_second, rad_per_s, unit<std::ratio<1>, units::category::angular_velocity_unit>)
 	UNIT_ADD(angular_velocity, degrees_per_second, degrees_per_second, deg_per_s, compound_unit<angle::degrees, inverse<time::seconds>>)
 	UNIT_ADD(angular_velocity, revolutions_per_minute, revolutions_per_minute, rpm, unit<std::ratio<2, 60>, radians_per_second, std::ratio<1>>)
+	UNIT_ADD(angular_velocity, revolutions_per_second, revolutions_per_second, rps, unit<std::ratio<2, 1>, radians_per_second, std::ratio<1>>)
 	UNIT_ADD(angular_velocity, milliarcseconds_per_year, milliarcseconds_per_year, mas_per_yr, compound_unit<angle::milliarcseconds, inverse<time::year>>)
 
 	UNIT_ADD_CATEGORY_TRAIT(angular_velocity)
@@ -3656,6 +3659,25 @@ namespace units
 	UNIT_ADD(acceleration, standard_gravity, standard_gravity, SG, unit<std::ratio<980665, 100000>, meters_per_second_squared>)
 
 	UNIT_ADD_CATEGORY_TRAIT(acceleration)
+#endif
+
+    //------------------------------
+    //	UNITS OF JERK
+    //------------------------------
+
+    /**
+     * @namespace	units::jerk
+     * @brief		namespace for unit types and containers representing jerk values
+     * @details		The SI unit for jerk is `meters_per_second_cubed`, and the corresponding `base_unit` category is
+     *				`jerk_unit`.
+     * @anchor		jerkContainers
+     * @sa			See unit_t for more information on unit type containers.
+     */
+#if !defined(DISABLE_PREDEFINED_UNITS) || defined(ENABLE_PREDEFINED_JERK_UNITS)
+    UNIT_ADD(jerk, meters_per_second_cubed, meters_per_second_cubed, mps_cb, unit<std::ratio<1>, units::category::jerk_unit>)
+    UNIT_ADD(jerk, feet_per_second_cubed, feet_per_second_cubed, fps_cb, compound_unit<length::feet, inverse<cubed<time::seconds>>>)
+
+    UNIT_ADD_CATEGORY_TRAIT(jerk)
 #endif
 
 	//------------------------------
