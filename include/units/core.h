@@ -3737,7 +3737,7 @@ namespace units
 	constexpr auto sqrt(const UnitType& value) noexcept -> unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
 		detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>
 	{
-		return decltype(units::sqrt(value))(sqrt(value.value()));
+		return decltype(units::sqrt(value))(sqrt(value.raw()));
 	}
 
 	/**
@@ -3771,7 +3771,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.raw()));
 	}
 
 	/**
@@ -3784,7 +3784,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::floor(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::floor(x.raw()));
 	}
 
 	/**
@@ -3813,7 +3813,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.raw()));
 	}
 
 	/**
@@ -3827,7 +3827,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::round(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::round(x.raw()));
 	}
 
 	//----------------------------------
@@ -3846,14 +3846,14 @@ namespace units
 	template<class UnitTypeLhs, class UnitTypeRhs, std::enable_if_t<traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y.value())); // no need for conversion to get the correct sign.
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y.raw())); // no need for conversion to get the correct sign.
 	}
 
 	/// Overload to copy the sign from a raw double
 	template<class UnitTypeLhs, typename T, std::enable_if_t<std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>, int> = 0>
 	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y));
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y));
 	}
 
 	//----------------------------------
@@ -3872,7 +3872,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fdim(x, y));
-		return CommonUnit(std::fdim(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fdim(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	/**
@@ -3887,7 +3887,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmax(x, y));
-		return CommonUnit(std::fmax(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fmax(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	/**
@@ -3903,7 +3903,7 @@ namespace units
 	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmin(x, y));
-		return CommonUnit(std::fmin(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fmin(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	//----------------------------------
@@ -3920,7 +3920,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.raw()));
 	}
 
 	/**
@@ -3933,7 +3933,7 @@ namespace units
 	template<class UnitType, std::enable_if_t<traits::is_unit_v<UnitType>, int> = 0>
 	UnitType abs(const UnitType x) noexcept
 	{
-		return UnitType(std::abs(x.value()));
+		return UnitType(std::abs(x.raw()));
 	}
 
 	/**
