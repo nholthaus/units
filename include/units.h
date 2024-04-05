@@ -4854,9 +4854,53 @@ namespace std
 		{
 			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
 		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> epsilon()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> round_error()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> infinity()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::infinity());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> quiet_NaN()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::quiet_NaN());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> signaling_NaN()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::signaling_NaN());
+		}
+
 		static constexpr bool is_integer = std::numeric_limits<T>::is_integer;
 		static constexpr bool is_signed = std::numeric_limits<T>::is_signed;
+		static constexpr bool has_quiet_NaN = std::numeric_limits<T>::has_quiet_NaN;
+		static constexpr bool has_signaling_NaN = std::numeric_limits<T>::has_signaling_NaN;
+		static constexpr bool has_infinity = std::numeric_limits<T>::has_infinity;
+
 	};
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool isnan(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::isnan(x());
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool isinf(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::isinf(x());
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool signbit(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::signbit(x());
+	}
+
 }
 
 #ifdef _MSC_VER
