@@ -4168,6 +4168,7 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
+		#undef PI
 		using PI = unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>;
 
 		static constexpr const unit_t<PI>																											pi(1);											///< Ratio of a circle's circumference to its diameter.
