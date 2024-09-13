@@ -114,6 +114,7 @@
 namespace units
 {
 	template<typename T> inline constexpr const char* name(const T&);
+	template<typename T> inline constexpr const char* name_plural(const T&);
 	template<typename T> inline constexpr const char* abbreviation(const T&);
 }
 
@@ -199,16 +200,17 @@ namespace units
 #endif
 
  /**
-  * @def		UNIT_ADD_NAME(namespaceName,nameSingular,abbreviation)
+  * @def		UNIT_ADD_NAME(namespaceName,nameSingular,namePlural,abbreviation)
   * @brief		Macro for generating constexpr names/abbreviations for units.
   * @details	The macro generates names for units. E.g. name() of 1_m would be "meter", and
   *				abbreviation would be "m".
   * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
   *				are placed in the `units::literals` namespace.
   * @param		nameSingular singular version of the unit name, e.g. 'meter'
+  * @param		namePlural plural version of the unit name, e.g. 'meters'
   * @param		abbreviation - abbreviated unit name, e.g. 'm'
   */
-#define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev)\
+#define UNIT_ADD_NAME(namespaceName, nameSingular, namePlural, abbrev)\
 template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&)\
 {\
 	return #nameSingular;\
@@ -216,6 +218,10 @@ template<> inline constexpr const char* name(const namespaceName::nameSingular #
 template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&)\
 {\
 	return #abbrev;\
+}\
+template<> inline constexpr const char* name_plural(const namespaceName::nameSingular ## _t&)\
+{\
+	return #namePlural;\
 }
 
 /**
@@ -268,7 +274,7 @@ template<> inline constexpr const char* abbreviation(const namespaceName::nameSi
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, __VA_ARGS__)\
 	UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
-	UNIT_ADD_NAME(namespaceName,nameSingular, abbreviation)\
+	UNIT_ADD_NAME(namespaceName,nameSingular,namePlural, abbreviation)\
 	UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)\
 	UNIT_ADD_LITERALS(namespaceName,nameSingular, abbreviation)
 
