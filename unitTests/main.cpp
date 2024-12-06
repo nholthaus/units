@@ -1,3 +1,6 @@
+#define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING // officially, The effect of instantiating the template std::complex for any type other than float,
+														 // double, or long double is unspecified. We don't care though, we want them to work with units in this test
+
 #include <array>
 #include <chrono>
 #include <complex>
@@ -206,7 +209,7 @@ TEST_F(TypeTraits, inverse)
 
 TEST_F(TypeTraits, strong)
 {
-	EXPECT_TRUE((std::is_same_v<dimensionless_unit, traits::strong_t<detail::conversion_factor_base_t<dimensionless_unit>>>));
+	EXPECT_TRUE((std::is_same_v<dimensionless_, traits::strong_t<detail::conversion_factor_base_t<dimensionless_>>>));
 	EXPECT_TRUE((std::is_same_v<meters<double>::conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::length>>>));
 	EXPECT_TRUE((std::is_same_v<kilometers<double>::conversion_factor, traits::strong_t<kilometers<double>::conversion_factor>>));
 	EXPECT_TRUE((std::is_same_v<square_meters<double>::conversion_factor, traits::strong_t<squared<meters<double>::conversion_factor>>>));
@@ -659,14 +662,18 @@ TEST_F(STDTypeTraits, std_common_type)
 	using T = std::common_type_t<percent<double>, double>;
 	T a     = 50_pct;
 	EXPECT_DOUBLE_EQ(a, 0.5);
-	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
-	// static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, double>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<int>>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, int>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
-	// static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>,  unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, int>>);
+	static_assert(std::is_same_v<conversion_factor<std::ratio<1>, dimension::dimensionless>, dimensionless_>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>,  unit<dimensionless_, int>>);
+
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
+	static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, double>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<double, dimensionless<int>>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, int>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
+	static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -695,9 +702,9 @@ TEST_F(UnitManipulators, squared)
 	test = square_feet<double>(unit<squared<meters<double>>>(0.092903)).value();
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
-	using dimensionless_2 = traits::strong_t<squared<units::dimensionless_unit>>; // this is actually nonsensical, and should also result in
+	using dimensionless_2 = traits::strong_t<squared<units::dimensionless_>>; // this is actually nonsensical, and should also result in
 																				  // a dimensionless.
-	bool isSame = std::is_same_v<unit<dimensionless_unit>, unit<dimensionless_2>>;
+	bool isSame = std::is_same_v<unit<dimensionless_>, unit<dimensionless_2>>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -787,7 +794,7 @@ TEST_F(UnitType, trivial)
 TEST_F(UnitType, complexUnits)
 {
 	std::complex<meters<>> x(3_m, 4_m);
-	EXPECT_TRUE((std::conj(x) == std::complex<meters<>>{3_m, -4_m}));
+	EXPECT_TRUE((std::conj(x) == std::complex{3.0_m, -4.0_m}));
 }
 
 TEST_F(UnitType, constructionFromArithmeticType)
@@ -875,6 +882,10 @@ TEST_F(UnitType, constructionFromUnitType)
 	EXPECT_EQ(1, g_dim.value());
 }
 
+namespace units {
+
+}
+
 TEST_F(UnitType, CTAD)
 {
 #if defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
@@ -889,8 +900,13 @@ TEST_F(UnitType, CTAD)
 	const meters b_m(a_m);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m)>, meters<int>>);
 
+	const meters b_m2(millimeters(2.0));
+	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m2)>, meters<double>>);
+
 	const millimeters a_mm(b_m);
+	static_assert(std::is_integral_v<decltype(a_mm.value())>);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_mm)>, millimeters<int>>);
+	EXPECT_EQ(a_mm, 1000_mm);
 
 	const meters c_m(1.0);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(c_m)>, meters<double>>);
@@ -950,9 +966,14 @@ TEST_F(UnitType, CTAD)
 	const seconds c_s(1.0_s);
 	static_assert(std::is_floating_point_v<decltype(c_s.value())>);
 
-	[[maybe_unused]] const seconds c_s(1_min);
-	[[maybe_unused]] const seconds d_s(1.0_min);
-	[[maybe_unused]] const seconds e_s(1.0_ms);
+	const seconds d_s(1_min);
+	static_assert(std::is_integral_v<decltype(d_s.value())>);
+
+	const seconds e_s(1.0_min);
+	static_assert(std::is_floating_point_v<decltype(e_s.value())>);
+
+	const seconds f_s(1.0_ms);
+	static_assert(std::is_floating_point_v<decltype(f_s.value())>);
 
 	// Dimensionless units.
 	const dimensionless z_dim = 1.0;
@@ -994,13 +1015,13 @@ TEST_F(UnitType, CTAD)
 	const dimensionless j_dim(dimensionless<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(j_dim)>, dimensionless<double>>);
 
-	const dimensionless k_dim(unit<conversion_factor<std::kilo, dimensionless_unit>, int>(1));
+	const dimensionless k_dim(unit<conversion_factor<std::kilo, dimensionless_>, int>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(k_dim)>, dimensionless<int>>);
 
-	const dimensionless l_dim(unit<conversion_factor<std::kilo, dimensionless_unit>, double>(1.0));
+	const dimensionless l_dim(unit<conversion_factor<std::kilo, dimensionless_>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(l_dim)>, dimensionless<double>>);
 
-	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_unit>, double>(1.0));
+	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
 #endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 }
@@ -1148,8 +1169,8 @@ TEST_F(UnitType, make_unit)
 
 TEST_F(UnitType, unitTypeEquality)
 {
-	const meters<double> a_m(0);
-	const meters<double> b_m(1);
+	const meters a_m(0.0);
+	const meters b_m(1.0);
 
 	EXPECT_TRUE(a_m == a_m);
 	EXPECT_FALSE(a_m == b_m);
@@ -1173,8 +1194,8 @@ TEST_F(UnitType, unitTypeEquality)
 	EXPECT_FALSE(a_m != c_m);
 	EXPECT_FALSE(d_m != b_m);
 
-	const percent<double> w_m(100);
-	const percent<double> x_m(1);
+	const percent<double> w_m(100.0);
+	const percent<double> x_m(1.0);
 
 	EXPECT_TRUE(w_m == w_m);
 	EXPECT_FALSE(w_m == x_m);
@@ -2988,7 +3009,7 @@ TEST_F(UnitType, to_string_locale)
 	setlocale(LC_ALL, "de-DE");
 	os1.imbue(std::locale("de-DE"));
 #else
-	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8"));
+	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8")) << "For this test to work, you need a german locale installed: `sudo locale-gen de_DE.UTF-8`";
 	os1.imbue(std::locale("de_DE.utf8"));
 #endif
 
@@ -3011,7 +3032,7 @@ TEST_F(UnitType, to_string_locale)
 	setlocale(LC_ALL, "en-US");
 	os2.imbue(std::locale("en-US"));
 #else
-	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8"));
+	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8")) << "For this test to work, you need a USA locale installed: `sudo locale-gen en_US.UTF-8`";
 	os2.imbue(std::locale("en_US.utf8"));
 #endif
 
