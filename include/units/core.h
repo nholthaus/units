@@ -87,9 +87,8 @@ namespace units::detail
 			unsigned int offset{1};
 
 			// remove trailing decimal points for integer value units. Locale aware!
-			struct std::lconv* lc;
-			lc                = std::localeconv();
-			char decimalPoint = *lc->decimal_point;
+			std::lconv* lc           = std::localeconv();
+			char        decimalPoint = *lc->decimal_point;
 			if (str.find_last_not_of('0') == str.find(decimalPoint))
 			{
 				offset = 0;
@@ -133,7 +132,7 @@ namespace units
 
 /**
  * @def			UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)
- * @brief		Helper macro for generating the boiler-plate code generating the tags of a new unit.
+ * @brief		Helper macro for generating the boilerplate code generating the tags of a new unit.
  * @details		The macro generates singular, plural, and abbreviated forms
  *				of the unit definition (e.g. `meter`, `meters`, and `m`), as aliases for the
  *				unit tag.
@@ -166,7 +165,7 @@ namespace units
 
 /**
  * @def			UNIT_ADD_UNIT_DEFINITION(namespaceName,namePlural)
- * @brief		Macro for generating the boiler-plate code for the unit type definition.
+ * @brief		Macro for generating the boilerplate code for the unit type definition.
  * @details		The macro generates the definition of the unit container types, e.g. `meter`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
@@ -182,11 +181,11 @@ namespace units
 
 /**
  * @def			UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, definition)
- * @brief		Macro for generating the boiler-plate code for the scaled unit template definition.
+ * @brief		Macro for generating the boilerplate code for the scaled unit template definition.
  * @details		The macro generates the definition of the scaled unit templates as a strong type template alias,
  *				e.g. `meters`
  * @param		unitName unit name, e.g. 'meters'
- * @param		scale the non linear scale template argument of the unit's base
+ * @param		scale the non-linear scale template argument of the unit's base
  * @param		definition - the variadic parameter is used for the definition of the unit
  *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
  * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadiac
@@ -248,7 +247,7 @@ namespace units
 
 /**
  * @def			UNIT_ADD(namespaceName, namePlural, abbreviation, definition)
- * @brief		Macro for generating the boiler-plate code needed for a new unit.
+ * @brief		Macro for generating the boilerplate code needed for a new unit.
  * @details		The macro generates singular, plural, and abbreviated forms
  *				of the unit definition (e.g. `meter`, `meters`, and `m`), as well as the
  *				appropriately named unit container (e.g. `meter_t`). A literal suffix is created
@@ -293,17 +292,17 @@ namespace units
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
  * @brief		Macro to create the `is_dimension_unit` type trait.
  * @details		This trait allows users to test whether a given type matches
- *				an intended dimension. This macro comprises all the boiler-plate
+ *				an intended dimension. This macro comprises all the boilerplate
  *				code necessary to do so.
  * @param		unitdimension The name of the dimension of unit, e.g. length or mass.
  */
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension)                                                                                                                \
-	/** @ingroup	TypeTraits*/                                                                                                                                  \
-	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                                 \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                           \
-	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                                    \
-	/** @tparam		T	type to test*/                                                                                                                              \
+	/** @ingroup	TypeTraits*/                                                                                                                               \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                             \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                        \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                           \
+	/** @tparam		T	type to test*/                                                                                                                         \
 	namespace traits                                                                                                                                           \
 	{                                                                                                                                                          \
 		template<typename T>                                                                                                                                   \
@@ -316,7 +315,7 @@ namespace units
 
 /**
  * @def			UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, definition)
- * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
+ * @brief		Macro for generating the boilerplate code needed for a new unit, including its metric
  *				prefixes from femto to peta.
  * @details		See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `meters` and
  *				'meter_t', it also creates corresponding units with metric suffixes such as `millimeters`, and
@@ -351,7 +350,7 @@ namespace units
 
 /**
  * @def		UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, definition)
- * @brief		Macro for generating the boiler-plate code needed for a new unit, including its metric
+ * @brief		Macro for generating the boilerplate code needed for a new unit, including its metric
  *				prefixes from femto to peta, and binary prefixes from kibi to exbi.
  * @details	See UNIT_ADD. In addition to generating the unit definition and containers '(e.g. `bytes` and 'byte_t',
  *				it also creates corresponding units with metric suffixes such as `millimeters`, and `millimeter_t`), as
@@ -1327,9 +1326,10 @@ namespace units
 		// The error |f(Rem)-V| = |(U-W*V)x/(W*x+1)| <= |U-W*V|*Rem <= |U-W*V|/I' where
 		// I' is the std::integer part of reciprocal of Rem.
 		template <typename Tr, std::intmax_t N>
-		struct ContinuedFraction {
+		struct ContinuedFraction
+		{
 			template <typename T>
-			using Abs_ = std::conditional_t<std::ratio_less<T, Zero>::value, std::ratio_subtract<Zero, T>, T>;
+			using Abs_ = std::conditional_t<std::ratio_less_v<T, Zero>, std::ratio_subtract<Zero, T>, T>;
 
 			using R = Tr;
 			using Last_ = ContinuedFraction<R, N - 1>;
@@ -1357,22 +1357,22 @@ namespace units
 		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
 
 		template <typename R, typename Eps, std::intmax_t N>
-		struct Sqrt_<R, Eps, N, std::enable_if_t<std::ratio_less_equal<typename ContinuedFraction<R, N>::Error, Eps>::value>> {
+		struct Sqrt_<R, Eps, N, std::enable_if_t<std::ratio_less_equal_v<typename ContinuedFraction<R, N>::Error, Eps>>> {
 			using type = typename ContinuedFraction<R, N>::V;
 		};
 
 		template <typename R, typename Eps, typename enabled = void>
 		struct Sqrt {
-			static_assert(std::ratio_greater_equal<R, Zero>::value, "R can't be negative");
+			static_assert(std::ratio_greater_equal_v<R, Zero>, "R can't be negative");
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, std::enable_if_t<std::ratio_greater_equal<R, Zero>::value && IsPerfectSquare<R>::value>> {
+		struct Sqrt<R, Eps, std::enable_if_t<std::ratio_greater_equal_v<R, Zero> && IsPerfectSquare<R>::value>> {
 			using type = typename IsPerfectSquare<R>::Sqrt;
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, std::enable_if_t<(std::ratio_greater_equal<R, Zero>::value && !IsPerfectSquare<R>::value)>> : Sqrt_<R, Eps>{};
+		struct Sqrt<R, Eps, std::enable_if_t<(std::ratio_greater_equal_v<R, Zero> && !IsPerfectSquare<R>::value)>> : Sqrt_<R, Eps>{};
 	}
 	// clang-format on
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1476,7 +1476,7 @@ namespace units
 	 *				be formed from any number of other conversion factors, and unit manipulators like `inverse` and
 	 *				`squared` are supported. E.g. to specify acceleration, one could declare
 	 *				`using acceleration = compound_conversion factor<length::meters, inverse<squared<seconds>>;`
-	 * @tparam		U...	conversion factor which, when multiplied together,
+	 * @tparam		U	conversion factor which, when multiplied together,
 	 *				form the desired compound conversion factor.
 	 * @ingroup		ConversionFactor
 	 */
@@ -2311,7 +2311,7 @@ namespace units
 		}
 
 		template<class ConversionFactorRhs, typename Ty, class NsRhs>
-			requires std::is_integral<T>::value && std::is_integral<Ty>::value
+			requires std::is_integral_v<T> && std::is_integral_v<Ty>
 		constexpr bool operator==(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
@@ -2355,8 +2355,8 @@ namespace units
 				return NumericalScale::scale(units::convert<units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless,
 																			typename traits::conversion_factor_traits<ConversionFactor>::pi_exponent_ratio,
 																			typename traits::conversion_factor_traits<ConversionFactor>::translation_ratio>,
-												 T, NumericalScale>>(*this)
-												 .to_linearized());
+						T, NumericalScale>>(*this)
+						.to_linearized());
 			else
 				return raw();
 		}
@@ -3193,9 +3193,9 @@ namespace units
 		std::enable_if_t<traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator/(const UnitTypeLhs& lhs,
-		const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-											 std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
 	{
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
@@ -3213,9 +3213,9 @@ namespace units
 
 	/// Division of a dimensionless by a unit type with a linear scale
 	template<class UnitTypeRhs, typename T, std::enable_if_t<std::is_arithmetic_v<T> && traits::has_linear_scale_v<UnitTypeRhs>, int> = 0>
-	constexpr auto operator/(
-		T lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-													std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
+	constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+			std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	{
 		using InverseUnit      = decltype(lhs / rhs);
 		using UnitConversion   = typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor;
@@ -3542,8 +3542,8 @@ namespace units
 	/// Subtraction for convertible unit types with a decibel_scale
 	template<class UnitTypeLhs, class UnitTypeRhs,
 		std::enable_if_t<traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>, int> = 0>
-	constexpr auto operator-(
-		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> dB<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> dB<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using Dimensionless = decltype(lhs - rhs);
 		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -3568,9 +3568,9 @@ namespace units
 		std::enable_if_t<traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> &&
 				!traits::is_dimensionless_unit_v<UnitTypeRhs>,
 			int> = 0>
-	constexpr auto operator-(const UnitTypeLhs& lhs,
-		const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-											 std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<traits::strong_t<inverse<typename units::traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
 	{
 		using InverseUnit = decltype(lhs - rhs);
 		return InverseUnit(lhs.to_linearized() / rhs.to_linearized(), linearized_value);
@@ -3761,9 +3761,8 @@ namespace units
 	 *				unit type may have errors no larger than `1e-10`.
 	 */
 	template<class UnitType, std::enable_if_t<units::traits::has_linear_scale_v<UnitType>, int> = 0>
-	constexpr auto sqrt(
-		const UnitType& value) noexcept -> unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
-											detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>
+	constexpr auto sqrt(const UnitType& value) noexcept -> unit<traits::strong_t<square_root<typename units::traits::unit_traits<UnitType>::conversion_factor>>,
+		detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>
 	{
 		return decltype(units::sqrt(value))(sqrt(value.value()));
 	}
@@ -4054,7 +4053,7 @@ namespace std
 	//------------------------------
 
 	template<class ConversionFactor, typename T, class NumericalScale>
-	class numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
+	struct numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
 	{
 	};
 } // namespace std
