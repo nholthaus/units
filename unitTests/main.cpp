@@ -1,5 +1,6 @@
 #define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING // officially, The effect of instantiating the template std::complex for any type other than float,
-														 // double, or long double is unspecified. We don't care though, we want them to work with units in this test
+														 // double, or long double is unspecified. We don't care though, we want them to work with units in this
+														 // test
 
 #include <array>
 #include <chrono>
@@ -20,8 +21,8 @@ namespace
 	protected:
 		TypeTraits(){};
 		virtual ~TypeTraits(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class STDTypeTraits : public ::testing::Test
@@ -29,8 +30,8 @@ namespace
 	protected:
 		STDTypeTraits(){};
 		virtual ~STDTypeTraits(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class STDSpecializations : public ::testing::Test
@@ -38,8 +39,8 @@ namespace
 	protected:
 		STDSpecializations(){};
 		virtual ~STDSpecializations(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitManipulators : public ::testing::Test
@@ -47,8 +48,8 @@ namespace
 	protected:
 		UnitManipulators(){};
 		virtual ~UnitManipulators(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitType : public ::testing::Test
@@ -56,8 +57,8 @@ namespace
 	protected:
 		UnitType(){};
 		virtual ~UnitType(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class ConversionFactor : public ::testing::Test
@@ -65,8 +66,8 @@ namespace
 	protected:
 		ConversionFactor(){};
 		virtual ~ConversionFactor(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class UnitMath : public ::testing::Test
@@ -74,8 +75,8 @@ namespace
 	protected:
 		UnitMath(){};
 		virtual ~UnitMath(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class Constexpr : public ::testing::Test
@@ -83,8 +84,8 @@ namespace
 	protected:
 		Constexpr(){};
 		virtual ~Constexpr(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class CaseStudies : public ::testing::Test
@@ -92,8 +93,8 @@ namespace
 	protected:
 		CaseStudies(){};
 		virtual ~CaseStudies(){};
-		void SetUp() override{};
-		void TearDown() override{};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	// Tests that two units have the same conversion ratio to the same dimension.
@@ -662,9 +663,9 @@ TEST_F(STDTypeTraits, std_common_type)
 	using T = std::common_type_t<percent<double>, double>;
 	T a     = 50_pct;
 	EXPECT_DOUBLE_EQ(a, 0.5);
-	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>,  unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, int>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, int>>);
 	static_assert(std::is_same_v<conversion_factor<std::ratio<1>, dimension::dimensionless>, dimensionless_>);
-	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>,  unit<dimensionless_, int>>);
+	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, unit<dimensionless_, int>>);
 
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, int>, dimensionless<int>>);
 	static_assert(std::is_same_v<std::common_type_t<int, dimensionless<int>>, dimensionless<int>>);
@@ -703,7 +704,7 @@ TEST_F(UnitManipulators, squared)
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using dimensionless_2 = traits::strong_t<squared<units::dimensionless_>>; // this is actually nonsensical, and should also result in
-																				  // a dimensionless.
+																			  // a dimensionless.
 	bool isSame = std::is_same_v<unit<dimensionless_>, unit<dimensionless_2>>;
 	EXPECT_TRUE(isSame);
 }
@@ -882,7 +883,8 @@ TEST_F(UnitType, constructionFromUnitType)
 	EXPECT_EQ(1, g_dim.value());
 }
 
-namespace units {
+namespace units
+{
 
 }
 
