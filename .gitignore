@@ -33,6 +33,10 @@ bld/
 [Mm][Ss][Vv][Cc]*
 [Gg][Cc][Cc]*
 
+#CLion
+.idea/
+/*build*/
+
 #Visual studio code
 .vscode
 
