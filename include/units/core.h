@@ -1627,7 +1627,7 @@ namespace units
 		template<typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
 		constexpr T sqrtNewtonRaphson(T x, T curr, T prev)
 		{
-			return curr == prev ? curr : sqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
+			return curr == prev ? curr : sqrtNewtonRaphson(x, T{0.5} * (curr + x / curr), curr);
 		}
 	} // namespace Detail
 	/** @endcond */ // END DOXYGEN IGNORE
