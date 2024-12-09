@@ -51,6 +51,11 @@
 #undef pascal
 #endif // _MSC_VER
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma push_macro("pascal")
+#	undef pascal
+#endif // __MINGW64__ or __MINGW32__
+
 #include <units/force.h>
 #include <units/length.h>
 
@@ -78,5 +83,9 @@ namespace units
 #ifdef _MSC_VER
 #pragma pop_macro("pascal")
 #endif // _MSC_VER
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma pop_macro("pascal")
+#endif // __MINGW64__ or __MINGW32__
 
 #endif // units_pressure_h__

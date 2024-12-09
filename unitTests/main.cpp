@@ -2054,6 +2054,9 @@ TEST_F(UnitType, unitTypeMultiplication)
 	EXPECT_NEAR(0.2, result, 5.0e-5);
 	result = 4 * percent<double>(5.0);
 	EXPECT_NEAR(0.2, result, 5.0e-5);
+
+	auto value = 10.0_pct * 100.0_m;
+	EXPECT_EQ(value, 10.0_m);
 }
 
 TEST_F(UnitType, unitTypeMixedUnitMultiplication)
@@ -4759,6 +4762,10 @@ TEST_F(UnitMath, sqrt)
 	EXPECT_NEAR(feet<double>(3.16227766017).to<double>(), sqrt(square_feet<double>(10.0)).to<double>(), 5.0e-9);
 	EXPECT_NEAR(feet<double>(3.16227766017).to<double>(), resultFt.to<double>(), 5.0e-9);
 	EXPECT_EQ(resultFt, sqrt(square_feet<double>(10.0)));
+
+	percent resultPct = sqrt(16.0_pct);
+	EXPECT_EQ(resultPct, 4.0_pct);
+	EXPECT_EQ(0.04, resultPct);
 }
 
 TEST_F(UnitMath, hypot)
