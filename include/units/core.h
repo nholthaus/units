@@ -298,11 +298,11 @@ namespace units
  */
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension)                                                                                                                \
-	/** @ingroup	TypeTraits*/                                                                                                                               \
-	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                             \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                        \
-	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                           \
-	/** @tparam		T	type to test*/                                                                                                                         \
+	/** @ingroup	TypeTraits*/                                                                                                                                  \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                                 \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                           \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                                    \
+	/** @tparam		T	type to test*/                                                                                                                              \
 	namespace traits                                                                                                                                           \
 	{                                                                                                                                                          \
 		template<typename T>                                                                                                                                   \
@@ -4047,15 +4047,79 @@ namespace std
 			}
 		}
 	};
+} // namespace std
 
-	//------------------------------
-	//	std::numeric_limits
-	//------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+//  NUMERIC LIMITS
+//----------------------------------------------------------------------------------------------------------------------
 
-	template<class ConversionFactor, typename T, class NumericalScale>
-	struct numeric_limits<units::unit<ConversionFactor, T, NumericalScale>> : public std::numeric_limits<T>
+namespace std
+{
+	template<class ConversionFactor, typename T, class NonLinearScale>
+	struct numeric_limits<units::unit<ConversionFactor, T, NonLinearScale>>
 	{
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> min()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::min());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> denorm_min() noexcept
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::denorm_min());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> max()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::max());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> lowest()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> epsilon()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> round_error()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> infinity()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::infinity());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> quiet_NaN()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::quiet_NaN());
+		}
+		static constexpr units::unit<ConversionFactor, T, NonLinearScale> signaling_NaN()
+		{
+			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::signaling_NaN());
+		}
+		static constexpr bool is_specialized    = std::numeric_limits<T>::is_specialized;
+		static constexpr bool is_signed         = std::numeric_limits<T>::is_signed;
+		static constexpr bool is_integer        = std::numeric_limits<T>::is_integer;
+		static constexpr bool is_exact          = std::numeric_limits<T>::is_exact;
+		static constexpr bool has_infinity      = std::numeric_limits<T>::has_infinity;
+		static constexpr bool has_quiet_NaN     = std::numeric_limits<T>::has_quiet_NaN;
+		static constexpr bool has_signaling_NaN = std::numeric_limits<T>::has_signaling_NaN;
 	};
+
+	template<class ConversionFactor, typename T, class NonLinearScale>
+	bool isnan(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	{
+		return std::isnan(x());
+	}
+
+	template<class ConversionFactor, typename T, class NonLinearScale>
+	bool isinf(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	{
+		return std::isinf(x());
+	}
+
+	template<class ConversionFactor, typename T, class NonLinearScale>
+	bool signbit(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	{
+		return std::signbit(x());
+	}
 } // namespace std
 
 //----------------------------------------------------------------------------------------------------------------------

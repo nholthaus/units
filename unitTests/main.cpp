@@ -19,8 +19,8 @@ namespace
 	class TypeTraits : public ::testing::Test
 	{
 	protected:
-		TypeTraits(){};
-		virtual ~TypeTraits(){};
+		TypeTraits() {};
+		virtual ~TypeTraits() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -28,8 +28,8 @@ namespace
 	class STDTypeTraits : public ::testing::Test
 	{
 	protected:
-		STDTypeTraits(){};
-		virtual ~STDTypeTraits(){};
+		STDTypeTraits() {};
+		virtual ~STDTypeTraits() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -37,8 +37,8 @@ namespace
 	class STDSpecializations : public ::testing::Test
 	{
 	protected:
-		STDSpecializations(){};
-		virtual ~STDSpecializations(){};
+		STDSpecializations() {};
+		virtual ~STDSpecializations() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -46,8 +46,8 @@ namespace
 	class UnitManipulators : public ::testing::Test
 	{
 	protected:
-		UnitManipulators(){};
-		virtual ~UnitManipulators(){};
+		UnitManipulators() {};
+		virtual ~UnitManipulators() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -55,8 +55,8 @@ namespace
 	class UnitType : public ::testing::Test
 	{
 	protected:
-		UnitType(){};
-		virtual ~UnitType(){};
+		UnitType() {};
+		virtual ~UnitType() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -64,8 +64,8 @@ namespace
 	class ConversionFactor : public ::testing::Test
 	{
 	protected:
-		ConversionFactor(){};
-		virtual ~ConversionFactor(){};
+		ConversionFactor() {};
+		virtual ~ConversionFactor() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -73,8 +73,8 @@ namespace
 	class UnitMath : public ::testing::Test
 	{
 	protected:
-		UnitMath(){};
-		virtual ~UnitMath(){};
+		UnitMath() {};
+		virtual ~UnitMath() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -82,17 +82,26 @@ namespace
 	class Constexpr : public ::testing::Test
 	{
 	protected:
-		Constexpr(){};
-		virtual ~Constexpr(){};
+		Constexpr() {};
+		virtual ~Constexpr() {};
 		void SetUp() override {};
 		void TearDown() override {};
+	};
+
+	class UnitLimits : public ::testing::Test
+	{
+	protected:
+		UnitLimits() {};
+		virtual ~UnitLimits() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
 	};
 
 	class CaseStudies : public ::testing::Test
 	{
 	protected:
-		CaseStudies(){};
-		virtual ~CaseStudies(){};
+		CaseStudies() {};
+		virtual ~CaseStudies() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -5032,6 +5041,105 @@ TEST_F(Constexpr, stdArray)
 	constexpr std::array<meters<double>, 5> arr{{0.0_m, 1.0_m, 2.0_m, 3.0_m, 4.0_m}};
 	constexpr bool                          equal = (arr[3] == 3.0_m);
 	EXPECT_TRUE(equal);
+}
+
+TEST_F(UnitLimits, UnitMin)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::min()), std::numeric_limits<meters<double>>::min());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::min()), std::numeric_limits<seconds<double>>::min());
+}
+
+TEST_F(UnitLimits, UnitDenormMin)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::denorm_min()), std::numeric_limits<meters<double>>::denorm_min());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::denorm_min()), std::numeric_limits<seconds<double>>::denorm_min());
+}
+
+TEST_F(UnitLimits, UnitMax)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::max()), std::numeric_limits<meters<double>>::max());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::max()), std::numeric_limits<seconds<double>>::max());
+}
+
+TEST_F(UnitLimits, UnitLowest)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::lowest()), std::numeric_limits<meters<double>>::lowest());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::lowest()), std::numeric_limits<seconds<double>>::lowest());
+}
+
+TEST_F(UnitLimits, UnitEpsilon)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::epsilon()), std::numeric_limits<meters<double>>::epsilon());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::epsilon()), std::numeric_limits<seconds<double>>::epsilon());
+}
+
+TEST_F(UnitLimits, UnitRoundError)
+{
+	EXPECT_EQ(meters(std::numeric_limits<double>::round_error()), std::numeric_limits<meters<double>>::round_error());
+	EXPECT_EQ(seconds(std::numeric_limits<double>::round_error()), std::numeric_limits<seconds<double>>::round_error());
+}
+
+TEST_F(UnitLimits, UnitInfinity)
+{
+	EXPECT_TRUE(std::numeric_limits<meters<double>>::has_infinity);
+	EXPECT_TRUE(std::numeric_limits<meters<double>>::infinity() > std::numeric_limits<meters<double>>::max());
+	EXPECT_FALSE(std::numeric_limits<seconds<int>>::has_infinity);
+}
+
+TEST_F(UnitLimits, UnitQuietNaN)
+{
+	EXPECT_NE(meters(std::numeric_limits<double>::quiet_NaN()), std::numeric_limits<meters<double>>::quiet_NaN());
+	EXPECT_NE(seconds(std::numeric_limits<double>::quiet_NaN()), std::numeric_limits<seconds<double>>::quiet_NaN());
+	EXPECT_TRUE(units::isnan(std::numeric_limits<meters<double>>::quiet_NaN()));
+}
+
+TEST_F(UnitLimits, UnitSignalingNaN)
+{
+	EXPECT_NE(meters(std::numeric_limits<double>::signaling_NaN()), std::numeric_limits<meters<double>>::signaling_NaN());
+	EXPECT_NE(seconds(std::numeric_limits<double>::signaling_NaN()), std::numeric_limits<seconds<double>>::signaling_NaN());
+	EXPECT_TRUE(units::isnan(std::numeric_limits<meters<double>>::signaling_NaN()));
+}
+
+TEST_F(UnitLimits, UnitIsSpecialized)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_specialized == std::numeric_limits<meters<double>>::is_specialized);
+	EXPECT_TRUE(std::numeric_limits<double>::is_specialized == std::numeric_limits<seconds<double>>::is_specialized);
+}
+
+TEST_F(UnitLimits, UnitIsSigned)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_signed == std::numeric_limits<meters<double>>::is_signed);
+	EXPECT_TRUE(std::numeric_limits<double>::is_signed == std::numeric_limits<seconds<double>>::is_signed);
+}
+
+TEST_F(UnitLimits, UnitIsInteger)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_integer == std::numeric_limits<meters<double>>::is_integer);
+	EXPECT_TRUE(std::numeric_limits<double>::is_integer == std::numeric_limits<seconds<double>>::is_integer);
+}
+
+TEST_F(UnitLimits, UnitIsExact)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_exact == std::numeric_limits<meters<double>>::is_exact);
+	EXPECT_TRUE(std::numeric_limits<double>::is_exact == std::numeric_limits<seconds<double>>::is_exact);
+}
+
+TEST_F(UnitLimits, UnitHasInifinity)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_infinity == std::numeric_limits<meters<double>>::has_infinity);
+	EXPECT_TRUE(std::numeric_limits<double>::has_infinity == std::numeric_limits<seconds<double>>::has_infinity);
+}
+
+TEST_F(UnitLimits, UnitHasQuietNaN)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_quiet_NaN == std::numeric_limits<meters<double>>::has_quiet_NaN);
+	EXPECT_TRUE(std::numeric_limits<double>::has_quiet_NaN == std::numeric_limits<seconds<double>>::has_quiet_NaN);
+}
+
+TEST_F(UnitLimits, UnitHasSignalingNaN)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_signaling_NaN == std::numeric_limits<meters<double>>::has_signaling_NaN);
+	EXPECT_TRUE(std::numeric_limits<double>::has_signaling_NaN == std::numeric_limits<seconds<double>>::has_signaling_NaN);
 }
 
 TEST_F(CaseStudies, radarRangeEquation)

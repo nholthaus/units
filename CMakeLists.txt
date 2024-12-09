@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.31 FATAL_ERROR)
 
 PROJECT(units VERSION 3.1.0 LANGUAGES CXX)
 
