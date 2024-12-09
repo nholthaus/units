@@ -1765,20 +1765,20 @@ namespace units
 			std::ratio_divide<std::ratio_subtract<typename ConversionFactorFrom::translation_ratio, typename ConversionFactorTo::translation_ratio>,
 				typename ConversionFactorTo::conversion_ratio>;
 
-		[[maybe_unused]] constexpr auto normal_convert = [](const auto& value)
+		[[maybe_unused]] constexpr auto normal_convert = [](const auto& val)
 		{
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio, typename ConversionFactorFrom::dimension_type>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio, typename ConversionFactorTo::dimension_type>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(val)>>(val);
 		};
 
-		[[maybe_unused]] constexpr auto pi_convert = [](const auto& value)
+		[[maybe_unused]] constexpr auto pi_convert = [](const auto& val)
 		{
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio, typename ConversionFactorFrom::dimension_type,
 				typename ConversionFactorFrom::pi_exponent_ratio>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio, typename ConversionFactorTo::dimension_type,
-				  typename ConversionFactorTo::pi_exponent_ratio>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(value)>>(value);
+                typename ConversionFactorTo::pi_exponent_ratio>;
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(val)>>(val);
 		};
 
 		// same exact unit on both sides
