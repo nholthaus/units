@@ -3360,6 +3360,10 @@ TEST_F(ConversionFactor, length)
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
 	test = chains<double>(meters<double>(1.0)).value();
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
+	test = inches<double>(mils<double>(1.0)).value();
+	EXPECT_NEAR(0.001, test, 5.0e-7);
+	test = mils<double>(inches<double>(1.0)).value();
+	EXPECT_NEAR(1000, test, 5.0e-7);
 
 	EXPECT_EQ(metres<double>(1), meters<double>(1));
 }
