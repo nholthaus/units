@@ -1659,6 +1659,8 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
 	test = convert<meters, chains>(1.0);
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
+	test = convert<inches, mils>(1.0);
+	EXPECT_NEAR(0.001, test, 5.0e-7);
 
 }
 
