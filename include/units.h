@@ -91,7 +91,7 @@ namespace units
 {
 	namespace detail
 	{
-		struct PI : conversion_factor<std::ratio<1>, dimensionless_unit, std::ratio<1>>
+		struct PI : conversion_factor<std::ratio<1>, dimensionless_, std::ratio<1>>
 		{
 		};
 	} // namespace detail
