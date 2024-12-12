@@ -1289,11 +1289,12 @@ namespace units
 			template <std::intmax_t Lower>
 			struct SingleSidedSearch_<Lower, std::true_type> : SingleSidedSearch_<SafeDouble_<Lower>::value>{};
 
-			static constexpr const std::intmax_t value = SingleSidedSearch_<1>::value;
+			static constexpr std::intmax_t value = SingleSidedSearch_<1>::value;
  		};
 
 		template <template <std::intmax_t N> class Predicate>
-		struct BinarySearch<Predicate, std::enable_if_t<!Predicate<1>::value>> : std::integral_constant<std::intmax_t, 0>{};
+		requires (!Predicate<1>::value)
+		struct BinarySearch<Predicate> : std::integral_constant<std::intmax_t, 0>{};
 
 		// Find largest std::integer N such that N<=sqrt(R)
 		template <typename R>
@@ -1353,7 +1354,8 @@ namespace units
 		};
 
 		template <typename Tr>
-		struct ContinuedFraction<Tr, 1> {
+		struct ContinuedFraction<Tr, 1>
+		{
 			using R = Tr;
 			using U = One;
 			using V = std::ratio<Integer<R>::value>;
@@ -1366,22 +1368,28 @@ namespace units
 		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
 
 		template <typename R, typename Eps, std::intmax_t N>
-		struct Sqrt_<R, Eps, N, std::enable_if_t<std::ratio_less_equal_v<typename ContinuedFraction<R, N>::Error, Eps>>> {
+		requires std::ratio_less_equal_v<typename ContinuedFraction<R, N>::Error, Eps>
+		struct Sqrt_<R, Eps, N>
+		{
 			using type = typename ContinuedFraction<R, N>::V;
 		};
 
 		template <typename R, typename Eps, typename enabled = void>
-		struct Sqrt {
+		struct Sqrt
+		{
 			static_assert(std::ratio_greater_equal_v<R, Zero>, "R can't be negative");
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, std::enable_if_t<std::ratio_greater_equal_v<R, Zero> && IsPerfectSquare<R>::value>> {
+		requires std::ratio_greater_equal_v<R, Zero> && IsPerfectSquare<R>::value
+		struct Sqrt<R, Eps>
+		{
 			using type = typename IsPerfectSquare<R>::Sqrt;
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, std::enable_if_t<(std::ratio_greater_equal_v<R, Zero> && !IsPerfectSquare<R>::value)>> : Sqrt_<R, Eps>{};
+		requires (std::ratio_greater_equal_v<R, Zero> && !IsPerfectSquare<R>::value)
+		struct Sqrt<R, Eps> : Sqrt_<R, Eps>{};
 	}
 	// clang-format on
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -4017,7 +4025,7 @@ namespace units
 	 * @returns		The absolute value of x.
 	 */
 	template<class UnitType>
-	requires traits::is_unit_v<UnitType>
+		requires traits::is_unit_v<UnitType>
 	UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::abs(x.value()));
@@ -4051,35 +4059,35 @@ namespace units
 	//----------------------------
 
 	template<typename UnitType>
-	requires traits::is_unit_v<UnitType>
+		requires traits::is_unit_v<UnitType>
 	constexpr bool isnan(const UnitType& x) noexcept
 	{
 		return std::isnan(x.value());
 	}
 
 	template<typename UnitType>
-	requires traits::is_unit_v<UnitType>
+		requires traits::is_unit_v<UnitType>
 	constexpr bool isinf(const UnitType& x) noexcept
 	{
 		return std::isinf(x.value());
 	}
 
 	template<typename UnitType>
-	requires traits::is_unit_v<UnitType>
+		requires traits::is_unit_v<UnitType>
 	constexpr bool isfinite(const UnitType& x) noexcept
 	{
 		return std::isfinite(x.value());
 	}
 
 	template<typename UnitType>
-	requires traits::is_unit_v<UnitType>
+		requires traits::is_unit_v<UnitType>
 	constexpr bool isnormal(const UnitType& x) noexcept
 	{
 		return std::isnormal(x.value());
 	}
 
 	template<typename UnitTypeLhs, typename UnitTypeRhs>
-	requires traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>
+		requires traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>
 	constexpr bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		return std::isunordered(lhs.value(), rhs.value());
