@@ -3956,6 +3956,13 @@ TEST_F(ConversionFactor, inductance)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
+TEST_F(ConversionFactor, jerk)
+{
+	double test;
+	test = meters_per_second_cubed(feet_per_second_cubed{3.280839895}).value();
+	EXPECT_NEAR(test, 1.0, 5.0e-5);
+}
+
 TEST_F(ConversionFactor, luminous_flux)
 {
 	double test;

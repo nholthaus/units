@@ -230,7 +230,7 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @note		When UNIT_NO_LITERAL_SUPPORT is not defined, the macro does not generate any code
+ * @note		When UNIT_NO_LITERAL_SUPPORT is defined, the macro does not generate any code
  */
 #ifdef UNIT_NO_LITERAL_SUPPORT
 #define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
@@ -926,12 +926,13 @@ namespace units
 			make_dimension<mass, std::ratio<1>, time, std::ratio<-2>, current, std::ratio<-1>>; ///< Represents an SI derived unit of magnetic field strength
 
 		// OTHER UNIT TYPES
-		using torque             = dimension_multiply<force, length>;      ///< Represents an SI derived unit of torque
-		using volume             = dimension_pow<length, std::ratio<3>>;   ///< Represents an SI derived unit of volume
-		using density            = dimension_divide<mass, volume>;         ///< Represents an SI derived unit of density
-		using concentration      = make_dimension<volume, std::ratio<-1>>; ///< Represents a unit of concentration
-		using data               = make_dimension<data_tag>;               ///< Represents a unit of data size
-		using data_transfer_rate = dimension_divide<data, time>;           ///< Represents a unit of data transfer rate
+		using jerk               = make_dimension<length, std::ratio<1>, time, std::ratio<-3>>; ///< Represents an SI derived unit of jerk
+		using torque             = dimension_multiply<force, length>;                           ///< Represents an SI derived unit of torque
+		using volume             = dimension_pow<length, std::ratio<3>>;                        ///< Represents an SI derived unit of volume
+		using density            = dimension_divide<mass, volume>;                              ///< Represents an SI derived unit of density
+		using concentration      = make_dimension<volume, std::ratio<-1>>;                      ///< Represents a unit of concentration
+		using data               = make_dimension<data_tag>;                                    ///< Represents a unit of data size
+		using data_transfer_rate = dimension_divide<data, time>;                                ///< Represents a unit of data transfer rate
 	} // namespace dimension
 
 	//------------------------------
