@@ -1770,20 +1770,20 @@ namespace units
 			std::ratio_divide<std::ratio_subtract<typename ConversionFactorFrom::translation_ratio, typename ConversionFactorTo::translation_ratio>,
 				typename ConversionFactorTo::conversion_ratio>;
 
-		[[maybe_unused]] constexpr auto normal_convert = [](const auto& val)
+		[[maybe_unused]] constexpr auto normal_convert = []<typename T0>(const T0& val)
 		{
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio, typename ConversionFactorFrom::dimension_type>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio, typename ConversionFactorTo::dimension_type>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(val)>>(val);
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<T0>>(val);
 		};
 
-		[[maybe_unused]] constexpr auto pi_convert = [](const auto& val)
+		[[maybe_unused]] constexpr auto pi_convert = []<typename T0>(const T0& val)
 		{
 			using ResolvedUnitFrom = conversion_factor<typename ConversionFactorFrom::conversion_ratio, typename ConversionFactorFrom::dimension_type,
 				typename ConversionFactorFrom::pi_exponent_ratio>;
 			using ResolvedUnitTo   = conversion_factor<typename ConversionFactorTo::conversion_ratio, typename ConversionFactorTo::dimension_type,
 				  typename ConversionFactorTo::pi_exponent_ratio>;
-			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<decltype(val)>>(val);
+			return convert<ResolvedUnitFrom, ResolvedUnitTo, std::decay_t<T0>>(val);
 		};
 
 		// same exact unit on both sides
@@ -2847,14 +2847,11 @@ namespace units
 
 	using dimensionless_ = conversion_factor<std::ratio<1>, dimension::dimensionless>;
 
-	namespace traits
+	template<>
+	struct traits::strong<units::detail::conversion_factor_base_t<dimensionless_>>
 	{
-		template<>
-		struct strong<units::detail::conversion_factor_base_t<dimensionless_>>
-		{
-			using type = conversion_factor<std::ratio<1>, dimension::dimensionless>;
-		};
-	} // namespace traits
+		using type = conversion_factor<std::ratio<1>, dimension::dimensionless>;
+	}; // namespace traits
 	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, ::units::linear_scale, conversion_factor<std::ratio<1>, dimension::dimensionless>)
 
 	UNIT_ADD_DIMENSION_TRAIT(dimensionless)
@@ -4041,35 +4038,35 @@ namespace units
 	//----------------------------
 
 	template<typename UnitType>
-	requires (traits::is_unit_v<UnitType>)
+		requires(traits::is_unit_v<UnitType>)
 	constexpr bool isnan(const UnitType& x) noexcept
 	{
 		return std::isnan(x.value());
 	}
 
 	template<typename UnitType>
-	requires (traits::is_unit_v<UnitType>)
+		requires(traits::is_unit_v<UnitType>)
 	constexpr bool isinf(const UnitType& x) noexcept
 	{
 		return std::isinf(x.value());
 	}
 
 	template<typename UnitType>
-	requires (traits::is_unit_v<UnitType>)
+		requires(traits::is_unit_v<UnitType>)
 	constexpr bool isfinite(const UnitType& x) noexcept
 	{
 		return std::isfinite(x.value());
 	}
 
 	template<typename UnitType>
-	requires (traits::is_unit_v<UnitType>)
+		requires(traits::is_unit_v<UnitType>)
 	constexpr bool isnormal(const UnitType& x) noexcept
 	{
 		return std::isnormal(x.value());
 	}
 
 	template<typename UnitTypeLhs, typename UnitTypeRhs>
-	requires (traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		return std::isunordered(lhs.value(), rhs.value());
@@ -4080,29 +4077,27 @@ namespace units
 //----------------------------------------------------------------------------------------------------------------------
 //      STD Namespace extensions
 //----------------------------------------------------------------------------------------------------------------------
-namespace std
-{
-	//------------------------------
-	//	std::hash
-	//------------------------------
 
-	template<class ConversionFactor, typename T, class NumericalScale>
-	struct hash<units::unit<ConversionFactor, T, NumericalScale>>
+//------------------------------
+//	std::hash
+//------------------------------
+
+template<class ConversionFactor, typename T, class NumericalScale>
+struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
+{
+	template<typename U = T>
+	constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
 	{
-		template<typename U = T>
-		constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
+		if constexpr (std::is_integral_v<U>)
 		{
-			if constexpr (std::is_integral_v<U>)
-			{
-				return static_cast<std::size_t>(x.to_linearized());
-			}
-			else
-			{
-				return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
-			}
+			return static_cast<std::size_t>(x.to_linearized());
 		}
-	};
-} // namespace std
+		else
+		{
+			return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
+		}
+	}
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 //  NUMERIC LIMITS
@@ -4187,7 +4182,7 @@ namespace std
 namespace units
 {
 	template<class UnitType>
-	requires (units::traits::is_unit_v<UnitType>)
+		requires(units::traits::is_unit_v<UnitType>)
 	void from_json(const nlohmann::json& j, UnitType& u)
 	{
 		using underlying = typename units::traits::unit_traits<UnitType>::underlying_type;
@@ -4197,7 +4192,7 @@ namespace units
 	}
 
 	template<class UnitType>
-	requires (units::traits::is_unit_v<UnitType>)
+		requires(units::traits::is_unit_v<UnitType>)
 	void to_json(nlohmann::json& j, const UnitType& u)
 	{
 		j = u.raw();
