@@ -14,7 +14,7 @@ OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 option(UNITS_CODE_COVERAGE "Generate coveralls code coverage data" OFF)
 
-SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_STANDARD 23)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:

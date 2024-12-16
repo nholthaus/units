@@ -3663,7 +3663,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp(const dimensionlessUnit x) noexcept
 	{
 		return std::exp(x.value());
 	}
@@ -3679,7 +3679,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log(const dimensionlessUnit x) noexcept
 	{
 		return std::log(x.value());
 	}
@@ -3694,7 +3694,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log10(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log10(const dimensionlessUnit x) noexcept
 	{
 		return std::log10(x.value());
 	}
@@ -3712,7 +3712,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit> && std::is_floating_point_v<typename dimensionlessUnit::underlying_type>)
-	dimensionless<typename dimensionlessUnit::underlying_type> modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
+	constexpr dimensionless<typename dimensionlessUnit::underlying_type> modf(const dimensionlessUnit x, dimensionlessUnit* intpart) noexcept
 	{
 		typename dimensionlessUnit::underlying_type intp;
 		dimensionlessUnit                           fracpart = std::modf(x.template to<decltype(intp)>(), &intp);
@@ -3729,7 +3729,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp2(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> exp2(const dimensionlessUnit x) noexcept
 	{
 		return std::exp2(x.value());
 	}
@@ -3744,7 +3744,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> expm1(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> expm1(const dimensionlessUnit x) noexcept
 	{
 		return std::expm1(x.value());
 	}
@@ -3760,7 +3760,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log1p(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log1p(const dimensionlessUnit x) noexcept
 	{
 		return std::log1p(x.value());
 	}
@@ -3775,7 +3775,7 @@ namespace units
 	 */
 	template<class dimensionlessUnit>
 		requires(traits::is_dimensionless_unit_v<dimensionlessUnit>)
-	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log2(const dimensionlessUnit x) noexcept
+	constexpr dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> log2(const dimensionlessUnit x) noexcept
 	{
 		return std::log2(x.value());
 	}
@@ -3817,7 +3817,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
+	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		using CommonUnit = decltype(units::hypot(x, y));
 		return CommonUnit(std::hypot(CommonUnit(x).value(), CommonUnit(y).value()));
@@ -3836,7 +3836,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
+	constexpr detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.value()));
 	}
@@ -3850,7 +3850,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
+	constexpr detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::floor(x.value()));
 	}
@@ -3865,7 +3865,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
-	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
+	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using CommonUnit = decltype(units::fmod(numer, denom));
 		return CommonUnit(std::fmod(CommonUnit(numer).value(), CommonUnit(denom).value()));
@@ -3881,7 +3881,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
+	constexpr detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.value()));
 	}
@@ -3896,7 +3896,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
+	constexpr detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::round(x.value()));
 	}
@@ -3916,7 +3916,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_unit_v<UnitTypeLhs> && traits::is_unit_v<UnitTypeRhs>)
-	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y.value())); // no need for conversion to get the correct sign.
 	}
@@ -3924,7 +3924,7 @@ namespace units
 	/// Overload to copy the sign from a raw double
 	template<class UnitTypeLhs, typename T>
 		requires(std::is_arithmetic_v<T> && traits::is_unit_v<UnitTypeLhs>)
-	detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
+	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y));
 	}
@@ -3943,7 +3943,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
-	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fdim(x, y));
 		return CommonUnit(std::fdim(CommonUnit(x).value(), CommonUnit(y).value()));
@@ -3959,7 +3959,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
-	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmax(x, y));
 		return CommonUnit(std::fmax(CommonUnit(x).value(), CommonUnit(y).value()));
@@ -3976,7 +3976,7 @@ namespace units
 	 */
 	template<class UnitTypeLhs, class UnitTypeRhs>
 		requires(traits::is_same_dimension_unit_v<UnitTypeLhs, UnitTypeRhs>)
-	detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmin(x, y));
 		return CommonUnit(std::fmin(CommonUnit(x).value(), CommonUnit(y).value()));
@@ -3995,7 +3995,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
+	constexpr detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.value()));
 	}
@@ -4009,7 +4009,7 @@ namespace units
 	 */
 	template<class UnitType>
 		requires(traits::is_unit_v<UnitType>)
-	UnitType abs(const UnitType x) noexcept
+	constexpr UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::abs(x.value()));
 	}
@@ -4029,7 +4029,7 @@ namespace units
 			traits::is_same_dimension_conversion_factor_v<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor,
 															  typename traits::unit_traits<UnitMultiply>::conversion_factor>,
 				typename traits::unit_traits<UnitAdd>::conversion_factor>)
-	auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept
+	constexpr auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept
 		-> std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) * detail::floating_point_promotion_t<UnitMultiply>(y)), UnitAdd>
 	{
 		using CommonUnit = decltype(units::fma(x, y, z));
@@ -4159,19 +4159,19 @@ namespace std
 	};
 
 	template<class ConversionFactor, typename T, class NonLinearScale>
-	bool isnan(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	constexpr bool isnan(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
 		return std::isnan(x());
 	}
 
 	template<class ConversionFactor, typename T, class NonLinearScale>
-	bool isinf(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	constexpr bool isinf(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
 		return std::isinf(x());
 	}
 
 	template<class ConversionFactor, typename T, class NonLinearScale>
-	bool signbit(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	constexpr bool signbit(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
 		return std::signbit(x());
 	}
