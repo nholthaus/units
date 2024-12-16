@@ -5,34 +5,21 @@ A compile-time, header-only, dimensional analysis library built on C++17 with no
 
 [![Linux build](https://travis-ci.org/nholthaus/units.svg?branch=master)](https://travis-ci.org/nholthaus/units) [![Windows build](https://ci.appveyor.com/api/projects/status/github/nholthaus/units?svg=true&branch=master)](https://ci.appveyor.com/project/nholthaus/units) [![Coverage Status](https://coveralls.io/repos/github/nholthaus/units/badge.svg?branch=master)](https://coveralls.io/github/nholthaus/units?branch=master) ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++14-blue.svg)<br>![msvc2015](https://img.shields.io/badge/MSVC-2015-ff69b4.svg) ![msvc2017](https://img.shields.io/badge/MSVC-2017-ff69b4.svg) ![gcc-4.9.3](https://img.shields.io/badge/GCC-4.9.3-ff69b4.svg) ![gcc-5.4.0](https://img.shields.io/badge/GCC-5.4.0-ff69b4.svg) ![clang-3.4](https://img.shields.io/badge/CLANG-3.4-ff69b4.svg)
 
-# Get in touch
-<a id="markdown-get-in-touch" name="get-in-touch"></a>
 
-If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
-
-# Next Release - v3.0.0
-
-## New in v3.0.0
-
-> I got enamoured with this library because with a few lines
-I could have a powerful type representing my domain-specific concept.
-Being able to clearly express your domain in code leads to better designs.
-My `Pixels` unit is as well-supported as any other unit in this library.
-It has access to the expressiveness and dimensional analysis
-that the library-defined units have.
-It's amazing how this library lets me define this expressive domain unit
-so succinctly and have access to so many useful things
-in such a short amount of code. \
--- Johel Ernesto Guerrero Peña (@johelegp),
-https://github.com/nholthaus/units/issues/124#issuecomment-390773279
-
-# Latest Release - v2.3.1
-<a id="markdown-latest-release---v2.3.1" name="latest-release---v2.3.1"></a>
+# Latest Release - v3.1.0
+<a id="markdown-latest-release---v3.1.0" name="latest-release---v3.1.0"></a>
 
 ## Get it
 <a id="markdown-get-it" name="get-it"></a>
 
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.1-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.1)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v3.1.0-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.1)
+
+## New in v3.1.0
+
+
+## New in v3.0.0
+
+
 
 ## New in v2.3.1
 <a id="markdown-new-in-v2.3.1" name="new-in-v2.3.1"></a>
