@@ -1990,6 +1990,10 @@ TEST_F(UnitConversion, pressure)
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
 	test = convert<atmospheres, psi>(1.0);
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
+	test = convert<inch_of_mercury, millimeter_of_mercury>(1.0);
+	EXPECT_NEAR(25.4, test, 5.0e-5);
+	test = convert<inches_of_mercury, pascals>(1.0);
+	EXPECT_NEAR(3386.38864, test, 5.0e-5);
 }
 
 TEST_F(UnitConversion, charge)
