@@ -666,9 +666,10 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(has_equivalent_conversion_factor(std::common_type_t<degrees<double>, radians<double>>{}, degrees<double>{}));
 	static_assert(std::is_same_v<std::common_type_t<radians<double>, degrees<double>>, std::common_type_t<degrees<double>, radians<double>>>);
 
-	using half_a_radian  = unit<conversion_factor<std::ratio<1, 2>, radians<double>>, int>;
-	using third_a_radian = unit<conversion_factor<std::ratio<1, 3>, radians<double>>, double>;
-	using sixth_a_radian = unit<conversion_factor<std::ratio<1, 6>, radians<double>>, int>;
+	using half_a_radian     = unit<conversion_factor<std::ratio<1, 2>, radians<double>>, int>;
+	using big_half_a_radian = unit<conversion_factor<std::ratio<2, 4>, radians<double>>, int>;
+	using third_a_radian    = unit<conversion_factor<std::ratio<1, 3>, radians<double>>, double>;
+	using sixth_a_radian    = unit<conversion_factor<std::ratio<1, 6>, radians<double>>, int>;
 
 	static_assert(has_equivalent_conversion_factor(std::common_type_t<half_a_radian, third_a_radian>{}, sixth_a_radian{}));
 	static_assert(std::is_same_v<std::common_type_t<half_a_radian, third_a_radian>, std::common_type_t<third_a_radian, half_a_radian>>);
@@ -677,6 +678,8 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<int>>, dimensionless<int>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<double>>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<int>>, dimensionless<double>>);
+
+	static_assert(std::is_same_v<typename traits::conversion_factor_traits<traits::unit_traits<std::common_type_t<half_a_radian, big_half_a_radian>>::conversion_factor>::conversion_ratio , std::ratio<1,2>>);
 
 	using T = std::common_type_t<percent<double>, double>;
 	T a     = 50_pct;
@@ -693,6 +696,9 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<int, dimensionless<double>>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, double>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<double, dimensionless<double>>, dimensionless<double>>);
+
+	static_assert(std::is_same_v<std::common_type_t<degrees<double>, degrees<double>>, degrees<double>>);
+	static_assert(std::is_same_v<std::common_type_t<celsius<double>, celsius<double>>, celsius<double>>);
 }
 
 TEST_F(STDSpecializations, hash)
@@ -1440,11 +1446,11 @@ TEST_F(UnitType, unitTypeMixedRelational)
 
 TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 {
-	percent<int>       p;
-	meters<int>        m;
+	percent<int> p;
+	meters<int>  m;
 
 	dimensionless<int> dim{1};
-	auto test = dim - 0;
+	auto               test = dim - 0;
 	static_assert(detail::has_dimension_of<decltype(dim - 0), dimension::dimensionless>::value);
 	EXPECT_EQ(1, dim);
 	EXPECT_EQ(test, dim);
@@ -1464,7 +1470,6 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<percent<int>, decltype(0 + p)>);
 	static_assert(std::is_same_v<percent<int>, decltype(p + p)>);
 	static_assert(std::is_same_v<meters<int>, decltype(m + m)>);
-
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim - 0)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(0 - dim)>);
@@ -4459,6 +4464,19 @@ TEST_F(UnitMath, max)
 	EXPECT_EQ(e, max(d, e));
 }
 
+TEST_F(UnitMath, ternaryOperator)
+{
+	degrees val1 = 10_deg;
+	degrees val2 = 90_deg;
+
+	bool value = true;
+	auto new_val = value ? val1 - val2 : val2;
+	EXPECT_EQ(new_val, -80_deg);
+
+	value = false;
+	new_val = value ? val1 - val2 : val2;
+	EXPECT_EQ(new_val, 90_deg);
+}
 TEST_F(UnitMath, cos)
 {
 	static_assert(std::is_same_v<dimensionless<double>, decltype(cos(angle::radians<double>(0)))>);

@@ -2688,6 +2688,13 @@ namespace std
 	{
 	};
 
+	// In the case the two units are the same type, just use that type as common type
+	template<class UnitConversionT, class T, class NonLinearScale>
+	struct common_type<units::unit<UnitConversionT, T, NonLinearScale>, units::unit<UnitConversionT, T, NonLinearScale>>
+	{
+		using type = units::unit<UnitConversionT, T, NonLinearScale>;
+	};
+
 	template<class Ratio, class T, class NumericalScale, class Rep, class Period>
 	struct common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>, chrono::duration<Rep, Period>>
 	  : std::common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>, decltype(units::unit{chrono::duration<Rep, Period>{}})>
