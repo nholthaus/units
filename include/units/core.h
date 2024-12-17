@@ -4152,30 +4152,50 @@ namespace std
 
 namespace units
 {
-	// chrono deduction guide
-	template<ArithmeticType Rep, RatioType Period>
-	unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
+    // 1) chrono deduction guide
+    template<ArithmeticType Rep, RatioType Period>
+    unit(std::chrono::duration<Rep, Period>)
+      -> unit<conversion_factor<Period, dimension::time>, Rep>;
 
-	// Conversion factor from Target, type from Source
-	template<ConversionFactorType TargetCf = dimensionless<>, ConversionFactorType SourceCf = dimensionless<>, ArithmeticType SourceTy = double>
-		requires traits::is_unit_v<unit<SourceCf, SourceTy>> && traits::is_conversion_factor_v<TargetCf>
-	unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
+    // 2) Dimensionless fallback:
+    // Now restricted to apply only if the source is exactly the base dimensionless unit,
+    // i.e. conversion_factor<std::ratio<1>, dimension::dimensionless> with no pi exponent or translation.
+    template<ArithmeticType SourceTy, ConversionFactorType SourceCf>
+      requires (
+          traits::is_unit_v<unit<SourceCf, SourceTy>> &&
+          std::is_same_v<typename SourceCf::dimension_type, dimension::dimensionless> &&
+          // Ensuring it's the pure base dimensionless factor:
+          std::ratio_equal<typename SourceCf::conversion_ratio, std::ratio<1>>::value &&
+          std::ratio_equal<typename SourceCf::pi_exponent_ratio, std::ratio<0>>::value &&
+          std::ratio_equal<typename SourceCf::translation_ratio, std::ratio<0>>::value
+      )
+    unit(const unit<SourceCf, SourceTy>&)
+      -> unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, SourceTy>;
 
-	// Matching Target and Source factors
-	template<ConversionFactorType TargetCf, ArithmeticType SourceTy>
-		requires traits::is_unit_v<unit<TargetCf, SourceTy>>
-	unit(const unit<TargetCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
+    // 3) General conversion factor from Target, type from Source:
+    // Applies only if TargetCf differs from SourceCf and they share the same dimension.
+    template<ArithmeticType SourceTy, ConversionFactorType SourceCf, ConversionFactorType TargetCf = SourceCf>
+      requires (
+          traits::is_unit_v<unit<SourceCf, SourceTy>> &&
+          traits::is_conversion_factor_v<TargetCf> &&
+          traits::is_same_dimension_conversion_factor_v<SourceCf, TargetCf> &&
+          !std::is_same_v<SourceCf, TargetCf>
+      )
+    unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
 
-	// Deduce from the same unit type
-	template<ConversionFactorType Cf, ArithmeticType Ty>
-	unit(const unit<Cf, Ty>&) -> unit<Cf, Ty>;
+    // 4) Matching Target and Source factors exactly
+    template<ConversionFactorType TargetCf, ArithmeticType SourceTy>
+      requires traits::is_unit_v<unit<TargetCf, SourceTy>>
+    unit(const unit<TargetCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
 
-	// Deduce type from arithmetic type
-	template<typename T,
-		typename Cf = dimension::dimensionless, // Default conversion factor to dimensionless
-		typename    = std::enable_if_t<std::is_arithmetic_v<T>>>
-	unit(T) -> unit<Cf, T>;
+    // 5) Deduce type from arithmetic type (dimensionless by default)
+    template<typename T,
+             typename Cf = dimension::dimensionless,
+             typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    unit(T) -> unit<Cf, T>;
 } // namespace units
+
+
 
 //----------------------------------------------------------------------------------------------------------------------
 //  JSON SUPPORT
