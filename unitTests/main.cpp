@@ -310,19 +310,19 @@ TEST_F(TypeTraits, is_time_unit)
 TEST_F(TypeTraits, is_angle_unit)
 {
 	static_assert(!traits::is_angle_unit_v<double>);
-	static_assert(traits::is_angle_unit_v<angle::radians<double>>);
-	static_assert(traits::is_angle_unit_v<const angle::radians<double>>);
-	static_assert(traits::is_angle_unit_v<const angle::radians<double>&>);
-	static_assert(traits::is_angle_unit_v<angle::degrees<double>>);
+	static_assert(traits::is_angle_unit_v<radians<double>>);
+	static_assert(traits::is_angle_unit_v<const radians<double>>);
+	static_assert(traits::is_angle_unit_v<const radians<double>&>);
+	static_assert(traits::is_angle_unit_v<degrees<double>>);
 	static_assert(!traits::is_angle_unit_v<watts<double>>);
 }
 
 TEST_F(TypeTraits, is_current_unit)
 {
 	static_assert(!traits::is_current_unit_v<double>);
-	static_assert(traits::is_current_unit_v<current::amperes<double>>);
-	static_assert(traits::is_current_unit_v<const current::amperes<double>>);
-	static_assert(traits::is_current_unit_v<const current::amperes<double>&>);
+	static_assert(traits::is_current_unit_v<amperes<double>>);
+	static_assert(traits::is_current_unit_v<const amperes<double>>);
+	static_assert(traits::is_current_unit_v<const amperes<double>&>);
 	static_assert(!traits::is_current_unit_v<volts<double>>);
 }
 
@@ -339,9 +339,9 @@ TEST_F(TypeTraits, is_temperature_unit)
 TEST_F(TypeTraits, is_substance_unit)
 {
 	static_assert(!traits::is_substance_unit_v<double>);
-	static_assert(traits::is_substance_unit_v<substance::mols<double>>);
-	static_assert(traits::is_substance_unit_v<const substance::mols<double>>);
-	static_assert(traits::is_substance_unit_v<const substance::mols<double>&>);
+	static_assert(traits::is_substance_unit_v<mols<double>>);
+	static_assert(traits::is_substance_unit_v<const mols<double>>);
+	static_assert(traits::is_substance_unit_v<const mols<double>&>);
 	static_assert(!traits::is_substance_unit_v<years<double>>);
 }
 
@@ -395,10 +395,10 @@ TEST_F(TypeTraits, is_acceleration_unit)
 TEST_F(TypeTraits, is_force_unit)
 {
 	static_assert(!traits::is_force_unit_v<double>);
-	static_assert(traits::is_force_unit_v<units::force::newtons<double>>);
-	static_assert(traits::is_force_unit_v<const units::force::newtons<double>>);
-	static_assert(traits::is_force_unit_v<const units::force::newtons<double>&>);
-	static_assert(traits::is_force_unit_v<units::force::dynes<double>>);
+	static_assert(traits::is_force_unit_v<newtons<double>>);
+	static_assert(traits::is_force_unit_v<const newtons<double>>);
+	static_assert(traits::is_force_unit_v<const newtons<double>&>);
+	static_assert(traits::is_force_unit_v<dynes<double>>);
 	static_assert(!traits::is_force_unit_v<watts<double>>);
 }
 
@@ -536,11 +536,11 @@ TEST_F(TypeTraits, is_radioactivity_unit)
 TEST_F(TypeTraits, is_torque_unit)
 {
 	static_assert(!traits::is_torque_unit_v<double>);
-	static_assert(traits::is_torque_unit_v<torque::newton_meters<double>>);
-	static_assert(traits::is_torque_unit_v<const torque::newton_meters<double>>);
-	static_assert(traits::is_torque_unit_v<const torque::newton_meters<double>&>);
+	static_assert(traits::is_torque_unit_v<newton_meters<double>>);
+	static_assert(traits::is_torque_unit_v<const newton_meters<double>>);
+	static_assert(traits::is_torque_unit_v<const newton_meters<double>&>);
 	static_assert(traits::is_torque_unit_v<torque::foot_pounds<double>>);
-	static_assert(!traits::is_torque_unit_v<volume::cubic_meters<double>>);
+	static_assert(!traits::is_torque_unit_v<cubic_meters<double>>);
 }
 
 TEST_F(TypeTraits, is_area_unit)
@@ -595,15 +595,15 @@ TEST_F(TypeTraits, is_data_transfer_rate_unit)
 
 TEST_F(STDTypeTraits, std_common_type)
 {
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, meters<double>>(), meters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, kilometers<double>>(), kilometers<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, millimeters<double>>(), millimeters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, kilometers<double>>(), meters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, meters<double>>(), meters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, millimeters<double>>(), millimeters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, meters<double>>(), millimeters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, kilometers<double>>(), millimeters<double>()));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, millimeters<double>>(), millimeters<double>()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, meters<double>>(), meters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, kilometers<double>>(), kilometers()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, millimeters<double>>(), millimeters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, kilometers<double>>(), meters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, meters<double>>(), meters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<meters<double>, millimeters<double>>(), millimeters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, meters<double>>(), millimeters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<millimeters<double>, kilometers<double>>(), millimeters()));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kilometers<double>, millimeters<double>>(), millimeters()));
 	static_assert(std::is_same_v<std::common_type_t<meters<double>, kilometers<double>>, std::common_type_t<kilometers<double>, meters<double>>>);
 	static_assert(std::is_same_v<std::common_type_t<meters<double>, millimeters<double>>, std::common_type_t<millimeters<double>, meters<double>>>);
 	static_assert(std::is_same_v<std::common_type_t<millimeters<double>, kilometers<double>>, std::common_type_t<kilometers<double>, millimeters<double>>>);
@@ -629,8 +629,8 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>, std::common_type_t<third_a_second, half_a_second>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
 
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, celsius<double>{}));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<celsius<double>, kelvin<double>>{}, celsius<double>{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, celsius{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<celsius<double>, kelvin<double>>{}, celsius{}));
 	static_assert(std::is_same_v<std::common_type_t<kelvin<double>, celsius<double>>, std::common_type_t<celsius<double>, kelvin<double>>>);
 
 	using half_a_kelvin  = unit<conversion_factor<std::ratio<1, 2>, kelvin<double>>, double>;
@@ -878,10 +878,10 @@ TEST_F(UnitType, constructionFromUnitType)
 	constexpr dimensionless d_dim(c_dim);
 	EXPECT_EQ(1, d_dim.value());
 
-	constexpr dimensionless<double> e_dim(d_dim);
+	constexpr dimensionless e_dim(d_dim);
 	EXPECT_EQ(1, e_dim.value());
 
-	constexpr dimensionless<double> f_dim(c_dim);
+	constexpr dimensionless f_dim(c_dim);
 	EXPECT_EQ(1, f_dim.value());
 
 	constexpr dimensionless g_dim(f_dim);
@@ -942,7 +942,7 @@ TEST_F(UnitType, CTAD)
 	constexpr meters j_m(meters<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(j_m)>, meters<double>>);
 
-	constexpr meters k_m(kilometers<int>(1));
+	constexpr meters k_m(kilometers(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(k_m)>, meters<int>>);
 
 	constexpr meters l_m(kilometers<double>(1.0));
