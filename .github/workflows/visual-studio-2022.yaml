@@ -1,4 +1,4 @@
-name: Visual Studio 2022
+name: msvc-2022
 
 on:
   push:
