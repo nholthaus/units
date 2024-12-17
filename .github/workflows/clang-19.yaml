@@ -1,0 +1,47 @@
+name: CI Pipeline - Clang
+
+on:
+  push:
+    branches: [ '**' ]  # Run on all branches
+  pull_request:
+    branches: [ '**' ]  # Run on all branches
+
+jobs:
+  build-ubuntu-clang:
+    name: Build on Ubuntu Latest with Clang-19
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Locales
+        run: |
+          sudo apt update
+          sudo apt install -y locales
+          sudo locale-gen de_DE.UTF-8 en_US.UTF-8
+          sudo update-locale LANG=en_US.UTF-8
+
+      - name: Add LLVM Official Repository
+        run: |
+          sudo apt install -y software-properties-common wget
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 19  # Install Clang-19 (latest stable)
+
+      - name: Install Latest Clang
+        run: |
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 90
+          clang++ --version
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++-19
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure

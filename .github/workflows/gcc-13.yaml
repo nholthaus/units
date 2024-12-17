@@ -1,0 +1,46 @@
+name: CI Pipeline - GCC
+
+on:
+  push:
+    branches: [ '**' ]  # Run on all branches
+  pull_request:
+    branches: [ '**' ]  # Run on all branches
+
+jobs:
+  build-ubuntu-gcc:
+    name: Build on Ubuntu Latest with GCC-13
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Locales
+        run: |
+          sudo apt update
+          sudo apt install -y locales
+          sudo locale-gen de_DE.UTF-8 en_US.UTF-8
+          sudo update-locale LANG=en_US.UTF-8
+
+      - name: Add GCC Toolchain PPA
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+
+      - name: Install GCC-13
+        run: |
+          sudo apt install -y g++-13
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_CXX_COMPILER=g++-13
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure

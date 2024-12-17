@@ -4150,51 +4150,67 @@ namespace std
 //	UNIT DEDUCTION GUIDES
 //------------------------------
 
-namespace units
-{
+namespace units {
+
+    // Concept to ensure we only apply the dimensionless fallback
+    // to a pure, unmodified dimensionless unit.
+    template<class Cf>
+    concept PureDimensionlessCF =
+        std::is_same_v<typename Cf::dimension_type, dimension::dimensionless> &&
+        std::ratio_equal_v<typename Cf::conversion_ratio, std::ratio<1>> &&
+        std::ratio_equal_v<typename Cf::pi_exponent_ratio, std::ratio<0>> &&
+        std::ratio_equal_v<typename Cf::translation_ratio, std::ratio<0>>;
+
     // 1) chrono deduction guide
     template<ArithmeticType Rep, RatioType Period>
-    unit(std::chrono::duration<Rep, Period>)
-      -> unit<conversion_factor<Period, dimension::time>, Rep>;
+    unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
 
     // 2) Dimensionless fallback:
-    // Now restricted to apply only if the source is exactly the base dimensionless unit,
-    // i.e. conversion_factor<std::ratio<1>, dimension::dimensionless> with no pi exponent or translation.
+    // Only applies if the source is exactly the base dimensionless unit.
     template<ArithmeticType SourceTy, ConversionFactorType SourceCf>
-      requires (
-          traits::is_unit_v<unit<SourceCf, SourceTy>> &&
-          std::is_same_v<typename SourceCf::dimension_type, dimension::dimensionless> &&
-          // Ensuring it's the pure base dimensionless factor:
-          std::ratio_equal<typename SourceCf::conversion_ratio, std::ratio<1>>::value &&
-          std::ratio_equal<typename SourceCf::pi_exponent_ratio, std::ratio<0>>::value &&
-          std::ratio_equal<typename SourceCf::translation_ratio, std::ratio<0>>::value
-      )
-    unit(const unit<SourceCf, SourceTy>&)
-      -> unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, SourceTy>;
+        requires(
+            traits::is_unit_v<unit<SourceCf, SourceTy>> &&
+            PureDimensionlessCF<SourceCf>
+        )
+    unit(const unit<SourceCf, SourceTy>&) -> unit<conversion_factor<std::ratio<1>, dimension::dimensionless>, SourceTy>;
 
-    // 3) General conversion factor from Target, type from Source:
-    // Applies only if TargetCf differs from SourceCf and they share the same dimension.
+    // 3) Lossless integral conversion:
+    // For dimensionally compatible units where the conversion is integral and lossless.
+    // This applies only if is_losslessly_convertible_unit is true.
     template<ArithmeticType SourceTy, ConversionFactorType SourceCf, ConversionFactorType TargetCf = SourceCf>
-      requires (
-          traits::is_unit_v<unit<SourceCf, SourceTy>> &&
-          traits::is_conversion_factor_v<TargetCf> &&
-          traits::is_same_dimension_conversion_factor_v<SourceCf, TargetCf> &&
-          !std::is_same_v<SourceCf, TargetCf>
-      )
+        requires(
+            traits::is_unit_v<unit<SourceCf, SourceTy>> &&
+            traits::is_conversion_factor_v<TargetCf> &&
+            traits::is_same_dimension_conversion_factor_v<SourceCf, TargetCf> &&
+            !std::is_same_v<SourceCf, TargetCf> &&
+            detail::is_losslessly_convertible_unit<unit<SourceCf, SourceTy>, unit<TargetCf, SourceTy>>
+        )
     unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
 
-    // 4) Matching Target and Source factors exactly
+    // 4) Non-lossless conversions:
+    // For dimensionally compatible units where integral conversion is not possible.
+    // Falls back to floating point.
+    template<ArithmeticType SourceTy, ConversionFactorType SourceCf, ConversionFactorType TargetCf = SourceCf>
+        requires(
+            traits::is_unit_v<unit<SourceCf, SourceTy>> &&
+            traits::is_conversion_factor_v<TargetCf> &&
+            traits::is_same_dimension_conversion_factor_v<SourceCf, TargetCf> &&
+            !std::is_same_v<SourceCf, TargetCf> &&
+            !detail::is_losslessly_convertible_unit<unit<SourceCf, SourceTy>, unit<TargetCf, SourceTy>>
+        )
+    unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, detail::floating_point_promotion_t<SourceTy>>;
+
+    // 5) Exact matches:
+    // If the unit already matches `unit<TargetCf, SourceTy>`, use it directly.
     template<ConversionFactorType TargetCf, ArithmeticType SourceTy>
-      requires traits::is_unit_v<unit<TargetCf, SourceTy>>
+        requires traits::is_unit_v<unit<TargetCf, SourceTy>>
     unit(const unit<TargetCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
 
-    // 5) Deduce type from arithmetic type (dimensionless by default)
-    template<typename T,
-             typename Cf = dimension::dimensionless,
-             typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    // 6) Deduce type from arithmetic type (dimensionless by default)
+    template<typename T, typename Cf = dimension::dimensionless, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     unit(T) -> unit<Cf, T>;
-} // namespace units
 
+} // namespace units
 
 
 //----------------------------------------------------------------------------------------------------------------------

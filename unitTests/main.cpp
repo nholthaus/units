@@ -890,7 +890,6 @@ TEST_F(UnitType, constructionFromUnitType)
 
 TEST_F(UnitType, CTAD)
 {
-#if defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 	// Default ctor
 	constexpr meters z_m{};
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meters<double>>);
@@ -950,7 +949,6 @@ TEST_F(UnitType, CTAD)
 
 	constexpr meters m_m(millimeters<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meters<double>>);
-#endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 
 	// `std::chrono::duration`.
 	using namespace std::chrono_literals;
@@ -961,7 +959,6 @@ TEST_F(UnitType, CTAD)
 	constexpr unit a_min(1.0min);
 	static_assert(minutes<double>(1.0) == a_min && std::is_floating_point_v<decltype(a_min.value())>);
 
-#if defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 	constexpr seconds b_s(1_s);
 	static_assert(std::is_integral_v<decltype(b_s.value())>);
 
@@ -1025,7 +1022,12 @@ TEST_F(UnitType, CTAD)
 
 	constexpr dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
-#endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
+
+	constexpr radians n_dim(degrees{1});
+	static_assert(std::is_same_v<std::remove_const_t<decltype(n_dim)>, radians<double>>);
+
+	constexpr radians o_dim(degrees{1.0});
+	static_assert(std::is_same_v<std::remove_const_t<decltype(n_dim)>, radians<double>>);
 }
 
 TEST_F(UnitType, implicitChronoConversions)
