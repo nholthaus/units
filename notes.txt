@@ -25,3 +25,7 @@
 - many new unit definitions
 - ternary operator support
 - unit constants (1_m == 1 * m)
+
+TODO:
+- radiometry units
+- fix % math
