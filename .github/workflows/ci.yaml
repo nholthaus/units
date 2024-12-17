@@ -28,13 +28,19 @@ jobs:
         run: ctest -C Release --output-on-failure
 
   build-ubuntu-gcc:
-    name: Build on Ubuntu with GCC-13
+    name: Build on Ubuntu Latest with GCC-13
     runs-on: ubuntu-latest
 
     steps:
-      - name: Add GCC Toolchain PPA
+      - name: Set up Locales
         run: |
           sudo apt update
+          sudo apt install -y locales
+          sudo locale-gen de_DE.UTF-8 en_US.UTF-8
+          sudo update-locale LANG=en_US.UTF-8
+
+      - name: Add GCC Toolchain PPA
+        run: |
           sudo apt install -y software-properties-common
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
           sudo apt update
@@ -60,22 +66,35 @@ jobs:
         run: ctest --output-on-failure
 
   build-ubuntu-clang:
-    name: Build on Ubuntu with Latest Clang
+    name: Build on Ubuntu Latest with Latest Clang
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Latest Clang
+      - name: Set up Locales
         run: |
           sudo apt update
-          sudo apt install -y clang-17  # Use the specific latest Clang version available
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 90
+          sudo apt install -y locales
+          sudo locale-gen de_DE.UTF-8 en_US.UTF-8
+          sudo update-locale LANG=en_US.UTF-8
+
+      - name: Add LLVM Official Repository
+        run: |
+          sudo apt install -y software-properties-common wget
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18  # Install Clang-18 (latest stable)
+
+      - name: Install Latest Clang
+        run: |
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 90
+          clang++ --version
 
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Configure CMake
         run: |
-          cmake -B build -DCMAKE_CXX_COMPILER=clang++-17
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++-18
 
       - name: Build
         run: |
