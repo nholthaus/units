@@ -82,11 +82,11 @@ jobs:
           sudo apt install -y software-properties-common wget
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 18  # Install Clang-18 (latest stable)
+          sudo ./llvm.sh 19  # Install Clang-19 (latest stable)
 
       - name: Install Latest Clang
         run: |
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 90
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 90
           clang++ --version
 
       - name: Checkout Repository
@@ -94,7 +94,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B build -DCMAKE_CXX_COMPILER=clang++-18
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build
         run: |

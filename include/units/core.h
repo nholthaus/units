@@ -2593,32 +2593,6 @@ namespace units
 		return UnitType(value);
 	}
 
-	//------------------------------
-	//	UNIT DEDUCTION GUIDES
-	//------------------------------
-
-	// chrono deduction guide
-	template<ArithmeticType Rep, RatioType Period>
-	unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
-
-	// Conversion factor from Target, type from Source
-	template<ConversionFactorType TargetCf, ConversionFactorType SourceCf, ArithmeticType SourceTy>
-		requires traits::is_unit_v<unit<SourceCf, SourceTy>>
-	unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
-
-	// Matching Target and Source factors
-	template<ConversionFactorType TargetCf, ArithmeticType SourceTy>
-		requires traits::is_unit_v<unit<TargetCf, SourceTy>>
-	unit(const unit<TargetCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
-
-	// Deduce from the same unit type
-	template<ConversionFactorType Cf, ArithmeticType Ty>
-	unit(const unit<Cf, Ty>&) -> unit<Cf, Ty>;
-
-	// Deduce type from arithmetic type
-	template<ConversionFactorType Cf, ArithmeticType T>
-	unit(T) -> unit<Cf, T>;
-
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 
 	//-----------------------------------------
@@ -4171,6 +4145,37 @@ namespace std
 		return std::signbit(x());
 	}
 } // namespace std
+
+//------------------------------
+//	UNIT DEDUCTION GUIDES
+//------------------------------
+
+namespace units
+{
+	// chrono deduction guide
+	template<ArithmeticType Rep, RatioType Period>
+	unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
+
+	// Conversion factor from Target, type from Source
+	template<ConversionFactorType TargetCf, ConversionFactorType SourceCf, ArithmeticType SourceTy>
+		requires traits::is_unit_v<unit<SourceCf, SourceTy>>
+	unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
+
+	// Matching Target and Source factors
+	template<ConversionFactorType TargetCf, ArithmeticType SourceTy>
+		requires traits::is_unit_v<unit<TargetCf, SourceTy>>
+	unit(const unit<TargetCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
+
+	// Deduce from the same unit type
+	template<ConversionFactorType Cf, ArithmeticType Ty>
+	unit(const unit<Cf, Ty>&) -> unit<Cf, Ty>;
+
+	// Deduce type from arithmetic type
+	template<typename T,
+		typename Cf = dimension::dimensionless, // Default conversion factor to dimensionless
+		typename    = std::enable_if_t<std::is_arithmetic_v<T>>>
+	unit(T) -> unit<Cf, T>;
+} // namespace units
 
 //----------------------------------------------------------------------------------------------------------------------
 //  JSON SUPPORT
