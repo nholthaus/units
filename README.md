@@ -8,12 +8,12 @@ A compile-time, header-only, dimensional analysis library built on c++14 with no
 
 If you are using `units.h` in production code, I'd love to hear from you via GitHub issues!
 
-# Latest Release - v2.3.3
+# Latest Release - v2.3.4
 
 ## Get it
-[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.3-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.3)
+[![DOWNLOAD](https://img.shields.io/badge/Download-v2.3.4-green.svg)](https://github.com/nholthaus/units/releases/tag/v2.3.4)
 
-## New in v2.3.3
+## New in v2.3.4
 
 - Various bug fixes and improvements
 
