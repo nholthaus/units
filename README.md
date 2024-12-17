@@ -3,7 +3,7 @@
 
 A compile-time, header-only, dimensional analysis library built on C++17 with no dependencies.
 
-![Windows build](https://github.com/nholthaus/units/actions/workflows/visual-studio-2022.yaml/badge.svg) ![GCC build](https://github.com/nholthaus/units/actions/workflows/gcc-13.yaml/badge.svg) ![Clang build](https://github.com/nholthaus/units/actions/workflows/clang-19.yaml/badge.svg)  ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++23-blue.svg)
+![Windows build](https://github.com/nholthaus/units/actions/workflows/msvc-2022.yaml/badge.svg) ![GCC build](https://github.com/nholthaus/units/actions/workflows/gcc-13.yaml/badge.svg) ![Clang build](https://github.com/nholthaus/units/actions/workflows/clang-19.yaml/badge.svg)  ![license](https://img.shields.io/badge/license-MIT-orange.svg) ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg) ![language](https://img.shields.io/badge/language-c++-blue.svg) ![c++](https://img.shields.io/badge/std-c++23-blue.svg)
 
 
 # Latest Release - v3.1.0
