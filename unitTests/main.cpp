@@ -3309,6 +3309,26 @@ TEST_F(UnitType, literals)
 	EXPECT_TRUE(c == 5.0_m);
 }
 
+TEST_F(UnitType, Constants)
+{
+	// simple numeric operations
+	static_assert(10 * km / 2 == 5 * km);
+
+	// conversions to common units
+	static_assert(1 * hr == 3600 * s);
+	static_assert(1 * km + 1 * m == 1001 * m);
+
+	// derived quantities
+	static_assert(1 * km / (1 * s) == 1000 * m / s);
+	static_assert(2 * km / hr * (2 * hr) == 4 * km);
+	static_assert(2 * km / (2 * km / hr) == 1 * hr);
+
+	static_assert(2 * m * (3 * m) == 6 * sq_m);
+
+	static_assert(10 * km / (5 * km) == 2);
+
+	static_assert(1000 / (1 * s) == 1 * kHz);
+}
 TEST_F(ConversionFactor, length)
 {
 	double test;
