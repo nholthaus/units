@@ -58,6 +58,7 @@
 #include "core.h"
 #include <chrono>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -537,6 +538,7 @@ namespace units
 
 		template<class T>
 		inline constexpr bool is_ratio_v = is_ratio<T>::value;
+
 	} // namespace traits
 
 	//------------------------------
@@ -628,7 +630,138 @@ namespace units
 
 		template<class T>
 		inline constexpr bool is_conversion_factor_v = is_conversion_factor<T>::value;
+	} // namespace traits
 
+	/** @} */ // end of TypeTraits
+
+	//------------------------------
+	//	UNIT TRAITS
+	//------------------------------
+
+	namespace detail
+	{
+		/**
+		 * @brief		helper type to identify units.
+		 * @details		A non-templated base class for `unit` which enables compile-time testing.
+		 */
+		struct _unit
+		{
+		};
+	} // namespace detail
+
+	namespace traits
+	{
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Traits which tests if a class is a `unit`
+		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit_v<T>` to test
+		 *				whether `class T` implements a `unit`.
+		 */
+		template<class T>
+		struct is_unit : std::is_base_of<units::detail::_unit, T>::type
+		{
+		};
+
+		template<class T>
+		inline constexpr bool is_unit_v = is_unit<T>::value && !std::is_arithmetic_v<T>;
+
+		/** @cond */ // DOXYGEN IGNORE
+		namespace detail
+		{
+			template<class NumericalScale>
+			struct invocable_scale
+			{
+				template<class T>
+					requires std::is_same_v<decltype(NumericalScale::linearize(T{})), decltype(NumericalScale::scale(T{}))>
+				decltype(NumericalScale::scale(T{})) operator()(T);
+			};
+		} // namespace detail
+		/** @endcond */ // END DOXYGEN IGNORE
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Trait which tests whether `T` meets the requirements for a numerical scale
+		 * @details		A numerical scale must have static member functions named `linearize` and `scale`
+		 *				that take one `Ret` argument and return a `Ret` value, where
+		 *				`linearize` returns the linearized input value and
+		 *				`scale` returns the scaled input value.
+		 *
+		 *				Numerical scales are used by `units::unit` to linearize and scale values
+		 *				if they represent things like dB.
+		 */
+		template<class T, class Ret>
+		using is_numerical_scale = std::is_invocable_r<Ret, detail::invocable_scale<T>, Ret>;
+
+		template<class T, class Ret>
+		inline constexpr bool is_numerical_scale_v = is_numerical_scale<T, Ret>::value;
+	} // namespace traits
+
+	//------------------------------
+	//	CONCEPTS
+	//------------------------------
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent arithmetic types
+	 */
+	template<typename T>
+	concept ArithmeticType = std::is_arithmetic_v<T>;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent non-arithmetic types
+	 */
+	template<typename T>
+	concept NonArithmeticType = !std::is_arithmetic_v<T>;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent std::ratios
+	 */
+	template<typename T>
+	concept RatioType = traits::is_ratio_v<T>;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent conversion factors
+	 */
+	template<typename T>
+	concept ConversionFactorType = traits::is_conversion_factor_v<T>;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent numerical scales
+	 */
+	template<typename Scale, typename T>
+	concept NumericalScaleType = traits::is_numerical_scale_v<Scale, T>;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent units
+	 */
+	template<typename T>
+	concept UnitType = traits::is_unit_v<T>;
+
+	namespace traits
+	{
+		// forward declaration
+		template<UnitType U1, UnitType U2>
+		struct is_same_dimension_unit;
+	} // namespace traits
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for types which represent units of the same dimensionality
+	 */
+	template<typename UnitTo, typename UnitFrom>
+	concept same_dimension = traits::is_same_dimension_unit<UnitFrom, UnitTo>::value;
+
+	//------------------------------
+	//	STRONG UNIT TYPES
+	//------------------------------
+
+	namespace traits
+	{
 		/**
 		 * @ingroup			TypeTraits
 		 * @brief			SFINAE-able trait that maps a `conversion_factor` to its strengthened type.
@@ -636,8 +769,8 @@ namespace units
 		 *					strong type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member.
 		 *					This may be specialized only if `T` depends on a program-defined type.
 		 */
-		template<class T>
-			requires is_conversion_factor_v<T> && std::is_same_v<T, std::remove_cv_t<T>>
+		template<ConversionFactorType T>
+			requires std::is_same_v<T, std::remove_cv_t<T>>
 		struct strong : T
 		{
 			typedef T type;
@@ -646,8 +779,6 @@ namespace units
 		template<class T>
 		using strong_t = typename strong<T>::type;
 	} // namespace traits
-
-	/** @} */ // end of TypeTraits
 
 	//------------------------------
 	//	DIMENSIONS
@@ -669,15 +800,15 @@ namespace units
 	template<>
 	struct dimension_t<>
 	{
-		static const constexpr bool empty = true;
+		static constexpr bool empty = true;
 	};
 
 	template<class D0, class... D>
 	struct dimension_t<D0, D...>
 	{
-		static const constexpr bool empty = false;
-		using front                       = D0;
-		using pop_front                   = dimension_t<D...>;
+		static constexpr bool empty = false;
+		using front                 = D0;
+		using pop_front             = dimension_t<D...>;
 	};
 
 	template<class T, class U>
@@ -833,56 +964,56 @@ namespace units
 		// DIMENSION TAGS
 		struct length_tag
 		{
-			static constexpr const char* const name         = "length";
-			static constexpr const char* const abbreviation = "m";
+			static constexpr auto name         = "length";
+			static constexpr auto abbreviation = "m";
 		};
 
 		struct mass_tag
 		{
-			static constexpr const char* const name         = "mass";
-			static constexpr const char* const abbreviation = "kg";
+			static constexpr auto name         = "mass";
+			static constexpr auto abbreviation = "kg";
 		};
 
 		struct time_tag
 		{
-			static constexpr const char* const name         = "time";
-			static constexpr const char* const abbreviation = "s";
+			static constexpr auto name         = "time";
+			static constexpr auto abbreviation = "s";
 		};
 
 		struct current_tag
 		{
-			static constexpr const char* const name         = "current";
-			static constexpr const char* const abbreviation = "A";
+			static constexpr auto name         = "current";
+			static constexpr auto abbreviation = "A";
 		};
 
 		struct temperature_tag
 		{
-			static constexpr const char* const name         = "temperature";
-			static constexpr const char* const abbreviation = "K";
+			static constexpr auto name         = "temperature";
+			static constexpr auto abbreviation = "K";
 		};
 
 		struct substance_tag
 		{
-			static constexpr const char* const name         = "amount of substance";
-			static constexpr const char* const abbreviation = "mol";
+			static constexpr auto name         = "amount of substance";
+			static constexpr auto abbreviation = "mol";
 		};
 
 		struct luminous_intensity_tag
 		{
-			static constexpr const char* const name         = "luminous intensity";
-			static constexpr const char* const abbreviation = "cd";
+			static constexpr auto name         = "luminous intensity";
+			static constexpr auto abbreviation = "cd";
 		};
 
 		struct angle_tag
 		{
-			static constexpr const char* const name         = "angle";
-			static constexpr const char* const abbreviation = "rad";
+			static constexpr auto name         = "angle";
+			static constexpr auto abbreviation = "rad";
 		};
 
 		struct data_tag
 		{
-			static constexpr const char* const name         = "data";
-			static constexpr const char* const abbreviation = "byte";
+			static constexpr auto name         = "data";
+			static constexpr auto abbreviation = "byte";
 		};
 
 		// SI BASE UNITS
@@ -943,10 +1074,11 @@ namespace units
 	/**
 	 * @brief		unit type template specialization for units derived from dimensions.
 	 */
-	template<class, class, class, class>
+	template<RatioType, class, RatioType, RatioType>
 	struct conversion_factor;
-	template<class Conversion, class... Exponents, class PiExponent, class Translation>
-	struct conversion_factor<Conversion, dimension_t<Exponents...>, PiExponent, Translation> : units::detail::_conversion_factor
+
+	template<RatioType Conversion, class... Exponents, RatioType PiExponent, RatioType Translation>
+	struct conversion_factor<Conversion, dimension_t<Exponents...>, PiExponent, Translation> : detail::_conversion_factor
 	{
 		static_assert(traits::is_ratio_v<Conversion>,
 			"Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to "
@@ -966,7 +1098,7 @@ namespace units
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
 	{
-		template<typename C, typename U, typename P, typename T>
+		template<RatioType C, typename U, RatioType P, RatioType T>
 		conversion_factor<C, U, P, T> conversion_factor_base_t_impl(conversion_factor<C, U, P, T>*);
 
 		template<typename T>
@@ -974,7 +1106,7 @@ namespace units
 
 		/**
 		 * @brief		dimension_of_t trait implementation
-		 * @details		recursively seeks dimension type of a conversion factor.
+		 * @details		recursively seeks dimension type of conversion factor.
 		 *				Since their `dimension_type` typedef may be another conversion factor,
 		 *				it may not represent a dimension type.
 		 */
@@ -983,7 +1115,7 @@ namespace units
 		{
 		};
 
-		template<class Conversion, class BaseUnit, class PiExponent, class Translation>
+		template<RatioType Conversion, class BaseUnit, RatioType PiExponent, RatioType Translation>
 		struct dimension_of_impl<conversion_factor<Conversion, BaseUnit, PiExponent, Translation>> : dimension_of_impl<BaseUnit>
 		{
 		};
@@ -1094,15 +1226,10 @@ namespace units
 	 * @tparam		PiExponent	std::ratio representing the exponent of pi required by the conversion.
 	 * @tparam		Translation	std::ratio representing any datum translation required by the conversion.
 	 */
-	template<class Conversion, class BaseUnit, class PiExponent = std::ratio<0>, class Translation = std::ratio<0>>
-	struct conversion_factor : units::detail::_conversion_factor
+	template<RatioType Conversion, class BaseUnit, RatioType PiExponent = std::ratio<0>, RatioType Translation = std::ratio<0>>
+	struct conversion_factor : detail::_conversion_factor
 	{
-		static_assert(traits::is_conversion_factor_v<BaseUnit>, "Template parameter `BaseUnit` must be a `conversion_factor` type.");
-		static_assert(
-			traits::is_ratio_v<Conversion>, "Template parameter `Conversion` must be a `std::ratio` representing the conversion factor to `BaseUnit`.");
-		static_assert(traits::is_ratio_v<PiExponent>, "Template parameter `PiExponent` must be a `std::ratio` representing the exponents of Pi the unit has.");
-
-		using dimension_type    = units::traits::dimension_of_t<BaseUnit>;
+		using dimension_type    = traits::dimension_of_t<BaseUnit>;
 		using conversion_ratio  = std::ratio_multiply<typename BaseUnit::conversion_ratio, Conversion>;
 		using pi_exponent_ratio = std::ratio_add<typename BaseUnit::pi_exponent_ratio, PiExponent>;
 		using translation_ratio = std::ratio_add<std::ratio_multiply<typename BaseUnit::conversion_ratio, Translation>, typename BaseUnit::translation_ratio>;
@@ -1121,20 +1248,20 @@ namespace units
 		 *				added. The conversion factors of each are multiplied. Pi exponent ratios
 		 *				are added, and datum translations are removed.
 		 */
-		template<class Unit1, class Unit2>
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		struct unit_multiply_impl
 		{
-			using type = conversion_factor<std::ratio_multiply<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_multiply<traits::dimension_of_t<typename Unit1::dimension_type>, traits::dimension_of_t<typename Unit2::dimension_type>>,
-				std::ratio_add<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, std::ratio<0>>;
+			using type = conversion_factor<std::ratio_multiply<typename Cf1::conversion_ratio, typename Cf2::conversion_ratio>,
+				dimension_multiply<traits::dimension_of_t<typename Cf1::dimension_type>, traits::dimension_of_t<typename Cf2::dimension_type>>,
+				std::ratio_add<typename Cf1::pi_exponent_ratio, typename Cf2::pi_exponent_ratio>>;
 		};
 
 		/**
 		 * @brief		represents the type of two units multiplied together.
 		 * @details		recalculates conversion and exponent ratios at compile-time.
 		 */
-		template<class U1, class U2>
-		using unit_multiply = typename unit_multiply_impl<U1, U2>::type;
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
+		using unit_multiply = typename unit_multiply_impl<Cf1, Cf2>::type;
 
 		/**
 		 * @brief		implementation of `unit_divide`.
@@ -1142,20 +1269,20 @@ namespace units
 		 *				subtracted. The conversion factors of each are divided. Pi
 		 *				exponent ratios are subtracted, and datum translations are removed.
 		 */
-		template<class Unit1, class Unit2>
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		struct unit_divide_impl
 		{
-			using type = conversion_factor<std::ratio_divide<typename Unit1::conversion_ratio, typename Unit2::conversion_ratio>,
-				dimension_divide<traits::dimension_of_t<typename Unit1::dimension_type>, traits::dimension_of_t<typename Unit2::dimension_type>>,
-				std::ratio_subtract<typename Unit1::pi_exponent_ratio, typename Unit2::pi_exponent_ratio>, std::ratio<0>>;
+			using type = conversion_factor<std::ratio_divide<typename Cf1::conversion_ratio, typename Cf2::conversion_ratio>,
+				dimension_divide<traits::dimension_of_t<typename Cf1::dimension_type>, traits::dimension_of_t<typename Cf2::dimension_type>>,
+				std::ratio_subtract<typename Cf1::pi_exponent_ratio, typename Cf2::pi_exponent_ratio>>;
 		};
 
 		/**
 		 * @brief		represents the type of two units divided by each other.
 		 * @details		recalculates conversion and exponent ratios at compile-time.
 		 */
-		template<class U1, class U2>
-		using unit_divide = typename unit_divide_impl<U1, U2>::type;
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
+		using unit_divide = typename unit_divide_impl<Cf1, Cf2>::type;
 
 		/**
 		 * @brief		implementation of `inverse`
@@ -1163,12 +1290,12 @@ namespace units
 		 *				-1. The conversion ratio numerator and denominator are swapped. Datum translation
 		 *				ratios are removed.
 		 */
-		template<class Unit>
+		template<ConversionFactorType Cf>
 		struct inverse_impl
 		{
-			using type = conversion_factor<std::ratio<Unit::conversion_ratio::den, Unit::conversion_ratio::num>,
-				dimension_pow<typename Unit::dimension_type, std::ratio<-1>>, std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<-1>>,
-				std::ratio<0>>; // inverses are rates or changes, so translation factor is removed.
+			using type =
+				conversion_factor<std::ratio<Cf::conversion_ratio::den, Cf::conversion_ratio::num>, dimension_pow<typename Cf::dimension_type, std::ratio<-1>>,
+					std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<-1>>>; // inverses are rates or changes, so translation factor is removed.
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1176,11 +1303,11 @@ namespace units
 	/**
 	 * @brief		represents the inverse unit type of `class U`.
 	 * @ingroup		UnitManipulators
-	 * @tparam		U	`unit` type to invert.
+	 * @tparam		Cf	`unit` type to invert.
 	 * @details		E.g. `inverse<meters>` will represent meters^-1 (i.e. 1/meters).
 	 */
-	template<class U>
-	using inverse = typename units::detail::inverse_impl<U>::type;
+	template<ConversionFactorType Cf>
+	using inverse = typename detail::inverse_impl<Cf>::type;
 
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
@@ -1190,14 +1317,13 @@ namespace units
 		 * @details		Squares the conversion ratio, `dimension_t` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
-		template<class Unit>
+		template<ConversionFactorType Cf>
 		struct squared_impl
 		{
-			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
-			using Conversion = typename Unit::conversion_ratio;
+			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>,
-					  dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-					  std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<2>>,
+					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, typename Cf::translation_ratio>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1205,11 +1331,11 @@ namespace units
 	/**
 	 * @brief		represents the unit type of `class U` squared
 	 * @ingroup		UnitManipulators
-	 * @tparam		U	`unit` type to square.
+	 * @tparam		Cf	`unit` type to square.
 	 * @details		E.g. `square<meters>` will represent meters^2.
 	 */
-	template<class U>
-	using squared = typename units::detail::squared_impl<U>::type;
+	template<ConversionFactorType Cf>
+	using squared = typename detail::squared_impl<Cf>::type;
 
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
@@ -1219,14 +1345,13 @@ namespace units
 		 * @details		Cubes the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
-		template<class Unit>
+		template<ConversionFactorType Cf>
 		struct cubed_impl
 		{
-			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
-			using Conversion = typename Unit::conversion_ratio;
+			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-					  dimension_pow<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<3>>,
-					  std::ratio_multiply<typename Unit::pi_exponent_ratio, std::ratio<3>>, typename Unit::translation_ratio>;
+					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>,
+					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, typename Cf::translation_ratio>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1234,11 +1359,11 @@ namespace units
 	/**
 	 * @brief		represents the type of `class U` cubed.
 	 * @ingroup		UnitManipulators
-	 * @tparam		U	`unit` type to cube.
+	 * @tparam		Cf	`unit` type to cube.
 	 * @details		E.g. `cubed<meters>` will represent meters^3.
 	 */
-	template<class U>
-	using cubed = typename units::detail::cubed_impl<U>::type;
+	template<ConversionFactorType Cf>
+	using cubed = typename detail::cubed_impl<Cf>::type;
 
 	/** @cond */ // DOXYGEN IGNORE
 	// clang-format off
@@ -1250,13 +1375,15 @@ namespace units
 
 		using Zero = std::ratio<0>;
 		using One = std::ratio<1>;
-		template <typename R> using Square = std::ratio_multiply<R, R>;
+		template <RatioType R> using Square = std::ratio_multiply<R, R>;
 
 		// Find the largest std::integer N such that Predicate<N>::value is true.
-		template <template <std::intmax_t N> class Predicate, typename enabled = void>
-		struct BinarySearch {
+		template <template <std::intmax_t N> class Predicate, typename = void>
+		struct BinarySearch
+		{
 			template <std::intmax_t N>
-			struct SafeDouble_ {
+			struct SafeDouble_
+			{
 				static constexpr const std::intmax_t value = 2 * N;
 				static_assert(value > 0, "Overflows when computing 2 * N");
 			};
@@ -1275,7 +1402,7 @@ namespace units
 			template <std::intmax_t Lower, std::intmax_t Upper, typename Condition1>
 			struct DoubleSidedSearch_<Lower, Upper, Condition1, std::true_type> : DoubleSidedSearch_<Lower + (Upper - Lower) / 2, Upper>{};
 
-			template <std::intmax_t Lower, class enabled1 = void>
+			template <std::intmax_t Lower, class = void>
 			struct SingleSidedSearch_ : SingleSidedSearch_<Lower, std::integral_constant<bool, Predicate<SafeDouble_<Lower>::value>::value>>{};
 
 			template <std::intmax_t Lower>
@@ -1284,7 +1411,7 @@ namespace units
 			template <std::intmax_t Lower>
 			struct SingleSidedSearch_<Lower, std::true_type> : SingleSidedSearch_<SafeDouble_<Lower>::value>{};
 
-			static constexpr const std::intmax_t value = SingleSidedSearch_<1>::value;
+			static constexpr std::intmax_t value = SingleSidedSearch_<1>::value;
  		};
 
 		template <template <std::intmax_t N> class Predicate>
@@ -1292,13 +1419,15 @@ namespace units
 
 		// Find largest std::integer N such that N<=sqrt(R)
 		template <typename R>
-		struct Integer {
+		struct Integer
+		{
 			template <std::intmax_t N> using Predicate_ = std::ratio_less_equal<std::ratio<N>, std::ratio_divide<R, std::ratio<N>>>;
 			static constexpr const std::intmax_t value = BinarySearch<Predicate_>::value;
 		};
 
 		template <typename R>
-		struct IsPerfectSquare {
+		struct IsPerfectSquare
+		{
 			static constexpr const std::intmax_t DenSqrt_ = Integer<std::ratio<R::den>>::value;
 			static constexpr const std::intmax_t NumSqrt_ = Integer<std::ratio<R::num>>::value;
 			static constexpr const bool value =( DenSqrt_ * DenSqrt_ == R::den && NumSqrt_ * NumSqrt_ == R::num);
@@ -1307,14 +1436,16 @@ namespace units
 
 		// Represents sqrt(P)-Q.
 		template <typename Tp, typename Tq>
-		struct Remainder {
+		struct Remainder
+		{
 			using P = Tp;
 			using Q = Tq;
 		};
 
 		// Represents 1/R = I + Rem where R is a Remainder.
 		template <typename R>
-		struct Reciprocal {
+		struct Reciprocal
+		{
 			using P_ = typename R::P;
 			using Q_ = typename R::Q;
 			using Den_ = std::ratio_subtract<P_, Square<Q_>>;
@@ -1348,7 +1479,8 @@ namespace units
 		};
 
 		template <typename Tr>
-		struct ContinuedFraction<Tr, 1> {
+		struct ContinuedFraction<Tr, 1>
+		{
 			using R = Tr;
 			using U = One;
 			using V = std::ratio<Integer<R>::value>;
@@ -1357,21 +1489,24 @@ namespace units
 			using Error = std::ratio_divide<One, typename Reciprocal<Rem>::I>;
 		};
 
-		template <typename R, typename Eps, std::intmax_t N = 1, typename enabled = void>
+		template <typename R, typename Eps, std::intmax_t N = 1, typename = void>
 		struct Sqrt_ : Sqrt_<R, Eps, N + 1> {};
 
 		template <typename R, typename Eps, std::intmax_t N>
-		struct Sqrt_<R, Eps, N, std::enable_if_t<std::ratio_less_equal_v<typename ContinuedFraction<R, N>::Error, Eps>>> {
+		struct Sqrt_<R, Eps, N, std::enable_if_t<std::ratio_less_equal_v<typename ContinuedFraction<R, N>::Error, Eps>>>
+		{
 			using type = typename ContinuedFraction<R, N>::V;
 		};
 
-		template <typename R, typename Eps, typename enabled = void>
-		struct Sqrt {
+		template <typename R, typename, typename = void>
+		struct Sqrt
+		{
 			static_assert(std::ratio_greater_equal_v<R, Zero>, "R can't be negative");
 		};
 
 		template <typename R, typename Eps>
-		struct Sqrt<R, Eps, std::enable_if_t<std::ratio_greater_equal_v<R, Zero> && IsPerfectSquare<R>::value>> {
+		struct Sqrt<R, Eps, std::enable_if_t<std::ratio_greater_equal_v<R, Zero> && IsPerfectSquare<R>::value>>
+		{
 			using type = typename IsPerfectSquare<R>::Sqrt;
 		};
 
@@ -1401,7 +1536,7 @@ namespace units
 	 *						error. This value should be chosen to be as high as possible before
 	 *						integer overflow errors occur in the compiler.
 	 */
-	template<typename Ratio, std::intmax_t Eps = 10000000000>
+	template<RatioType Ratio, std::intmax_t Eps = 10000000000>
 	using ratio_sqrt = typename units::detail::Sqrt<Ratio, std::ratio<1, Eps>>::type;
 
 	/** @cond */ // DOXYGEN IGNORE
@@ -1412,10 +1547,9 @@ namespace units
 		 * @details		square roots the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
 		 */
-		template<class Unit, std::intmax_t Eps>
+		template<ConversionFactorType Unit, std::intmax_t Eps>
 		struct sqrt_impl
 		{
-			static_assert(traits::is_conversion_factor_v<Unit>, "Template parameter `Unit` must be a `unit` type.");
 			using Conversion = typename Unit::conversion_ratio;
 			using type = conversion_factor<ratio_sqrt<Conversion, Eps>, dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
 				std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
@@ -1436,7 +1570,7 @@ namespace units
 	 *				the problem.\n\n
 	 *				`ratio_sqrt` is guaranteed to converge for all values of `Ratio` which do not
 	 *				overflow.
-	 * @tparam		U	`unit` type to take the square root of.
+	 * @tparam		Cf	`unit` type to take the square root of.
 	 * @tparam		Eps	Value of epsilon, which represents the inverse of the maximum allowable
 	 *					error. This value should be chosen to be as high as possible before
 	 *					integer overflow errors occur in the compiler.
@@ -1444,21 +1578,14 @@ namespace units
 	 *				i.e. the operation is not reversible, and it will result in propogated approximations.
 	 *				Use only when absolutely necessary.
 	 */
-	template<class U, std::intmax_t Eps = 10000000000>
-	using square_root = typename units::detail::sqrt_impl<U, Eps>::type;
+	template<ConversionFactorType Cf, std::intmax_t Eps = 10000000000>
+	using square_root = typename detail::sqrt_impl<Cf, Eps>::type;
 
 	//------------------------------
 	//	COMPOUND UNITS
 	//------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
-	namespace traits
-	{
-		// forward declaration
-		template<class T>
-		struct is_unit;
-	} // namespace traits
-
 	namespace detail
 	{
 		/**
@@ -1466,15 +1593,17 @@ namespace units
 		 * @details		multiplies a variadic list of units together, and is inherited from the resulting
 		 *				type.
 		 */
-		template<class U, class... Us>
+		template<ConversionFactorType Cf, ConversionFactorType... Cfs>
 		struct compound_impl;
-		template<class U>
-		struct compound_impl<U>
+
+		template<ConversionFactorType Cf>
+		struct compound_impl<Cf>
 		{
-			using type = U;
+			using type = Cf;
 		};
-		template<class U1, class U2, class... Us>
-		struct compound_impl<U1, U2, Us...> : compound_impl<unit_multiply<U1, U2>, Us...>
+
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2, ConversionFactorType... Cfs>
+		struct compound_impl<Cf1, Cf2, Cfs...> : compound_impl<unit_multiply<Cf1, Cf2>, Cfs...>
 		{
 		};
 	} // namespace detail
@@ -1487,12 +1616,12 @@ namespace units
 	 *				be formed from any number of other conversion factors, and unit manipulators like `inverse` and
 	 *				`squared` are supported. E.g. to specify acceleration, one could declare
 	 *				`using acceleration = compound_conversion factor<length::meters, inverse<squared<seconds>>;`
-	 * @tparam		U	conversion factor which, when multiplied together,
+	 * @tparam		Cf	conversion factor which, when multiplied together,
 	 *				form the desired compound conversion factor.
 	 * @ingroup		ConversionFactor
 	 */
-	template<class U, class... Us>
-	using compound_conversion_factor = typename units::detail::compound_impl<U, Us...>::type;
+	template<ConversionFactorType Cf, ConversionFactorType... Cfs>
+	using compound_conversion_factor = typename detail::compound_impl<Cf, Cfs...>::type;
 
 	//------------------------------
 	//	PREFIXES
@@ -1505,26 +1634,24 @@ namespace units
 		 * @brief		prefix applicator.
 		 * @details		creates a conversion factor from a prefix and a conversion factor
 		 */
-		template<class Ratio, class ConversionFactor>
+		template<RatioType Ratio, ConversionFactorType ConversionFactor>
 		struct prefix
 		{
-			static_assert(traits::is_ratio_v<Ratio>, "Template parameter `Ratio` must be a `std::ratio`.");
-			static_assert(traits::is_conversion_factor_v<ConversionFactor>, "Template parameter `ConversionFactor` must be a `conversion_factor` type.");
-			using type = units::conversion_factor<Ratio, ConversionFactor>;
+			using type = conversion_factor<Ratio, ConversionFactor>;
 		};
 
 		/// recursive exponential implementation
-		template<int N, class U>
+		template<int N, RatioType R>
 		struct power_of_ratio
 		{
-			using type = std::ratio_multiply<U, typename power_of_ratio<N - 1, U>::type>;
+			using type = std::ratio_multiply<R, typename power_of_ratio<N - 1, R>::type>;
 		};
 
 		/// End recursion
-		template<class U>
-		struct power_of_ratio<1, U>
+		template<RatioType R>
+		struct power_of_ratio<1, R>
 		{
-			using type = U;
+			using type = R;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1536,22 +1663,22 @@ namespace units
 	 * @ingroup Decimal Prefixes
 	 * @{
 	 */
-	template<class U> using atto	= typename units::detail::prefix<std::atto,	U>::type;			///< Represents the type of `class U` with the metric 'atto' prefix appended.	@details E.g. atto<meters> represents meters*10^-18		@tparam U unit type to apply the prefix to.
-	template<class U> using femto	= typename units::detail::prefix<std::femto,U>::type;			///< Represents the type of `class U` with the metric 'femto' prefix appended.  @details E.g. femto<meters> represents meters*10^-15	@tparam U unit type to apply the prefix to.
-	template<class U> using pico	= typename units::detail::prefix<std::pico,	U>::type;			///< Represents the type of `class U` with the metric 'pico' prefix appended.	@details E.g. pico<meters> represents meters*10^-12		@tparam U unit type to apply the prefix to.
-	template<class U> using nano	= typename units::detail::prefix<std::nano,	U>::type;			///< Represents the type of `class U` with the metric 'nano' prefix appended.	@details E.g. nano<meters> represents meters*10^-9		@tparam U unit type to apply the prefix to.
-	template<class U> using micro	= typename units::detail::prefix<std::micro,U>::type;			///< Represents the type of `class U` with the metric 'micro' prefix appended.	@details E.g. micro<meters> represents meters*10^-6		@tparam U unit type to apply the prefix to.
-	template<class U> using milli	= typename units::detail::prefix<std::milli,U>::type;			///< Represents the type of `class U` with the metric 'milli' prefix appended.	@details E.g. milli<meters> represents meters*10^-3		@tparam U unit type to apply the prefix to.
-	template<class U> using centi	= typename units::detail::prefix<std::centi,U>::type;			///< Represents the type of `class U` with the metric 'centi' prefix appended.	@details E.g. centi<meters> represents meters*10^-2		@tparam U unit type to apply the prefix to.
-	template<class U> using deci	= typename units::detail::prefix<std::deci,	U>::type;			///< Represents the type of `class U` with the metric 'deci' prefix appended.	@details E.g. deci<meters> represents meters*10^-1		@tparam U unit type to apply the prefix to.
-	template<class U> using deca	= typename units::detail::prefix<std::deca,	U>::type;			///< Represents the type of `class U` with the metric 'deca' prefix appended.	@details E.g. deca<meters> represents meters*10^1		@tparam U unit type to apply the prefix to.
-	template<class U> using hecto	= typename units::detail::prefix<std::hecto,U>::type;			///< Represents the type of `class U` with the metric 'hecto' prefix appended.	@details E.g. hecto<meters> represents meters*10^2		@tparam U unit type to apply the prefix to.
-	template<class U> using kilo	= typename units::detail::prefix<std::kilo,	U>::type;			///< Represents the type of `class U` with the metric 'kilo' prefix appended.	@details E.g. kilo<meters> represents meters*10^3		@tparam U unit type to apply the prefix to.
-	template<class U> using mega	= typename units::detail::prefix<std::mega,	U>::type;			///< Represents the type of `class U` with the metric 'mega' prefix appended.	@details E.g. mega<meters> represents meters*10^6		@tparam U unit type to apply the prefix to.
-	template<class U> using giga	= typename units::detail::prefix<std::giga,	U>::type;			///< Represents the type of `class U` with the metric 'giga' prefix appended.	@details E.g. giga<meters> represents meters*10^9		@tparam U unit type to apply the prefix to.
-	template<class U> using tera	= typename units::detail::prefix<std::tera,	U>::type;			///< Represents the type of `class U` with the metric 'tera' prefix appended.	@details E.g. tera<meters> represents meters*10^12		@tparam U unit type to apply the prefix to.
-	template<class U> using peta	= typename units::detail::prefix<std::peta,	U>::type;			///< Represents the type of `class U` with the metric 'peta' prefix appended.	@details E.g. peta<meters> represents meters*10^15		@tparam U unit type to apply the prefix to.
-	template<class U> using exa		= typename units::detail::prefix<std::exa,	U>::type;			///< Represents the type of `class U` with the metric 'exa' prefix appended.	@details E.g. exa<meters> represents meters*10^18		@tparam U unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using atto	= typename detail::prefix<std::atto,Cf>::type;			///< Represents the type of `class Cf` with the metric 'atto' prefix appended.	@details E.g. atto<meters> represents meters*10^-18		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using femto	= typename detail::prefix<std::femto,Cf>::type;			///< Represents the type of `class Cf` with the metric 'femto' prefix appended.  @details E.g. femto<meters> represents meters*10^-15	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using pico	= typename detail::prefix<std::pico,Cf>::type;			///< Represents the type of `class Cf` with the metric 'pico' prefix appended.	@details E.g. pico<meters> represents meters*10^-12		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using nano	= typename detail::prefix<std::nano,Cf>::type;			///< Represents the type of `class Cf` with the metric 'nano' prefix appended.	@details E.g. nano<meters> represents meters*10^-9		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using micro	= typename detail::prefix<std::micro,Cf>::type;			///< Represents the type of `class Cf` with the metric 'micro' prefix appended.	@details E.g. micro<meters> represents meters*10^-6		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using milli	= typename detail::prefix<std::milli,Cf>::type;			///< Represents the type of `class Cf` with the metric 'milli' prefix appended.	@details E.g. milli<meters> represents meters*10^-3		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using centi	= typename detail::prefix<std::centi,Cf>::type;			///< Represents the type of `class Cf` with the metric 'centi' prefix appended.	@details E.g. centi<meters> represents meters*10^-2		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using deci	= typename detail::prefix<std::deci,Cf>::type;			///< Represents the type of `class Cf` with the metric 'deci' prefix appended.	@details E.g. deci<meters> represents meters*10^-1		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using deca	= typename detail::prefix<std::deca,Cf>::type;			///< Represents the type of `class Cf` with the metric 'deca' prefix appended.	@details E.g. deca<meters> represents meters*10^1		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using hecto	= typename detail::prefix<std::hecto,Cf>::type;			///< Represents the type of `class Cf` with the metric 'hecto' prefix appended.	@details E.g. hecto<meters> represents meters*10^2		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using kilo	= typename detail::prefix<std::kilo,Cf>::type;			///< Represents the type of `class Cf` with the metric 'kilo' prefix appended.	@details E.g. kilo<meters> represents meters*10^3		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using mega	= typename detail::prefix<std::mega,Cf>::type;			///< Represents the type of `class Cf` with the metric 'mega' prefix appended.	@details E.g. mega<meters> represents meters*10^6		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using giga	= typename detail::prefix<std::giga,Cf>::type;			///< Represents the type of `class Cf` with the metric 'giga' prefix appended.	@details E.g. giga<meters> represents meters*10^9		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using tera	= typename detail::prefix<std::tera,Cf>::type;			///< Represents the type of `class Cf` with the metric 'tera' prefix appended.	@details E.g. tera<meters> represents meters*10^12		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using peta	= typename detail::prefix<std::peta,Cf>::type;			///< Represents the type of `class Cf` with the metric 'peta' prefix appended.	@details E.g. peta<meters> represents meters*10^15		@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using exa		= typename detail::prefix<std::exa,	Cf>::type;			///< Represents the type of `class Cf` with the metric 'exa' prefix appended.	@details E.g. exa<meters> represents meters*10^18		@tparam Cf unit type to apply the prefix to.
 	/** @} @} */
 
 	/**
@@ -1560,12 +1687,12 @@ namespace units
 	 * @ingroup Binary Prefixes
 	 * @{
 	 */
-	template<class U> using kibi	= typename units::detail::prefix<std::ratio<1024>,					U>::type;	///< Represents the type of `class U` with the binary 'kibi' prefix appended.	@details E.g. kibi<bytes> represents bytes*2^10	@tparam U unit type to apply the prefix to.
-	template<class U> using mebi	= typename units::detail::prefix<std::ratio<1048576>,				U>::type;	///< Represents the type of `class U` with the binary 'mibi' prefix appended.	@details E.g. mebi<bytes> represents bytes*2^20	@tparam U unit type to apply the prefix to.
-	template<class U> using gibi	= typename units::detail::prefix<std::ratio<1073741824>,			U>::type;	///< Represents the type of `class U` with the binary 'gibi' prefix appended.	@details E.g. gibi<bytes> represents bytes*2^30	@tparam U unit type to apply the prefix to.
-	template<class U> using tebi	= typename units::detail::prefix<std::ratio<1099511627776>,			U>::type;	///< Represents the type of `class U` with the binary 'tebi' prefix appended.	@details E.g. tebi<bytes> represents bytes*2^40	@tparam U unit type to apply the prefix to.
-	template<class U> using pebi	= typename units::detail::prefix<std::ratio<1125899906842624>,		U>::type;	///< Represents the type of `class U` with the binary 'pebi' prefix appended.	@details E.g. pebi<bytes> represents bytes*2^50	@tparam U unit type to apply the prefix to.
-	template<class U> using exbi	= typename units::detail::prefix<std::ratio<1152921504606846976>,	U>::type;	///< Represents the type of `class U` with the binary 'exbi' prefix appended.	@details E.g. exbi<bytes> represents bytes*2^60	@tparam U unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using kibi	= typename detail::prefix<std::ratio<1024>,					Cf>::type;	///< Represents the type of `class Cf` with the binary 'kibi' prefix appended.	@details E.g. kibi<bytes> represents bytes*2^10	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using mebi	= typename detail::prefix<std::ratio<1048576>,				Cf>::type;	///< Represents the type of `class Cf` with the binary 'mibi' prefix appended.	@details E.g. mebi<bytes> represents bytes*2^20	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using gibi	= typename detail::prefix<std::ratio<1073741824>,			Cf>::type;	///< Represents the type of `class Cf` with the binary 'gibi' prefix appended.	@details E.g. gibi<bytes> represents bytes*2^30	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using tebi	= typename detail::prefix<std::ratio<1099511627776>,		Cf>::type;	///< Represents the type of `class Cf` with the binary 'tebi' prefix appended.	@details E.g. tebi<bytes> represents bytes*2^40	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using pebi	= typename detail::prefix<std::ratio<1125899906842624>,		Cf>::type;	///< Represents the type of `class Cf` with the binary 'pebi' prefix appended.	@details E.g. pebi<bytes> represents bytes*2^50	@tparam Cf unit type to apply the prefix to.
+	template<ConversionFactorType Cf> using exbi	= typename detail::prefix<std::ratio<1152921504606846976>,	Cf>::type;	///< Represents the type of `class Cf` with the binary 'exbi' prefix appended.	@details E.g. exbi<bytes> represents bytes*2^60	@tparam Cf unit type to apply the prefix to.
 	/** @} @} */
 	// clang-format on
 
@@ -1586,15 +1713,13 @@ namespace units
 		 * @tparam		Cf2 Conversion factor to query.
 		 * @sa			is_same_dimension_unit
 		 */
-		template<class Cf1, class Cf2>
-		struct is_same_dimension_conversion_factor
-		  : std::conjunction<is_conversion_factor<Cf1>, is_conversion_factor<Cf2>,
-				std::is_same<traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf1>::dimension_type>,
-					traits::dimension_of_t<typename units::traits::conversion_factor_traits<Cf2>::dimension_type>>>
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
+		struct is_same_dimension_conversion_factor : std::conjunction<std::is_same<dimension_of_t<typename conversion_factor_traits<Cf1>::dimension_type>,
+														 dimension_of_t<typename conversion_factor_traits<Cf2>::dimension_type>>>
 		{
 		};
 
-		template<class Cf1, class Cf2>
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		inline constexpr bool is_same_dimension_conversion_factor_v = is_same_dimension_conversion_factor<Cf1, Cf2>::value;
 	} // namespace traits
 
@@ -1619,7 +1744,7 @@ namespace units
 		template<typename T>
 		using floating_point_promotion_t = typename floating_point_promotion<T>::type;
 
-		template<class Cf, typename T, class Ns>
+		template<ConversionFactorType Cf, typename T, class Ns>
 		struct floating_point_promotion<unit<Cf, T, Ns>>
 		{
 			using type = unit<Cf, floating_point_promotion_t<T>, Ns>;
@@ -1628,8 +1753,7 @@ namespace units
 
 	namespace Detail
 	{
-		template<typename T>
-			requires std::is_floating_point_v<T>
+		template<std::floating_point T>
 		constexpr T sqrtNewtonRaphson(T x, T curr, T prev)
 		{
 			return curr == prev ? curr : sqrtNewtonRaphson(x, T{0.5} * (curr + x / curr), curr);
@@ -1637,8 +1761,7 @@ namespace units
 	} // namespace Detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	template<typename T>
-		requires std::is_arithmetic_v<T>
+	template<ArithmeticType T>
 	constexpr detail::floating_point_promotion_t<T> sqrt(T x_)
 	{
 		using FloatingPoint = detail::floating_point_promotion_t<T>;
@@ -1671,8 +1794,7 @@ namespace units
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	template<signed long long Exp, typename B>
-		requires std::is_arithmetic_v<B>
+	template<signed long long Exp, ArithmeticType B>
 	constexpr detail::floating_point_promotion_t<B> pow(B base) noexcept
 	{
 		using promoted_t   = detail::floating_point_promotion_t<B>;
@@ -1704,16 +1826,16 @@ namespace units
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	template<typename T1, typename T2>
-		requires std::conjunction_v<std::is_arithmetic<T1>, std::is_unsigned<T2>>
+	template<ArithmeticType T1, ArithmeticType T2>
+		requires std::is_unsigned_v<T2>
 	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y) noexcept
 	{
 		using promoted_t = detail::floating_point_promotion_t<T1>;
 		return detail::pow_acc(static_cast<promoted_t>(1.0), static_cast<promoted_t>(x), y);
 	}
 
-	template<typename T1, typename T2>
-		requires std::conjunction_v<std::is_arithmetic<T1>, std::is_signed<T2>>
+	template<ArithmeticType T1, typename T2>
+		requires std::is_signed_v<T2>
 	constexpr detail::floating_point_promotion_t<T1> pow(T1 x, T2 y) noexcept
 	{
 		if (y >= 0)
@@ -1723,8 +1845,7 @@ namespace units
 		return 1 / (x * pow(x, static_cast<unsigned long long>(-(y + 1))));
 	}
 
-	template<typename T>
-		requires std::is_arithmetic_v<T>
+	template<ArithmeticType T>
 	constexpr T abs(T x)
 	{
 		return x < 0 ? -x : x;
@@ -1763,9 +1884,8 @@ namespace units
 	 * @returns		value, converted from units of `ConverionFactorFrom` to `ConverionFactorTo`.
 	 *				The value represents a quantity in units of `ConverionFactorTo`.
 	 */
-	template<class ConversionFactorFrom, class ConversionFactorTo, typename To = UNIT_LIB_DEFAULT_TYPE, typename From>
-		requires(
-			traits::is_same_dimension_conversion_factor_v<ConversionFactorFrom, ConversionFactorTo> && std::is_arithmetic_v<To> && std::is_arithmetic_v<From>)
+	template<ConversionFactorType ConversionFactorFrom, ConversionFactorType ConversionFactorTo, ArithmeticType To = UNIT_LIB_DEFAULT_TYPE, ArithmeticType From>
+		requires(traits::is_same_dimension_conversion_factor_v<ConversionFactorFrom, ConversionFactorTo>)
 	constexpr To convert(const From& value) noexcept
 	{
 		using Ratio   = std::ratio_divide<typename ConversionFactorFrom::conversion_ratio, typename ConversionFactorTo::conversion_ratio>;
@@ -1791,12 +1911,12 @@ namespace units
 		};
 
 		// same exact unit on both sides
-		if constexpr (std::is_same_v<ConversionFactorFrom, ConversionFactorTo>)
+		if constexpr (std::same_as<ConversionFactorFrom, ConversionFactorTo>)
 		{
 			return static_cast<To>(value);
 		}
 		// PI REQUIRED, no translation
-		else if constexpr (!std::is_same_v<std::ratio<0>, PiRatio> && std::is_same_v<std::ratio<0>, Translation>)
+		else if constexpr (!std::same_as<std::ratio<0>, PiRatio> && std::same_as<std::ratio<0>, Translation>)
 		{
 			using CommonUnderlying             = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
 			constexpr long double PiRatioValue = PiRatio::num / PiRatio::den;
@@ -1820,7 +1940,7 @@ namespace units
 			}
 		}
 		// Translation required, no pi variable
-		else if constexpr (std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		else if constexpr (std::same_as<std::ratio<0>, PiRatio> && !std::same_as<std::ratio<0>, Translation>)
 		{
 			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
 
@@ -1828,7 +1948,7 @@ namespace units
 				(static_cast<CommonUnderlying>(Translation::num) / static_cast<CommonUnderlying>(Translation::den)));
 		}
 		// pi and translation needed
-		else if constexpr (!std::is_same_v<std::ratio<0>, PiRatio> && !std::is_same_v<std::ratio<0>, Translation>)
+		else if constexpr (!std::same_as<std::ratio<0>, PiRatio> && !std::same_as<std::ratio<0>, Translation>)
 		{
 			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
 
@@ -1860,19 +1980,13 @@ namespace units
 		 * @details		`typename T::conversion_factor` is interpreted as a constructor when `T` is a
 		 *				`conversion_factor` (-Winjected-class-name).
 		 */
-		template<class UnitFrom, class UnitTo>
+		template<UnitType UnitFrom, UnitType UnitTo>
 		struct delayed_is_same_dimension_conversion_factor : std::false_type
 		{
 			static constexpr bool value =
 				traits::is_same_dimension_conversion_factor_v<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>;
 		};
 	} // namespace detail
-
-	namespace traits
-	{
-		template<class U1, class U2>
-		struct is_same_dimension_unit;
-	} // namespace traits
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	/**
@@ -1887,50 +2001,13 @@ namespace units
 	 * @tparam		UnitTo unit to convert `from` to. `is_unit_v<UnitTo>` shall be `true`.
 	 * @returns		from, converted from units of `UnitFrom` to `UnitTo`.
 	 */
-	template<class UnitTo, class UnitFrom>
-		requires traits::is_same_dimension_unit<UnitFrom, UnitTo>::value
+	template<UnitType UnitTo, UnitType UnitFrom>
+		requires same_dimension<UnitFrom, UnitTo>
 	constexpr UnitTo convert(const UnitFrom& from) noexcept
 	{
 		return UnitTo(convert<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor, typename UnitTo::underlying_type>(from.to_linearized()),
 			linearized_value);
 	}
-
-	//----------------------------------
-	//	NUMERICAL SCALE TRAITS
-	//----------------------------------
-
-	namespace traits
-	{
-		/** @cond */ // DOXYGEN IGNORE
-		namespace detail
-		{
-			template<class NumericalScale>
-			struct invocable_scale
-			{
-				template<class T>
-					requires std::is_same_v<decltype(NumericalScale::linearize(T{})), decltype(NumericalScale::scale(T{}))>
-				decltype(NumericalScale::scale(T{})) operator()(T);
-			};
-		} // namespace detail
-		/** @endcond */ // END DOXYGEN IGNORE
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Trait which tests whether `T` meets the requirements for a numerical scale
-		 * @details		A numerical scale must have static member functions named `linearize` and `scale`
-		 *				that take one `Ret` argument and return a `Ret` value, where
-		 *				`linearize` returns the linearized input value and
-		 *				`scale` returns the scaled input value.
-		 *
-		 *				Numerical scales are used by `units::unit` to linearize and scale values
-		 *				if they represent things like dB.
-		 */
-		template<class T, class Ret>
-		using is_numerical_scale = std::is_invocable_r<Ret, detail::invocable_scale<T>, Ret>;
-
-		template<class T, class Ret>
-		inline constexpr bool is_numerical_scale_v = is_numerical_scale<T, Ret>::value;
-	} // namespace traits
 
 	//------------------------------
 	//	UNIT TYPE TRAITS
@@ -1962,7 +2039,7 @@ namespace units
 		 * @brief		unit_traits specialization for things which are not unit
 		 * @details
 		 */
-		template<typename T, typename = void>
+		template<typename, typename = void>
 		struct unit_traits
 		{
 			using numerical_scale_type = void;
@@ -1971,8 +2048,7 @@ namespace units
 			using conversion_factor    = void;
 		};
 
-		template<typename T>
-			requires(std::is_arithmetic_v<T>)
+		template<ArithmeticType T>
 		struct unit_traits<T, std::void_t<T>>
 		{
 			using numerical_scale_type = void;
@@ -1986,8 +2062,7 @@ namespace units
 		 * @brief		Trait for accessing the publicly defined types of `units::unit`
 		 * @details
 		 */
-		template<typename T>
-			requires(!std::is_arithmetic_v<T>)
+		template<NonArithmeticType T>
 		struct unit_traits<T, std::void_t<typename T::numerical_scale_type, typename T::underlying_type, typename T::value_type, typename T::conversion_factor>>
 		{
 			using numerical_scale_type = typename T::numerical_scale_type;
@@ -2010,14 +2085,14 @@ namespace units
 		 * @tparam		U2 Unit to query.
 		 * @sa			is_same_dimension_conversion_factor
 		 */
-		template<class U1, class U2>
+		template<UnitType U1, UnitType U2>
 		struct is_same_dimension_unit : std::conjunction<is_unit<U1>, is_unit<U2>,
-											is_same_dimension_conversion_factor<typename units::traits::unit_traits<U1>::conversion_factor,
-												typename units::traits::unit_traits<U2>::conversion_factor>>
+											is_same_dimension_conversion_factor<typename unit_traits<U1>::conversion_factor,
+												typename unit_traits<U2>::conversion_factor>>
 		{
 		};
 
-		template<class U1, class U2>
+		template<UnitType U1, UnitType U2>
 		inline constexpr bool is_same_dimension_unit_v = is_same_dimension_unit<U1, U2>::value;
 
 	} // namespace traits
@@ -2027,6 +2102,7 @@ namespace units
 	//----------------------------------
 
 	/** @cond */ // DOXYGEN IGNORE
+
 	// forward declaration
 	struct linear_scale;
 	struct decibel_scale;
@@ -2043,7 +2119,7 @@ namespace units
 		 * @brief		Trait which tests if a unit type can be converted to another unit type without truncation error.
 		 * @details		Valid only when the involved units have integral underlying types.
 		 */
-		template<class ConversionFactorFrom, class ConversionFactorTo>
+		template<ConversionFactorType ConversionFactorFrom, ConversionFactorType ConversionFactorTo>
 		struct is_non_truncated_convertible_unit : std::false_type
 		{
 			static constexpr bool value =
@@ -2069,13 +2145,6 @@ namespace units
 		inline constexpr bool is_time_conversion_factor =
 			traits::is_same_dimension_conversion_factor_v<ConversionFactor, time_conversion_factor<std::ratio<1>>>;
 
-		/**
-		 * @brief		helper type to identify units.
-		 * @details		A non-templated base class for `unit` which enables compile-time testing.
-		 */
-		struct _unit
-		{
-		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -2084,20 +2153,6 @@ namespace units
 		// forward declaration
 		template<typename T>
 		struct is_dimensionless_unit;
-
-		/**
-		 * @ingroup		TypeTraits
-		 * @brief		Traits which tests if a class is a `unit`
-		 * @details		Inherits from `std::true_type` or `std::false_type`. Use `is_unit_v<T>` to test
-		 *				whether `class T` implements a `unit`.
-		 */
-		template<class T>
-		struct is_unit : std::is_base_of<units::detail::_unit, T>::type
-		{
-		};
-
-		template<class T>
-		inline constexpr bool is_unit_v = is_unit<T>::value && !std::is_arithmetic_v<T>;
 	} // namespace traits
 
 	/**
