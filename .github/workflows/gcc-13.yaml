@@ -1,4 +1,4 @@
-name: CI Pipeline - GCC
+name: g++-13
 
 on:
   push:

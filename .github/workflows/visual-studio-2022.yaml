@@ -1,4 +1,4 @@
-name: CI Pipeline - Windows
+name: Visual Studio 2022
 
 on:
   push:

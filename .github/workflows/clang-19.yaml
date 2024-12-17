@@ -1,4 +1,4 @@
-name: CI Pipeline - Clang
+name: clang-19
 
 on:
   push:
