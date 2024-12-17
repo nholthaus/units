@@ -60,9 +60,9 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(acceleration, meters_per_second_squared, mps_sq, conversion_factor<std::ratio<1>, dimension::acceleration>)
-	UNIT_ADD(acceleration, feet_per_second_squared, fps_sq, compound_conversion_factor<feet<>, inverse<squared<seconds<>>>>)
-	UNIT_ADD(acceleration, standard_gravity, SG, conversion_factor<std::ratio<980665, 100000>, meters_per_second_squared<>>)
-	UNIT_ADD(acceleration, gals, Gal, compound_conversion_factor<centimeters<>, inverse<squared<seconds<>>>>)
+	UNIT_ADD(acceleration, feet_per_second_squared, fps_sq, compound_conversion_factor<feet_, inverse<squared<seconds_>>>)
+	UNIT_ADD(acceleration, standard_gravity, SG, conversion_factor<std::ratio<980665, 100000>, meters_per_second_squared_>)
+	UNIT_ADD(acceleration, gals, Gal, compound_conversion_factor<centimeters_, inverse<squared<seconds_>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(acceleration)
 } // namespace units

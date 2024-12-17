@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(power, watts, W, conversion_factor<std::ratio<1>, dimension::power>)
-	UNIT_ADD(power, horsepower, hp, conversion_factor<std::ratio<7457, 10>, watts<>>)
+	UNIT_ADD(power, horsepower, hp, conversion_factor<std::ratio<7457, 10>, watts_>)
 	UNIT_ADD_DECIBEL(power, watts, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatts, dBm)
 

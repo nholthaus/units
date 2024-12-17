@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(volume, cubic_meters, cu_m, conversion_factor<std::ratio<1>, dimension::volume>)
-	UNIT_ADD(volume, cubic_millimeters, cu_mm, cubed<millimeters<>>)
+	UNIT_ADD(volume, cubic_millimeters, cu_mm, cubed<millimeters_>)
 	UNIT_ADD(volume, cubic_kilometers, cu_km, cubed<kilometers<>>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(volume, liters, L, cubed<decimeters<>>)
 	UNIT_ADD(volume, cubic_inches, cu_in, cubed<inches<>>)
