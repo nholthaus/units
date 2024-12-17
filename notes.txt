@@ -14,4 +14,14 @@
 - added support for nlohmann json
 - NaN support
 - add `Gal` unit of acceleration
---- beta
+--- 3.1.0
+- Alias template CTAD
+- ADL
+- better syntax: meters instead of meters<double> or meter_t
+- C++23
+- concepts
+- inf support and improved NAN
+- constexpr math (on supported compilers)
+- many new unit definitions
+- ternary operator support
+- unit constants (1_m == 1 * m)
