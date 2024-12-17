@@ -32,9 +32,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install GCC-13
+      - name: Add GCC Toolchain PPA
         run: |
           sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+
+      - name: Install GCC-13
+        run: |
           sudo apt install -y g++-13
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
 
@@ -61,14 +67,15 @@ jobs:
       - name: Install Latest Clang
         run: |
           sudo apt update
-          sudo apt install -y clang
+          sudo apt install -y clang-17  # Use the specific latest Clang version available
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 90
 
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Configure CMake
         run: |
-          cmake -B build -DCMAKE_CXX_COMPILER=clang++
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++-17
 
       - name: Build
         run: |
