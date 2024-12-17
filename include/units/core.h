@@ -4157,8 +4157,8 @@ namespace units
 	unit(std::chrono::duration<Rep, Period>) -> unit<conversion_factor<Period, dimension::time>, Rep>;
 
 	// Conversion factor from Target, type from Source
-	template<ConversionFactorType TargetCf, ConversionFactorType SourceCf, ArithmeticType SourceTy>
-		requires traits::is_unit_v<unit<SourceCf, SourceTy>>
+	template<ConversionFactorType TargetCf = dimensionless<>, ConversionFactorType SourceCf = dimensionless<>, ArithmeticType SourceTy = double>
+		requires traits::is_unit_v<unit<SourceCf, SourceTy>> && traits::is_conversion_factor_v<TargetCf>
 	unit(const unit<SourceCf, SourceTy>&) -> unit<TargetCf, SourceTy>;
 
 	// Matching Target and Source factors
