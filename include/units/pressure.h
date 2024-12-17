@@ -76,7 +76,7 @@ namespace units
 	UNIT_ADD(pressure, pounds_per_square_inch, psi, compound_conversion_factor<force::pounds_, inverse<squared<inches_>>>)
 	UNIT_ADD(pressure, torrs, torr, conversion_factor<std::ratio<1, 760>, atmospheres_>)
 	UNIT_ADD(pressure, millimeters_of_mercury, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascals_>)
-	UNIT_ADD(pressure, inches_of_mercury, inHg, conversion_factor<std::ratio<338638, 100>, pascals_>)
+	UNIT_ADD(pressure, inches_of_mercury, inHg, conversion_factor<std::ratio<254, 10>, millimeters_of_mercury_>)
 
 	UNIT_ADD_DIMENSION_TRAIT(pressure)
 } // namespace units

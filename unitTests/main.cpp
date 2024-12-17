@@ -3712,6 +3712,10 @@ TEST_F(ConversionFactor, pressure)
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
 	test = pounds_per_square_inch<double>(atmospheres<double>(1.0)).value();
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
+	test = millimeters_of_mercury(inches_of_mercury{1.0}).value();
+	EXPECT_NEAR(25.4, test, 5.0e-5);
+	test = pascals(inches_of_mercury{1.0}).value();
+	EXPECT_NEAR(3386.38864, test, 5.0e-5);
 
 	EXPECT_EQ(133.322387415_Pa, 1.0_mmHg);
 }
