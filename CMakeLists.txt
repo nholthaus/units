@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.31 FATAL_ERROR)
 
-PROJECT(units VERSION 3.0.0 LANGUAGES CXX)
+PROJECT(units VERSION 3.1.0 LANGUAGES CXX)
 
 # check if this is the main project
 set(MAIN_PROJECT OFF)
@@ -14,7 +14,7 @@ OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 option(UNITS_CODE_COVERAGE "Generate coveralls code coverage data" OFF)
 
-SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD 23)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
@@ -41,6 +41,7 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	find_package(Threads)
 	find_package(GTest 1.12.1)
 	if (NOT GTest_FOUND)
+		message(STATUS "No system googletest found. Using project-provided gtest v1.12.1")
 		add_subdirectory(3rdParty/googletest-1.12.1)
 	endif()
 	add_subdirectory(unitTests)

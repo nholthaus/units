@@ -69,13 +69,13 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(time, seconds, s, conversion_factor<std::ratio<1>, dimension::time>)
-	UNIT_ADD_WITH_PLURAL_TAG(time, minutes, min, conversion_factor<std::ratio<60>, seconds<>>)
+	UNIT_ADD_WITH_PLURAL_TAG(time, minutes, min, conversion_factor<std::ratio<60>, seconds_>)
 	UNIT_ADD(time, hours, hr, conversion_factor<std::ratio<60>, minutes<>>)
-	UNIT_ADD(time, days, d, conversion_factor<std::ratio<24>, hours<>>)
-	UNIT_ADD(time, weeks, wk, conversion_factor<std::ratio<7>, days<>>)
-	UNIT_ADD(time, years, yr, conversion_factor<std::ratio<365>, days<>>)
-	UNIT_ADD(time, julian_years, a_j, conversion_factor<std::ratio<31557600>, seconds<>>)
-	UNIT_ADD(time, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, seconds<>>)
+	UNIT_ADD(time, days, d, conversion_factor<std::ratio<24>, hours_>)
+	UNIT_ADD(time, weeks, wk, conversion_factor<std::ratio<7>, days_>)
+	UNIT_ADD(time, years, yr, conversion_factor<std::ratio<365>, days_>)
+	UNIT_ADD(time, julian_years, a_j, conversion_factor<std::ratio<31557600>, seconds_>)
+	UNIT_ADD(time, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, seconds_>)
 
 	UNIT_ADD_DIMENSION_TRAIT(time)
 } // namespace units

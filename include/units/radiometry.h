@@ -36,39 +36,44 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/energy.h
-/// @brief	units representing energy values
+/// @file	units/radiometry.h
+/// @brief	units representing radiometry values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_energy_h__
-#define units_energy_h__
+#ifndef units_radiometry_h__
+#define units_radiometry_h__
 
-#include <units/core.h>
+#include <units/area.h>
+#include <units/energy.h>
+#include <units/length.h>
+#include <units/power.h>
+#include <units/solid_angle.h>
+#include <units/temperature.h>
+#include <units/time.h>
+#include <units/volume.h>
+
 
 namespace units
 {
 	/**
-	 * @namespace	units::energy
-	 * @brief		namespace for unit types and containers representing energy values
-	 * @details		The SI unit for energy is `joules`, and the corresponding `dimension` dimension is
-	 *				`energy_unit`.
-	 * @anchor		energyContainers
+	 * @namespace	units::radiometry
+	 * @brief		namespace for unit types and containers representing radiometry values
+	 * @details		The SI units for radiometry are:
+	 *				- source activity:	becquerel
+	 * @anchor		radiometryContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, joules, J, conversion_factor<std::ratio<1>, dimension::energy>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy, calories, cal, conversion_factor<std::ratio<4184, 1000>, joules_>)
-	UNIT_ADD(energy, kilowatt_hours, kWh, conversion_factor<std::ratio<36, 10>, megajoules_>)
-	UNIT_ADD(energy, watt_hours, Wh, conversion_factor<std::ratio<1, 1000>, kilowatt_hours_>)
-	UNIT_ADD(energy, british_thermal_units, BTU, conversion_factor<std::ratio<105505585262, 100000000>, joules_>)
-	UNIT_ADD(energy, british_thermal_units_iso, BTU_iso, conversion_factor<std::ratio<1055056, 1000>, joules_>)
-	UNIT_ADD(energy, british_thermal_units_59, BTU59, conversion_factor<std::ratio<1054804, 1000>, joules_>)
-	UNIT_ADD(energy, therms, thm, conversion_factor<std::ratio<100000>, british_thermal_units_59_>)
-	UNIT_ADD(energy, foot_pounds, ftlbf, conversion_factor<std::ratio<13558179483314004, 10000000000000000>, joules_>)
-
-	UNIT_ADD_DIMENSION_TRAIT(energy)
+	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerels, Bq, conversion_factor<std::ratio<1>, frequency::hertz<>>)
+	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, grays, Gy, compound_conversion_factor<joules<>, inverse<kilograms<>>>)
+	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sieverts, Sv, conversion_factor<std::ratio<1>, grays<>>)
+	// UNIT_ADD(radiation, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerels<>>)
+	// UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<>>)
+	// UNIT_ADD(radiation, rads, rads, conversion_factor<std::ratio<1>, centigrays<>>)
+	//
+	// UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units
 
-#endif // units_energy_h__
+#endif // units_radiometry_h__

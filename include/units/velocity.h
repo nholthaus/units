@@ -60,8 +60,8 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(velocity, meters_per_second, mps, conversion_factor<std::ratio<1>, dimension::velocity>)
-	UNIT_ADD(velocity, feet_per_second, fps, compound_conversion_factor<feet<>, inverse<seconds<>>>)
-	UNIT_ADD(velocity, miles_per_hour, mph, compound_conversion_factor<miles<>, inverse<hours<>>>)
+	UNIT_ADD(velocity, feet_per_second, fps, compound_conversion_factor<feet_, inverse<seconds_>>)
+	UNIT_ADD(velocity, miles_per_hour, mph, compound_conversion_factor<miles_, inverse<hours_>>)
 	UNIT_ADD(velocity, kilometers_per_hour, kph, compound_conversion_factor<kilometers<>, inverse<hours<>>>)
 	UNIT_ADD(velocity, knots, kts, compound_conversion_factor<nautical_miles<>, inverse<hours<>>>)
 

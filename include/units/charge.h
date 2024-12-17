@@ -60,7 +60,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(charge, coulombs, C, conversion_factor<std::ratio<1>, dimension::charge>)
-	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hours, Ah, compound_conversion_factor<amperes<>, hours<>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(charge, ampere_hours, Ah, compound_conversion_factor<amperes_, hours_>)
 
 	UNIT_ADD_DIMENSION_TRAIT(charge)
 } // namespace units

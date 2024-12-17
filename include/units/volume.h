@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD(volume, cubic_meters, cu_m, conversion_factor<std::ratio<1>, dimension::volume>)
-	UNIT_ADD(volume, cubic_millimeters, cu_mm, cubed<millimeters<>>)
+	UNIT_ADD(volume, cubic_millimeters, cu_mm, cubed<millimeters_>)
 	UNIT_ADD(volume, cubic_kilometers, cu_km, cubed<kilometers<>>)
 	UNIT_ADD_WITH_METRIC_PREFIXES(volume, liters, L, cubed<decimeters<>>)
 	UNIT_ADD(volume, cubic_inches, cu_in, cubed<inches<>>)
@@ -84,9 +84,9 @@ namespace units
 	UNIT_ADD(volume, drams, dr, conversion_factor<std::ratio<1, 8>, fluid_ounces<>>)
 	UNIT_ADD(volume, gills, gi, conversion_factor<std::ratio<4>, fluid_ounces<>>)
 	UNIT_ADD(volume, pecks, pk, conversion_factor<std::ratio<1, 4>, bushels<>>)
-	UNIT_ADD(volume, sacks, sacks, conversion_factor<std::ratio<3>, bushels<>>)
-	UNIT_ADD(volume, shots, shots, conversion_factor<std::ratio<3, 2>, fluid_ounces<>>)
-	UNIT_ADD(volume, strikes, strikes, conversion_factor<std::ratio<2>, bushels<>>)
+	UNIT_ADD(volume, sacks, sck, conversion_factor<std::ratio<3>, bushels<>>)
+	UNIT_ADD(volume, shots, shts, conversion_factor<std::ratio<3, 2>, fluid_ounces<>>)
+	UNIT_ADD(volume, strikes, strk, conversion_factor<std::ratio<2>, bushels<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(volume)
 } // namespace units
