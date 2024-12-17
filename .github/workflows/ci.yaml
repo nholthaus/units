@@ -1,0 +1,79 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ '**' ]  # Run on all branches
+  pull_request:
+    branches: [ '**' ]  # Run on all branches
+
+jobs:
+  build-windows:
+    name: Build on Windows with Visual Studio 2022
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest -C Release --output-on-failure
+
+  build-ubuntu-gcc:
+    name: Build on Ubuntu with GCC-13
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install GCC-13
+        run: |
+          sudo apt update
+          sudo apt install -y g++-13
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_CXX_COMPILER=g++-13
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure
+
+  build-ubuntu-clang:
+    name: Build on Ubuntu with Latest Clang
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Latest Clang
+        run: |
+          sudo apt update
+          sudo apt install -y clang
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure
