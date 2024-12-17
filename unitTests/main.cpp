@@ -19,8 +19,6 @@ namespace
 	class TypeTraits : public ::testing::Test
 	{
 	protected:
-		TypeTraits() {};
-		virtual ~TypeTraits() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -28,8 +26,6 @@ namespace
 	class STDTypeTraits : public ::testing::Test
 	{
 	protected:
-		STDTypeTraits() {};
-		virtual ~STDTypeTraits() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -37,8 +33,6 @@ namespace
 	class STDSpecializations : public ::testing::Test
 	{
 	protected:
-		STDSpecializations() {};
-		virtual ~STDSpecializations() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -46,8 +40,6 @@ namespace
 	class UnitManipulators : public ::testing::Test
 	{
 	protected:
-		UnitManipulators() {};
-		virtual ~UnitManipulators() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -55,8 +47,6 @@ namespace
 	class UnitType : public ::testing::Test
 	{
 	protected:
-		UnitType() {};
-		virtual ~UnitType() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -64,8 +54,6 @@ namespace
 	class ConversionFactor : public ::testing::Test
 	{
 	protected:
-		ConversionFactor() {};
-		virtual ~ConversionFactor() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -73,8 +61,6 @@ namespace
 	class UnitMath : public ::testing::Test
 	{
 	protected:
-		UnitMath() {};
-		virtual ~UnitMath() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -82,8 +68,6 @@ namespace
 	class Constexpr : public ::testing::Test
 	{
 	protected:
-		Constexpr() {};
-		virtual ~Constexpr() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
@@ -91,26 +75,22 @@ namespace
 	class UnitLimits : public ::testing::Test
 	{
 	protected:
-		UnitLimits() {};
-		virtual ~UnitLimits() {};
-		virtual void SetUp() {};
-		virtual void TearDown() {};
+		void SetUp() override {};
+		void TearDown() override {};
 	};
 
 	class CaseStudies : public ::testing::Test
 	{
 	protected:
-		CaseStudies() {};
-		virtual ~CaseStudies() {};
 		void SetUp() override {};
 		void TearDown() override {};
 	};
 
 	// Tests that two units have the same conversion ratio to the same dimension.
-	constexpr auto has_equivalent_conversion_factor = [](const auto& t, const auto& u)
+	constexpr auto has_equivalent_conversion_factor = []<typename T0, typename T1>(const T0&, const T1&)
 	{
-		using T = std::decay_t<decltype(t)>;
-		using U = std::decay_t<decltype(u)>;
+		using T = std::decay_t<T0>;
+		using U = std::decay_t<T1>;
 		return units::traits::is_same_dimension_unit_v<T, U> &&
 			std::ratio_equal_v<typename T::conversion_factor::conversion_ratio, typename U::conversion_factor::conversion_ratio>;
 	};
@@ -132,28 +112,28 @@ TEST_F(TypeTraits, isRatio)
 TEST_F(TypeTraits, ratio_sqrt)
 {
 	using rt2 = ratio_sqrt<std::ratio<2>>;
-	EXPECT_LT(std::abs(std::sqrt(2 / (double)1) - rt2::num / (double)rt2::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(2 / 1.0) - rt2::num / static_cast<double>(rt2::den)), 5e-9);
 
 	using rt4 = ratio_sqrt<std::ratio<4>>;
-	EXPECT_LT(std::abs(std::sqrt(4 / (double)1) - rt4::num / (double)rt4::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(4 / 1.0) - rt4::num / static_cast<double>(rt4::den)), 5e-9);
 
 	using rt10 = ratio_sqrt<std::ratio<10>>;
-	EXPECT_LT(std::abs(std::sqrt(10 / (double)1) - rt10::num / (double)rt10::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(10 / 1.0) - rt10::num / static_cast<double>(rt10::den)), 5e-9);
 
 	using rt30 = ratio_sqrt<std::ratio<30>>;
-	EXPECT_LT(std::abs(std::sqrt(30 / (double)1) - rt30::num / (double)rt30::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(30 / 1.0) - rt30::num / static_cast<double>(rt30::den)), 5e-9);
 
 	using rt61 = ratio_sqrt<std::ratio<61>>;
-	EXPECT_LT(std::abs(std::sqrt(61 / (double)1) - rt61::num / (double)rt61::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(61 / 1.0) - rt61::num / static_cast<double>(rt61::den)), 5e-9);
 
 	using rt100 = ratio_sqrt<std::ratio<100>>;
-	EXPECT_LT(std::abs(std::sqrt(100 / (double)1) - rt100::num / (double)rt100::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(100 / 1.0) - rt100::num / static_cast<double>(rt100::den)), 5e-9);
 
 	using rt1000 = ratio_sqrt<std::ratio<1000>>;
-	EXPECT_LT(std::abs(std::sqrt(1000 / (double)1) - rt1000::num / (double)rt1000::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(1000 / 1.0) - rt1000::num / static_cast<double>(rt1000::den)), 5e-9);
 
 	using rt10000 = ratio_sqrt<std::ratio<10000>>;
-	EXPECT_LT(std::abs(std::sqrt(10000 / (double)1) - rt10000::num / (double)rt10000::den), 5e-9);
+	EXPECT_LT(std::abs(std::sqrt(10000 / 1.0) - rt10000::num / static_cast<double>(rt10000::den)), 5e-9);
 }
 
 TEST_F(TypeTraits, is_conversion_factor)
@@ -240,20 +220,19 @@ TEST_F(TypeTraits, dimension_of)
 
 	static_assert(std::is_same_v<dim, dimension::time>);
 	static_assert(!std::is_same_v<dim, dimension::length>);
-	static_assert(!std::is_same_v<dim, units::time::days<int>>);
+	static_assert(!std::is_same_v<dim, days<int>>);
 
-	using dim2 =
-		typename traits::conversion_factor_traits<typename traits::unit_traits<decltype(meters_per_second<double>(5))>::conversion_factor>::dimension_type;
+	using dim2 = traits::conversion_factor_traits<traits::unit_traits<decltype(meters_per_second<double>(5))>::conversion_factor>::dimension_type;
 
 	static_assert(std::is_same_v<dim2, dimension::velocity>);
 	static_assert(!std::is_same_v<dim2, dimension::time>);
-	static_assert(!std::is_same_v<dim2, units::velocity::miles_per_hour<int>>);
+	static_assert(!std::is_same_v<dim2, miles_per_hour<int>>);
 
 	using dim = traits::dimension_of_t<years<double>>;
 
 	static_assert(std::is_same_v<dim, dimension::time>);
 	static_assert(!std::is_same_v<dim, dimension::length>);
-	static_assert(!std::is_same_v<dim, units::time::days<int>>);
+	static_assert(!std::is_same_v<dim, days<int>>);
 }
 
 TEST_F(TypeTraits, has_linear_scale)
@@ -679,7 +658,9 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<int>, dimensionless<double>>, dimensionless<double>>);
 	static_assert(std::is_same_v<std::common_type_t<dimensionless<double>, dimensionless<int>>, dimensionless<double>>);
 
-	static_assert(std::is_same_v<typename traits::conversion_factor_traits<traits::unit_traits<std::common_type_t<half_a_radian, big_half_a_radian>>::conversion_factor>::conversion_ratio , std::ratio<1,2>>);
+	static_assert(std::is_same_v<
+		traits::conversion_factor_traits<traits::unit_traits<std::common_type_t<half_a_radian, big_half_a_radian>>::conversion_factor>::conversion_ratio,
+		std::ratio<1, 2>>);
 
 	using T = std::common_type_t<percent<double>, double>;
 	T a     = 50_pct;
@@ -818,161 +799,156 @@ TEST_F(UnitType, trivial)
 
 TEST_F(UnitType, complexUnits)
 {
-	std::complex<meters<>> x(3_m, 4_m);
+	constexpr std::complex<meters<>> x(3_m, 4_m);
 	EXPECT_TRUE((std::conj(x) == std::complex{3.0_m, -4.0_m}));
 }
 
 TEST_F(UnitType, constructionFromArithmeticType)
 {
-	const meters<double> a_m(1.0);
+	constexpr meters a_m(1.0);
 	EXPECT_EQ(1.0, a_m.value());
 
-	const meters<double> b_m(1);
+	constexpr meters<double> b_m(1);
 	EXPECT_EQ(1, b_m.value());
 
-	const meters<int> c_m(1);
+	constexpr meters c_m(1);
 	EXPECT_EQ(1, c_m.value());
 
-	const dimensionless<double> d_dim(1.0);
+	constexpr dimensionless d_dim(1.0);
 	EXPECT_EQ(1.0, d_dim.value());
 
-	const dimensionless<double> e_dim(1);
+	constexpr dimensionless<double> e_dim(1);
 	EXPECT_EQ(1, e_dim.value());
 
-	const dimensionless<double> a_dim(1.0);
+	constexpr dimensionless a_dim(1.0);
 	EXPECT_EQ(1.0, a_dim.value());
 
-	const dimensionless<double> b_dim(1);
+	constexpr dimensionless<double> b_dim(1);
 	EXPECT_EQ(1, b_dim.value());
 
-	const dimensionless<int> c_dim(1);
+	constexpr dimensionless c_dim(1);
 	EXPECT_EQ(1, c_dim.value());
 
-	const dimensionless<int> f_dim(1);
+	constexpr dimensionless f_dim(1);
 	EXPECT_EQ(1, f_dim.value());
 }
 
 TEST_F(UnitType, constructionFromUnitType)
 {
-	const meters<int> a_m(1);
+	constexpr meters a_m(1);
 
-	const meters<int> b_m(a_m);
+	constexpr meters b_m(a_m);
 	EXPECT_EQ(1, b_m.value());
 
-	const millimeters<int> a_mm(b_m);
+	constexpr millimeters a_mm(b_m);
 	EXPECT_EQ(1000, a_mm.value());
 
-	const millimeters<int> b_mm(a_mm);
+	constexpr millimeters b_mm(a_mm);
 	EXPECT_EQ(1000, b_mm.value());
 
-	const millimeters<int> c_mm(b_mm);
+	constexpr millimeters c_mm(b_mm);
 	EXPECT_EQ(1000, c_mm.value());
 
-	const millimeters<int> d_mm(b_m);
+	constexpr millimeters d_mm(b_m);
 	EXPECT_EQ(1000, d_mm.value());
 
-	const meters<double> c_m(b_m);
+	constexpr meters<double> c_m(b_m);
 	EXPECT_EQ(1.0, c_m.value());
 
-	const meters<double> d_m(a_mm);
+	constexpr meters<double> d_m(a_mm);
 	EXPECT_EQ(1.0, d_m.value());
 
-	const meters<double> e_m(b_mm);
+	constexpr meters<double> e_m(b_mm);
 	EXPECT_EQ(1.0, e_m.value());
 
-	const meters<double> f_m(c_m);
+	constexpr meters f_m(c_m);
 	EXPECT_EQ(1.0, f_m.value());
 
-	const meters<double> g_m(kilometers<int>(1));
+	constexpr meters<double> g_m(kilometers<int>(1));
 	EXPECT_EQ(1000.0, g_m.value());
 
-	const dimensionless<int> a_dim(1);
+	constexpr dimensionless a_dim(1);
 
-	const dimensionless<int> b_dim(a_dim);
+	constexpr dimensionless b_dim(a_dim);
 	EXPECT_EQ(1, b_dim.value());
 
-	const dimensionless<int> c_dim(b_dim);
+	constexpr dimensionless c_dim(b_dim);
 	EXPECT_EQ(1, c_dim.value());
 
-	const dimensionless<int> d_dim(c_dim);
+	constexpr dimensionless d_dim(c_dim);
 	EXPECT_EQ(1, d_dim.value());
 
-	const dimensionless<double> e_dim(d_dim);
+	constexpr dimensionless<double> e_dim(d_dim);
 	EXPECT_EQ(1, e_dim.value());
 
-	const dimensionless<double> f_dim(c_dim);
+	constexpr dimensionless<double> f_dim(c_dim);
 	EXPECT_EQ(1, f_dim.value());
 
-	const dimensionless<double> g_dim(f_dim);
+	constexpr dimensionless g_dim(f_dim);
 	EXPECT_EQ(1, g_dim.value());
-}
-
-namespace units
-{
-
 }
 
 TEST_F(UnitType, CTAD)
 {
 #if defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 	// Default ctor
-	const meters z_m{};
+	constexpr meters z_m{};
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_m)>, meters<double>>);
 
 	// Underlying type, copy ctor, and same dimensioned units for `int` and `double`.
-	const meters a_m(1);
+	constexpr meters a_m(1);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_m)>, meters<int>>);
 
-	const meters b_m(a_m);
+	constexpr meters b_m(a_m);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m)>, meters<int>>);
 
-	const meters b_m2(millimeters(2.0));
+	constexpr meters b_m2(millimeters(2.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_m2)>, meters<double>>);
 
-	const millimeters a_mm(b_m);
+	constexpr millimeters a_mm(b_m);
 	static_assert(std::is_integral_v<decltype(a_mm.value())>);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_mm)>, millimeters<int>>);
 	EXPECT_EQ(a_mm, 1000_mm);
 
-	const meters c_m(1.0);
+	constexpr meters c_m(1.0);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(c_m)>, meters<double>>);
 
-	const meters d_m(c_m);
+	constexpr meters d_m(c_m);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(d_m)>, meters<double>>);
 
-	const millimeters b_mm(d_m);
+	constexpr millimeters b_mm(d_m);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_mm)>, millimeters<double>>);
 
-	const kilometers a_km(b_mm);
+	constexpr kilometers a_km(b_mm);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_km)>, kilometers<double>>);
 
 	// Other underlying types.
-	const meters e_m(short(1));
+	constexpr meters e_m(static_cast<short>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(e_m)>, meters<short>>);
 
-	const meters f_m(1.0f);
+	constexpr meters f_m(1.0f);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(f_m)>, meters<float>>);
 
-	const meters g_m(1LL);
+	constexpr meters g_m(1LL);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(g_m)>, meters<long long>>);
 
-	const meters h_m(1.0L);
+	constexpr meters h_m(1.0L);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(h_m)>, meters<long double>>);
 
 	// `unit`.
-	const meters i_m(meters<int>(1));
+	constexpr meters i_m(meters<int>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(i_m)>, meters<int>>);
 
-	const meters j_m(meters<double>(1.0));
+	constexpr meters j_m(meters<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(j_m)>, meters<double>>);
 
-	const meters k_m(kilometers<int>(1));
+	constexpr meters k_m(kilometers<int>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(k_m)>, meters<int>>);
 
-	const meters l_m(kilometers<double>(1.0));
+	constexpr meters l_m(kilometers<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(l_m)>, meters<double>>);
 
-	const meters m_m(millimeters<double>(1.0));
+	constexpr meters m_m(millimeters<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_m)>, meters<double>>);
 #endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 
@@ -986,68 +962,68 @@ TEST_F(UnitType, CTAD)
 	static_assert(minutes<double>(1.0) == a_min && std::is_floating_point_v<decltype(a_min.value())>);
 
 #if defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
-	const seconds b_s(1_s);
+	constexpr seconds b_s(1_s);
 	static_assert(std::is_integral_v<decltype(b_s.value())>);
 
-	const seconds c_s(1.0_s);
+	constexpr seconds c_s(1.0_s);
 	static_assert(std::is_floating_point_v<decltype(c_s.value())>);
 
-	const seconds d_s(1_min);
+	constexpr seconds d_s(1_min);
 	static_assert(std::is_integral_v<decltype(d_s.value())>);
 
-	const seconds e_s(1.0_min);
+	constexpr seconds e_s(1.0_min);
 	static_assert(std::is_floating_point_v<decltype(e_s.value())>);
 
-	const seconds f_s(1.0_ms);
+	constexpr seconds f_s(1.0_ms);
 	static_assert(std::is_floating_point_v<decltype(f_s.value())>);
 
 	// Dimensionless units.
-	const dimensionless z_dim = 1.0;
+	constexpr dimensionless z_dim = 1.0;
 	static_assert(std::is_same_v<std::remove_const_t<decltype(z_dim)>, dimensionless<double>>);
 
-	const dimensionless a_dim(1);
+	constexpr dimensionless a_dim(1);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_dim)>, dimensionless<int>>);
 
-	const dimensionless b_dim(a_dim);
+	constexpr dimensionless b_dim(a_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_dim)>, dimensionless<int>>);
 
-	const percent a_per(b_dim);
+	constexpr percent a_per(b_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(a_per)>, percent<int>>);
 
-	const dimensionless c_dim(1.0);
+	constexpr dimensionless c_dim(1.0);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(c_dim)>, dimensionless<double>>);
 
-	const dimensionless d_dim(c_dim);
+	constexpr dimensionless d_dim(c_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(d_dim)>, dimensionless<double>>);
 
-	const percent b_per(d_dim);
+	constexpr percent b_per(d_dim);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(b_per)>, percent<double>>);
 
-	const dimensionless e_dim(short(1));
+	constexpr dimensionless e_dim(static_cast<short>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(e_dim)>, dimensionless<short>>);
 
-	const dimensionless f_dim(1.0f);
+	constexpr dimensionless f_dim(1.0f);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(f_dim)>, dimensionless<float>>);
 
-	const dimensionless g_dim(1LL);
+	constexpr dimensionless g_dim(1LL);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(g_dim)>, dimensionless<long long>>);
 
-	const dimensionless h_dim(1.0L);
+	constexpr dimensionless h_dim(1.0L);
 	static_assert(std::is_same_v<std::remove_const_t<decltype(h_dim)>, dimensionless<long double>>);
 
-	const dimensionless i_dim(dimensionless<int>(1));
+	constexpr dimensionless i_dim(dimensionless<int>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(i_dim)>, dimensionless<int>>);
 
-	const dimensionless j_dim(dimensionless<double>(1.0));
+	constexpr dimensionless j_dim(dimensionless<double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(j_dim)>, dimensionless<double>>);
 
-	const dimensionless k_dim(unit<conversion_factor<std::kilo, dimensionless_>, int>(1));
+	constexpr dimensionless k_dim(unit<conversion_factor<std::kilo, dimensionless_>, int>(1));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(k_dim)>, dimensionless<int>>);
 
-	const dimensionless l_dim(unit<conversion_factor<std::kilo, dimensionless_>, double>(1.0));
+	constexpr dimensionless l_dim(unit<conversion_factor<std::kilo, dimensionless_>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(l_dim)>, dimensionless<double>>);
 
-	const dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_>, double>(1.0));
+	constexpr dimensionless m_dim(unit<conversion_factor<std::milli, dimensionless_>, double>(1.0));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(m_dim)>, dimensionless<double>>);
 #endif // defined(__cpp_deduction_guides) && __cpp_deduction_guides >= 201907L
 }
@@ -1056,7 +1032,7 @@ TEST_F(UnitType, implicitChronoConversions)
 {
 	using namespace std::chrono_literals;
 	std::chrono::seconds chronoSec(1);
-	units::seconds<int>  unitsSec = chronoSec;
+	const seconds<int>   unitsSec = chronoSec;
 	chronoSec                     = unitsSec;
 	EXPECT_EQ(unitsSec, 1_s);
 	EXPECT_EQ(chronoSec, 1s);
@@ -1064,7 +1040,8 @@ TEST_F(UnitType, implicitChronoConversions)
 
 TEST_F(UnitType, negativeConstexprLiterals)
 {
-	static constexpr units::angle::radians<double> kAngularValue{-30.0_deg};
+	static constexpr radians kAngularValue{-30.0_deg};
+	EXPECT_EQ(-30.0_deg, kAngularValue);
 }
 
 TEST_F(UnitType, assignmentFromArithmeticType)
@@ -1174,37 +1151,37 @@ TEST_F(UnitType, assignmentFromUnitType)
 
 TEST_F(UnitType, make_unit)
 {
-	const auto a_m = make_unit<meters<double>>(5.0);
+	constexpr auto a_m = make_unit<meters<double>>(5.0);
 	EXPECT_EQ(meters<double>(5.0), a_m);
 
-	const auto b_m = make_unit<meters<double>>(5);
+	constexpr auto b_m = make_unit<meters<double>>(5);
 	EXPECT_EQ(meters<double>(5), b_m);
 
-	const auto c_m = make_unit<meters<int>>(5);
+	constexpr auto c_m = make_unit<meters<int>>(5);
 	EXPECT_EQ((meters<int>(5)), c_m);
 
-	const auto a_dim = make_unit<dimensionless<double>>(5.0);
+	constexpr auto a_dim = make_unit<dimensionless<double>>(5.0);
 	EXPECT_EQ(dimensionless<double>(5.0), a_dim);
 
-	const auto b_dim = make_unit<dimensionless<double>>(5);
+	constexpr auto b_dim = make_unit<dimensionless<double>>(5);
 	EXPECT_EQ(dimensionless<double>(5), b_dim);
 
-	const auto c_dim = make_unit<dimensionless<int>>(5);
+	constexpr auto c_dim = make_unit<dimensionless<int>>(5);
 	EXPECT_EQ((dimensionless<int>(5)), c_dim);
 }
 
 TEST_F(UnitType, unitTypeEquality)
 {
-	const meters a_m(0.0);
-	const meters b_m(1.0);
+	constexpr meters a_m(0.0);
+	constexpr meters b_m(1.0);
 
 	EXPECT_TRUE(a_m == a_m);
 	EXPECT_FALSE(a_m == b_m);
 	EXPECT_TRUE(a_m != b_m);
 	EXPECT_FALSE(b_m != b_m);
 
-	const meters<int> c_m(0);
-	const meters<int> d_m(1);
+	constexpr meters c_m(0);
+	constexpr meters d_m(1);
 
 	EXPECT_TRUE(c_m == c_m);
 	EXPECT_FALSE(c_m == d_m);
@@ -1220,16 +1197,16 @@ TEST_F(UnitType, unitTypeEquality)
 	EXPECT_FALSE(a_m != c_m);
 	EXPECT_FALSE(d_m != b_m);
 
-	const percent<double> w_m(100.0);
-	const percent<double> x_m(1.0);
+	constexpr percent w_m(100.0);
+	constexpr percent x_m(1.0);
 
 	EXPECT_TRUE(w_m == w_m);
 	EXPECT_FALSE(w_m == x_m);
 	EXPECT_TRUE(w_m != x_m);
 	EXPECT_FALSE(x_m != x_m);
 
-	const percent<int> y_m(100);
-	const percent<int> z_m(1);
+	constexpr percent y_m(100);
+	constexpr percent z_m(1);
 
 	EXPECT_TRUE(y_m == y_m);
 	EXPECT_FALSE(y_m == z_m);
@@ -1248,14 +1225,14 @@ TEST_F(UnitType, unitTypeEquality)
 
 TEST_F(UnitType, unitTypeMixedEquality)
 {
-	const meters<double> a_m(0);
-	const feet<double>   a_f(meters<double>(1));
+	constexpr meters<double> a_m(0);
+	constexpr feet           a_f(meters<double>(1));
 
 	EXPECT_FALSE(a_m == a_f);
 	EXPECT_TRUE(a_m != a_f);
 
-	const feet<int>   b_f(0);
-	const meters<int> b_m(1);
+	constexpr feet   b_f(0);
+	constexpr meters b_m(1);
 
 	EXPECT_FALSE(b_f == b_m);
 	EXPECT_TRUE(b_f != b_m);
@@ -1265,14 +1242,14 @@ TEST_F(UnitType, unitTypeMixedEquality)
 	EXPECT_FALSE(a_m != b_f);
 	EXPECT_FALSE(b_m != a_f);
 
-	const percent<double>           a(1);
-	const parts_per_million<double> b(20000);
+	constexpr percent           a(1.0);
+	constexpr parts_per_million b(20000.0);
 
 	EXPECT_FALSE(a == b);
 	EXPECT_TRUE(a != b);
 
-	const percent<int>           c(1);
-	const parts_per_million<int> d(20000);
+	constexpr percent           c(1);
+	constexpr parts_per_million d(20000);
 
 	EXPECT_FALSE(c == d);
 	EXPECT_TRUE(c != d);
@@ -1285,8 +1262,8 @@ TEST_F(UnitType, unitTypeMixedEquality)
 
 TEST_F(UnitType, unitTypeRelational)
 {
-	const meters<double> a_m(0);
-	const meters<double> b_m(1);
+	constexpr meters a_m(0.0);
+	constexpr meters b_m(1.0);
 
 	EXPECT_FALSE(a_m < a_m);
 	EXPECT_FALSE(b_m < a_m);
@@ -1301,8 +1278,8 @@ TEST_F(UnitType, unitTypeRelational)
 	EXPECT_TRUE(b_m >= a_m);
 	EXPECT_FALSE(a_m >= b_m);
 
-	const meters<int> c_m(0);
-	const meters<int> d_m(1);
+	constexpr meters c_m(0);
+	constexpr meters d_m(1);
 
 	EXPECT_FALSE(c_m < c_m);
 	EXPECT_FALSE(d_m < c_m);
@@ -1330,8 +1307,8 @@ TEST_F(UnitType, unitTypeRelational)
 	EXPECT_TRUE(d_m >= a_m);
 	EXPECT_FALSE(a_m >= d_m);
 
-	const dimensionless<double> a_s(0);
-	const dimensionless<int>    b_s(1);
+	constexpr dimensionless a_s(0.0);
+	constexpr dimensionless b_s(1);
 
 	EXPECT_FALSE(a_s < a_s);
 	EXPECT_FALSE(b_s < a_s);
@@ -1346,8 +1323,8 @@ TEST_F(UnitType, unitTypeRelational)
 	EXPECT_TRUE(b_s >= a_s);
 	EXPECT_FALSE(a_s >= b_s);
 
-	const dimensionless<double> c_s(0);
-	const dimensionless<int>    d_s(1);
+	constexpr dimensionless c_s(0.0);
+	constexpr dimensionless d_s(1);
 
 	EXPECT_FALSE(c_s < c_s);
 	EXPECT_FALSE(d_s < c_s);
@@ -1375,8 +1352,8 @@ TEST_F(UnitType, unitTypeRelational)
 	EXPECT_TRUE(d_s >= a_s);
 	EXPECT_FALSE(a_s >= d_s);
 
-	const percent<double> p(2);
-	const percent<int>    pp(5);
+	constexpr percent p(2.0);
+	constexpr percent pp(5);
 
 	EXPECT_FALSE(p < p);
 	EXPECT_FALSE(pp < p);
@@ -1394,8 +1371,8 @@ TEST_F(UnitType, unitTypeRelational)
 
 TEST_F(UnitType, unitTypeMixedRelational)
 {
-	const meters<double> a_m(0);
-	const feet<double>   a_f(meters<double>(1));
+	constexpr meters a_m(0.0);
+	constexpr feet   a_f(meters{1.0});
 
 	EXPECT_FALSE(a_f < a_m);
 	EXPECT_TRUE(a_m < a_f);
@@ -1406,8 +1383,8 @@ TEST_F(UnitType, unitTypeMixedRelational)
 	EXPECT_TRUE(a_f >= a_m);
 	EXPECT_FALSE(a_m >= a_f);
 
-	const feet<int>   b_f(0);
-	const meters<int> b_m(1);
+	constexpr feet   b_f(0);
+	constexpr meters b_m(1);
 
 	EXPECT_FALSE(b_m < b_f);
 	EXPECT_TRUE(b_f < b_m);
@@ -1427,8 +1404,8 @@ TEST_F(UnitType, unitTypeMixedRelational)
 	EXPECT_TRUE(b_f >= a_m);
 	EXPECT_TRUE(b_m >= a_f);
 
-	const percent<double>        p(1);
-	const parts_per_million<int> pp(20000);
+	constexpr percent           p(1.0);
+	constexpr parts_per_million pp(20000);
 
 	EXPECT_FALSE(p < p);
 	EXPECT_FALSE(pp < p);
@@ -1449,8 +1426,8 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	percent<int> p;
 	meters<int>  m;
 
-	dimensionless<int> dim{1};
-	auto               test = dim - 0;
+	constexpr dimensionless dim{1};
+	constexpr auto          test = dim - 0;
 	static_assert(detail::has_dimension_of<decltype(dim - 0), dimension::dimensionless>::value);
 	EXPECT_EQ(1, dim);
 	EXPECT_EQ(test, dim);
@@ -1523,10 +1500,11 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 TEST_F(UnitType, unitTypeAddition)
 {
 	// units
-	meters<double>                                   a_m(1.0), c_m;
-	feet<double>                                     b_ft(3.28084);
-	const meters<int>                                f_m(1);
-	const std::common_type_t<meters<int>, feet<int>> g(f_m);
+	constexpr meters                                     a_m(1.0);
+	constexpr feet                                       b_ft(3.28084);
+	meters                                               c_m{0.0};
+	constexpr meters                                     f_m(1);
+	constexpr std::common_type_t<meters<int>, feet<int>> g(f_m);
 
 	double d = meters<double>(b_ft).value();
 	EXPECT_NEAR(1.0, d, 5.0e-5);
@@ -1561,32 +1539,32 @@ TEST_F(UnitType, unitTypeAddition)
 	EXPECT_NEAR(13.12336, e_ft.value(), 5.0e-6);
 
 	// dimensionless
-	dimensionless<double> sresult = dimensionless<double>(1.0) + dimensionless<double>(1.0);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) + dimensionless<int>(1);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<double>(1.0) + dimensionless<int>(1);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) + dimensionless<double>(1.0);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	dimensionless<double> result = dimensionless<double>(1.0) + dimensionless<double>(1.0);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<int>(1) + dimensionless<int>(1);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<double>(1.0) + dimensionless<int>(1);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<int>(1) + dimensionless<double>(1.0);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
 
-	sresult = dimensionless<double>(1.0) + 1.0;
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) + 1;
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<double>(1.0) + 1;
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) + 1.0;
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	result = dimensionless<double>(1.0) + 1.0;
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<int>(1) + 1;
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<double>(1.0) + 1;
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = dimensionless<int>(1) + 1.0;
+	EXPECT_NEAR(2.0, result, 5.0e-6);
 
-	sresult = 1.0 + dimensionless<double>(1.0);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = 1 + dimensionless<int>(1);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = 1.0 + dimensionless<int>(1);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
-	sresult = 1 + dimensionless<double>(1.0);
-	EXPECT_NEAR(2.0, sresult, 5.0e-6);
+	result = 1.0 + dimensionless<double>(1.0);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = 1 + dimensionless<int>(1);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = 1.0 + dimensionless<int>(1);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
+	result = 1 + dimensionless<double>(1.0);
+	EXPECT_NEAR(2.0, result, 5.0e-6);
 
 	d = dimensionless<double>(1.0) + dimensionless<double>(1.0);
 	EXPECT_NEAR(2.0, d, 5.0e-6);
@@ -1616,44 +1594,44 @@ TEST_F(UnitType, unitTypeAddition)
 	EXPECT_NEAR(2.0, d, 5.0e-6);
 
 	// concentration
-	percent<double> presult = percent<double>(1.0) + percent<double>(1.0);
-	EXPECT_NEAR(0.02, presult, 5.0e-6);
-	EXPECT_EQ(2_pct, presult);
-	presult = percent<int>(1) + percent<int>(1);
-	EXPECT_NEAR(0.02, presult, 5.0e-6);
-	EXPECT_EQ(2_pct, presult);
-	presult = percent<double>(1.0) + percent<int>(1);
-	EXPECT_NEAR(0.02, presult, 5.0e-6);
-	EXPECT_EQ(2_pct, presult);
-	presult = percent<int>(1) + percent<double>(1.0);
-	EXPECT_NEAR(0.02, presult, 5.0e-6);
-	EXPECT_EQ(2_pct, presult);
+	percent<double> pResult = percent<double>(1.0) + percent<double>(1.0);
+	EXPECT_NEAR(0.02, pResult, 5.0e-6);
+	EXPECT_EQ(2_pct, pResult);
+	pResult = percent<int>(1) + percent<int>(1);
+	EXPECT_NEAR(0.02, pResult, 5.0e-6);
+	EXPECT_EQ(2_pct, pResult);
+	pResult = percent<double>(1.0) + percent<int>(1);
+	EXPECT_NEAR(0.02, pResult, 5.0e-6);
+	EXPECT_EQ(2_pct, pResult);
+	pResult = percent<int>(1) + percent<double>(1.0);
+	EXPECT_NEAR(0.02, pResult, 5.0e-6);
+	EXPECT_EQ(2_pct, pResult);
 
-	presult = percent<>(1.0) + 1.0;
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = percent<int>(1) + 1;
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = percent<double>(1.0) + 1;
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = percent<int>(1) + 1.0;
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
+	pResult = percent<>(1.0) + 1.0;
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = percent<int>(1) + 1;
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = percent<double>(1.0) + 1;
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = percent<int>(1) + 1.0;
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
 
-	presult = 1.0 + percent<double>(1.0);
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = 1 + percent<int>(1);
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = 1.0 + percent<int>(1);
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
-	presult = 1 + percent<double>(1.0);
-	EXPECT_NEAR(1.01, presult, 5.0e-6);
-	EXPECT_EQ(101_pct, presult);
+	pResult = 1.0 + percent<double>(1.0);
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = 1 + percent<int>(1);
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = 1.0 + percent<int>(1);
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
+	pResult = 1 + percent<double>(1.0);
+	EXPECT_NEAR(1.01, pResult, 5.0e-6);
+	EXPECT_EQ(101_pct, pResult);
 
 	d = percent<double>(1.0) + percent<double>(1.0);
 	EXPECT_NEAR(0.02, d, 5.0e-6);
@@ -1722,10 +1700,11 @@ TEST_F(UnitType, unitTypeUnaryAddition)
 
 TEST_F(UnitType, unitTypeSubtraction)
 {
-	meters<double>                                   a_m(1.0), c_m;
-	feet<double>                                     b_ft(3.28084);
-	const meters<int>                                f_m(1);
-	const std::common_type_t<meters<int>, feet<int>> g(f_m);
+	constexpr meters                                     a_m(1.0);
+	constexpr feet                                       b_ft(3.28084);
+	meters                                               c_m{0.0};
+	constexpr meters                                     f_m(1);
+	constexpr std::common_type_t<meters<int>, feet<int>> g(f_m);
 
 	c_m = a_m - b_ft;
 	EXPECT_NEAR(0.0, c_m.value(), 5.0e-5);
@@ -1755,32 +1734,32 @@ TEST_F(UnitType, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, e_ft.value(), 5.0e-6);
 
 	// dimensionless
-	dimensionless<double> sresult = dimensionless<double>(1.0) - dimensionless<double>(1.0);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) - dimensionless<int>(1);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<double>(1.0) - dimensionless<int>(1);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) - dimensionless<double>(1.0);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	dimensionless<double> sResult = dimensionless<double>(1.0) - dimensionless<double>(1.0);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<int>(1) - dimensionless<int>(1);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<double>(1.0) - dimensionless<int>(1);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<int>(1) - dimensionless<double>(1.0);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
 
-	sresult = dimensionless<double>(1.0) - 1.0;
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) - 1;
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<double>(1.0) - 1;
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = dimensionless<int>(1) - 1.0;
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sResult = dimensionless<double>(1.0) - 1.0;
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<int>(1) - 1;
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<double>(1.0) - 1;
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = dimensionless<int>(1) - 1.0;
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
 
-	sresult = 1.0 - dimensionless<double>(1.0);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = 1 - dimensionless<int>(1);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = 1.0 - dimensionless<int>(1);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
-	sresult = 1 - dimensionless<double>(1.0);
-	EXPECT_NEAR(0.0, sresult, 5.0e-6);
+	sResult = 1.0 - dimensionless<double>(1.0);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = 1 - dimensionless<int>(1);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = 1.0 - dimensionless<int>(1);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
+	sResult = 1 - dimensionless<double>(1.0);
+	EXPECT_NEAR(0.0, sResult, 5.0e-6);
 
 	double d = dimensionless<double>(1.0) - dimensionless<double>(1.0);
 	EXPECT_NEAR(0.0, d, 5.0e-6);
@@ -1810,32 +1789,32 @@ TEST_F(UnitType, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, d, 5.0e-6);
 
 	// concentration
-	percent<double> presult = percent<double>(5) - percent<double>(1.0);
-	EXPECT_NEAR(0.04, presult, 5.0e-6);
-	presult = percent<int>(5) - percent<int>(1);
-	EXPECT_NEAR(4_pct, presult, 5.0e-6);
-	presult = percent<double>(5.0) - percent<int>(1);
-	EXPECT_NEAR(0.04, presult, 5.0e-6);
-	presult = percent<int>(5) - percent<double>(1.0);
-	EXPECT_NEAR(4_pct, presult, 5.0e-6);
+	percent<double> pResult = percent<double>(5) - percent<double>(1.0);
+	EXPECT_NEAR(0.04, pResult, 5.0e-6);
+	pResult = percent<int>(5) - percent<int>(1);
+	EXPECT_NEAR(4_pct, pResult, 5.0e-6);
+	pResult = percent<double>(5.0) - percent<int>(1);
+	EXPECT_NEAR(0.04, pResult, 5.0e-6);
+	pResult = percent<int>(5) - percent<double>(1.0);
+	EXPECT_NEAR(4_pct, pResult, 5.0e-6);
 
-	presult = percent<double>(100.0) - 1.0;
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = percent<int>(100) - 1;
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = percent<double>(100.0) - 1;
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = percent<int>(100) - 1.0;
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
+	pResult = percent<double>(100.0) - 1.0;
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = percent<int>(100) - 1;
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = percent<double>(100.0) - 1;
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = percent<int>(100) - 1.0;
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
 
-	presult = 1.0 - percent<double>(100.0);
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = 1 - percent<int>(100);
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = 1.0 - percent<int>(100);
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
-	presult = 1 - percent<double>(100.0);
-	EXPECT_NEAR(0.0, presult, 5.0e-6);
+	pResult = 1.0 - percent<double>(100.0);
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = 1 - percent<int>(100);
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = 1.0 - percent<int>(100);
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
+	pResult = 1 - percent<double>(100.0);
+	EXPECT_NEAR(0.0, pResult, 5.0e-6);
 
 	d = percent<double>(100.0) - percent<double>(10.0);
 	EXPECT_NEAR(0.9, d, 5.0e-6);
@@ -1894,10 +1873,11 @@ TEST_F(UnitType, unitTypeUnarySubtraction)
 
 TEST_F(UnitType, unitTypeMultiplication)
 {
-	meters<double>                                   a_m(1.0), b_m(2.0);
-	feet<double>                                     a_ft(3.28084);
-	const meters<int>                                d_m(1), e_m(2);
-	const std::common_type_t<meters<int>, feet<int>> f(d_m);
+	constexpr meters                                     a_m(1.0);
+	constexpr meters                                     b_m(2.0);
+	constexpr feet                                       a_ft(3.28084);
+	constexpr meters<int>                                d_m(1), e_m(2);
+	constexpr std::common_type_t<meters<int>, feet<int>> f(d_m);
 
 	auto c_m2 = a_m * b_m;
 	EXPECT_NEAR(2.0, c_m2.value(), 5.0e-5);
@@ -1950,32 +1930,32 @@ TEST_F(UnitType, unitTypeMultiplication)
 	EXPECT_NEAR(3, convert, 5.0e-5);
 
 	// dimensionless
-	dimensionless<double> sresult = dimensionless<double>(5.0) * dimensionless<double>(4.0);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<int>(5) * dimensionless<int>(4);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<double>(5.0) * dimensionless<int>(4);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<int>(5) * dimensionless<double>(4.0);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
+	dimensionless<double> sResult = dimensionless<double>(5.0) * dimensionless<double>(4.0);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<int>(5) * dimensionless<int>(4);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<double>(5.0) * dimensionless<int>(4);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<int>(5) * dimensionless<double>(4.0);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
 
-	sresult = dimensionless<double>(5.0) * 4.0;
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<int>(5) * 4;
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<double>(5.0) * 4;
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = dimensionless<int>(5) * 4.0;
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
+	sResult = dimensionless<double>(5.0) * 4.0;
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<int>(5) * 4;
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<double>(5.0) * 4;
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = dimensionless<int>(5) * 4.0;
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
 
-	sresult = 4.0 * dimensionless<double>(5.0);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = 4 * dimensionless<int>(5);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = 4.0 * dimensionless<int>(5);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
-	sresult = 4 * dimensionless<double>(5.0);
-	EXPECT_NEAR(20.0, sresult.value(), 5.0e-5);
+	sResult = 4.0 * dimensionless<double>(5.0);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = 4 * dimensionless<int>(5);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = 4.0 * dimensionless<int>(5);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
+	sResult = 4 * dimensionless<double>(5.0);
+	EXPECT_NEAR(20.0, sResult.value(), 5.0e-5);
 
 	double result = dimensionless<double>(5.0) * dimensionless<double>(4.0);
 	EXPECT_NEAR(20.0, result, 5.0e-5);
@@ -2009,44 +1989,44 @@ TEST_F(UnitType, unitTypeMultiplication)
 	EXPECT_EQ(150'000, result);
 
 	// concentration
-	percent<double> presult = percent<double>(5.0) * percent<double>(4.0);
-	EXPECT_DOUBLE_EQ(0.2_pct, presult);
-	EXPECT_DOUBLE_EQ(0.002, presult.value());
-	presult = percent<int>(5) * percent<int>(4);
-	EXPECT_DOUBLE_EQ(0.2_pct, presult);
-	EXPECT_DOUBLE_EQ(0.002, presult.value());
-	presult = percent<double>(5.0) * percent<int>(4);
-	EXPECT_DOUBLE_EQ(0.2_pct, presult);
-	EXPECT_DOUBLE_EQ(0.002, presult.value());
-	presult = percent<int>(5) * percent<double>(4.0);
-	EXPECT_DOUBLE_EQ(0.2_pct, presult);
-	EXPECT_DOUBLE_EQ(0.002, presult.value());
+	percent<double> pResult = percent<double>(5.0) * percent<double>(4.0);
+	EXPECT_DOUBLE_EQ(0.2_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.002, pResult.value());
+	pResult = percent<int>(5) * percent<int>(4);
+	EXPECT_DOUBLE_EQ(0.2_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.002, pResult.value());
+	pResult = percent<double>(5.0) * percent<int>(4);
+	EXPECT_DOUBLE_EQ(0.2_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.002, pResult.value());
+	pResult = percent<int>(5) * percent<double>(4.0);
+	EXPECT_DOUBLE_EQ(0.2_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.002, pResult.value());
 
-	presult = percent<double>(5.0) * 4.0;
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = percent<int>(5) * 4;
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = percent<double>(5.0) * 4;
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = percent<int>(5) * 4.0;
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
+	pResult = percent<double>(5.0) * 4.0;
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = percent<int>(5) * 4;
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = percent<double>(5.0) * 4;
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = percent<int>(5) * 4.0;
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
 
-	presult = 4.0 * percent<double>(5.0);
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = 4 * percent<int>(5);
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = 4.0 * percent<int>(5);
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
-	presult = 4 * percent<double>(5.0);
-	EXPECT_DOUBLE_EQ(20.0_pct, presult);
-	EXPECT_DOUBLE_EQ(0.2, presult.value());
+	pResult = 4.0 * percent<double>(5.0);
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = 4 * percent<int>(5);
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = 4.0 * percent<int>(5);
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
+	pResult = 4 * percent<double>(5.0);
+	EXPECT_DOUBLE_EQ(20.0_pct, pResult);
+	EXPECT_DOUBLE_EQ(0.2, pResult.value());
 
 	result = percent<double>(5.0) * percent<double>(4.0);
 	EXPECT_NEAR(0.002, result, 5.0e-5);
@@ -2081,12 +2061,12 @@ TEST_F(UnitType, unitTypeMultiplication)
 
 TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 {
-	meters<double>                                   a_m(1.0);
-	feet<double>                                     b_ft(3.28084);
-	unit<inverse<meters<double>>>                    i_m(2.0);
-	const meters<int>                                b_m(1);
-	const std::common_type_t<meters<int>, feet<int>> f(b_m);
-	const unit<inverse<meters<double>>, int>         i_i_m(2);
+	constexpr meters                                     a_m(1.0);
+	constexpr feet                                       b_ft(3.28084);
+	constexpr unit<inverse<meters<double>>>              i_m(2.0);
+	constexpr meters                                     b_m(1);
+	constexpr std::common_type_t<meters<int>, feet<int>> f(b_m);
+	constexpr unit<inverse<meters<double>>, int>         i_i_m(2);
 
 	// resultant unit is square of the common type unit
 	// you can get whatever (compatible) type you want if you ask explicitly
@@ -2117,7 +2097,7 @@ TEST_F(UnitType, unitTypeMixedUnitMultiplication)
 	d_m2 = f * a_m;
 	EXPECT_NEAR(1.0, d_m2.value(), 5.0e-5);
 
-	// a unit times a sclar ends up with the same units.
+	// a unit times a scalar ends up with the same units.
 	meters<double> e_m = a_m * dimensionless<double>(3.0);
 	EXPECT_NEAR(3.0, e_m.value(), 5.0e-5);
 	e_m = b_m * dimensionless<int>(3);
@@ -2199,13 +2179,13 @@ TEST_F(UnitType, unitTypeDimensionlessMultiplication)
 
 TEST_F(UnitType, unitTypeDivision)
 {
-	meters<double>                                   a_m(1.0), b_m(2.0);
-	feet<double>                                     a_ft(3.28084);
-	seconds<double>                                  a_sec(10.0);
-	const meters<int>                                d_m(1), e_m(2);
-	const std::common_type_t<meters<int>, feet<int>> j(d_m);
-	const seconds<int>                               b_sec(10);
-	bool                                             isSame;
+	constexpr meters<double>                             a_m(1.0), b_m(2.0);
+	constexpr feet                                       a_ft(3.28084);
+	constexpr seconds                                    a_sec(10.0);
+	constexpr meters<int>                                d_m(1), e_m(2);
+	constexpr std::common_type_t<meters<int>, feet<int>> j(d_m);
+	constexpr seconds                                    b_sec(10);
+	bool                                                 isSame;
 
 	auto c = a_m / a_ft;
 	EXPECT_NEAR(1.0, c, 5.0e-5);
@@ -2350,34 +2330,34 @@ TEST_F(UnitType, unitTypeDivision)
 
 TEST_F(UnitType, unitTypeModulo)
 {
-	const meters<int>     a_m(2200);
-	const meters<int>     b_m(1800);
-	const kilometers<int> a_km(2);
+	constexpr meters     a_m(2200);
+	constexpr meters     b_m(1800);
+	constexpr kilometers a_km(2);
 
-	const auto c_m = a_m % b_m;
+	constexpr auto c_m = a_m % b_m;
 	EXPECT_EQ(400, c_m.value());
 	static_assert(has_equivalent_conversion_factor(c_m, a_m));
 
-	const auto d_m = a_m % a_km;
+	constexpr auto d_m = a_m % a_km;
 	EXPECT_EQ(200, d_m.value());
 	static_assert(has_equivalent_conversion_factor(d_m, a_m));
 
-	const auto b_km = a_km % dimensionless<int>(3);
+	constexpr auto b_km = a_km % dimensionless<int>(3);
 	EXPECT_EQ(2, b_km.value());
 	static_assert(has_equivalent_conversion_factor(b_km, a_km));
 
-	const auto e_m = a_m % 2000;
+	constexpr auto e_m = a_m % 2000;
 	EXPECT_EQ(200, e_m.value());
 	static_assert(has_equivalent_conversion_factor(e_m, a_m));
 
-	const dimensionless<int> a_s(12);
-	const dimensionless<int> b_s(5);
+	constexpr dimensionless a_s(12);
+	constexpr dimensionless b_s(5);
 
-	const auto c_s = a_s % b_s;
+	constexpr auto c_s = a_s % b_s;
 	EXPECT_EQ(2, c_s.value());
 	static_assert(has_equivalent_conversion_factor(c_s, a_s));
 
-	const auto d_s = a_s % 20;
+	constexpr auto d_s = a_s % 20;
 	EXPECT_EQ(12, d_s.value());
 	static_assert(has_equivalent_conversion_factor(d_s, a_s));
 
@@ -2455,7 +2435,7 @@ TEST_F(UnitType, compoundAssignmentAddition)
 
 	EXPECT_EQ((meters<int>(1001)), c);
 
-	// dimensionlesss
+	// dimensionless
 	dimensionless<double> b(0);
 	b += dimensionless<double>(1.0);
 
@@ -2543,7 +2523,7 @@ TEST_F(UnitType, compoundAssignmentSubtraction)
 
 	EXPECT_EQ((meters<int>(-1000)), c);
 
-	// dimensionlesss
+	// dimensionless
 	dimensionless<double> b(2);
 	b -= dimensionless<double>(1.0);
 
@@ -2643,7 +2623,7 @@ TEST_F(UnitType, compoundAssignmentMultiplication)
 
 	EXPECT_EQ((meters<int>(64)), c);
 
-	// dimensionlesss
+	// dimensionless
 	dimensionless<double> b(2);
 	b *= dimensionless<double>(2.0);
 
@@ -2763,7 +2743,7 @@ TEST_F(UnitType, compoundAssignmentDivision)
 
 	EXPECT_EQ((meters<int>(2)), c);
 
-	// dimensionlesss
+	// dimensionless
 	dimensionless<double> b(8);
 	b /= dimensionless<double>(2.0);
 
@@ -2891,45 +2871,45 @@ TEST_F(UnitType, dimensionlessTypeImplicitConversion)
 
 TEST_F(UnitType, valueMethod)
 {
-	double test = meters<double>(3.0).to<double>();
+	constexpr auto test = meters(3.0).to<double>();
 	EXPECT_DOUBLE_EQ(3.0, test);
 
-	auto test2 = meters<double>(4.0).value();
+	constexpr auto test2 = meters(4.0).value();
 	EXPECT_DOUBLE_EQ(4.0, test2);
-	static_assert(std::is_same_v<decltype(test2), double>);
+	static_assert(std::is_same_v<std::decay_t<decltype(test2)>, double>);
 
-	miles_per_hour<> mph = 100_ft / 1_min;
+	constexpr miles_per_hour mph = 100.0_ft / 1.0_min;
 	EXPECT_DOUBLE_EQ(mph.value(), 1.1363636363636365);
 
-	const auto test3 = 5.0_m * (2.0 / 1000.0_mm);
+	constexpr auto test3 = 5.0_m * (2.0 / 1000.0_mm);
 	EXPECT_DOUBLE_EQ(test3.value(), test3.to<double>());
 
-	const auto test4 = (2.0 / 1000.0_mm) / 5_hr;
+	constexpr auto test4 = (2.0 / 1000.0_mm) / 5_hr;
 	EXPECT_DOUBLE_EQ(test4.value(), test4.to<double>());
 
-	percent<double> test5(85.1);
+	constexpr percent test5(85.1);
 	EXPECT_DOUBLE_EQ(test5.to<double>(), 0.851);
 
-	percent<double> test6(1.0_m / 2000.0_mm);
+	constexpr percent test6(1.0_m / 2000.0_mm);
 	EXPECT_EQ(test6, 50_pct);
 	EXPECT_DOUBLE_EQ(test6.to<double>(), 0.5);
 
-	percent<double> test7(1000.0_mm / 2.0_m);
+	constexpr percent test7(1000.0_mm / 2.0_m);
 	EXPECT_EQ(test7, 50_pct);
 	EXPECT_DOUBLE_EQ(test7.to<double>(), 0.5);
 
-	percent<double> test8 = 1000.0_mm / 2.0_m;
+	constexpr percent test8 = 1000.0_mm / 2.0_m;
 	EXPECT_EQ(test8, 50_pct);
 	EXPECT_DOUBLE_EQ(test8.to<double>(), 0.5);
 }
 
 TEST_F(UnitType, convertMethod)
 {
-	double test = meters<double>(3.0).convert<feet<double>::conversion_factor>().to<double>();
+	constexpr auto test = meters(3.0).convert<feet<double>::conversion_factor>().to<double>();
 	EXPECT_NEAR(9.84252, test, 5.0e-6);
 
-	auto   unit2 = meters<double>(3.0).convert<feet>();
-	double test2 = unit2.to<double>();
+	constexpr auto unit2 = meters<double>(3.0).convert<feet>();
+	constexpr auto test2 = unit2.to<double>();
 	EXPECT_NEAR(9.84252, test2, 5.0e-6);
 }
 
@@ -3118,7 +3098,7 @@ TEST(Consistency, percent)
 
 TEST_F(UnitType, identity)
 {
-	percent<double> a = percent<double>(50);
+	auto            a = percent<double>(50);
 	percent<double> b = a;
 	percent<double> d = 1.0 * a;
 	percent<double> f = a * 1.0;
@@ -3415,11 +3395,12 @@ TEST_F(ConversionFactor, mass)
 TEST_F(ConversionFactor, time)
 {
 	double result      = 0;
-	double daysPerYear = 365;
-	double hoursPerDay = 24;
-	double minsPerHour = 60;
-	double secsPerMin  = 60;
-	double daysPerWeek = 7;
+
+	constexpr double daysPerYear = 365;
+	constexpr double hoursPerDay = 24;
+	constexpr double minsPerHour = 60;
+	constexpr double secsPerMin  = 60;
+	constexpr double daysPerWeek = 7;
 
 	result = 2 * daysPerYear * hoursPerDay * minsPerHour * secsPerMin * (1 / minsPerHour) * (1 / secsPerMin) * (1 / hoursPerDay) * (1 / daysPerWeek);
 	EXPECT_NEAR(104.286, result, 5.0e-4);
@@ -4015,8 +3996,6 @@ TEST_F(ConversionFactor, illuminance)
 	test = lux<double>(gigalux<double>(0.000000001)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 
-	// 	test = lux<double>(footcandle<double>(0.092903)).value();
-	// 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = lumens_per_square_inch<double>(lux<double>(1550.0031000062)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-13);
 	test = lux<double>(phots<double>(0.0001)).value();
@@ -4235,7 +4214,7 @@ TEST_F(ConversionFactor, concentration)
 	test = percent<double>(18.0);
 	EXPECT_NEAR(0.18, test, 5.0e-12);
 
-	percent<double> test2 = percent<double>(18.0);
+	auto test2 = percent(18.0);
 	EXPECT_DOUBLE_EQ(test2.to<double>(), 0.18);
 	EXPECT_DOUBLE_EQ(test2.value(), 0.18);
 	test2 = 0.5;
@@ -4435,21 +4414,21 @@ TEST_F(ConversionFactor, std_chrono)
 
 TEST_F(ConversionFactor, squaredTemperature)
 {
-	using squared_celsius   = units::compound_conversion_factor<squared<celsius<double>>>;
-	using squared_celsius_t = units::unit<squared_celsius>;
-	const squared_celsius_t right(100);
-	const celsius<double>   rootRight = sqrt(right);
+	using squared_celsius   = compound_conversion_factor<squared<celsius<double>>>;
+	using squared_celsius_t = unit<squared_celsius>;
+	constexpr squared_celsius_t right(100);
+	constexpr celsius           rootRight = sqrt(right);
 	EXPECT_EQ(celsius<double>(10), rootRight);
 }
 
 TEST_F(UnitMath, min)
 {
-	meters<double> a(1);
-	feet<double>   c(1);
+	meters a(1.0);
+	feet   c(1.0);
 	EXPECT_EQ(c, units::min(a, c));
 
-	const meters<int>      d(1);
-	const centimeters<int> e(99);
+	constexpr meters      d(1);
+	constexpr centimeters e(99);
 	EXPECT_EQ(e, units::min(d, e));
 }
 
@@ -4469,11 +4448,11 @@ TEST_F(UnitMath, ternaryOperator)
 	degrees val1 = 10_deg;
 	degrees val2 = 90_deg;
 
-	bool value = true;
+	bool value   = true;
 	auto new_val = value ? val1 - val2 : val2;
 	EXPECT_EQ(new_val, -80_deg);
 
-	value = false;
+	value   = false;
 	new_val = value ? val1 - val2 : val2;
 	EXPECT_EQ(new_val, 90_deg);
 }
@@ -4761,38 +4740,31 @@ TEST_F(UnitMath, log2)
 
 TEST_F(UnitMath, pow)
 {
-	bool           isSame;
-	meters<double> value(10.0);
+	constexpr meters value(10.0);
 
 	auto inv_sq = pow<-2>(value);
 	EXPECT_NEAR(0.01, inv_sq.value(), 5.0e-5);
-	isSame = std::is_same<decltype(inv_sq), unit<inverse<square_meters<>>>>::value;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(inv_sq), unit<inverse<square_meters<>>>>);
 
 	auto inv = pow<-1>(value);
 	EXPECT_NEAR(0.1, inv.value(), 5.0e-4);
-	isSame = std::is_same<decltype(inv), unit<inverse<meters<>>>>::value;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(inv), unit<inverse<meters<>>>>);
 
 	auto scalar = pow<0>(value);
 	EXPECT_NEAR(1, scalar.value(), 5.0e-3);
-	isSame = std::is_same<decltype(scalar), dimensionless<>>::value;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(scalar), dimensionless<>>);
 
 	auto sq = pow<2>(value);
 	EXPECT_NEAR(100.0, sq.value(), 5.0e-2);
-	isSame = std::is_same_v<decltype(sq), square_meters<double>>;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(sq), square_meters<double>>);
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube.value(), 5.0e-2);
-	isSame = std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meters<double>>>>>;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meters<double>>>>>);
 
 	auto fourth = pow<4>(value);
 	EXPECT_NEAR(10000.0, fourth.value(), 5.0e-2);
-	isSame = std::is_same_v<decltype(fourth), unit<compound_conversion_factor<squared<meters<double>>, squared<meters<double>>>>>;
-	EXPECT_TRUE(isSame);
+	static_assert(std::is_same_v<decltype(fourth), unit<compound_conversion_factor<squared<meters<double>>, squared<meters<double>>>>>);
 }
 
 TEST_F(UnitMath, sqrt)
@@ -4921,10 +4893,11 @@ TEST_F(UnitMath, isnan)
 
 TEST_F(UnitMath, isinf)
 {
-	meters<> zero(0.0);
-	meters<> nan(NAN);
-	meters<> inf(INFINITY);
+	constexpr meters zero(0.0);
+	constexpr meters nan(NAN);
+	constexpr meters inf(INFINITY);
 
+	EXPECT_FALSE(units::isnan(zero));
 	EXPECT_FALSE(units::isinf(nan));
 	EXPECT_TRUE(units::isinf(inf));
 	EXPECT_FALSE(units::isinf(0.0_m));
@@ -4934,10 +4907,11 @@ TEST_F(UnitMath, isinf)
 
 TEST_F(UnitMath, isfinite)
 {
-	meters<> zero(0.0);
-	meters<> nan(NAN);
-	meters<> inf(INFINITY);
+	meters zero(0.0);
+	meters nan(NAN);
+	meters inf(INFINITY);
 
+	EXPECT_TRUE(units::isfinite(zero));
 	EXPECT_FALSE(units::isfinite(nan));
 	EXPECT_FALSE(units::isfinite(inf));
 	EXPECT_TRUE(units::isfinite(0.0_m));
@@ -4947,10 +4921,11 @@ TEST_F(UnitMath, isfinite)
 
 TEST_F(UnitMath, isnormal)
 {
-	meters<> zero(0.0);
-	meters<> nan(NAN);
-	meters<> inf(INFINITY);
+	meters zero(0.0);
+	meters nan(NAN);
+	meters inf(INFINITY);
 
+	EXPECT_FALSE(units::isnormal(zero));
 	EXPECT_FALSE(units::isnormal(nan));
 	EXPECT_FALSE(units::isnormal(inf));
 	EXPECT_FALSE(units::isnormal(0.0_m));
@@ -4959,9 +4934,8 @@ TEST_F(UnitMath, isnormal)
 
 TEST_F(UnitMath, isunordered)
 {
-	meters<> zero(0.0);
-	meters<> nan(NAN);
-	meters<> inf(INFINITY);
+	meters zero(0.0);
+	meters nan(NAN);
 
 	EXPECT_TRUE(units::isunordered(nan, zero));
 	EXPECT_TRUE(units::isunordered(zero, nan));
@@ -5202,7 +5176,7 @@ TEST_F(CaseStudies, radarRangeEquation)
 	watts<>         P_t;    // transmit power
 	dimensionless<> G;      // gain
 	meters<>        lambda; // wavelength
-	square_meters<> sigma;  // radar cross section
+	square_meters<> sigma;  // radar cross-section
 	meters<>        R;      // range
 	kelvin<>        T_s;    // system noise temp
 	hertz<>         B_n;    // bandwidth
@@ -5232,9 +5206,9 @@ TEST_F(CaseStudies, rightTriangle)
 
 TEST_F(CaseStudies, dataReadSimulation)
 {
-	const megabytes<int>            data_size     = 100_MB;
-	const megabytes_per_second<int> read_rate     = 2_MBps;
-	bytes<int>                      read_progress = 10_MB;
+	constexpr auto data_size     = 100_MB;
+	constexpr auto read_rate     = 2_MBps;
+	bytes          read_progress = 10_MB;
 
 	auto advance_simulation = [&](auto time) { read_progress = units::min(read_progress + time * read_rate, data_size); };
 
