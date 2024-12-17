@@ -67,7 +67,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sieverts, Sv, conversion_factor<std::ratio<1>, grays_>)
 	UNIT_ADD(radiation, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerels<>>)
 	UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<>>)
-	UNIT_ADD(radiation, rads, rads, conversion_factor<std::ratio<1>, centigrays<>>)
+	UNIT_ADD(radiation, radiation_absorbed_dose, rads, conversion_factor<std::ratio<1>, centigrays<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units

@@ -84,9 +84,9 @@ namespace units
 	UNIT_ADD(volume, drams, dr, conversion_factor<std::ratio<1, 8>, fluid_ounces<>>)
 	UNIT_ADD(volume, gills, gi, conversion_factor<std::ratio<4>, fluid_ounces<>>)
 	UNIT_ADD(volume, pecks, pk, conversion_factor<std::ratio<1, 4>, bushels<>>)
-	UNIT_ADD(volume, sacks, sacks, conversion_factor<std::ratio<3>, bushels<>>)
-	UNIT_ADD(volume, shots, shots, conversion_factor<std::ratio<3, 2>, fluid_ounces<>>)
-	UNIT_ADD(volume, strikes, strikes, conversion_factor<std::ratio<2>, bushels<>>)
+	UNIT_ADD(volume, sacks, sck, conversion_factor<std::ratio<3>, bushels<>>)
+	UNIT_ADD(volume, shots, shts, conversion_factor<std::ratio<3, 2>, fluid_ounces<>>)
+	UNIT_ADD(volume, strikes, strk, conversion_factor<std::ratio<2>, bushels<>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(volume)
 } // namespace units

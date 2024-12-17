@@ -263,6 +263,9 @@ namespace units
 		}                                                                                                                                                      \
 	}
 #endif
+
+#define UNIT_ADD_CONSTANT(namespaceName, namePlural, abbreviation) static constexpr namespaceName::namePlural abbreviation{1.0};
+
 /**
  * @def			UNIT_ADD(namespaceName, namePlural, abbreviation, definition)
  * @brief		Macro for generating the boilerplate code needed for a new unit.
@@ -286,7 +289,8 @@ namespace units
 	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                                                                  \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                           \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                     \
-	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
+	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)                                                                                                 \
+	UNIT_ADD_CONSTANT(namespaceName, namePlural, abbreviation)
 
 /**
  * @def			UNIT_ADD_DECIBEL(namespaceName, namePlural, abbreviation)
@@ -3550,19 +3554,19 @@ namespace units
 	 * @brief		dimensionless unit with decibel scale
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dB, ::units::decibel_scale, dimensionless_)
+	UNIT_ADD_SCALED_UNIT_DEFINITION(decibels, ::units::decibel_scale, dimensionless_)
 	template<class Underlying>
-	using dB = unit<dimensionless_, Underlying, decibel_scale>;
+	using decibels = unit<dimensionless_, Underlying, decibel_scale>;
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
-	std::ostream& operator<<(std::ostream& os, const dB<Underlying>& obj)
+	std::ostream& operator<<(std::ostream& os, const decibels<Underlying>& obj)
 	{
 		os << obj.raw() << " dB";
 		return os;
 	}
 #endif
 	template<class Underlying>
-	using dBi_t = dB<Underlying>;
+	using dBi = decibels<Underlying>;
 
 	//------------------------------
 	//	DECIBEL ARITHMETIC
@@ -3605,7 +3609,7 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> dB<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
+		-> decibels<typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
 	{
 		using Dimensionless = decltype(lhs - rhs);
 		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -4024,8 +4028,8 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitMultiply, UnitType UnitAdd>
 		requires(traits::is_same_dimension_conversion_factor_v<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor,
-															  typename traits::unit_traits<UnitMultiply>::conversion_factor>,
-				typename traits::unit_traits<UnitAdd>::conversion_factor>)
+																   typename traits::unit_traits<UnitMultiply>::conversion_factor>,
+			typename traits::unit_traits<UnitAdd>::conversion_factor>)
 	constexpr auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept
 		-> std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) * detail::floating_point_promotion_t<UnitMultiply>(y)), UnitAdd>
 	{

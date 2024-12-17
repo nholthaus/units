@@ -243,8 +243,8 @@ TEST_F(TypeTraits, has_linear_scale)
 	static_assert(traits::has_linear_scale_v<watts<double>, dimensionless<double>>);
 	static_assert(traits::has_linear_scale_v<dimensionless<double>, meters<double>>);
 	static_assert(traits::has_linear_scale_v<meters_per_second<double>>);
-	static_assert(!traits::has_linear_scale_v<dB<double>>);
-	static_assert(!traits::has_linear_scale_v<dB<double>, meters_per_second<double>>);
+	static_assert(!traits::has_linear_scale_v<decibels<double>>);
+	static_assert(!traits::has_linear_scale_v<decibels<double>, meters_per_second<double>>);
 }
 
 TEST_F(TypeTraits, has_decibel_scale)
@@ -252,15 +252,15 @@ TEST_F(TypeTraits, has_decibel_scale)
 	static_assert(!traits::has_decibel_scale_v<dimensionless<double>>);
 	static_assert(!traits::has_decibel_scale_v<meters<double>>);
 	static_assert(!traits::has_decibel_scale_v<feet<double>>);
-	static_assert(traits::has_decibel_scale_v<dB<double>>);
+	static_assert(traits::has_decibel_scale_v<decibels<double>>);
 	static_assert(traits::has_decibel_scale_v<dBW<double>>);
 
-	static_assert(traits::has_decibel_scale_v<dBW<double>, dB<double>>);
+	static_assert(traits::has_decibel_scale_v<dBW<double>, decibels<double>>);
 	static_assert(traits::has_decibel_scale_v<dBW<double>, dBm<double>>);
-	static_assert(traits::has_decibel_scale_v<dB<double>, dB<double>>);
-	static_assert(traits::has_decibel_scale_v<dB<double>, dB<double>, dB<double>>);
-	static_assert(!traits::has_decibel_scale_v<dB<double>, dB<double>, meters<double>>);
-	static_assert(!traits::has_decibel_scale_v<meters<double>, dB<double>>);
+	static_assert(traits::has_decibel_scale_v<decibels<double>, decibels<double>>);
+	static_assert(traits::has_decibel_scale_v<decibels<double>, decibels<double>, decibels<double>>);
+	static_assert(!traits::has_decibel_scale_v<decibels<double>, decibels<double>, meters<double>>);
+	static_assert(!traits::has_decibel_scale_v<meters<double>, decibels<double>>);
 }
 
 TEST_F(TypeTraits, is_dimensionless_unit)
@@ -269,7 +269,7 @@ TEST_F(TypeTraits, is_dimensionless_unit)
 	static_assert(traits::is_dimensionless_unit_v<const dimensionless<double>>);
 	static_assert(traits::is_dimensionless_unit_v<const dimensionless<double>&>);
 	static_assert(traits::is_dimensionless_unit_v<dimensionless<double>>);
-	static_assert(traits::is_dimensionless_unit_v<dB<double>>);
+	static_assert(traits::is_dimensionless_unit_v<decibels<double>>);
 	static_assert(traits::is_dimensionless_unit_v<parts_per_million<double>>);
 	static_assert(!traits::is_dimensionless_unit_v<meters<double>>);
 	static_assert(!traits::is_dimensionless_unit_v<dBW<double>>);
@@ -351,7 +351,7 @@ TEST_F(TypeTraits, is_luminous_intensity_unit)
 	static_assert(traits::is_luminous_intensity_unit_v<candelas<double>>);
 	static_assert(traits::is_luminous_intensity_unit_v<const candelas<double>>);
 	static_assert(traits::is_luminous_intensity_unit_v<const candelas<double>&>);
-	static_assert(!traits::is_luminous_intensity_unit_v<rads<double>>);
+	static_assert(!traits::is_luminous_intensity_unit_v<radiation_absorbed_dose<double>>);
 }
 
 TEST_F(TypeTraits, is_solid_angle_unit)
@@ -360,7 +360,7 @@ TEST_F(TypeTraits, is_solid_angle_unit)
 	static_assert(traits::is_solid_angle_unit_v<steradians<double>>);
 	static_assert(traits::is_solid_angle_unit_v<const steradians<double>>);
 	static_assert(traits::is_solid_angle_unit_v<const degrees_squared<double>&>);
-	static_assert(!traits::is_solid_angle_unit_v<angle::degrees<double>>);
+	static_assert(!traits::is_solid_angle_unit_v<degrees<double>>);
 }
 
 TEST_F(TypeTraits, is_frequency_unit)
@@ -785,16 +785,16 @@ TEST_F(UnitType, trivial)
 	static_assert(std::is_trivially_move_assignable_v<meters<double>>);
 	static_assert(std::is_trivially_move_constructible_v<meters<double>>);
 
-	static_assert(std::is_trivial_v<dB<double>>);
-	static_assert(std::is_trivially_assignable_v<dB<double>, dB<double>>);
-	static_assert(std::is_trivially_constructible_v<dB<double>>);
-	static_assert(std::is_trivially_copy_assignable_v<dB<double>>);
-	static_assert(std::is_trivially_copy_constructible_v<dB<double>>);
-	static_assert(std::is_trivially_copyable_v<dB<double>>);
-	static_assert(std::is_trivially_default_constructible_v<dB<double>>);
-	static_assert(std::is_trivially_destructible_v<dB<double>>);
-	static_assert(std::is_trivially_move_assignable_v<dB<double>>);
-	static_assert(std::is_trivially_move_constructible_v<dB<double>>);
+	static_assert(std::is_trivial_v<decibels<double>>);
+	static_assert(std::is_trivially_assignable_v<decibels<double>, decibels<double>>);
+	static_assert(std::is_trivially_constructible_v<decibels<double>>);
+	static_assert(std::is_trivially_copy_assignable_v<decibels<double>>);
+	static_assert(std::is_trivially_copy_constructible_v<decibels<double>>);
+	static_assert(std::is_trivially_copyable_v<decibels<double>>);
+	static_assert(std::is_trivially_default_constructible_v<decibels<double>>);
+	static_assert(std::is_trivially_destructible_v<decibels<double>>);
+	static_assert(std::is_trivially_move_assignable_v<decibels<double>>);
+	static_assert(std::is_trivially_move_constructible_v<decibels<double>>);
 }
 
 TEST_F(UnitType, complexUnits)
@@ -2932,7 +2932,7 @@ TEST_F(UnitType, cout)
 	EXPECT_STREQ("1 m", output.c_str());
 
 	testing::internal::CaptureStdout();
-	std::cout << dB<double>(31.0);
+	std::cout << decibels<double>(31.0);
 	output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("31 dB", output.c_str());
 
@@ -3154,8 +3154,8 @@ TEST_F(UnitType, negative)
 	EXPECT_NEAR(a.to<double>(), -b.to<double>(), 5.0e-320);
 	EXPECT_NEAR(b.to<double>(), -a.to<double>(), 5.0e-320);
 
-	dB<double> c(2.87);
-	dB<double> d(-2.87);
+	decibels<double> c(2.87);
+	decibels<double> d(-2.87);
 	EXPECT_NEAR(c.to<double>(), -d.to<double>(), 5.0e-320);
 	EXPECT_NEAR(d.to<double>(), -c.to<double>(), 5.0e-320);
 
@@ -3211,20 +3211,20 @@ TEST_F(UnitType, dBAddition)
 {
 	bool isSame;
 
-	auto result_dbw = dBW<double>(10.0) + dB<double>(30.0);
+	auto result_dbw = dBW<double>(10.0) + decibels<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
-	result_dbw = dBW<int>(10) + dB<int>(30);
+	result_dbw = dBW<int>(10) + decibels<int>(30);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
-	result_dbw = dB<double>(12.0) + dBW<double>(30.0);
+	result_dbw = decibels<double>(12.0) + dBW<double>(30.0);
 	EXPECT_NEAR(42.0, result_dbw.value(), 5.0e-5);
-	result_dbw = dB<int>(12) + dBW<int>(30);
+	result_dbw = decibels<int>(12) + dBW<int>(30);
 	EXPECT_NEAR(42.0, result_dbw.value(), 2);
 	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto result_dbm = dB<double>(30.0) + dBm<double>(20.0);
+	auto result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
-	result_dbm = dB<int>(30) + dBm<int>(20);
+	result_dbm = decibels<int>(30) + dBm<int>(20);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
@@ -3238,24 +3238,24 @@ TEST_F(UnitType, dBSubtraction)
 {
 	bool isSame;
 
-	auto result_dbw = dBW<double>(10.0) - dB<double>(30.0);
+	auto result_dbw = dBW<double>(10.0) - decibels<double>(30.0);
 	EXPECT_NEAR(-20.0, result_dbw.value(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
-	auto result_dbm = dBm<double>(100.0) - dB<double>(30.0);
+	auto result_dbm = dBm<double>(100.0) - decibels<double>(30.0);
 	EXPECT_NEAR(70.0, result_dbm.value(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbm), dBm<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto result_db = dBW<double>(100.0) - dBW<double>(80.0);
 	EXPECT_NEAR(20.0, result_db.value(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_db), dB<double>>;
+	isSame = std::is_same_v<decltype(result_db), decibels<double>>;
 	EXPECT_TRUE(isSame);
 
-	result_db = dB<double>(100.0) - dB<double>(80.0);
+	result_db = decibels<double>(100.0) - decibels<double>(80.0);
 	EXPECT_NEAR(20.0, result_db.value(), 5.0e-5);
-	isSame = std::is_same_v<decltype(result_db), dB<double>>;
+	isSame = std::is_same_v<decltype(result_db), decibels<double>>;
 	EXPECT_TRUE(isSame);
 }
 
@@ -3359,6 +3359,9 @@ TEST_F(ConversionFactor, length)
 	EXPECT_NEAR(1000, test, 5.0e-7);
 
 	EXPECT_EQ(metres<double>(1), meters<double>(1));
+
+	EXPECT_EQ(1_m, 1 * m);
+	EXPECT_EQ(2_ft, 2 * ft);
 }
 
 TEST_F(ConversionFactor, mass)
@@ -3605,6 +3608,8 @@ TEST_F(ConversionFactor, velocity)
 	EXPECT_NEAR(176.0, test, 5.0e-5);
 	test = meters_per_second<double>(feet_per_second<double>(10.0)).value();
 	EXPECT_NEAR(3.048, test, 5.0e-5);
+
+	EXPECT_EQ(10_mps, 10 * m / s);
 }
 
 TEST_F(ConversionFactor, angular_velocity)
@@ -4085,7 +4090,7 @@ TEST_F(ConversionFactor, radiation)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = rutherfords<double>(becquerels<double>(1000000.0)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = grays<double>(rads<double>(100.0)).value();
+	test = grays<double>(radiation_absorbed_dose<double>(100.0)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 }
 
@@ -5183,13 +5188,13 @@ TEST_F(CaseStudies, radarRangeEquation)
 	dimensionless<> L;      // loss
 
 	P_t    = megawatts<>(1.4);
-	G      = dB<>(33.0);
+	G      = decibels<>(33.0);
 	lambda = constants::c / megahertz<>(2800.0);
 	sigma  = square_meters<>(1.0);
 	R      = meters<>(111000.0);
 	T_s    = kelvin<>(950.0);
 	B_n    = megahertz<>(1.67);
-	L      = dB<>(8.0);
+	L      = decibels<>(8.0);
 
 	dimensionless<double> SNR = (P_t * pow<2>(G) * pow<2>(lambda) * sigma) / (pow<3>(4 * constants::pi) * pow<4>(R) * constants::k_B * T_s * B_n * L);
 
