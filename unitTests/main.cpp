@@ -4457,6 +4457,10 @@ TEST_F(UnitMath, min)
 	constexpr meters      d(1);
 	constexpr centimeters e(99);
 	EXPECT_EQ(e, units::min(d, e));
+
+	const percent<int> f(1);
+	const percent<int> g(99);
+	EXPECT_EQ(f, units::min(f, g));
 }
 
 TEST_F(UnitMath, max)
@@ -4468,6 +4472,10 @@ TEST_F(UnitMath, max)
 	meters<int>      d(1);
 	centimeters<int> e(101);
 	EXPECT_EQ(e, max(d, e));
+
+	percent<int> f(1);
+	percent<int> g(101);
+	EXPECT_EQ(g, max(f, g));
 }
 
 TEST_F(UnitMath, ternaryOperator)
@@ -4799,7 +4807,11 @@ TEST_F(UnitMath, sqrt)
 	static_assert(std::is_same_v<meters<double>, decltype(sqrt(square_meters<double>(4.0)))>);
 	EXPECT_NEAR(meters<double>(2.0).to<double>(), sqrt(square_meters<double>(4.0)).to<double>(), 5.0e-9);
 
-	static_assert(std::is_same_v<angle::radians<double>, decltype(sqrt(steradians<double>(16.0)))>);
+	EXPECT_TRUE((std::is_same_v<percent<double>, decltype(sqrt(percent<double>(4.0) * percent<double>(4.0)))>));
+	EXPECT_NEAR(percent<double>(2.0).raw(), sqrt(percent<double>(4.0)).raw(), 5.0e-9);
+
+	EXPECT_TRUE((std::is_same_v<angle::radians<double>, decltype(sqrt(steradians<double>(16.0)))>));
+  
 	EXPECT_NEAR(angle::radians<double>(4.0).to<double>(), sqrt(steradians<double>(16.0)).to<double>(), 5.0e-9);
 
 	static_assert(std::is_convertible_v<feet<double>, decltype(sqrt(square_feet<double>(10.0)))>);
@@ -4828,13 +4840,17 @@ TEST_F(UnitMath, ceil)
 {
 	double val = 101.1;
 	EXPECT_EQ(ceil(val), ceil(meters<double>(val)).to<double>());
-	static_assert(std::is_same_v<meters<double>, decltype(ceil(meters<double>(val)))>);
+  static_assert(std::is_same_v<meters<double>, decltype(ceil(meters<double>(val)))>);
+
+	EXPECT_EQ(ceil(val), ceil(percent<double>(val)).raw());
+	static_assert(std::is_same_v<percent<double>, decltype(ceil(percent<double>(val)))>);
 }
 
 TEST_F(UnitMath, floor)
 {
 	double val = 101.1;
 	EXPECT_EQ(floor(val), floor(dimensionless<double>(val)));
+	EXPECT_EQ(floor(val), floor(percent<double>(val)).raw());
 }
 
 TEST_F(UnitMath, fmod)
@@ -4846,12 +4862,14 @@ TEST_F(UnitMath, trunc)
 {
 	double val = 101.1;
 	EXPECT_EQ(trunc(val), trunc(dimensionless<double>(val)));
+	EXPECT_EQ(trunc(val), trunc(percent<double>(val)).raw());
 }
 
 TEST_F(UnitMath, round)
 {
 	double val = 101.1;
 	EXPECT_EQ(round(val), round(dimensionless<double>(val)));
+	EXPECT_EQ(round(val), round(percent<double>(val)).raw());
 }
 
 TEST_F(UnitMath, copysign)
@@ -4862,12 +4880,22 @@ TEST_F(UnitMath, copysign)
 	EXPECT_EQ(meters<double>(-5.0), copysign(val, angle::radians<double>(sign)));
 }
 
+TEST_F(UnitMath, copysign_percent)
+{
+	double         sign = -1;
+	percent<double> val(5.0);
+	EXPECT_EQ(percent<double>(-5.0), copysign(val, sign));
+}
+
 TEST_F(UnitMath, fdim)
 {
 	EXPECT_EQ(meters<double>(0.0), fdim(meters<double>(8.0), meters<double>(10.0)));
 	EXPECT_EQ(meters<double>(2.0), fdim(meters<double>(10.0), meters<double>(8.0)));
 	EXPECT_NEAR(meters<double>(9.3904).to<double>(), meters<double>(fdim(meters<double>(10.0), feet<double>(2.0))).to<double>(),
 		5.0e-320); // not sure why they aren't comparing exactly equal, but clearly they are.
+
+	EXPECT_EQ(percent<double>(0.0), fdim(percent<double>(8.0), percent<double>(10.0)));
+	EXPECT_EQ(percent<double>(2.0), fdim(percent<double>(10.0), percent<double>(8.0)));
 }
 
 TEST_F(UnitMath, fmin)
@@ -4875,6 +4903,9 @@ TEST_F(UnitMath, fmin)
 	EXPECT_EQ(meters<double>(8.0), fmin(meters<double>(8.0), meters<double>(10.0)));
 	EXPECT_EQ(meters<double>(8.0), fmin(meters<double>(10.0), meters<double>(8.0)));
 	EXPECT_EQ(feet<double>(2.0), fmin(meters<double>(10.0), feet<double>(2.0)));
+
+	EXPECT_EQ(percent<double>(8.0), fmin(percent<double>(8.0), percent<double>(10.0)));
+	EXPECT_EQ(percent<double>(8.0), fmin(percent<double>(10.0), percent<double>(8.0)));
 }
 
 TEST_F(UnitMath, fmax)
@@ -4882,18 +4913,27 @@ TEST_F(UnitMath, fmax)
 	EXPECT_EQ(meters<double>(10.0), fmax(meters<double>(8.0), meters<double>(10.0)));
 	EXPECT_EQ(meters<double>(10.0), fmax(meters<double>(10.0), meters<double>(8.0)));
 	EXPECT_EQ(meters<double>(10.0), fmax(meters<double>(10.0), feet<double>(2.0)));
+
+	EXPECT_EQ(percent<double>(10.0), fmax(percent<double>(8.0), percent<double>(10.0)));
+	EXPECT_EQ(percent<double>(10.0), fmax(percent<double>(10.0), percent<double>(8.0)));
 }
 
 TEST_F(UnitMath, fabs)
 {
 	EXPECT_EQ(meters<double>(10.0), fabs(meters<double>(-10.0)));
 	EXPECT_EQ(meters<double>(10.0), fabs(meters<double>(10.0)));
+
+	EXPECT_EQ(percent<double>(10.0), fabs(percent<double>(-10.0)));
+	EXPECT_EQ(percent<double>(10.0), fabs(percent<double>(10.0)));
 }
 
 TEST_F(UnitMath, abs)
 {
 	EXPECT_EQ(meters<double>(10.0), abs(meters<double>(-10.0)));
 	EXPECT_EQ(meters<double>(10.0), abs(meters<double>(10.0)));
+
+	EXPECT_EQ(percent<double>(10.0), abs(percent<double>(-10.0)));
+	EXPECT_EQ(percent<double>(10.0), abs(percent<double>(10.0)));
 }
 
 TEST_F(UnitMath, fma)
@@ -4918,6 +4958,20 @@ TEST_F(UnitMath, isnan)
 	EXPECT_TRUE(units::isnan(inf - inf));
 }
 
+TEST_F(UnitMath, isnan_percent)
+{
+	percent<> zero(0.0);
+	percent<> nan(NAN);
+	percent<> inf(INFINITY);
+
+	EXPECT_TRUE(units::isnan(nan));
+	EXPECT_FALSE(units::isnan(inf));
+	EXPECT_FALSE(units::isnan(zero));
+	EXPECT_FALSE(units::isnan(DBL_MIN / 2.0 * 1_pct));
+	EXPECT_TRUE(units::isnan(zero / zero));
+	EXPECT_TRUE(units::isnan(inf - inf));
+}
+
 TEST_F(UnitMath, isinf)
 {
 	constexpr meters zero(0.0);
@@ -4930,6 +4984,17 @@ TEST_F(UnitMath, isinf)
 	EXPECT_FALSE(units::isinf(0.0_m));
 	EXPECT_TRUE(units::isinf(exp(1600_rad / 2_rad)));
 	EXPECT_FALSE(units::isinf(DBL_MIN / 2.0 * 1_m));
+}
+
+TEST_F(UnitMath, isinf_percent)
+{
+	percent<> zero(0.0);
+	percent<> nan(NAN);
+	percent<> inf(INFINITY);
+
+	EXPECT_FALSE(units::isinf(nan));
+	EXPECT_TRUE(units::isinf(inf));
+	EXPECT_FALSE(units::isinf(zero));
 }
 
 TEST_F(UnitMath, isfinite)
@@ -4946,6 +5011,18 @@ TEST_F(UnitMath, isfinite)
 	EXPECT_TRUE(units::isfinite(DBL_MIN / 2.0 * 1_m));
 }
 
+TEST_F(UnitMath, isfinite_percent)
+{
+	percent<> zero(0.0);
+	percent<> nan(NAN);
+	percent<> inf(INFINITY);
+
+	EXPECT_FALSE(units::isfinite(nan));
+	EXPECT_FALSE(units::isfinite(inf));
+    EXPECT_TRUE(units::isfinite(zero));
+	EXPECT_TRUE(units::isfinite(DBL_MIN / 2.0 * 1_pct));
+}
+
 TEST_F(UnitMath, isnormal)
 {
 	meters zero(0.0);
@@ -4959,10 +5036,33 @@ TEST_F(UnitMath, isnormal)
 	EXPECT_TRUE(units::isnormal(1.0_m));
 }
 
+TEST_F(UnitMath, isnormal_percent)
+{
+	percent<> zero(0.0);
+	percent<> nan(NAN);
+	percent<> inf(INFINITY);
+
+	EXPECT_FALSE(units::isnormal(nan));
+	EXPECT_FALSE(units::isnormal(inf));
+	EXPECT_FALSE(units::isnormal(zero));
+	EXPECT_TRUE(units::isnormal(1.0_pct));
+}
+
 TEST_F(UnitMath, isunordered)
 {
 	meters zero(0.0);
 	meters nan(NAN);
+
+	EXPECT_TRUE(units::isunordered(nan, zero));
+	EXPECT_TRUE(units::isunordered(zero, nan));
+	EXPECT_FALSE(units::isunordered(zero, zero));
+}
+
+TEST_F(UnitMath, isunordered_percent)
+{
+	percent<> zero(0.0);
+	percent<> nan(NAN);
+	percent<> inf(INFINITY);
 
 	EXPECT_TRUE(units::isunordered(nan, zero));
 	EXPECT_TRUE(units::isunordered(zero, nan));
