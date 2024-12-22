@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_charge_h__
-#define units_charge_h__
+#ifndef units_charge_h_
+#define units_charge_h_
 
 #include <units/current.h>
 #include <units/time.h>
@@ -65,4 +65,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(charge)
 } // namespace units
 
-#endif // units_charge_h__
+#endif // units_charge_h_

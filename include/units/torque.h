@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_torque_h__
-#define units_torque_h__
+#ifndef units_torque_h_
+#define units_torque_h_
 
 #include <units/energy.h>
 #include <units/force.h>
@@ -69,4 +69,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(torque)
 } // namespace units
 
-#endif // units_torque_h__
+#endif // units_torque_h_

@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_luminous_intensity_h__
-#define units_luminous_intensity_h__
+#ifndef units_luminous_intensity_h_
+#define units_luminous_intensity_h_
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
 } // namespace units
 
-#endif // units_luminous_intensity_h__
+#endif // units_luminous_intensity_h_

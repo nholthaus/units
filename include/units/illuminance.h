@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_illuminance_h__
-#define units_illuminance_h__
+#ifndef units_illuminance_h_
+#define units_illuminance_h_
 
 #include <units/length.h>
 #include <units/luminous_flux.h>
@@ -67,4 +67,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(illuminance)
 } // namespace units
 
-#endif // units_illuminance_h__
+#endif // units_illuminance_h_

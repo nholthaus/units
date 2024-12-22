@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_voltage_h__
-#define units_voltage_h__
+#ifndef units_voltage_h_
+#define units_voltage_h_
 
 #include <units/core.h>
 
@@ -65,4 +65,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(voltage)
 } // namespace units
 
-#endif // units_voltage_h__
+#endif // units_voltage_h_

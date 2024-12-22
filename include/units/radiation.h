@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_radiation_h__
-#define units_radiation_h__
+#ifndef units_radiation_h_
+#define units_radiation_h_
 
 #include <units/energy.h>
 #include <units/frequency.h>
@@ -72,4 +72,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units
 
-#endif // units_radiation_h__
+#endif // units_radiation_h_

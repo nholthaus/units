@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_angular_velocity_h__
-#define units_angular_velocity_h__
+#ifndef units_angular_velocity_h_
+#define units_angular_velocity_h_
 
 #include <units/angle.h>
 #include <units/time.h>
@@ -55,7 +55,7 @@ namespace units
 	 * @namespace	units::angular_velocity
 	 * @brief		namespace for unit types and containers representing angular velocity values
 	 * @details		The SI unit for angular velocity is `radians_per_second`, and the corresponding `dimension`
-	 *dimension is `angular_velocity_unit`.
+	 *				dimension is `angular_velocity_unit`.
 	 * @anchor		angularVelocityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
@@ -68,4 +68,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(angular_velocity)
 } // namespace units
 
-#endif // units_angular_velocity_h__
+#endif // units_angular_velocity_h_

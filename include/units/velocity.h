@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_velocity_h__
-#define units_velocity_h__
+#ifndef units_velocity_h_
+#define units_velocity_h_
 
 #include <units/length.h>
 #include <units/time.h>
@@ -68,4 +68,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(velocity)
 } // namespace units
 
-#endif // units_velocity_h__
+#endif // units_velocity_h_

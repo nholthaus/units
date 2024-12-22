@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_jerk_h__
-#define units_jerk_h__
+#ifndef units_jerk_h_
+#define units_jerk_h_
 
 #include <units/area.h>
 #include <units/energy.h>
@@ -71,4 +71,4 @@ namespace units
 	 UNIT_ADD_DIMENSION_TRAIT(jerk)
 } // namespace units
 
-#endif // units_jerk_h__
+#endif // units_jerk_h_

@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_data_h__
-#define units_data_h__
+#ifndef units_data_h_
+#define units_data_h_
 
 #include <units/core.h>
 
@@ -66,4 +66,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(data)
 } // namespace units
 
-#endif // units_data_h__
+#endif // units_data_h_

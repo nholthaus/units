@@ -43,7 +43,7 @@
 
 #pragma once
 
-#ifndef units_solid_angle_h__
+#ifndef units_solid_angle_h_
 #define units_solid_angle_h__
 
 #include <units/angle.h>

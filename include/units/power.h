@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_power_h__
-#define units_power_h__
+#ifndef units_power_h_
+#define units_power_h_
 
 #include <units/core.h>
 
@@ -66,4 +66,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(power)
 } // namespace units
 
-#endif // units_power_h__
+#endif // units_power_h_

@@ -44,7 +44,7 @@
 
 #pragma once
 
-#ifndef units_luminance_h__
+#ifndef units_luminance_h_
 #define units_luminance_h__
 
 #include <units/length.h>

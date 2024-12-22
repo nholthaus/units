@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_concentration_h__
-#define units_concentration_h__
+#ifndef units_concentration_h_
+#define units_concentration_h_
 
 #include <units/core.h>
 
@@ -66,4 +66,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(concentration)
 } // namespace units
 
-#endif // units_concentration_h__
+#endif // units_concentration_h_

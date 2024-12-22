@@ -45,8 +45,8 @@
 
 #pragma once
 
-#ifndef units_h__
-#define units_h__
+#ifndef units_h_
+#define units_h_
 
 #include <units/acceleration.h>
 #include <units/angle.h>
@@ -61,11 +61,13 @@
 #include <units/data_transfer_rate.h>
 #include <units/density.h>
 #include <units/energy.h>
+#include <units/energy_density.h>
 #include <units/force.h>
 #include <units/frequency.h>
 #include <units/illuminance.h>
 #include <units/impedance.h>
 #include <units/inductance.h>
+#include <units/irradiance.h>
 #include <units/jerk.h>
 #include <units/length.h>
 #include <units/luminance.h>
@@ -76,8 +78,14 @@
 #include <units/mass.h>
 #include <units/power.h>
 #include <units/pressure.h>
+#include <units/radiance.h>
+#include <units/radiant_intensity.h>
 #include <units/radiation.h>
 #include <units/solid_angle.h>
+#include <units/spectral_flux.h>
+#include <units/spectral_intensity.h>
+#include <units/spectral_irradiance.h>
+#include <units/spectral_radiance.h>
 #include <units/substance.h>
 #include <units/substance_concentration.h>
 #include <units/substance_mass.h>
@@ -138,4 +146,4 @@ namespace units
 	} // namespace constants
 } // end namespace units
 
-#endif // units_h__
+#endif // units_h_

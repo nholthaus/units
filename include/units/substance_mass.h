@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_substance_mass_h__
-#define units_substance_mass_h__
+#ifndef units_substance_mass_h_
+#define units_substance_mass_h_
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(substance_mass)
 } // namespace units
 
-#endif // units_substance_mass_h__
+#endif // units_substance_mass_h_

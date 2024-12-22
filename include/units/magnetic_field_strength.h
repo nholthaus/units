@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_magnetic_field_strength_h__
-#define units_magnetic_field_strength_h__
+#ifndef units_magnetic_field_strength_h_
+#define units_magnetic_field_strength_h_
 
 #include <units/length.h>
 #include <units/magnetic_flux.h>
@@ -66,4 +66,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
 } // namespace units
 
-#endif // units_magnetic_field_strength_h__
+#endif // units_magnetic_field_strength_h_

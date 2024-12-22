@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_force_h__
-#define units_force_h__
+#ifndef units_force_h_
+#define units_force_h_
 
 #include <units/acceleration.h>
 #include <units/length.h>
@@ -70,4 +70,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(force)
 } // namespace units
 
-#endif // units_force_h__
+#endif // units_force_h_

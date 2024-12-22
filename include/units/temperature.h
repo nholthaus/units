@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_temperature_h__
-#define units_temperature_h__
+#ifndef units_temperature_h_
+#define units_temperature_h_
 
 #include <units/core.h>
 
@@ -70,4 +70,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(temperature)
 } // namespace units
 
-#endif // units_temperature_h__
+#endif // units_temperature_h_

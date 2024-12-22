@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_time_h__
-#define units_time_h__
+#ifndef units_time_h_
+#define units_time_h_
 
 #include <units/core.h>
 
@@ -80,4 +80,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(time)
 } // namespace units
 
-#endif // units_time_h__
+#endif // units_time_h_

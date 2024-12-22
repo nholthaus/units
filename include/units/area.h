@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_area_h__
-#define units_area_h__
+#ifndef units_area_h_
+#define units_area_h_
 
 #include <units/length.h>
 
@@ -69,4 +69,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(area)
 } // namespace units
 
-#endif // units_area_h__
+#endif // units_area_h_

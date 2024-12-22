@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_inductance_h__
-#define units_inductance_h__
+#ifndef units_inductance_h_
+#define units_inductance_h_
 
 #include <units/core.h>
 

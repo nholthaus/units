@@ -36,57 +36,30 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/pressure.h
-/// @brief	units representing pressure values
+/// @file	units/spectral_intensity.h
+/// @brief	units representing spectral intensity values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_pressure_h_
-#define units_pressure_h_
+#ifndef units_spectral_intensity_h_
+#define units_spectral_intensity_h_
 
-#ifdef _MSC_VER
-#pragma push_macro("pascal")
-#undef pascal
-#endif // _MSC_VER
-
-#if defined(__MINGW64__) || defined(__MINGW32__)
-#	pragma push_macro("pascal")
-#	undef pascal
-#endif // __MINGW64__ or __MINGW32__
-
-#include <units/force.h>
-#include <units/length.h>
+#include <units/power.h>
+#include <units/solid_angle.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::pressure
-	 * @brief		namespace for unit types and containers representing pressure values
-	 * @details		The SI unit for pressure is `pascals`, and the corresponding `dimension` dimension is
-	 *				`pressure_unit`.
-	 * @anchor		pressureContainers
+	 * @namespace	units::spectral_intensity
+	 * @brief		namespace for unit types and containers representing spectral_intensity values
+	 * @anchor		spectral_intensityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(pressure, pascals, Pa, conversion_factor<std::ratio<1>, dimension::pressure>)
-	UNIT_ADD(pressure, bars, bar, conversion_factor<std::ratio<100>, kilo<pascals_>>)
-	UNIT_ADD(pressure, millibars, mbar, conversion_factor<std::ratio<1>, milli<bars_>>)
-	UNIT_ADD(pressure, atmospheres, atm, conversion_factor<std::ratio<101325>, pascals_>)
-	UNIT_ADD(pressure, pounds_per_square_inch, psi, compound_conversion_factor<force::pounds_, inverse<squared<inches_>>>)
-	UNIT_ADD(pressure, torrs, torr, conversion_factor<std::ratio<1, 760>, atmospheres_>)
-	UNIT_ADD(pressure, millimeters_of_mercury, mmHg, conversion_factor<std::ratio<26664477483LL, 200000000LL>, pascals_>)
-	UNIT_ADD(pressure, inches_of_mercury, inHg, conversion_factor<std::ratio<254, 10>, millimeters_of_mercury_>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_intensity, watts_per_steradian_per_meter, Wpsrm, conversion_factor<std::ratio<1>, dimension::spectral_intensity>)
 
-	UNIT_ADD_DIMENSION_TRAIT(pressure)
+	UNIT_ADD_DIMENSION_TRAIT(spectral_intensity)
 } // namespace units
 
-#ifdef _MSC_VER
-#pragma pop_macro("pascal")
-#endif // _MSC_VER
-
-#if defined(__MINGW64__) || defined(__MINGW32__)
-#	pragma pop_macro("pascal")
-#endif // __MINGW64__ or __MINGW32_
-
-#endif // units_pressure_h_
+#endif // units_spectral_intensity_h_

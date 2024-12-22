@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_acceleration_h__
-#define units_acceleration_h__
+#ifndef units_acceleration_h_
+#define units_acceleration_h_
 
 #include <units/length.h>
 #include <units/time.h>
@@ -67,4 +67,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(acceleration)
 } // namespace units
 
-#endif // units_acceleration_h__
+#endif // units_acceleration_h_

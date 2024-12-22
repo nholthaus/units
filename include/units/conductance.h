@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_conductance_h__
-#define units_conductance_h__
+#ifndef units_conductance_h_
+#define units_conductance_h_
 
 #include <units/core.h>
 
@@ -67,4 +67,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(conductance)
 } // namespace units
 
-#endif // units_conductance_h__
+#endif // units_conductance_h_

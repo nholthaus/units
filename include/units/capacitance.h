@@ -43,7 +43,7 @@
 
 #pragma once
 
-#ifndef units_capacitance_h__
+#ifndef units_capacitance_h_
 #define units_capacitance_h__
 
 #include <units/core.h>

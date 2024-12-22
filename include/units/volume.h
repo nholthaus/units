@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_volume_h__
-#define units_volume_h__
+#ifndef units_volume_h_
+#define units_volume_h_
 
 #include <units/length.h>
 
@@ -91,4 +91,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(volume)
 } // namespace units
 
-#endif // units_volume_h__
+#endif // units_volume_h_

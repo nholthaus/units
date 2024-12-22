@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_luminous_flux_h__
-#define units_luminous_flux_h__
+#ifndef units_luminous_flux_h_
+#define units_luminous_flux_h_
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
 } // namespace units
 
-#endif // units_luminous_flux_h__
+#endif // units_luminous_flux_h_

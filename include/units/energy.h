@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_energy_h__
-#define units_energy_h__
+#ifndef units_energy_h_
+#define units_energy_h_
 
 #include <units/core.h>
 
@@ -71,4 +71,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(energy)
 } // namespace units
 
-#endif // units_energy_h__
+#endif // units_energy_h_

@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_density_h__
-#define units_density_h__
+#ifndef units_density_h_
+#define units_density_h_
 
 #include <units/mass.h>
 #include <units/volume.h>
@@ -73,4 +73,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(density)
 } // namespace units
 
-#endif // units_density_h__
+#endif // units_density_h_

@@ -36,44 +36,29 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/radiometry.h
-/// @brief	units representing radiometry values
+/// @file	units/irradiance.h
+/// @brief	units representing irradiance values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_radiometry_h__
-#define units_radiometry_h__
+#ifndef units_irradiance_h_
+#define units_irradiance_h_
 
-#include <units/area.h>
-#include <units/energy.h>
-#include <units/length.h>
-#include <units/power.h>
-#include <units/solid_angle.h>
-#include <units/temperature.h>
-#include <units/time.h>
-#include <units/volume.h>
-
+#include <units/core.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::radiometry
-	 * @brief		namespace for unit types and containers representing radiometry values
-	 * @details		The SI units for radiometry are:
-	 *				- source activity:	becquerel
-	 * @anchor		radiometryContainers
+	 * @namespace	units::irradiance
+	 * @brief		namespace for unit types and containers representing irradiance values
+	 * @anchor		irradianceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, becquerels, Bq, conversion_factor<std::ratio<1>, frequency::hertz<>>)
-	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, grays, Gy, compound_conversion_factor<joules<>, inverse<kilograms<>>>)
-	// UNIT_ADD_WITH_METRIC_PREFIXES(radiation, sieverts, Sv, conversion_factor<std::ratio<1>, grays<>>)
-	// UNIT_ADD(radiation, curies, Ci, conversion_factor<std::ratio<37>, gigabecquerels<>>)
-	// UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<>>)
-	// UNIT_ADD(radiation, rads, rads, conversion_factor<std::ratio<1>, centigrays<>>)
-	//
-	// UNIT_ADD_DIMENSION_TRAIT(radioactivity)
+	UNIT_ADD_WITH_METRIC_PREFIXES(irradiance, watts_per_meter_squared, Wpm2, conversion_factor<std::ratio<1>, dimension::irradiance>)
+
+	UNIT_ADD_DIMENSION_TRAIT(irradiance)
 } // namespace units
 
-#endif // units_radiometry_h__
+#endif // units_irradiance_h_

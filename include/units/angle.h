@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_angle_h__
-#define units_angle_h__
+#ifndef units_angle_h_
+#define units_angle_h_
 
 #include <units/core.h>
 
@@ -273,4 +273,4 @@ namespace units
 	}
 } // namespace units
 
-#endif // units_angle_h__
+#endif // units_angle_h_

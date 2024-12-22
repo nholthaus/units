@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_substance_h__
-#define units_substance_h__
+#ifndef units_substance_h_
+#define units_substance_h_
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(substance)
 } // namespace units
 
-#endif // units_substance_h__
+#endif // units_substance_h_

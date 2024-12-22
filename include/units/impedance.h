@@ -43,8 +43,8 @@
 
 #pragma once
 
-#ifndef units_impedance_h__
-#define units_impedance_h__
+#ifndef units_impedance_h_
+#define units_impedance_h_
 
 #include <units/core.h>
 
@@ -63,4 +63,4 @@ namespace units
 	UNIT_ADD_DIMENSION_TRAIT(impedance)
 } // namespace units
 
-#endif // units_impedance_h__
+#endif // units_impedance_h_
