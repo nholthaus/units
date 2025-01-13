@@ -1,6 +1,10 @@
+#ifdef _MSC_VER
+#pragma warning(disable : 4244) // Disable 'conversion from double to const int, possible loss of data'. The tests just make sure
+// that such assignments work as expected, we don't want to remove them and we don't care about the warning.
 #define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING // officially, The effect of instantiating the template std::complex for any type other than float,
-														 // double, or long double is unspecified. We don't care though, we want them to work with units in this
-														 // test
+// double, or long double is unspecified. We don't care though, we want them to work with units in this
+// test
+#endif
 
 #include <array>
 #include <chrono>
@@ -18,72 +22,42 @@ namespace
 {
 	class TypeTraits : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class STDTypeTraits : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class STDSpecializations : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class UnitManipulators : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class UnitType : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class ConversionFactor : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class UnitMath : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class Constexpr : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class UnitLimits : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	class CaseStudies : public ::testing::Test
 	{
-	protected:
-		void SetUp() override {};
-		void TearDown() override {};
 	};
 
 	// Tests that two units have the same conversion ratio to the same dimension.
@@ -706,7 +680,7 @@ TEST_F(UnitManipulators, squared)
 	EXPECT_NEAR(0.99999956944, test, 5.0e-12);
 
 	using dimensionless_2 = traits::strong_t<squared<units::dimensionless_>>; // this is actually nonsensical, and should also result in
-																			  // a dimensionless.
+	// a dimensionless.
 	bool isSame = std::is_same_v<unit<dimensionless_>, unit<dimensionless_2>>;
 	EXPECT_TRUE(isSame);
 }
@@ -2278,7 +2252,7 @@ TEST_F(UnitType, unitTypeDivision)
 	EXPECT_TRUE(isSame);
 
 	auto                      miles_speed = miles<double>(60.0) / hours<double>(1.0);
-	meters_per_second<double> speed = miles_speed;
+	meters_per_second<double> speed       = miles_speed;
 	EXPECT_NEAR(26.8224, speed.value(), 5.0e-5);
 	speed = miles<int>(60) / hours<int>(1);
 	EXPECT_NEAR(26.8224, speed.value(), 5.0e-5);
@@ -3328,6 +3302,7 @@ TEST_F(UnitType, Constants)
 
 	static_assert(1000 / (1 * s) == 1 * kHz);
 }
+
 TEST_F(ConversionFactor, length)
 {
 	double test;
@@ -4341,7 +4316,6 @@ TEST_F(ConversionFactor, energy_density)
 
 	constexpr joules_per_meter_cubed test = 64.0 * J / 2.0_cu_m;
 	EXPECT_EQ(test, 32.0_Jpm3);
-
 }
 
 TEST_F(ConversionFactor, irradiance)
@@ -4385,7 +4359,7 @@ TEST_F(ConversionFactor, spectral_intensity)
 	static_assert(std::is_same_v<watts_per_steradian_per_meter<double>, decltype(W / sr / m)>);
 	static_assert(traits::is_spectral_intensity_unit_v<decltype(W / sr / m)>);
 
-	constexpr watts_per_steradian_per_meter test = 44.0 * W  / 2.0_sr / 4.0_m;
+	constexpr watts_per_steradian_per_meter test = 44.0 * W / 2.0_sr / 4.0_m;
 	EXPECT_EQ(test, 5.5_Wpsrm);
 }
 
@@ -4394,7 +4368,7 @@ TEST_F(ConversionFactor, spectral_irradiance)
 	static_assert(std::is_same_v<watts_per_meter_cubed<double>, decltype(W / cu_m)>);
 	static_assert(traits::is_spectral_irradiance_unit_v<decltype(W / cu_m)>);
 
-	constexpr watts_per_meter_cubed test = 44.0 * W  / 2.0_cu_m;
+	constexpr watts_per_meter_cubed test = 44.0 * W / 2.0_cu_m;
 	EXPECT_EQ(test, 22_Wpm3);
 }
 
@@ -4403,7 +4377,7 @@ TEST_F(ConversionFactor, spectral_radiance)
 	static_assert(std::is_same_v<watts_per_steradian_per_meter_cubed<double>, decltype(W / sr / cu_m)>);
 	static_assert(traits::is_spectral_radiance_unit_v<decltype(W / sr / cu_m)>);
 
-	constexpr watts_per_steradian_per_meter_cubed test = 44.0 * W  / 2.0_sr / 2.0_cu_m;
+	constexpr watts_per_steradian_per_meter_cubed test = 44.0 * W / 2.0_sr / 2.0_cu_m;
 	EXPECT_EQ(test, 11_Wpsrm3);
 }
 
@@ -4452,7 +4426,7 @@ TEST_F(ConversionFactor, pi)
 
 	// explicit
 	hertz<double>   c_Hz = constants::pi / seconds<double>(1);
-	seconds<double> d_s = seconds<double>(1) / constants::pi;
+	seconds<double> d_s  = seconds<double>(1) / constants::pi;
 
 	EXPECT_NEAR(detail::PI_VAL, c_Hz.to<double>(), 5.0e-10);
 	EXPECT_NEAR(1.0 / detail::PI_VAL, d_s.to<double>(), 5.0e-10);
@@ -4555,6 +4529,7 @@ TEST_F(UnitMath, ternaryOperator)
 	new_val = value ? val1 - val2 : val2;
 	EXPECT_EQ(new_val, 90_deg);
 }
+
 TEST_F(UnitMath, cos)
 {
 	static_assert(std::is_same_v<dimensionless<double>, decltype(cos(angle::radians<double>(0)))>);
@@ -5272,7 +5247,7 @@ TEST_F(CaseStudies, radarRangeEquation)
 	watts<>         P_t;    // transmit power
 	dimensionless<> gain;   // gain
 	meters<>        lambda; // wavelength
-	square_meters<> rcs;  // radar cross-section
+	square_meters<> rcs;    // radar cross-section
 	meters<>        range;  // range
 	kelvin<>        T_s;    // system noise temp
 	hertz<>         B_n;    // bandwidth
@@ -5281,7 +5256,7 @@ TEST_F(CaseStudies, radarRangeEquation)
 	P_t    = megawatts<>(1.4);
 	gain   = decibels<>(33.0);
 	lambda = constants::c / megahertz<>(2800.0);
-	rcs  = square_meters<>(1.0);
+	rcs    = square_meters<>(1.0);
 	range  = meters<>(111000.0);
 	T_s    = kelvin<>(950.0);
 	B_n    = megahertz<>(1.67);
