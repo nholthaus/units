@@ -58,11 +58,11 @@ namespace units
 	 * @anchor		areaContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(area, square_meters, sq_m, conversion_factor<std::ratio<1>, dimension::area>)
-	UNIT_ADD(area, square_feet, sq_ft, squared<feet_>)
-	UNIT_ADD(area, square_inches, sq_in, squared<inches_>)
-	UNIT_ADD(area, square_miles, sq_mi, squared<miles_>)
-	UNIT_ADD(area, square_kilometers, sq_km, squared<kilometers_>)
+	UNIT_ADD(area, square_meters, m2, conversion_factor<std::ratio<1>, dimension::area>)
+	UNIT_ADD(area, square_feet, ft2, squared<feet_>)
+	UNIT_ADD(area, square_inches, in2, squared<inches_>)
+	UNIT_ADD(area, square_miles, mi2, squared<miles_>)
+	UNIT_ADD(area, square_kilometers, km2, squared<kilometers_>)
 	UNIT_ADD(area, hectares, ha, conversion_factor<std::ratio<10000>, square_meters_>)
 	UNIT_ADD(area, acres, acre, conversion_factor<std::ratio<43560>, square_feet_>)
 

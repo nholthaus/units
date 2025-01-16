@@ -56,7 +56,7 @@ namespace units
 	 * @anchor		spectral_irradianceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_irradiance, watts_per_meter_cubed, Wpm3, conversion_factor<std::ratio<1>, dimension::spectral_irradiance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_irradiance, watts_per_meter_cubed, W_per_m3, conversion_factor<std::ratio<1>, dimension::spectral_irradiance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(spectral_irradiance)
 } // namespace units

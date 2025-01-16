@@ -59,16 +59,16 @@ namespace units
 	 * @anchor		densityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(density, kilograms_per_cubic_meter, kg_per_cu_m, conversion_factor<std::ratio<1>, dimension::density>)
+	UNIT_ADD(density, kilograms_per_cubic_meter, kg_per_m3, conversion_factor<std::ratio<1>, dimension::density>)
 	UNIT_ADD(density, grams_per_milliliter, g_per_mL, compound_conversion_factor<grams_, inverse<milliliters_>>)
 	UNIT_ADD(density, kilograms_per_liter, kg_per_L, conversion_factor<std::ratio<1>, compound_conversion_factor<grams_, inverse<milliliters_>>>)
-	UNIT_ADD(density, ounces_per_cubic_foot, oz_per_cu_ft, compound_conversion_factor<ounces_, inverse<cubic_feet_>>)
-	UNIT_ADD(density, ounces_per_cubic_inch, oz_per_cu_in, compound_conversion_factor<ounces_, inverse<cubic_inches<>>>)
+	UNIT_ADD(density, ounces_per_cubic_foot, oz_per_ft3, compound_conversion_factor<ounces_, inverse<cubic_feet_>>)
+	UNIT_ADD(density, ounces_per_cubic_inch, oz_per_in3, compound_conversion_factor<ounces_, inverse<cubic_inches<>>>)
 	UNIT_ADD(density, ounces_per_gallon, oz_per_gal, compound_conversion_factor<ounces<>, inverse<gallons<>>>)
-	UNIT_ADD(density, pounds_per_cubic_foot, lb_per_cu_ft, compound_conversion_factor<mass::pounds<>, inverse<cubic_feet<>>>)
-	UNIT_ADD(density, pounds_per_cubic_inch, lb_per_cu_in, compound_conversion_factor<mass::pounds<>, inverse<cubic_inches<>>>)
+	UNIT_ADD(density, pounds_per_cubic_foot, lb_per_ft3, compound_conversion_factor<mass::pounds<>, inverse<cubic_feet<>>>)
+	UNIT_ADD(density, pounds_per_cubic_inch, lb_per_in3, compound_conversion_factor<mass::pounds<>, inverse<cubic_inches<>>>)
 	UNIT_ADD(density, pounds_per_gallon, lb_per_gal, compound_conversion_factor<mass::pounds<>, inverse<gallons<>>>)
-	UNIT_ADD(density, slugs_per_cubic_foot, slug_per_cu_ft, compound_conversion_factor<slugs<>, inverse<cubic_feet<>>>)
+	UNIT_ADD(density, slugs_per_cubic_foot, slug_per_ft3, compound_conversion_factor<slugs<>, inverse<cubic_feet<>>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(density)
 } // namespace units

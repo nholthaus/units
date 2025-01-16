@@ -65,8 +65,8 @@ namespace units
 	 * @anchor		jerkContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(jerk, meters_per_second_cubed, mps_cb, conversion_factor<std::ratio<1>, dimension::jerk>)
-	UNIT_ADD(jerk, feet_per_second_cubed, fps_cb, compound_conversion_factor<length::feet_, inverse<cubed<time::seconds_>>>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(jerk, meters_per_second_cubed, mps3, conversion_factor<std::ratio<1>, dimension::jerk>)
+	UNIT_ADD(jerk, feet_per_second_cubed, fps3, compound_conversion_factor<length::feet_, inverse<cubed<time::seconds_>>>)
 
 	 UNIT_ADD_DIMENSION_TRAIT(jerk)
 } // namespace units

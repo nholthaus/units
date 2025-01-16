@@ -59,7 +59,7 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(solid_angle, steradians, sr, conversion_factor<std::ratio<1>, dimension::solid_angle>)
-	UNIT_ADD(solid_angle, degrees_squared, sq_deg, squared<degrees_>)
+	UNIT_ADD(solid_angle, degrees_squared, deg2, squared<degrees_>)
 	UNIT_ADD(solid_angle, spats, sp, conversion_factor<std::ratio<4>, steradians_, std::ratio<1>>)
 
 	UNIT_ADD_DIMENSION_TRAIT(solid_angle)

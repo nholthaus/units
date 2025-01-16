@@ -59,7 +59,7 @@ namespace units
 	 * @anchor		energy_densityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(energy_density, joules_per_meter_cubed, Jpm3, pascals_)
+	UNIT_ADD_WITH_METRIC_PREFIXES(energy_density, joules_per_meter_cubed, J_per_m3, pascals_)
 
 	UNIT_ADD_DIMENSION_TRAIT(energy_density)
 } // namespace units

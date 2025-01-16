@@ -56,7 +56,7 @@ namespace units
 	 * @anchor		spectral_fluxContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_flux, watts_per_meter, Wpm, conversion_factor<std::ratio<1>, dimension::spectral_flux>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_flux, watts_per_meter, W_per_m, conversion_factor<std::ratio<1>, dimension::spectral_flux>)
 
 	UNIT_ADD_DIMENSION_TRAIT(spectral_flux)
 } // namespace units

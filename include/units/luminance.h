@@ -60,7 +60,7 @@ namespace units
 	 * @anchor		luminanceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(luminance, candelas_per_square_meter, cd_per_m_sq, conversion_factor<std::ratio<1>, dimension::luminance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(luminance, candelas_per_square_meter, cd_per_m2, conversion_factor<std::ratio<1>, dimension::luminance>)
 	UNIT_ADD(luminance, stilbs, sb, conversion_factor<std::ratio<10'000>, candelas_per_square_meter_>)
 	UNIT_ADD(luminance, apostilbs, asb, conversion_factor<std::ratio<1>, candelas_per_square_meter_, std::ratio<-1>>)
 	UNIT_ADD(luminance, brils, bril, conversion_factor<std::ratio<1, 10'000'000>, candelas_per_square_meter<>, std::ratio<-1>>)

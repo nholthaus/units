@@ -57,7 +57,7 @@ namespace units
 	 * @anchor		spectral_intensityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_intensity, watts_per_steradian_per_meter, Wpsrm, conversion_factor<std::ratio<1>, dimension::spectral_intensity>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_intensity, watts_per_steradian_per_meter, W_per_srm, conversion_factor<std::ratio<1>, dimension::spectral_intensity>)
 
 	UNIT_ADD_DIMENSION_TRAIT(spectral_intensity)
 } // namespace units

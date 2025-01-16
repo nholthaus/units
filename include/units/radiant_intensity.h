@@ -56,7 +56,7 @@ namespace units
 	 * @anchor		radiant_intensityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(radiant_intensity, watts_per_steradian, Wpsr, conversion_factor<std::ratio<1>, dimension::radiant_intensity>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(radiant_intensity, watts_per_steradian, W_per_sr, conversion_factor<std::ratio<1>, dimension::radiant_intensity>)
 
 	UNIT_ADD_DIMENSION_TRAIT(radiant_intensity)
 } // namespace units

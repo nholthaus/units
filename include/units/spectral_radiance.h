@@ -57,7 +57,7 @@ namespace units
 	 * @anchor		spectral_radianceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_radiance, watts_per_steradian_per_meter_cubed, Wpsrm3, conversion_factor<std::ratio<1>, dimension::spectral_radiance>)
+	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_radiance, watts_per_steradian_per_meter_cubed, W_per_srm3, conversion_factor<std::ratio<1>, dimension::spectral_radiance>)
 
 	UNIT_ADD_DIMENSION_TRAIT(spectral_radiance)
 } // namespace units

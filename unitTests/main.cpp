@@ -2938,7 +2938,7 @@ TEST_F(UnitType, cout)
 	testing::internal::CaptureStdout();
 	std::cout << pow<3>(feet<double>(2));
 	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("8 cu_ft", output.c_str());
+	EXPECT_STREQ("8 ft3", output.c_str());
 
 	testing::internal::CaptureStdout();
 	std::cout << std::setprecision(9) << pow<4>(feet<double>(2));
@@ -3296,7 +3296,7 @@ TEST_F(UnitType, Constants)
 	static_assert(2 * km / hr * (2 * hr) == 4 * km);
 	static_assert(2 * km / (2 * km / hr) == 1 * hr);
 
-	static_assert(2 * m * (3 * m) == 6 * sq_m);
+	static_assert(2 * m * (3 * m) == 6 * m2);
 
 	static_assert(10 * km / (5 * km) == 2);
 
@@ -4311,29 +4311,29 @@ TEST_F(ConversionFactor, data_transfer_rate)
 TEST_F(ConversionFactor, energy_density)
 {
 	static_assert(units::traits::is_same_dimension_unit_v<joules_per_meter_cubed<double>, decltype(J / (m * m * m))>);
-	static_assert(traits::is_energy_density_unit_v<decltype(J / cu_m)>);
-	static_assert(traits::is_pressure_unit_v<decltype(J / cu_m)>); // energy density IS pressure
+	static_assert(traits::is_energy_density_unit_v<decltype(J / m3)>);
+	static_assert(traits::is_pressure_unit_v<decltype(J / m3)>); // energy density IS pressure
 
-	constexpr joules_per_meter_cubed test = 64.0 * J / 2.0_cu_m;
-	EXPECT_EQ(test, 32.0_Jpm3);
+	constexpr joules_per_meter_cubed test = 64.0 * J / 2.0_m3;
+	EXPECT_EQ(test, 32.0_J_per_m3);
 }
 
 TEST_F(ConversionFactor, irradiance)
 {
-	static_assert(std::is_same_v<watts_per_meter_squared<double>, decltype(W / sq_m)>);
-	static_assert(traits::is_irradiance_unit_v<decltype(W / sq_m)>);
+	static_assert(std::is_same_v<watts_per_meter_squared<double>, decltype(W / m2)>);
+	static_assert(traits::is_irradiance_unit_v<decltype(W / m2)>);
 
-	constexpr watts_per_meter_squared test = 42.0 * W / 2.0_sq_m;
-	EXPECT_EQ(test, 21.0_Wpm2);
+	constexpr watts_per_meter_squared test = 42.0 * W / 2.0_m2;
+	EXPECT_EQ(test, 21.0_W_per_m2);
 }
 
 TEST_F(ConversionFactor, radiance)
 {
-	static_assert(std::is_same_v<watts_per_steradian_per_meter_squared<double>, decltype(W / sr / sq_m)>);
-	static_assert(traits::is_radiance_unit_v<decltype(W / sr / sq_m)>);
+	static_assert(std::is_same_v<watts_per_steradian_per_meter_squared<double>, decltype(W / sr / m2)>);
+	static_assert(traits::is_radiance_unit_v<decltype(W / sr / m2)>);
 
-	constexpr watts_per_steradian_per_meter_squared test = 44.0 * W / 2.0_sr / 2.0_sq_m;
-	EXPECT_EQ(test, 11.0_Wpsrm2);
+	constexpr watts_per_steradian_per_meter_squared test = 44.0 * W / 2.0_sr / 2.0_m2;
+	EXPECT_EQ(test, 11.0_W_per_srm2);
 }
 
 TEST_F(ConversionFactor, radiant_intensity)
@@ -4342,7 +4342,7 @@ TEST_F(ConversionFactor, radiant_intensity)
 	static_assert(traits::is_radiant_intensity_unit_v<decltype(W / sr)>);
 
 	constexpr watts_per_steradian test = 44.0 * W / 2.0_sr;
-	EXPECT_EQ(test, 22.0_Wpsr);
+	EXPECT_EQ(test, 22.0_W_per_sr);
 }
 
 TEST_F(ConversionFactor, spectral_flux)
@@ -4351,7 +4351,7 @@ TEST_F(ConversionFactor, spectral_flux)
 	static_assert(traits::is_spectral_flux_unit_v<decltype(W / m)>);
 
 	constexpr watts_per_meter test = 44.0 * W / 4.0_m;
-	EXPECT_EQ(test, 11.0_Wpm);
+	EXPECT_EQ(test, 11.0_W_per_m);
 }
 
 TEST_F(ConversionFactor, spectral_intensity)
@@ -4360,25 +4360,25 @@ TEST_F(ConversionFactor, spectral_intensity)
 	static_assert(traits::is_spectral_intensity_unit_v<decltype(W / sr / m)>);
 
 	constexpr watts_per_steradian_per_meter test = 44.0 * W / 2.0_sr / 4.0_m;
-	EXPECT_EQ(test, 5.5_Wpsrm);
+	EXPECT_EQ(test, 5.5_W_per_srm);
 }
 
 TEST_F(ConversionFactor, spectral_irradiance)
 {
-	static_assert(std::is_same_v<watts_per_meter_cubed<double>, decltype(W / cu_m)>);
-	static_assert(traits::is_spectral_irradiance_unit_v<decltype(W / cu_m)>);
+	static_assert(std::is_same_v<watts_per_meter_cubed<double>, decltype(W / m3)>);
+	static_assert(traits::is_spectral_irradiance_unit_v<decltype(W / m3)>);
 
-	constexpr watts_per_meter_cubed test = 44.0 * W / 2.0_cu_m;
-	EXPECT_EQ(test, 22_Wpm3);
+	constexpr watts_per_meter_cubed test = 44.0 * W / 2.0_m3;
+	EXPECT_EQ(test, 22_W_per_m3);
 }
 
 TEST_F(ConversionFactor, spectral_radiance)
 {
-	static_assert(std::is_same_v<watts_per_steradian_per_meter_cubed<double>, decltype(W / sr / cu_m)>);
-	static_assert(traits::is_spectral_radiance_unit_v<decltype(W / sr / cu_m)>);
+	static_assert(std::is_same_v<watts_per_steradian_per_meter_cubed<double>, decltype(W / sr / m3)>);
+	static_assert(traits::is_spectral_radiance_unit_v<decltype(W / sr / m3)>);
 
-	constexpr watts_per_steradian_per_meter_cubed test = 44.0 * W / 2.0_sr / 2.0_cu_m;
-	EXPECT_EQ(test, 11_Wpsrm3);
+	constexpr watts_per_steradian_per_meter_cubed test = 44.0 * W / 2.0_sr / 2.0_m3;
+	EXPECT_EQ(test, 11_W_per_srm3);
 }
 
 TEST_F(ConversionFactor, pi)
@@ -4565,22 +4565,22 @@ TEST_F(UnitMath, acos)
 {
 	static_assert(std::is_same_v<angle::radians<double>, decltype(acos(dimensionless<double>(0)))>);
 	static_assert(std::is_same_v<angle::radians<double>, decltype(acos(dimensionless<int>(0)))>);
-	auto in1  = -0.41614683654;
-	auto in2  = 0;
-	auto in3  = -0.70710678118654752440084436210485;
-	auto in4  = 0;
+	auto input1  = -0.41614683654;
+	auto input2  = 0;
+	auto input3  = -0.70710678118654752440084436210485;
+	auto input4  = 0;
 	auto out1 = 2;
 	auto out2 = 1.570796326795;
 	auto out3 = 135;
 	auto out4 = 90;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acos(dimensionless<double>(in1)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), acos(dimensionless<int>(in2)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(acos(dimensionless<double>(in3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(acos(dimensionless<int>(in4))).to<double>(), 5.0e-12);
-	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acos(dimensionless<double>(input1)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), acos(dimensionless<int>(input2)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(acos(dimensionless<double>(input3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(acos(dimensionless<int>(input4))).to<double>(), 5.0e-12);
+	auto uin1 = input1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = input2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = input3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = input4 * 1.0_m * (1.0 / (1000.0_mm));
 	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acos(uin1).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), acos(uin2).to<double>(), 5.0e-11);
 	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(acos(uin3)).to<double>(), 5.0e-12);
@@ -4591,22 +4591,22 @@ TEST_F(UnitMath, asin)
 {
 	static_assert(std::is_same_v<angle::radians<double>, decltype(asin(dimensionless<double>(0)))>);
 	static_assert(std::is_same_v<angle::radians<double>, decltype(asin(dimensionless<int>(0)))>);
-	auto in1  = 0.90929742682;
-	auto in2  = 1;
-	auto in3  = 0.70710678118654752440084436210485;
-	auto in4  = 1;
+	auto input1  = 0.90929742682;
+	auto input2  = 1;
+	auto input3  = 0.70710678118654752440084436210485;
+	auto input4  = 1;
 	auto out1 = 1.14159265;
 	auto out2 = 1.570796326795;
 	auto out3 = 45;
 	auto out4 = 90;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asin(dimensionless<double>(in1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), asin(dimensionless<int>(in2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(asin(dimensionless<double>(in3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(asin(dimensionless<int>(in4))).to<double>(), 5.0e-12);
-	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asin(dimensionless<double>(input1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), asin(dimensionless<int>(input2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(asin(dimensionless<double>(input3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(asin(dimensionless<int>(input4))).to<double>(), 5.0e-12);
+	auto uin1 = input1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = input2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = input3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = input4 * 1.0_m * (1.0 / (1000.0_mm));
 	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asin(uin1).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), asin(uin2).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(asin(uin3)).to<double>(), 5.0e-12);
@@ -4617,22 +4617,22 @@ TEST_F(UnitMath, atan)
 {
 	static_assert(std::is_same_v<angle::radians<double>, decltype(atan(dimensionless<double>(0)))>);
 	static_assert(std::is_same_v<angle::radians<double>, decltype(atan(dimensionless<int>(0)))>);
-	auto in1  = -2.18503986326;
-	auto in2  = 1;
-	auto in3  = -1;
-	auto in4  = 1;
+	auto input1  = -2.18503986326;
+	auto input2  = 1;
+	auto input3  = -1;
+	auto input4  = 1;
 	auto out1 = -1.14159265;
 	auto out2 = 0.785398163397;
 	auto out3 = -45;
 	auto out4 = 45;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atan(dimensionless<double>(in1)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), atan(dimensionless<int>(in2)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(atan(dimensionless<double>(in3))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(atan(dimensionless<int>(in4))).to<double>(), 5.0e-12);
-	auto uin1 = in1 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin2 = in2 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin3 = in3 * 1.0_m * (1.0 / (1000.0_mm));
-	auto uin4 = in4 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atan(dimensionless<double>(input1)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), atan(dimensionless<int>(input2)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(atan(dimensionless<double>(input3))).to<double>(), 5.0e-12);
+	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(atan(dimensionless<int>(input4))).to<double>(), 5.0e-12);
+	auto uin1 = input1 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin2 = input2 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin3 = input3 * 1.0_m * (1.0 / (1000.0_mm));
+	auto uin4 = input4 * 1.0_m * (1.0 / (1000.0_mm));
 	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atan(uin1).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::radians<double>(out2).to<double>(), atan(uin2).to<double>(), 5.0e-9);
 	EXPECT_NEAR(angle::degrees<double>(out3).to<double>(), angle::degrees<double>(atan(uin3)).to<double>(), 5.0e-12);
@@ -5082,8 +5082,8 @@ TEST_F(Constexpr, arithmetic)
 	EXPECT_TRUE(noexcept(length++));
 	EXPECT_TRUE(noexcept(length--));
 
-	EXPECT_EQ(8.0_cu_m, result9);
-	EXPECT_EQ(4.0_sq_m, result10);
+	EXPECT_EQ(8.0_m3, result9);
+	EXPECT_EQ(4.0_m2, result10);
 }
 
 TEST_F(Constexpr, assignment)
