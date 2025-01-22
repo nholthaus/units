@@ -692,7 +692,7 @@ namespace units
 				decltype(NumericalScale::scale(T{})) operator()(T)
 				{
 					return scale(T{});
-				};
+				}
 			};
 		} // namespace detail
 		/** @endcond */ // END DOXYGEN IGNORE
