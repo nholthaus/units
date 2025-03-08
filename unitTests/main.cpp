@@ -126,6 +126,15 @@ namespace {
 			using c = unit_value_sqrt<unit_value_add<unit_value_power<a, 2>, unit_value_power<b, 2>>>;
 		};
 	};
+
+	class UnitLimits : public ::testing::Test {
+	protected:
+
+		UnitLimits() {};
+		virtual ~UnitLimits() {};
+		virtual void SetUp() {};
+		virtual void TearDown() {};
+	};
 }
 
 TEST_F(TypeTraits, isRatio)
@@ -1650,6 +1659,8 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(17702.8, test, 5.0e-2);
 	test = convert<meters, chains>(1.0);
 	EXPECT_NEAR(0.0497097, test, 5.0e-7);
+	test = convert<inches, mils>(1.0);
+	EXPECT_NEAR(0.001, test, 5.0e-7);
 
 }
 
@@ -1979,6 +1990,10 @@ TEST_F(UnitConversion, pressure)
 	EXPECT_NEAR(9000.74, test, 5.0e-3);
 	test = convert<atmospheres, psi>(1.0);
 	EXPECT_NEAR(14.6959, test, 5.0e-5);
+	test = convert<inch_of_mercury, millimeter_of_mercury>(1.0);
+	EXPECT_NEAR(25.4, test, 5.0e-5);
+	test = convert<inches_of_mercury, pascals>(1.0);
+	EXPECT_NEAR(3386.38864, test, 5.0e-5);
 }
 
 TEST_F(UnitConversion, charge)
@@ -3375,6 +3390,102 @@ TEST_F(CaseStudies, pythagoreanTheorum)
 	EXPECT_EQ(meter_t(5), RightTriangle::c::value());
 	EXPECT_TRUE(pow<2>(RightTriangle::a::value()) + pow<2>(RightTriangle::b::value())
 		== pow<2>(RightTriangle::c::value()));
+}
+
+TEST_F(UnitLimits, UnitMin)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::min()), std::numeric_limits<meter_t>::min());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::min()), std::numeric_limits<second_t>::min());
+}
+
+TEST_F(UnitLimits, UnitDenormMin)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::denorm_min()), std::numeric_limits<meter_t>::denorm_min());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::denorm_min()), std::numeric_limits<second_t>::denorm_min());
+}
+
+TEST_F(UnitLimits, UnitMax)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::max()), std::numeric_limits<meter_t>::max());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::max()), std::numeric_limits<second_t>::max());
+}
+
+TEST_F(UnitLimits, UnitLowest)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::lowest()), std::numeric_limits<meter_t>::lowest());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::lowest()), std::numeric_limits<second_t>::lowest());
+}
+
+TEST_F(UnitLimits, UnitEpsilon)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::epsilon()), std::numeric_limits<meter_t>::epsilon());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::epsilon()), std::numeric_limits<second_t>::epsilon());
+}
+
+TEST_F(UnitLimits, UnitRoundError)
+{
+	EXPECT_EQ(meter_t(std::numeric_limits<double>::round_error()), std::numeric_limits<meter_t>::round_error());
+	EXPECT_EQ(second_t(std::numeric_limits<double>::round_error()), std::numeric_limits<second_t>::round_error());
+}
+
+TEST_F(UnitLimits, UnitInfinity)
+{
+	EXPECT_NE(meter_t(std::numeric_limits<double>::infinity()), std::numeric_limits<meter_t>::infinity());
+	EXPECT_NE(second_t(std::numeric_limits<double>::infinity()), std::numeric_limits<second_t>::infinity());
+}
+
+TEST_F(UnitLimits, UnitQuietNaN)
+{
+	EXPECT_NE(meter_t(std::numeric_limits<double>::quiet_NaN()), std::numeric_limits<meter_t>::quiet_NaN());
+	EXPECT_NE(second_t(std::numeric_limits<double>::quiet_NaN()), std::numeric_limits<second_t>::quiet_NaN());
+}
+
+TEST_F(UnitLimits, UnitSignalingNaN)
+{
+	EXPECT_NE(meter_t(std::numeric_limits<double>::signaling_NaN()), std::numeric_limits<meter_t>::signaling_NaN());
+	EXPECT_NE(second_t(std::numeric_limits<double>::signaling_NaN()), std::numeric_limits<second_t>::signaling_NaN());
+}
+
+TEST_F(UnitLimits, UnitIsSpecialized)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_specialized == std::numeric_limits<meter_t>::is_specialized);
+	EXPECT_TRUE(std::numeric_limits<double>::is_specialized == std::numeric_limits<second_t>::is_specialized);
+}
+
+TEST_F(UnitLimits, UnitIsSigned)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_signed == std::numeric_limits<meter_t>::is_signed);
+	EXPECT_TRUE(std::numeric_limits<double>::is_signed == std::numeric_limits<second_t>::is_signed);
+}
+
+TEST_F(UnitLimits, UnitIsInteger)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_integer == std::numeric_limits<meter_t>::is_integer);
+	EXPECT_TRUE(std::numeric_limits<double>::is_integer == std::numeric_limits<second_t>::is_integer);
+}
+
+TEST_F(UnitLimits, UnitIsExact)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::is_exact == std::numeric_limits<meter_t>::is_exact);
+	EXPECT_TRUE(std::numeric_limits<double>::is_exact == std::numeric_limits<second_t>::is_exact);
+}
+
+TEST_F(UnitLimits, UnitHasInifinity)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_infinity == std::numeric_limits<meter_t>::has_infinity);
+	EXPECT_TRUE(std::numeric_limits<double>::has_infinity == std::numeric_limits<second_t>::has_infinity);
+}
+
+TEST_F(UnitLimits, UnitHasQuietNaN)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_quiet_NaN == std::numeric_limits<meter_t>::has_quiet_NaN);
+	EXPECT_TRUE(std::numeric_limits<double>::has_quiet_NaN == std::numeric_limits<second_t>::has_quiet_NaN);
+}
+
+TEST_F(UnitLimits, UnitHasSignalingNaN)
+{
+	EXPECT_TRUE(std::numeric_limits<double>::has_signaling_NaN == std::numeric_limits<meter_t>::has_signaling_NaN);
+	EXPECT_TRUE(std::numeric_limits<double>::has_signaling_NaN == std::numeric_limits<second_t>::has_signaling_NaN);
 }
 
 int main(int argc, char* argv[])

@@ -60,6 +60,11 @@
 #	endif // _MSC_VER < 1800
 #endif // _MSC_VER
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma push_macro("pascal")
+#	undef pascal
+#endif // __MINGW64__ or __MINGW32__
+
 #if !defined(_MSC_VER) || _MSC_VER > 1800
 #   define UNIT_HAS_LITERAL_SUPPORT
 #   define UNIT_HAS_VARIADIC_TEMPLATE_SUPPORT
@@ -114,6 +119,7 @@
 namespace units
 {
 	template<typename T> inline constexpr const char* name(const T&);
+	template<typename T> inline constexpr const char* name_plural(const T&);
 	template<typename T> inline constexpr const char* abbreviation(const T&);
 }
 
@@ -199,16 +205,17 @@ namespace units
 #endif
 
  /**
-  * @def		UNIT_ADD_NAME(namespaceName,nameSingular,abbreviation)
+  * @def		UNIT_ADD_NAME(namespaceName,nameSingular,namePlural,abbreviation)
   * @brief		Macro for generating constexpr names/abbreviations for units.
   * @details	The macro generates names for units. E.g. name() of 1_m would be "meter", and
   *				abbreviation would be "m".
   * @param		namespaceName namespace in which the new units will be encapsulated. All literal values
   *				are placed in the `units::literals` namespace.
   * @param		nameSingular singular version of the unit name, e.g. 'meter'
+  * @param		namePlural plural version of the unit name, e.g. 'meters'
   * @param		abbreviation - abbreviated unit name, e.g. 'm'
   */
-#define UNIT_ADD_NAME(namespaceName, nameSingular, abbrev)\
+#define UNIT_ADD_NAME(namespaceName, nameSingular, namePlural, abbrev)\
 template<> inline constexpr const char* name(const namespaceName::nameSingular ## _t&)\
 {\
 	return #nameSingular;\
@@ -216,6 +223,10 @@ template<> inline constexpr const char* name(const namespaceName::nameSingular #
 template<> inline constexpr const char* abbreviation(const namespaceName::nameSingular ## _t&)\
 {\
 	return #abbrev;\
+}\
+template<> inline constexpr const char* name_plural(const namespaceName::nameSingular ## _t&)\
+{\
+	return #namePlural;\
 }
 
 /**
@@ -268,7 +279,7 @@ template<> inline constexpr const char* abbreviation(const namespaceName::nameSi
 #define UNIT_ADD(namespaceName, nameSingular, namePlural, abbreviation, /*definition*/...)\
 	UNIT_ADD_UNIT_TAGS(namespaceName,nameSingular, namePlural, abbreviation, __VA_ARGS__)\
 	UNIT_ADD_UNIT_DEFINITION(namespaceName,nameSingular)\
-	UNIT_ADD_NAME(namespaceName,nameSingular, abbreviation)\
+	UNIT_ADD_NAME(namespaceName,nameSingular,namePlural, abbreviation)\
 	UNIT_ADD_IO(namespaceName,nameSingular, abbreviation)\
 	UNIT_ADD_LITERALS(namespaceName,nameSingular, abbreviation)
 
@@ -1525,7 +1536,7 @@ namespace units
 			return value;
 		}
 
-		template<std::size_t Ratio_num, std::size_t Ratio_den>
+		template<std::intmax_t  Ratio_num, std::intmax_t Ratio_den>
 		struct normal_convert
 		{
 			template<typename T>
@@ -1535,7 +1546,7 @@ namespace units
 			}
 		};
 
-		template<std::size_t Ratio_num>
+		template<std::intmax_t  Ratio_num>
 		struct normal_convert<Ratio_num, 1>
 		{
 			template<typename T>
@@ -1545,7 +1556,7 @@ namespace units
 			}
 		};
 
-		template<std::size_t Ratio_den>
+		template<std::intmax_t  Ratio_den>
 		struct normal_convert<1, Ratio_den>
 		{
 			template<typename T>
@@ -3721,6 +3732,8 @@ namespace units
 	UNIT_ADD(pressure, atmosphere, atmospheres, atm, unit<std::ratio<101325>, pascals>)
 	UNIT_ADD(pressure, pounds_per_square_inch, pounds_per_square_inch, psi, compound_unit<force::pounds, inverse<squared<length::inch>>>)
 	UNIT_ADD(pressure, torr, torrs, torr, unit<std::ratio<1, 760>, atmospheres>)
+	UNIT_ADD(pressure, millimeter_of_mercury, millimeters_of_mercury, mmHg, unit<std::ratio<26664477483LL, 200000000LL>, pascals>)
+	UNIT_ADD(pressure, inch_of_mercury, inches_of_mercury, inHg, unit<std::ratio<254, 10>, millimeters_of_mercury>)
 
 	UNIT_ADD_CATEGORY_TRAIT(pressure)
 #endif
@@ -4184,6 +4197,7 @@ namespace units
 		 * @anchor constantContainers
 		 * @{
 		 */
+		#undef PI
 		using PI = unit<std::ratio<1>, dimensionless::scalar, std::ratio<1>>;
 
 		static constexpr const unit_t<PI>																											pi(1);											///< Ratio of a circle's circumference to its diameter.
@@ -4868,6 +4882,10 @@ namespace std
 		{
 			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::min());
 		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> denorm_min() noexcept
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::denorm_min());
+		}
 		static constexpr units::unit_t<Units, T, NonLinearScale> max()
 		{
 			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::max());
@@ -4876,9 +4894,52 @@ namespace std
 		{
 			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::lowest());
 		}
-		static constexpr bool is_integer = std::numeric_limits<T>::is_integer;
+		static constexpr units::unit_t<Units, T, NonLinearScale> epsilon()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> round_error()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> infinity()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::infinity());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> quiet_NaN()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::quiet_NaN());
+		}
+		static constexpr units::unit_t<Units, T, NonLinearScale> signaling_NaN()
+		{
+			return units::unit_t<Units, T, NonLinearScale>(std::numeric_limits<T>::signaling_NaN());
+		}
+		static constexpr bool is_specialized = std::numeric_limits<T>::is_specialized;
 		static constexpr bool is_signed = std::numeric_limits<T>::is_signed;
+		static constexpr bool is_integer = std::numeric_limits<T>::is_integer;
+		static constexpr bool is_exact = std::numeric_limits<T>::is_exact;
+		static constexpr bool has_infinity = std::numeric_limits<T>::has_infinity;
+		static constexpr bool has_quiet_NaN = std::numeric_limits<T>::has_quiet_NaN;
+		static constexpr bool has_signaling_NaN = std::numeric_limits<T>::has_signaling_NaN;
 	};
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool isnan(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::isnan(x());
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool isinf(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::isinf(x());
+	}
+
+	template<class Units, typename T, template<typename> class NonLinearScale>
+	bool signbit(const units::unit_t<Units, T, NonLinearScale>& x)
+	{
+		return std::signbit(x());
+	}
 }
 
 #ifdef _MSC_VER
@@ -4892,6 +4953,10 @@ namespace std
 #	endif // _MSC_VER < 1800
 #	pragma pop_macro("pascal")
 #endif // _MSC_VER
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	pragma pop_macro("pascal")
+#endif // __MINGW64__ or __MINGW32__
 
 #endif // units_h__
 
