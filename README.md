@@ -527,6 +527,7 @@ Unit tag and `unit_t` container definitions are defined in the following namespa
  - units::concentration
  - units::data
  - units::data_transfer_rate
+ - units::jerk
  - units::constants (scalar and non-scalar physical constants like Avogadro's number)
  
 Literal values for unit containers are defined in the `literals` namespace
@@ -705,6 +706,7 @@ Be aware, some units depend on others. See the unit dependencies table bellow:
 |           AREA          |              LENGTH              |
 |         DENSITY         |           MASS, VOLUME           |
 |          FORCE          | ACCELERATION, LENGTH, MASS, TIME |
+|          JERK           |           LENGTH, TIME           |
 |       ILLUMINANCE       |       LENGTH, LUMINOUS_FLUX      |
 | MAGNETIC_FIELD_STRENGTH |           MAGNETIC_FLUX          |
 |         PRESSURE        |           FORCE, LENGTH          |
