@@ -141,6 +141,13 @@ Does this library work on your compiler? If so, let me know!
 
 The library consists of an all-including header ([<units.h>](include/units.h)), per-dimension headers (of the form [<units/dimension.h>](include/units/)), plus unit tests. To incorporate the library into your project, simply copy the [include](include) directory into your include path, or add the [included CMake project](#cmake-instructions) into your build. Using the CMake project, you can also build the unit tests and documentation if desired.
 
+If you've installed `units` via one of the linux packages, you can incorporate `units` into your project with:
+
+```cmake
+find_package(units CONFIG REQUIRED)
+target_link_libraries(myapp PRIVATE units::units)
+```
+
 The library provides a set of conversion factors, unit types, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable name suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_.
 
 The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.

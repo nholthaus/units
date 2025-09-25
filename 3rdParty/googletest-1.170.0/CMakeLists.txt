@@ -16,8 +16,8 @@ if (NOT TARGET googletest)
     include(FetchContent)
     FetchContent_Declare(
             googletest
-            URL ${CMAKE_CURRENT_SOURCE_DIR}/googletest-1.12.1.zip
-            URL_HASH MD5=2648d4138129812611cf6b6b4b497a3b
+            URL ${CMAKE_CURRENT_SOURCE_DIR}/googletest-1.17.0.zip
+            URL_HASH MD5=3471f5011afc37b6555f6619c14169cf
     )
     FetchContent_MakeAvailable(googletest)
 endif ()
