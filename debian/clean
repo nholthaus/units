@@ -1,7 +1,6 @@
-build/*
+build/
 cmake-build-*/
-cmake-build-*-*/
-_CPack_Packages/*
+_CPack_Packages/
 *.deb
 *.tar.gz
 *.tar.xz
