@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16...4.99 FATAL_ERROR)
 
-PROJECT(units VERSION 3.1.1 LANGUAGES CXX)
+PROJECT(units VERSION 3.1.2 LANGUAGES CXX)
 
 # check if this is the main project
 set(MAIN_PROJECT OFF)
