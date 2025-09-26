@@ -1,0 +1,7 @@
+# Ignore common build dirs & binary blobs when generating diffs
+extend-diff-ignore = "(^|/)(build|cmake-build[^/]*|_CPack_Packages|\.idea|\.cmake)(/|$)"
+extend-diff-ignore = "(^|/).*\.a$"
+extend-diff-ignore = "(^|/).*\.o$"
+extend-diff-ignore = "(^|/)(a\.out|.*\.bin|.*\.exe|.*\.obj)$"
+extend-diff-ignore = "(^|/).*\.deb$"
+extend-diff-ignore = "(^|/).*\.tar\.(gz|xz|bz2)$"

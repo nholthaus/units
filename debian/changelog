@@ -1,0 +1,5 @@
+units (3.1.1-0ppa1~noble1) noble; urgency=medium
+
+  * Initial PPA release for Ubuntu 24.04 (Noble).
+
+ -- Nicolas Holthaus <nicolas@example.com>  Fri, 26 Sep 2025 11:00:00 -0400

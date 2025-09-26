@@ -1,0 +1,32 @@
+#!/usr/bin/make -f
+
+# We want CMake's install() (including EXPORT/Config files), but no tests/build.
+# If your project *requires* Ninja, uncomment the generator line below.
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+# export DEB_CMAKE_GENERATOR = Ninja
+
+%:
+	dh $@ --buildsystem=cmake
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_TESTING=OFF \
+		-DUNITS_BUILD_TESTS=OFF \
+		-DUNITS_BUILD_EXAMPLES=OFF \
+		-DUNITS_ENABLE_CPacks=OFF
+
+# Header-only, so skip compiling anything.
+override_dh_auto_build:
+	@echo "Skipping build for header-only library."
+
+# Don't run tests on Launchpad builders.
+override_dh_auto_test:
+	@echo "Skipping tests."
+
+# Ensure we install into the package staging area.
+override_dh_auto_install:
+	dh_auto_install --destdir=$(CURDIR)/debian/units-dev

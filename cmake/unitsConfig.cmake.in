@@ -1,0 +1,3 @@
+# unitsConfig.cmake - config for find_package(units CONFIG)
+# Header-only: just bring the exported targets into scope.
+include("${CMAKE_CURRENT_LIST_DIR}/unitsTargets.cmake")
