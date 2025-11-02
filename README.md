@@ -189,7 +189,7 @@ auto speed  = 60_mi / 1_hr;                             //  60 mph
 
 ***NOTE: Think carefully about using `auto` for return types.*** When you explicitly declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
-More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
+More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possible by using the `units::math` namespace .
 
 ```cpp
 using namespace units::math;
@@ -684,7 +684,7 @@ If you know that you only need a subset of the unit namespaces for your applicat
 
 The generic algorithm is
   1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
-  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
+  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namespace name>_UNITS`
 
 Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project. Alternatively, you can use `add_definitions()` in your cmake file to set macros globally::
 
@@ -697,7 +697,7 @@ Additionally, for `CMake` users, there are equivalently-named cmake options defi
   )
   ```
   
-Be aware, some units depend on others. See the unit dependencies table bellow:
+Be aware, some units depend on others. See the unit dependencies table below:
 
 |           Unit          |           Dependencies           |
 |:-----------------------:|:--------------------------------:|
@@ -763,7 +763,7 @@ However, if you are already using CMake as your build system, the recommended wa
    target_link_libraries(${PROJECT_NAME} units)
    ```
 
-Also, if you are distributing headers that depends on units.h, you shoud consider using cmake's `find_package` to check if the header is installed on the user's system:
+Also, if you are distributing headers that depends on units.h, you should consider using cmake's `find_package` to check if the header is installed on the user's system:
     
     ```cmake
     find_package(units)
