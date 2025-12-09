@@ -189,7 +189,7 @@ auto speed  = 60_mi / 1_hr;                             //  60 mph
 
 ***NOTE: Think carefully about using `auto` for return types.*** When you explicitly declare the return type, the compiler can check the dimensional analysis for correctness, and produce errors at compile time if you make a mistake. When using `auto`, you are basically saying that whatever unit the right-hand side of the expression results to is correct (even if it's not). If you are only using `auto` because a complex unit type is not available in the library, try [defining a new unit](#defining-new-units) as a better alternative.
 
-More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possibe by using the `units::math` namespace .
+More complex mathematical operations ([almost every `<cmath>` operation actually](http://nholthaus.github.io/units/namespaceunits_1_1math.html)), including exponentials and square roots are possible by using the `units::math` namespace .
 
 ```cpp
 using namespace units::math;
