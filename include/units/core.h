@@ -2604,16 +2604,10 @@ namespace units
 		return os;
 	}
 
-	inline std::ostream& operator<<(std::ostream& os, const dimension_t<>&)
+	template<class... Dims>
+	std::ostream& operator<<(std::ostream& os, const dimension_t<Dims...>&)
 	{
-		return os;
-	}
-
-	template<class Dim, class... Dims>
-	std::ostream& operator<<(std::ostream& os, const dimension_t<Dim, Dims...>&)
-	{
-		os << Dim{};
-		os << dimension_t<Dims...>{};
+		((os << Dims{}), ...);
 		return os;
 	}
 
