@@ -80,7 +80,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
-# Remove IOStream from the library (useful for embdedded development)
+# Remove IOStream from the library (useful for embedded development)
 if(DISABLE_IOSTREAM)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DUNIT_LIB_DISABLE_IOSTREAM)
 endif(DISABLE_IOSTREAM)

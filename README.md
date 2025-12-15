@@ -684,7 +684,7 @@ If you know that you only need a subset of the unit namespaces for your applicat
 
 The generic algorithm is
   1. disable the pre-defined units using `#define DISABLE_PREDEFINED_UNITS`
-  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namepsace name>_UNITS`
+  2. opt-in to the namespaces you want using `#define ENABLE_PREDEFINED_<namespace name>_UNITS`
 
 Additionally, for `CMake` users, there are equivalently-named cmake options defined which will automatically include the preprocessor definitions in your project. Alternatively, you can use `add_definitions()` in your cmake file to set macros globally::
 
@@ -697,7 +697,7 @@ Additionally, for `CMake` users, there are equivalently-named cmake options defi
   )
   ```
   
-Be aware, some units depend on others. See the unit dependencies table bellow:
+Be aware, some units depend on others. See the unit dependencies table below:
 
 |           Unit          |           Dependencies           |
 |:-----------------------:|:--------------------------------:|
@@ -763,7 +763,7 @@ However, if you are already using CMake as your build system, the recommended wa
    target_link_libraries(${PROJECT_NAME} units)
    ```
 
-Also, if you are distributing headers that depends on units.h, you shoud consider using cmake's `find_package` to check if the header is installed on the user's system:
+Also, if you are distributing headers that depends on units.h, you should consider using cmake's `find_package` to check if the header is installed on the user's system:
     
     ```cmake
     find_package(units)
