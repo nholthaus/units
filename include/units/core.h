@@ -2225,7 +2225,7 @@ namespace units
 #define MSVC_EBO
 #endif
 	template<ConversionFactorType ConversionFactor, ArithmeticType T = UNIT_LIB_DEFAULT_TYPE, NumericalScaleType<T> NumericalScale = linear_scale>
-	class MSVC_EBO unit : public ConversionFactor, NumericalScale, detail::_unit
+	class MSVC_EBO unit : public ConversionFactor, public NumericalScale, public detail::_unit
 	{
 	public:
 		using numerical_scale_type = NumericalScale;   ///< Type of the numerical scale of the unit (e.g. linear_scale)
@@ -2253,7 +2253,7 @@ namespace units
 		template<ConversionFactorType ConversionFactorRhs, ArithmeticType Ty, NumericalScaleType<Ty> NsRhs>
 			requires traits::is_same_dimension_unit_v<unit<ConversionFactorRhs, Ty, NsRhs>, unit> && detail::is_losslessly_convertible_unit<unit<ConversionFactorRhs, Ty, NsRhs>, unit>
 		constexpr unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) noexcept
-		  : linearized_value(units::convert<unit>(rhs).linearized_value)
+		  : _linearized_value(units::convert<unit>(rhs)._linearized_value)
 		{
 		}
 
@@ -2265,7 +2265,7 @@ namespace units
 		template<ArithmeticType Ty>
 			requires(!traits::is_dimensionless_unit<ConversionFactor>::value && detail::is_losslessly_convertible<Ty, T>)
 		explicit constexpr unit(Ty value) noexcept
-		  : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
+		  : _linearized_value(NumericalScale::linearize(static_cast<T>(value)))
 		{
 		}
 
@@ -2277,7 +2277,7 @@ namespace units
 		template<ArithmeticType Ty>
 			requires detail::is_losslessly_convertible<Ty, T>
 		explicit constexpr unit(Ty value, linearized_value_t) noexcept
-		  : linearized_value(value)
+		  : _linearized_value(value)
 		{
 		}
 
@@ -2289,7 +2289,7 @@ namespace units
 		template<ArithmeticType Ty>
 			requires traits::is_dimensionless_unit<ConversionFactor>::value && detail::is_losslessly_convertible<Ty, T>
 		constexpr unit(Ty value) noexcept
-		  : linearized_value(NumericalScale::linearize(static_cast<T>(value)))
+		  : _linearized_value(NumericalScale::linearize(static_cast<T>(value)))
 		{
 		}
 
@@ -2301,7 +2301,7 @@ namespace units
 		template<ArithmeticType Rep, RatioType Period>
 			requires detail::is_time_conversion_factor<ConversionFactor> && detail::is_losslessly_convertible<Rep, T>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
-		  : linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count())).linearized_value)
+		  : _linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))._linearized_value)
 		{
 		}
 
@@ -2322,7 +2322,7 @@ namespace units
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
 			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
-			linearized_value = units::convert<unit>(dimensionlessRhs).linearized_value;
+			_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
 			return *this;
 		}
 
@@ -2336,7 +2336,7 @@ namespace units
 		constexpr bool operator<(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			return (CommonUnit(*this).linearized_value < CommonUnit(rhs).linearized_value);
+			return (CommonUnit(*this)._linearized_value < CommonUnit(rhs)._linearized_value);
 		}
 
 		/**
@@ -2349,7 +2349,7 @@ namespace units
 		constexpr bool operator<=(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			return (CommonUnit(*this).linearized_value <= CommonUnit(rhs).linearized_value);
+			return (CommonUnit(*this)._linearized_value <= CommonUnit(rhs)._linearized_value);
 		}
 
 		/**
@@ -2362,7 +2362,7 @@ namespace units
 		constexpr bool operator>(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			return (CommonUnit(*this).linearized_value > CommonUnit(rhs).linearized_value);
+			return (CommonUnit(*this)._linearized_value > CommonUnit(rhs)._linearized_value);
 		}
 
 		/**
@@ -2375,7 +2375,7 @@ namespace units
 		constexpr bool operator>=(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			return (CommonUnit(*this).linearized_value >= CommonUnit(rhs).linearized_value);
+			return (CommonUnit(*this)._linearized_value >= CommonUnit(rhs)._linearized_value);
 		}
 
 		/**
@@ -2392,8 +2392,8 @@ namespace units
 			using CommonUnit       = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
 			using CommonUnderlying = typename CommonUnit::underlying_type;
 
-			const auto common_lhs(CommonUnit(*this).linearized_value);
-			const auto common_rhs(CommonUnit(rhs).linearized_value);
+			const auto common_lhs(CommonUnit(*this)._linearized_value);
+			const auto common_rhs(CommonUnit(rhs)._linearized_value);
 
 			return abs(common_lhs - common_rhs) < std::numeric_limits<CommonUnderlying>::epsilon() * abs(common_lhs + common_rhs) ||
 				abs(common_lhs - common_rhs) < std::numeric_limits<CommonUnderlying>::min();
@@ -2404,7 +2404,7 @@ namespace units
 		constexpr bool operator==(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			return CommonUnit(*this).linearized_value == CommonUnit(rhs).linearized_value;
+			return CommonUnit(*this)._linearized_value == CommonUnit(rhs)._linearized_value;
 		}
 
 		/**
@@ -2428,7 +2428,7 @@ namespace units
 		 */
 		constexpr underlying_type raw() const noexcept
 		{
-			return static_cast<underlying_type>(NumericalScale::scale(linearized_value));
+			return static_cast<underlying_type>(NumericalScale::scale(_linearized_value));
 		}
 
 		/**
@@ -2466,7 +2466,7 @@ namespace units
 		 */
 		constexpr T to_linearized() const noexcept
 		{
-			return linearized_value;
+			return _linearized_value;
 		}
 
 		/**
@@ -2554,11 +2554,12 @@ namespace units
 			return unit_abbreviation_v<Unit>;
 		}
 
-	private:
 		template<ConversionFactorType Cf, ArithmeticType Ty, NumericalScaleType<Ty> Ns>
 		friend class unit;
 
-		T linearized_value;
+		/// Not to be used as part of the official API, this member is public to allow the use
+		/// of `units` as NTTP types.
+		T _linearized_value;
 	};
 
 	//------------------------------

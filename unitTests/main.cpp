@@ -82,6 +82,17 @@ TEST_F(TypeTraits, isRatio)
 	static_assert(!traits::is_ratio_v<double>);
 }
 
+// TEST NTTP SUPPORT
+template<meters<double> m>
+class NTTPTestClass {}; // If this fails to compile, you've broken NTTP support (public inheritence, public members)
+
+TEST_F(TypeTraits, NTTPTest)
+{
+	// Force an actual NTTP instantiation:
+	static_assert(requires { typename NTTPTestClass<1.0_m>; },
+				  "Units failed NTTP support (class-type NTTP broken).");
+}
+
 TEST_F(TypeTraits, ratio_sqrt)
 {
 	using rt2 = ratio_sqrt<std::ratio<2>>;
