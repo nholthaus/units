@@ -3781,10 +3781,22 @@ namespace units
 	 * @param[in]	x	Unit value to round up.
 	 * @returns		The smallest integral value that is not less than x.
 	 */
-	template<UnitType UnitType>
-	constexpr detail::floating_point_promotion_t<UnitType> ceil(const UnitType x) noexcept
+	template <UnitType Unit>
+	constexpr detail::floating_point_promotion_t<Unit> ceil(const Unit x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::ceil(x.value()));
+		using promoted_t = detail::floating_point_promotion_t<Unit>;
+
+		const promoted_t xv = static_cast<promoted_t>(x.value());
+		const long long i   = static_cast<long long>(xv);
+
+		// For negative non-integers, truncation goes toward zero, which is already ceil.
+		// For positive non-integers, we need to bump up by 1.
+		const promoted_t y =
+			(xv > static_cast<promoted_t>(i))
+				? static_cast<promoted_t>(i + 1)
+				: static_cast<promoted_t>(i);
+
+		return promoted_t(y);
 	}
 
 	/**
@@ -3794,10 +3806,22 @@ namespace units
 	 * @param[in]	x	Unit value to round down.
 	 * @returns		The value of x rounded downward.
 	 */
-	template<UnitType UnitType>
-	constexpr detail::floating_point_promotion_t<UnitType> floor(const UnitType x) noexcept
+	template <UnitType Unit>
+	constexpr detail::floating_point_promotion_t<Unit> floor(const Unit x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::floor(x.value()));
+		using promoted_t = detail::floating_point_promotion_t<Unit>;
+
+		const promoted_t xv = static_cast<promoted_t>(x.value());
+		const long long i   = static_cast<long long>(xv);
+
+		// For negative non-integers, truncation goes toward zero, so we must subtract 1.
+		// For positive values (and exact integers), truncation already matches floor.
+		const promoted_t y =
+			(xv < static_cast<promoted_t>(i))
+				? static_cast<promoted_t>(i - 1)
+				: static_cast<promoted_t>(i);
+
+		return promoted_t(y);
 	}
 
 	/**
