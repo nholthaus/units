@@ -52,6 +52,10 @@ namespace
 	{
 	};
 
+	class ConcentrationSemantics : public ::testing::Test
+	{
+	};
+
 	class UnitLimits : public ::testing::Test
 	{
 	};
@@ -1427,24 +1431,24 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim + 0)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(0 + dim)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim + dim)>);
-	static_assert(std::is_same_v<percent<int>, decltype(pcnt + 0)>);
-	static_assert(std::is_same_v<percent<int>, decltype(0 + pcnt)>);
+	static_assert(std::is_same_v<percent<double>, decltype(pcnt + 0)>);
+	static_assert(std::is_same_v<percent<double>, decltype(0 + pcnt)>);
 	static_assert(std::is_same_v<percent<int>, decltype(pcnt + pcnt)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length + length)>);
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim - 0)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(0 - dim)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim - dim)>);
-	static_assert(std::is_same_v<percent<int>, decltype(pcnt - 0)>);
-	static_assert(std::is_same_v<percent<int>, decltype(0 - pcnt)>);
+	static_assert(std::is_same_v<percent<double>, decltype(pcnt - 0)>);
+	static_assert(std::is_same_v<percent<double>, decltype(0 - pcnt)>);
 	static_assert(std::is_same_v<percent<int>, decltype(pcnt - pcnt)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length - length)>);
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim * 1)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(1 * dim)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim * dim)>);
-	static_assert(std::is_same_v<percent<int>, decltype(pcnt * 1)>);
-	static_assert(std::is_same_v<percent<int>, decltype(1 * pcnt)>);
+	// static_assert(std::is_same_v<percent<int>, decltype(pcnt * 1)>);
+	// static_assert(std::is_same_v<percent<int>, decltype(1 * pcnt)>);
 	static_assert(std::is_same_v<unit<conversion_factor<std::ratio<1, 10000>, units::dimension::dimensionless>, int>, decltype(pcnt * pcnt)>);
 
 	static_assert(std::is_same_v<meters<int>, decltype(length * 1)>);
@@ -1459,15 +1463,15 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<dimensionless<int>, decltype(1 / dim)>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim / dim)>);
 	static_assert(std::is_same_v<percent<int>, decltype(pcnt / 1)>);
-	static_assert(std::is_same_v<unit<inverse<percent<>>, int>, decltype(1 / pcnt)>);
-	static_assert(std::is_same_v<dimensionless<int>, decltype(pcnt / pcnt)>);
+	static_assert(std::is_same_v<units::dimensionless<double>, decltype(1 / pcnt)>);
+	static_assert(std::is_same_v<units::dimensionless<double>, decltype(pcnt / pcnt)>);
 
 	static_assert(std::is_same_v<meters<int>, decltype(length / 1)>);
 	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(1 / length)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length / dim)>);
 	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(dim / length)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length / pcnt)>);
-	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(pcnt / length)>);
+	static_assert(std::is_convertible_v<decltype(pcnt / length), unit<inverse<meters<>>, double>>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(length / length)>);
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim % 1)>);
@@ -2300,8 +2304,9 @@ TEST_F(UnitType, unitTypeDivision)
 	EXPECT_EQ(l, 40'000.0_m);
 	dimensionless<double> m_dim = 5.0_pct / 4.0_pct;
 	EXPECT_EQ(m_dim, 1.25);
-	dimensionless<int> n = 5_pct / 4_pct;
-	EXPECT_EQ(n, 1);
+	auto n = 5_pct / 4_pct;
+	static_assert(std::is_same_v<units::dimensionless<double>, decltype(n)>);
+	EXPECT_DOUBLE_EQ(n, 1.25);
 
 	double o = 5.0 / 20.0_pct;
 	EXPECT_DOUBLE_EQ(o, 25.0);
@@ -2827,10 +2832,30 @@ TEST_F(UnitType, compoundAssignmentModulo)
 	EXPECT_EQ(2_pct, b_s);
 
 	b_s %= 5;
-	EXPECT_EQ(0, b_s.value());
+	EXPECT_EQ(2_pct, b_s);
 
 	b_s %= dimensionless<int>(5);
-	EXPECT_EQ(0, b_s.value());
+	EXPECT_EQ(2_pct, b_s);
+
+	b_s %= 2;
+	EXPECT_EQ(0_pct, b_s);
+}
+
+TEST_F(UnitType, PpbPerYearCompoundUnitType)
+{
+	using ppb_per_year = decltype(ppb/yr);
+
+	parts_per_million s = 9.71_ppb;
+
+	EXPECT_EQ(s, 0.00971_ppm);
+	EXPECT_DOUBLE_EQ(s, 0.00000000971);
+
+	ppb_per_year ds(0.109);
+
+	auto time = 2013.9_yr-1994_yr;
+
+	parts_per_million val = s + ds*time;
+	EXPECT_NEAR(val, 1.18791e-08, 1e-12);
 }
 
 TEST_F(UnitType, dimensionlessTypeImplicitConversion)
@@ -4866,8 +4891,8 @@ TEST_F(UnitMath, sqrt)
 	EXPECT_EQ(resultFt, sqrt(square_feet<double>(10.0)));
 
 	percent resultPct = sqrt(16.0_pct);
-	EXPECT_EQ(resultPct, 4.0_pct);
-	EXPECT_EQ(0.04, resultPct);
+	EXPECT_EQ(resultPct, 40.0_pct);
+	EXPECT_EQ(0.4, resultPct);
 }
 
 TEST_F(UnitMath, hypot)
@@ -5153,6 +5178,137 @@ TEST_F(Constexpr, stdArray)
 	constexpr bool                          equal = (arr[3] == 3.0_m);
 	EXPECT_TRUE(equal);
 }
+
+TEST(ConcentrationSemantics, scalar_multiply_returns_dimensionless)
+{
+	auto x = 2 * 50_pct;
+	EXPECT_DOUBLE_EQ(x.value(), 1.0);  // dimensionless
+}
+
+TEST(ConcentrationSemantics, abs_preserves_percent)
+{
+	percent<double> pct1 = 100.0_pct;
+	percent<double> pct2 = 70.0_pct;
+	auto delta = units::fabs(pct1 - pct2);
+	EXPECT_EQ(delta, 30.0_pct);
+}
+
+TEST(ConcentrationSemantics, PercentPpmPpbConvertToDimensionlessFraction)
+{
+	// Percent: 50% == 0.5 dimensionless
+	EXPECT_NEAR(dimensionless(50.0_pct).to<double>(), 0.5, 0.0);
+
+	// ppm: 1 ppm == 1e-6 dimensionless
+	EXPECT_NEAR(dimensionless(1.0_ppm).to<double>(), 1.0e-6, 0.0);
+
+	// ppb: 1 ppb == 1e-9 dimensionless
+	EXPECT_NEAR(dimensionless(1.0_ppb).to<double>(), 1.0e-9, 0.0);
+
+	// chained conversion sanity: 1000 ppb == 1 ppm
+	EXPECT_NEAR(parts_per_million(1000.0_ppb).raw(), 1.0, 0.0);
+	EXPECT_NEAR(parts_per_million(1.0_ppm).raw(), 1.0, 0.0);
+}
+
+TEST(ConcentrationSemantics, ScalarTimesPercentYieldsDimensionless)
+{
+	auto x = 2 * 50.0_pct;
+
+	// We want this to be a pure dimensionless "1", not 100_pct.
+	EXPECT_NEAR(dimensionless(x).to<double>(), 1.0, 0.0);
+
+	// Also check commutativity
+	auto y = 50.0_pct * 2;
+	EXPECT_NEAR(dimensionless(y).to<double>(), 1.0, 0.0);
+}
+
+TEST(ConcentrationSemantics, PercentMathPreservesPercentRepresentation)
+{
+	auto a = 100.0_pct;
+	auto b = 70.0_pct;
+
+	// subtraction should preserve the unit: 100% - 70% = 30%
+	auto d = a - b;
+	EXPECT_NEAR(d.raw(), 30.0, 0.0);
+
+	// fabs should preserve percent representation: fabs(30%) == 30%
+	auto f = units::fabs(d);
+	EXPECT_NEAR(f.raw(), 30.0, 0.0);
+
+	// abs should preserve percent representation
+	auto g = units::abs(-30_pct);
+	EXPECT_NEAR(g.raw(), 30.0, 0.0);
+
+	// fmin/fmax should preserve percent representation
+	auto mn = units::fmin(a, b);
+	EXPECT_NEAR(mn.raw(), 70.0, 0.0);
+
+	auto mx = units::fmax(a, b);
+	EXPECT_NEAR(mx.raw(), 100.0, 0.0);
+
+	// fdim should preserve percent representation: fdim(70%, 100%) == 0%
+	auto pd = units::fdim(b, a);
+	EXPECT_NEAR(pd.raw(), 0.0, 0.0);
+}
+
+TEST(ConcentrationSemantics, TranscendentalsUseNormalizedValue)
+{
+	// log(50%) = log(0.5)
+	auto x = units::log(50_pct);
+	EXPECT_NEAR(dimensionless(x).to<double>(), std::log(0.5), 1e-15);
+
+	// exp(0%) = exp(0) = 1
+	auto y = units::exp(0_pct);
+	EXPECT_NEAR(dimensionless(y).to<double>(), 1.0, 1e-15);
+}
+
+TEST(ConcentrationSemantics, RatioDimlessPreservedInCompoundDivision)
+{
+	using pct_per_m = decltype(1_pct / 1_m);
+	using inv_m     = unit<inverse<meters<>>, double>;
+
+	static_assert(!std::is_same_v<pct_per_m, inv_m>);
+	static_assert(units::traits::is_same_dimension_unit_v<pct_per_m, inv_m>);
+	static_assert(std::is_convertible_v<pct_per_m, inv_m>);
+}
+
+TEST(ConcentrationSemantics, PctPerMeterUsesPointsNumerator)
+{
+	auto x = 50_pct / 2_m;           // 25 pct/m in points space
+	EXPECT_DOUBLE_EQ(x.raw(), 25.0);
+
+	// When converted to 1/m it should be fraction per meter: 0.25 / m
+	unit<inverse<meters<>>, double> y = x;
+	EXPECT_DOUBLE_EQ(y.value(), 0.25 / 1.0); // == 0.25 (per m)
+}
+
+TEST(ConcentrationSemantics, CommonTypePpmPpb)
+{
+	using CT = std::common_type_t<parts_per_million<double>, parts_per_billion<double>>;
+	static_assert(units::traits::is_same_dimension_unit_v<CT, parts_per_million<double>>);
+
+	CT a = 1.0_ppm;
+	CT b = 1000.0_ppb;
+	EXPECT_DOUBLE_EQ(a.raw(), b.raw());
+	EXPECT_DOUBLE_EQ(a.value(), b.value());
+}
+
+TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
+{
+	EXPECT_DOUBLE_EQ(units::unit_cast<double>(50_pct), 0.5);
+	EXPECT_EQ(units::unit_cast<int>(50_pct), 0); // yes, surprising, but locks policy
+}
+
+TEST(ConcentrationSemantics, DimensionlessDivPercentIsNotSameAsScalarDivPercent)
+{
+	auto a = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
+	EXPECT_DOUBLE_EQ(a, 2.0);
+
+	double b = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
+	// Nail down expected behavior (whatever you decide it should be).
+	// If keeping current behavior:
+	EXPECT_DOUBLE_EQ(b, 2);     // because 1 / rhs.raw() = 1/50
+}
+
 
 TEST_F(UnitLimits, UnitMin)
 {
