@@ -138,7 +138,7 @@ namespace units
 	{
 		template<typename T>
 		struct is_dimensionless_unit;
-	}
+	} // namespace traits
 } // namespace units
 
 //------------------------------
@@ -1233,7 +1233,29 @@ namespace units
 
 		template<class Unit, class Underlying>
 		using replace_underlying_t = typename replace_underlying<Unit, Underlying>::type;
+
+		// True for dimensionless units whose conversion_ratio is not 1: percent, ppm, ppb, ppt, etc.
+		template<class ConversionFactor, class = void>
+		struct is_ratio_dimensionless_cf : std::false_type
+		{
+		};
+
+		template<class ConversionFactor>
+		struct is_ratio_dimensionless_cf<ConversionFactor, std::void_t<typename ConversionFactor::dimension_type, typename ConversionFactor::conversion_ratio>>
+		  : std::bool_constant<std::is_same_v<typename ConversionFactor::dimension_type, dimension::dimensionless> && !std::ratio_equal_v<typename ConversionFactor::conversion_ratio, std::ratio<1>>>
+		{
+		};
+
+		template<class ConversionFactor>
+		inline constexpr bool is_ratio_dimensionless_cf_v = is_ratio_dimensionless_cf<ConversionFactor>::value;
+
 	} // namespace traits
+
+	template<typename U>
+	concept RatioDimensionlessUnitType = units::DimensionlessUnitType<U> && traits::is_ratio_dimensionless_cf_v<typename U::conversion_factor>;
+
+	template<typename U>
+	concept OrdinaryDimensionlessUnitType = DimensionlessUnitType<U> && !RatioDimensionlessUnitType<U>;
 
 	/**
 	 * @brief		Type representing an arbitrary conversion factor between units.
@@ -2438,16 +2460,31 @@ namespace units
 		 * @returns		value of the unit in it's underlying, non-safe type.
 		 *
 		 */
-		constexpr underlying_type value() const noexcept
+		constexpr auto value() const noexcept
 		{
+			using CfTraits = traits::conversion_factor_traits<ConversionFactor>;
+
+			static constexpr bool needs_fp = traits::is_ratio_dimensionless_cf_v<ConversionFactor> || !std::ratio_equal_v<typename CfTraits::pi_exponent_ratio, std::ratio<0>> ||
+				!std::ratio_equal_v<typename CfTraits::translation_ratio, std::ratio<0>>;
+
+			using normalized_value_type = std::conditional_t<needs_fp, detail::floating_point_promotion_t<underlying_type>, underlying_type>;
+
 			if constexpr (traits::is_dimensionless_unit<ConversionFactor>::value)
-				return NumericalScale::scale(
-					units::convert<unit<units::conversion_factor<std::ratio<1>, dimension::dimensionless, typename traits::conversion_factor_traits<ConversionFactor>::pi_exponent_ratio,
-											typename traits::conversion_factor_traits<ConversionFactor>::translation_ratio>,
-						T, NumericalScale>>(*this)
-						.to_linearized());
+			{
+				// Always normalize dimensionless units to base dimensionless ratio for "value()"
+				// For ratio-dimensionless (pct/ppm/ppb), we *promote* the return type so int percent works.
+				using Under = normalized_value_type;
+
+				using BaseDimlessCF = units::conversion_factor<std::ratio<1>, dimension::dimensionless>;
+
+				using BaseDimlessUnit = unit<BaseDimlessCF, Under, NumericalScale>;
+
+				return NumericalScale::scale(units::convert<BaseDimlessUnit>(*this).to_linearized());
+			}
 			else
-				return raw();
+			{
+				return static_cast<normalized_value_type>(raw());
+			}
 		}
 
 		/**
@@ -2511,7 +2548,7 @@ namespace units
 		{
 			// this conversion also resolves any PI exponents, by converting from a non-zero PI ratio to a zero-pi
 			// ratio.
-			return NumericalScale::scale(units::convert<unit<units::conversion_factor<std::ratio<1>, dimension::dimensionless>, Ty, NumericalScale>>(*this).to_linearized());
+			return static_cast<Ty>(this->value());
 		}
 
 		/**
@@ -2917,9 +2954,67 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		lhs = lhs + rhs;
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U& operator+=(U& lhs, T rhs) noexcept
+	{
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		// points_per_one converts "fraction-space 1.0" into "points" for this unit.
+		// Example: percent ratio = 1/100 -> points_per_one = 100
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		// Do the math in points space to avoid truncation of lhs.value() for integral percent.
+		const long double new_points = static_cast<long double>(lhs.raw()) + (static_cast<long double>(rhs) * points_per_one);
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(new_points)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(new_points));
+		}
+
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+	constexpr U& operator+=(U& lhs, const D& rhs) noexcept
+	{
+		// rhs.value() is plain scalar (e.g. dimensionless<int>(1) => 1)
+		return (lhs += rhs.value());
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U& operator-=(U& lhs, T rhs) noexcept
+	{
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		const long double new_points = static_cast<long double>(lhs.raw()) - (static_cast<long double>(rhs) * points_per_one);
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(new_points)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(new_points));
+		}
+
 		return lhs;
 	}
 
@@ -2931,27 +3026,201 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		lhs = lhs - rhs;
 		return lhs;
 	}
 
+	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+	constexpr U& operator-=(U& lhs, const D& rhs) noexcept
+	{
+		return (lhs -= rhs.value());
+	}
+
 	template<UnitType UnitTypeLhs>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs * rhs;
 		return lhs;
 	}
 
+	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>
+		requires(traits::has_linear_scale_v<U, URhs>)
+	constexpr U& operator*=(U& lhs, const URhs& rhs) noexcept
+	{
+		using LhsUnder = typename U::underlying_type;
+		using RhsUnder = typename URhs::underlying_type;
+
+		using Calc0 = std::common_type_t<LhsUnder, RhsUnder>;
+		using Calc  = detail::floating_point_promotion_t<Calc0>;
+
+		// rhs interpreted as normalized fraction (e.g. 200_pct -> 2.0, 2_pct -> 0.02)
+		const Calc rhs_frac = static_cast<Calc>(rhs.value());
+
+		// lhs.raw() is "points" (e.g. 12_pct raw() == 12)
+		const Calc new_points = static_cast<Calc>(lhs.raw()) * rhs_frac;
+
+		if constexpr (std::is_integral_v<LhsUnder>)
+		{
+			// Deterministic: truncate toward zero
+			lhs = U(static_cast<LhsUnder>(new_points));
+		}
+		else
+		{
+			lhs = U(static_cast<LhsUnder>(new_points));
+		}
+
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr U& operator*=(U& lhs, const U& rhs) noexcept
+	{
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		// percent: 1/100 -> points_per_one = 100
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		const long double lhs_frac = static_cast<long double>(lhs.value()); // normalized fraction
+		const long double rhs_frac = static_cast<long double>(rhs.value()); // normalized fraction
+
+		const long double out_frac   = lhs_frac * rhs_frac;
+		const long double out_points = out_frac * points_per_one;
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(out_points)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(out_points));
+		}
+
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, units::ArithmeticType T>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr U& operator*=(U& lhs, T rhs) noexcept
+	{
+		// scalar is interpreted as base-dimensionless fraction (world-2)
+		// so rhs = 2 means multiply fraction by 2
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		const long double lhs_frac = static_cast<long double>(lhs.value());
+		const long double out_frac = lhs_frac * static_cast<long double>(rhs);
+		const long double out_pts  = out_frac * points_per_one;
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(out_pts)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(out_pts));
+		}
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
+		requires(units::traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+	constexpr U& operator*=(U& lhs, const D& rhs) noexcept
+	{
+		// dimensionless is a scalar fraction; use its numeric value
+		return (lhs *= rhs.value());
+	}
+
 	template<UnitType UnitTypeLhs>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs / rhs;
 		return lhs;
 	}
 
+	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>
+		requires(traits::has_linear_scale_v<U, URhs>)
+	constexpr U& operator/=(U& lhs, const URhs& rhs) noexcept
+	{
+		using Under0 = std::common_type_t<typename U::underlying_type, typename URhs::underlying_type>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+
+		const Under rhs_frac = static_cast<Under>(rhs.value()); // normalized fraction
+
+		const Under new_points = static_cast<Under>(lhs.raw()) / rhs_frac;
+
+		lhs = U(new_points);
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr U& operator/=(U& lhs, const U& rhs) noexcept
+	{
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		const long double lhs_frac = static_cast<long double>(lhs.value());
+		const long double rhs_frac = static_cast<long double>(rhs.value());
+
+		const long double out_frac   = lhs_frac / rhs_frac;
+		const long double out_points = out_frac * points_per_one;
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(out_points)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(out_points));
+		}
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, units::ArithmeticType T>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr U& operator/=(U& lhs, T rhs) noexcept
+	{
+		using Underlying = typename U::underlying_type;
+		using R          = typename U::conversion_factor::conversion_ratio;
+
+		constexpr long double points_per_one = static_cast<long double>(R::den) / static_cast<long double>(R::num);
+
+		const long double lhs_frac = static_cast<long double>(lhs.value());
+		const long double out_frac = lhs_frac / static_cast<long double>(rhs);
+		const long double out_pts  = out_frac * points_per_one;
+
+		if constexpr (std::is_integral_v<Underlying>)
+		{
+			lhs = U(static_cast<Underlying>(std::llround(out_pts)));
+		}
+		else
+		{
+			lhs = U(static_cast<Underlying>(out_pts));
+		}
+		return lhs;
+	}
+
+	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
+		requires(units::traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+	constexpr U& operator/=(U& lhs, const D& rhs) noexcept
+	{
+		return (lhs /= rhs.value());
+	}
+
 	template<DimensionedUnitType UnitTypeLhs>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
@@ -2959,6 +3228,7 @@ namespace units
 	}
 
 	template<DimensionlessUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
+		requires(!(RatioDimensionlessUnitType<UnitTypeLhs> || RatioDimensionlessUnitType<UnitTypeRhs>))
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
@@ -2967,9 +3237,38 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs % rhs;
+		return lhs;
+	}
+
+	// ratio-dimensionless %= ratio-dimensionless  (percent points modulo percent points)
+	template<RatioDimensionlessUnitType U>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U& operator%=(U& lhs, const U& rhs) noexcept
+	{
+		lhs = lhs % rhs;
+		return lhs;
+	}
+
+	// ratio-dimensionless %= scalar  (percent points modulo scalar)
+	template<RatioDimensionlessUnitType U>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U& operator%=(U& lhs, const typename U::underlying_type& rhs) noexcept
+	{
+		lhs = lhs % rhs;
+		return lhs;
+	}
+
+	// ratio-dimensionless %= base dimensionless unit  (treat as scalar)
+	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+	constexpr U& operator%=(U& lhs, const D& rhs) noexcept
+	{
+		// D is ordinary dimensionless: safe scalar conversion
+		lhs = lhs % static_cast<typename U::underlying_type>(rhs);
 		return lhs;
 	}
 
@@ -3038,23 +3337,52 @@ namespace units
 		return CommonUnit(CommonUnit(lhs).raw() + CommonUnit(rhs).raw());
 	}
 
+	/// Addition template for ratio-like dimensionless units (concentrations, etc)
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr auto operator+(const U& lhs, T rhs) noexcept -> traits::replace_underlying_t<U, detail::floating_point_promotion_t<std::common_type_t<typename U::underlying_type, T>>>
+	{
+		using Under0 = std::common_type_t<typename U::underlying_type, T>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+		using Ret    = traits::replace_underlying_t<U, Under>;
+
+		using R                        = typename U::conversion_factor::conversion_ratio; // e.g. percent: 1/100
+		constexpr Under points_per_one = static_cast<Under>(R::den) / static_cast<Under>(R::num);
+
+		// fraction-space math, then back to points
+		const Under frac = static_cast<Under>(lhs.value()) + static_cast<Under>(rhs);
+		return Ret(frac * points_per_one);
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr auto operator+(T lhs, const U& rhs) noexcept -> traits::replace_underlying_t<U, detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>>
+	{
+		using Under0 = std::common_type_t<T, typename U::underlying_type>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+		using Ret    = traits::replace_underlying_t<U, Under>;
+
+		using R                        = typename U::conversion_factor::conversion_ratio;
+		constexpr Under points_per_one = static_cast<Under>(R::den) / static_cast<Under>(R::num);
+
+		const Under frac = static_cast<Under>(lhs) + static_cast<Under>(rhs.value());
+		return Ret(frac * points_per_one);
+	}
+
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
 	/// converted to built-in types.
 	template<DimensionlessUnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator+(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
-		// Apply any necessary scale factor to T using multiplication for lossless conversion
-		// for non-scaled dimensionless units it's a no-op
-		using CommonUnit        = decltype(lhs + rhs);
-		using InverseCommonUnit = decltype(1 / CommonUnit(1));
-		return CommonUnit(lhs.raw() + InverseCommonUnit(rhs).value());
+		using ret = traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>>;
+		return ret(lhs.raw() + static_cast<ret::underlying_type>(rhs));
 	}
 
 	/// Addition operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
 	/// converted to built-in types.
 	template<DimensionlessUnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator+(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// Apply any necessary scale factor to T using multiplication for lossless conversion
@@ -3076,7 +3404,7 @@ namespace units
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
 	/// converted to built-in types.
 	template<DimensionlessUnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator-(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		// Apply any necessary scale factor to T using multiplication for lossless conversion
@@ -3086,10 +3414,41 @@ namespace units
 		return CommonUnit(lhs.raw() - InverseCommonUnit(rhs).value());
 	}
 
+	/// Subtraction for ratio-like dimensionless units
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr auto operator-(const U& lhs, T rhs) noexcept -> traits::replace_underlying_t<U, detail::floating_point_promotion_t<std::common_type_t<typename U::underlying_type, T>>>
+	{
+		using Under0 = std::common_type_t<typename U::underlying_type, T>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+		using Ret    = traits::replace_underlying_t<U, Under>;
+
+		using R                        = typename U::conversion_factor::conversion_ratio;
+		constexpr Under points_per_one = static_cast<Under>(R::den) / static_cast<Under>(R::num);
+
+		const Under frac = static_cast<Under>(lhs.value()) - static_cast<Under>(rhs);
+		return Ret(frac * points_per_one);
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr auto operator-(T lhs, const U& rhs) noexcept -> traits::replace_underlying_t<U, detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>>
+	{
+		using Under0 = std::common_type_t<T, typename U::underlying_type>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+		using Ret    = traits::replace_underlying_t<U, Under>;
+
+		using R                        = typename U::conversion_factor::conversion_ratio;
+		constexpr Under points_per_one = static_cast<Under>(R::den) / static_cast<Under>(R::num);
+
+		const Under frac = static_cast<Under>(lhs) - static_cast<Under>(rhs.value());
+		return Ret(frac * points_per_one);
+	}
+
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
 	/// converted to built-in types.
 	template<DimensionlessUnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator-(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// Apply any necessary scale factor to T using multiplication for lossless conversion
@@ -3165,9 +3524,32 @@ namespace units
 		return CommonUnit(lhs * CommonUnit(rhs).raw());
 	}
 
+	/// scalar * ratio-dimensionless -> base dimensionless (PROMOTED)
+	template<RatioDimensionlessUnitType U, units::ArithmeticType T>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr units::dimensionless<units::detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>> operator*(T lhs, const U& rhs) noexcept
+	{
+		using Under0 = std::common_type_t<T, typename U::underlying_type>;
+		using Under  = units::detail::floating_point_promotion_t<Under0>;
+
+		// rhs converts to Under as normalized fraction (e.g. 50_pct -> 0.5)
+		return units::dimensionless<Under>(static_cast<Under>(lhs) * static_cast<Under>(rhs));
+	}
+
+	/// ratio-dimensionless * scalar -> base dimensionless (PROMOTED)
+	template<RatioDimensionlessUnitType U, units::ArithmeticType T>
+		requires(units::traits::has_linear_scale_v<U>)
+	constexpr units::dimensionless<units::detail::floating_point_promotion_t<std::common_type_t<typename U::underlying_type, T>>> operator*(const U& lhs, T rhs) noexcept
+	{
+		using Under0 = std::common_type_t<typename U::underlying_type, T>;
+		using Under  = units::detail::floating_point_promotion_t<Under0>;
+
+		return units::dimensionless<Under>(static_cast<Under>(lhs) * static_cast<Under>(rhs));
+	}
+
 	/// Multiplication by an arithmetic type for dimensionless unit types with a linear scale.
 	template<DimensionlessUnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
@@ -3176,7 +3558,7 @@ namespace units
 
 	/// Multiplication by an arithmetic type for dimensionless unit types with a linear scale.
 	template<DimensionlessUnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
@@ -3186,7 +3568,8 @@ namespace units
 	/// Division for convertible unit types with a linear scale. @returns the lhs divided by rhs value, whose type is a
 	/// dimensionless
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr dimensionless<std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -3230,7 +3613,7 @@ namespace units
 
 	/// Division by a dimensionless for unit types with a linear scale
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs / rhs);
@@ -3239,7 +3622,7 @@ namespace units
 
 	/// Division of a dimensionless by a unit type with a linear scale
 	template<UnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept
 		-> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
 	{
@@ -3248,6 +3631,38 @@ namespace units
 		using CommonUnderlying = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
 		using CommonUnit       = unit<UnitConversion, CommonUnderlying>;
 		return InverseUnit(lhs / CommonUnit(rhs).raw());
+	}
+
+	/// Division of ratio-like dimensionless units with arithmetic types
+	// U / scalar -> U   (percent points divided, still percent)
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr traits::replace_underlying_t<U, std::common_type_t<typename U::underlying_type, T>> operator/(const U& lhs, T rhs) noexcept
+	{
+		using Out = traits::replace_underlying_t<U, std::common_type_t<typename U::underlying_type, T>>;
+		return Out(Out(lhs).raw() / rhs);
+	}
+
+	// scalar / ratio-dimensionless -> dimensionless (normalized)
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr units::dimensionless<detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>> operator/(T lhs, const U& rhs) noexcept
+	{
+		using CommonType   = std::common_type_t<T, typename U::underlying_type>;
+		using PromotedType = detail::floating_point_promotion_t<CommonType>;
+
+		// rhs.value() is normalized fraction (e.g. 50_pct -> 0.5)
+		return units::dimensionless<PromotedType>(static_cast<PromotedType>(lhs) / static_cast<PromotedType>(rhs.value()));
+	}
+
+	// U / U -> dimensionless (normalized)
+	template<RatioDimensionlessUnitType U1, RatioDimensionlessUnitType U2>
+		requires(traits::has_linear_scale_v<U1, U2>)
+	constexpr dimensionless<detail::floating_point_promotion_t<std::common_type_t<typename U1::underlying_type, typename U2::underlying_type>>> operator/(const U1& lhs, const U2& rhs) noexcept
+	{
+		using Under0 = std::common_type_t<typename U1::underlying_type, typename U2::underlying_type>;
+		using Under  = detail::floating_point_promotion_t<Under0>;
+		return dimensionless<Under>(static_cast<Under>(lhs.value()) / static_cast<Under>(rhs.value()));
 	}
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
@@ -3283,11 +3698,38 @@ namespace units
 
 	/// Modulo by an arithmetic type for unit types with a linear scale
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
 		return CommonUnit(CommonUnit(lhs).raw() % rhs);
+	}
+
+	// Modulos for ratio-like dimensionless units
+	template<RatioDimensionlessUnitType U>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U operator%(const U& lhs, const U& rhs) noexcept
+	{
+		return U(lhs.raw() % rhs.raw());
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U operator%(const U& lhs, T rhs) noexcept
+	{
+		return U(lhs.raw() % rhs);
+	}
+
+	template<RatioDimensionlessUnitType U, ArithmeticType T>
+		requires(traits::has_linear_scale_v<U>)
+	constexpr U operator%(T lhs, const U& rhs) noexcept
+	{
+		using Under = detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>;
+		// If lhs is integral, keep integer modulo semantics
+		if constexpr (std::is_integral_v<T> && std::is_integral_v<typename U::underlying_type>)
+			return U(lhs % rhs.raw());
+		else
+			return U(static_cast<Under>(std::fmod(static_cast<Under>(lhs), static_cast<Under>(rhs.raw()))));
 	}
 
 	//----------------------------------
@@ -3750,7 +4192,7 @@ namespace units
 	constexpr auto sqrt(const UnitType& value) noexcept
 		-> unit<traits::strong_t<square_root<typename traits::unit_traits<UnitType>::conversion_factor>>, detail::floating_point_promotion_t<typename traits::unit_traits<UnitType>::underlying_type>>
 	{
-		return decltype(units::sqrt(value))(sqrt(value.value()));
+		return decltype(units::sqrt(value))(sqrt(value.raw()));
 	}
 
 	/**
@@ -3767,7 +4209,7 @@ namespace units
 	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		using CommonUnit = decltype(units::hypot(x, y));
-		return CommonUnit(std::hypot(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::hypot(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	//----------------------------------
@@ -3781,20 +4223,17 @@ namespace units
 	 * @param[in]	x	Unit value to round up.
 	 * @returns		The smallest integral value that is not less than x.
 	 */
-	template <UnitType Unit>
+	template<UnitType Unit>
 	constexpr detail::floating_point_promotion_t<Unit> ceil(const Unit x) noexcept
 	{
 		using promoted_t = detail::floating_point_promotion_t<Unit>;
 
-		const promoted_t xv = static_cast<promoted_t>(x.value());
-		const long long i   = static_cast<long long>(xv);
+		const promoted_t xv = static_cast<promoted_t>(x.raw());
+		const long long  i  = static_cast<long long>(xv);
 
 		// For negative non-integers, truncation goes toward zero, which is already ceil.
 		// For positive non-integers, we need to bump up by 1.
-		const promoted_t y =
-			(xv > static_cast<promoted_t>(i))
-				? static_cast<promoted_t>(i + 1)
-				: static_cast<promoted_t>(i);
+		const promoted_t y = (xv > static_cast<promoted_t>(i)) ? static_cast<promoted_t>(i + 1) : static_cast<promoted_t>(i);
 
 		return promoted_t(y);
 	}
@@ -3806,20 +4245,17 @@ namespace units
 	 * @param[in]	x	Unit value to round down.
 	 * @returns		The value of x rounded downward.
 	 */
-	template <UnitType Unit>
+	template<UnitType Unit>
 	constexpr detail::floating_point_promotion_t<Unit> floor(const Unit x) noexcept
 	{
 		using promoted_t = detail::floating_point_promotion_t<Unit>;
 
-		const promoted_t xv = static_cast<promoted_t>(x.value());
-		const long long i   = static_cast<long long>(xv);
+		const promoted_t xv = static_cast<promoted_t>(x.raw());
+		const long long  i  = static_cast<long long>(xv);
 
 		// For negative non-integers, truncation goes toward zero, so we must subtract 1.
 		// For positive values (and exact integers), truncation already matches floor.
-		const promoted_t y =
-			(xv < static_cast<promoted_t>(i))
-				? static_cast<promoted_t>(i - 1)
-				: static_cast<promoted_t>(i);
+		const promoted_t y = (xv < static_cast<promoted_t>(i)) ? static_cast<promoted_t>(i - 1) : static_cast<promoted_t>(i);
 
 		return promoted_t(y);
 	}
@@ -3837,7 +4273,7 @@ namespace units
 	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using CommonUnit = decltype(units::fmod(numer, denom));
-		return CommonUnit(std::fmod(CommonUnit(numer).value(), CommonUnit(denom).value()));
+		return CommonUnit(std::fmod(CommonUnit(numer).raw(), CommonUnit(denom).raw()));
 	}
 
 	/**
@@ -3851,7 +4287,7 @@ namespace units
 	template<UnitType UnitType>
 	constexpr detail::floating_point_promotion_t<UnitType> trunc(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::trunc(x.raw()));
 	}
 
 	/**
@@ -3865,7 +4301,7 @@ namespace units
 	template<UnitType UnitType>
 	constexpr detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::round(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::round(x.raw()));
 	}
 
 	//----------------------------------
@@ -3884,14 +4320,14 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y.value())); // no need for conversion to get the correct sign.
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y.raw())); // no need for conversion to get the correct sign.
 	}
 
 	/// Overload to copy the sign from a raw double
 	template<UnitType UnitTypeLhs, ArithmeticType T>
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.value(), y));
+		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y));
 	}
 
 	//----------------------------------
@@ -3911,7 +4347,7 @@ namespace units
 	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fdim(x, y));
-		return CommonUnit(std::fdim(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fdim(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	/**
@@ -3927,7 +4363,7 @@ namespace units
 	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmax(x, y));
-		return CommonUnit(std::fmax(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fmax(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	/**
@@ -3944,7 +4380,7 @@ namespace units
 	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		using CommonUnit = decltype(units::fmin(x, y));
-		return CommonUnit(std::fmin(CommonUnit(x).value(), CommonUnit(y).value()));
+		return CommonUnit(std::fmin(CommonUnit(x).raw(), CommonUnit(y).raw()));
 	}
 
 	//----------------------------------
@@ -3961,7 +4397,7 @@ namespace units
 	template<UnitType UnitType>
 	constexpr detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
-		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.value()));
+		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.raw()));
 	}
 
 	/**
@@ -3974,7 +4410,7 @@ namespace units
 	template<UnitType UnitType>
 	constexpr UnitType abs(const UnitType x) noexcept
 	{
-		return UnitType(std::abs(x.value()));
+		return UnitType(std::abs(x.raw()));
 	}
 
 	/**
@@ -3995,7 +4431,7 @@ namespace units
 		-> std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) * detail::floating_point_promotion_t<UnitMultiply>(y)), UnitAdd>
 	{
 		using CommonUnit = decltype(units::fma(x, y, z));
-		return CommonUnit(std::fma(x.value(), y.value(), CommonUnit(z).value()));
+		return CommonUnit(std::fma(x.raw(), y.raw(), CommonUnit(z).raw()));
 	}
 
 	//----------------------------
@@ -4005,32 +4441,32 @@ namespace units
 	template<UnitType UnitType>
 	constexpr bool isnan(const UnitType& x) noexcept
 	{
-		return std::isnan(x.value());
+		return std::isnan(x.raw());
 	}
 
 	template<UnitType UnitType>
 	constexpr bool isinf(const UnitType& x) noexcept
 	{
-		return std::isinf(x.value());
+		return std::isinf(x.raw());
 	}
 
 	template<UnitType UnitType>
 	constexpr bool isfinite(const UnitType& x) noexcept
 	{
-		return std::isfinite(x.value());
+		return std::isfinite(x.raw());
 	}
 
 	template<UnitType UnitType>
 	constexpr bool isnormal(const UnitType& x) noexcept
 	{
-		return std::isnormal(x.value());
+		return std::isnormal(x.raw());
 	}
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
 	constexpr bool isunordered(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		return std::isunordered(lhs.value(), rhs.value());
+		return std::isunordered(lhs.raw(), rhs.raw());
 	}
 } // end namespace units
 
