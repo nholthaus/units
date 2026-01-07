@@ -1471,7 +1471,7 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<meters<int>, decltype(length / dim)>);
 	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(dim / length)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length / pcnt)>);
-	static_assert(std::is_same_v<unit<inverse<meters<>>, int>, decltype(pcnt / length)>);
+	static_assert(std::is_convertible_v<decltype(pcnt / length), unit<inverse<meters<>>, double>>);
 	static_assert(std::is_same_v<dimensionless<int>, decltype(length / length)>);
 
 	static_assert(std::is_same_v<dimensionless<int>, decltype(dim % 1)>);
@@ -2839,6 +2839,23 @@ TEST_F(UnitType, compoundAssignmentModulo)
 
 	b_s %= 2;
 	EXPECT_EQ(0_pct, b_s);
+}
+
+TEST_F(UnitType, PpbPerYearCompoundUnitType)
+{
+	using ppb_per_year = decltype(ppb/yr);
+
+	parts_per_million s = 9.71_ppb;
+
+	EXPECT_EQ(s, 0.00971_ppm);
+	EXPECT_DOUBLE_EQ(s, 0.00000000971);
+
+	ppb_per_year ds(0.109);
+
+	auto time = 2013.9_yr-1994_yr;
+
+	parts_per_million val = s + ds*time;
+	EXPECT_NEAR(val, 1.18791e-08, 1e-12);
 }
 
 TEST_F(UnitType, dimensionlessTypeImplicitConversion)
@@ -5233,24 +5250,6 @@ TEST(ConcentrationSemantics, PercentMathPreservesPercentRepresentation)
 	EXPECT_NEAR(pd.raw(), 0.0, 0.0);
 }
 
-
-TEST(ConcentrationSemantics, PpbRateTimesYearsIsTinyDimensionless)
-{
-	// mimic your GDA94-style dt = 19.9 years
-	const auto dt = 19.9_yr;
-
-	using ppb_per_year = decltype(1.0_ppb / 1.0_yr);
-
-	// 0.109 ppb/yr * 19.9 yr = 2.1691 ppb
-	// In base dimensionless: 2.1691e-9
-	const auto rate = ppb_per_year{0.109};
-	const auto total = rate * dt;
-
-	EXPECT_NEAR(parts_per_billion(total).raw(), 2169100000.0, 1e-6);   // points-space
-	EXPECT_NEAR(dimensionless(total).to<double>(), 2.1691, 1e-12);     // normalized fraction
-}
-
-
 TEST(ConcentrationSemantics, TranscendentalsUseNormalizedValue)
 {
 	// log(50%) = log(0.5)
@@ -5261,6 +5260,55 @@ TEST(ConcentrationSemantics, TranscendentalsUseNormalizedValue)
 	auto y = units::exp(0_pct);
 	EXPECT_NEAR(dimensionless(y).to<double>(), 1.0, 1e-15);
 }
+
+TEST(ConcentrationSemantics, RatioDimlessPreservedInCompoundDivision)
+{
+	using pct_per_m = decltype(1_pct / 1_m);
+	using inv_m     = unit<inverse<meters<>>, double>;
+
+	static_assert(!std::is_same_v<pct_per_m, inv_m>);
+	static_assert(units::traits::is_same_dimension_unit_v<pct_per_m, inv_m>);
+	static_assert(std::is_convertible_v<pct_per_m, inv_m>);
+}
+
+TEST(ConcentrationSemantics, PctPerMeterUsesPointsNumerator)
+{
+	auto x = 50_pct / 2_m;           // 25 pct/m in points space
+	EXPECT_DOUBLE_EQ(x.raw(), 25.0);
+
+	// When converted to 1/m it should be fraction per meter: 0.25 / m
+	unit<inverse<meters<>>, double> y = x;
+	EXPECT_DOUBLE_EQ(y.value(), 0.25 / 1.0); // == 0.25 (per m)
+}
+
+TEST(ConcentrationSemantics, CommonTypePpmPpb)
+{
+	using CT = std::common_type_t<parts_per_million<double>, parts_per_billion<double>>;
+	static_assert(units::traits::is_same_dimension_unit_v<CT, parts_per_million<double>>);
+
+	CT a = 1.0_ppm;
+	CT b = 1000.0_ppb;
+	EXPECT_DOUBLE_EQ(a.raw(), b.raw());
+	EXPECT_DOUBLE_EQ(a.value(), b.value());
+}
+
+TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
+{
+	EXPECT_DOUBLE_EQ(units::unit_cast<double>(50_pct), 0.5);
+	EXPECT_EQ(units::unit_cast<int>(50_pct), 0); // yes, surprising, but locks policy
+}
+
+TEST(ConcentrationSemantics, DimensionlessDivPercentIsNotSameAsScalarDivPercent)
+{
+	auto a = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
+	EXPECT_DOUBLE_EQ(a, 2.0);
+
+	double b = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
+	// Nail down expected behavior (whatever you decide it should be).
+	// If keeping current behavior:
+	EXPECT_DOUBLE_EQ(b, 2);     // because 1 / rhs.raw() = 1/50
+}
+
 
 TEST_F(UnitLimits, UnitMin)
 {

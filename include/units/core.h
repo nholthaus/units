@@ -3484,26 +3484,52 @@ namespace units
 		return CompoundUnit(static_cast<CommonUnderlying>(lhs) * static_cast<CommonUnderlying>(rhs));
 	}
 
-	/// Multiplication by a dimensionless unit for unit types with a linear scale.
-	template<DimensionedUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
+	/// Multiplication by an ordinary dimensionless unit for unit types with a linear scale.
+	template<DimensionedUnitType UnitTypeLhs, OrdinaryDimensionlessUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(CommonUnit(lhs).raw() * static_cast<typename CommonUnit::underlying_type>(rhs));
 	}
 
-	/// Multiplication by a dimensionless unit for unit types with a linear scale.
-	template<DimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+	/// Multiplication by a ratio-dimensionless unit for unit types with a linear scale.
+	/// Treat ratio-dimensionless as a scalar (normalized fraction).
+	template<DimensionedUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
+		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using Out = decltype(lhs * rhs);
+		using U0  = std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using U   = detail::floating_point_promotion_t<U0>;
+
+		// rhs.value() is normalized fraction (e.g. 200_pct -> 2.0, 50_ppb -> 50e-9)
+		return Out(static_cast<U>(lhs.raw()) * static_cast<U>(rhs.value()));
+	}
+
+	/// Multiplication by an ordinary dimensionless unit for unit types with a linear scale.
+	template<OrdinaryDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
-		// the cast makes sure factors of PI are handled as expected
 		return CommonUnit(static_cast<typename CommonUnit::underlying_type>(lhs) * CommonUnit(rhs).raw());
+	}
+
+	/// ratio-dimensionless * dimensioned -> dimensioned (scalar multiply)
+	template<RatioDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
+		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using Out = decltype(lhs * rhs);
+		using U0  = std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using U   = detail::floating_point_promotion_t<U0>;
+
+		return Out(static_cast<U>(lhs.value()) * static_cast<U>(rhs.raw()));
 	}
 
 	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
@@ -3589,19 +3615,52 @@ namespace units
 		return CompoundUnit(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
 	}
 
-	/// Division by a dimensionless unit for unit types with a linear scale
-	template<DimensionedUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
+	/// Division by an ordinary dimensionless unit for unit types with a linear scale
+	template<DimensionedUnitType UnitTypeLhs, OrdinaryDimensionlessUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator/(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
+
+		// Ordinary dimensionless is a true scalar
 		return CommonUnit(CommonUnit(lhs).raw() / static_cast<CommonUnderlying>(rhs));
 	}
 
+	/// Division by a ratio-dimensionless unit for unit types with a linear scale.
+	/// Treat ratio-dimensionless as a scalar (normalized fraction).
+	template<DimensionedUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr traits::replace_underlying_t<
+		UnitTypeLhs,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>
+	>
+	operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using Out = decltype(lhs / rhs);
+		using U0  = std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>;
+		using U   = detail::floating_point_promotion_t<U0>;
+
+		return Out(static_cast<U>(lhs.raw()) / static_cast<U>(rhs.value()));
+	}
+
+	/// Division of an ordinary dimensionless unit by a ratio-dimensionless unit.
+	/// Produces inverse<ratio-dimensionless> (compound) and uses raw() for rhs.
+	template<OrdinaryDimensionlessUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+	{
+		using Out              = decltype(lhs / rhs);
+		using CommonUnderlying = typename Out::underlying_type;
+
+		// lhs is true scalar, rhs is points (not scalar fraction)
+		return Out(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs.raw()));
+	}
+
 	/// Division of a dimensionless unit by a unit type with a linear scale
-	template<DimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+	template<OrdinaryDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs>)
 	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
@@ -3609,6 +3668,32 @@ namespace units
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
 		return CommonUnit(static_cast<CommonUnderlying>(lhs) / static_cast<CommonUnderlying>(rhs));
+	}
+
+	/// Division of a ratio-dimensionless unit (pct/ppm/ppb/...) by a dimensioned unit.
+	/// This MUST preserve the numerator ratio semantics (do NOT collapse to 1/unit).
+	template<RatioDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+		-> unit<
+			traits::strong_t<
+				compound_conversion_factor<
+					typename traits::unit_traits<UnitTypeLhs>::conversion_factor,
+					inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>
+				>
+			>,
+			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>
+		>
+	{
+		using Out              = decltype(lhs / rhs);
+		using CommonUnderlying = typename Out::underlying_type;
+
+		// numeric part: ppb points / years -> "ppb per year" numeric value
+		// keep lhs as points (raw), keep rhs in its own units (raw)
+		return Out(
+			static_cast<CommonUnderlying>(lhs.raw()) / static_cast<CommonUnderlying>(rhs.raw()),
+			linearized_value
+		);
 	}
 
 	/// Division by a dimensionless for unit types with a linear scale
