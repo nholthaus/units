@@ -218,11 +218,11 @@ TEST_F(TypeTraits, all_true)
 TEST_F(TypeTraits, is_convertible_unit)
 {
 	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<meters, astronicalUnits>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<meters, astronomical_units>::value));
 	EXPECT_TRUE((traits::is_convertible_unit<meters, parsecs>::value));
 
 	EXPECT_TRUE((traits::is_convertible_unit<meters, meters>::value));
-	EXPECT_TRUE((traits::is_convertible_unit<astronicalUnits, meters>::value));
+	EXPECT_TRUE((traits::is_convertible_unit<astronomical_units, meters>::value));
 	EXPECT_TRUE((traits::is_convertible_unit<parsecs, meters>::value));
 	EXPECT_TRUE((traits::is_convertible_unit<years, weeks>::value));
 
@@ -747,16 +747,16 @@ TEST_F(TypeTraits, is_area_unit)
 
 	EXPECT_TRUE((traits::is_area_unit<square_meter>::value));
 	EXPECT_TRUE((traits::is_area_unit<hectare>::value));
-	EXPECT_FALSE((traits::is_area_unit<astronicalUnit>::value));
+	EXPECT_FALSE((traits::is_area_unit<astronomical_unit>::value));
 	EXPECT_FALSE((traits::is_area_unit<double>::value));
 
 	EXPECT_TRUE((traits::is_area_unit<square_meter_t>::value));
 	EXPECT_TRUE((traits::is_area_unit<const square_meter_t>::value));
 	EXPECT_TRUE((traits::is_area_unit<const square_meter_t&>::value));
 	EXPECT_TRUE((traits::is_area_unit<hectare_t>::value));
-	EXPECT_FALSE((traits::is_area_unit<astronicalUnit_t>::value));
+	EXPECT_FALSE((traits::is_area_unit<astronomical_unit_t>::value));
 	EXPECT_TRUE((traits::is_area_unit<hectare_t, square_meter_t>::value));
-	EXPECT_FALSE((traits::is_area_unit<astronicalUnit_t, square_meter_t>::value));
+	EXPECT_FALSE((traits::is_area_unit<astronomical_unit_t, square_meter_t>::value));
 }
 
 TEST_F(TypeTraits, is_volume_unit)
@@ -1638,7 +1638,7 @@ TEST_F(UnitConversion, length)
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = convert<meters, nauticalMiles>(1852.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
-	test = convert<meters, astronicalUnits>(149597870700.0);
+	test = convert<meters, astronomical_units>(149597870700.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
 	test = convert<meters, lightyears>(9460730472580800.0);
 	EXPECT_NEAR(1.0, test, 5.0e-20);
