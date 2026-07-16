@@ -5061,6 +5061,38 @@ TEST_F(UnitMath, isunordered)
 	EXPECT_FALSE(units::isunordered(zero, zero));
 }
 
+TEST_F(UnitMath, signbit)
+{
+	meters<> zero(0.0);
+	meters<> pos(1.0);
+	meters<> neg(-1.0);
+	meters<> negZero(-0.0);
+
+	EXPECT_FALSE(std::signbit(zero));
+	EXPECT_FALSE(std::signbit(pos));
+	EXPECT_TRUE(std::signbit(neg));
+	EXPECT_TRUE(std::signbit(negZero));
+}
+
+TEST_F(UnitMath, stdExtensions)
+{
+	meters<> zero(0.0);
+	meters<> nan(NAN);
+	meters<> inf(INFINITY);
+
+	EXPECT_TRUE(std::isnan(nan));
+	EXPECT_FALSE(std::isnan(inf));
+	EXPECT_FALSE(std::isnan(zero));
+
+	EXPECT_TRUE(std::isinf(inf));
+	EXPECT_FALSE(std::isinf(nan));
+	EXPECT_FALSE(std::isinf(zero));
+
+	EXPECT_TRUE(std::isfinite(zero));
+	EXPECT_FALSE(std::isfinite(nan));
+	EXPECT_FALSE(std::isfinite(inf));
+}
+
 // Constexpr
 TEST_F(Constexpr, construction)
 {
