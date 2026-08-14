@@ -69,6 +69,8 @@ namespace units
 	UNIT_ADD(radiation, rutherfords, rd, conversion_factor<std::ratio<1>, megabecquerels<>>)
 	UNIT_ADD(radiation, radiation_absorbed_dose, rads, conversion_factor<std::ratio<1>, centigrays<>>)
 
+	UNIT_ADD(radiation, roentgens_equivalent_man, rem, conversion_factor<std::ratio<1>, centisieverts<>>)
+
 	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
 } // namespace units
 

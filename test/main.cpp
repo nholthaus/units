@@ -4636,6 +4636,74 @@ TEST_F(ConversionFactor, squaredTemperature)
 	EXPECT_EQ(celsius<double>(10), rootRight);
 }
 
+TEST_F(ConversionFactor, unitsAddedIn3_4_2)
+{
+	// Each new unit is checked against the exact ratio to its canonical parent.
+	// length
+	EXPECT_DOUBLE_EQ(4.0, rods<double>(chains<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(100.0, links<double>(chains<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, inches<double>(barleycorns<double>(3.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, yards<double>(nails<double>(16.0)).value());
+	EXPECT_DOUBLE_EQ(9.0, inches<double>(spans<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, inches<double>(picas<double>(6.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, inches<double>(points<double>(72.0)).value());
+	// velocity
+	EXPECT_DOUBLE_EQ(1.0, feet_per_second<double>(feet_per_minute<double>(60.0)).value());
+	EXPECT_DOUBLE_EQ(1000.0, meters_per_second<double>(kilometers_per_second<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(0.0254, meters_per_second<double>(inches_per_second<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, feet_per_second<double>(meters_per_minute<double>(18.288)).value());
+	// area
+	EXPECT_DOUBLE_EQ(1.0, acres<double>(roods<double>(4.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, acres<double>(square_rods<double>(160.0)).value());
+	// angle
+	EXPECT_DOUBLE_EQ(1.0, turns<double>(angular_mils<double>(6400.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, turns<double>(compass_points<double>(32.0)).value());
+	// time
+	EXPECT_DOUBLE_EQ(14.0, days<double>(fortnights<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(10.0, julian_years<double>(decades<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(100.0, julian_years<double>(centuries<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1000.0, julian_years<double>(millennia<double>(1.0)).value());
+	// data
+	EXPECT_DOUBLE_EQ(1.0, bytes<double>(nibbles<double>(2.0)).value());
+	// radiation
+	EXPECT_DOUBLE_EQ(0.01, sieverts<double>(roentgens_equivalent_man<double>(1.0)).value());
+	// substance
+	EXPECT_DOUBLE_EQ(453.59237, mols<double>(pound_moles<double>(1.0)).value());
+	// mass
+	EXPECT_DOUBLE_EQ(1.0, mass::pounds<double>(grains<double>(7000.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, mass::ounces<double>(avoirdupois_drams<double>(16.0)).value());
+	EXPECT_DOUBLE_EQ(480.0, grains<double>(troy_ounces<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(12.0, troy_ounces<double>(troy_pounds<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(24.0, grains<double>(pennyweights<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(112.0, mass::pounds<double>(hundredweights<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(100.0, mass::pounds<double>(short_hundredweights<double>(1.0)).value());
+	// force
+	EXPECT_DOUBLE_EQ(1000.0, force::pounds<double>(kips<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, force::pounds<double>(ounces_force<double>(16.0)).value());
+	EXPECT_DOUBLE_EQ(0.00980665, newtons<double>(grams_force<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(2000.0, force::pounds<double>(short_tons_force<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(2240.0, force::pounds<double>(long_tons_force<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1000.0, newtons<double>(sthenes<double>(1.0)).value());
+	// pressure
+	EXPECT_DOUBLE_EQ(98066.5, pascals<double>(technical_atmospheres<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1000.0, pounds_per_square_inch<double>(kips_per_square_inch<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(0.1, pascals<double>(baryes<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1000.0, pascals<double>(piezes<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(98.0665, pascals<double>(centimeters_of_water<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(9.80665, pascals<double>(millimeters_of_water<double>(1.0)).value());
+	EXPECT_NEAR(1.0, pounds_per_square_inch<double>(pounds_per_square_foot<double>(144.0)).value(), 1e-9);
+	// energy
+	EXPECT_DOUBLE_EQ(1.0e-7, joules<double>(ergs<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(4.1868, joules<double>(calories_it<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(4.184e9, joules<double>(tons_of_tnt<double>(1.0)).value());
+	// power
+	EXPECT_DOUBLE_EQ(735.49875, watts<double>(metric_horsepower<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(746.0, watts<double>(electrical_horsepower<double>(1.0)).value());
+	// charge / current
+	EXPECT_DOUBLE_EQ(10.0, coulombs<double>(abcoulombs<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(10.0, amperes<double>(abamperes<double>(1.0)).value());
+}
+
 TEST_F(UnitMath, min)
 {
 	meters a_m(1.0);

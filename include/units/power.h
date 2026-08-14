@@ -63,6 +63,10 @@ namespace units
 	UNIT_ADD_DECIBEL(power, watts, dBW)
 	UNIT_ADD_DECIBEL(power, milliwatts, dBm)
 
+	UNIT_ADD(power, metric_horsepower, hpM, conversion_factor<std::ratio<588399, 800>, watts_>)
+	UNIT_ADD(power, electrical_horsepower, hpE, conversion_factor<std::ratio<746>, watts_>)
+	UNIT_ADD(power, tons_of_refrigeration, TR, conversion_factor<std::ratio<52752792631LL, 15000000LL>, watts_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(power)
 } // namespace units
 

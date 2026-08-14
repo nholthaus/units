@@ -65,6 +65,11 @@ namespace units
 	UNIT_ADD(velocity, kilometers_per_hour, kph, compound_conversion_factor<kilometers<>, inverse<hours<>>>)
 	UNIT_ADD(velocity, knots, kts, compound_conversion_factor<nautical_miles<>, inverse<hours<>>>)
 
+	UNIT_ADD(velocity, feet_per_minute, fpm, compound_conversion_factor<feet_, inverse<minutes_>>)
+	UNIT_ADD(velocity, meters_per_minute, mpm, compound_conversion_factor<meters<>, inverse<minutes_>>)
+	UNIT_ADD(velocity, inches_per_second, ips, compound_conversion_factor<inches<>, inverse<seconds_>>)
+	UNIT_ADD(velocity, kilometers_per_second, kmps, compound_conversion_factor<kilometers<>, inverse<seconds_>>)
+
 	UNIT_ADD_DIMENSION_TRAIT(velocity)
 } // namespace units
 

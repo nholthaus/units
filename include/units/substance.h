@@ -60,6 +60,8 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(substance, mols, mol, conversion_factor<std::ratio<1>, dimension::substance>)
 
+	UNIT_ADD(substance, pound_moles, lbmol, conversion_factor<std::ratio<45359237, 100000>, mols_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(substance)
 } // namespace units
 

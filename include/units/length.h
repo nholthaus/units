@@ -81,6 +81,14 @@ namespace units
 	template<class Underlying>
 	using metres = meters<Underlying>;
 
+	UNIT_ADD(length, rods, rod, conversion_factor<std::ratio<1, 4>, chains<>>)
+	UNIT_ADD(length, links, li, conversion_factor<std::ratio<1, 100>, chains<>>)
+	UNIT_ADD(length, barleycorns, bc, conversion_factor<std::ratio<1, 3>, inches<>>)
+	UNIT_ADD(length, nails, nail, conversion_factor<std::ratio<1, 16>, yards<>>)
+	UNIT_ADD(length, spans, span, conversion_factor<std::ratio<9>, inches<>>)
+	UNIT_ADD(length, picas, pica, conversion_factor<std::ratio<1, 6>, inches<>>)
+	UNIT_ADD(length, points, pnt, conversion_factor<std::ratio<1, 72>, inches<>>)
+
 	UNIT_ADD_DIMENSION_TRAIT(length)
 } // namespace units
 

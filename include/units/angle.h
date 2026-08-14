@@ -66,6 +66,9 @@ namespace units
 	UNIT_ADD(angle, turns, tr, conversion_factor<std::ratio<2>, radians<>, std::ratio<1>>)
 	UNIT_ADD(angle, gradians, gon, conversion_factor<std::ratio<1, 400>, turns<>>)
 
+	UNIT_ADD(angle, angular_mils, amil, conversion_factor<std::ratio<1, 6400>, turns<>>)
+	UNIT_ADD(angle, compass_points, cpt, conversion_factor<std::ratio<1, 32>, turns<>>)
+
 	UNIT_ADD_DIMENSION_TRAIT(angle)
 
 	//----------------------------------
