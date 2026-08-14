@@ -71,6 +71,11 @@ stays small and the code stays legible.
 
 - **Syntax.** Quantities are written as `meters`, `60_mi / 1_hr`, `sqrt(area)`; operations are performed
   on the quantity types.
+- **Batteries included.** Over 250 units across 47 dimensions ship ready to use — SI, imperial and
+  US-customary, ancient, and esoteric alike (`3.0_cwt`, `10.0_fur`, `1.0_rem`), each a named type with a
+  literal and an exact, canonically-sourced conversion ratio. There is no unit "system" to select or
+  instantiate: every unit is first class and used directly, and units from different systems combine in
+  one expression (`1.0_m + 3.0_ft + 1.0_fur`). Nothing to configure, no unit to define before use.
 - **Run-time cost.** Conversions are `constexpr` ratios; a conversion between equivalent representations
   compiles to no machine code. A quantity is a trivially-copyable value the size of its underlying type.
 - **Dimensional checking.** Adding a length to a time, or assigning an area to a length, is a compile
@@ -383,6 +388,8 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `milliarcseconds` | `_mas` |  |
 | `turns` | `_tr` |  |
 | `gradians` | `_gon` |  |
+| `angular_mils` | `_amil` |  |
+| `compass_points` | `_cpt` |  |
 
 ### angular velocity
 
@@ -405,6 +412,8 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `square_kilometers` | `_km2` |  |
 | `hectares` | `_ha` |  |
 | `acres` | `_acre` |  |
+| `roods` | `_rood` |  |
+| `square_rods` | `_rd2` |  |
 
 ### capacitance
 
@@ -418,6 +427,8 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 |------|---------|----------|
 | `coulombs` | `_C` | yes |
 | `ampere_hours` | `_Ah` | yes |
+| `abcoulombs` | `_abC` |  |
+| `statcoulombs` | `_statC` |  |
 
 ### concentration
 
@@ -439,6 +450,8 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `amperes` | `_A` | yes |
+| `abamperes` | `_abA` |  |
+| `statamperes` | `_statA` |  |
 
 ### data
 
@@ -448,6 +461,7 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `exabytes` | `_EB` |  |
 | `bits` | `_b` |  |
 | `exabits` | `_Eb` |  |
+| `nibbles` | `_nibble` |  |
 
 ### data transfer rate
 
@@ -486,6 +500,9 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `british_thermal_units_59` | `_BTU59` |  |
 | `therms` | `_thm` |  |
 | `foot_pounds` | `_ftlbf` |  |
+| `ergs` | `_erg` |  |
+| `calories_it` | `_cal_it` |  |
+| `tons_of_tnt` | `_tTNT` |  |
 
 ### energy density
 
@@ -502,6 +519,12 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `dynes` | `_dyn` |  |
 | `kiloponds` | `_kp` |  |
 | `poundals` | `_pdl` |  |
+| `kips` | `_kip` |  |
+| `ounces_force` | `_ozf` |  |
+| `grams_force` | `_gf` |  |
+| `short_tons_force` | `_tonf` |  |
+| `long_tons_force` | `_ltonf` |  |
+| `sthenes` | `_sn` |  |
 
 ### frequency
 
@@ -565,6 +588,13 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `leagues` | `_lea` |  |
 | `nautical_leagues` | `_nl` |  |
 | `yards` | `_yd` |  |
+| `rods` | `_rod` |  |
+| `links` | `_li` |  |
+| `barleycorns` | `_bc` |  |
+| `nails` | `_nail` |  |
+| `spans` | `_span` |  |
+| `picas` | `_pica` |  |
+| `points` | `_pnt` |  |
 
 ### luminance
 
@@ -618,6 +648,13 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `ounces` | `_oz` |  |
 | `carats` | `_ct` |  |
 | `slugs` | `_slug` |  |
+| `grains` | `_gr` |  |
+| `avoirdupois_drams` | `_dr_av` |  |
+| `pennyweights` | `_dwt` |  |
+| `troy_ounces` | `_ozt` |  |
+| `troy_pounds` | `_lbt` |  |
+| `hundredweights` | `_cwt` |  |
+| `short_hundredweights` | `_sh_cwt` |  |
 
 ### power
 
@@ -625,6 +662,9 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 |------|---------|----------|
 | `watts` | `_W` | yes |
 | `horsepower` | `_hp` |  |
+| `metric_horsepower` | `_hpM` |  |
+| `electrical_horsepower` | `_hpE` |  |
+| `tons_of_refrigeration` | `_TR` |  |
 
 ### pressure
 
@@ -638,6 +678,14 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `torrs` | `_torr` |  |
 | `millimeters_of_mercury` | `_mmHg` |  |
 | `inches_of_mercury` | `_inHg` |  |
+| `technical_atmospheres` | `_at` |  |
+| `pounds_per_square_foot` | `_psf` |  |
+| `kips_per_square_inch` | `_ksi` |  |
+| `baryes` | `_Ba` |  |
+| `piezes` | `_pz` |  |
+| `centimeters_of_water` | `_cmH2O` |  |
+| `millimeters_of_water` | `_mmH2O` |  |
+| `inches_of_water` | `_inH2O` |  |
 
 ### radiance
 
@@ -661,6 +709,7 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `curies` | `_Ci` |  |
 | `rutherfords` | `_rd` |  |
 | `radiation_absorbed_dose` | `_rads` |  |
+| `roentgens_equivalent_man` | `_rem` |  |
 
 ### solid angle
 
@@ -699,6 +748,7 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `mols` | `_mol` | yes |
+| `pound_moles` | `_lbmol` |  |
 
 ### substance concentration
 
@@ -734,6 +784,10 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `years` | `_yr` |  |
 | `julian_years` | `_a_j` |  |
 | `gregorian_years` | `_a_g` |  |
+| `fortnights` | `_fn` |  |
+| `decades` | `_dec` |  |
+| `centuries` | `_cent` |  |
+| `millennia` | `_kyr` |  |
 
 ### torque
 
@@ -754,6 +808,10 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `miles_per_hour` | `_mph` |  |
 | `kilometers_per_hour` | `_kph` |  |
 | `knots` | `_kts` |  |
+| `feet_per_minute` | `_fpm` |  |
+| `meters_per_minute` | `_mpm` |  |
+| `inches_per_second` | `_ips` |  |
+| `kilometers_per_second` | `_kmps` |  |
 
 ### voltage
 
