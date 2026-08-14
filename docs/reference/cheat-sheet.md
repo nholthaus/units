@@ -48,7 +48,7 @@ auto              any   = 15.0_m * 5.0_m;    // auto: whatever it produces (squa
 double v = d.value();     // value in the quantity's units
 double r = d.raw();        // stored value (differs from value() for percent/ppm)
 double t = d.to<double>(); // explicit cast to a representation
-int    i = d.to<int>();    // explicit, rounds/truncates
+int    i = d.to<int>();    // explicit, truncates toward zero
 double u = unit_cast<double>(d);   // equivalent to .to<double>()
 // double x = d;           // ERROR: no implicit unit -> double (dimensionless is the exception)
 ```

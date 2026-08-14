@@ -42,13 +42,15 @@ Implicit conversions are allowed only when they are **lossless**. Converting fee
 `int`-backed quantity would truncate, so it does not happen implicitly:
 
 ```cpp
-// meters<int> m = 1.0_ft;   // rejected: lossy
-meters<double> m = 1.0_ft;   // fine: lossless
-int inches = (1.0_ft).to<int>();   // explicit: you asked to round
+// meters<int> m = 12.0_in;      // rejected: 12 in is 0.3048 m, lossy into an int
+meters<double> m = 12.0_in;      // fine: lossless
+int truncated = (30.5_cm).to<int>();   // explicit: 30.5 -> 30 (truncates toward zero)
 ```
 
-When you intend a narrowing or rounding conversion, ask for it explicitly with `.to<T>()` or
-`unit_cast<T>()`. See [type safety](../explain/type-safety.md) and
+When you intend a narrowing conversion, ask for it explicitly with `.to<T>()` or `unit_cast<T>()`.
+Both apply a `static_cast` to the target type, so `.to<int>()` **truncates toward zero** (e.g. `2.7 -> 2`,
+`-2.7 -> -2`); if you need rounding, round the value yourself first (see the rounding note in
+[unit conversions](../learn/unit-conversions.md)). See [type safety](../explain/type-safety.md) and
 [unit conversions](../learn/unit-conversions.md).
 
 ## Can I use `units` with `std::chrono`?

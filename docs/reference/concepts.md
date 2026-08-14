@@ -13,17 +13,17 @@ using namespace units;
 
 | Concept | Accepts | Underlying trait |
 |---|---|---|
-| `ArithmeticType<T>` | any built-in arithmetic type (`std::is_arithmetic_v<T>`) — `int`, `double`, … | `std::is_arithmetic` (`core.h:819`) |
-| `NonArithmeticType<T>` | any type that is **not** arithmetic (the complement of the above) | `!std::is_arithmetic_v` (`core.h:826`) |
-| `RatioType<T>` | a `std::ratio` specialization | `traits::is_ratio_v` (`core.h:833`) |
-| `ConversionFactorType<T>` | a `units::conversion_factor` (the tag that defines a unit's dimension and scale) | `traits::is_conversion_factor_v` (`core.h:840`) |
-| `NumericalScaleType<Scale, T>` | a valid numerical-scale policy for representation `T` (has `linearize`/`scale` on `T`) | `traits::is_numerical_scale_v` (`core.h:847`) |
-| `UnitType<T>` | any quantity type — an instantiation of `units::unit` (`meters<double>`, `dimensionless<double>`, …) | `traits::is_unit_v` (`core.h:854`) |
-| `DimensionedUnitType<T>` | a unit that **has** a dimension (excludes dimensionless) | `is_unit_v && !is_dimensionless_unit` (`core.h:861`) |
-| `DimensionlessUnitType<T>` | a **dimensionless** unit (`dimensionless`, `percent`, angle ratios, …) | `is_unit_v && is_dimensionless_unit` (`core.h:868`) |
-| `same_dimension<UnitTo, UnitFrom>` | two units of the **same dimension** (mutually convertible, e.g. `meters` and `feet`) | `traits::is_same_dimension_unit` (`core.h:882`) |
-| `RatioDimensionlessUnitType<U>` | a dimensionless unit whose conversion ratio is **not** 1 — `percent`, `ppm`, `ppb`, … | `traits::is_ratio_dimensionless_cf_v` (`core.h:1359`) |
-| `OrdinaryDimensionlessUnitType<U>` | a dimensionless unit whose ratio **is** 1 — plain `dimensionless` (the complement of `RatioDimensionlessUnitType`) | (`core.h:1361`) |
+| `ArithmeticType<T>` | any built-in arithmetic type (`std::is_arithmetic_v<T>`) — `int`, `double`, … | `std::is_arithmetic` (`ArithmeticType` in `include/units/core.h`) |
+| `NonArithmeticType<T>` | any type that is **not** arithmetic (the complement of the above) | `!std::is_arithmetic_v` (`NonArithmeticType` in `include/units/core.h`) |
+| `RatioType<T>` | a `std::ratio` specialization | `traits::is_ratio_v` (`RatioType` in `include/units/core.h`) |
+| `ConversionFactorType<T>` | a `units::conversion_factor` (the tag that defines a unit's dimension and scale) | `traits::is_conversion_factor_v` (`ConversionFactorType` in `include/units/core.h`) |
+| `NumericalScaleType<Scale, T>` | a valid numerical-scale policy for representation `T` (has `linearize`/`scale` on `T`) | `traits::is_numerical_scale_v` (`NumericalScaleType` in `include/units/core.h`) |
+| `UnitType<T>` | any quantity type — an instantiation of `units::unit` (`meters<double>`, `dimensionless<double>`, …) | `traits::is_unit_v` (`UnitType` in `include/units/core.h`) |
+| `DimensionedUnitType<T>` | a unit that **has** a dimension (excludes dimensionless) | `is_unit_v && !is_dimensionless_unit` (`DimensionedUnitType` in `include/units/core.h`) |
+| `DimensionlessUnitType<T>` | a **dimensionless** unit (`dimensionless`, `percent`, angle ratios, …) | `is_unit_v && is_dimensionless_unit` (`DimensionlessUnitType` in `include/units/core.h`) |
+| `same_dimension<UnitTo, UnitFrom>` | two units of the **same dimension** (mutually convertible, e.g. `meters` and `feet`) | `traits::is_same_dimension_unit` (`same_dimension` in `include/units/core.h`) |
+| `RatioDimensionlessUnitType<U>` | a dimensionless unit whose conversion ratio is **not** 1 — `percent`, `ppm`, `ppb`, … | `traits::is_ratio_dimensionless_cf_v` (`RatioDimensionlessUnitType` in `include/units/core.h`) |
+| `OrdinaryDimensionlessUnitType<U>` | a dimensionless unit whose ratio **is** 1 — plain `dimensionless` (the complement of `RatioDimensionlessUnitType`) | (`OrdinaryDimensionlessUnitType` in `include/units/core.h`) |
 
 > **Note:** `NumericalScaleType` takes two parameters — the scale policy and the representation type it must operate on — because a scale's `linearize`/`scale` are checked against a concrete `T`. It appears as the third template parameter of `unit` itself: `NumericalScaleType<T> NumericalScale = linear_scale`. See [numerical scales](../explain/scales.md).
 

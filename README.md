@@ -119,7 +119,7 @@ Adding incompatible dimensions is rejected, and the message says exactly what yo
 
 ```text
 readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘units::time::seconds<double>’)
-    9 | auto bad = 1.0_m + 1.0_s;
+    9 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
       |            ~~~~~ ^ ~~~~~
       |            |       |
       |            |       units::time::seconds<double>
@@ -131,7 +131,7 @@ result through an internal alias, but names the friendly type right beside it (`
 
 ```text
 readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
-   10 | units::length::meters<double> a = 1.0_m * 1.0_m;
+   10 | units::length::meters<double> a = 1.0_m * 1.0_m; // ill-formed: m*m is an area, not a length
       |                                   ~~~~~~^~~~~~~
 ```
 

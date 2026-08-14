@@ -14,7 +14,7 @@ forces on you: an *absolute* temperature versus a temperature *difference*.
 
 ## The datum offset in the definitions
 
-A `conversion_factor` has four parameters (`core.h:1389`): a conversion ratio, a base unit/dimension, a
+A `conversion_factor` has four parameters (the `conversion_factor` template in `include/units/core.h`): a conversion ratio, a base unit/dimension, a
 π exponent, and a **translation ratio** — the datum offset. For most units the translation is
 `std::ratio<0>`. For the temperature scales it is not (`temperature.h:64`–`68`):
 
@@ -41,7 +41,7 @@ The presence of a non-zero translation ratio is exactly what makes a scale affin
 ## An absolute conversion includes the offset
 
 When you convert an *absolute* temperature, the datum offset participates. The library's `convert`
-function detects a non-zero translation and adds it after applying the ratio (`core.h:2096`–`2101`).
+function detects a non-zero translation and adds it after applying the ratio (the translation branches of `convert` in `include/units/core.h`).
 The numbers below are the real output of the program (compile and run to confirm):
 
 ```cpp
@@ -119,7 +119,7 @@ int main()
 A linear transform `x ↦ a·x` composes and inverts by multiplying and dividing ratios — the machinery the
 unit manipulators (`inverse`, `squared`, `sqrt`, compound units) rely on. An affine transform
 `x ↦ a·x + b` does not: it has an additive term that a multiply cannot express, and the manipulators
-deliberately *drop* the translation ratio when they combine units (see `inverse_impl`, `core.h:1453`,
+deliberately *drop* the translation ratio when they combine units (see `inverse_impl` in `include/units/core.h`,
 which comments that "inverses are rates or changes, so translation factor is removed"). That is why the
 offset lives only in the direct scale-to-scale conversion path and not in derived-unit algebra — and why
 the header flags temperature conversions as special, non-reversible transforms rather than ordinary

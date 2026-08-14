@@ -19,10 +19,10 @@ Predicates on the *shape* of a type — is it a unit, a conversion factor, a rat
 
 | Trait (`_v` form) | Meaning |
 |---|---|
-| `is_unit<T>` / `is_unit_v<T>` | `T` is a `units::unit` instantiation (a quantity type). `false` for a bare arithmetic type. (`core.h:769`) |
-| `is_conversion_factor<T>` / `is_conversion_factor_v<T>` | `T` is a `units::conversion_factor` (the tag defining a unit's dimension and ratio). (`core.h:719`) |
-| `is_ratio<T>` / `is_ratio_v<T>` | `T` is a `std::ratio` specialization. (`core.h:628`) |
-| `is_numerical_scale<Scale, T>` / `is_numerical_scale_v<Scale, T>` | `Scale` is a valid numerical-scale policy for representation `T` (has `linearize`/`scale` on `T`). (`core.h:804`) |
+| `is_unit<T>` / `is_unit_v<T>` | `T` is a `units::unit` instantiation (a quantity type). `false` for a bare arithmetic type. (`is_unit` in `include/units/core.h`) |
+| `is_conversion_factor<T>` / `is_conversion_factor_v<T>` | `T` is a `units::conversion_factor` (the tag defining a unit's dimension and ratio). (`is_conversion_factor` in `include/units/core.h`) |
+| `is_ratio<T>` / `is_ratio_v<T>` | `T` is a `std::ratio` specialization. (`is_ratio` in `include/units/core.h`) |
+| `is_numerical_scale<Scale, T>` / `is_numerical_scale_v<Scale, T>` | `Scale` is a valid numerical-scale policy for representation `T` (has `linearize`/`scale` on `T`). (`is_numerical_scale` in `include/units/core.h`) |
 
 ```cpp
 static_assert(traits::is_unit_v<T>);
@@ -31,7 +31,7 @@ static_assert(traits::is_ratio_v<std::ratio<1, 2>>);
 static_assert(traits::is_numerical_scale_v<linear_scale, double>);
 ```
 
-> **Note:** Whether a unit is a *named* type (`meters`) as opposed to an anonymous `unit<…>` computed by arithmetic is answered by `units::detail::is_named_unit_v<T>` (`core.h:2769`). This lives in `units::detail` and is an internal implementation trait, not part of the public traits vocabulary — do not depend on it in application code.
+> **Note:** Whether a unit is a *named* type (`meters`) as opposed to an anonymous `unit<…>` computed by arithmetic is answered by `units::detail::is_named_unit_v<T>` (`is_named_unit_v` in `include/units/core.h`). This lives in `units::detail` and is an internal implementation trait, not part of the public traits vocabulary — do not depend on it in application code.
 
 ## Dimensional traits
 
@@ -39,9 +39,9 @@ Predicates on a unit's *dimension* — which physical quantity it measures, and 
 
 | Trait (`_v` form) | Meaning |
 |---|---|
-| `is_same_dimension_unit<U1, U2>` / `is_same_dimension_unit_v<U1, U2>` | `U1` and `U2` are units of the same dimension (mutually convertible). (`core.h:2238`) |
+| `is_same_dimension_unit<U1, U2>` / `is_same_dimension_unit_v<U1, U2>` | `U1` and `U2` are units of the same dimension (mutually convertible). (`is_same_dimension_unit` in `include/units/core.h`) |
 | `is_dimensionless_unit<T>` / `is_dimensionless_unit_v<T>` | `T` is a dimensionless unit (`dimensionless`, `percent`, an angle ratio, …). |
-| `is_<dimension>_unit<T>` / `is_<dimension>_unit_v<T>` | `T` is a unit of the named dimension — one member of a generated family (see below). (`core.h:404`) |
+| `is_<dimension>_unit<T>` / `is_<dimension>_unit_v<T>` | `T` is a unit of the named dimension — one member of a generated family (see below). (`UNIT_ADD_DIMENSION_TRAIT` in `include/units/core.h`) |
 
 ```cpp
 static_assert(traits::is_same_dimension_unit_v<units::length::meters<double>,
@@ -54,9 +54,9 @@ static_assert(!traits::is_area_unit_v<T>);
 
 ### The per-dimension `is_<dimension>_unit` family
 
-`UNIT_ADD_DIMENSION_TRAIT(<dimension>)` (`core.h:404-408`) generates a matching `traits::is_<dimension>_unit<T>` predicate (with its `_v`) for each dimension the library ships. Include the dimension's header to make its trait available. The generated members are:
+`UNIT_ADD_DIMENSION_TRAIT(<dimension>)` (`UNIT_ADD_DIMENSION_TRAIT` in `include/units/core.h`) generates a matching `traits::is_<dimension>_unit<T>` predicate (with its `_v`) for each dimension the library ships. Include the dimension's header to make its trait available. The generated members are:
 
-`is_length_unit`, `is_mass_unit`, `is_time_unit`, `is_angle_unit`, `is_current_unit`, `is_temperature_unit`, `is_substance_unit`, `is_luminous_intensity_unit`, `is_solid_angle_unit`, `is_frequency_unit`, `is_velocity_unit`, `is_angular_velocity_unit`, `is_acceleration_unit`, `is_force_unit`, `is_pressure_unit`, `is_charge_unit`, `is_energy_unit`, `is_power_unit`, `is_voltage_unit`, `is_capacitance_unit`, `is_impedance_unit`, `is_conductance_unit`, `is_magnetic_flux_unit`, `is_magnetic_field_strength_unit`, `is_inductance_unit`, `is_luminous_flux_unit`, `is_illuminance_unit`, `is_radioactivity_unit`, `is_torque_unit`, `is_area_unit`, `is_volume_unit`, `is_density_unit`, `is_concentration_unit`, `is_data_unit`, `is_data_transfer_rate_unit`, `is_dimensionless_unit`, `is_substance_unit`, `is_substance_concentration_unit`, `is_substance_mass_unit`, `is_jerk_unit`, `is_energy_density_unit`, `is_luminance_unit`, `is_irradiance_unit`, `is_radiance_unit`, `is_radiant_intensity_unit`, `is_spectral_flux_unit`, `is_spectral_intensity_unit`, `is_spectral_irradiance_unit`, `is_spectral_radiance_unit`.
+`is_length_unit`, `is_mass_unit`, `is_time_unit`, `is_angle_unit`, `is_current_unit`, `is_temperature_unit`, `is_substance_unit`, `is_luminous_intensity_unit`, `is_solid_angle_unit`, `is_frequency_unit`, `is_velocity_unit`, `is_angular_velocity_unit`, `is_acceleration_unit`, `is_force_unit`, `is_pressure_unit`, `is_charge_unit`, `is_energy_unit`, `is_power_unit`, `is_voltage_unit`, `is_capacitance_unit`, `is_impedance_unit`, `is_conductance_unit`, `is_magnetic_flux_unit`, `is_magnetic_field_strength_unit`, `is_inductance_unit`, `is_luminous_flux_unit`, `is_illuminance_unit`, `is_radioactivity_unit`, `is_torque_unit`, `is_area_unit`, `is_volume_unit`, `is_density_unit`, `is_concentration_unit`, `is_data_unit`, `is_data_transfer_rate_unit`, `is_dimensionless_unit`, `is_substance_concentration_unit`, `is_substance_mass_unit`, `is_jerk_unit`, `is_energy_density_unit`, `is_luminance_unit`, `is_irradiance_unit`, `is_radiance_unit`, `is_radiant_intensity_unit`, `is_spectral_flux_unit`, `is_spectral_intensity_unit`, `is_spectral_irradiance_unit`, `is_spectral_radiance_unit`.
 
 Each takes one type and is `true` iff it is a unit of that dimension:
 
@@ -67,7 +67,7 @@ static_assert(traits::is_velocity_unit_v<units::velocity::meters_per_second<doub
 
 ### Lossless convertibility
 
-Whether a conversion between two units loses no precision (relevant to integer representations, where an implicit conversion is disallowed if it would truncate) is decided by `units::detail::is_losslessly_convertible_unit<UnitFrom, UnitTo>` (`core.h:2282`). This is an internal `units::detail` trait — the *observable* rule it enforces is that a lossy implicit conversion into an integer representation is ill-formed. Rely on that compile-time rejection rather than testing the internal trait directly.
+Whether a conversion between two units loses no precision (relevant to integer representations, where an implicit conversion is disallowed if it would truncate) is decided by `units::detail::is_losslessly_convertible_unit<UnitFrom, UnitTo>` (`is_losslessly_convertible_unit` in `include/units/core.h`). This is an internal `units::detail` trait — the *observable* rule it enforces is that a lossy implicit conversion into an integer representation is ill-formed. Rely on that compile-time rejection rather than testing the internal trait directly.
 
 ## Scale traits
 
@@ -75,8 +75,8 @@ Which [numerical scale](../explain/scales.md) a unit carries — linear (the def
 
 | Trait (`_v` form) | Meaning |
 |---|---|
-| `has_linear_scale<U...>` / `has_linear_scale_v<U...>` | every `U` uses `linear_scale`. (`core.h:3142`) |
-| `has_decibel_scale<U...>` / `has_decibel_scale_v<U...>` | every `U` uses `decibel_scale`. (`core.h:3157`) |
+| `has_linear_scale<U...>` / `has_linear_scale_v<U...>` | every `U` uses `linear_scale`. (`has_linear_scale` in `include/units/core.h`) |
+| `has_decibel_scale<U...>` / `has_decibel_scale_v<U...>` | every `U` uses `decibel_scale`. (`has_decibel_scale` in `include/units/core.h`) |
 
 ```cpp
 static_assert(traits::has_linear_scale_v<T>);
@@ -89,10 +89,10 @@ Extract member types from a unit or conversion factor, or produce a related type
 
 | Trait | Provides |
 |---|---|
-| `unit_traits<T>` | the member typedefs of a `unit`: `numerical_scale_type`, `underlying_type`, `value_type`, `conversion_factor`. (`core.h:2174`) |
-| `conversion_factor_traits<T>` | the member typedefs of a `conversion_factor`: `dimension_type`, `conversion_ratio`, `pi_exponent_ratio`, `translation_ratio`. (`core.h:652`) |
-| `dimension_of_t<U>` | the `dimension_t` of a conversion factor, resolving through nested conversion factors to the SI dimension. (`core.h:1284`) |
-| `replace_underlying<Unit, U>` / `replace_underlying_t<Unit, U>` | the same unit with its underlying type replaced by `U`. (`core.h:1328`) |
+| `unit_traits<T>` | the member typedefs of a `unit`: `numerical_scale_type`, `underlying_type`, `value_type`, `conversion_factor`. (`unit_traits` in `include/units/core.h`) |
+| `conversion_factor_traits<T>` | the member typedefs of a `conversion_factor`: `dimension_type`, `conversion_ratio`, `pi_exponent_ratio`, `translation_ratio`. (`conversion_factor_traits` in `include/units/core.h`) |
+| `dimension_of_t<U>` | the `dimension_t` of a conversion factor, resolving through nested conversion factors to the SI dimension. (`dimension_of_t` in `include/units/core.h`) |
+| `replace_underlying<Unit, U>` / `replace_underlying_t<Unit, U>` | the same unit with its underlying type replaced by `U`. (`replace_underlying` in `include/units/core.h`) |
 
 ```cpp
 static_assert(std::is_same_v<traits::unit_traits<T>::underlying_type, double>);

@@ -72,7 +72,7 @@ readable_narrowing_to_int.cpp:10:32: error: conversion from ‘units::length::fe
 
 Implicit conversions are allowed only when they are lossless. See
 [the FAQ](../meta/faq.md) on integer representations, and use a floating-point representation
-(`meters<double>`) or an explicit `.to<int>()` when you intend to round.
+(`meters<double>`) or an explicit `.to<int>()` (which truncates toward zero) when you intend to narrow.
 
 ---
 

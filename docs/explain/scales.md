@@ -17,7 +17,7 @@ class unit;
 ```
 
 A numerical scale is a policy type with two static member functions, `linearize` and `scale`
-(`core.h:803`). `linearize` maps a *presented* value (what the user writes and reads) to the *linearized*
+(the `is_numerical_scale` requirement in `include/units/core.h`). `linearize` maps a *presented* value (what the user writes and reads) to the *linearized*
 value the unit stores internally; `scale` is its inverse, recovering the presented value from storage.
 Constructing a `unit` runs the presented value through `linearize`; `raw()` runs the stored value back
 through `scale`. For a scale to be usable, `is_numerical_scale_v<Scale, T>` must hold — the concept
@@ -29,7 +29,7 @@ quantity of the same dimension remain mutually convertible.
 
 ## `linear_scale` — the default
 
-`linear_scale` (`core.h:3183`) is the identity: `linearize(v) == v` and `scale(v) == v`. The stored value
+`linear_scale` (`struct linear_scale` in `include/units/core.h`) is the identity: `linearize(v) == v` and `scale(v) == v`. The stored value
 *is* the presented value. This is the correct scale for essentially every physical quantity, which is why
 it is the default and why you never name it explicitly.
 
@@ -50,7 +50,7 @@ expressions (as the `static_assert`s above demonstrate).
 
 ## `decibel_scale` — a logarithmic scale
 
-`decibel_scale` (`core.h:4295`) presents a value in decibels while storing it as a linear ratio:
+`decibel_scale` (`struct decibel_scale` in `include/units/core.h`) presents a value in decibels while storing it as a linear ratio:
 
 ```cpp
 struct decibel_scale
@@ -87,7 +87,7 @@ int main()
 
 The defining property of a logarithmic scale is that adding decibels multiplies the underlying linear
 quantities: `10·log₁₀(a) + 10·log₁₀(b) = 10·log₁₀(a·b)`. The library implements `operator+`/`operator-`
-for decibel-scaled units accordingly (`core.h:4346`–`4408`): it multiplies (for `+`) or divides (for `-`)
+for decibel-scaled units accordingly (the `operator+`/`operator-` overloads constrained on `has_decibel_scale_v` in `include/units/core.h`): it multiplies (for `+`) or divides (for `-`)
 the *linearized* operands, then re-wraps the result in a decibel-scaled unit.
 
 Because multiplying two power ratios produces a *squared* dimension, adding two dimensioned decibel
@@ -116,15 +116,15 @@ int main()
 > `+3 dB`, giving the magnitude `6`. The multiply-in-linear-space rule reproduces exactly that behavior,
 > and it falls out of storing the linearized ratio rather than the dB figure. A dimensioned decibel unit
 > may also be combined with a dimensionless dB ratio (`dBi`), scaling the quantity without changing its
-> dimension (`core.h:4359`–`4377`, `core.h:4390`–`4408`).
+> dimension (the mixed dimensioned/dimensionless decibel `operator+`/`operator-` overloads in `include/units/core.h`).
 
 ## Detecting a unit's scale
 
 Two traits report which scale a unit carries. Each accepts one or more types and is `true` only when
 *every* argument matches:
 
-- `traits::has_linear_scale_v<U...>` (`core.h:3142`) — `true` iff every `U` derives from `linear_scale`.
-- `traits::has_decibel_scale_v<U...>` (`core.h:3157`) — `true` iff every `U` derives from `decibel_scale`.
+- `traits::has_linear_scale_v<U...>` (`has_linear_scale` in `include/units/core.h`) — `true` iff every `U` derives from `linear_scale`.
+- `traits::has_decibel_scale_v<U...>` (`has_decibel_scale` in `include/units/core.h`) — `true` iff every `U` derives from `decibel_scale`.
 
 ```cpp
 #include <units/power.h>
@@ -144,7 +144,7 @@ The decibel `operator+`/`operator-` overloads are constrained on `has_decibel_sc
 only when both operands are decibel-scaled; linear units use the ordinary arithmetic operators.
 
 > **Note (mixing scales):** `std::common_type` of a linear unit and a decibel unit of the same dimension
-> resolves to the *linear* form (`core.h:3086`–`3096`) — linear scale is preferred when the two disagree.
+> resolves to the *linear* form (the `std::common_type` specialization for `units::unit` in `include/units/core.h`) — linear scale is preferred when the two disagree.
 
 ## See also
 

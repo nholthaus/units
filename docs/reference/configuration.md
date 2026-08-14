@@ -55,7 +55,7 @@ Every other way of constructing a quantity — the constructor, CTAD, and the `u
 
 ### `UNIT_LIB_DISABLE_IOSTREAM`
 
-Removes the `<iostream>` and `<clocale>` includes and the `std::ostream& operator<<` overloads (`core.h:71`, `core.h:2865`, `core.h:4331`). This is the switch for embedded and freestanding builds that must not pull in `<iostream>`.
+Removes the `<iostream>` and `<clocale>` includes and the `std::ostream& operator<<` overloads (guarded by `#if !defined(UNIT_LIB_DISABLE_IOSTREAM)` in `include/units/core.h`). This is the switch for embedded and freestanding builds that must not pull in `<iostream>`.
 
 > **Note:** `name()` and `abbreviation()` are unaffected — they return `const char*` and do not depend on iostream. Only streaming a quantity to an `std::ostream` (and the formatting that entails) is removed.
 
