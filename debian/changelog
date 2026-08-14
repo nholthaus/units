@@ -1,3 +1,10 @@
+units (3.4.2-0ppa1~noble1) noble; urgency=medium
+
+  * New release: documentation overhaul, many added units (imperial, ancient,
+    esoteric), and conversion fixes (statvolt, modf, minutes).
+
+ -- Nic Holthaus <nholthaus@gmail.com>  Thu, 14 Aug 2026 12:00:00 -0400
+
 units (3.4.0-0ppa1~noble1) noble; urgency=medium
 
   * Initial PPA release for Ubuntu 24.04 (Noble).
