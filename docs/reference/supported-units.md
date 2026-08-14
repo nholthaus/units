@@ -1,12 +1,12 @@
 # Supported units
 
-*The catalog of built-in units, grouped by dimension — **47 dimensions**, **199 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_supported_units.py`; do not edit by hand.*
+*The catalog of built-in units, grouped by dimension — **47 dimensions**, **199 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
 
 Each unit is available as a type (`meters`, `meters<double>`) and, where shown, a literal (`5.0_m`). Units marked **yes** under Prefixes also provide every SI metric prefix from femto to peta (e.g. `kilometers`/`_km`, `millimeters`/`_mm`). Include the umbrella header `<units.h>` for all of them, or a single `<units/DIMENSION.h>` for one dimension.
 
 For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify with the dimension namespace: `units::mass::pounds` vs `units::force::pounds`.
 
-## acceleration
+### acceleration
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -15,7 +15,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `standard_gravity` | `_SG` |  |
 | `gals` | `_Gal` |  |
 
-## angle
+### angle
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -27,7 +27,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `turns` | `_tr` |  |
 | `gradians` | `_gon` |  |
 
-## angular velocity
+### angular velocity
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -37,7 +37,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `revolutions_per_second` | `_rps` |  |
 | `milliarcseconds_per_year` | `_mas_per_yr` |  |
 
-## area
+### area
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -49,20 +49,20 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `hectares` | `_ha` |  |
 | `acres` | `_acre` |  |
 
-## capacitance
+### capacitance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `farads` | `_F` | yes |
 
-## charge
+### charge
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `coulombs` | `_C` | yes |
 | `ampere_hours` | `_Ah` | yes |
 
-## concentration
+### concentration
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -71,19 +71,19 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `parts_per_trillion` | `_ppt` |  |
 | `percent` | `_pct` |  |
 
-## conductance
+### conductance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `siemens` | `_S` | yes |
 
-## current
+### current
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `amperes` | `_A` | yes |
 
-## data
+### data
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -92,7 +92,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `bits` | `_b` |  |
 | `exabits` | `_Eb` |  |
 
-## data transfer rate
+### data transfer rate
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -101,7 +101,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `bits_per_second` | `_bps` |  |
 | `exabits_per_second` | `_Ebps` |  |
 
-## density
+### density
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -116,7 +116,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `pounds_per_gallon` | `_lb_per_gal` |  |
 | `slugs_per_cubic_foot` | `_slug_per_ft3` |  |
 
-## energy
+### energy
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -130,13 +130,13 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `therms` | `_thm` |  |
 | `foot_pounds` | `_ftlbf` |  |
 
-## energy density
+### energy density
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `joules_per_meter_cubed` | `_J_per_m3` | yes |
 
-## force
+### force
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -146,13 +146,13 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `kiloponds` | `_kp` |  |
 | `poundals` | `_pdl` |  |
 
-## frequency
+### frequency
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `hertz` | `_Hz` | yes |
 
-## illuminance
+### illuminance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -161,32 +161,32 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `lumens_per_square_inch` | `_lm_per_in2` |  |
 | `phots` | `_ph` |  |
 
-## impedance
+### impedance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `ohms` | `_Ohm` | yes |
 
-## inductance
+### inductance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `henries` | `_H` | yes |
 
-## irradiance
+### irradiance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_meter_squared` | `_W_per_m2` | yes |
 
-## jerk
+### jerk
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `meters_per_second_cubed` | `_mps3` | yes |
 | `feet_per_second_cubed` | `_fps3` |  |
 
-## length
+### length
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -209,7 +209,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `nautical_leagues` | `_nl` |  |
 | `yards` | `_yd` |  |
 
-## luminance
+### luminance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -222,33 +222,33 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `millilamberts` | `_mla` |  |
 | `foot_lamberts` | `_ftL` |  |
 
-## luminous flux
+### luminous flux
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `lumens` | `_lm` | yes |
 
-## luminous intensity
+### luminous intensity
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `candelas` | `_cd` | yes |
 
-## magnetic field strength
+### magnetic field strength
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `teslas` | `_Te` | yes |
 | `gauss` | `_G` |  |
 
-## magnetic flux
+### magnetic flux
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `webers` | `_Wb` | yes |
 | `maxwells` | `_Mx` |  |
 
-## mass
+### mass
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -262,14 +262,14 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `carats` | `_ct` |  |
 | `slugs` | `_slug` |  |
 
-## power
+### power
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts` | `_W` | yes |
 | `horsepower` | `_hp` |  |
 
-## pressure
+### pressure
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -282,19 +282,19 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `millimeters_of_mercury` | `_mmHg` |  |
 | `inches_of_mercury` | `_inHg` |  |
 
-## radiance
+### radiance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_steradian_per_meter_squared` | `_W_per_srm2` | yes |
 
-## radiant intensity
+### radiant intensity
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_steradian` | `_W_per_sr` | yes |
 
-## radiation
+### radiation
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -305,7 +305,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `rutherfords` | `_rd` |  |
 | `radiation_absorbed_dose` | `_rads` |  |
 
-## solid angle
+### solid angle
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -313,49 +313,49 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `degrees_squared` | `_deg2` |  |
 | `spats` | `_sp` |  |
 
-## spectral flux
+### spectral flux
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_meter` | `_W_per_m` | yes |
 
-## spectral intensity
+### spectral intensity
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_steradian_per_meter` | `_W_per_srm` | yes |
 
-## spectral irradiance
+### spectral irradiance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_meter_cubed` | `_W_per_m3` | yes |
 
-## spectral radiance
+### spectral radiance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `watts_per_steradian_per_meter_cubed` | `_W_per_srm3` | yes |
 
-## substance
+### substance
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `mols` | `_mol` | yes |
 
-## substance concentration
+### substance concentration
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `molars` | `_M` | yes |
 
-## substance mass
+### substance mass
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `grams_per_mole` | `_g_per_mol` | yes |
 
-## temperature
+### temperature
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -365,7 +365,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `reaumur` | `_Re` |  |
 | `rankine` | `_Ra` |  |
 
-## time
+### time
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -378,7 +378,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `julian_years` | `_a_j` |  |
 | `gregorian_years` | `_a_g` |  |
 
-## torque
+### torque
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -388,7 +388,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `inch_pounds` | `_inlb` |  |
 | `meter_kilograms` | `_mkgf` |  |
 
-## velocity
+### velocity
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -398,7 +398,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `kilometers_per_hour` | `_kph` |  |
 | `knots` | `_kts` |  |
 
-## voltage
+### voltage
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -406,7 +406,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `statvolts` | `_statV` |  |
 | `abvolts` | `_abV` |  |
 
-## volume
+### volume
 
 | Unit | Literal | Prefixes |
 |------|---------|----------|
@@ -439,4 +439,3 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `sacks` | `_sck` |  |
 | `shots` | `_shts` |  |
 | `strikes` | `_strk` |  |
-
