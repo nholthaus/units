@@ -50,12 +50,18 @@
 
 /**
  * @def			UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, definition)
- * @brief		Like `UNIT_ADD`, but the abbreviated unit is plural, e.g. `5_min` would have type `unit<mins>`
+ * @brief		Like `UNIT_ADD`, but WITHOUT the unit constant, whose name would collide with the
+ *				abbreviation, e.g. `minutes` with abbreviation `min` (the constant `min` clashes).
+ * @details		Registers everything `UNIT_ADD` does except `UNIT_ADD_CONSTANT`: the strong conversion
+ *				factor and the named-class registration are included so `name()`/`abbreviation()` resolve
+ *				and diagnostics print the friendly type, exactly as for a `UNIT_ADD` unit.
  * @sa			`UNIT_ADD`
  */
 #define UNIT_ADD_WITH_PLURAL_TAG(namespaceName, namePlural, abbreviation, /*definition*/...)                                                                   \
+	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                                                                  \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                           \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                     \
+	UNIT_REGISTER_NAMED_CLASS(namespaceName, namePlural)                                                                                                       \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)
 
 namespace units
