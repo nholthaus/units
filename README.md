@@ -131,6 +131,40 @@ meters d{5.0};          // braced construction
 > arithmetic, so `1_m / 2_m` is `0`, whereas `1.0_m / 2.0_m` is `0.5`. Use a decimal point (or write
 > `meters<double>`) when you want fractional results.
 
+**Spelling the type: `meters`, `meters<>`, `meters<T>`.** Three ways to name the type:
+
+- `meters<T>` — an explicit representation (`meters<double>`, `meters<float>`, `meters<int>`). Valid as a
+  variable, function parameter, return type, or member.
+- `meters<>` — the default representation; identical to `meters<double>`. Valid in the same positions.
+- `meters` — the bare name deduces the representation from the initializer (CTAD): `meters a(5.0)` is
+  `meters<double>`, `meters a(5)` is `meters<int>`. Valid only where an initializer is present to deduce
+  from — a local variable. A function parameter, a return type, and a class member have no initializer,
+  so they require `meters<>` or `meters<T>`.
+
+```cpp
+meters        local(5.0);      // bare name, deduced meters<double>
+meters<>      m;               // default representation
+meters<float> as_float(5.0f);  // explicit representation
+// void f(meters q);           // ill-formed: a parameter has no initializer to deduce from
+// meters make();              // ill-formed: a return type has no initializer to deduce from
+```
+
+**`auto` vs. an explicit type.** Use `auto` on the left when the right-hand side already states the unit:
+
+```cpp
+auto d = 5.0_m;                  // meters
+auto speed = 60.0_mi / 1.0_hr;   // a velocity
+```
+
+Write the type explicitly on the left when the compiler should confirm the dimensional analysis: naming
+the result type makes a mismatch a compile error rather than an accepted `auto` deduction.
+
+```cpp
+square_meters     area  = 15.0_m * 5.0_m;    // the result is an area
+meters_per_second speed = 100.0_m / 8.0_s;   // the result is a velocity
+// meters bad = 15.0_m * 5.0_m;              // ill-formed: the result is an area, not a length
+```
+
 **Convert** by assigning between compatible units (implicit, and only when lossless):
 
 ```cpp

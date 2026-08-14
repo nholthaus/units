@@ -43,7 +43,7 @@ meters<double> d;   // explicit: there is no argument to deduce from
 ```
 
 > **Note — CTAD infers `int` vs `double` from what you write.** The deduced representation follows the
-> argument's type. This is deliberate and occasionally surprising:
+> argument's type:
 >
 > ```cpp
 > meters x(5);     // -> meters<int>     (5 is an int)
@@ -58,9 +58,8 @@ meters<double> d;   // explicit: there is no argument to deduce from
 > auto q = 1.0_m / 2.0_m;  // meters<double> math: q == 0.5
 > ```
 >
-> **When you want fractional results, write the decimal point** (or name the type: `meters<double>`).
-> This is the single most common surprise for new users, and it is the same rule the language applies to
-> `1 / 2 == 0` for plain `int`.
+> For fractional results, write the decimal point (or name the type: `meters<double>`). This is the same
+> rule the language applies to `1 / 2 == 0` for plain `int`.
 
 ### The 2.x alias template versus the 3.x class template
 
