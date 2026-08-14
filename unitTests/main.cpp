@@ -10,7 +10,11 @@
 #include <chrono>
 #include <complex>
 #include <gtest/gtest.h>
+#include <iomanip>
+#include <iostream>
+#include <locale>
 #include <ratio>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <units.h>
@@ -3031,6 +3035,10 @@ TEST_F(UnitType, to_string_locale)
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "de-DE");
 	os1.imbue(std::locale("de-DE"));
+#elif defined(__APPLE__)
+	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `de_DE.utf8` alias.
+	EXPECT_STREQ("de_DE.UTF-8", setlocale(LC_ALL, "de_DE.UTF-8")) << "For this test to work, you need a german locale installed.";
+	os1.imbue(std::locale("de_DE.UTF-8"));
 #else
 	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8")) << "For this test to work, you need a german locale installed: `sudo locale-gen de_DE.UTF-8`";
 	os1.imbue(std::locale("de_DE.utf8"));
@@ -3054,6 +3062,10 @@ TEST_F(UnitType, to_string_locale)
 #if defined(_MSC_VER)
 	setlocale(LC_ALL, "en-US");
 	os2.imbue(std::locale("en-US"));
+#elif defined(__APPLE__)
+	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `en_US.utf8` alias.
+	EXPECT_STREQ("en_US.UTF-8", setlocale(LC_ALL, "en_US.UTF-8")) << "For this test to work, you need a USA locale installed.";
+	os2.imbue(std::locale("en_US.UTF-8"));
 #else
 	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8")) << "For this test to work, you need a USA locale installed: `sudo locale-gen en_US.UTF-8`";
 	os2.imbue(std::locale("en_US.utf8"));
@@ -5047,6 +5059,38 @@ TEST_F(UnitMath, isunordered)
 	EXPECT_TRUE(units::isunordered(nan, zero));
 	EXPECT_TRUE(units::isunordered(zero, nan));
 	EXPECT_FALSE(units::isunordered(zero, zero));
+}
+
+TEST_F(UnitMath, signbit)
+{
+	meters<> zero(0.0);
+	meters<> pos(1.0);
+	meters<> neg(-1.0);
+	meters<> negZero(-0.0);
+
+	EXPECT_FALSE(std::signbit(zero));
+	EXPECT_FALSE(std::signbit(pos));
+	EXPECT_TRUE(std::signbit(neg));
+	EXPECT_TRUE(std::signbit(negZero));
+}
+
+TEST_F(UnitMath, stdExtensions)
+{
+	meters<> zero(0.0);
+	meters<> nan(NAN);
+	meters<> inf(INFINITY);
+
+	EXPECT_TRUE(std::isnan(nan));
+	EXPECT_FALSE(std::isnan(inf));
+	EXPECT_FALSE(std::isnan(zero));
+
+	EXPECT_TRUE(std::isinf(inf));
+	EXPECT_FALSE(std::isinf(nan));
+	EXPECT_FALSE(std::isinf(zero));
+
+	EXPECT_TRUE(std::isfinite(zero));
+	EXPECT_FALSE(std::isfinite(nan));
+	EXPECT_FALSE(std::isfinite(inf));
 }
 
 // Constexpr

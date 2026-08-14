@@ -2195,9 +2195,9 @@ namespace units
 					 *
 					 *				The value of an `unit` can only be set on construction, or changed by assignment
 					 *				from another `unit` type. If necessary, the underlying value can be accessed
-					 *				using `operator()`: @code
+					 *				using `raw()`: @code
 					 *				meter_t m(5.0);
-					 *				double val = m(); // val == 5.0	@endcode.
+					 *				double val = m.raw(); // val == 5.0	@endcode.
 					 * @tparam		ConversionFactor `conversion_factor` of the represented unit (e.g. meters)
 					 * @tparam		T underlying type of the storage. Defaults to `UNIT_LIB_DEFAULT_TYPE`.
 					 * @tparam		NumericalScale optional scale class for the units. Defaults to linear (i.e. does
@@ -4646,19 +4646,25 @@ namespace std
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	constexpr bool isnan(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
-		return std::isnan(x());
+		return std::isnan(x.raw());
 	}
 
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	constexpr bool isinf(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
-		return std::isinf(x());
+		return std::isinf(x.raw());
+	}
+
+	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
+	constexpr bool isfinite(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	{
+		return std::isfinite(x.raw());
 	}
 
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	constexpr bool signbit(const units::unit<ConversionFactor, T, NonLinearScale>& x)
 	{
-		return std::signbit(x());
+		return std::signbit(x.raw());
 	}
 } // namespace std
 
