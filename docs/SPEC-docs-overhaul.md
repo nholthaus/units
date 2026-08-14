@@ -11,15 +11,17 @@
   units is added to Compiler Explorer's libraries (a separate upstream PR to the CE project); tracked as a
   future enhancement, not shipped broken.
 
-## SURFACED CODE FINDINGS (real bugs found while documenting — report, do NOT patch in this docs PR)
-- **`minutes` has no registered name/abbreviation** (`include/units/time.h:72`). It is defined with
-  `UNIT_ADD_WITH_PLURAL_TAG` (unlike every sibling time unit, which uses `UNIT_ADD`), so
-  `minutes::abbreviation()` and `name()` return `nullptr`. Consequences: a `minutes` quantity streams
-  as its base unit (`90 s` instead of `1.5 min`), and `operator<<`/`to_string`/`name()` on it stream a
-  NULL `const char*` → **undefined behavior** (observed: truncated/garbled output). Every other time
-  unit (hours `hr`, days `d`, …) uses `UNIT_ADD` and prints correctly. Likely fix: use `UNIT_ADD` (or
-  the naming-inclusive variant) for `minutes`. **Reported to the CO; not fixed here** (no API change in
-  a docs PR). Docs sidestep it — examples don't rely on `minutes` streaming its own abbreviation.
+## SURFACED CODE FINDINGS
+- **[FIXED] `minutes` had no registered name/abbreviation** (`include/units/time.h`). `minutes` is
+  defined via `UNIT_ADD_WITH_PLURAL_TAG` — which deliberately skips `UNIT_ADD_CONSTANT` (a `min` unit
+  constant would collide with the `min` abbreviation) — but that macro ALSO omitted
+  `UNIT_ADD_STRONG_CONVERSION_FACTOR` + `UNIT_REGISTER_NAMED_CLASS`, so after named units became classes
+  the name lookup couldn't resolve `minutes`: `name()`/`abbreviation()` returned null, it streamed as
+  `90 s`, and a direct `name()` deref was UB. Fixed (CO-approved) by adding those two registrations to
+  the macro (keeping the constant omitted), + a regression assertion. Committed separately from the docs.
+- **[NO CHANGE] Two traits are `units::detail`, not public `units::traits`** — `is_named_unit_v` and
+  `is_losslessly_convertible_unit`; `dimension_of_t` is the public alias (no `dimension_of` predicate).
+  Docs document them accurately as internal / under real names. No code change (docs-accuracy only).
 
 ---
 
