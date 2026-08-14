@@ -32,14 +32,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y graphviz
 
       - name: Configure CMake
+        # A pull request must not introduce a Doxygen warning; treat them as failures on PRs. The value is
+        # read at configure time (it is substituted into the generated Doxyfile), so it is set here. The
+        # documentation currently builds with zero warnings, so this gate is active.
+        env:
+          DOXYGEN_WARN_AS_ERROR: ${{ github.event_name == 'pull_request' && 'FAIL_ON_WARNINGS' || 'NO' }}
         run: cmake -B build -DUNITS_BUILD_DOCS=ON -DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF
 
       - name: Build documentation
-        # Builds the site and prints Doxygen's warnings to the log on every push/PR. Warning-as-error is
-        # wired (DOXYGEN_WARN_AS_ERROR -> the Doxyfile) but left off until two residual Doxygen-parser
-        # quirks are resolved (a synthesized \dir entry, and a macro-adjacency @param mis-attribution in
-        # angle.h) — neither is a documentation defect. Flip the gate on by setting DOXYGEN_WARN_AS_ERROR
-        # to FAIL_ON_WARNINGS on the configure step once those are gone.
         run: cmake --build build --target doc
 
       - name: Upload Pages artifact

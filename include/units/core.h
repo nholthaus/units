@@ -186,7 +186,7 @@ namespace units
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  */
-#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                  \
+#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                   \
 	inline namespace namespaceName                                                                                                                                                                     \
 	{                                                                                                                                                                                                  \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(namePlural, ::units::linear_scale, __VA_ARGS__) /** @} */                                                               \
@@ -356,7 +356,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                                    \
+#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                                     \
 	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                                                                                                          \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                                                                   \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                                                             \
@@ -425,7 +425,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                               \
+#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                                     \
 	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>)                                                                                                                   \
 	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>)                                                                                                                     \
@@ -460,7 +460,7 @@ namespace units
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                    \
+#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                     \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                \
 	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<>>)                                                                                                                    \
 	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<>>)                                                                                                                    \

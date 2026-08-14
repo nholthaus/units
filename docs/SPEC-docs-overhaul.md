@@ -4,13 +4,14 @@
 > checklist-heavy by design — build straight from it, and keep it accurate as work proceeds.
 
 ## DECISIONS taken during execution
-- **Doxygen doc-comment warnings cleared 70 → 2.** The RECURSIVE fix surfaced 70 pre-existing header
+- **Doxygen doc-comment warnings cleared 70 → 0.** The RECURSIVE fix surfaced 70 pre-existing header
   doc-comment warnings (undefined `@defgroup`s, `\ref <dim>Units`, `@param` on the UNIT_ADD macros,
   `\tparam` spacing, a duplicate section label, an unbalanced `\endcond`/`<tt>`); all fixed as
-  comment-only edits (suite still 238 green). Two residuals remain and are Doxygen-PARSER QUIRKS, not
-  doc defects: a synthesized `\dir` entry Doxygen can't resolve, and a macro-adjacency `@param angle`
-  mis-attribution at `angle.h` (the comment is correctly `cos`'s). The docs CI builds + logs warnings on
-  every push/PR but leaves WARN_AS_ERROR OFF until those two are resolved (wired, one-line to flip).
+  comment-only edits (suite still 238 green). The final two — a synthesized `\dir` and a macro-adjacency
+  `@param` mis-attribution in `angle.h` — were cleared via Doxyfile config (`SKIP_FUNCTION_MACROS=YES`,
+  an unambiguous mainpage path, `MARKDOWN_ID_STYLE=GITHUB`, CHANGELOG in INPUT), no C++ touched. The
+  build is now ZERO warnings and `FAIL_ON_WARNINGS` passes, so the docs-CI warning-as-error gate is
+  ACTIVE on pull requests.
 - **godbolt "Try it live" links: DEFERRED, not faked.** units is not in Compiler Explorer's library list,
   so an embedded-source clientstate link would fail to compile (missing `<units/length.h>`) — a broken
   link undercuts the credibility pitch and violates "every link live." README leads instead with the
