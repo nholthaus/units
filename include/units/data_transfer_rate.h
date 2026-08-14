@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 //
-//	UnitConversion: A compile-time c++14 unit conversion library with no dependencies
+//	UnitConversion: A compile-time c++23 unit conversion library with no dependencies
 //
 //--------------------------------------------------------------------------------------------------
 //
@@ -55,7 +55,7 @@ namespace units
 	 * @brief		namespace for unit types and containers representing data values
 	 * @details		The dimension for data is `bytes`, and the corresponding `dimension` dimension is
 	 *				`data_unit`.
-	 * @anchor		dataContainers
+	 * @anchor		dataTransferRateContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data_transfer_rate, bytes_per_second, Bps, conversion_factor<std::ratio<1>, dimension::data_transfer_rate>)

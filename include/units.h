@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 //
-//	UnitConversion: A compile-time c++14 unit conversion library with no dependencies
+//	UnitConversion: A compile-time c++23 unit conversion library with no dependencies
 //
 //--------------------------------------------------------------------------------------------------
 //
@@ -39,7 +39,7 @@
 //
 /// @file	units.h
 /// @brief	Complete implementation of `units` - a compile-time, header-only, unit conversion
-///			library built on c++14 with no dependencies.
+///			library built on c++23 with no dependencies.
 //
 //--------------------------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ namespace units
 
 	/**
 	 * @brief   namespace for physical constants like PI and Avogadro's Number.
-	 * @source  https://physics.nist.gov/cuu/Constants/index.html (2019)
+	 * @details Source: https://physics.nist.gov/cuu/Constants/index.html (2019)
 	 * @sa	    See unit for more information on unit type containers.
 	 */
 	inline namespace constants

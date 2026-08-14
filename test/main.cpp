@@ -1560,6 +1560,13 @@ TEST_F(UnitType, namedUnitReportedTypeIsPreserved)
 	EXPECT_STREQ("meters", meters<double>(1).name());
 	EXPECT_STREQ("mps", meters_per_second<double>(1).abbreviation());
 
+	// (6a) minutes is defined via UNIT_ADD_WITH_PLURAL_TAG; that macro must still register the named class
+	// so name()/abbreviation() resolve (a regression guard: they previously returned null, and a minutes
+	// value streamed as its base unit "90 s" and could null-deref on name()).
+	EXPECT_STREQ("min", minutes<double>(1).abbreviation());
+	EXPECT_STREQ("minutes", minutes<double>(1).name());
+	EXPECT_EQ(std::string("90 min"), to_string(minutes<double>(90)));
+
 	// (7) the remaining unit-math functions PRESERVE the named type on a named input (audit: value-only before).
 	static_assert(std::is_same_v<decltype(min(meters<double>(1), meters<double>(2))), meters<double>>);
 	static_assert(std::is_same_v<decltype(max(meters<double>(1), meters<double>(2))), meters<double>>);

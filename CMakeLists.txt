@@ -11,6 +11,7 @@ endif()
 # cmake options
 OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
+OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${MAIN_PROJECT})
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 # header-only library target. To use this project as a subdirectory,
@@ -56,10 +57,22 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	add_subdirectory(test)
 endif()
 
+# documentation examples (compiled and run so the guides' snippets can never rot)
+if(UNITS_BUILD_EXAMPLES)
+	add_subdirectory(examples)
+endif()
+
 # add a target to generate API documentation with Doxygen
 if(UNITS_BUILD_DOCS)
 	find_package(Doxygen)
 	if(DOXYGEN_FOUND)
+		# Treat Doxygen warnings as errors when asked (the docs CI sets DOXYGEN_WARN_AS_ERROR on pull
+		# requests); default to NO so a local doc build is not gated. Accepts NO / YES / FAIL_ON_WARNINGS.
+		if(DEFINED ENV{DOXYGEN_WARN_AS_ERROR})
+			set(DOXYGEN_WARN_AS_ERROR "$ENV{DOXYGEN_WARN_AS_ERROR}")
+		else()
+			set(DOXYGEN_WARN_AS_ERROR "NO")
+		endif()
 		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 		add_custom_target(doc ALL
 				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile

@@ -48,3 +48,9 @@ jobs:
       - name: Error-message tests
         run: |
           python3 test/errorMessages/run.py --cc g++-13 --std c++23 --include include
+
+      - name: Reference tables up to date
+        # The supported-units and constants tables in README.md and docs/reference are generated from the
+        # headers; fail if a unit or constant was added/changed without regenerating them.
+        run: |
+          python3 docs/reference/gen_reference.py --check
