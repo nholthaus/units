@@ -3,6 +3,7 @@ name: clang-19
 on:
   push:
     branches: [ '**' ]  # Run on all branches
+    tags: [ 'v*' ]      # Run on release tags too
   pull_request:
     branches: [ '**' ]  # Run on all branches
 
