@@ -307,7 +307,17 @@ block.
 ---
 
 ## 6. Doxyfile.in edits (exact) — `docs/Doxyfile.in`
-- ☐ `PROJECT_NUMBER = @PROJECT_VERSION@` (inject from CMake SSOT; file is already `configure_file(@ONLY)`).
+
+> **Wave 1 status:** all edits below applied AND the template was upgraded to modern format
+> (`doxygen -u`, now `# Doxyfile 1.17.0`), which cleared all 94 obsolete-tag warnings. Local doc build
+> is green (exit 0) and RECURSIVE=YES now generates **321 HTML pages** (was near-empty — `core.h` +
+> all 47 dimension headers now documented). **68 real CONTENT warnings remain, deferred to Wave 6**
+> (they're doc-comment bugs, now visible): 9× `@ingroup 'Concepts'` + Prefixes/ConversionFactor/
+> Constructors reference undefined `\defgroup`s; 4× `\tparam` missing-whitespace; ~30× unresolved
+> `\ref <dim>Units` anchors in the dimension headers. Fix these when Wave 6 defines the group taxonomy
+> + `\page` wiring, THEN turn on WARN_AS_ERROR (theme + awesome-css wiring also lands in Wave 6).
+
+- ☑ `PROJECT_NUMBER = @PROJECT_VERSION@` (injected from CMake SSOT; verified generated Doxyfile → 3.4.0).
 - ☐ `PROJECT_BRIEF` c++14 → "A compile-time, header-only C++23 dimensional-analysis library."
 - ☐ **`RECURSIVE = YES`** (today NO + `INPUT=include` excludes all `include/units/` incl. core.h — the
    site documents almost nothing). Keep `INPUT = README.md include docs` (add docs/ for the `\page` set).
