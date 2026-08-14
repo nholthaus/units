@@ -4916,6 +4916,18 @@ TEST_F(UnitMath, modf)
 	double         umodfr1;
 	decltype(uval) umodfr2;
 	EXPECT_EQ(std::modf(uval.to<double>(), &umodfr1), units::modf(uval, &umodfr2));
+
+	// A scaled dimensionless unit (percent) must not have its scale applied twice: modf(202.5%) is an
+	// integral 200% and a fractional 2.5%, i.e. value() 2.0 and 0.025 (regression for issue #312). The
+	// fractional part carries only the rounding of std::modf itself, so it is compared with a tolerance.
+	percent<double> pintpart;
+	auto            pfracpart = modf(percent<double>(202.5), &pintpart);
+	EXPECT_DOUBLE_EQ(2.0, pintpart.value());
+	EXPECT_NEAR(0.025, pfracpart.value(), 1e-12);
+	// sign is carried on both parts
+	auto npfracpart = modf(percent<double>(-202.5), &pintpart);
+	EXPECT_DOUBLE_EQ(-2.0, pintpart.value());
+	EXPECT_NEAR(-0.025, npfracpart.value(), 1e-12);
 }
 
 TEST_F(UnitMath, exp2)
