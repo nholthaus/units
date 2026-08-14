@@ -79,6 +79,8 @@
 namespace units::detail
 {
 	template<typename T>
+		requires std::is_arithmetic_v<T>    // numbers only: a named unit's associated namespace is units::detail, so an
+											// unconstrained overload here would be an ADL candidate for to_string(someUnit)
 	std::string to_string(const T& t)
 	{
 		std::string str{std::to_string(t)};
@@ -166,16 +168,12 @@ namespace units
 		{                                                                                                                                                                                              \
 		}; /** @} */                                                                                                                                                                                   \
 	}                                                                                                                                                                                                  \
-	namespace traits                                                                                                                                                                                   \
+	namespace detail                                                                                                                                                                                   \
 	{                                                                                                                                                                                                  \
-		template<>                                                                                                                                                                                     \
-		struct strong<__VA_ARGS__>                                                                                                                                                                     \
-		{                                                                                                                                                                                              \
-			using type = ::units::namespaceName::namePlural##_;                                                                                                                                        \
-		};                                                                                                                                                                                             \
-                                                                                                                                                                                                       \
-		template<class ConversionFactor>                                                                                                                                                               \
-		using strong_t = typename strong<ConversionFactor>::type;                                                                                                                                      \
+		/** ADL registration of the strong type for this conversion factor (see detail::strong_name, #357). */         \
+		/** Exact-`__VA_ARGS__*` parameter — a strictly better match than the variadic fallback — so `strong_t` */     \
+		/** resolves to the named type once THIS header is included, order-independently. Declared, never defined. */   \
+		::units::namespaceName::namePlural##_ strong_name(__VA_ARGS__*);                                                                                                                                \
 	}
 
 /**
@@ -211,8 +209,63 @@ namespace units
  *				comprise the unit definition.
  */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...)                                                                                                                      \
+	/** A named unit is a CLASS deriving from its `unit<...>` (not an alias) so a diagnostic prints the friendly */    \
+	/** name (`meters<double>`) instead of `unit<strong, Underlying, scale>` cruft, keeping the `unitName<>` spelling. */\
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE>                                                                                                                                                 \
-	using unitName = ::units::unit<traits::strong_t<__VA_ARGS__>, Underlying, scale>;
+	struct unitName : ::units::unit<traits::strong_t<__VA_ARGS__>, Underlying, scale>                                                                                                                  \
+	{                                                                                                                                                                                                  \
+		using base = ::units::unit<traits::strong_t<__VA_ARGS__>, Underlying, scale>;                                                                                                                  \
+		using base::base;                                                                                                                                                                              \
+		/* Keep the named class TRIVIAL (a load-bearing property of the unit type — memcpy-able, zero overhead): */    \
+		/* explicitly default the special members. Declaring the converting ctor below would otherwise suppress the */ \
+		/* trivial default ctor, and inheriting ctors leaves the special members implicit; defaulting them restores */  \
+		/* std::is_trivial. */                                                                                          \
+		unitName() = default;                                                                                                                                                                          \
+		unitName(const unitName&) = default;                                                                                                                                                           \
+		unitName(unitName&&) = default;                                                                                                                                                                 \
+		unitName& operator=(const unitName&) = default;                                                                                                                                                 \
+		unitName& operator=(unitName&&) = default;                                                                                                                                                      \
+		constexpr unitName(const base& other) noexcept : base(other) {}                                                                                                                               \
+		/* Forward a scalar assignment to the base's operator= so the dimensionless '= 0.30' path (which the derived */ \
+		/* class would otherwise route through the raw-value converting ctor, off by the CF ratio) is used. Templated */\
+		/* + constrained to arithmetic so it never competes with unit-to-unit assignment (that stays the base's job). */\
+		template<class Rhs>                                                                                                                                                                            \
+			requires ::std::is_arithmetic_v<Rhs>                                                                                                                                                       \
+		constexpr unitName& operator=(const Rhs& rhs) noexcept                                                                                                                                          \
+		{                                                                                                                                                                                              \
+			base::operator=(rhs);                                                                                                                                                                      \
+			return *this;                                                                                                                                                                              \
+		}                                                                                                                                                                                              \
+		/** Re-create this named unit with a different underlying type, so traits (replace_underlying, common_type) */ \
+		/** that swap the storage type PRESERVE the friendly name instead of decaying to the plain `unit<...>`. */     \
+		template<class NewUnderlying>                                                                                                                                                                  \
+		using rebind = unitName<NewUnderlying>;                                                                                                                                                        \
+	};                                                                                                                                                                                                 \
+	/** Deduction guide so the BARE name works (no <>): `unitName x(5.0)` / `constexpr unitName c(3e8)` deduces */    \
+	/** `unitName<double>`. As an ALIAS template (pre-refactor) a bare name resolved via the default arg; as a CLASS */\
+	/** template CTAD is required, and some compilers (e.g. GCC 13) will not deduce it from an arithmetic argument */  \
+	/** without this guide. Constrained to arithmetic so it never competes with the base/converting constructors. */  \
+	template<class Arg>                                                                                                                                                                                \
+		requires ::std::is_arithmetic_v<Arg>                                                                                                                                                           \
+	unitName(Arg) -> unitName<Arg>;                                                                                                                                                                    \
+	/** Nullary guide so bare default-construction `unitName{}` / `unitName()` deduces `unitName<default>` — again a */\
+	/** CLASS template needs this where the old alias resolved via its default arg; GCC 13 requires it explicitly. */ \
+	unitName() -> unitName<UNIT_LIB_DEFAULT_TYPE>;                                                                                                                                                      \
+	/** And from another same-dimension UNIT (bare): `unitName x(otherUnit)` deduces the underlying the converting */  \
+	/** constructor would produce — the SOURCE underlying when losslessly convertible to this named unit, else its */  \
+	/** floating-point promotion (so e.g. `radians r(degrees{1})` deduces radians<double>, since degrees->radians is */\
+	/** not integer-lossless). GCC 13 will not deduce this implicitly (GCC 15 will), so the guide is required; */      \
+	/** constrained to unit types so it never competes with the arithmetic/nullary guides. */                          \
+	template<class OtherUnit>                                                                                                                                                                          \
+		requires(::units::traits::is_unit<OtherUnit>::value &&                                                                                                                                         \
+				 ::units::traits::is_same_dimension_unit_v<OtherUnit,                                                                                                                                    \
+					 ::units::unit<traits::strong_t<__VA_ARGS__>, typename ::units::traits::unit_traits<OtherUnit>::underlying_type, scale>>)                                                            \
+	unitName(const OtherUnit&) -> unitName<::units::detail::deduced_named_underlying_t<OtherUnit, traits::strong_t<__VA_ARGS__>, scale>>;\
+	/** And from a std::chrono::duration (bare, for time units): `nanoseconds n(chrono::nanoseconds(10))` deduces */  \
+	/** the default underlying; the chrono converting constructor does the Rep/Period conversion. GCC 13 needs the */ \
+	/** explicit guide. */                                                                                            \
+	template<class Rep, class Period>                                                                                                                                                                  \
+	unitName(const ::std::chrono::duration<Rep, Period>&) -> unitName<UNIT_LIB_DEFAULT_TYPE>;                          \
 /**
  * @def		UNIT_ADD_NAME(namespaceName,namePlural,abbreviation)
  * @brief		Macro for generating constexpr names/abbreviations for units.
@@ -235,6 +288,25 @@ namespace units
 	{                                                                                                                                                                                                  \
 		static constexpr const char* value = #abbrev;                                                                                                                                                  \
 	};
+
+/**
+ * @def			UNIT_REGISTER_NAMED_CLASS(namespaceName, namePlural)
+ * @brief		Register the CF-struct -> NAMED-class ADL map so an arithmetic RESULT is reported as the friendly type.
+ * @details		A result unit<strong, U, scale> is rewrapped into `namePlural<U>` via detail::named_class_of (results
+ *				stay as friendly as inputs). Registered at `units` scope AFTER the class is defined (so no forward
+ *				reference) and only for LINEAR named units — decibel-scale units are excluded because several dB names
+ *				share one linear conversion_factor, which would make the reverse map ambiguous. Declared, never defined.
+ */
+#define UNIT_REGISTER_NAMED_CLASS(namespaceName, namePlural)                                                                                                                                            \
+	namespace detail                                                                                                                                                                                   \
+	{                                                                                                                                                                                                  \
+		/* Keyed on BOTH the conversion_factor AND the numerical scale: the linear and decibel forms of a unit share */ \
+		/* one conversion_factor (watts_ for both watts and dBW) and differ only by scale, so scale must disambiguate */\
+		/* the reverse map (else watts vs dBW collide). Declared, never defined (decltype-only). */                     \
+		::units::namespaceName::namePlural<UNIT_LIB_DEFAULT_TYPE> named_class_of(                                                                                                                       \
+			typename ::units::namespaceName::namePlural<>::conversion_factor*,                                                                                                                          \
+			typename ::units::namespaceName::namePlural<>::numerical_scale_type*);                                                                                                                      \
+	}
 
 /**
  * @def			UNIT_ADD_LITERALS(namespaceName,namePlural,abbreviation)
@@ -289,6 +361,7 @@ namespace units
 	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                                                                                                          \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                                                                   \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                                                             \
+	UNIT_REGISTER_NAMED_CLASS(namespaceName, namePlural)                                                                                                                                               \
 	UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)                                                                                                                                         \
 	UNIT_ADD_CONSTANT(namespaceName, namePlural, abbreviation)
 
@@ -307,6 +380,7 @@ namespace units
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(abbreviation, ::units::decibel_scale, typename ::units::namespaceName::namePlural<>::conversion_factor) /** @} */       \
 	}                                                                                                                                                                                                  \
 	UNIT_ADD_NAME(namespaceName, abbreviation, abbreviation)                                                                                                                                           \
+	UNIT_REGISTER_NAMED_CLASS(namespaceName, abbreviation)                                                                                                                                             \
 	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
@@ -663,6 +737,24 @@ namespace units
 		struct _unit
 		{
 		};
+
+		/**
+		 * @brief		ADL customization point that maps a `conversion_factor` to its friendly strong type.
+		 * @details		This is the anchor `traits::strong` resolves through. A dimension header registers a named
+		 *				strong type by declaring a better-matching overload of `strong_name` (see the
+		 *				`UNIT_ADD_STRONG_CONVERSION_FACTOR` macro), discoverable by ADL because a `conversion_factor`'s
+		 *				associated namespace is `units`. This fallback is the WORST match (variadic `...`), so it is
+		 *				chosen only when no dimension header has registered a named type — in which case the strong
+		 *				type is the `conversion_factor` itself. Only ever used unevaluated (in `decltype`); never
+		 *				defined. Being an overload set rather than an explicit specialization, a later-included header
+		 *				merely contributes a stronger candidate — it can never be "declared after instantiation" (#357).
+		 *
+		 *				The fallback deduces the `conversion_factor` from its pointer argument, followed by a trailing
+		 *				ellipsis so that any exact-`CF*` registration overload (a non-template, non-variadic parameter)
+		 *				is a strictly better match and wins whenever its dimension header is visible.
+		 */
+		template<class ConversionFactor>
+		ConversionFactor strong_name(ConversionFactor*, ...);
 	} // namespace detail
 
 	namespace traits
@@ -800,13 +892,25 @@ namespace units
 		 * @brief			SFINAE-able trait that maps a `conversion_factor` to its strengthened type.
 		 * @details			If `T` is a cv-unqualified `conversion_factor`, the member `type` alias names the
 		 *					strong type alias of `T`, if any, and `T` otherwise. Otherwise, there is no `type` member.
-		 *					This may be specialized only if `T` depends on a program-defined type.
+		 *
+		 *					The strong type of a `conversion_factor` is registered by its dimension header (e.g.
+		 *					`units/frequency.h` registers `hertz` for `1/time`). Resolution is an ADL customization
+		 *					point (`units::detail::strong_name`), NOT an explicit specialization of `strong`: a named
+		 *					type is discovered by overload resolution over the `conversion_factor`'s associated
+		 *					namespace at the point `strong_t<T>` is instantiated. This deliberately avoids the
+		 *					"explicit specialization after implicit instantiation" ordering trap (#357) — forming an
+		 *					expression that reduces to a not-yet-included dimension no longer bakes in a decision a
+		 *					later header would contradict; the later header simply contributes a better overload.
 		 */
 		template<ConversionFactorType T>
 			requires std::is_same_v<T, std::remove_cv_t<T>>
-		struct strong : T
+		struct strong
 		{
-			typedef T type;
+			// UNQUALIFIED call so ADL on T* is performed: T is a conversion_factor whose associated namespaces are
+			// `units` and (via its base detail::_conversion_factor) `units::detail`, so every dimension header's
+			// strong_name registration in units::detail is found, along with the identity fallback. A qualified call
+			// (::units::detail::strong_name) would SUPPRESS ADL and see only the fallback — the whole point is ADL.
+			using type = decltype(strong_name(static_cast<T*>(nullptr)));
 		};
 
 		template<class T>
@@ -2148,6 +2252,13 @@ namespace units
 
 	namespace detail
 	{
+		// Forward declaration so unit's name()/abbreviation() members (defined below, in the unit class) can name
+		// detail::rewrap_to_named_t; the full definition follows after the unit class is complete (it depends on it).
+		template<class U, class = void>
+		struct rewrap_to_named;
+		template<class U>
+		using rewrap_to_named_t = typename rewrap_to_named<U>::type;
+
 		/**
 		 * @brief		SFINAE helper to test if an arithmetic conversion is lossless.
 		 */
@@ -2173,6 +2284,31 @@ namespace units
 				std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
 					is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>>>>;
 
+		// The underlying type a NAMED unit's from-unit deduction guide should produce when constructed from `Source`:
+		// the source's own underlying when losslessly convertible into the target (StrongCf, Scale), else its
+		// floating-point promotion (so e.g. radians(degrees{1}) deduces radians<double>). A SFINAE-friendly class
+		// template (NOT a var-template init), so the guide's return type never eagerly instantiates
+		// is_losslessly_convertible_unit for a non-unit / non-same-dimension Source — the primary is chosen and the
+		// heavy check only runs in the partial specialization, which is constrained to a same-dimension unit source.
+		template<class Source, class StrongCf, class Scale, class = void>
+		struct deduced_named_underlying
+		{
+			using type = typename traits::unit_traits<Source>::underlying_type;
+		};
+		template<class Source, class StrongCf, class Scale>
+		struct deduced_named_underlying<Source, StrongCf, Scale,
+			std::enable_if_t<traits::is_unit_v<Source> &&
+				traits::is_same_dimension_unit_v<Source, unit<StrongCf, typename traits::unit_traits<Source>::underlying_type, Scale>>>>
+		{
+		private:
+			using Src = typename traits::unit_traits<Source>::underlying_type;
+
+		public:
+			using type = std::conditional_t<is_losslessly_convertible_unit<Source, unit<StrongCf, Src, Scale>>, Src, floating_point_promotion_t<Src>>;
+		};
+		template<class Source, class StrongCf, class Scale>
+		using deduced_named_underlying_t = typename deduced_named_underlying<Source, StrongCf, Scale>::type;
+
 		template<RatioType Ratio>
 		using time_conversion_factor = conversion_factor<Ratio, dimension::time>;
 
@@ -2195,9 +2331,9 @@ namespace units
 					 *
 					 *				The value of an `unit` can only be set on construction, or changed by assignment
 					 *				from another `unit` type. If necessary, the underlying value can be accessed
-					 *				using `operator()`: @code
+					 *				using `raw()`: @code
 					 *				meter_t m(5.0);
-					 *				double val = m(); // val == 5.0	@endcode.
+					 *				double val = m.raw(); // val == 5.0	@endcode.
 					 * @tparam		ConversionFactor `conversion_factor` of the represented unit (e.g. meters)
 					 * @tparam		T underlying type of the storage. Defaults to `UNIT_LIB_DEFAULT_TYPE`.
 					 * @tparam		NumericalScale optional scale class for the units. Defaults to linear (i.e. does
@@ -2579,7 +2715,9 @@ namespace units
 		template<UnitType Unit = unit>
 		[[nodiscard]] constexpr const char* name() const noexcept
 		{
-			return unit_name_v<Unit>;
+			// unit_name is specialized on the NAMED class, not this unit<...> base; resolve the named form first so a
+			// named unit (feet) reports "feet" instead of null. Identity for a plain unit<...>.
+			return unit_name_v<detail::rewrap_to_named_t<Unit>>;
 		}
 
 		/**
@@ -2588,7 +2726,9 @@ namespace units
 		template<UnitType Unit = unit>
 		[[nodiscard]] constexpr const char* abbreviation() const noexcept
 		{
-			return unit_abbreviation_v<Unit>;
+			// unit_abbreviation is specialized on the NAMED class, not this unit<...> base; resolve the named form
+			// first so a named unit (feet) reports "ft" instead of null. Identity for a plain unit<...>.
+			return unit_abbreviation_v<detail::rewrap_to_named_t<Unit>>;
 		}
 
 		template<ConversionFactorType Cf, ArithmeticType Ty, NumericalScaleType<Ty> Ns>
@@ -2598,6 +2738,108 @@ namespace units
 		/// of `units` as NTTP types.
 		T _linearized_value;
 	};
+
+	namespace detail
+	{
+		/**
+		 * @brief		Maps any unit type to the canonical `unit<Cf, Underlying, Scale>` it represents.
+		 * @details		A NAMED unit (e.g. `length::meters<double>`) is a class deriving from its `unit<...>` so a
+		 *				diagnostic prints the friendly name; but the exact-pattern trait specializations
+		 *				(`replace_underlying`, `floating_point_promotion`, `std::common_type`) match `unit<Cf,T,Ns>`
+		 *				literally, not a derived class. `unit_base_t` reconstructs that canonical base from the type's
+		 *				own (inherited) member typedefs, so those traits can unwrap first and work for named and plain
+		 *				units alike. Identity when `T` already IS a `unit<...>`.
+		 */
+		template<class T>
+		using unit_base_t = unit<typename T::conversion_factor, typename T::underlying_type, typename T::numerical_scale_type>;
+
+		// True iff T is a unit-derived class that is NOT itself the canonical unit<...> (i.e. a NAMED unit). Guarded:
+		// unit_base_t<T> (which reads T::conversion_factor) is only well-formed for a unit, so gate on is_unit FIRST
+		// via a helper struct — a plain arithmetic T (e.g. double) has no conversion_factor and must yield false, not
+		// a hard error.
+		template<class T, bool = traits::is_unit<T>::value>
+		struct is_named_unit_impl : std::false_type
+		{
+		};
+		template<class T>
+		struct is_named_unit_impl<T, true> : std::bool_constant<!std::is_same_v<T, unit_base_t<T>>>
+		{
+		};
+		template<class T>
+		inline constexpr bool is_named_unit_v = is_named_unit_impl<T>::value;
+
+		// Re-wrap a computed base result `unit<Cf, U, Ns>` into a NAMED unit when a candidate operand `Named` is a
+		// named unit of the SAME conversion_factor: the friendly name is preserved through the trait (so
+		// common_type<meters<int>, meters<double>> is meters<double>, not unit<meters_, double, linear_scale>). When no
+		// candidate matches (mixed names, or a plain-unit operand), the base result stands. `Base` is the plain unit<>.
+		template<class Base, class Named, class = void>
+		struct rewrap_named
+		{
+			using type = Base;
+		};
+		template<class Base, class Named>
+		struct rewrap_named<Base, Named,
+			std::enable_if_t<is_named_unit_v<Named> && std::is_same_v<typename Base::conversion_factor, typename Named::conversion_factor>>>
+		{
+			using type = typename Named::template rebind<typename Base::underlying_type>;
+		};
+		template<class Base, class Named>
+		using rewrap_named_t = typename rewrap_named<Base, Named>::type;
+
+		// Identity fallback for the CF-struct -> named-class ADL map (the exact registrations are emitted per named
+		// unit by UNIT_REGISTER_NAMED_CLASS). Worst match (trailing ellipsis); returns void to signal "no named class
+		// for this CF". decltype-only, never defined. A real registration's exact strong-CF* parameter beats this.
+		template<class ConversionFactor, class Scale>
+		void named_class_of(ConversionFactor*, Scale*, ...);
+
+		// Map a plain unit<Cf, U, Ns> to its NAMED class when one is registered for Cf, else identity. Used by the
+		// arithmetic operators so a computed result (e.g. unit<square_meters_, int, linear_scale>) is REPORTED as the
+		// friendly named type (square_meters<int>). Rebinds the registered class to U so the underlying flows through.
+		// SFINAE-guarded: only a unit whose Cf has a registration is rewrapped; everything else is identity.
+		// (The primary template + the rewrap_to_named_t alias are forward-declared before the unit class so unit's
+		// name()/abbreviation() members can name them; here we DEFINE the primary and the specialization.)
+		template<class U, class>
+		struct rewrap_to_named
+		{
+			using type = U;
+		};
+		template<class U>
+		struct rewrap_to_named<U,
+			std::enable_if_t<traits::is_unit<U>::value &&
+				!std::is_void_v<decltype(named_class_of(static_cast<typename U::conversion_factor*>(nullptr),
+					static_cast<typename U::numerical_scale_type*>(nullptr)))>>>
+		{
+			using type = typename decltype(named_class_of(static_cast<typename U::conversion_factor*>(nullptr),
+				static_cast<typename U::numerical_scale_type*>(nullptr)))::template rebind<typename U::underlying_type>;
+		};
+	} // namespace detail
+
+	namespace traits
+	{
+		// A NAMED unit (a class deriving from unit<...>) unwraps to its base for these exact-pattern traits, so
+		// replace_underlying / floating_point_promotion behave for named units exactly as for the plain unit<...>.
+		// The plain-unit<...> specializations are declared earlier; these constrained ones fire only for a named unit.
+		template<class Unit, class Underlying>
+			requires ::units::detail::is_named_unit_v<Unit>
+		struct replace_underlying<Unit, Underlying>
+		{
+			// PRESERVE the named type: rebind it to the new underlying (meters<int> -> meters<double>), rather than
+			// decaying to the plain unit<...> base. Keeps trait results as friendly as the inputs.
+			using type = typename Unit::template rebind<Underlying>;
+		};
+	} // namespace traits
+
+	namespace detail
+	{
+		template<class Unit>
+			requires is_named_unit_v<Unit>
+		struct floating_point_promotion<Unit>
+		{
+			// Promote the UNDERLYING type but PRESERVE the friendly named type: rebind the named unit to the promoted
+			// underlying (meters<int> -> meters<double>), so ceil/floor/round/hypot report the named result, not unit<>.
+			using type = typename Unit::template rebind<typename floating_point_promotion<unit_base_t<Unit>>::type::underlying_type>;
+		};
+	} // namespace detail
 
 	//------------------------------
 	//	UNIT NON-MEMBER FUNCTIONS
@@ -2656,10 +2898,15 @@ namespace units
 		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
+		// The abbreviation trait is specialized on the NAMED class, not the plain unit<...> base this overload
+		// deduces; resolve the named form first and query THAT so a named unit (meters_per_second -> "mps") prints
+		// its abbreviation instead of the dimension form.
+		using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
+
 		std::locale loc;
-		if constexpr (unit_abbreviation_v<unit<ConversionFactor, T, NumericalScale>>)
+		if constexpr (unit_abbreviation_v<NamedForm>)
 		{
-			os << obj.raw() << " " << obj.abbreviation();
+			os << obj.raw() << " " << unit_abbreviation<NamedForm>::value;
 		}
 		else
 		{
@@ -2686,10 +2933,15 @@ namespace units
 		using BaseUnit         = unit<BaseConversion, T, NumericalScale>;
 		using PromotedBaseUnit = unit<BaseConversion, detail::floating_point_promotion_t<T>, NumericalScale>;
 
-		if constexpr (unit_abbreviation_v<unit<ConversionFactor, T, NumericalScale>>)
+		// The abbreviation trait (unit_name/unit_abbreviation) is specialized on the NAMED class, not the plain
+		// unit<...> base this overload deduces, so resolve the named form first and query THAT — a named unit
+		// (feet<double>) then still prints its abbreviation ("ft") instead of falling to the dimension path.
+		using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
+
+		if constexpr (unit_abbreviation_v<NamedForm>)
 		{
 			std::string s = detail::to_string(obj.raw());
-			s.append(" ").append(obj.abbreviation());
+			s.append(" ").append(unit_abbreviation<NamedForm>::value);
 			return s;
 		}
 		else
@@ -2754,6 +3006,51 @@ namespace std
 		using type = units::unit<UnitConversionT, T, NonLinearScale>;
 	};
 
+	// A NAMED unit is a class deriving from unit<...>; the exact-pattern specializations above do not match it. When
+	// either operand is a named unit, compute the common type of the canonical unit<...> BASES, then RE-WRAP the result
+	// into the named type when an operand shares its conversion_factor — so common_type<meters<int>, meters<double>> is
+	// meters<double>, not the plain unit<...> (the friendly name survives through the trait). Constrained to "both are
+	// units AND at least one is named" so it never overlaps the exact-unit<...> cases above.
+	template<class Lhs, class Rhs>
+		requires(units::traits::is_unit<Lhs>::value && units::traits::is_unit<Rhs>::value &&
+				 (units::detail::is_named_unit_v<Lhs> || units::detail::is_named_unit_v<Rhs>) &&
+				 // ONLY when the plain-base common type EXISTS (same dimension). For different dimensions the bases have
+				 // no common type, so this specialization must be SFINAE-EMPTY too (no `type`) — matching the plain
+				 // unit<...> behavior. Without this, computing `base` below is a hard error on stricter compilers
+				 // (clang) where g++ tolerated the absent member.
+				 requires { typename common_type<units::detail::unit_base_t<Lhs>, units::detail::unit_base_t<Rhs>>::type; })
+	struct common_type<Lhs, Rhs>
+	{
+	private:
+		using base = common_type_t<units::detail::unit_base_t<Lhs>, units::detail::unit_base_t<Rhs>>;
+		// prefer to re-wrap into Lhs's name; if that doesn't share the CF, try Rhs's.
+		using viaLhs = units::detail::rewrap_named_t<base, Lhs>;
+
+	public:
+		using type = units::detail::rewrap_named_t<viaLhs, Rhs>;
+	};
+
+	// A NAMED DIMENSIONLESS unit (e.g. percent) mixed with a plain arithmetic scalar: the exact-unit<...>-vs-scalar
+	// specializations below do not match the named class, so unwrap the named operand to its base and re-wrap the
+	// result to keep the friendly name. dimensionless units stay fully interchangeable with int/double. Gated on
+	// is_dimensionless_unit (mirroring the plain unit<...>-vs-scalar specializations): a DIMENSIONED named unit + a
+	// scalar must NOT match — it falls through to the primary std::common_type and is SFINAE-empty (no `type`), the
+	// same SFINAE-friendly behavior the plain form has (never a hard error).
+	template<class Named, class Scalar>
+		requires(units::detail::is_named_unit_v<Named> && std::is_arithmetic_v<Scalar> &&
+				 units::traits::is_dimensionless_unit<typename units::detail::unit_base_t<Named>::conversion_factor>::value)
+	struct common_type<Named, Scalar>
+	{
+		using type = units::detail::rewrap_named_t<common_type_t<units::detail::unit_base_t<Named>, Scalar>, Named>;
+	};
+	template<class Scalar, class Named>
+		requires(units::detail::is_named_unit_v<Named> && std::is_arithmetic_v<Scalar> &&
+				 units::traits::is_dimensionless_unit<typename units::detail::unit_base_t<Named>::conversion_factor>::value)
+	struct common_type<Scalar, Named>
+	{
+		using type = units::detail::rewrap_named_t<common_type_t<Scalar, units::detail::unit_base_t<Named>>, Named>;
+	};
+
 	template<class Ratio, class T, class NumericalScale, class Rep, class Period>
 	struct common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>, chrono::duration<Rep, Period>>
 	  : std::common_type<units::unit<units::detail::time_conversion_factor<Ratio>, T, NumericalScale>, decltype(units::unit{chrono::duration<Rep, Period>{}})>
@@ -2767,15 +3064,17 @@ namespace std
 	};
 
 	template<class ConversionFactor, class Tx, class NumericalScale, class Ty>
+		requires std::is_arithmetic_v<Ty>    // constrain so a unit `Ty` never matches (that is a unit+unit case above)
 	struct common_type<Ty, units::unit<ConversionFactor, Tx, NumericalScale>>
-	  : std::enable_if<std::is_arithmetic_v<Ty> && units::traits::is_dimensionless_unit<units::unit<ConversionFactor, Tx, NumericalScale>>::value,
+	  : std::enable_if<units::traits::is_dimensionless_unit<units::unit<ConversionFactor, Tx, NumericalScale>>::value,
 			units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, common_type_t<Tx, Ty>, NumericalScale>>
 	{
 	};
 
 	template<class ConversionFactor, class Tx, class NumericalScale, class Ty>
+		requires std::is_arithmetic_v<Ty>    // constrain so a unit `Ty` never matches (that is a unit+unit case above)
 	struct common_type<units::unit<ConversionFactor, Tx, NumericalScale>, Ty>
-	  : std::enable_if<std::is_arithmetic_v<Ty> && units::traits::is_dimensionless_unit<units::unit<ConversionFactor, Tx, NumericalScale>>::value,
+	  : std::enable_if<units::traits::is_dimensionless_unit<units::unit<ConversionFactor, Tx, NumericalScale>>::value,
 			units::unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, common_type_t<Tx, Ty>, NumericalScale>>
 	{
 	};
@@ -2916,12 +3215,20 @@ namespace units
 
 	using dimensionless_ = conversion_factor<std::ratio<1>, dimension::dimensionless>;
 
-	template<>
-	struct traits::strong<units::detail::conversion_factor_base_t<dimensionless_>>
+	namespace detail
 	{
-		using type = conversion_factor<std::ratio<1>, dimension::dimensionless>;
-	}; // namespace traits
-	UNIT_ADD_SCALED_UNIT_DEFINITION(dimensionless, ::units::linear_scale, conversion_factor<std::ratio<1>, dimension::dimensionless>)
+		// ADL registration of the dimensionless strong type (see detail::strong_name, #357). The base-form CF maps
+		// back to the canonical dimensionless conversion_factor. Declared, never defined (used only in decltype).
+		conversion_factor<std::ratio<1>, dimension::dimensionless> strong_name(
+			units::detail::conversion_factor_base_t<dimensionless_>*);
+	}
+	// The PURE dimensionless unit (ratio 1) stays a plain alias to unit<...>, NOT a named class: it must remain
+	// totally interchangeable with the built-in arithmetic types (int/double) and identity-equal to its unit<...>
+	// base (so common_type<dimensionless<int>, int> is the plain unit and dimensionless<int> IS unit<dimensionless_,
+	// int>). A distinct class would break that interchangeability. Named ratio-dimensionless units (percent/ppm/...)
+	// are still classes — they carry a meaningful name.
+	template<class Underlying = UNIT_LIB_DEFAULT_TYPE>
+	using dimensionless = unit<traits::strong_t<conversion_factor<std::ratio<1>, dimension::dimensionless>>, Underlying, linear_scale>;
 
 	UNIT_ADD_DIMENSION_TRAIT(dimensionless)
 
@@ -3463,8 +3770,8 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
-			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
+			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>>
 	{
 		using SquaredUnit = decltype(lhs * rhs);
 		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -3476,8 +3783,8 @@ namespace units
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
 		using CompoundUnit     = decltype(lhs * rhs);
 		using CommonUnderlying = typename CompoundUnit::underlying_type;
@@ -3607,8 +3914,8 @@ namespace units
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>>,
-			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>>,
+			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
 		using CompoundUnit     = decltype(lhs / rhs);
 		using CommonUnderlying = typename CompoundUnit::underlying_type;
@@ -3649,8 +3956,8 @@ namespace units
 	/// Produces inverse<ratio-dimensionless> (compound) and uses raw() for rhs.
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
 		using Out              = decltype(lhs / rhs);
 		using CommonUnderlying = typename Out::underlying_type;
@@ -3662,8 +3969,8 @@ namespace units
 	/// Division of a dimensionless unit by a unit type with a linear scale
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs>)
-	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>
+	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
 		using CommonUnit       = decltype(lhs / rhs);
 		using CommonUnderlying = typename CommonUnit::underlying_type;
@@ -3709,7 +4016,7 @@ namespace units
 	template<UnitType UnitTypeRhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
 	constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>>
 	{
 		using InverseUnit      = decltype(lhs / rhs);
 		using UnitConversion   = typename traits::unit_traits<UnitTypeRhs>::conversion_factor;
@@ -3970,8 +4277,8 @@ namespace units
 	 */
 	template<int power, UnitType UnitType>
 		requires(traits::has_linear_scale_v<UnitType>)
-	constexpr auto pow(const UnitType& value) noexcept -> unit<traits::strong_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
-		detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>
+	constexpr auto pow(const UnitType& value) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
+		detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>>
 	{
 		return decltype(units::pow<power>(value))(pow<power>(value.raw()));
 	}
@@ -4021,8 +4328,6 @@ namespace units
 	 * @sa			See unit for more information on unit type containers.
 	 */
 	UNIT_ADD_SCALED_UNIT_DEFINITION(decibels, ::units::decibel_scale, dimensionless_)
-	template<class Underlying>
-	using decibels = unit<dimensionless_, Underlying, decibel_scale>;
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 	template<class Underlying>
 	std::ostream& operator<<(std::ostream& os, const decibels<Underlying>& obj)
@@ -4042,8 +4347,8 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
-			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
+			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>>
 	{
 		using SquaredUnit = decltype(lhs + rhs);
 		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -4095,8 +4400,8 @@ namespace units
 	/// Subtraction between unit types with a decibel_scale and dimensionless dB units
 	template<DimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
-		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
+		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>, decibel_scale>>
 	{
 		using InverseUnit = decltype(lhs - rhs);
 		return InverseUnit(lhs.to_linearized() / rhs.to_linearized(), linearized_value);
@@ -4275,7 +4580,7 @@ namespace units
 	template<UnitType UnitType>
 		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr auto sqrt(const UnitType& value) noexcept
-		-> unit<traits::strong_t<square_root<typename traits::unit_traits<UnitType>::conversion_factor>>, detail::floating_point_promotion_t<typename traits::unit_traits<UnitType>::underlying_type>>
+		-> detail::rewrap_to_named_t<unit<traits::strong_t<square_root<typename traits::unit_traits<UnitType>::conversion_factor>>, detail::floating_point_promotion_t<typename traits::unit_traits<UnitType>::underlying_type>>>
 	{
 		return decltype(units::sqrt(value))(sqrt(value.raw()));
 	}
@@ -4580,6 +4885,15 @@ struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 	}
 };
 
+// A NAMED unit is a class deriving from unit<...>; the exact-pattern specialization above does not match it, so its
+// std::hash falls to the deleted primary. Inherit the base unit's hash (it operates on the linearized value, which the
+// named unit has via its base) so a named unit is hashable exactly like the plain unit<...> it represents.
+template<class Named>
+	requires units::detail::is_named_unit_v<Named>
+struct std::hash<Named> : std::hash<units::detail::unit_base_t<Named>>
+{
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 //  NUMERIC LIMITS
 //----------------------------------------------------------------------------------------------------------------------
@@ -4643,22 +4957,60 @@ namespace std
 		static constexpr bool has_signaling_NaN = std::numeric_limits<T>::has_signaling_NaN;
 	};
 
-	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
-	constexpr bool isnan(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	// A NAMED unit is a class deriving from unit<...>; the exact-pattern specialization above does not match it.
+	// Return the NAMED type from each limit (the named unit converts from its base), so both the VALUE and the
+	// reported TYPE match the named unit — generic code that asks for numeric_limits<meters<double>>::max() gets a
+	// meters<double> back, not the plain unit<...> base.
+	template<class Named>
+		requires units::detail::is_named_unit_v<Named>
+	struct numeric_limits<Named> : numeric_limits<units::detail::unit_base_t<Named>>
 	{
-		return std::isnan(x());
+	private:
+		using Base = numeric_limits<units::detail::unit_base_t<Named>>;
+
+	public:
+		// Inherit every flag/member from the base (has_infinity, is_signed, digits, ...); only SHADOW the
+		// value-returning statics to return the NAMED type (the named unit converts from its base), so both the value
+		// and the reported type match the named unit.
+		static constexpr Named min() { return Named(Base::min()); }
+		static constexpr Named max() { return Named(Base::max()); }
+		static constexpr Named lowest() { return Named(Base::lowest()); }
+		static constexpr Named epsilon() { return Named(Base::epsilon()); }
+		static constexpr Named round_error() { return Named(Base::round_error()); }
+		static constexpr Named denorm_min() { return Named(Base::denorm_min()); }
+		static constexpr Named infinity() { return Named(Base::infinity()); }
+		static constexpr Named quiet_NaN() { return Named(Base::quiet_NaN()); }
+		static constexpr Named signaling_NaN() { return Named(Base::signaling_NaN()); }
+	};
+
+	// These overloads accept ANY unit — including a NAMED unit, which is a class DERIVING from units::unit<...>.
+	// Constraining on the units::UnitType concept (rather than an exact `unit<Cf,T,Ns>&` parameter) makes a named
+	// unit an EXACT match, so it wins over <cmath>'s own generic isnan/isinf/... templates. With the exact-type
+	// parameter, a named (derived) unit only bound via a derived->base conversion — a WORSE match than <cmath>'s
+	// template — so on some standard libraries (MSVC) the generic <cmath> overload was selected and forwarded the
+	// unit to fpclassify(), which has no unit overload (error C2665). raw() yields the arithmetic magnitude.
+	template<units::UnitType U>
+	constexpr bool isnan(U x)
+	{
+		return std::isnan(x.raw());
 	}
 
-	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
-	constexpr bool isinf(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	template<units::UnitType U>
+	constexpr bool isinf(U x)
 	{
-		return std::isinf(x());
+		return std::isinf(x.raw());
 	}
 
-	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
-	constexpr bool signbit(const units::unit<ConversionFactor, T, NonLinearScale>& x)
+	template<units::UnitType U>
+	constexpr bool isfinite(U x)
 	{
-		return std::signbit(x());
+		return std::isfinite(x.raw());
+	}
+
+	template<units::UnitType U>
+	constexpr bool signbit(U x)
+	{
+		return std::signbit(x.raw());
 	}
 } // namespace std
 

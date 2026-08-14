@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ****************************************************************************
+    **
+    ** Natvis debugger visualizer for the nholthaus `units` library (v3.x).
+    **
+    ** Makes every `units::unit<...>` show its magnitude AND its unit inline in
+    ** the MSVC debugger (Watch / Locals / DataTips) instead of an opaque object
+    ** whose base classes you must expand to read. e.g. a 3-second value shows as:
+    **        3 s
+    **
+    ** GENERAL BY DESIGN — nothing is hardcoded per unit. Every rule is a
+    ** wildcard template match, so a single rule set covers every unit type
+    ** (length, time, frequency, compound, dimensionless, decibel, ...) with no
+    ** unit name enumerated anywhere.
+    **
+    ** ADAPTED FOR THIS REPO (differs from the older units.h v3 natvis):
+    **   - the class is `units::unit<Cf, T, Scale>` (NOT `units::unit_t<...>`);
+    **   - the magnitude is stored in `T _linearized_value` (NOT `m_value`);
+    **   - NAMED units (e.g. `units::length::meters<double>`) are CLASSES that
+    **     DERIVE from `units::unit<...>`. Natvis <Type> rules are inheritable by
+    **     default, so the `units::unit<*...>` rules below also visualize a named
+    **     unit through its base — `meters<double>` still shows as `3 m`.
+    **
+    ** UNIT LABEL — two tiers, best-effort:
+    **   1) `unit::abbreviation()` is a `constexpr const char*` member returning
+    **      the true abbreviation ("s", "m", "Hz", "mps"). It is a FUNCTION, not
+    **      stored data, so reading it needs debugger function-evaluation. We bind
+    **      it via an Optional <Intrinsic>; when the debugger can evaluate it we
+    **      show the clean abbreviation:  3 s.
+    **   2) Function-eval is not always available (optimized builds, minidumps, or
+    **      a unit whose unit_abbreviation<> specialization was never
+    **      instantiated). When the intrinsic yields nothing we FALL BACK to `$T1`
+    **      — the conversion-factor tag's type name — which is always available and
+    **      still readable. So the label degrades gracefully, never blank.
+    **
+    ** If a future units version renames `_linearized_value` or `abbreviation()`,
+    ** update the anchors below.
+    **
+    ****************************************************************************
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <!-- units::unit, all three template arities so the rule binds whether or not
+         the optional T / NumericalScale args are spelled out in the
+         instantiation. Inheritable by default, so a NAMED unit (a class deriving
+         from unit<...>) is visualized through these rules too.
+         `abbrev` = the true abbreviation via func-eval (Optional: absent if the
+         debugger can't evaluate it); `$T1` = the conversion-factor tag type name
+         (fallback); `_linearized_value` = the stored magnitude. -->
+    <Type Name="units::unit&lt;*&gt;">
+        <Intrinsic Name="abbrev" Expression="abbreviation()" Optional="true"/>
+        <DisplayString Optional="true" Condition="abbrev() != 0">{_linearized_value} {abbrev(),sb}</DisplayString>
+        <DisplayString>{_linearized_value} [$T1]</DisplayString>
+        <Expand>
+            <Item Name="[value]">_linearized_value</Item>
+            <Item Name="[abbrev]" Optional="true">abbreviation(),sb</Item>
+        </Expand>
+    </Type>
+    <Type Name="units::unit&lt;*,*&gt;">
+        <Intrinsic Name="abbrev" Expression="abbreviation()" Optional="true"/>
+        <DisplayString Optional="true" Condition="abbrev() != 0">{_linearized_value} {abbrev(),sb}</DisplayString>
+        <DisplayString>{_linearized_value} [$T1]</DisplayString>
+        <Expand>
+            <Item Name="[value]">_linearized_value</Item>
+            <Item Name="[abbrev]" Optional="true">abbreviation(),sb</Item>
+        </Expand>
+    </Type>
+    <Type Name="units::unit&lt;*,*,*&gt;">
+        <Intrinsic Name="abbrev" Expression="abbreviation()" Optional="true"/>
+        <DisplayString Optional="true" Condition="abbrev() != 0">{_linearized_value} {abbrev(),sb}</DisplayString>
+        <DisplayString>{_linearized_value} [$T1]</DisplayString>
+        <Expand>
+            <Item Name="[value]">_linearized_value</Item>
+            <Item Name="[abbrev]" Optional="true">abbreviation(),sb</Item>
+        </Expand>
+    </Type>
+
+    <!-- NOTE: unlike the older units.h v3, this repo's `linear_scale` / `decibel_scale` are STATELESS policy
+         types (only static linearize()/scale(); no data member). The magnitude lives solely on
+         `units::unit::_linearized_value`, covered by the rules above — so there are no scale-base rules here
+         (a raw scale object carries no value to display). For a decibel unit, _linearized_value is the LINEARIZED
+         (power) value; the unit reports 10*log10(value) as dB, which a natvis expression cannot compute, so the dB
+         unit shows its linear magnitude + abbreviation (e.g. `dBW`) via the unit<*> rules. -->
+
+</AutoVisualizer>

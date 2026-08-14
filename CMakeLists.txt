@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16...4.99 FATAL_ERROR)
 
-PROJECT(units VERSION 3.1.2 LANGUAGES CXX)
+PROJECT(units VERSION 3.4.0 LANGUAGES CXX)
 
 # check if this is the main project
 set(MAIN_PROJECT OFF)
@@ -28,6 +28,15 @@ target_include_directories(${PROJECT_NAME}
 
 # Require C++23 for consumers (header-only propagation)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
+
+# Ship the MSVC debugger visualizer (natvis) so a consumer's Visual Studio shows a unit as "3 m" instead of an
+# opaque object. Attaching it to the INTERFACE target propagates it to anything that links `units`, and MSVC
+# auto-loads a .natvis carried on a target. No-op for non-MSVC generators.
+if(MSVC)
+	target_sources(${PROJECT_NAME} INTERFACE
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/natvis/units.natvis>
+		$<INSTALL_INTERFACE:natvis/units.natvis>)
+endif()
 
 # Remove IOStream from the library (useful for embedded development)
 if(UNITS_DISABLE_IOSTREAM)
@@ -76,6 +85,12 @@ write_basic_package_version_file(
 # Install headers
 install(DIRECTORY include/
 		DESTINATION include
+)
+
+# Install the MSVC debugger visualizer so the installed package's $<INSTALL_INTERFACE:natvis/units.natvis>
+# resolves and Visual Studio picks it up for consumers of the installed units package.
+install(FILES natvis/units.natvis
+		DESTINATION natvis
 )
 
 # Exported targets -> unitsTargets.cmake
