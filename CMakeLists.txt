@@ -11,6 +11,7 @@ endif()
 # cmake options
 OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
+OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${MAIN_PROJECT})
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 
 # header-only library target. To use this project as a subdirectory,
@@ -54,6 +55,11 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 		add_subdirectory(3rdParty/googletest-1.170.0)
 	endif()
 	add_subdirectory(test)
+endif()
+
+# documentation examples (compiled and run so the guides' snippets can never rot)
+if(UNITS_BUILD_EXAMPLES)
+	add_subdirectory(examples)
 endif()
 
 # add a target to generate API documentation with Doxygen

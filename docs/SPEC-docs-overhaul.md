@@ -3,6 +3,16 @@
 > The on-disk, checklist-driven source of truth for the 3.x documentation overhaul. Detailed and
 > checklist-heavy by design — build straight from it, and keep it accurate as work proceeds.
 
+## SURFACED CODE FINDINGS (real bugs found while documenting — report, do NOT patch in this docs PR)
+- **`minutes` has no registered name/abbreviation** (`include/units/time.h:72`). It is defined with
+  `UNIT_ADD_WITH_PLURAL_TAG` (unlike every sibling time unit, which uses `UNIT_ADD`), so
+  `minutes::abbreviation()` and `name()` return `nullptr`. Consequences: a `minutes` quantity streams
+  as its base unit (`90 s` instead of `1.5 min`), and `operator<<`/`to_string`/`name()` on it stream a
+  NULL `const char*` → **undefined behavior** (observed: truncated/garbled output). Every other time
+  unit (hours `hr`, days `d`, …) uses `UNIT_ADD` and prints correctly. Likely fix: use `UNIT_ADD` (or
+  the naming-inclusive variant) for `minutes`. **Reported to the CO; not fixed here** (no API change in
+  a docs PR). Docs sidestep it — examples don't rely on `minutes` streaming its own abbreviation.
+
 ---
 
 ## 0. Context & goal
@@ -175,6 +185,13 @@ names WHERE the material lives and WHAT doc artifact to produce. ☐ per item.
    the cheat-sheet's commented rejection lines.
 
 ### §4a — REAL error messages for the mistakes units is DESIGNED to catch (first-class)
+
+> **Wave 2 status:** DONE. E1 (`readable_add_incompatible`) + E7 (`357_ordering`) pre-existed; E2–E6
+> added as `readable_wrong_result_type` / `readable_narrowing_to_int` / `readable_scalar_plus_unit` /
+> `readable_trig_needs_angle` / `readable_compare_across_dimensions`. Harness now 34/34 green. `run.py
+> --emit-doc` captures verbatim per-compiler diagnostics into `docs/diagnostics/` (GCC-13 set committed;
+> Clang-19/MSVC captured in the Wave-6 docs CI). NOTE: E5 is `sin(1_m)` (trig needs an angle) — `sqrt`
+> of a length is NOT an error (units supports rational dimensions), corrected from the initial guess.
 The docs SHOW users **actual, verbatim compiler diagnostics** — captured from GCC-13 / Clang-19 /
 MSVC-2022, never paraphrased, invented, or "something like" — for each mistake the library exists to
 reject. This is the concrete proof of the type-safety pitch and the v3.4.0 readable-name headline
