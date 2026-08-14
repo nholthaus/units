@@ -3,6 +3,14 @@
 > The on-disk, checklist-driven source of truth for the 3.x documentation overhaul. Detailed and
 > checklist-heavy by design — build straight from it, and keep it accurate as work proceeds.
 
+## DECISIONS taken during execution
+- **godbolt "Try it live" links: DEFERRED, not faked.** units is not in Compiler Explorer's library list,
+  so an embedded-source clientstate link would fail to compile (missing `<units/length.h>`) — a broken
+  link undercuts the credibility pitch and violates "every link live." README leads instead with the
+  CI-proven in-repo `examples/` (each is built AND run by ctest). Real godbolt links become possible once
+  units is added to Compiler Explorer's libraries (a separate upstream PR to the CE project); tracked as a
+  future enhancement, not shipped broken.
+
 ## SURFACED CODE FINDINGS (real bugs found while documenting — report, do NOT patch in this docs PR)
 - **`minutes` has no registered name/abbreviation** (`include/units/time.h:72`). It is defined with
   `UNIT_ADD_WITH_PLURAL_TAG` (unlike every sibling time unit, which uses `UNIT_ADD`), so
