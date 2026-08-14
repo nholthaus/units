@@ -4526,10 +4526,16 @@ namespace units
 	template<DimensionlessUnitType UnitType>
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> modf(const UnitType x, UnitType* intpart) noexcept
 	{
-		typename UnitType::underlying_type intp;
-		UnitType                           fracpart = std::modf(x.template to<decltype(intp)>(), &intp);
-		*intpart                                    = intp;
-		return fracpart;
+		using promoted = detail::floating_point_promotion_t<typename UnitType::underlying_type>;
+		// std::modf splits the NORMALIZED value; the integral and fractional parts are already in the
+		// quantity's own (normalized) units. Re-wrapping the fractional double through UnitType's
+		// value constructor would re-apply the unit's scale (e.g. percent's 1/100) a second time, so the
+		// fraction is returned as a plain dimensionless value and the integral part is converted back to
+		// UnitType through its converting constructor.
+		promoted intp;
+		promoted fracpart = std::modf(x.template to<promoted>(), &intp);
+		*intpart          = dimensionless<promoted>{intp};
+		return dimensionless<promoted>{fracpart};
 	}
 
 	/**
