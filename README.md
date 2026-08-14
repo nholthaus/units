@@ -150,7 +150,7 @@ target_link_libraries(myapp PRIVATE units::units)
 
 The library provides a set of conversion factors, unit types, and traits to solve dimensional analysis problems, that is, problems involving dimensioned physical quantities. The conversions between units are defined as ratios at compile time, making the library _incredibly_ fast. Additionally, specifying units as _types_, rather than variable name suffixes (or not at all), provides complete type-safety within the compiler. This means that code that accidentally misuses units or which has errors in the dimensional analysis _will fail at compile-time, not at run-time_.
 
-The unit test file `unitTests/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
+The unit test file `test/main.cpp` contains example usage of every type, trait, and function contained in the library, and while not exactly user-friendly, can be a valuable resource.
 
 # Getting started guide
 <a id="markdown-getting-started-guide" name="getting-started-guide"></a>
@@ -737,7 +737,7 @@ To build the tests:
    - `cd build`
    - `cmake -Wno-dev ..`
    - `cmake --build . --config Release`
- 5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/unitTests/Release`.
+ 5. The tests will be created in an executable called `unitLibTest.exe` in the folder `build/test/Release`.
 
 ## Linux
 <a id="markdown-linux" name="linux"></a>
@@ -751,7 +751,7 @@ To build the tests:
    - `cd build`
    - `cmake -Wno-dev ..`
    - `cmake --build . --config Release`
- 6. The tests will be created in an executable called `unitLibTest` in the folder `build/unitTests`.
+ 6. The tests will be created in an executable called `unitLibTest` in the folder `build/test`.
 
 # Previous Releases
 <a id="markdown-previous-releases" name="previous-releases"></a>

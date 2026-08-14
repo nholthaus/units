@@ -53,7 +53,7 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 		message(STATUS "No system googletest found. Using project-provided gtest ${GTEST_VERSION}")
 		add_subdirectory(3rdParty/googletest-1.170.0)
 	endif()
-	add_subdirectory(unitTests)
+	add_subdirectory(test)
 endif()
 
 # add a target to generate API documentation with Doxygen
