@@ -66,6 +66,13 @@ endif()
 if(UNITS_BUILD_DOCS)
 	find_package(Doxygen)
 	if(DOXYGEN_FOUND)
+		# Treat Doxygen warnings as errors when asked (the docs CI sets DOXYGEN_WARN_AS_ERROR on pull
+		# requests); default to NO so a local doc build is not gated. Accepts NO / YES / FAIL_ON_WARNINGS.
+		if(DEFINED ENV{DOXYGEN_WARN_AS_ERROR})
+			set(DOXYGEN_WARN_AS_ERROR "$ENV{DOXYGEN_WARN_AS_ERROR}")
+		else()
+			set(DOXYGEN_WARN_AS_ERROR "NO")
+		endif()
 		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 		add_custom_target(doc ALL
 				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile

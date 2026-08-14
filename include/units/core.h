@@ -155,7 +155,7 @@ namespace units
  *				unit tag.
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
+ * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  * @note        the purpose of this trait is primarily to improve the readability of
@@ -182,11 +182,11 @@ namespace units
  * @details		The macro generates the definition of the unit container types, e.g. `meter`
  * @param		namespaceName namespace in which the new units will be encapsulated.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
+ * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  */
-#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                   \
+#define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                  \
 	inline namespace namespaceName                                                                                                                                                                     \
 	{                                                                                                                                                                                                  \
 		/** @name Unit Containers */ /** @{ */ UNIT_ADD_SCALED_UNIT_DEFINITION(namePlural, ::units::linear_scale, __VA_ARGS__) /** @} */                                                               \
@@ -199,11 +199,10 @@ namespace units
  *				e.g. `meters`
  * @param		unitName unit name, e.g. 'meters'
  * @param		scale the non-linear scale template argument of the unit's base
- * @param		definition - the variadic parameter is used for the definition of the unit
- *				(e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`)
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
- *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
- *              represents the full conversion factor type. e.g. `meters<>`.
+ * @param       ... - the conversion factor definition for the unit type, used for the definition of
+ *              the unit (e.g. `conversion_factor<std::ratio<1>, units::dimension::length>`). Taken as
+ *              variadic arguments because they contain commas in the macro definition. The complete
+ *              __VA_ARGS__ represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
@@ -350,14 +349,14 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
+ * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                                     \
+#define UNIT_ADD(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                                    \
 	UNIT_ADD_STRONG_CONVERSION_FACTOR(namespaceName, namePlural, __VA_ARGS__)                                                                                                                          \
 	UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, __VA_ARGS__)                                                                                                                                   \
 	UNIT_ADD_NAME(namespaceName, namePlural, abbreviation)                                                                                                                                             \
@@ -419,14 +418,14 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
+ * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                \
+#define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                               \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                                     \
 	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>)                                                                                                                   \
 	UNIT_ADD(namespaceName, pico##namePlural, p##abbreviation, pico<namePlural<>>)                                                                                                                     \
@@ -454,14 +453,14 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'bytes'
  * @param		abbreviation - abbreviated unit name, e.g. 'B'
- * @param       __VA_ARGS__ - the conversion factor definition for the unit type. Taken as variadic
+ * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
  */
-#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                     \
+#define UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                    \
 	UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                \
 	UNIT_ADD(namespaceName, kibi##namePlural, Ki##abbreviation, kibi<namePlural<>>)                                                                                                                    \
 	UNIT_ADD(namespaceName, mebi##namePlural, Mi##abbreviation, mebi<namePlural<>>)                                                                                                                    \
@@ -516,6 +515,39 @@ namespace units
 	/**
 	 * @defgroup	STDTypeTraits Standard Type Traits Specializations
 	 * @brief		Specialization of `std::common_type` for unit types.
+	 */
+
+	/**
+	 * @defgroup	Concepts Concepts
+	 * @brief		Defines the concepts used to constrain unit, conversion-factor, and arithmetic template parameters.
+	 */
+
+	/**
+	 * @defgroup	ConversionFactor Conversion Factors
+	 * @brief		Defines `conversion_factor` and the strong-typed conversion factors that tag each unit.
+	 */
+
+	/**
+	 * @defgroup	Constructors Constructors
+	 * @brief		Defines the constructors of the `unit` container type.
+	 */
+
+	/**
+	 * @defgroup	Prefixes Prefixes
+	 * @ingroup		UnitManipulators
+	 * @brief		Defines the metric and binary prefix manipulators (e.g. `milli`, `kilo`, `kibi`).
+	 */
+
+	/**
+	 * @defgroup	Decimal Decimal Prefixes
+	 * @ingroup		Prefixes
+	 * @brief		Defines the decimal (metric) prefix manipulators from atto to exa.
+	 */
+
+	/**
+	 * @defgroup	Binary Binary Prefixes
+	 * @ingroup		Prefixes
+	 * @brief		Defines the binary prefix manipulators from kibi to exbi.
 	 */
 
 	/**
@@ -1287,6 +1319,7 @@ namespace units
 	template<ConversionFactorType ConversionFactor, ArithmeticType T, NumericalScaleType<T> NumericalScale>
 	class unit;
 
+	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
 	{
 		template<typename T, class Dim, bool IsConv = false>
@@ -1815,9 +1848,7 @@ namespace units
 
 	// clang-format off
 	/**
-	 * @ingroup UnitManipulators
-	 * @{
-	 * @ingroup Decimal Prefixes
+	 * @ingroup Decimal
 	 * @{
 	 */
 	template<ConversionFactorType Cf> using atto	= typename detail::prefix<std::atto,Cf>::type;			///< Represents the type of `class Cf` with the metric 'atto' prefix appended.	@details E.g. atto<meters> represents meters*10^-18		@tparam Cf unit type to apply the prefix to.
@@ -1836,12 +1867,10 @@ namespace units
 	template<ConversionFactorType Cf> using tera	= typename detail::prefix<std::tera,Cf>::type;			///< Represents the type of `class Cf` with the metric 'tera' prefix appended.	@details E.g. tera<meters> represents meters*10^12		@tparam Cf unit type to apply the prefix to.
 	template<ConversionFactorType Cf> using peta	= typename detail::prefix<std::peta,Cf>::type;			///< Represents the type of `class Cf` with the metric 'peta' prefix appended.	@details E.g. peta<meters> represents meters*10^15		@tparam Cf unit type to apply the prefix to.
 	template<ConversionFactorType Cf> using exa		= typename detail::prefix<std::exa,	Cf>::type;			///< Represents the type of `class Cf` with the metric 'exa' prefix appended.	@details E.g. exa<meters> represents meters*10^18		@tparam Cf unit type to apply the prefix to.
-	/** @} @} */
+	/** @} */
 
 	/**
-	 * @ingroup UnitManipulators
-	 * @{
-	 * @ingroup Binary Prefixes
+	 * @ingroup Binary
 	 * @{
 	 */
 	template<ConversionFactorType Cf> using kibi	= typename detail::prefix<std::ratio<1024>,					Cf>::type;	///< Represents the type of `class Cf` with the binary 'kibi' prefix appended.	@details E.g. kibi<bytes> represents bytes*2^10	@tparam Cf unit type to apply the prefix to.
@@ -1850,7 +1879,7 @@ namespace units
 	template<ConversionFactorType Cf> using tebi	= typename detail::prefix<std::ratio<1099511627776>,		Cf>::type;	///< Represents the type of `class Cf` with the binary 'tebi' prefix appended.	@details E.g. tebi<bytes> represents bytes*2^40	@tparam Cf unit type to apply the prefix to.
 	template<ConversionFactorType Cf> using pebi	= typename detail::prefix<std::ratio<1125899906842624>,		Cf>::type;	///< Represents the type of `class Cf` with the binary 'pebi' prefix appended.	@details E.g. pebi<bytes> represents bytes*2^50	@tparam Cf unit type to apply the prefix to.
 	template<ConversionFactorType Cf> using exbi	= typename detail::prefix<std::ratio<1152921504606846976>,	Cf>::type;	///< Represents the type of `class Cf` with the binary 'exbi' prefix appended.	@details E.g. exbi<bytes> represents bytes*2^60	@tparam Cf unit type to apply the prefix to.
-	/** @} @} */
+	/** @} */
 	// clang-format on
 
 	//------------------------------
@@ -2341,39 +2370,39 @@ namespace units
 					 *				decibel, or richter scales. Numerical scales must adhere to the numerical-scale
 					 *				concept, i.e. `is_numerical_scale_v<...>` must be `true`.
 					 * @sa
-					 *				- \ref lengthUnits "length units"
-					 *				- \ref massUnits "mass units"
-					 *				- \ref timeUnits "time units"
-					 *				- \ref angleUnits "angle units"
-					 *				- \ref currentUnits "current units"
-					 *				- \ref temperatureUnits "temperature units"
-					 *				- \ref substanceUnits "substance units"
-					 *				- \ref luminousIntensityUnits "luminous intensity units"
-					 *				- \ref solidAngleUnits "solid angle units"
-					 *				- \ref frequencyUnits "frequency units"
-					 *				- \ref velocityUnits "velocity units"
-					 *				- \ref angularVelocityUnits "angular velocity units"
-					 *				- \ref accelerationUnits "acceleration units"
-					 *				- \ref forceUnits "force units"
-					 *				- \ref pressureUnits "pressure units"
-					 *				- \ref chargeUnits "charge units"
-					 *				- \ref energyUnits "energy units"
-					 *				- \ref powerUnits "power units"
-					 *				- \ref voltageUnits "voltage units"
-					 *				- \ref capacitanceUnits "capacitance units"
-					 *				- \ref impedanceUnits "impedance units"
-					 *				- \ref magneticFluxUnits "magnetic flux units"
-					 *				- \ref magneticFieldStrengthUnits "magnetic field strength units"
-					 *				- \ref inductanceUnits "inductance units"
-					 *				- \ref luminousFluxUnits "luminous flux units"
-					 *				- \ref illuminanceUnits "illuminance units"
-					 *				- \ref radiationUnits "radiation units"
-					 *				- \ref torqueUnits "torque units"
-					 *				- \ref areaUnits "area units"
-					 *				- \ref volumeUnits "volume units"
-					 *				- \ref densityUnits "density units"
-					 *				- \ref concentrationUnits "concentration units"
-					 *				- \ref constantUnits "constant units"
+					 *				- \ref lengthContainers "length units"
+					 *				- \ref massContainers "mass units"
+					 *				- \ref timeContainers "time units"
+					 *				- \ref angleContainers "angle units"
+					 *				- \ref currentContainers "current units"
+					 *				- \ref temperatureContainers "temperature units"
+					 *				- \ref substanceContainers "substance units"
+					 *				- \ref luminousIntensityContainers "luminous intensity units"
+					 *				- \ref solidAngleContainers "solid angle units"
+					 *				- \ref frequencyContainers "frequency units"
+					 *				- \ref velocityContainers "velocity units"
+					 *				- \ref angularVelocityContainers "angular velocity units"
+					 *				- \ref accelerationContainers "acceleration units"
+					 *				- \ref forceContainers "force units"
+					 *				- \ref pressureContainers "pressure units"
+					 *				- \ref chargeContainers "charge units"
+					 *				- \ref energyContainers "energy units"
+					 *				- \ref powerContainers "power units"
+					 *				- \ref voltageContainers "voltage units"
+					 *				- \ref capacitanceContainers "capacitance units"
+					 *				- \ref impedanceContainers "impedance units"
+					 *				- \ref magneticFluxContainers "magnetic flux units"
+					 *				- \ref magneticFieldStrengthContainers "magnetic field strength units"
+					 *				- \ref inductanceContainers "inductance units"
+					 *				- \ref luminousFluxContainers "luminous flux units"
+					 *				- \ref illuminanceContainers "illuminance units"
+					 *				- \ref radiationContainers "radiation units"
+					 *				- \ref torqueContainers "torque units"
+					 *				- \ref areaContainers "area units"
+					 *				- \ref volumeContainers "volume units"
+					 *				- \ref densityContainers "density units"
+					 *				- \ref concentrationContainers "concentration units"
+					 *				- \ref constantContainers "constant units"
 					 */
 #ifdef _WIN32
 	// Microsoft compiler requires explicit activation of empty base class optimization
@@ -3185,7 +3214,7 @@ namespace units
 		/**
 		 * @brief		linearizes `value`
 		 * @tparam		T	underlying type of unit
-		 * @tparam[in]  value value to linearize
+		 * @param[in]   value value to linearize
 		 * @returns		`value`
 		 */
 		template<class T>
@@ -3197,7 +3226,7 @@ namespace units
 		/**
 		 * @brief		scales `value`
 		 * @tparam		T	underlying type of unit
-		 * @tparam[in]  value value to scale
+		 * @param[in]   value value to scale
 		 * @returns		`value`
 		 */
 		template<class T>
@@ -4297,7 +4326,7 @@ namespace units
 		/**
 		 * @brief		linearizes `value`
 		 * @tparam		T	underlying type of unit
-		 * @tparam[in]  value value to linearize
+		 * @param[in]   value value to linearize
 		 * @returns		`std::pow(10, value / 10)`
 		 */
 		template<class T>
@@ -4309,7 +4338,7 @@ namespace units
 		/**
 		 * @brief		returns `value` in dB
 		 * @tparam		T	underlying type of unit
-		 * @tparam[in]  value value to scale
+		 * @param[in]   value value to scale
 		 * @returns		`10 * std::log10(value)`
 		 */
 		template<class T>

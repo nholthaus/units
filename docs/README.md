@@ -1,6 +1,6 @@
 # units documentation
 
-The manual for the [units](../README.md) library, grouped by what you are trying to do. Every code
+The manual for the [units](https://github.com/nholthaus/units) library, grouped by what you are trying to do. Every code
 snippet in these pages compiles under C++23; the runnable ones are drawn from [`examples/`](../examples/),
 and the compiler diagnostics shown are captured verbatim from the compilers.
 

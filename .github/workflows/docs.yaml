@@ -1,0 +1,67 @@
+name: docs
+
+on:
+  push:
+    branches: [ '**' ]      # build-and-check the docs on every branch
+    tags: [ 'v*' ]          # ...and on release tags (these also deploy)
+  pull_request:
+    branches: [ '**' ]
+
+# Least privilege by default; the deploy job widens to what GitHub Pages needs.
+permissions:
+  contents: read
+
+# Never run two Pages deployments at once; let an in-flight deploy finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen and Graphviz
+        # The apt Doxygen lags; install a current release so the modern Doxyfile is honored.
+        uses: ssciwr/doxygen-install@v2
+
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
+      - name: Configure CMake
+        run: cmake -B build -DUNITS_BUILD_DOCS=ON -DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF
+
+      - name: Build documentation
+        # Builds the site and prints Doxygen's warnings to the log on every push/PR. Warning-as-error is
+        # wired (DOXYGEN_WARN_AS_ERROR -> the Doxyfile) but left off until two residual Doxygen-parser
+        # quirks are resolved (a synthesized \dir entry, and a macro-adjacency @param mis-attribution in
+        # angle.h) — neither is a documentation defect. Flip the gate on by setting DOXYGEN_WARN_AS_ERROR
+        # to FAIL_ON_WARNINGS on the configure step once those are gone.
+        run: cmake --build build --target doc
+
+      - name: Upload Pages artifact
+        # Only bother producing the artifact on the branches/tags that can deploy.
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/docs/html
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Publish only from the promoted branch and release tags — never from a feature branch or a PR.
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

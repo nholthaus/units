@@ -111,7 +111,7 @@ namespace units
 
 	/**
 	 * @brief   namespace for physical constants like PI and Avogadro's Number.
-	 * @source  https://physics.nist.gov/cuu/Constants/index.html (2019)
+	 * @details Source: https://physics.nist.gov/cuu/Constants/index.html (2019)
 	 * @sa	    See unit for more information on unit type containers.
 	 */
 	inline namespace constants
