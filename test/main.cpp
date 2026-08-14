@@ -3928,10 +3928,11 @@ TEST_F(ConversionFactor, voltage)
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = volts<double>(gigavolts<double>(0.000000001)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = volts<double>(statvolts<double>(299.792458)).value();
-	EXPECT_NEAR(1.0, test, 5.0e-5);
-	test = statvolts<double>(millivolts<double>(1000.0)).value();
+	// 1 statvolt == c/1e6 volts == 299.792458 V (was defined inverted before 3.4.2).
+	test = volts<double>(statvolts<double>(1.0)).value();
 	EXPECT_NEAR(299.792458, test, 5.0e-5);
+	test = statvolts<double>(volts<double>(299.792458)).value();
+	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = nanovolts<double>(abvolts<double>(0.1)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-5);
 	test = abvolts<double>(microvolts<double>(0.01)).value();
