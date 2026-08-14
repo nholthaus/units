@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.4.1] - 2026-08-14
+
+A documentation and maintenance release. 3.x becomes the project's default branch.
+
+### Added
+- A complete documentation set: a rewritten README (with an inlined cheat sheet, the full unit catalog,
+  and the physical-constants table) and an in-repo `docs/` manual (learn / explain / how-to / reference /
+  meta). The Doxygen reference is published to <https://nholthaus.github.io/units/> from CI, and every
+  documented code snippet is compiled as part of the test suite.
+
+### Fixed
+- `units::modf()` applied a scaled dimensionless unit's scale twice to the fractional part; for `percent`,
+  `modf(202.5%)` returned a fractional part of `0.00025` instead of `0.025`. The fractional part is now
+  returned as a dimensionless value, so the scale is applied once. (#312)
+- `minutes` had no registered name or abbreviation (it printed as its base unit and could return a null
+  `name()`/`abbreviation()`); it now reports `"minutes"` / `"min"` and prints as `1.5 min`.
+
 ## [3.4.0] - 2026-08-14
 
 The readability release: compiler diagnostics now name the friendly unit type.
