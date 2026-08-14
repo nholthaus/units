@@ -45,7 +45,8 @@ suite — see [`examples/`](examples/). Copy any of them; they build under C++23
 - [Supported units](#supported-units)
 - [Physical constants](#physical-constants)
 - [More capabilities](#more-capabilities)
-- [Documentation](#documentation)
+- [Documentation](#documentation) — the full manual, every page linked
+  - [Learn](#learn) · [Explain](#explain) · [How-to](#how-to) · [Reference](#reference) · [Meta](#meta)
 - [License](#license)
 
 ---
@@ -765,19 +766,64 @@ temperature. Each has a how-to or reference page under [docs/](docs/).
 
 ## Documentation
 
-The full manual lives in **[docs/](docs/)**. Start with:
+The full manual lives in **[docs/](docs/)** (hub: [docs/README.md](docs/README.md)), grouped
+Diátaxis-style. Every page is linked below. The generated API reference (classes, namespaces, the full
+unit list) is published at <https://nholthaus.github.io/units/>.
 
-- **[Getting started](docs/learn/getting-started.md)** — from `#include` to your first quantities.
-- **[CTAD and ADL, for people who don't like templates](docs/explain/ctad-and-adl-for-humans.md)** — the
-  two features that make the syntax pleasant, in plain language.
-- **[Cheat sheet](docs/reference/cheat-sheet.md)** — the whole API on one page.
-- **[Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)** — what changed and how to update.
-- **[Defining your own units](docs/how-to/defining-new-units.md)** — one line adds a unit.
-- **[Supported units](docs/reference/supported-units.md)** and **[constants](docs/reference/constants.md)**.
-- **[FAQ](docs/meta/faq.md)** and **[Changelog](CHANGELOG.md)**.
+### Learn
 
-The generated API reference (classes, namespaces, the full unit list) is published at
-<https://nholthaus.github.io/units/>.
+Start-to-finish introductions.
+
+- [Getting started](docs/learn/getting-started.md) — from `#include` to your first quantities.
+- [First quantities](docs/learn/first-quantities.md) — constructing, converting, and inspecting.
+- [Unit conversions](docs/learn/unit-conversions.md) — how implicit conversion works, and when it won't.
+
+### Explain
+
+The concepts and the reasoning behind them.
+
+- [Why units](docs/explain/why-units.md) — the bugs it prevents and the case for typed quantities.
+- [Dimensional analysis](docs/explain/dimensional-analysis.md) — how arithmetic tracks dimensions.
+- [Type safety](docs/explain/type-safety.md) — the mistakes the library rejects, with real diagnostics.
+- [CTAD and ADL, for people who don't like templates](docs/explain/ctad-and-adl-for-humans.md) — the two
+  features behind the terse syntax, in plain language.
+- [Efficiency](docs/explain/efficiency.md) — why conversions cost nothing at run time.
+- [Scales](docs/explain/scales.md) — linear vs. decibel (non-linear) units.
+- [Affine temperature](docs/explain/affine-temperature.md) — why celsius and fahrenheit carry an offset.
+- [Namespaces](docs/explain/namespaces.md) — the `units`, `literals`, `constants`, and `traits` map.
+- [Named-type internals](docs/explain/internals-named-types.md) — *advanced:* how the readable-diagnostics
+  machinery is built (not required to use the library).
+
+### How-to
+
+Task-focused recipes.
+
+- [Defining new units](docs/how-to/defining-new-units.md) — add your own unit in one line.
+- [Math functions](docs/how-to/math-functions.md) — the unit-aware `<cmath>`.
+- [chrono interop](docs/how-to/chrono-interop.md) — converting to and from `std::chrono::duration`.
+- [JSON serialization](docs/how-to/json-serialization.md) — optional nlohmann/json support.
+- [Disabling iostream](docs/how-to/disabling-iostream.md) — for embedded builds.
+- [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md) — include only what you use.
+- [Visual Studio visualizer](docs/how-to/natvis.md) — the natvis debugger view.
+- [CMake integration](docs/how-to/cmake-integration.md) — add_subdirectory, FetchContent, find_package.
+
+### Reference
+
+Look-up material.
+
+- [Cheat sheet](docs/reference/cheat-sheet.md) — the whole API on one page.
+- [Supported units](docs/reference/supported-units.md) — the full catalog, by dimension.
+- [Constants](docs/reference/constants.md) — the physical constants.
+- [Literals](docs/reference/literals.md) — the `_m`, `_s`, … operators and metric prefixes.
+- [Type traits](docs/reference/type-traits.md) — the `units::traits` catalog.
+- [Concepts](docs/reference/concepts.md) — `UnitType`, `ConversionFactorType`, … for your own templates.
+- [Configuration macros](docs/reference/configuration.md) — `UNIT_LIB_DEFAULT_TYPE` and the CMake options.
+
+### Meta
+
+- [FAQ](docs/meta/faq.md) — common questions and their answers.
+- [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md) — what changed and how to update.
+- [Changelog](CHANGELOG.md) — the release history.
 
 ---
 
