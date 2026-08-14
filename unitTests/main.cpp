@@ -24,6 +24,11 @@ using namespace units::literals;
 
 namespace
 {
+	// Detector op for the SFINAE-safety guards: is std::common_type_t<A, B> well-formed? Used with the library's
+	// detection idiom (detail::is_detected_v) to assert common_type is SFINAE-empty (not a hard error) where expected.
+	template<class A, class B>
+	using common_type_of = std::common_type_t<A, B>;
+
 	class TypeTraits : public ::testing::Test
 	{
 	};
@@ -689,6 +694,35 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
 
 	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW<>(2.0).to_linearized()));
+}
+
+// General coverage (not tied to a specific change): units must work END-TO-END as STL associative-container
+// keys — an ordered container exercises operator<, an unordered one exercises std::hash + operator== together.
+// The hash test above only calls std::hash directly; this proves the real use case, and that a scaled key
+// (kilometers vs meters) compares/hashes by magnitude, not by stored representation.
+TEST_F(STDSpecializations, unitsAsContainerKeys)
+{
+	// std::map — ordered by value via operator<.
+	std::map<meters<double>, std::string> m;
+	m[meters<double>(1.0)] = "one";
+	m[meters<double>(2.0)] = "two";
+	m[kilometers<double>(0.003)] = "three-m"; // 3 m, distinct key from 1 m / 2 m
+	EXPECT_EQ(m.size(), 3u);
+	EXPECT_EQ(m[meters<double>(1.0)], "one");
+	EXPECT_EQ(m.begin()->second, "one"); // smallest key first
+
+	// std::unordered_map — needs both std::hash<meters<double>> AND operator==.
+	std::unordered_map<meters<double>, int> um;
+	um[meters<double>(5.0)] = 50;
+	EXPECT_EQ(um.at(meters<double>(5.0)), 50);
+	// a scaled-but-equal key resolves to the SAME bucket (kilometers<double>(0.005) == 5 m). Look it up after
+	// converting to the map's key type, since a heterogeneous [] would insert a different key type.
+	EXPECT_EQ(um.at(meters<double>(kilometers<double>(0.005))), 50);
+
+	// std::set — membership by value.
+	std::set<seconds<double>> s{seconds<double>(1.0), seconds<double>(2.0), seconds<double>(1.0)};
+	EXPECT_EQ(s.size(), 2u); // the duplicate 1 s collapses
+	EXPECT_TRUE(s.count(seconds<double>(2.0)) == 1);
 }
 
 TEST_F(UnitManipulators, squared)
@@ -1487,6 +1521,58 @@ TEST_F(UnitType, unitTypeArithmeticOperatorReturnType)
 	static_assert(std::is_same_v<meters<int>, decltype(length % dim)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length % pcnt)>);
 	static_assert(std::is_same_v<meters<int>, decltype(length % length)>);
+}
+
+// Regression guards for the class-based named-unit refactor: diagnostics/traits must report the FRIENDLY named
+// type, and the trait/std specializations must see through the derived named class (not decay to the plain unit<...>
+// base or hard-error). These lock in the behavior the coverage audit flagged as correct-but-untested.
+TEST_F(UnitType, namedUnitReportedTypeIsPreserved)
+{
+	// (1) arithmetic RESULTS report the named type, not the equivalent-but-unnamed unit<strong_t<...>>.
+	static_assert(std::is_same_v<decltype(meters<double>(2) * meters<double>(2)), square_meters<double>>);
+	static_assert(std::is_same_v<decltype(meters<double>(10) / seconds<double>(2)), meters_per_second<double>>);
+	static_assert(std::is_same_v<decltype(1.0 / seconds<double>(1)), hertz<double>>);       // inverse -> named
+	static_assert(std::is_same_v<decltype(pow<3>(meters<double>(1))), cubic_meters<double>>);
+
+	// (2) unit-math functions PRESERVE the named type on a dimensioned named input (audit: value-tested only before).
+	static_assert(std::is_same_v<decltype(floor(meters<double>(1.5))), meters<double>>);
+	static_assert(std::is_same_v<decltype(round(meters<double>(1.5))), meters<double>>);
+	static_assert(std::is_same_v<decltype(trunc(meters<double>(1.5))), meters<double>>);
+	static_assert(std::is_same_v<decltype(hypot(meters<double>(3), meters<double>(4))), meters<double>>);
+
+	// (3) traits see through the derived named class.
+	static_assert(std::is_same_v<traits::replace_underlying_t<meters<int>, double>, meters<double>>);
+	static_assert(std::is_same_v<std::common_type_t<meters<int>, meters<double>>, meters<double>>);
+
+	// (4) C1: std::numeric_limits<Named> returns the NAMED type (value AND type), not the plain base.
+	static_assert(std::is_same_v<decltype(std::numeric_limits<meters<double>>::max()), meters<double>>);
+	static_assert(std::is_same_v<decltype(std::numeric_limits<meters<double>>::lowest()), meters<double>>);
+	EXPECT_EQ(std::numeric_limits<meters<double>>::max().to_linearized(), std::numeric_limits<double>::max());
+
+	// (5) C2: common_type<dimensioned-named, scalar> is SFINAE-EMPTY (no `type`), exactly like the plain unit<...>
+	//     form — never a hard error. A dimensionless-named + scalar still HAS a common type (interchangeable).
+	static_assert(!detail::is_detected_v<common_type_of, meters<double>, double>, "dimensioned named + scalar: no common type (SFINAE-safe)");
+	static_assert(!detail::is_detected_v<common_type_of, unit<conversion_factor<std::ratio<1>, dimension::length>, double>, double>, "plain dimensioned + scalar: also none (parity)");
+	static_assert(detail::is_detected_v<common_type_of, percent<double>, double>, "dimensionless named + scalar: has a common type");
+
+	// (6) abbreviation()/name() members resolve on the named form (incl. a COMPOUND named unit, per audit).
+	EXPECT_STREQ("m", meters<double>(1).abbreviation());
+	EXPECT_STREQ("meters", meters<double>(1).name());
+	EXPECT_STREQ("mps", meters_per_second<double>(1).abbreviation());
+
+	// (7) the remaining unit-math functions PRESERVE the named type on a named input (audit: value-only before).
+	static_assert(std::is_same_v<decltype(min(meters<double>(1), meters<double>(2))), meters<double>>);
+	static_assert(std::is_same_v<decltype(max(meters<double>(1), meters<double>(2))), meters<double>>);
+	static_assert(std::is_same_v<decltype(fmod(meters<double>(5), meters<double>(2))), meters<double>>);
+	static_assert(std::is_same_v<decltype(copysign(meters<double>(3), -1.0)), meters<double>>);
+	static_assert(std::is_same_v<decltype(fabs(meters<double>(-3))), meters<double>>);
+	static_assert(std::is_same_v<decltype(abs(meters<double>(-3))), meters<double>>);
+	static_assert(std::is_same_v<decltype(sqrt(square_meters<double>(4))), meters<double>>);
+
+	// (8) a NON-registered derived CF stays the plain unit<...> (identity rewrap): dividing two unlike named units
+	//     whose quotient has no named class must NOT invent a name. meters/kilograms has no named unit.
+	static_assert(!detail::is_named_unit_v<decltype(meters<double>(1) / kilograms<double>(1))>,
+		"a derived CF with no registered named class stays the plain unit<...>");
 }
 
 TEST_F(UnitType, unitTypeAddition)
@@ -4879,7 +4965,9 @@ TEST_F(UnitMath, pow)
 
 	auto cube = pow<3>(value);
 	EXPECT_NEAR(1000.0, cube.value(), 5.0e-2);
-	static_assert(std::is_same_v<decltype(cube), unit<traits::strong_t<cubed<meters<double>>>>>);
+	// Named-result parity with pow<2> -> square_meters above: pow<3> of a length reports the named volume unit
+	// (cubic_meters<double>), the friendly type, rather than the equivalent-but-unnamed unit<strong_t<cubed<...>>>.
+	static_assert(std::is_same_v<decltype(cube), cubic_meters<double>>);
 
 	auto fourth = pow<4>(value);
 	EXPECT_NEAR(10000.0, fourth.value(), 5.0e-2);

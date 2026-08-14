@@ -45,3 +45,7 @@ jobs:
       - name: Run Tests
         working-directory: build
         run: ctest --output-on-failure
+
+      - name: Error-message tests
+        run: |
+          python3 test/errorMessages/run.py --cc clang++-19 --std c++23 --include include

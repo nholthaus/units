@@ -15,14 +15,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Set up the MSVC command-line environment FIRST (puts cl.exe on PATH). The "Visual Studio 17 2022"
+      # generator's own VS discovery has been unreliable on recent windows-latest images ("could not find any
+      # instance of Visual Studio"); configuring with Ninja against the dev-cmd-provided cl is robust and also
+      # provides cl for the error-message harness below.
+      - name: Set up MSVC command-line environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Configure CMake
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl
 
       - name: Build
         run: |
-          cmake --build build --config Release
+          cmake --build build
 
       - name: Run Tests
         working-directory: build
-        run: ctest -C Release --output-on-failure
+        run: ctest --output-on-failure
+
+      - name: Error-message tests
+        run: |
+          python test/errorMessages/run.py --cc cl --std c++23 --include include
