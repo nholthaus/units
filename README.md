@@ -10,9 +10,12 @@ dependencies.
 ![copyright](https://img.shields.io/badge/%C2%A9-Nic_Holthaus-orange.svg)
 ![standard](https://img.shields.io/badge/std-c%2B%2B23-blue.svg)
 
-`units` lets you write physical quantities as types. A length is a `meters`, not a `double` with a
-comment. Conversions between compatible units happen implicitly and are resolved entirely at compile
-time, so they cost nothing at run time; expressions that are dimensionally wrong do not compile.
+`units` represents physical quantities as types. A quantity is a value with a unit — `meters`, `feet`,
+`seconds` — that behaves like the number it wraps. Conversions between compatible units are implicit and
+resolved at compile time; expressions that are dimensionally inconsistent do not compile.
+
+Quantities are written with unit literals (`5.0_m`) or by multiplying a value by a unit constant
+(`60.0 * km`):
 
 ```cpp
 #include <units/length.h>
@@ -23,46 +26,57 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    meters distance = 5.0_m;    // a length, deduced as meters<double>
-    feet   in_feet  = distance; // implicit, lossless unit conversion
+    meters a = 5.0_m;        // unit literal
+    meters b = 60.0 * km;    // value times a unit constant (== 60000 m)
+    feet   c = a;            // implicit, lossless conversion
 
-    std::cout << distance << " == " << in_feet << '\n';   // prints: 5 m == 16.4042 ft
+    std::cout << a << ", " << b << ", " << c << '\n';   // prints: 5 m, 60000 m, 16.4042 ft
 }
 ```
 
+`units` favors syntax that reads as ordinary code: quantities are written and combined the way you would
+write them by hand, so the common cases are apparent from the code without consulting the reference.
+
 Every snippet in this README and in the [documentation](docs/) is compiled and run as part of the test
-suite — see [`examples/`](examples/). Copy any of them; they build under C++23 as-is.
+suite — see [`examples/`](examples/).
+
+## Design
+
+The library is organized around syntax that reads as ordinary arithmetic. A quantity is constructed with
+a unit literal (`5.0_m`) or a unit constant (`60.0 * km`), combined with the usual operators (`+`, `*`,
+`/`, comparisons), converted by assignment, and printed with `<<`. The common operations are intended to
+work as written; the deeper machinery (class-based named types, CTAD, ADL) exists so that this surface
+stays small and the code stays legible.
 
 ## Contents
 
-- [Design goals](#design-goals)
+- [Design](#design)
+- [Features](#features)
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
-- [When it doesn't compile, that's the point](#when-it-doesnt-compile-thats-the-point)
-- [No run-time cost](#no-run-time-cost)
+- [Type errors](#type-errors)
+- [Run-time cost](#run-time-cost)
 - [Integration](#integration)
 - [Cheat sheet](#cheat-sheet)
 - [Supported units](#supported-units)
 - [Physical constants](#physical-constants)
 - [More capabilities](#more-capabilities)
-- [Documentation](#documentation) — the full manual, every page linked
+- [Documentation](#documentation)
   - [Learn](#learn) · [Explain](#explain) · [How-to](#how-to) · [Reference](#reference) · [Meta](#meta)
 - [License](#license)
 
 ---
 
-## Design goals
+## Features
 
-- **Intuitive syntax.** Quantities read like the physics: `meters`, `60_mi / 1_hr`, `sqrt(area)`. You
-  work in the unit domain and let the library convert.
-- **Zero run-time cost.** Conversions are `constexpr` ratios; a conversion between equivalent
-  representations compiles to no machine code at all. A unit is a trivially-copyable value the size of
-  its underlying type.
-- **Dimensional safety.** Adding a length to a time, or assigning an area to a length, is a compile
-  error — not a run-time surprise. The dimensional analysis is checked by the type system.
-- **Readable diagnostics.** When something *is* wrong, the compiler names the friendly type
-  (`meters<double>`), not an unreadable `conversion_factor<...>` template. See
-  [When it doesn't compile](#when-it-doesnt-compile-thats-the-point).
+- **Syntax.** Quantities are written as `meters`, `60_mi / 1_hr`, `sqrt(area)`; operations are performed
+  on the quantity types.
+- **Run-time cost.** Conversions are `constexpr` ratios; a conversion between equivalent representations
+  compiles to no machine code. A quantity is a trivially-copyable value the size of its underlying type.
+- **Dimensional checking.** Adding a length to a time, or assigning an area to a length, is a compile
+  error. The dimensional analysis is performed by the type system.
+- **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
+  `conversion_factor<...>` template. See [Type errors](#type-errors).
 - **Trivial integration.** Header-only, no dependencies, one `#include`. Drop in the headers, or consume
   the CMake package. See [Integration](#integration).
 
@@ -85,53 +99,74 @@ series (see [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)).
 
 ## Getting started
 
-Include the umbrella header `<units.h>` for everything, or a single dimension header such as
-`<units/length.h>` for a lighter build, and bring in the literal operators:
+This section covers what most code needs. The [full manual](docs/) has the rest.
+
+**Include a header, and bring in the literal operators.** Include the umbrella header `<units.h>` for
+every dimension, or one per-dimension header (`<units/length.h>`, `<units/time.h>`, …) for just the
+dimensions you use:
 
 ```cpp
-#include <units.h>
+#include <units.h>            // everything; or <units/length.h>, <units/velocity.h>, ... for a subset
 using namespace units;
-using namespace units::literals;
+using namespace units::literals;   // the _m, _s, _kg, ... literals
 ```
 
-There are four equivalent ways to make a quantity — pick whichever reads best:
+> **Note — if compiles are slow, include less.** `<units.h>` pulls in all 47 dimensions. The library is
+> heavily templated, so a translation unit's compile time scales with how much it instantiates; including
+> only the per-dimension headers you use keeps it down. Include the dimension of every quantity you
+> *name*, including result dimensions (dividing a length by a time needs `<units/velocity.h>`). Run-time
+> behavior and code size are unaffected either way.
+
+**Make a quantity.** Four equivalent forms:
 
 ```cpp
 meters a(5.0);          // construction (CTAD deduces meters<double>)
 meters b = 5.0_m;       // a unit literal
-auto   c = 5.0 * m;     // a scalar times a unit constant
+meters c = 5.0 * m;     // a value times a unit constant (units::m)
 meters d{5.0};          // braced construction
 ```
 
-Arithmetic produces the correct dimension automatically, and you can name the result to have the
-compiler verify it:
-
-```cpp
-square_meters     area  = 15.0_m * 5.0_m;       // m * m -> area
-meters_per_second speed = 60.0_mi / 1.0_hr;      // a more involved conversion, still implicit
-meters            side  = sqrt(area / 3.0);      // <cmath> functions are unit-aware (found by ADL)
-```
-
-New to how `meters a(5.0)` deduces its type, or why `sqrt` needs no `units::` prefix? Read
-**[CTAD and ADL, for people who don't like templates](docs/explain/ctad-and-adl-for-humans.md)** — it
-explains, in plain terms, what you type and what you get.
-
 > **Note — write the decimal point for fractional values.** A literal's type follows what you write:
 > `5.0_m` is `meters<double>`, but `5_m` is `meters<int>`. Integer-backed quantities do integer
-> arithmetic, so `1_m / 2_m` is `0`, whereas `1.0_m / 2.0_m` is `0.5`. Use a decimal point (or an
-> explicit `meters<double>`) when you want fractional results.
+> arithmetic, so `1_m / 2_m` is `0`, whereas `1.0_m / 2.0_m` is `0.5`. Use a decimal point (or write
+> `meters<double>`) when you want fractional results.
 
-The full walkthrough is in [docs/learn/getting-started.md](docs/learn/getting-started.md).
+**Convert** by assigning between compatible units (implicit, and only when lossless):
+
+```cpp
+meters m = 100.0_ft;    // feet -> meters
+feet   f = m;           // meters -> feet
+```
+
+**Do arithmetic** — the result carries the correct dimension; name it and the compiler checks it:
+
+```cpp
+square_meters     area  = 15.0_m * 5.0_m;    // m * m -> area
+meters_per_second speed = 60.0_mi / 1.0_hr;   // -> velocity
+meters            side  = sqrt(area / 3.0);   // <cmath> functions are unit-aware (found by ADL)
+```
+
+**Get a plain number back out** at the boundary with non-`units` code (there is no implicit
+quantity → `double`, except for dimensionless quantities):
+
+```cpp
+double v = speed.value();     // the value in the quantity's units
+double t = speed.to<double>();// cast to a chosen representation
+std::cout << speed;           // or print it directly: "26.8224 mps"
+```
+
+That is enough for most use cases. How `meters a(5.0)` deduces its type and why `sqrt` needs no
+`units::` prefix are covered in [CTAD and ADL](docs/explain/ctad-and-adl-for-humans.md); the full
+walkthrough is in [Getting started](docs/learn/getting-started.md).
 
 ---
 
-## When it doesn't compile, that's the point
+## Type errors
 
-The reason to spend types on your quantities is that the compiler catches the mistakes a bare `double`
-would let through. In 3.x those diagnostics name the *friendly* type, so they are actually readable.
+A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic
+names the unit type. The messages below are captured verbatim from GCC 13.
 
-Adding incompatible dimensions is rejected, and the message says exactly what you tried to add
-(captured verbatim from GCC 13):
+Adding incompatible dimensions:
 
 ```text
 readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘units::time::seconds<double>’)
@@ -142,8 +177,8 @@ readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand
       |            units::length::meters<double>
 ```
 
-So is claiming a product is the wrong dimension — `m * m` is an area, not a length. GCC surfaces the
-result through an internal alias, but names the friendly type right beside it (`{aka …}`):
+Assigning a product to the wrong dimension — `m * m` is an area, not a length. GCC reports the result
+through an internal alias with the named type beside it in `{aka …}`:
 
 ```text
 readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
@@ -151,31 +186,72 @@ readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::r
       |                                   ~~~~~~^~~~~~~
 ```
 
-The complete set of mistakes the library is designed to reject — and the real diagnostic each produces
-on GCC, Clang, and MSVC — is in [docs/explain/type-safety.md](docs/explain/type-safety.md). Those
-diagnostics are captured directly from the compilers by the test harness, so they never drift from what
-you will actually see.
+The full set of rejected operations, with the diagnostic each produces on GCC, Clang, and MSVC, is in
+[Type safety](docs/explain/type-safety.md). The diagnostics there are captured from the compilers by the
+test harness.
 
 ---
 
-## No run-time cost
+## Run-time cost
 
-Unit conversions are computed at compile time. A recursively-defined conversion (years → weeks, defined
-through days, hours, minutes, and seconds) collapses to a single multiply/divide; a conversion between
-equivalent representations generates no code at all. Quantities are trivially copyable and occupy
-exactly the space of their underlying type — there is no wrapper overhead.
+A quantity is a trivially-copyable value the size of its underlying type; conversion ratios are
+`constexpr`. The type abstraction compiles away: the generated code matches hand-written `double`. The
+following disassembly is at `-O2` (`-O3 -march=x86-64-v3` for the loop); GCC 15 and Clang 21 agree.
+
+**A runtime expression compiles to the same instructions.** Computing a distance from a speed in mph and
+a time in seconds — the raw version hard-codes the mph → m/s factor, the `units` version carries it in
+the types — yields three floating-point instructions either way (a multiply, a divide, a multiply),
+differing only in operand order:
 
 ```cpp
-static_assert(1.0_km + 1.0_m == 1001.0_m);   // a fact, established at compile time
+double         distance_raw  (double mph, double sec)                        { return (mph * 1609.344 / 3600.0) * sec; }
+meters<double> distance_units(miles_per_hour<double> v, seconds<double> t)   { return v * t; }
+```
+```asm
+distance_raw:                        distance_units:
+    mulsd   .LC0(%rip), %xmm0            mulsd   %xmm1, %xmm0
+    divsd   .LC1(%rip), %xmm0            mulsd   .LC2(%rip), %xmm0
+    mulsd   %xmm1, %xmm0                 divsd   .LC3(%rip), %xmm0
+    ret                                  ret
 ```
 
-See [docs/explain/efficiency.md](docs/explain/efficiency.md) for the generated assembly and the details.
+**A conversion between equivalent representations is free.** Passing a `meters` where a `meters` is
+wanted is not a cheap conversion — it is *no* conversion:
+
+```cpp
+double roundtrip(meters<double> m) { meters<double> copy = m; return copy.value(); }
+```
+```asm
+roundtrip:
+    ret                              ; the whole function
+```
+
+**A compile-time conversion is done by the compiler.** A conversion of known values folds to a single
+constant load — the arithmetic never runs:
+
+```cpp
+double speed_limit_mps() { return meters_per_second<double>(65.0_mph).value(); }
+```
+```asm
+speed_limit_mps:
+    movsd   .LC0(%rip), %xmm0        ; xmm0 = 29.0576  (65 mph, converted at compile time)
+    ret
+```
+
+**A hot loop vectorizes the same.** Summing an array of `kilometers` as `meters` produces the identical
+instruction stream — including the AVX vectorization — as the raw-`double` loop; and
+
+```cpp
+static_assert(1.0_km + 1.0_m == 1001.0_m);   // evaluated at compile time
+```
+
+holds with no run-time work. See [Efficiency](docs/explain/efficiency.md) for the full comparison.
 
 ---
 
 ## Integration
 
-`units` is header-only. Choose whichever fits your build.
+`units` is header-only.
 
 **Copy the headers.** Put `include/` on your include path and compile with C++23 (`-std=c++23` on GCC and
 Clang). Nothing to build.
@@ -766,64 +842,53 @@ temperature. Each has a how-to or reference page under [docs/](docs/).
 
 ## Documentation
 
-The full manual lives in **[docs/](docs/)** (hub: [docs/README.md](docs/README.md)), grouped
-Diátaxis-style. Every page is linked below. The generated API reference (classes, namespaces, the full
-unit list) is published at <https://nholthaus.github.io/units/>.
+The manual is under **[docs/](docs/)** (hub: [docs/README.md](docs/README.md)). The generated API
+reference is published at <https://nholthaus.github.io/units/>.
 
 ### Learn
 
-Start-to-finish introductions.
-
-- [Getting started](docs/learn/getting-started.md) — from `#include` to your first quantities.
-- [First quantities](docs/learn/first-quantities.md) — constructing, converting, and inspecting.
-- [Unit conversions](docs/learn/unit-conversions.md) — how implicit conversion works, and when it won't.
+- [Getting started](docs/learn/getting-started.md)
+- [First quantities](docs/learn/first-quantities.md)
+- [Unit conversions](docs/learn/unit-conversions.md)
 
 ### Explain
 
-The concepts and the reasoning behind them.
-
-- [Why units](docs/explain/why-units.md) — the bugs it prevents and the case for typed quantities.
-- [Dimensional analysis](docs/explain/dimensional-analysis.md) — how arithmetic tracks dimensions.
-- [Type safety](docs/explain/type-safety.md) — the mistakes the library rejects, with real diagnostics.
-- [CTAD and ADL, for people who don't like templates](docs/explain/ctad-and-adl-for-humans.md) — the two
-  features behind the terse syntax, in plain language.
-- [Efficiency](docs/explain/efficiency.md) — why conversions cost nothing at run time.
-- [Scales](docs/explain/scales.md) — linear vs. decibel (non-linear) units.
-- [Affine temperature](docs/explain/affine-temperature.md) — why celsius and fahrenheit carry an offset.
-- [Namespaces](docs/explain/namespaces.md) — the `units`, `literals`, `constants`, and `traits` map.
-- [Named-type internals](docs/explain/internals-named-types.md) — *advanced:* how the readable-diagnostics
-  machinery is built (not required to use the library).
+- [Why units](docs/explain/why-units.md)
+- [Dimensional analysis](docs/explain/dimensional-analysis.md)
+- [Type safety](docs/explain/type-safety.md)
+- [CTAD and ADL](docs/explain/ctad-and-adl-for-humans.md)
+- [Efficiency](docs/explain/efficiency.md)
+- [Scales](docs/explain/scales.md)
+- [Affine temperature](docs/explain/affine-temperature.md)
+- [Namespaces](docs/explain/namespaces.md)
+- [Named-type internals](docs/explain/internals-named-types.md)
 
 ### How-to
 
-Task-focused recipes.
-
-- [Defining new units](docs/how-to/defining-new-units.md) — add your own unit in one line.
-- [Math functions](docs/how-to/math-functions.md) — the unit-aware `<cmath>`.
-- [chrono interop](docs/how-to/chrono-interop.md) — converting to and from `std::chrono::duration`.
-- [JSON serialization](docs/how-to/json-serialization.md) — optional nlohmann/json support.
-- [Disabling iostream](docs/how-to/disabling-iostream.md) — for embedded builds.
-- [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md) — include only what you use.
-- [Visual Studio visualizer](docs/how-to/natvis.md) — the natvis debugger view.
-- [CMake integration](docs/how-to/cmake-integration.md) — add_subdirectory, FetchContent, find_package.
+- [Defining new units](docs/how-to/defining-new-units.md)
+- [Math functions](docs/how-to/math-functions.md)
+- [chrono interop](docs/how-to/chrono-interop.md)
+- [JSON serialization](docs/how-to/json-serialization.md)
+- [Disabling iostream](docs/how-to/disabling-iostream.md)
+- [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md)
+- [Visual Studio visualizer](docs/how-to/natvis.md)
+- [CMake integration](docs/how-to/cmake-integration.md)
 
 ### Reference
 
-Look-up material.
-
-- [Cheat sheet](docs/reference/cheat-sheet.md) — the whole API on one page.
-- [Supported units](docs/reference/supported-units.md) — the full catalog, by dimension.
-- [Constants](docs/reference/constants.md) — the physical constants.
-- [Literals](docs/reference/literals.md) — the `_m`, `_s`, … operators and metric prefixes.
-- [Type traits](docs/reference/type-traits.md) — the `units::traits` catalog.
-- [Concepts](docs/reference/concepts.md) — `UnitType`, `ConversionFactorType`, … for your own templates.
-- [Configuration macros](docs/reference/configuration.md) — `UNIT_LIB_DEFAULT_TYPE` and the CMake options.
+- [Cheat sheet](docs/reference/cheat-sheet.md)
+- [Supported units](docs/reference/supported-units.md)
+- [Constants](docs/reference/constants.md)
+- [Literals](docs/reference/literals.md)
+- [Type traits](docs/reference/type-traits.md)
+- [Concepts](docs/reference/concepts.md)
+- [Configuration macros](docs/reference/configuration.md)
 
 ### Meta
 
-- [FAQ](docs/meta/faq.md) — common questions and their answers.
-- [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md) — what changed and how to update.
-- [Changelog](CHANGELOG.md) — the release history.
+- [FAQ](docs/meta/faq.md)
+- [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)
+- [Changelog](CHANGELOG.md)
 
 ---
 

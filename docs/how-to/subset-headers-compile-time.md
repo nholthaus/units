@@ -5,7 +5,7 @@ the per-dimension headers instead — you pay compile time only for what you use
 
 ## The two ways to include
 
-**Everything** — convenient, heavier:
+**Everything** — one include, heavier:
 
 ```cpp
 #include <units.h>   // all 47 dimensions, plus the physical constants
@@ -28,7 +28,7 @@ compiles on its own.
 > still need the header for the dimension the value belongs to when you later convert or print it. When in
 > doubt, include the dimension of every quantity you name.
 
-## Why it helps
+## Effect on compile time
 
 The library is heavily templated, so translation-unit compile time scales with how much of it you
 instantiate. Restricting the includes to the dimensions a file actually uses keeps that file's compile

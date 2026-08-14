@@ -104,9 +104,9 @@ static_assert(std::is_same_v<
     traits::replace_underlying_t<T, float>, units::length::meters<float>>);
 ```
 
-> **Note:** `dimension_of_t` is a type alias (there is no `dimension_of` predicate); it names the dimension, so compare its result with `std::is_same_v` against a `units::dimension::…` type. `replace_underlying` is SFINAE-friendly — for a non-unit argument it has no `type` member, so `replace_underlying_t` simply does not participate.
+> **Note:** `dimension_of_t` is a type alias (there is no `dimension_of` predicate); it names the dimension, so compare its result with `std::is_same_v` against a `units::dimension::…` type. `replace_underlying` is SFINAE-friendly — for a non-unit argument it has no `type` member, so `replace_underlying_t` does not participate.
 
-## The classic `static_assert` pattern — and its concept replacement
+## The `static_assert` pattern and its concept replacement
 
 The historical way to gate a template on a dimension was a `static_assert` inside the body:
 
@@ -119,7 +119,7 @@ double magnitude(T x)
 }
 ```
 
-The modern equivalent constrains the parameter directly with a [concept](concepts.md), producing a cleaner declaration and a better diagnostic — and, unlike the `static_assert`, it removes the overload from consideration rather than hard-erroring:
+The equivalent constrains the parameter directly with a [concept](concepts.md) and, unlike the `static_assert`, removes the overload from consideration rather than hard-erroring:
 
 ```cpp
 // prefer a concept where a general one exists (UnitType, DimensionlessUnitType, …):
@@ -134,4 +134,4 @@ There is no dedicated concept for every per-dimension trait; when you need "must
 - [Concepts](concepts.md) — the concept wrappers over these predicates, and how to constrain a template.
 - [Numerical scales](../explain/scales.md) — `has_linear_scale`, `has_decibel_scale`, and how a scale works.
 - [Supported units](supported-units.md) — the dimensions behind the `is_<dimension>_unit` family.
-- [Cheat sheet](cheat-sheet.md) — the everyday API.
+- [Cheat sheet](cheat-sheet.md) — the API on one page.

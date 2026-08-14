@@ -146,4 +146,4 @@ std::cout << f.abbreviation() << '\n';   // ft
 - [Dimensional analysis](../explain/dimensional-analysis.md) — how arithmetic composes dimensions and how
   naming a result type makes the compiler check your algebra.
 - [Type safety](../explain/type-safety.md) — the mistakes the library is designed to reject.
-- [The cheat sheet](../reference/cheat-sheet.md) — the whole API on one page.
+- [The cheat sheet](../reference/cheat-sheet.md) — the API on one page.

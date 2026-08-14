@@ -1,19 +1,18 @@
 # Type safety: the mistakes `units` is designed to reject
 
-*The reason to give a quantity a type is that the compiler then refuses the operations that make no
-physical sense. This page catalogs the mistakes the library is built to catch, and shows the **real,
-verbatim** diagnostic each one produces. The diagnostics below are captured directly from the compiler by
-the [error-message test harness](../../test/errorMessages/) (`run.py --emit-doc`), so what you read here
-is what you will actually see — never a paraphrase.*
+*Giving a quantity a type makes the compiler refuse the operations that have no physical meaning. This
+page catalogs the mistakes the library is built to catch, and shows the **verbatim** diagnostic each one
+produces. The diagnostics below are captured directly from the compiler by the
+[error-message test harness](../../test/errorMessages/) (`run.py --emit-doc`), so what you read here is
+what the compiler emits, not a paraphrase.*
 
 Each example is a case in `test/errorMessages/cases/`; the harness asserts that it fails to compile
-**and** that the diagnostic names the friendly unit type. The text shown is GCC 13. Clang and MSVC
+**and** that the diagnostic names the named unit type. The text shown is GCC 13. Clang and MSVC
 produce equivalent messages (different wording, same named types); the harness verifies all three.
 
-A recurring theme: 3.x names the *friendly* type — `meters<double>`, `seconds<double>`,
-`square_meters<double>` — instead of the underlying `conversion_factor<...>` template. That readability
-is the point of the class-based named units; how it is built is covered in
-[the named-type internals](internals-named-types.md).
+A recurring theme: 3.x names the type — `meters<double>`, `seconds<double>`, `square_meters<double>` —
+instead of the underlying `conversion_factor<...>` template. The class-based named units produce that
+naming; how it is built is covered in [the named-type internals](internals-named-types.md).
 
 ---
 
@@ -39,7 +38,7 @@ readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand
 ## Assigning a result of the wrong dimension
 
 Multiplying two lengths produces an *area*. Assigning that to a `meters` is rejected. GCC surfaces the
-product through an internal alias but names the friendly type right beside it in `{aka …}`:
+product through an internal alias but names the type right beside it in `{aka …}`:
 
 ```cpp
 units::length::meters<double> a = 1.0_m * 1.0_m;   // m * m is an area, not a length
@@ -138,10 +137,10 @@ the two types with no common type.
 
 ---
 
-## Why this is a feature, not a nuisance
+## What each rejection corresponds to
 
-Every diagnostic above corresponds to a real defect a bare `double` would have accepted silently — a unit
-mismatch, a dimensional error, a lossy conversion, a category confusion. Catching them at compile time,
-with a message that names the actual types, is the entire value proposition. For the design reasoning
-behind the strictness (why conversions are lossless-only, why scalars and dimensioned quantities do not
-mix), see [why units](why-units.md) and [the FAQ](../meta/faq.md).
+Every diagnostic above corresponds to a defect a bare `double` would have accepted silently — a unit
+mismatch, a dimensional error, a lossy conversion, a category confusion. Each is caught at compile time,
+with a message that names the actual types. For the design reasoning behind the strictness (why
+conversions are lossless-only, why scalars and dimensioned quantities do not mix), see
+[why units](why-units.md) and [the FAQ](../meta/faq.md).

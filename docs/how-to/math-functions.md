@@ -85,8 +85,8 @@ meters h = hypot(a, b);   // 5 m
 
 ## Trigonometry requires an angle
 
-The forward trig and hyperbolic functions accept an angle unit — a plain `double` will not bind — so the units
-are impossible to get wrong. They return a dimensionless ratio.
+The forward trig and hyperbolic functions accept an angle unit — a plain `double` will not bind. They
+return a dimensionless ratio.
 
 ```cpp
 #include <units/angle.h>
@@ -135,7 +135,7 @@ found by ADL on a units argument and is **not** a member of `units`; call it qua
 bool neg = std::signbit(-1.0_m);   // true — note the std:: qualification
 ```
 
-## Escape hatch for ambiguity
+## Resolving an ambiguous call
 
 Unqualified ADL is the intended way to call these, and normally there is no ambiguity: `std::sqrt` and the like
 do not accept a units argument, so even with `using std::sqrt;` in scope the units overload is the only viable

@@ -1,24 +1,23 @@
-# CTAD and ADL, for people who don't like templates
+# CTAD and ADL
 
-*Two C++ features do most of the work that makes `units` pleasant to write. You never invoke them by
-name, and you do not need to understand how they are implemented — but knowing what they do for you
-explains why the syntax looks the way it does, and it explains the one or two places you have to be
-deliberate. This page is about what you type and what you get. No template metaprogramming.*
+*Two C++ features shape how `units` is written. You never invoke them by name, and you do not need to
+understand how they are implemented; this page describes what they do and the one or two places where you
+have to be deliberate.*
 
-There is exactly one thing to remember from each:
+One point from each:
 
 - **CTAD** is why you can write `meters length(5.0)` instead of `meters<double> length(5.0)`.
 - **ADL** is why you can write `sqrt(area)` instead of `units::sqrt(area)` (or the old
   `units::math::sqrt(area)`).
 
-That is the whole payoff. The rest of this page is the detail behind those two sentences.
+The rest of this page is the detail behind those two points.
 
 ---
 
 ## CTAD: the library fills in the `<double>` for you
 
-CTAD stands for *class template argument deduction*. In plain terms: when you construct a quantity, the
-compiler looks at what you pass in and figures out the template argument so you don't have to write it.
+CTAD stands for *class template argument deduction*: when you construct a quantity, the compiler looks at
+what you pass in and determines the template argument, so you do not write it.
 
 ```cpp
 meters a(5.0);      // you write this...
@@ -63,23 +62,23 @@ meters<double> d;   // explicit: there is no argument to deduce from
 > This is the single most common surprise for new users, and it is the same rule the language applies to
 > `1 / 2 == 0` for plain `int`.
 
-### How it worked before, and why it's a feature now
+### The 2.x alias template versus the 3.x class template
 
 In the 2.x line, `meters` was an *alias template* with a default argument, so `meters` (with the angle
-brackets and a default) already stood in for `meters<double>`, and the singular alias `meter_t` was the
-common spelling. In 3.x, `meters` is a *class template* — which is what lets a compiler diagnostic print
-the friendly name `meters<double>` instead of the underlying machinery (see
-[type safety](type-safety.md)). CTAD is what preserves the terse, unadorned spelling across that change:
-you still write `meters`, and the class-based type still deduces its argument. The `<>` are optional, the
-`_t` alias is gone, and the diagnostics got readable — all at once.
+brackets and a default) stood in for `meters<double>`, and the singular alias `meter_t` was the common
+spelling. In 3.x, `meters` is a *class template* — which is what lets a compiler diagnostic print the
+named type `meters<double>` instead of the underlying machinery (see [type safety](type-safety.md)).
+CTAD preserves the unadorned spelling across that change: you still write `meters`, and the class-based
+type still deduces its argument. The `<>` are optional, the `_t` alias is gone, and the diagnostics name
+the type.
 
 ---
 
 ## ADL: the right function is found without a prefix
 
-ADL stands for *argument-dependent lookup*. In plain terms: when you call a free function, C++ also looks
-for it in the namespaces of the arguments' types. Because a quantity's type lives in namespace `units`,
-an unqualified call finds the `units` overload automatically:
+ADL stands for *argument-dependent lookup*: when you call a free function, C++ also looks for it in the
+namespaces of the arguments' types. Because a quantity's type lives in namespace `units`, an unqualified
+call finds the `units` overload:
 
 ```cpp
 #include <units/length.h>
@@ -112,16 +111,15 @@ now write `sqrt(x)` (or `units::sqrt(x)`). See the [migration guide](../meta/mig
 
 ---
 
-## That's it
+## Summary
 
-You now know the two features that shape the syntax:
+The two features that shape the syntax:
 
 - Write `meters`, not `meters<double>` — **CTAD** completes it, and it takes `int` or `double` from what
   you pass, so write the decimal point when you want fractions.
 - Write `sqrt(x)`, not `units::math::sqrt(x)` — **ADL** finds the unit-aware function because its argument
   is a `units` type.
 
-If you ever want to see how the class-based named types that enable all this are actually built — the
-deduction guides, the strong-type registration, the machinery behind the readable diagnostics — that is
-documented, in depth, in [the named-type internals](internals-named-types.md). You do not need it to use
-the library.
+How the class-based named types are built — the deduction guides, the strong-type registration, the
+machinery behind the readable diagnostics — is documented in
+[the named-type internals](internals-named-types.md). It is not required to use the library.

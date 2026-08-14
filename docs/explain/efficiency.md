@@ -4,9 +4,9 @@
 the safety's cost: an optimized build produces the same machine code as the equivalent hand-written
 arithmetic on plain numbers.*
 
-The central design guarantee of `units` is that dimensional correctness is free. Every check happens
-during compilation; every conversion factor is known to the compiler; every quantity is a trivial value
-the size of the number it holds. This page explains why, with examples you can compile and inspect.
+Dimensional correctness has no run-time cost. Every check happens during compilation; every conversion
+factor is known to the compiler; every quantity is a trivial value the size of the number it holds. This
+page explains why, with examples you can compile and inspect.
 
 ## Conversions are compile-time ratio arithmetic
 
@@ -117,20 +117,57 @@ dispatch.
 ## What the assembly looks like
 
 For an optimized build, the code generated for typed-quantity arithmetic matches the code generated for
-the corresponding plain-`double` arithmetic. Consider two functions that compute the same thing, one in
-raw doubles with a hand-written factor, one in `units`:
+the corresponding plain-`double` arithmetic. The disassembly below is `-O2` unless noted; GCC 15 and
+Clang 21 agree.
+
+**A runtime expression.** Compute a distance from a speed in mph and a time in seconds — the raw version
+hard-codes the mph → m/s factor, the `units` version carries it in the types:
 
 ```cpp
-double feet_from_meters_raw(double m) { return m * (1250.0 / 381.0); }
-
-units::feet<double> feet_from_meters(units::meters<double> m) { return m; }
+double         distance_raw  (double mph, double sec)                        { return (mph * 1609.344 / 3600.0) * sec; }
+meters<double> distance_units(miles_per_hour<double> v, seconds<double> t)   { return v * t; }
 ```
 
-Under `-O2`, both compile to the same shape: load the argument, multiply by the constant conversion
-factor already folded into an immediate, return. The `units` version carries no wrapper, no extra load,
-and no branch — the type is gone, only the arithmetic remains. (The exact instruction sequence depends
-on the compiler and target; the point is that the two functions are indistinguishable in the output, and
-you can confirm this for your toolchain in a disassembler or on a compiler-explorer.)
+Both are three floating-point instructions — a multiply, a divide, a multiply — differing only in
+operand order (GCC 15):
+
+```asm
+distance_raw:                        distance_units:
+    mulsd   .LC0(%rip), %xmm0            mulsd   %xmm1, %xmm0
+    divsd   .LC1(%rip), %xmm0            mulsd   .LC2(%rip), %xmm0
+    mulsd   %xmm1, %xmm0                 divsd   .LC3(%rip), %xmm0
+    ret                                  ret
+```
+
+**A same-unit conversion is nothing.** Passing a `meters` where a `meters` is wanted is not a cheap
+conversion — the function is a single `ret`:
+
+```cpp
+double roundtrip(meters<double> m) { meters<double> copy = m; return copy.value(); }
+```
+```asm
+roundtrip:
+    ret
+```
+
+**A compile-time conversion is done by the compiler.** A conversion of known values folds to a single
+constant load; the arithmetic never runs:
+
+```cpp
+double speed_limit_mps() { return meters_per_second<double>(65.0_mph).value(); }
+```
+```asm
+speed_limit_mps:
+    movsd   .LC0(%rip), %xmm0        ; xmm0 = 29.0576  (65 mph, converted at compile time)
+    ret
+```
+
+**A hot loop vectorizes identically.** Summing an array of `kilometers` as `meters` produces the same
+instruction stream — including the AVX vectorization at `-O3 -march=x86-64-v3` — as the equivalent
+raw-`double` loop.
+
+In each case the `units` version carries no wrapper, no extra load, and no branch: the type is gone, and
+only the arithmetic remains.
 
 ## The `constexpr` caveat
 

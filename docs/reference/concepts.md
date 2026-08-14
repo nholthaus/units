@@ -2,7 +2,7 @@
 
 *The C++20 concept vocabulary the library exposes in namespace `units`, for constraining your own function and class templates.*
 
-Every concept below is a public name in namespace `units` (not `units::traits`), so a template parameter can be written as `template <units::UnitType U>`. Each is a thin wrapper over a [type trait](type-traits.md); the concept form is the idiomatic way to constrain a template, giving cleaner declarations and better diagnostics than an `enable_if`/`static_assert` on the underlying trait.
+Every concept below is a public name in namespace `units` (not `units::traits`), so a template parameter can be written as `template <units::UnitType U>`. Each is a thin wrapper over a [type trait](type-traits.md); the concept form constrains a template parameter directly, in place of an `enable_if`/`static_assert` on the underlying trait.
 
 ```cpp
 #include <units.h>
@@ -113,10 +113,10 @@ template <units::UnitType U> U f(U x);
 template <class U, std::enable_if_t<units::traits::is_unit_v<U>, int> = 0> U f(U x);
 ```
 
-The concept form participates in overload resolution more predictably and yields a readable "constraint not satisfied" diagnostic instead of a substitution-failure wall.
+The concept form participates in overload resolution as a named constraint and yields a "constraint not satisfied" diagnostic rather than a substitution-failure trace.
 
 ## See also
 
 - [Type traits](type-traits.md) — the traits these concepts are built on, plus the ones with no concept form.
 - [Numerical scales](../explain/scales.md) — `NumericalScaleType`, `linear_scale`, `decibel_scale`.
-- [Cheat sheet](cheat-sheet.md) — the everyday API.
+- [Cheat sheet](cheat-sheet.md) — the API on one page.

@@ -119,9 +119,9 @@ Literals (`5.0_m`, `60.0_mi`, `1.0_hr`), arithmetic and its dimensional results,
 conversions, `std::cout <<`, `to_string`, and the trait-based programming style all work as before. Much
 2.x code compiles under 3.x after the `_t`→plural and `()` → `.value()` substitutions plus the C++23 switch.
 
-## New in 3.x worth adopting
+## New in 3.x
 
-Beyond the renames, 3.x adds capabilities the migration is a good moment to pick up: readable compiler
+Beyond the renames, 3.x adds capabilities: readable compiler
 diagnostics ([type safety](../explain/type-safety.md)), `std::chrono` interop
 ([chrono](../how-to/chrono-interop.md)), a concept vocabulary for your own templates, `std::hash` and
 `std::numeric_limits` support, NaN/infinity handling, optional

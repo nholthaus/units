@@ -1,6 +1,6 @@
 # Cheat sheet
 
-*The everyday API on one page. Every line here compiles under C++23. Assumes:*
+*The API on one page. Every line here compiles under C++23. Assumes:*
 
 ```cpp
 #include <units.h>
@@ -130,7 +130,7 @@ auto bridge = 364.4_smoot;   // now a usable length, with its own literal
 
 See [defining new units](../how-to/defining-new-units.md) for prefixes and compound units.
 
-## Handy references
+## References
 
 - [Supported units](supported-units.md) · [Constants](constants.md) · [Configuration macros](configuration.md)
 - [Type traits](type-traits.md) · [Concepts](concepts.md)

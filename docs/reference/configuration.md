@@ -105,5 +105,5 @@ The library requires C++23; the interface target already propagates `cxx_std_23`
 ## See also
 
 - [Literals](literals.md) — what `UNIT_NO_LITERAL_SUPPORT` turns off.
-- [Cheat sheet](cheat-sheet.md) — the everyday API.
+- [Cheat sheet](cheat-sheet.md) — the API on one page.
 - [Type traits](type-traits.md) · [Concepts](concepts.md).

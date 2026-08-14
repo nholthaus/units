@@ -49,8 +49,7 @@ reports before the program is ever run. The mismatch cannot reach a test, a revi
 
 ## Compile-time checking, not run-time checking
 
-It is worth being explicit about *when* the enforcement happens, because it determines what it costs and
-what it can catch.
+*When* the enforcement happens determines what it costs and what it can catch.
 
 Run-time unit checking — tagging each value with a unit identifier and comparing tags during
 arithmetic — is possible, but it pays for every operation with a branch and a comparison, and it can
@@ -68,13 +67,13 @@ runs it, and because it is resolved at compile time, none of it survives into th
 > meant `98.0` in the same unit is still a plain numeric mistake). What it removes is the entire
 > conversion-and-mismatch category, which is where the expensive, hard-to-find defects live.
 
-## Why a typed quantity beats "a `double` plus a naming convention"
+## A typed quantity versus "a `double` plus a naming convention"
 
-The usual informal defense is discipline: name the variable `distance_m`, document the unit in the API,
-review carefully. This works exactly as well as the least careful change to touch the code, and it
-degrades under precisely the conditions where correctness matters most — a large codebase, many
-contributors, a refactor that renames one side but not the other, an interface boundary where the
-convention on each side was decided independently.
+The informal alternative is discipline: name the variable `distance_m`, document the unit in the API,
+review carefully. This holds only as well as the least careful change to touch the code, and it degrades
+under the conditions where correctness matters most — a large codebase, many contributors, a refactor
+that renames one side but not the other, an interface boundary where the convention on each side was
+decided independently.
 
 A naming convention has three structural weaknesses that a type does not:
 
@@ -100,11 +99,10 @@ units::feet<double>   f = d;          // and back again, exact
 The conversion factor is applied by the library, from a single authoritative definition, in one place —
 not re-derived and re-typed at every call site where a human might get it wrong.
 
-## The zero-cost promise
+## No run-time cost
 
-The natural objection is cost: surely wrapping every number in a class, tracking units, and inserting
-conversions must slow the program down. It does not. `units` is designed so that the safety is a
-property of the *types*, and types do not exist at run time.
+Wrapping every number in a class, tracking units, and inserting conversions does not slow the program
+down. The safety is a property of the *types*, and types do not exist at run time.
 
 - A quantity is a trivially copyable value the size of its underlying representation. `meters<double>`
   is the size of a `double` and is copied like one.
@@ -132,12 +130,11 @@ wrapper for every number, and a few situations argue against it:
   cosine, that specific path is unavailable. See [efficiency](efficiency.md) for the exact boundary.
 - **Interop layers that must speak in raw numbers** — a C API, a serialization format, a hardware
   register. Here you convert to a plain value at the boundary (`.value()`, `.raw()`, or `.to<T>()`) and
-  keep typed quantities on your side of it. This is a feature, not a limitation: the boundary is
-  precisely where you want the conversion to be explicit and localized.
+  keep typed quantities on your side of it. The boundary is where the conversion is explicit and
+  localized.
 
-Outside those cases, the cost is a template dependency and a small amount of syntax to learn, against
-the elimination of an entire bug class at no run-time expense. For code where a unit mismatch is a real
-failure mode, that trade favors the library heavily.
+Outside those cases, the cost is a template dependency and the syntax to learn, against the elimination
+of an entire bug class at no run-time expense.
 
 ---
 

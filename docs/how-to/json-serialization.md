@@ -6,7 +6,7 @@ before `units`.
 The library integrates with [nlohmann/json](https://github.com/nlohmann/json) without taking a dependency on
 it. If your translation unit includes `<nlohmann/json.hpp>` before it includes a `units` header, the library
 defines `to_json`/`from_json` hooks so any quantity converts to and from a `nlohmann::json` value. If
-nlohmann/json is not present, the hooks are simply absent and the library is unaffected.
+nlohmann/json is not present, the hooks are absent and the library is unaffected.
 
 Related how-to guides: [defining new units](defining-new-units.md), [math functions](math-functions.md),
 [chrono interop](chrono-interop.md).

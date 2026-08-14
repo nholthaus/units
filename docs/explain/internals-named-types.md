@@ -2,15 +2,14 @@
 
 > **This page explains internals.** To *use* the library — including defining your own units — you do not
 > need any of this; see [defining new units](../how-to/defining-new-units.md). This document is the
-> reference for unit authors, contributors, and the curious who want to know how the readable-diagnostics
-> feature is machined. It is deliberately deep and optional. Nothing here is required to write correct
-> code with the library.
+> reference for unit authors and contributors: how the readable-diagnostics machinery is built. Nothing
+> here is required to write correct code with the library.
 
-The headline feature of the 3.x line is *readable compiler diagnostics*: an error names
-`meters<double>`, not `unit<conversion_factor<std::ratio<1>, dimension_t<...>>, double, linear_scale>`.
-That readability is not cosmetic string formatting — it falls out of a deliberate type-design decision
-(named units are *classes*, not aliases) supported by a small trait layer that keeps the friendly name
-attached as values flow through construction, conversion, and arithmetic. This page walks that machinery.
+The 3.x line produces *readable compiler diagnostics*: an error names `meters<double>`, not
+`unit<conversion_factor<std::ratio<1>, dimension_t<...>>, double, linear_scale>`. That naming is not
+cosmetic string formatting — it falls out of a type-design decision (named units are *classes*, not
+aliases) supported by a trait layer that keeps the name attached as values flow through construction,
+conversion, and arithmetic. This page walks that machinery.
 
 All line references are to `include/units/core.h` unless noted.
 
@@ -101,10 +100,10 @@ int main()
 
 ## 3. `strong_name`: an ADL overload set, not a specialization (the #357 fix)
 
-The `unit`'s first template parameter is the *strong* conversion factor — the friendly tag such as
+The `unit`'s first template parameter is the *strong* conversion factor — the named tag such as
 `meters_` rather than a raw `conversion_factor<...>`. `traits::strong_t<Cf>` (`core.h:916`) resolves a
-`conversion_factor` to its registered strong type. The resolution mechanism is the crux of the whole
-design, and it is worth understanding why it is built the way it is.
+`conversion_factor` to its registered strong type. The resolution mechanism is central to the design;
+this section describes how it is built.
 
 `traits::strong<T>` (`core.h:905`) does not specialize a trait. It performs an **unqualified** call to a
 function `strong_name` and takes its return type:
@@ -140,17 +139,17 @@ never defined — they are used only inside `decltype`.
 > is implicitly instantiated, a later-included header that specializes it for the same `Cf` is ill-formed
 > ("explicit specialization after instantiation"). An **overload set** has no such rule. A header included
 > later merely *contributes another candidate* to `strong_name`; overload resolution re-runs at each
-> instantiation point and simply finds the better match. There is no "declared after instantiation" trap
+> instantiation point and finds the better match. There is no "declared after instantiation" trap
 > because nothing is being specialized — this is the structural fix for issue #357, and it is why an
 > expression that reduces to a not-yet-included dimension still compiles cleanly and then names the
-> friendly type once the dimension header is in scope.
+> named type once the dimension header is in scope.
 
 ## 4. The trait layer that preserves the name
 
 A named unit is a *derived* class. The exact-pattern trait specializations that the library relies on —
 `std::common_type`, `replace_underlying`, `floating_point_promotion` — are written against the literal
 pattern `unit<Cf, T, Ns>`, which a derived class does not match. Without help, every trait result would
-decay to the plain `unit<...>` base and the friendly name would evaporate the moment you did arithmetic.
+decay to the plain `unit<...>` base and the name would be lost the moment you did arithmetic.
 Four pieces keep it attached.
 
 ### 4.1 `unit_base_t` — recover the canonical base
@@ -175,7 +174,7 @@ arithmetic type (which has no `conversion_factor`) yields `false` rather than a 
 ### 4.3 `rewrap_to_named_t` — forward map, via `named_class_of`
 
 Arithmetic operators compute a *plain* `unit<Cf, U, Ns>` result (e.g. multiplying two `meters` gives a
-`unit<square_meters_, …>`). To report that result under its friendly name, `detail::rewrap_to_named_t`
+`unit<square_meters_, …>`). To report that result under its named type, `detail::rewrap_to_named_t`
 (`core.h:2801`) maps a conversion factor forward to its named class using a **reverse-map** ADL function,
 `detail::named_class_of`. `UNIT_REGISTER_NAMED_CLASS` (`core.h:300`) emits one registration per named unit:
 
@@ -272,15 +271,15 @@ int main()
 }
 ```
 
-> **Design rationale:** the friendly name is a *compile-time* property of the type; it must impose *zero*
-> run-time cost. Explicitly defaulting the special members is what guarantees the class the readable name
-> is built on remains as cheap as the `double` it stores. The readable diagnostics are free.
+> **Design rationale:** the name is a *compile-time* property of the type; it imposes *zero* run-time
+> cost. Explicitly defaulting the special members is what keeps the class the name is built on the same
+> size and triviality as the `double` it stores. The readable diagnostics carry no run-time cost.
 
 ## See also
 
 - [Defining new units](../how-to/defining-new-units.md) — the user-facing way to add units (no internals needed).
-- [CTAD and ADL, for humans](ctad-and-adl-for-humans.md) — the front-matter companion: what the machinery on
-  this page means when you write code.
+- [CTAD and ADL](ctad-and-adl-for-humans.md) — the companion: what the machinery on this page means when
+  you write code.
 - [Numerical scales: linear and decibel](scales.md) — why `named_class_of` keys on scale as well as
   conversion factor.
 - [Type traits reference](../reference/type-traits.md) and [Concepts reference](../reference/concepts.md) —

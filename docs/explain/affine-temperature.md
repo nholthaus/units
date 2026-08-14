@@ -70,7 +70,7 @@ pure-ratio unit would send `0` to `0`; an affine unit does not.
 
 ## Absolute temperature versus temperature difference
 
-This is the one caveat the datum offset forces, and it is worth stating precisely.
+This is the one caveat the datum offset forces.
 
 > **Caveat (absolute vs difference):** a *temperature* and a *temperature interval* are different
 > quantities that happen to share a unit name. `20 °C` is an absolute point on the Celsius scale; a `1 °C`

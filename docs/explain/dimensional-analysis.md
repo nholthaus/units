@@ -42,11 +42,10 @@ auto accel = 30.0_mps / 3.0_s;   // velocity / time -> acceleration
 std::cout << accel << '\n';       // 10 mps2  (meters per second squared)
 ```
 
-Where the composed dimension has a named unit, the library reports the friendly name — `square_meters`
+Where the composed dimension has a named unit, the library reports that name — `square_meters`
 (`m2`), `meters_per_second` (`mps`), `meters_per_second_squared` (`mps2`). Where it does not, the result
-is still a perfectly usable compound unit; it simply prints its dimension in exponent form. The mechanism
-that recovers the friendly name from a computed result is described in
-[the named-type internals](internals-named-types.md).
+is still a usable compound unit; it prints its dimension in exponent form. The mechanism that recovers the
+named type from a computed result is described in [the named-type internals](internals-named-types.md).
 
 ## The library deduces the result type
 
@@ -65,9 +64,9 @@ run time; see [efficiency](efficiency.md).
 
 ## Naming the result type checks your algebra
 
-Here is the leverage. When you write `auto`, you accept whatever the expression produces. When you *name*
-the result type, you state what you expect — and the compiler verifies that the algebra actually produces
-it. A named result type turns dimensional analysis into a check the build performs for you.
+When you write `auto`, you accept whatever the expression produces. When you *name* the result type, you
+state what you expect — and the compiler verifies that the algebra actually produces it. A named result
+type turns dimensional analysis into a check the build performs.
 
 ```cpp
 square_meters<double> area = 3.0_m * 5.0_m;   // asserts: this product is an area. It is. Compiles.
@@ -124,9 +123,9 @@ mass yields precisely the dimension of energy. The `0.5` is a dimensionless scal
 dimension. At no point did you write a conversion factor or spell out the unit of an intermediate; the
 type system carried the dimensions through, and naming the final type made it prove the result.
 
-This is the entire proposition of dimensional analysis in the type system: the algebra you would check by
-hand on paper is checked by the compiler on every build, with a diagnostic that names the real types when
-it does not add up.
+Dimensional analysis in the type system works this way throughout: the algebra you would check by hand on
+paper is checked by the compiler on every build, with a diagnostic that names the real types when it does
+not add up.
 
 ---
 

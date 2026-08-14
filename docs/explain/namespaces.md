@@ -125,9 +125,9 @@ units::mass::pounds<double>  m;     // unambiguous: mass
 units::force::pounds<double> f;     // unambiguous: force
 ```
 
-This is the entire reason the dimension sub-namespaces are worth knowing about. For every name that lives
-in a single dimension, use the short `units::` form; reach for `units::<dimension>::` only when a name is
-shared and the compiler tells you it is ambiguous.
+That is what the dimension sub-namespaces are for. For every name that lives in a single dimension, use
+the short `units::` form; use `units::<dimension>::` only when a name is shared and the compiler reports
+that it is ambiguous.
 
 ---
 

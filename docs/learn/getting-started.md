@@ -106,9 +106,8 @@ to extract a value — no longer exists; use `.value()`, `.raw()`, or `.to<T>()`
 
 ## Where to next
 
-- [CTAD and ADL, for people who don't like templates](../explain/ctad-and-adl-for-humans.md) — the two
-  features behind the terse syntax.
-- [The cheat sheet](../reference/cheat-sheet.md) — the whole API on one page.
+- [CTAD and ADL](../explain/ctad-and-adl-for-humans.md) — the two features behind the syntax.
+- [The cheat sheet](../reference/cheat-sheet.md) — the API on one page.
 - [Supported units](../reference/supported-units.md) and [constants](../reference/constants.md).
 - [Defining your own units](../how-to/defining-new-units.md).
 - Coming from 2.x? [The migration guide](../meta/migrate-v2-to-v3.md).

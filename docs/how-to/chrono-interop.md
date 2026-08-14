@@ -2,10 +2,10 @@
 
 Time quantities convert implicitly to and from `std::chrono::duration` in both directions.
 
-A `units` time quantity and a `std::chrono::duration` model the same thing. The library makes them
-interconvert without ceremony: assign a `std::chrono::duration` to a time quantity, or a time quantity to a
-`std::chrono::duration`, and the value converts. This is enabled only for time units, so no other dimension can
-be silently mistaken for a duration.
+A `units` time quantity and a `std::chrono::duration` model the same thing, and they interconvert: assign
+a `std::chrono::duration` to a time quantity, or a time quantity to a `std::chrono::duration`, and the
+value converts. This is enabled only for time units, so no other dimension can be silently mistaken for a
+duration.
 
 Related how-to guides: [defining new units](defining-new-units.md), [math functions](math-functions.md),
 [JSON serialization](json-serialization.md).

@@ -160,6 +160,5 @@ headers end with one such line — for example `UNIT_ADD_DIMENSION_TRAIT(length)
 
 You never write a strong-type specialization by hand; that hand-written form was the source of a real defect
 (issue #357) and is fully retired. `UNIT_ADD` generates the named-type class, its deduction guides, and the
-argument-dependent-lookup machinery that lets diagnostics print the friendly name. If you want the details of
-how those named types are built, see the design note on
-[named-type internals](../explain/internals-named-types.md).
+argument-dependent-lookup machinery that lets diagnostics print the named type. For the details of
+how those named types are built, see [named-type internals](../explain/internals-named-types.md).

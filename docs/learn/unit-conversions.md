@@ -56,7 +56,7 @@ The compiler refuses this rather than truncating behind your back:
 error: conversion from 'units::length::feet<double>' to non-scalar type 'units::length::meters<int>' requested
 ```
 
-The diagnostic names the friendly types on both sides. The remedy depends on what you actually meant:
+The diagnostic names the types on both sides. The remedy depends on what you actually meant:
 
 - If you wanted the exact value, use a floating-point representation: `meters<double> a = 1.0_ft;`.
 - If you genuinely want to round or truncate into an integer, say so explicitly — see the next section.
@@ -91,8 +91,8 @@ feet f = 30.48_m;         // 100 ft, held as feet<double>
 int  n = f.to<int>();     // 100 — the value in feet, converted to int
 ```
 
-**`unit_cast<T>(...)`** does the same thing in free-function form; it strips the unit and hands you a bare
-arithmetic value, which is convenient at the boundary with code that does not use `units`:
+**`unit_cast<T>(...)`** does the same thing in free-function form; it strips the unit and returns a bare
+arithmetic value, for use at the boundary with code that does not use `units`:
 
 ```cpp
 int n = unit_cast<int>(f);   // 100
@@ -110,15 +110,15 @@ std::cout << exact << " -> " << rounded << '\n';
 // 21.6408 m -> 22 m
 ```
 
-> **Note — extraction is a boundary, not a habit.** Keep quantities typed for as long as they stay inside
-> your code; convert to a plain number only where you must hand a value to an API, a serialization format,
-> or a hardware register. Concentrating the extraction at the boundary is exactly where you want the loss
-> of type information to be explicit and local.
+> **Note — extraction is a boundary.** Keep quantities typed for as long as they stay inside your code;
+> convert to a plain number only where you must hand a value to an API, a serialization format, or a
+> hardware register. Concentrating the extraction at the boundary keeps the loss of type information
+> explicit and local.
 
 ## Where to next
 
 - [Dimensional analysis](../explain/dimensional-analysis.md) — how multiplication and division compose
   dimensions and deduce result types.
 - [Type safety](../explain/type-safety.md) — the mistakes the compiler rejects, with verbatim diagnostics.
-- [Efficiency](../explain/efficiency.md) — why every conversion above costs nothing at run time.
-- [The cheat sheet](../reference/cheat-sheet.md) — the whole API on one page.
+- [Efficiency](../explain/efficiency.md) — why every conversion above has no run-time cost.
+- [The cheat sheet](../reference/cheat-sheet.md) — the API on one page.

@@ -125,4 +125,4 @@ Because tesla is prefix-enabled, its prefixed literals prepend the prefix symbol
 
 - [Configuration](configuration.md) — `UNIT_NO_LITERAL_SUPPORT` turns the literal operators off.
 - [Defining new units](../how-to/defining-new-units.md) — your units get `_<abbreviation>` literals too.
-- [Cheat sheet](cheat-sheet.md) — the everyday API.
+- [Cheat sheet](cheat-sheet.md) — the API on one page.
