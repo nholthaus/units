@@ -48,7 +48,9 @@ endif ()
 IF (NOT MSVC)
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wconversion -Wshadow)
 ELSEIF (MSVC)
-	target_compile_options(${PROJECT_NAME} PRIVATE /Zc:templateScope /permissive-)
+	# /bigobj: the single-TU test suite is heavily templated (the serialization tests instantiate many
+	# dimensions) and exceeds MSVC's default per-object section limit (C1128) without it.
+	target_compile_options(${PROJECT_NAME} PRIVATE /Zc:templateScope /permissive- /bigobj)
 ENDIF ()
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
