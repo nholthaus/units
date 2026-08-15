@@ -548,13 +548,41 @@ namespace units
 		//      FUNCTION: to_string [public]
 		//------------------------------------------------------------------------------------------------------------------
 		/// @brief      a human-readable text rendering of the erased quantity, for logging and diagnostics
-		/// @details    The erased form carries each base dimension by NAME HASH, not name, so the rendering is the
-		///             SI-base magnitude followed by each base term as `#<hash>^<exponent>` — not a named unit like
-		///             `meters`. To render with unit names, collapse to a concrete unit with `to<Unit>()` and stream
-		///             that. This is the TEXT form; `operator<<`/`operator>>` on a stream move the raw BINARY bytes.
-		/// @return     the text rendering
+		/// @details    For a dimension the library knows, renders the SI-base magnitude in that dimension's canonical unit
+		///             with its unit name — the same text `operator<<(ostream, unit)` produces (e.g. `1000 m`, `9.81 m s^-2`)
+		///             — resolved without the caller naming a target, over the same candidate set `visit()` uses. For a
+		///             dimension outside that set (a user-defined `make_dimension`), the name cannot be recovered from the
+		///             wire's name-hash (the runtime→type wall), so it degrades to the raw hash form of `to_string_raw()`.
+		///             This is the TEXT form; `operator<<`/`operator>>` on a stream move the raw BINARY bytes.
+		/// @return     the text rendering — a named-unit form when the dimension is known, else the raw hash form
 		//------------------------------------------------------------------------------------------------------------------
 		[[nodiscard]] std::string to_string() const
+		{
+			std::string named;
+			// resolve to the canonical named unit of whichever known dimension matches, and render it exactly as a
+			// concrete unit streams (name/abbreviation + dimension form); leave `named` empty if no known dimension matched
+			try
+			{
+				visit([&named](const auto& quantity) { named = units::to_string(quantity); });
+			}
+			catch (const std::runtime_error&)
+			{
+			}
+			return named.empty() ? to_string_raw() : named;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: to_string_raw [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      the dimension-agnostic text rendering, keyed by name-hash — always available, never resolves a name
+		/// @details    The SI-base magnitude followed by each base term as `#<hash>^<exponent>` (a fractional exponent as
+		///             `#<hash>^<num>/<den>`, dimensionless as `[dimensionless]`). Unlike `to_string()`, it never attempts
+		///             to name the dimension, so it renders identically for a built-in and a user-defined dimension and is
+		///             the honest diagnostic for a quantity whose type the library cannot know. `to_string()` falls back to
+		///             this whenever no known dimension matched.
+		/// @return     the raw hash-keyed text rendering
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] std::string to_string_raw() const
 		{
 			std::string out = std::to_string(m_base);
 			if (m_identity.terms.empty())
@@ -697,6 +725,34 @@ namespace units
 			if (!result)
 				throw std::runtime_error("units::any_unit: dimension mismatch collapsing to the requested unit");
 			return *result;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: assign_to [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      collapses into an existing unit variable, leaving it untouched on a dimension mismatch
+		/// @details	The mismatch-tolerant collapse: assigns into `out` and returns `true` iff the decoded dimension is
+		///				`out`'s dimension, otherwise returns `false` and leaves `out` unchanged. It is the ergonomic form of
+		///				`if (auto v = to<Unit>()) out = *v;` — the target unit is deduced from `out`, so the value need not be
+		///				named twice, and the boolean says whether the assignment happened. A value that would not fit `out`'s
+		///				underlying type (`to`'s `lossy_target`) is also reported as not assigned, so `out` is written only
+		///				with a value it represents exactly. Unlike `try_to`/`unit_cast`, a mismatch is not an error but an
+		///				expected outcome — the shape for pulling one erased quantity into whichever of several typed fields it
+		///				fits, without a throw or a named target at each site.
+		/// @tparam     Unit  the target unit type; deduced from `out`
+		/// @param[out] out   receives the collapsed value on a dimension (and representability) match
+		/// @return     true iff `out` was assigned
+		//------------------------------------------------------------------------------------------------------------------
+		template<class Unit>
+		bool assign_to(Unit& out) const
+		{
+			static_assert(traits::is_unit_v<Unit>, "any_unit::assign_to(out) assigns into a unit variable (e.g. meters<double>), not a bare number. Collapse to a unit, then read its value.");
+			if (auto result = to<Unit>())
+			{
+				out = *result;
+				return true;
+			}
+			return false;
 		}
 
 		//------------------------------------------------------------------------------------------------------------------

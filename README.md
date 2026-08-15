@@ -382,11 +382,13 @@ int main()
 
 `serialize` returns an **`any_unit`** — a first-class value that owns its serialized bytes and behaves like a
 value type: it streams (`<<`/`>>`), compares (`==`, and `<`/`>` within a dimension), hashes (usable as an
-`unordered_map` key), and renders to text (`to_string()`). `deserialize` returns one too (wrapped in
-`std::expected`, since bad bytes can fail). Collapse an `any_unit` into a concrete quantity with `to<Unit>()`
-(checked, returns `std::expected`), `try_to<Unit>()` / `unit_cast<Unit>()` (throwing), or `visit()` (the
-canonical unit of the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast path
-when the type is known.
+`unordered_map` key), and renders to text — `to_string()` names the dimension when the library knows it
+(`100 m`, `9.81 m s^-2`), or `to_string_raw()` for the always-available name-free form. `deserialize` returns
+one too (wrapped in `std::expected`, since bad bytes can fail). Collapse an `any_unit` into a concrete quantity
+with `to<Unit>()` (checked, returns `std::expected`), `assign_to(out)` (mismatch-tolerant, assigns into an
+existing variable and returns whether it fit), `try_to<Unit>()` / `unit_cast<Unit>()` (throwing), or `visit()`
+(the canonical unit of the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast
+path when the type is known.
 
 **It also drops into byte interfaces with no cast.** Away from a stream, an `any_unit` exposes a modern,
 type-safe byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`,

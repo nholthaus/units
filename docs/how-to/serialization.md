@@ -104,17 +104,27 @@ serialize(meters<double>(3.0))    <  serialize(meters<double>(5.0));       // tr
 serialize(meters<double>(3.0))    <  serialize(seconds<double>(3.0));      // false — different dimensions are UNORDERED
 
 std::unordered_map<any_unit, Job> byQuantity;         // std::hash<any_unit> — a usable key
-std::cout << serialize(meters<double>(100.0)).to_string();   // human-readable text
+std::cout << serialize(meters<double>(100.0)).to_string();   // "100 m" — human-readable text
 ```
 
 Equality is *same dimension and same SI-base magnitude* (using the same relative tolerance as the concrete
 `unit` comparison), so it is a comparison of quantities, not of unit names or of bytes. Ordering is a
 `std::partial_ordering`: quantities of one dimension order by magnitude, and quantities of different dimensions
 are unordered — so `<`/`<=`/`>`/`>=` are all false between them (and `any_unit` is therefore an
-`unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions). For text, `to_string()`
-renders the SI-base magnitude and the hashed dimension signature (`#<hash>^<exponent>`) — the erased form
-carries each base dimension by *name hash*, not name; to render with unit names, collapse to a concrete unit
-first and stream that. (`operator<<` on a stream writes the binary bytes, not text.)
+`unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions).
+
+For text, there are two renderings:
+
+- **`to_string()`** names the dimension when the library knows it — it renders the SI-base magnitude in that
+  dimension's canonical unit, exactly as `operator<<(ostream, unit)` prints it (`100 m`, `9.81 m s^-2`), resolved
+  over the same candidate set `visit()` uses, with no target named. For a dimension the library cannot name (a
+  user-defined `make_dimension`), the name is unrecoverable from the wire's name hash (the runtime→type wall), so
+  it degrades to the raw form below.
+- **`to_string_raw()`** is the honest, name-free rendering: the SI-base magnitude and the hashed dimension
+  signature (`#<hash>^<exponent>`). It never resolves a name, so it renders identically for a built-in and a
+  user-defined dimension — the diagnostic for a quantity whose type the library cannot know.
+
+(`operator<<` on a stream writes the binary bytes, not text.)
 
 ## Collapsing an erased quantity
 
@@ -130,6 +140,20 @@ if (v)
 
 auto wrong = decoded->to<meters<double>>();             // a velocity is not a length
 // wrong.error() == deserialize_error::dimension_mismatch
+```
+
+**`assign_to(out)` — mismatch-tolerant, into an existing variable.** Assigns into `out` and returns `true` iff
+the decoded dimension is `out`'s dimension; on a mismatch it returns `false` and leaves `out` untouched. The
+target unit is deduced from `out`, so the value is not named twice, and a mismatch is an expected outcome rather
+than an error — the shape for fanning one erased quantity across several typed fields, assigning only where it
+fits. A value that would not fit `out`'s underlying type (`to`'s `lossy_target`) is likewise reported as not
+assigned, so `out` is written only with a value it represents exactly.
+
+```cpp
+meters<double>  length{0.0};
+seconds<double> duration{0.0};
+decoded->assign_to(length);     // true if the stream held a length; length now set, duration untouched
+decoded->assign_to(duration);   // false if not a time; duration unchanged
 ```
 
 **`try_to<Unit>()` — throwing.** Same collapse, but throws `std::runtime_error` on a mismatch. Use it where the

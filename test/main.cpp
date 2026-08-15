@@ -3151,6 +3151,14 @@ TEST_F(UnitType, to_string)
 
 	percent<double> c_pct(25.1);
 	EXPECT_STREQ("25.1 pct", to_string(c_pct).c_str());
+
+	// a unit with no abbreviation renders its DIMENSION form, and must match operator<< exactly (single-spaced)
+	using canonical_acceleration = unit<conversion_factor<std::ratio<1>, dimension::acceleration>, double>;
+	const canonical_acceleration d_accel(9.81);
+	std::ostringstream streamed;
+	streamed << d_accel;
+	EXPECT_EQ(streamed.str(), to_string(d_accel));
+	EXPECT_STREQ("9.81 m s^-2", to_string(d_accel).c_str());
 }
 
 // The platform spellings of the two locales this test needs, and the command that installs them.
@@ -6809,18 +6817,92 @@ TEST_F(Serialization, orderingWithinDimensionOnly)
 	EXPECT_TRUE((shorter <=> time) == std::partial_ordering::unordered);
 }
 
-// to_string() renders a human-readable text form (base magnitude + hashed dimension signature).
-TEST_F(Serialization, toStringIsHumanReadable)
+// to_string() renders a NAMED-unit text form for a known dimension — the same text a concrete unit streams.
+TEST_F(Serialization, toStringNamesKnownDimensions)
 {
-	const std::string dimensionless = units::serialize(units::dimensionless<double>(0.25)).to_string();
+	// a known dimension renders in its canonical named unit, exactly as operator<<(ostream, unit) would
+	const std::string length = units::serialize(units::meters<double>(100.0)).to_string();
+	EXPECT_EQ(units::to_string(units::meters<double>(100.0)), length);
+	EXPECT_NE(std::string::npos, length.find("100"));
+	EXPECT_NE(std::string::npos, length.find('m'));
+	EXPECT_EQ(std::string::npos, length.find('#')); // NOT the raw hash form
+
+	// a value expressed in a non-canonical unit still names the canonical unit of its dimension (1 km -> "1000 m")
+	const std::string km = units::serialize(units::kilometers<double>(1.0)).to_string();
+	EXPECT_EQ(units::to_string(units::meters<double>(1000.0)), km);
+
+	// a compound dimension renders its canonical dimension form (m s^-2), still no hash
+	const std::string accel = units::serialize(units::meters_per_second_squared<double>(9.81)).to_string();
+	EXPECT_EQ("9.81 m s^-2", accel);
+	EXPECT_EQ(std::string::npos, accel.find('#'));
+}
+
+// to_string() degrades to the raw hash form for a dimension the library cannot name (the runtime->type wall).
+TEST_F(Serialization, toStringFallsBackForUnknownDimension)
+{
+	// decode a hand-built record whose base dimension is a hash no built-in dimension owns
+	units::any_unit value;
+	{
+		const units::any_unit meters = units::serialize(units::meters<double>(3.0));
+		std::vector<std::byte> raw(meters.bytes().begin(), meters.bytes().end());
+		// the record is [version][header][term-count][8-byte name-hash]...; the single term's hash begins at byte 3
+		// (version=1, header=1, count=1 for a base dimension). Flip every hash byte so no known dimension matches.
+		for (std::size_t i = 3; i < 3 + 8; ++i)
+			raw[i] = static_cast<std::byte>(std::to_integer<std::uint8_t>(raw[i]) ^ 0xFF);
+		const auto decoded = units::deserialize(std::span<const std::byte>(raw));
+		ASSERT_TRUE(decoded.has_value());
+		value = *decoded;
+	}
+	const std::string named = value.to_string();
+	EXPECT_EQ(value.to_string_raw(), named);      // no known dimension matched -> raw fallback
+	EXPECT_NE(std::string::npos, named.find('#')); // the raw hash form
+}
+
+// to_string_raw() is the honest, name-free rendering: always the hashed signature, identical for any dimension.
+TEST_F(Serialization, toStringRawIsAlwaysHashKeyed)
+{
+	const std::string dimensionless = units::serialize(units::dimensionless<double>(0.25)).to_string_raw();
 	EXPECT_NE(std::string::npos, dimensionless.find("0.25"));
 	EXPECT_NE(std::string::npos, dimensionless.find("dimensionless"));
 
-	const std::string length = units::serialize(units::meters<double>(100.0)).to_string();
-	// carries the base value and a bracketed dimension signature
+	// dimensionless names nothing, so to_string() and to_string_raw() agree
+	EXPECT_EQ(dimensionless, units::serialize(units::dimensionless<double>(0.25)).to_string());
+
+	const std::string length = units::serialize(units::meters<double>(100.0)).to_string_raw();
 	EXPECT_NE(std::string::npos, length.find("100"));
 	EXPECT_NE(std::string::npos, length.find('['));
-	EXPECT_NE(std::string::npos, length.find('#')); // a hashed base-dimension term
+	EXPECT_NE(std::string::npos, length.find('#')); // a hashed base-dimension term, even for a known dimension
+}
+
+// assign_to() collapses into an existing variable, returning whether the dimension matched and leaving it untouched if not.
+TEST_F(Serialization, assignToMismatchTolerant)
+{
+	const units::any_unit erased = units::serialize(units::kilometers<double>(1.5));
+
+	// a matching dimension is assigned (into the target's own unit), and reported assigned
+	units::meters<double> length{0.0};
+	EXPECT_TRUE(erased.assign_to(length));
+	EXPECT_DOUBLE_EQ(1500.0, length.value());
+
+	// a mismatched dimension leaves the target untouched and returns false — an expected outcome, not a throw
+	units::seconds<double> duration{42.0};
+	EXPECT_FALSE(erased.assign_to(duration));
+	EXPECT_DOUBLE_EQ(42.0, duration.value()); // unchanged
+
+	// the realiq idiom: fan one erased quantity across several typed fields, assigning only where it fits
+	units::meters<double>  intoLength{0.0};
+	units::seconds<double> intoTime{0.0};
+	const bool tookLength = erased.assign_to(intoLength);
+	const bool tookTime   = erased.assign_to(intoTime);
+	EXPECT_TRUE(tookLength);
+	EXPECT_FALSE(tookTime);
+
+	// a value that cannot be represented exactly in an integral target is reported not-assigned (to's lossy_target)
+	units::meters<int> integralLength{7};
+	EXPECT_TRUE(units::serialize(units::meters<double>(5.0)).assign_to(integralLength)); // 5 fits
+	EXPECT_EQ(5, integralLength.value());
+	EXPECT_FALSE(units::serialize(units::meters<double>(2.5)).assign_to(integralLength)); // 2.5 does not
+	EXPECT_EQ(5, integralLength.value());                                                 // unchanged
 }
 
 // operator<< writes the raw binary bytes; operator>> and deserialize(istream) read them back.
