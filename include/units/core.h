@@ -4385,6 +4385,42 @@ namespace units
 	template<class Underlying>
 	using dBi = decibels<Underlying>;
 
+	// Register the name/abbreviation for the dimensionless decibel and its `_dB` literal. The reverse
+	// named-class map is keyed on (conversion_factor, scale); the (dimensionless, decibel_scale) key
+	// belongs to `decibels` alone (the power dB units use the watts/milliwatts factors), so the mapping
+	// is unambiguous and the member name()/abbreviation() resolve through it.
+	template<class Underlying>
+	struct unit_name<decibels<Underlying>>
+	{
+		static constexpr const char* value = "decibels";
+	};
+
+	template<class Underlying>
+	struct unit_abbreviation<decibels<Underlying>>
+	{
+		static constexpr const char* value = "dB";
+	};
+
+	namespace detail
+	{
+		::units::decibels<UNIT_LIB_DEFAULT_TYPE> named_class_of(
+			typename ::units::decibels<>::conversion_factor*, typename ::units::decibels<>::numerical_scale_type*);
+	}
+
+#ifndef UNIT_NO_LITERAL_SUPPORT
+	namespace literals
+	{
+		constexpr decibels<double> operator""_dB(long double d) noexcept
+		{
+			return decibels<double>(static_cast<double>(d));
+		}
+		constexpr decibels<int> operator""_dB(unsigned long long d) noexcept
+		{
+			return decibels<int>(static_cast<int>(d));
+		}
+	} // namespace literals
+#endif
+
 	//------------------------------
 	//	DECIBEL ARITHMETIC
 	//------------------------------

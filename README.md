@@ -492,9 +492,31 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `bytes` | `_B` |  |
+| `kilobytes` | `_kB` |  |
+| `megabytes` | `_MB` |  |
+| `gigabytes` | `_GB` |  |
+| `terabytes` | `_TB` |  |
+| `petabytes` | `_PB` |  |
 | `exabytes` | `_EB` |  |
+| `kibibytes` | `_KiB` |  |
+| `mebibytes` | `_MiB` |  |
+| `gibibytes` | `_GiB` |  |
+| `tebibytes` | `_TiB` |  |
+| `pebibytes` | `_PiB` |  |
+| `exbibytes` | `_EiB` |  |
 | `bits` | `_b` |  |
+| `kilobits` | `_kb` |  |
+| `megabits` | `_Mb` |  |
+| `gigabits` | `_Gb` |  |
+| `terabits` | `_Tb` |  |
+| `petabits` | `_Pb` |  |
 | `exabits` | `_Eb` |  |
+| `kibibits` | `_Kib` |  |
+| `mebibits` | `_Mib` |  |
+| `gibibits` | `_Gib` |  |
+| `tebibits` | `_Tib` |  |
+| `pebibits` | `_Pib` |  |
+| `exbibits` | `_Eib` |  |
 | `nibbles` | `_nibble` |  |
 
 ### data transfer rate

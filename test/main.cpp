@@ -3353,6 +3353,29 @@ TEST_F(UnitType, dBConversion)
 	EXPECT_NEAR(20.0, b_dbw.value(), 5.0e-7);
 }
 
+TEST_F(UnitType, dimensionlessDecibelLiteral)
+{
+	// the `_dB` literal yields the dimensionless decibel; its stored value is the dB figure
+	auto g = -20.0_dB;
+	static_assert(std::is_same_v<decltype(g), decibels<double>>);
+	EXPECT_DOUBLE_EQ(-20.0, g.raw());
+
+	// the integer literal yields decibels<int>; as with the power dB units, an integral decibel scale
+	// is lossy through the log10 round-trip, so only the type is asserted here
+	auto gi = 3_dB;
+	static_assert(std::is_same_v<decltype(gi), decibels<int>>);
+
+	// name/abbreviation resolve for the dimensionless decibel
+	decibels<double> d(6.0);
+	EXPECT_STREQ("decibels", d.name());
+	EXPECT_STREQ("dB", d.abbreviation());
+
+	// coexists with the power decibel literals (distinct types, distinct suffixes)
+	static_assert(std::is_same_v<decltype(0.0_dBW), dBW<double>>);
+	static_assert(std::is_same_v<decltype(0.0_dBm), dBm<double>>);
+	static_assert(!std::is_same_v<decibels<double>, dBW<double>>);
+}
+
 TEST_F(UnitType, dBAddition)
 {
 	bool isSame;
