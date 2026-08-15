@@ -88,7 +88,7 @@ and exposes it as a type-safe span or a C-interface pair (both valid for the obj
 any_unit q = serialize(60.0_mph);
 std::fwrite(q.data(), 1, q.size(), fp);         // C stdio
 ::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
-auto same = deserialize(q.bytes());             // span round-trips
+auto same = deserialize(q);                     // an any_unit converts to a span — round-trips directly
 ```
 
 > **Caveat — the byte views are non-owning.** `bytes()`, `data()`, and `size()` view the buffer *inside* the

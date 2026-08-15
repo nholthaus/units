@@ -104,8 +104,8 @@ the one place you intended it:
 
 ```cpp
 feet        height = 71.0_ft;
-meters      exact  = height;                          // implicit, lossless: 21.6408 m
-meters<int> rounded{ static_cast<int>(exact.value() + 0.5) };
+meters      exact  = height;                 // implicit, lossless: 21.6408 m
+meters<int> rounded{ round(exact).to<int>() }; // round the quantity (ADL), then narrow explicitly
 std::cout << exact << " -> " << rounded << '\n';
 // 21.6408 m -> 22 m
 ```

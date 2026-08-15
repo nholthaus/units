@@ -51,8 +51,7 @@ int main()
     auto           bridge    = 364.4_smoot;   // the Harvard Bridge, in smoots
     meters<double> in_meters = bridge;         // converts like any other length
 
-    std::cout << bridge.value() << " smoot = " << in_meters.value() << " m\n";
-    // prints: 364.4 smoot = 620.136 m
+    std::cout << bridge << " = " << in_meters << '\n';   // prints: 364.4 smoot = 620.136 m
 }
 ```
 
@@ -108,7 +107,7 @@ int main()
     using namespace units::literals;
 
     units::length::milliquaffs<double> mq = 3.0_qf;   // 3 qf == 3000 mqf
-    std::cout << mq.value() << " mqf\n";               // prints: 3000 mqf
+    std::cout << mq << '\n';                           // prints: 3000 mqf
 }
 ```
 

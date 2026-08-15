@@ -374,8 +374,9 @@ int main()
     file << serialize(60.0_mph);               // write a quantity to any stream
     file.seekg(0);
 
-    if (auto decoded = deserialize(file))      // read it back — the stream carries the dimension
-        std::cout << decoded->to<kilometers_per_hour<double>>()->value() << " kph\n";  // 96.5606 kph
+    // read it back into the type you want — one call, dimension-checked
+    if (auto kph = deserialize<kilometers_per_hour<double>>(file))
+        std::cout << kph->value() << " kph\n"; // 96.5606 kph
 }
 ```
 
@@ -397,7 +398,7 @@ any_unit q = serialize(position);
 std::fwrite(q.data(), 1, q.size(), fp);         // C stdio — no cast
 ::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
 
-auto same = deserialize(q.bytes());             // the type-safe span round-trips
+auto same = deserialize(q);                     // an any_unit converts to a span — round-trips directly
 ```
 
 The stream identifies each base dimension by an 8-byte hash of its name, so the format has **no fixed set of

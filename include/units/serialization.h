@@ -941,6 +941,7 @@ namespace units
 		return erased->template to<Unit>();
 	}
 
+
 	//----------------------------------------------------------------------------------------------------------------------
 	//      FUNCTION: deserialize [public]
 	//----------------------------------------------------------------------------------------------------------------------
@@ -988,6 +989,28 @@ namespace units
 		else
 			is.setstate(std::ios::failbit);
 		return is;
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: deserialize [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      reads and decodes one record from a binary stream directly into a known unit type
+	/// @details    The single-check read: `auto q = deserialize<meters<double>>(file);` reads the next record and
+	///             collapses it in one step, so one `if (q)` guards both the read and the dimension match (a mismatch
+	///             or a malformed record is a `deserialize_error`). Same seekable-stream requirement as
+	///             `deserialize(std::istream&)`.
+	/// @tparam     Unit  the expected unit type
+	/// @param[in]  is  the input stream, positioned at the start of a record
+	/// @return     the value as `Unit` on success, else a `deserialize_error`
+	//----------------------------------------------------------------------------------------------------------------------
+	template<class Unit>
+	[[nodiscard]] std::expected<Unit, deserialize_error> deserialize(std::istream& is)
+	{
+		static_assert(traits::is_unit_v<Unit>, "units::deserialize<T>(stream) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(stream) for an erased any_unit.");
+		auto erased = deserialize(is);
+		if (!erased)
+			return std::unexpected(erased.error());
+		return erased->template to<Unit>();
 	}
 } // namespace units
 

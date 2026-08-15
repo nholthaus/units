@@ -91,7 +91,7 @@ by definition kilogram·meter·second⁻². If you compute `mass * acceleration`
 
 ```cpp
 kilograms                 mass  = 12.0_kg;
-meters_per_second_squared accel{ 9.8 };
+meters_per_second_squared accel = 9.8_mps2;
 newtons                   force = mass * accel;   // kg * m/s^2 -> N
 std::cout << force << '\n';                        // 117.6 N
 ```

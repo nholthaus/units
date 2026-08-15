@@ -6854,6 +6854,25 @@ TEST_F(Serialization, streamOperatorsRoundTripBinary)
 	EXPECT_DOUBLE_EQ(7.0, target.to<units::meters<double>>()->value()); // unchanged
 }
 
+// deserialize<Unit>(istream) reads and collapses in one checked step (the front-page idiom).
+TEST_F(Serialization, typedDeserializeFromStream)
+{
+	std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+	stream << units::serialize(60.0_mph);
+
+	// one call, one std::expected: reads the record AND collapses to the requested unit
+	const auto kph = units::deserialize<units::kilometers_per_hour<double>>(stream);
+	ASSERT_TRUE(kph.has_value());
+	EXPECT_NEAR(96.56064, kph->value(), 1e-4);
+
+	// a dimension mismatch is reported, not dereferenced blindly
+	std::stringstream length(std::ios::in | std::ios::out | std::ios::binary);
+	length << units::serialize(units::meters<double>(5.0));
+	const auto wrong = units::deserialize<units::seconds<double>>(length);
+	EXPECT_FALSE(wrong.has_value());
+	EXPECT_EQ(units::deserialize_error::dimension_mismatch, wrong.error());
+}
+
 // std::hash makes any_unit a usable unordered-container key, consistent with operator==.
 TEST_F(Serialization, hashableAsAKey)
 {
