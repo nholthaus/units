@@ -3,6 +3,31 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.4.3] - 2026-08-15
+
+Issue-triage follow-up: precision, ergonomics, and a new dimension.
+
+### Added
+- A `volume_flow_rate` dimension (`volume / time`) with `cubic_meters_per_second`, `cubic_meters_per_hour`,
+  `liters_per_second`, `liters_per_minute`, `gallons_per_minute`, `gallons_per_hour`,
+  `cubic_feet_per_second`, and `cubic_feet_per_minute`. Because the dimension is derived algebraically, a
+  volume divided by a time is a `volume_flow_rate`. (#112)
+- A named-unit `to<>()` accessor: `q.to<meters>()` converts to a named unit of the same dimension, mirroring
+  `q.convert<meters>()`; `q.to<double>()` (underlying-type extraction) is unchanged. (#303)
+- A `_dB` literal for the dimensionless decibel, and its registered name/abbreviation. (#334, #344)
+
+### Fixed
+- The `slug` used a rounded conversion ratio (about 2.5 ppb low); it now uses the exact rational. (#289)
+- A decibel-scale unit now requires a floating-point underlying type: an integral type cannot represent a
+  logarithmic value (`3 dB` stored as `0`, large values overflowed). The integer decibel literals are
+  removed and the guard is enforced at compile time. (#334, #344)
+- The named `convert<>()` overload is now callable on a `const` unit.
+
+### Changed
+- `data::bytes`/`bits` are spelled out with only the meaningful large decimal (kilo and up) and binary
+  prefixes; the sub-unit prefixes (deci/centi/milli/...) that produced fractional-byte units are dropped.
+  This also frees the `_dB` literal, which `decibytes` had claimed.
+
 ## [3.4.2] - 2026-08-14
 
 A units-and-correctness release: a broad set of new units, and a conversion fix.

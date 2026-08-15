@@ -1,3 +1,11 @@
+units (3.4.3-0ppa1~noble1) noble; urgency=medium
+
+  * New release: volume flow rate dimension, named-unit to<>() accessor,
+    dimensionless decibel literal, exact slug ratio, and an integral-decibel
+    compile-time guard.
+
+ -- Nic Holthaus <nholthaus@gmail.com>  Fri, 15 Aug 2026 12:00:00 -0400
+
 units (3.4.2-0ppa1~noble1) noble; urgency=medium
 
   * New release: documentation overhaul, many added units (imperial, ancient,
