@@ -40,8 +40,11 @@ namespace units
 			static constexpr auto abbreviation = "px";
 		};
 		using pixels = make_dimension<pixels_tag>;
+		// a dimension with a FRACTIONAL exponent (length^(1/2)), to exercise the fractional-exponent serialization path
+		using root_length = dimension_pow<length, std::ratio<1, 2>>;
 	} // namespace dimension
 	UNIT_ADD(screen, dots, px, conversion_factor<std::ratio<1>, dimension::pixels>)
+	UNIT_ADD(root_length, root_meters, rt_m, conversion_factor<std::ratio<1>, dimension::root_length>)
 } // namespace units
 
 namespace
@@ -6905,6 +6908,68 @@ TEST_F(Serialization, hashableAsAKey)
 	// equal quantities hash equally (the contract std::hash must honor)
 	const std::hash<units::any_unit> hasher;
 	EXPECT_EQ(hasher(units::serialize(units::meters<double>(1000.0))), hasher(units::serialize(units::kilometers<double>(1.0))));
+}
+
+// A dimension with a FRACTIONAL exponent exercises the fracExp encode/decode path and the to_string denominator.
+TEST_F(Serialization, fractionalExponentRoundTripsAndRenders)
+{
+	const units::any_unit q = units::serialize(3.0 * units::rt_m); // via the generated unit constant
+
+	// to_string renders the fractional exponent as num/den
+	EXPECT_NE(std::string::npos, q.to_string().find("1/2"));
+
+	// the fracExp-flagged stream round-trips exactly through a real buffer
+	std::vector<std::byte> raw(q.bytes().begin(), q.bytes().end());
+	const auto             back = units::deserialize<units::root_meters<double>>(raw);
+	ASSERT_TRUE(back.has_value());
+	EXPECT_DOUBLE_EQ(3.0, back->value());
+
+	// and the erased path preserves the fractional exponent in the decoded identity
+	const auto erased = units::deserialize(raw);
+	ASSERT_TRUE(erased.has_value());
+	ASSERT_EQ(1u, erased->identity().terms.size());
+	EXPECT_EQ(1, erased->identity().terms[0].num);
+	EXPECT_EQ(2, erased->identity().terms[0].den);
+}
+
+// deserialize reports truncation at each point a record can be cut short (not just an empty buffer).
+TEST_F(Serialization, truncationAtEveryStage)
+{
+	const units::any_unit          full = units::serialize(units::root_meters<double>(2.5)); // has terms + fracExp + value
+	const std::vector<std::byte>   bytes(full.bytes().begin(), full.bytes().end());
+
+	// cutting the stream at every length from 1 .. size-1 must fail cleanly (truncated/bad_version), never crash or
+	// silently succeed — this walks the version/header/count/hash/exponent/den/value decode points.
+	for (std::size_t n = 1; n < bytes.size(); ++n)
+	{
+		std::span<const std::byte> partial(bytes.data(), n);
+		const auto                 r = units::deserialize(partial);
+		EXPECT_FALSE(r.has_value()) << "a " << n << "-byte prefix should not decode";
+		if (!r)
+		{
+			EXPECT_TRUE(r.error() == units::deserialize_error::truncated || r.error() == units::deserialize_error::bad_version) << "n=" << n;
+		}
+	}
+}
+
+// deserialize(std::istream&) on a non-seekable stream reports truncated rather than misreading.
+TEST_F(Serialization, nonSeekableStreamReportsTruncated)
+{
+	// an ostringstream has no get area; reading from it via the istream overload cannot self-delimit a record
+	std::ostringstream sink;
+	std::istream       notReadable(sink.rdbuf()); // a stream whose tellg() is unusable for framing
+	notReadable.setstate(std::ios::eofbit);        // force the unseekable/at-end condition
+	const auto r = units::deserialize(notReadable);
+	EXPECT_FALSE(r.has_value());
+}
+
+// the typed deserialize<Unit>(bytes) fast path propagates a decode error (not just a dimension mismatch).
+TEST_F(Serialization, typedFastPathPropagatesDecodeError)
+{
+	std::vector<std::byte> garbage{std::byte{0xFF}, std::byte{0x00}}; // bad version byte
+	const auto             r = units::deserialize<units::meters<double>>(garbage);
+	EXPECT_FALSE(r.has_value());
+	EXPECT_EQ(units::deserialize_error::bad_version, r.error());
 }
 
 int main(int argc, char* argv[])
