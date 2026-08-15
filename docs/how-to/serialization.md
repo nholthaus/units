@@ -34,9 +34,9 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    std::vector<std::byte> bytes = serialize(60.0_mph);   // encode
+    any_unit encoded = serialize(60.0_mph);   // an erased quantity that owns its bytes
 
-    auto decoded = deserialize(bytes);                    // decode (erased)
+    auto decoded = deserialize(encoded.bytes());   // decode from the bytes (erased)
     if (!decoded)
         return 1;
 
@@ -50,10 +50,58 @@ The stream is self-describing: the reader was never told the value was a velocit
 the bytes, and `to<kilometers_per_hour<double>>()` succeeded because that dimension matched. Ask for a dimension
 the stream does not hold and the collapse fails cleanly rather than misreading the number.
 
+## `any_unit` — the erased quantity, a first-class value
+
+Both `serialize` and `deserialize` center on `any_unit`: `serialize(q)` returns one (owning the encoded bytes),
+and `deserialize` returns one (wrapped in `std::expected`, since malformed bytes can fail). It is a value type,
+not a bag of bytes — it compares, orders within a dimension, hashes, and prints.
+
+**Its bytes, two ways.** `any_unit` owns the serialized form; you view it through a type-safe span or a
+C-interface pair, both valid for the object's lifetime:
+
+- `bytes()` → `std::span<const std::byte>` — the modern view; feed it straight back to `deserialize`.
+- `data()` → `const char*` and `size()` → `std::size_t` — for the byte-oriented interfaces that take a
+  `const char*`/`const void*` and a length. They drop into `std::ostream::write`, `std::fwrite`, and a socket
+  `send` with **no cast at the call site** (the one `reinterpret_cast` lives inside `data()`).
+
+```cpp
+any_unit q = serialize(60.0_mph);
+
+file.write(q.data(), q.size());                 // std::ostream::write(const char*, n) — no cast
+std::fwrite(q.data(), 1, q.size(), fp);         // C stdio
+::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
+
+for (std::byte b : q.bytes()) { /* type-safe iteration */ }
+auto same = deserialize(q.bytes());             // span round-trips
+```
+
+> **Caveat — the byte views are non-owning.** `bytes()`, `data()`, and `size()` view the buffer *inside* the
+> `any_unit`; they are valid only while that `any_unit` is alive. Keep it in a named variable rather than calling
+> `serialize(q).bytes()` on a temporary. To hold the bytes past the `any_unit`, copy them into your own
+> `std::vector<std::byte>`.
+
+**Comparison, ordering, hashing, printing.** `any_unit` behaves like the value it represents:
+
+```cpp
+serialize(meters<double>(1000.0)) == serialize(kilometers<double>(1.0));   // true — same dimension AND base value
+serialize(meters<double>(3.0))    <  serialize(meters<double>(5.0));       // true — ordered within a dimension
+serialize(meters<double>(3.0))    <  serialize(seconds<double>(3.0));      // false — different dimensions are UNORDERED
+
+std::unordered_map<any_unit, Job> byQuantity;   // std::hash<any_unit> — a usable key
+std::cout << serialize(meters<double>(100.0));   // text form: base value + hashed dimension signature
+```
+
+Equality is *same dimension and same SI-base magnitude* (using the same relative tolerance as the concrete
+`unit` comparison), so it is a comparison of quantities, not of unit names or of bytes. Ordering is a
+`std::partial_ordering`: quantities of one dimension order by magnitude, and quantities of different dimensions
+are unordered — so `<`/`<=`/`>`/`>=` are all false between them (and `any_unit` is therefore an
+`unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions). Because the erased form
+carries each base dimension by *name hash*, not name, `operator<<` prints the SI-base magnitude and the hashed
+signature (`#<hash>^<exponent>`); to print with unit names, collapse to a concrete unit first and stream that.
+
 ## Collapsing an erased quantity
 
-`deserialize` yields an `any_unit`: the decoded dimension plus the magnitude in SI canonical base. It carries no
-operators. Four ways bring it down to a concrete quantity.
+Beyond the value-type surface above, these bring an `any_unit` down to a concrete typed quantity.
 
 **`to<Unit>()` — checked, the safe default.** Returns `std::expected<Unit, deserialize_error>`; a dimension
 mismatch is a value, not an exception.

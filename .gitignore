@@ -258,3 +258,4 @@ _Pvt_Extensions
 /docs/latex
 /msvc2013
 /docs/man/man3
+test/errorMessages/__pycache__/

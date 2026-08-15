@@ -41,12 +41,15 @@
 
 #include <array>
 #include <cmath>
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <expected>
+#include <functional>
 #include <limits>
 #include <memory>
+#include <ostream>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -344,6 +347,74 @@ namespace units
 			f32     = 1, ///< value is an exact 32-bit float
 			f64     = 2  ///< value is a 64-bit double
 		};
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: encode [static]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      encodes a dimension identity and SI-base magnitude to the self-describing byte stream
+		/// @details    The single source of truth for the wire format, used by both `serialize` (from a compile-time
+		///             signature) and `any_unit` (from its decoded runtime identity), so a value and its round-tripped
+		///             form encode byte-identically. The value encoding is chosen from `base` alone (tersest exact:
+		///             integer varint, else exact 32-bit float, else 64-bit double), so it does not depend on the
+		///             source unit's underlying type.
+		/// @param[in]  identity  the ordered base-dimension terms (sorted by hash)
+		/// @param[in]  base      the magnitude in SI canonical base
+		/// @return     the encoded bytes
+		//------------------------------------------------------------------------------------------------------------------
+		inline std::vector<std::byte> encode(const unit_identity& identity, double base)
+		{
+			value_kind kind;
+			if (base == std::floor(base) && std::abs(base) < 9.0e15)
+				kind = value_kind::ivarint;
+			else if (static_cast<double>(static_cast<float>(base)) == base)
+				kind = value_kind::f32;
+			else
+				kind = value_kind::f64;
+
+			// any fractional exponent forces the fracExp flag
+			bool fracExp = false;
+			for (const auto& term : identity.terms)
+				if (term.den != 1)
+					fracExp = true;
+
+			std::vector<std::byte> out;
+			out.push_back(std::byte{serialization_version});
+			const std::uint8_t header = static_cast<std::uint8_t>(static_cast<std::uint8_t>(kind) | (fracExp ? 0x04 : 0x00));
+			out.push_back(std::byte{header});
+			put_uvarint(out, identity.terms.size());
+			for (const auto& term : identity.terms)
+			{
+				// base dimension keyed by an 8-byte name-hash: fixed size, no central table, any dimension round-trips
+				for (unsigned int i = 0; i < 8; ++i)
+					out.push_back(std::byte{static_cast<std::uint8_t>(term.hash >> (8 * i))});
+				put_svarint(out, term.num);
+				if (fracExp)
+					put_svarint(out, term.den);
+			}
+
+			switch (kind)
+			{
+			case value_kind::ivarint: put_svarint(out, static_cast<std::int64_t>(base)); break;
+			case value_kind::f32:
+			{
+				const float   f = static_cast<float>(base);
+				std::uint32_t bits;
+				std::memcpy(&bits, &f, sizeof(bits));
+				for (unsigned int i = 0; i < 4; ++i)
+					out.push_back(std::byte{static_cast<std::uint8_t>(bits >> (8 * i))});
+				break;
+			}
+			case value_kind::f64:
+			{
+				std::uint64_t bits;
+				std::memcpy(&bits, &base, sizeof(bits));
+				for (unsigned int i = 0; i < 8; ++i)
+					out.push_back(std::byte{static_cast<std::uint8_t>(bits >> (8 * i))});
+				break;
+			}
+			}
+			return out;
+		}
 	} // namespace detail
 
 	//======================================================================================================================
@@ -357,12 +428,16 @@ namespace units
 		//      FUNCTION: any_unit [public]
 		//------------------------------------------------------------------------------------------------------------------
 		/// @brief      constructs an erased quantity from a decoded identity and SI-base magnitude
+		/// @details    The serialized byte form is materialized once here (from the same encoder `serialize` uses), so
+		///             it is owned by the `any_unit` and shares its lifetime: `bytes()`, `data()`, and `size()` view a
+		///             buffer that stays valid for as long as the `any_unit` does.
 		/// @param[in]  id     the dimension signature
 		/// @param[in]  base   the magnitude in SI canonical base
 		//------------------------------------------------------------------------------------------------------------------
-		any_unit(unit_identity id, double base) noexcept
+		any_unit(unit_identity id, double base)
 		  : m_identity(std::move(id))
 		  , m_base(base)
+		  , m_bytes(detail::encode(m_identity, base))
 		{
 		}
 
@@ -394,6 +469,103 @@ namespace units
 		/// @return     the unit_identity
 		//------------------------------------------------------------------------------------------------------------------
 		[[nodiscard]] const unit_identity& identity() const noexcept { return m_identity; }
+
+		//======================================================================================================================
+		//	BYTES — the owned serialized form, in both a type-safe and a C-interface view
+		//======================================================================================================================
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: bytes [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      the serialized byte stream, as a type-safe view
+		/// @details    A view into the buffer owned by this `any_unit`; valid for the object's lifetime. Feed it straight
+		///             back to `deserialize`. Copy it (e.g. into a `std::vector`) if it must outlive the `any_unit`.
+		/// @return     a span over the owned bytes
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] std::span<const std::byte> bytes() const noexcept { return m_bytes; }
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: operator std::span<const std::byte> [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      an `any_unit` is viewable as its serialized bytes
+		/// @details    Lets an `any_unit` pass directly to anything expecting a byte span — notably `deserialize`, so a
+		///             `serialize` result feeds straight back in. The view is tied to this object's lifetime, as `bytes()`.
+		/// @return     a span over the owned bytes
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] operator std::span<const std::byte>() const noexcept { return m_bytes; }
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: data [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      a pointer to the serialized bytes as `const char*`, for byte-oriented interfaces
+		/// @details    Paired with `size()`, this drops directly into the interfaces that take a `const char*`/`const
+		///             void*` and a length — `std::ostream::write`, `std::fwrite`, a socket `send` — with no cast at the
+		///             call site. The pointer views the buffer owned by this `any_unit` and is valid for its lifetime.
+		/// @return     a pointer to the first byte
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] const char* data() const noexcept { return reinterpret_cast<const char*>(m_bytes.data()); }
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: size [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      the number of serialized bytes
+		/// @return     the byte count
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] std::size_t size() const noexcept { return m_bytes.size(); }
+
+		//======================================================================================================================
+		//	COMPARISON
+		//======================================================================================================================
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: operator== [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      whether two erased quantities are the same dimension and magnitude
+		/// @details    Equal iff the dimension signatures match and the SI-base magnitudes compare equal. The magnitude
+		///             comparison uses the same relative-epsilon tolerance as the concrete `unit` comparison, so an
+		///             `any_unit` compares no more strictly than the units it erases; two quantities of the same base
+		///             value are equal regardless of the source unit (a serialized `1000 m` equals a serialized `1 km`).
+		/// @param[in]  other  the erased quantity to compare against
+		/// @return     true iff same dimension and (tolerantly) equal magnitude
+		/// @note       As with `unit`, the tolerance may not suit every application when the base value is a double;
+		///             compare `value_in_base()` directly for a different criterion.
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] bool operator==(const any_unit& other) const noexcept
+		{
+			if (!(m_identity == other.m_identity))
+				return false;
+			const double diff = std::abs(m_base - other.m_base);
+			return diff < std::numeric_limits<double>::epsilon() * std::abs(m_base + other.m_base) || diff < std::numeric_limits<double>::min();
+		}
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: operator!= [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      whether two erased quantities differ in dimension or magnitude
+		/// @param[in]  other  the erased quantity to compare against
+		/// @return     true iff not equal
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] bool operator!=(const any_unit& other) const noexcept { return !(*this == other); }
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: operator<=> [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      orders two erased quantities of the same dimension by magnitude
+		/// @details    Ordering is only meaningful within a dimension: two lengths compare by their SI-base magnitude,
+		///             but a length and a time have no order. Same-dimension operands compare by base value; operands of
+		///             different dimensions are `unordered`, so `<`, `<=`, `>`, `>=` are all false between them. This is
+		///             a `std::partial_ordering` precisely because the relation is partial across dimensions.
+		/// @param[in]  other  the erased quantity to compare against
+		/// @return     the base-value ordering when same-dimension, else `std::partial_ordering::unordered`
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] std::partial_ordering operator<=>(const any_unit& other) const noexcept
+		{
+			if (!(m_identity == other.m_identity))
+				return std::partial_ordering::unordered;
+			if (*this == other)
+				return std::partial_ordering::equivalent;
+			return m_base <=> other.m_base;
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: to [public]
@@ -525,9 +697,45 @@ namespace units
 			return false;
 		}
 
-		unit_identity m_identity;
-		double        m_base;
+		unit_identity          m_identity;
+		double                 m_base;
+		std::vector<std::byte> m_bytes; ///< the owned serialized form; declared last so the ctor can encode from m_identity
 	};
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: operator<< [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      writes a human-readable representation of an erased quantity to a text stream
+	/// @details    The erased form carries each base dimension by NAME HASH, not name, so the printed dimension is the
+	///             hashed signature — the SI-base magnitude followed by each base term as `#<hash>^<exponent>` — rather
+	///             than a named unit like `meters`. This is for logging and diagnostics; to print with unit names,
+	///             collapse to a concrete unit first with `to<Unit>()` and stream that. This is the TEXT representation;
+	///             the raw binary form is `data()`/`size()`/`bytes()`.
+	/// @param[in]  os  the output stream
+	/// @param[in]  value  the erased quantity
+	/// @return     the stream
+	//----------------------------------------------------------------------------------------------------------------------
+	inline std::ostream& operator<<(std::ostream& os, const any_unit& value)
+	{
+		os << value.value_in_base();
+		const auto& terms = value.identity().terms;
+		if (terms.empty())
+			os << " [dimensionless]";
+		else
+		{
+			os << " [";
+			for (std::size_t i = 0; i < terms.size(); ++i)
+			{
+				if (i != 0)
+					os << ' ';
+				os << '#' << std::hex << terms[i].hash << std::dec << '^' << terms[i].num;
+				if (terms[i].den != 1)
+					os << '/' << terms[i].den;
+			}
+			os << ']';
+		}
+		return os;
+	}
 
 	//======================================================================================================================
 	//	unit_cast — reclaimed: the explicit throwing collapse from any_unit to a concrete unit
@@ -557,81 +765,36 @@ namespace units
 	//----------------------------------------------------------------------------------------------------------------------
 	//      FUNCTION: serialize [public]
 	//----------------------------------------------------------------------------------------------------------------------
-	/// @brief      serializes a quantity to a self-describing byte stream
-	/// @details	The stream carries the dimension signature and the magnitude in SI canonical base. A peer can decode
-	///				it with `deserialize` without prior agreement on the type.
+	/// @brief      serializes a quantity to a self-describing, erased `any_unit`
+	/// @details	The returned `any_unit` carries the dimension signature, the magnitude in SI canonical base, and the
+	///				owned byte stream. A peer decodes it with `deserialize` without prior agreement on the type; the byte
+	///				form is available through `bytes()` (type-safe span) and `data()`/`size()` (for `ostream::write`,
+	///				`fwrite`, a socket `send`, and other byte-oriented interfaces, with no cast at the call site).
 	/// @tparam     Unit  a `UnitType`
 	/// @param[in]  quantity  the value to serialize
-	/// @return     the encoded bytes
+	/// @return     the erased quantity, owning its serialized bytes
 	//----------------------------------------------------------------------------------------------------------------------
 	template<class Unit>
-	[[nodiscard]] std::vector<std::byte> serialize(const Unit& quantity)
+	[[nodiscard]] any_unit serialize(const Unit& quantity)
 	{
 		static_assert(traits::is_unit_v<Unit>, "units::serialize requires a units quantity (e.g. meters<double>). Its argument is not a unit type; wrap the value in a unit before serializing.");
 		// gate the body so a non-unit argument produces ONLY the friendly message above, no downstream template soup
 		if constexpr (!traits::is_unit_v<Unit>)
-			return {};
+			return any_unit{unit_identity{}, 0.0};
 		else
 		{
-		constexpr auto& sig = detail::signature<Unit>::value;   // fixed-array compile-time signature (sorted by hash)
+			constexpr auto& sig = detail::signature<Unit>::value; // fixed-array compile-time signature (sorted by hash)
 
-		// value in SI canonical base
-		using Dim   = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
-		using Base  = detail::canonical_unit_t<Dim>;
-		const double base = Base(quantity).value();
+			// value in SI canonical base
+			using Dim         = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
+			using Base        = detail::canonical_unit_t<Dim>;
+			const double base = Base(quantity).value();
 
-		// choose the tersest exact value encoding
-		detail::value_kind kind;
-		if (base == std::floor(base) && std::abs(base) < 9.0e15)
-			kind = detail::value_kind::ivarint;
-		else if (static_cast<double>(static_cast<float>(base)) == base)
-			kind = detail::value_kind::f32;
-		else
-			kind = detail::value_kind::f64;
+			// lift the compile-time signature into the runtime identity, then let any_unit own its encoded form
+			unit_identity id;
+			id.terms.assign(sig.begin(), sig.end());
 
-		// any fractional exponent forces the fracExp flag
-		bool fracExp = false;
-		for (const auto& term : sig)
-			if (term.den != 1)
-				fracExp = true;
-
-		std::vector<std::byte> out;
-		out.push_back(std::byte{detail::serialization_version});
-		const std::uint8_t header = static_cast<std::uint8_t>(static_cast<std::uint8_t>(kind) | (fracExp ? 0x04 : 0x00));
-		out.push_back(std::byte{header});
-		detail::put_uvarint(out, sig.size());
-		for (const auto& term : sig)
-		{
-			// base dimension keyed by an 8-byte name-hash: fixed size, no central table, any dimension round-trips
-			for (unsigned int i = 0; i < 8; ++i)
-				out.push_back(std::byte{static_cast<std::uint8_t>(term.hash >> (8 * i))});
-			detail::put_svarint(out, term.num);
-			if (fracExp)
-				detail::put_svarint(out, term.den);
-		}
-
-		switch (kind)
-		{
-		case detail::value_kind::ivarint: detail::put_svarint(out, static_cast<std::int64_t>(base)); break;
-		case detail::value_kind::f32:
-		{
-			const float f = static_cast<float>(base);
-			std::uint32_t bits;
-			std::memcpy(&bits, &f, sizeof(bits));
-			for (unsigned int i = 0; i < 4; ++i)
-				out.push_back(std::byte{static_cast<std::uint8_t>(bits >> (8 * i))});
-			break;
-		}
-		case detail::value_kind::f64:
-		{
-			std::uint64_t bits;
-			std::memcpy(&bits, &base, sizeof(bits));
-			for (unsigned int i = 0; i < 8; ++i)
-				out.push_back(std::byte{static_cast<std::uint8_t>(bits >> (8 * i))});
-			break;
-		}
-		}
-		return out;
+			return any_unit{std::move(id), base};
 		}
 	}
 
@@ -738,5 +901,29 @@ namespace units
 		return erased->template to<Unit>();
 	}
 } // namespace units
+
+//----------------------------------------------------------------------------------------------------------------------
+//	std::hash<units::any_unit>
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief	hashes an erased quantity by its dimension signature and SI-base magnitude, so `any_unit` is usable as an
+///			unordered-container key. Consistent with `operator==`: two erased quantities that compare equal (same
+///			dimension and base value) hash equally.
+template<>
+struct std::hash<units::any_unit>
+{
+	std::size_t operator()(const units::any_unit& value) const noexcept
+	{
+		// FNV-1a-style fold over the term signature, mixed with the base-value hash
+		std::size_t seed = std::hash<double>()(value.value_in_base());
+		const auto  mix  = [&seed](std::size_t h) noexcept { seed ^= h + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2); };
+		for (const auto& term : value.identity().terms)
+		{
+			mix(std::hash<std::uint64_t>()(term.hash));
+			mix(std::hash<std::int64_t>()(term.num));
+			mix(std::hash<std::int64_t>()(term.den));
+		}
+		return seed;
+	}
+};
 
 #endif // units_serialization_h_

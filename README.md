@@ -368,17 +368,34 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    std::vector<std::byte> bytes = serialize(60.0_mph);        // encode (dimension + value)
+    any_unit encoded = serialize(60.0_mph);        // an erased quantity that OWNS its bytes
 
-    auto decoded = deserialize(bytes);                         // decode, erased
+    auto decoded = deserialize(encoded.bytes());   // decode from the bytes, still erased
     if (decoded)
         std::cout << decoded->to<kilometers_per_hour<double>>()->value() << " kph\n";  // 96.5606 kph
 }
 ```
 
-`deserialize` returns an erased `any_unit` you collapse into a concrete quantity — `to<Unit>()` (checked,
-returns `std::expected`), `try_to<Unit>()` / `unit_cast<Unit>()` (throwing), or `visit()` (the canonical unit of
-the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast path when the type is known.
+`serialize` returns an **`any_unit`** — a first-class value that owns its serialized bytes and behaves like a
+value type: it compares (`==`, and `<`/`>` within a dimension), hashes (usable as an `unordered_map` key), and
+prints. `deserialize` returns one too (wrapped in `std::expected`, since bad bytes can fail). Collapse an
+`any_unit` into a concrete quantity with `to<Unit>()` (checked, returns `std::expected`), `try_to<Unit>()` /
+`unit_cast<Unit>()` (throwing), or `visit()` (the canonical unit of the decoded dimension, no target named).
+`deserialize<Unit>(bytes)` is the typed fast path when the type is known.
+
+**It drops into the interfaces you already have, with no cast.** An `any_unit` exposes both a modern, type-safe
+byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`, `size()`)
+that feeds `std::ostream::write`, `std::fwrite`, and a socket `send` directly:
+
+```cpp
+any_unit q = serialize(position);
+
+file.write(q.data(), q.size());                 // std::ostream::write(const char*, n) — no cast
+std::fwrite(q.data(), 1, q.size(), fp);         // C stdio
+::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
+
+auto same = deserialize(q.bytes());             // the type-safe span round-trips
+```
 
 The stream identifies each base dimension by an 8-byte hash of its name, so the format has **no fixed set of
 dimensions and no ceiling on how many a quantity composes**: any base dimension round-trips, including one you

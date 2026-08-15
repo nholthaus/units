@@ -7,8 +7,12 @@
 #endif
 
 #include <array>
+#include <atomic>
 #include <chrono>
+#include <compare>
 #include <complex>
+#include <filesystem>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <iomanip>
 #include <iostream>
@@ -18,6 +22,7 @@
 #include <string>
 #include <type_traits>
 #include <units.h>
+#include <unordered_map>
 #include <units/serialization.h>
 
 using namespace units;
@@ -5943,12 +5948,43 @@ TEST_F(TorqueNaming, poundFeetIsTheTorqueUnit)
 
 namespace
 {
-	// round-trips a quantity through serialize -> deserialize -> to<same> and asserts bit-equality of the value.
+	// Round-trips a quantity through a REAL external boundary: serialize -> write the raw bytes to a temp file ->
+	// read them back into a fresh buffer (no link to the original any_unit) -> deserialize that buffer. This proves the
+	// on-disk byte stream is self-sufficient and decodes correctly; it is deliberately NOT `deserialize(serialize(q))`,
+	// which could short-circuit an in-memory any_unit and never exercise the wire encode/decode.
 	template<class Q>
 	void expectRoundTrip(Q quantity)
 	{
-		const std::vector<std::byte> bytes = units::serialize(quantity);
-		const auto                   erased = units::deserialize(bytes);
+		const units::any_unit encoded = units::serialize(quantity);
+
+		// write the bytes out through the C-interface face (data()/size()) exactly as a caller would to a file
+		static std::atomic<unsigned> counter{0};
+		const std::filesystem::path  path =
+			std::filesystem::temp_directory_path() / ("units_roundtrip_" + std::to_string(counter.fetch_add(1)) + ".bin");
+		{
+			std::ofstream out(path, std::ios::binary);
+			ASSERT_TRUE(out.is_open());
+			out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
+		}
+
+		// read the raw bytes back into a fresh buffer that has NO connection to `encoded`
+		std::vector<std::byte> fromDisk;
+		{
+			std::ifstream in(path, std::ios::binary);
+			ASSERT_TRUE(in.is_open());
+			in.seekg(0, std::ios::end);
+			const std::streamoff length = in.tellg();
+			in.seekg(0, std::ios::beg);
+			fromDisk.resize(static_cast<std::size_t>(length));
+			in.read(reinterpret_cast<char*>(fromDisk.data()), length);
+		}
+		std::filesystem::remove(path);
+
+		// the bytes on disk match what the any_unit reported it wrote
+		ASSERT_EQ(encoded.size(), fromDisk.size());
+
+		// decode the disk buffer with no prior knowledge of the type
+		const auto erased = units::deserialize(fromDisk);
 		ASSERT_TRUE(erased.has_value());
 		const auto back = erased->template to<Q>();
 		ASSERT_TRUE(back.has_value());
@@ -5958,8 +5994,8 @@ namespace
 			EXPECT_TRUE(std::isnan(b));
 		else
 			EXPECT_DOUBLE_EQ(a, b);
-		// the typed fast path yields the same value
-		const auto direct = units::deserialize<Q>(bytes);
+		// the typed fast path decodes the same disk buffer to the same value
+		const auto direct = units::deserialize<Q>(fromDisk);
 		ASSERT_TRUE(direct.has_value());
 		if (std::isnan(a))
 			EXPECT_TRUE(std::isnan(direct->template to<double>()));
@@ -6311,7 +6347,9 @@ TEST_F(Serialization, lossyIntegerTargetRejected)
 
 TEST_F(Serialization, errorPaths)
 {
-	const auto good = units::serialize(60.0_mph);
+	// an owning copy of the bytes, so the tamper cases below can mutate it
+	const units::any_unit    encoded = units::serialize(60.0_mph);
+	const std::vector<std::byte> good(encoded.bytes().begin(), encoded.bytes().end());
 
 	// empty buffer -> truncated
 	{
@@ -6404,7 +6442,8 @@ TEST_F(Serialization, wireStabilityGolden)
 {
 	// a frozen fixture guards the wire format against silent drift. 100 m: version(1) + header(kind=ivarint,0)
 	// + count(1) + hash("length" 8 bytes) + zigzag-exponent(1 -> 2) + value-varint(100 -> 200 = 0xC8 0x01)
-	const auto bytes = units::serialize(units::meters<double>(100.0));
+	const units::any_unit bytesU = units::serialize(units::meters<double>(100.0));
+	const auto bytes = bytesU.bytes();
 	ASSERT_EQ(14u, bytes.size());
 	EXPECT_EQ(std::byte{1}, bytes[0]);       // version
 	EXPECT_EQ(std::byte{0}, bytes[1]);       // header: value_kind::ivarint, no fracExp
@@ -6543,33 +6582,36 @@ TEST_F(Serialization, everyBuiltinDimensionRoundTripsViaVisit)
 TEST_F(Serialization, determinismSameInputSameBytes)
 {
 	// serialization is a pure function of the value: same quantity -> identical bytes, every time
-	const auto a = units::serialize(60.0_mph);
-	const auto bytesA = units::serialize(60.0_mph);
-	EXPECT_EQ(a, bytesA);
-	const auto c = units::serialize(units::meters<double>(3.14));
-	const auto bytesC = units::serialize(units::meters<double>(3.14));
-	EXPECT_EQ(c, bytesC);
+	EXPECT_TRUE(std::ranges::equal(units::serialize(60.0_mph).bytes(), units::serialize(60.0_mph).bytes()));
+	EXPECT_TRUE(std::ranges::equal(units::serialize(units::meters<double>(3.14)).bytes(),
+								   units::serialize(units::meters<double>(3.14)).bytes()));
 }
 
 TEST_F(Serialization, distinctQuantitiesDistinctBytes)
 {
-	// different value -> different bytes; different dimension -> different bytes
+	// different value -> different quantity; different dimension -> different quantity
 	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::meters<double>(2.0)));
 	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::seconds<double>(1.0)));
-	// same dimension, different unit but SAME base value -> SAME bytes (self-describing by dimension+base)
+	// same dimension, different unit but SAME base value -> EQUAL (self-describing by dimension+base)
 	EXPECT_EQ(units::serialize(units::meters<double>(1000.0)), units::serialize(units::kilometers<double>(1.0)));
+	// and byte-identical on the wire, since the encoding is a pure function of dimension + base
+	EXPECT_TRUE(std::ranges::equal(units::serialize(units::meters<double>(1000.0)).bytes(),
+								   units::serialize(units::kilometers<double>(1.0)).bytes()));
 }
 
 TEST_F(Serialization, valueKindIvarintForWholeNumbers)
 {
 	// a whole SI-base value uses the integer-varint kind (header low bits == 0)
-	const auto whole = units::serialize(units::meters<double>(42.0));
+	const units::any_unit wholeU = units::serialize(units::meters<double>(42.0));
+	const auto whole = wholeU.bytes();
 	EXPECT_EQ(std::byte{0}, std::byte{static_cast<std::uint8_t>(std::to_integer<std::uint8_t>(whole[1]) & 0x03)});
 	// an exact-float value uses f32 (kind == 1)
-	const auto f32 = units::serialize(units::meters<double>(1.5));
+	const units::any_unit f32U = units::serialize(units::meters<double>(1.5));
+	const auto f32 = f32U.bytes();
 	EXPECT_EQ(1, std::to_integer<std::uint8_t>(f32[1]) & 0x03);
 	// an irrational value uses f64 (kind == 2)
-	const auto f64 = units::serialize(units::meters<double>(0.1));
+	const units::any_unit f64U = units::serialize(units::meters<double>(0.1));
+	const auto f64 = f64U.bytes();
 	EXPECT_EQ(2, std::to_integer<std::uint8_t>(f64[1]) & 0x03);
 }
 
@@ -6627,7 +6669,8 @@ TEST_F(Serialization, explicitCandidateDisambiguatesSharedSignature)
 TEST_F(Serialization, truncatedAtEveryBoundary)
 {
 	// truncating the stream at EVERY length short of complete must yield truncated (never a crash or bad decode)
-	const auto full = units::serialize(60.0_mph);
+	const units::any_unit fullU = units::serialize(60.0_mph);
+	const auto full = fullU.bytes();
 	for (std::size_t n = 0; n < full.size(); ++n)
 	{
 		std::vector<std::byte> partial(full.begin(), full.begin() + static_cast<std::ptrdiff_t>(n));
@@ -6656,7 +6699,8 @@ TEST_F(Serialization, streamOfManyQuantitiesConcatenated)
 TEST_F(Serialization, floatUnderlyingUsesF32OrSmaller)
 {
 	// a float-underlying quantity never needs f64 in the stream (its value is representable in <= 4 value bytes)
-	const auto bytesF = units::serialize(units::meters<float>(3.14159f));
+	const units::any_unit bytesFU = units::serialize(units::meters<float>(3.14159f));
+	const auto bytesF = bytesFU.bytes();
 	const std::uint8_t kind = std::to_integer<std::uint8_t>(bytesF[1]) & 0x03;
 	EXPECT_NE(2, kind); // not f64
 }
@@ -6669,6 +6713,133 @@ TEST_F(Serialization, unitCastAndTryToAgree)
 	EXPECT_DOUBLE_EQ(v->try_to<units::kilojoules<double>>().value(), units::unit_cast<units::kilojoules<double>>(*v).value());
 }
 
+// serialize returns an any_unit that OWNS its bytes; bytes()/data()/size() are three views of that one buffer.
+TEST_F(Serialization, anyUnitOwnsItsBytes)
+{
+	const units::any_unit q = units::serialize(60.0_mph);
+	EXPECT_GT(q.size(), 0u);
+	EXPECT_EQ(q.size(), q.bytes().size());
+	// data() is a const char* view of the same buffer bytes() spans
+	EXPECT_EQ(static_cast<const void*>(q.data()), static_cast<const void*>(q.bytes().data()));
+	// the buffer is valid for the object's lifetime: repeated access is stable
+	EXPECT_EQ(q.data(), q.data());
+	EXPECT_TRUE(std::ranges::equal(q.bytes(), q.bytes()));
+}
+
+// The C-interface face (data()/size()) drops straight into a std::ostream::write with NO cast at the call site,
+// and the bytes read back from that stream decode without any prior knowledge of the type.
+TEST_F(Serialization, dataAndSizeFeedAStreamNoCast)
+{
+	const units::any_unit q = units::serialize(units::meters<double>(100.0));
+
+	std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+	stream.write(q.data(), static_cast<std::streamsize>(q.size())); // const char* + size, no reinterpret_cast here
+	ASSERT_TRUE(stream.good());
+
+	const std::string blob = stream.str();
+	ASSERT_EQ(q.size(), blob.size());
+
+	// read the raw bytes back into a fresh byte buffer and decode with no prior type knowledge
+	std::vector<std::byte> raw(blob.size());
+	std::memcpy(raw.data(), blob.data(), blob.size());
+	const auto decoded = units::deserialize(raw);
+	ASSERT_TRUE(decoded.has_value());
+	const auto back = decoded->to<units::meters<double>>();
+	ASSERT_TRUE(back.has_value());
+	EXPECT_DOUBLE_EQ(100.0, back->value());
+}
+
+// The bytes on disk are self-sufficient: written from one process-state, read into a disconnected buffer, decoded.
+TEST_F(Serialization, bytesAreSelfSufficientAcrossAFreshBuffer)
+{
+	const units::any_unit q = units::serialize(units::kilograms<double>(2.5));
+
+	// copy the bytes into a buffer that has no relationship to q, then drop q entirely
+	std::vector<std::byte> detached(q.bytes().begin(), q.bytes().end());
+
+	const auto decoded = units::deserialize(detached);
+	ASSERT_TRUE(decoded.has_value());
+	const auto mass = decoded->to<units::kilograms<double>>();
+	ASSERT_TRUE(mass.has_value());
+	EXPECT_DOUBLE_EQ(2.5, mass->value());
+}
+
+// any_unit equality is "same dimension AND same base magnitude" — not an encoding or unit-name comparison.
+TEST_F(Serialization, equalityIsDimensionAndMagnitude)
+{
+	// same quantity, different source unit -> equal (both 1000 m in SI base)
+	EXPECT_EQ(units::serialize(units::meters<double>(1000.0)), units::serialize(units::kilometers<double>(1.0)));
+	// same unit, same value -> equal
+	EXPECT_EQ(units::serialize(60.0_mph), units::serialize(60.0_mph));
+	// same dimension, different magnitude -> not equal
+	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::meters<double>(2.0)));
+	// different dimension, same numeric magnitude -> not equal
+	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::seconds<double>(1.0)));
+	// a round-tripped any_unit equals a freshly serialized one of the same quantity
+	const auto decoded = units::deserialize(units::serialize(units::meters<double>(3.0)));
+	ASSERT_TRUE(decoded.has_value());
+	EXPECT_EQ(*decoded, units::serialize(units::meters<double>(3.0)));
+	EXPECT_NE(*decoded, units::serialize(units::meters<double>(4.0)));
+}
+
+// any_unit is ordered WITHIN a dimension (by base magnitude) and UNORDERED across dimensions (partial_ordering).
+TEST_F(Serialization, orderingWithinDimensionOnly)
+{
+	const units::any_unit shorter = units::serialize(units::meters<double>(3.0));
+	const units::any_unit longer  = units::serialize(units::meters<double>(5.0));
+	const units::any_unit sameLen = units::serialize(units::kilometers<double>(0.003)); // == 3 m
+	const units::any_unit time    = units::serialize(units::seconds<double>(3.0));
+
+	// same dimension -> ordered by base magnitude
+	EXPECT_LT(shorter, longer);
+	EXPECT_GT(longer, shorter);
+	EXPECT_LE(shorter, sameLen);
+	EXPECT_GE(sameLen, shorter);
+	EXPECT_TRUE((shorter <=> sameLen) == std::partial_ordering::equivalent);
+	EXPECT_TRUE((shorter <=> longer) == std::partial_ordering::less);
+
+	// different dimension -> unordered: every relational is false
+	EXPECT_FALSE(shorter < time);
+	EXPECT_FALSE(shorter > time);
+	EXPECT_FALSE(shorter <= time);
+	EXPECT_FALSE(shorter >= time);
+	EXPECT_TRUE((shorter <=> time) == std::partial_ordering::unordered);
+}
+
+// operator<< prints a human-readable text form (base magnitude + hashed dimension signature).
+TEST_F(Serialization, streamsAHumanReadableForm)
+{
+	std::ostringstream dimensionless;
+	dimensionless << units::serialize(units::dimensionless<double>(0.25));
+	EXPECT_NE(std::string::npos, dimensionless.str().find("0.25"));
+	EXPECT_NE(std::string::npos, dimensionless.str().find("dimensionless"));
+
+	std::ostringstream length;
+	length << units::serialize(units::meters<double>(100.0));
+	// carries the base value and a bracketed dimension signature
+	EXPECT_NE(std::string::npos, length.str().find("100"));
+	EXPECT_NE(std::string::npos, length.str().find('['));
+	EXPECT_NE(std::string::npos, length.str().find('#')); // a hashed base-dimension term
+}
+
+// std::hash makes any_unit a usable unordered-container key, consistent with operator==.
+TEST_F(Serialization, hashableAsAKey)
+{
+	std::unordered_map<units::any_unit, std::string> byQuantity;
+	byQuantity[units::serialize(units::meters<double>(1000.0))] = "one kilometer";
+
+	// a different unit of the SAME quantity finds the same entry (equal => equal hash)
+	const auto found = byQuantity.find(units::serialize(units::kilometers<double>(1.0)));
+	ASSERT_NE(byQuantity.end(), found);
+	EXPECT_EQ("one kilometer", found->second);
+
+	// a different magnitude is a different key
+	EXPECT_EQ(byQuantity.end(), byQuantity.find(units::serialize(units::meters<double>(2000.0))));
+
+	// equal quantities hash equally (the contract std::hash must honor)
+	const std::hash<units::any_unit> hasher;
+	EXPECT_EQ(hasher(units::serialize(units::meters<double>(1000.0))), hasher(units::serialize(units::kilometers<double>(1.0))));
+}
 
 int main(int argc, char* argv[])
 {
