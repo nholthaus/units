@@ -361,6 +361,7 @@ The header is separate; `<units.h>` does not pull it in.
 ```cpp
 #include <units.h>
 #include <units/serialization.h>
+#include <fstream>
 #include <iostream>
 
 int main()
@@ -368,10 +369,19 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    any_unit encoded = serialize(60.0_mph);        // an erased quantity that OWNS its bytes
+    // write a quantity straight to a stream — a file, a socket, any std::ostream
+    {
+        std::ofstream out("speed.bin", std::ios::binary);
+        const auto     speed = serialize(60.0_mph);
+        out.write(speed.data(), speed.size());
+    }
 
-    auto decoded = deserialize(encoded.bytes());   // decode from the bytes, still erased
-    if (decoded)
+    // read it back with no prior agreement on the type — the stream carries the dimension
+    std::ifstream          in("speed.bin", std::ios::binary | std::ios::ate);
+    std::vector<std::byte> bytes(in.tellg());
+    in.seekg(0);
+    in.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
+    if (auto decoded = deserialize(bytes))
         std::cout << decoded->to<kilometers_per_hour<double>>()->value() << " kph\n";  // 96.5606 kph
 }
 ```

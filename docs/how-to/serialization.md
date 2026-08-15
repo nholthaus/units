@@ -21,12 +21,13 @@ Related how-to guides: [JSON serialization](json-serialization.md), [defining ne
 
 ## Round-trip
 
-`serialize` returns the bytes; `deserialize` returns an erased quantity, or a `deserialize_error`. The erased
-value has no arithmetic of its own — you collapse it into a concrete unit to compute with it.
+Write a quantity to a stream and read it back. `serialize` gives you the bytes to write; on the way back
+`deserialize` hands you the quantity, or a `deserialize_error`.
 
 ```cpp
 #include <units.h>
 #include <units/serialization.h>
+#include <fstream>
 #include <iostream>
 
 int main()
@@ -34,13 +35,24 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    any_unit encoded = serialize(60.0_mph);   // an erased quantity that owns its bytes
+    // write straight to a stream — a file, a socket, any std::ostream
+    {
+        std::ofstream out("speed.bin", std::ios::binary);
+        const auto     speed = serialize(60.0_mph);
+        out.write(speed.data(), speed.size());        // const char* + size, no cast
+    }
 
-    auto decoded = deserialize(encoded.bytes());   // decode from the bytes (erased)
+    // read it back, knowing nothing about the type in advance
+    std::ifstream          in("speed.bin", std::ios::binary | std::ios::ate);
+    std::vector<std::byte> bytes(in.tellg());
+    in.seekg(0);
+    in.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
+
+    auto decoded = deserialize(bytes);                // decode
     if (!decoded)
         return 1;
 
-    auto kph = decoded->to<kilometers_per_hour<double>>();   // collapse, checked
+    auto kph = decoded->to<kilometers_per_hour<double>>();   // collapse to a concrete unit, checked
     if (kph)
         std::cout << kph->value() << " kph\n";               // prints: 96.5606 kph
 }
