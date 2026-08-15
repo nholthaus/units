@@ -369,6 +369,16 @@ TEST_F(TypeTraits, is_frequency_unit)
 	static_assert(!traits::is_frequency_unit_v<seconds<double>>);
 }
 
+TEST_F(TypeTraits, is_volume_flow_rate_unit)
+{
+	static_assert(!traits::is_volume_flow_rate_unit_v<double>);
+	static_assert(traits::is_volume_flow_rate_unit_v<cubic_meters_per_second<double>>);
+	static_assert(traits::is_volume_flow_rate_unit_v<const liters_per_second<double>>);
+	static_assert(traits::is_volume_flow_rate_unit_v<const gallons_per_minute<double>&>);
+	static_assert(!traits::is_volume_flow_rate_unit_v<cubic_meters<double>>);
+	static_assert(!traits::is_volume_flow_rate_unit_v<meters_per_second<double>>);
+}
+
 TEST_F(TypeTraits, is_velocity_unit)
 {
 	static_assert(!traits::is_velocity_unit_v<double>);
@@ -703,26 +713,26 @@ TEST_F(STDSpecializations, hash)
 TEST_F(STDSpecializations, unitsAsContainerKeys)
 {
 	// std::map — ordered by value via operator<.
-	std::map<meters<double>, std::string> m;
-	m[meters<double>(1.0)] = "one";
-	m[meters<double>(2.0)] = "two";
-	m[kilometers<double>(0.003)] = "three-m"; // 3 m, distinct key from 1 m / 2 m
-	EXPECT_EQ(m.size(), 3u);
-	EXPECT_EQ(m[meters<double>(1.0)], "one");
-	EXPECT_EQ(m.begin()->second, "one"); // smallest key first
+	std::map<meters<double>, std::string> byValue;
+	byValue[meters<double>(1.0)] = "one";
+	byValue[meters<double>(2.0)] = "two";
+	byValue[kilometers<double>(0.003)] = "three-m"; // 3 m, distinct key from 1 m / 2 m
+	EXPECT_EQ(byValue.size(), 3u);
+	EXPECT_EQ(byValue[meters<double>(1.0)], "one");
+	EXPECT_EQ(byValue.begin()->second, "one"); // smallest key first
 
 	// std::unordered_map — needs both std::hash<meters<double>> AND operator==.
-	std::unordered_map<meters<double>, int> um;
-	um[meters<double>(5.0)] = 50;
-	EXPECT_EQ(um.at(meters<double>(5.0)), 50);
+	std::unordered_map<meters<double>, int> byHash;
+	byHash[meters<double>(5.0)] = 50;
+	EXPECT_EQ(byHash.at(meters<double>(5.0)), 50);
 	// a scaled-but-equal key resolves to the SAME bucket (kilometers<double>(0.005) == 5 m). Look it up after
 	// converting to the map's key type, since a heterogeneous [] would insert a different key type.
-	EXPECT_EQ(um.at(meters<double>(kilometers<double>(0.005))), 50);
+	EXPECT_EQ(byHash.at(meters<double>(kilometers<double>(0.005))), 50);
 
 	// std::set — membership by value.
-	std::set<seconds<double>> s{seconds<double>(1.0), seconds<double>(2.0), seconds<double>(1.0)};
-	EXPECT_EQ(s.size(), 2u); // the duplicate 1 s collapses
-	EXPECT_TRUE(s.count(seconds<double>(2.0)) == 1);
+	std::set<seconds<double>> timeSet{seconds<double>(1.0), seconds<double>(2.0), seconds<double>(1.0)};
+	EXPECT_EQ(timeSet.size(), 2u); // the duplicate 1 s collapses
+	EXPECT_TRUE(timeSet.count(seconds<double>(2.0)) == 1);
 }
 
 TEST_F(UnitManipulators, squared)
@@ -1066,8 +1076,8 @@ TEST_F(UnitType, implicitChronoConversions)
 
 TEST_F(UnitType, negativeConstexprLiterals)
 {
-	static constexpr radians kAngularValue{-30.0_deg};
-	EXPECT_EQ(-30.0_deg, kAngularValue);
+	static constexpr radians ANGULAR_VALUE{-30.0_deg};
+	EXPECT_EQ(-30.0_deg, ANGULAR_VALUE);
 }
 
 TEST_F(UnitType, assignmentFromArithmeticType)
@@ -2942,16 +2952,16 @@ TEST_F(UnitType, PpbPerYearCompoundUnitType)
 {
 	using ppb_per_year = decltype(ppb/yr);
 
-	parts_per_million s = 9.71_ppb;
+	parts_per_million concentration = 9.71_ppb;
 
-	EXPECT_EQ(s, 0.00971_ppm);
-	EXPECT_DOUBLE_EQ(s, 0.00000000971);
+	EXPECT_EQ(concentration, 0.00971_ppm);
+	EXPECT_DOUBLE_EQ(concentration, 0.00000000971);
 
-	ppb_per_year ds(0.109);
+	ppb_per_year rate(0.109);
 
-	auto time = 2013.9_yr-1994_yr;
+	auto elapsed = 2013.9_yr-1994_yr;
 
-	parts_per_million val = s + ds*time;
+	parts_per_million val = concentration + rate*elapsed;
 	EXPECT_NEAR(val, 1.18791e-08, 1e-12);
 }
 
@@ -3017,6 +3027,23 @@ TEST_F(UnitType, convertMethod)
 	constexpr auto unit2 = meters<double>(3.0).convert<feet>();
 	constexpr auto test2 = unit2.to<double>();
 	EXPECT_NEAR(9.84252, test2, 5.0e-6);
+
+	// named-unit to<>(): returns a unit of the requested type, mirroring convert<>()
+	constexpr auto asFeet = meters<double>(3.0).to<feet>();
+	static_assert(std::is_same_v<std::remove_const_t<decltype(asFeet)>, feet<double>>);
+	EXPECT_NEAR(9.84252, asFeet.to<double>(), 5.0e-6);
+
+	constexpr auto asMeters = centimeters<double>(100.0).to<meters>();
+	static_assert(std::is_same_v<std::remove_const_t<decltype(asMeters)>, meters<double>>);
+	EXPECT_DOUBLE_EQ(1.0, asMeters.to<double>());
+
+	// arithmetic-type to<>() is unchanged: extracts the underlying value
+	EXPECT_DOUBLE_EQ(3.0, meters<double>(3.0).to<double>());
+
+	// convert<>() is callable on a const unit (const-qualified overloads)
+	const meters<double> constMeters(3.0);
+	EXPECT_NEAR(9.84252, constMeters.convert<feet>().to<double>(), 5.0e-6);
+	EXPECT_NEAR(9.84252, constMeters.to<feet>().to<double>(), 5.0e-6);
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
@@ -3117,6 +3144,22 @@ TEST_F(UnitType, to_string)
 	EXPECT_STREQ("25.1 pct", to_string(c_pct).c_str());
 }
 
+// The platform spellings of the two locales this test needs, and the command that installs them.
+#if defined(_MSC_VER)
+static constexpr const char* GERMAN_LOCALE = "de-DE";
+static constexpr const char* US_LOCALE     = "en-US";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales";
+#elif defined(__APPLE__)
+// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `de_DE.utf8` alias.
+static constexpr const char* GERMAN_LOCALE = "de_DE.UTF-8";
+static constexpr const char* US_LOCALE     = "en_US.UTF-8";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales";
+#else
+static constexpr const char* GERMAN_LOCALE = "de_DE.utf8";
+static constexpr const char* US_LOCALE     = "en_US.utf8";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales, e.g. `sudo locale-gen de_DE.UTF-8 en_US.UTF-8`";
+#endif
+
 TEST_F(UnitType, to_string_locale)
 {
 	struct lconv*     lc;
@@ -3124,18 +3167,16 @@ TEST_F(UnitType, to_string_locale)
 	std::stringstream os1;
 	std::stringstream os2;
 
+	// A locale this test needs may not be present on the host; that is an environmental precondition,
+	// not a library defect, so skip (with the install hint) rather than throw from std::locale.
+	if (setlocale(LC_ALL, GERMAN_LOCALE) == nullptr || setlocale(LC_ALL, US_LOCALE) == nullptr)
+	{
+		GTEST_SKIP() << "requires the German and US locales; " << LOCALE_HINT;
+	}
+
 	// German locale
-#if defined(_MSC_VER)
-	setlocale(LC_ALL, "de-DE");
-	os1.imbue(std::locale("de-DE"));
-#elif defined(__APPLE__)
-	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `de_DE.utf8` alias.
-	EXPECT_STREQ("de_DE.UTF-8", setlocale(LC_ALL, "de_DE.UTF-8")) << "For this test to work, you need a german locale installed.";
-	os1.imbue(std::locale("de_DE.UTF-8"));
-#else
-	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8")) << "For this test to work, you need a german locale installed: `sudo locale-gen de_DE.UTF-8`";
-	os1.imbue(std::locale("de_DE.utf8"));
-#endif
+	setlocale(LC_ALL, GERMAN_LOCALE);
+	os1.imbue(std::locale(GERMAN_LOCALE));
 
 	lc            = localeconv();
 	char point_de = *lc->decimal_point;
@@ -3152,17 +3193,8 @@ TEST_F(UnitType, to_string_locale)
 	EXPECT_STREQ("9,2740100783e-24 A m^2", output.c_str());
 
 	// US locale
-#if defined(_MSC_VER)
-	setlocale(LC_ALL, "en-US");
-	os2.imbue(std::locale("en-US"));
-#elif defined(__APPLE__)
-	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `en_US.utf8` alias.
-	EXPECT_STREQ("en_US.UTF-8", setlocale(LC_ALL, "en_US.UTF-8")) << "For this test to work, you need a USA locale installed.";
-	os2.imbue(std::locale("en_US.UTF-8"));
-#else
-	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8")) << "For this test to work, you need a USA locale installed: `sudo locale-gen en_US.UTF-8`";
-	os2.imbue(std::locale("en_US.utf8"));
-#endif
+	setlocale(LC_ALL, US_LOCALE);
+	os2.imbue(std::locale(US_LOCALE));
 
 	lc            = localeconv();
 	char point_us = *lc->decimal_point;
@@ -3321,30 +3353,65 @@ TEST_F(UnitType, dBConversion)
 	EXPECT_NEAR(20.0, b_dbw.value(), 5.0e-7);
 }
 
+TEST_F(UnitType, dimensionlessDecibelLiteral)
+{
+	// the `_dB` literal yields the dimensionless decibel; its stored value is the dB figure
+	auto gainDb = -20.0_dB;
+	static_assert(std::is_same_v<decltype(gainDb), decibels<double>>);
+	EXPECT_DOUBLE_EQ(-20.0, gainDb.raw());
+
+	// only a floating-point _dB literal exists; an integer decibel is rejected at compile time
+	// (see the errorMessages harness), because a decibel scale cannot use an integral underlying type
+	auto gainDb2 = 6.0_dB;
+	static_assert(std::is_same_v<decltype(gainDb2), decibels<double>>);
+
+	// name/abbreviation resolve for the dimensionless decibel
+	decibels<double> ratioDb(6.0);
+	EXPECT_STREQ("decibels", ratioDb.name());
+	EXPECT_STREQ("dB", ratioDb.abbreviation());
+
+	// coexists with the power decibel literals (distinct types, distinct suffixes)
+	static_assert(std::is_same_v<decltype(0.0_dBW), dBW<double>>);
+	static_assert(std::is_same_v<decltype(0.0_dBm), dBm<double>>);
+	static_assert(!std::is_same_v<decibels<double>, dBW<double>>);
+
+	// a floating-point underlying type other than double is allowed (only integral types are rejected)
+	decibels<float> asFloat(20.0f);
+	EXPECT_NEAR(100.0, static_cast<double>(asFloat.to_linearized()), 5.0e-4);
+
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+	// the streamed form of a decibel-arithmetic result uses the dB abbreviation (adding dB multiplies linear)
+	testing::internal::CaptureStdout();
+	std::cout << (decibels<double>(3.0) + decibels<double>(3.0));
+	std::string output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("6 dB", output.c_str());
+#endif
+}
+
 TEST_F(UnitType, dBAddition)
 {
 	bool isSame;
 
 	auto result_dbw = dBW<double>(10.0) + decibels<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
-	result_dbw = dBW<int>(10) + decibels<int>(30);
+	result_dbw = dBW<double>(10.0) + decibels<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
 	result_dbw = decibels<double>(12.0) + dBW<double>(30.0);
 	EXPECT_NEAR(42.0, result_dbw.value(), 5.0e-5);
-	result_dbw = decibels<int>(12) + dBW<int>(30);
-	EXPECT_NEAR(42.0, result_dbw.value(), 2);
+	result_dbw = decibels<double>(12.0) + dBW<double>(30.0);
+	EXPECT_NEAR(42.0, result_dbw.value(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
-	result_dbm = decibels<int>(30) + dBm<int>(20);
+	result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	unit<squared<dBW<double>>> result_dBW2 = ::units::power::dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
-	unit<squared<dBW<int>>> result_dBW3 = dBW<int>(10) + dBm<int>(40);
+	unit<squared<dBW<double>>> result_dBW3 = dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW3.to_linearized(), 5.0e-5);
 }
 
@@ -3524,7 +3591,7 @@ TEST_F(ConversionFactor, mass)
 	test = carats<double>(kilograms<double>(0.0002)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = kilograms<double>(slugs<double>(1.0)).value();
-	EXPECT_NEAR(14.593903, test, 5.0e-7);
+	EXPECT_NEAR(14.593902937206364, test, 5.0e-13);
 
 	test = carats<double>(mass::pounds<double>(6.3)).value();
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
@@ -3720,6 +3787,60 @@ TEST_F(ConversionFactor, frequency)
 	EXPECT_NEAR(5000.0, test, 5.0e-5);
 	test = hertz<double>(megahertz<double>(1.0)).value();
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
+}
+
+TEST_F(ConversionFactor, volume_flow_rate)
+{
+	double test;
+	bool   same;
+
+	same = std::is_same_v<cubic_meters_per_second<double>::conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::volume_flow_rate>>>;
+	EXPECT_TRUE(same);
+
+	same = traits::is_same_dimension_unit_v<liters_per_second<double>, cubic_meters_per_second<double>>;
+	EXPECT_TRUE(same);
+
+	// a volume divided by a time is a volume flow rate (dimension derived from volume/time)
+	same = traits::is_same_dimension_unit_v<decltype(liters<double>(1.0) / seconds<double>(1.0)), liters_per_second<double>>;
+	EXPECT_TRUE(same);
+
+	test = liters_per_second<double>(cubic_meters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(1000.0, test);
+	test = liters_per_minute<double>(liters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(60.0, test);
+	test = cubic_feet_per_minute<double>(cubic_feet_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(60.0, test);
+	test = liters_per_second<double>(gallons_per_minute<double>(1.0)).value();
+	EXPECT_NEAR(0.0630901964, test, 5.0e-10);
+	test = liters_per_second<double>(cubic_feet_per_second<double>(1.0)).value();
+	EXPECT_NEAR(28.316846592, test, 5.0e-9);
+	test = cubic_meters_per_hour<double>(gallons_per_minute<double>(100.0)).value();
+	EXPECT_NEAR(22.712470704, test, 5.0e-9);
+	test = cubic_meters_per_hour<double>(cubic_feet_per_minute<double>(1.0)).value();
+	EXPECT_NEAR(1.69901079552, test, 5.0e-11);
+
+	// each remaining named unit checked against its most natural base
+	test = cubic_meters_per_hour<double>(cubic_meters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(3600.0, test);
+	test = gallons_per_minute<double>(gallons_per_hour<double>(60.0)).value();
+	EXPECT_DOUBLE_EQ(1.0, test);
+	test = liters_per_second<double>(gallons_per_hour<double>(1.0)).value();
+	EXPECT_NEAR(0.00105150327, test, 5.0e-11);
+
+	// deriving the dimension from volume / time means the composed quantity IS the named unit: it
+	// resolves to liters_per_second and streams with that unit's abbreviation, and converts as expected
+	same = std::is_same_v<decltype(5.0_L / 1.0_s), liters_per_second<double>>;
+	EXPECT_TRUE(same);
+	test = gallons_per_minute<double>(5.0_L / 1.0_s).value();
+	EXPECT_NEAR(79.2516157, test, 5.0e-7);
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+	{
+		testing::internal::CaptureStdout();
+		std::cout << (5.0_L / 1.0_s);
+		std::string output = testing::internal::GetCapturedStdout();
+		EXPECT_STREQ("5 L_per_s", output.c_str());
+	}
+#endif
 }
 
 TEST_F(ConversionFactor, velocity)
@@ -4339,7 +4460,7 @@ TEST_F(ConversionFactor, density)
 	test = kilograms_per_cubic_meter<double>(pounds_per_gallon<double>(1.0)).value();
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
 	test = kilograms_per_cubic_meter<double>(slugs_per_cubic_foot<double>(1.0)).value();
-	EXPECT_NEAR(515.3788184, test, 5.0e-6);
+	EXPECT_NEAR(515.3788183931962, test, 5.0e-11);
 }
 
 TEST_F(ConversionFactor, concentration)
@@ -5443,30 +5564,30 @@ TEST(ConcentrationSemantics, ScalarTimesPercentYieldsDimensionless)
 
 TEST(ConcentrationSemantics, PercentMathPreservesPercentRepresentation)
 {
-	auto a = 100.0_pct;
-	auto b = 70.0_pct;
+	auto whole = 100.0_pct;
+	auto most  = 70.0_pct;
 
 	// subtraction should preserve the unit: 100% - 70% = 30%
-	auto d = a - b;
-	EXPECT_NEAR(d.raw(), 30.0, 0.0);
+	auto diff = whole - most;
+	EXPECT_NEAR(diff.raw(), 30.0, 0.0);
 
 	// fabs should preserve percent representation: fabs(30%) == 30%
-	auto f = units::fabs(d);
+	auto f = units::fabs(diff);
 	EXPECT_NEAR(f.raw(), 30.0, 0.0);
 
 	// abs should preserve percent representation
-	auto g = units::abs(-30_pct);
-	EXPECT_NEAR(g.raw(), 30.0, 0.0);
+	auto magnitude = units::abs(-30_pct);
+	EXPECT_NEAR(magnitude.raw(), 30.0, 0.0);
 
 	// fmin/fmax should preserve percent representation
-	auto mn = units::fmin(a, b);
+	auto mn = units::fmin(whole, most);
 	EXPECT_NEAR(mn.raw(), 70.0, 0.0);
 
-	auto mx = units::fmax(a, b);
+	auto mx = units::fmax(whole, most);
 	EXPECT_NEAR(mx.raw(), 100.0, 0.0);
 
 	// fdim should preserve percent representation: fdim(70%, 100%) == 0%
-	auto pd = units::fdim(b, a);
+	auto pd = units::fdim(most, whole);
 	EXPECT_NEAR(pd.raw(), 0.0, 0.0);
 }
 
@@ -5506,10 +5627,10 @@ TEST(ConcentrationSemantics, CommonTypePpmPpb)
 	using CT = std::common_type_t<parts_per_million<double>, parts_per_billion<double>>;
 	static_assert(units::traits::is_same_dimension_unit_v<CT, parts_per_million<double>>);
 
-	CT a = 1.0_ppm;
-	CT b = 1000.0_ppb;
-	EXPECT_DOUBLE_EQ(a.raw(), b.raw());
-	EXPECT_DOUBLE_EQ(a.value(), b.value());
+	CT inPpm  = 1.0_ppm;
+	CT inPpb  = 1000.0_ppb;
+	EXPECT_DOUBLE_EQ(inPpm.raw(), inPpb.raw());
+	EXPECT_DOUBLE_EQ(inPpm.value(), inPpb.value());
 }
 
 TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
@@ -5520,13 +5641,13 @@ TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
 
 TEST(ConcentrationSemantics, DimensionlessDivPercentIsNotSameAsScalarDivPercent)
 {
-	auto a = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
-	EXPECT_DOUBLE_EQ(a, 2.0);
+	auto scalarQuotient = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
+	EXPECT_DOUBLE_EQ(scalarQuotient, 2.0);
 
-	double b = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
+	double dimensionlessQuotient = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
 	// Nail down expected behavior (whatever you decide it should be).
 	// If keeping current behavior:
-	EXPECT_DOUBLE_EQ(b, 2);     // because 1 / rhs.raw() = 1/50
+	EXPECT_DOUBLE_EQ(dimensionlessQuotient, 2);     // because 1 / rhs.raw() = 1/50
 }
 
 
@@ -5685,23 +5806,19 @@ TEST_F(CaseStudies, dataReadSimulation)
 
 TEST_F(CaseStudies, selfDefinedUnits)
 {
-	using liters_per_second  = decltype(1.0_L / 1.0_s);
-	using gallons_per_minute = decltype(1.0_gal / 1.0_min);
+	// A composed unit the library does not name prints as the raw dimension form (value + dimension
+	// exponents), not a friendly abbreviation. Volume per time-squared has no named unit.
+	using liters_per_second_squared = decltype(1.0_L / (1.0_s * 1.0_s));
 
-	liters_per_second  lps(5);
-	gallons_per_minute gpm = lps;
+	liters_per_second_squared original(5);
+	liters_per_second_squared copy = original;
 
-	EXPECT_NEAR(79.2516157, gpm.to<double>(), 0.5e-7);
+	EXPECT_DOUBLE_EQ(original.to<double>(), copy.to<double>());
 
 	testing::internal::CaptureStdout();
-	std::cout << lps;
+	std::cout << original;
 	std::string output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("0.005 m^3 s^-1", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << gpm;
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("0.005 m^3 s^-1", output.c_str());
+	EXPECT_STREQ("0.005 m^3 s^-2", output.c_str());
 }
 
 int main(int argc, char* argv[])

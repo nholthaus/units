@@ -36,47 +36,39 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/mass.h
-/// @brief	units representing mass values
+/// @file	units/volume_flow_rate.h
+/// @brief	units representing volumetric flow rate values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_mass_h_
-#define units_mass_h_
+#ifndef units_volume_flow_rate_h_
+#define units_volume_flow_rate_h_
 
-#include <units/core.h>
+#include <units/time.h>
+#include <units/volume.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::mass
-	 * @brief		namespace for unit types and containers representing mass values
-	 * @details		The SI unit for mass is `kilograms`, and the corresponding `dimension` dimension is
-	 *				`mass_unit`.
-	 * @anchor		massContainers
+	 * @namespace	units::volume_flow_rate
+	 * @brief		namespace for unit types and containers representing volumetric-flow-rate values
+	 * @details		The SI unit for volumetric flow rate is `cubic_meters_per_second`, and the corresponding
+	 *				`dimension` dimension is `volume_flow_rate_unit`.
+	 * @anchor		volumeFlowRateContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD_WITH_METRIC_PREFIXES(mass, grams, g, conversion_factor<std::ratio<1, 1000>, dimension::mass>)
-	UNIT_ADD(mass, tonnes, t, conversion_factor<std::ratio<1000>, kilograms_>)
-	UNIT_ADD(mass, pounds, lb, conversion_factor<std::ratio<45359237, 100000000>, kilograms_>)
-	UNIT_ADD(mass, long_tons, ln_conversion_factor, conversion_factor<std::ratio<2240>, pounds_>)
-	UNIT_ADD(mass, short_tons, sh_conversion_factor, conversion_factor<std::ratio<2000>, pounds_>)
-	UNIT_ADD(mass, stone, st, conversion_factor<std::ratio<14>, pounds_>)
-	UNIT_ADD(mass, ounces, oz, conversion_factor<std::ratio<1, 16>, pounds_>)
-	UNIT_ADD(mass, carats, ct, conversion_factor<std::ratio<200>, milligrams_>)
-	UNIT_ADD(mass, slugs, slug, conversion_factor<std::ratio<8896443230521, 609600000000>, kilograms_>)
+	UNIT_ADD(volume_flow_rate, cubic_meters_per_second, m3_per_s, conversion_factor<std::ratio<1>, dimension::volume_flow_rate>)
+	UNIT_ADD(volume_flow_rate, cubic_meters_per_hour, m3_per_hr, compound_conversion_factor<cubic_meters<>, inverse<hours<>>>)
+	UNIT_ADD(volume_flow_rate, liters_per_second, L_per_s, compound_conversion_factor<liters<>, inverse<seconds_>>)
+	UNIT_ADD(volume_flow_rate, liters_per_minute, L_per_min, compound_conversion_factor<liters<>, inverse<minutes_>>)
+	UNIT_ADD(volume_flow_rate, gallons_per_minute, gpm, compound_conversion_factor<gallons<>, inverse<minutes_>>)
+	UNIT_ADD(volume_flow_rate, gallons_per_hour, gph, compound_conversion_factor<gallons<>, inverse<hours<>>>)
+	UNIT_ADD(volume_flow_rate, cubic_feet_per_second, cfs, compound_conversion_factor<cubic_feet<>, inverse<seconds_>>)
+	UNIT_ADD(volume_flow_rate, cubic_feet_per_minute, cfm, compound_conversion_factor<cubic_feet<>, inverse<minutes_>>)
 
-	UNIT_ADD(mass, grains, gr, conversion_factor<std::ratio<1, 7000>, pounds_>)
-	UNIT_ADD(mass, avoirdupois_drams, dr_av, conversion_factor<std::ratio<1, 16>, ounces_>)
-	UNIT_ADD(mass, pennyweights, dwt, conversion_factor<std::ratio<24>, grains_>)
-	UNIT_ADD(mass, troy_ounces, ozt, conversion_factor<std::ratio<480>, grains_>)
-	UNIT_ADD(mass, troy_pounds, lbt, conversion_factor<std::ratio<12>, troy_ounces_>)
-	UNIT_ADD(mass, hundredweights, cwt, conversion_factor<std::ratio<112>, pounds_>)
-	UNIT_ADD(mass, short_hundredweights, sh_cwt, conversion_factor<std::ratio<100>, pounds_>)
-
-	UNIT_ADD_DIMENSION_TRAIT(mass)
+	UNIT_ADD_DIMENSION_TRAIT(volume_flow_rate)
 } // namespace units
 
-#endif // units_mass_h_
+#endif // units_volume_flow_rate_h_

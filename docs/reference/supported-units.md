@@ -1,6 +1,6 @@
 # Supported units
 
-*The catalog of built-in units, grouped by dimension — **47 dimensions**, **252 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
+*The catalog of built-in units, grouped by dimension — **48 dimensions**, **282 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
 
 Each unit is available as a type (`meters`, `meters<double>`) and, where shown, a literal (`5.0_m`). Units marked **yes** under Prefixes also provide every SI metric prefix from femto to peta (e.g. `kilometers`/`_km`, `millimeters`/`_mm`). Include the umbrella header `<units.h>` for all of them, or a single `<units/DIMENSION.h>` for one dimension.
 
@@ -96,9 +96,31 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `bytes` | `_B` |  |
+| `kilobytes` | `_kB` |  |
+| `megabytes` | `_MB` |  |
+| `gigabytes` | `_GB` |  |
+| `terabytes` | `_TB` |  |
+| `petabytes` | `_PB` |  |
 | `exabytes` | `_EB` |  |
+| `kibibytes` | `_KiB` |  |
+| `mebibytes` | `_MiB` |  |
+| `gibibytes` | `_GiB` |  |
+| `tebibytes` | `_TiB` |  |
+| `pebibytes` | `_PiB` |  |
+| `exbibytes` | `_EiB` |  |
 | `bits` | `_b` |  |
+| `kilobits` | `_kb` |  |
+| `megabits` | `_Mb` |  |
+| `gigabits` | `_Gb` |  |
+| `terabits` | `_Tb` |  |
+| `petabits` | `_Pb` |  |
 | `exabits` | `_Eb` |  |
+| `kibibits` | `_Kib` |  |
+| `mebibits` | `_Mib` |  |
+| `gibibits` | `_Gib` |  |
+| `tebibits` | `_Tib` |  |
+| `pebibits` | `_Pib` |  |
+| `exbibits` | `_Eib` |  |
 | `nibbles` | `_nibble` |  |
 
 ### data transfer rate
@@ -492,3 +514,16 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `sacks` | `_sck` |  |
 | `shots` | `_shts` |  |
 | `strikes` | `_strk` |  |
+
+### volume flow rate
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `cubic_meters_per_second` | `_m3_per_s` |  |
+| `cubic_meters_per_hour` | `_m3_per_hr` |  |
+| `liters_per_second` | `_L_per_s` |  |
+| `liters_per_minute` | `_L_per_min` |  |
+| `gallons_per_minute` | `_gpm` |  |
+| `gallons_per_hour` | `_gph` |  |
+| `cubic_feet_per_second` | `_cfs` |  |
+| `cubic_feet_per_minute` | `_cfm` |  |

@@ -70,6 +70,51 @@ DERIVED_RESULT = [
      "units::length::meters<double> x = units::energy::joules<double>(6.0) / 2.0_s;", ["watts<double>", "meters<double>"]),
 ]
 
+# A dimensioned quantity does not implicitly become a bare scalar, and a bare number does not implicitly
+# become a dimensioned quantity: the conversion operator is explicit and the value constructor is explicit.
+# (Matches on the friendly STEM rather than the meters<double> form: the stem appears in every compiler's
+# diagnostic — GCC/Clang's meters<double>, the meters_ tag, and MSVC's rendering alike.)
+SCALAR_BOUNDARY = [
+    ("scalar_from_dimensioned", ["length"], "double d = 1.0_m;", ["meters"]),
+    ("dimensioned_from_scalar", ["length"], "units::length::meters<double> m = 5.0;", ["meters"]),
+]
+
+# Comparing quantities of different dimensions is ill-formed. (The relational-operator diagnostic names
+# the strong tag, e.g. meters_, so the match is on the friendly stem rather than the meters<double> form.)
+COMPARE_ACROSS = [
+    ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ["meters", "seconds"]),
+    ("compare_velocity_mass_ge", ["velocity", "mass"],
+     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["meters_per_second", "kilograms"]),
+]
+
+# A math function whose domain is an angle rejects a non-angle argument. (Stem match: cross-compiler.)
+TRIG_DOMAIN = [
+    ("sin_of_length", ["angle", "length"], "auto x = sin(1.0_m);", ["meters"]),
+    ("cos_of_time", ["angle", "time"], "auto x = cos(units::time::seconds<double>(1.0));", ["seconds"]),
+    ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms"]),
+]
+
+# The RESULT of a dimensional math operation has a definite dimension; assigning it to the wrong one
+# fails, and the diagnostic names the RESULT's friendly type (sqrt of an area is a length; the square of a
+# length is an area) alongside the wrong target — like the mul/div derived-result cases above.
+MATH_RESULT = [
+    ("sqrt_area_to_time", ["area", "length", "time"],
+     "units::time::seconds<double> x = sqrt(units::area::square_meters<double>(4.0));",
+     ["meters<double>", "seconds<double>"]),
+    ("pow2_length_to_volume", ["length", "area", "volume"],
+     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["square_meters<double>", "cubic_meters<double>"]),
+]
+
+# fmod and hypot across incompatible dimensions are ill-formed.
+MATH_DOMAIN = [
+    ("fmod_length_time", ["length", "time"], "auto x = fmod(1.0_m, 1.0_s);", ["meters", "seconds"]),
+]
+
+# A std::chrono::duration only converts to/from a time quantity; a non-time quantity is rejected.
+CHRONO_BOUNDARY = [
+    ("chrono_from_length", ["length", "<chrono>"], "std::chrono::seconds s = 1.0_m;", ["meters"]),
+]
+
 # #357-class ordering: an expression reducing to a dimension whose header is included LAST must still compile.
 ORDERING_OK = [
     ("order_velocity_over_length", ["velocity", "length"], "auto x = 1.0_mps / 1.0_m;", "frequency"),
@@ -82,7 +127,10 @@ ORDERING_OK = [
 ]
 
 def header_includes(hdrs):
-    return "\n".join(f"#include <units/{h}.h>" for h in hdrs)
+    # a bare "<name>" is a standard-library header included verbatim; otherwise it is a units dimension header
+    def one(h):
+        return f"#include {h}" if h.startswith("<") else f"#include <units/{h}.h>"
+    return "\n".join(one(h) for h in hdrs)
 
 def write(name, text):
     (CASES / f"generated_{name}.cpp").write_text(text)
@@ -125,9 +173,14 @@ def main():
         gen_bad_conversion(c[0], c[1], c[2], c[3])
     for c in DERIVED_RESULT:
         gen_bad_conversion(c[0], c[1], c[2], c[3])
+    for group in (SCALAR_BOUNDARY, COMPARE_ACROSS, TRIG_DOMAIN, MATH_RESULT, MATH_DOMAIN, CHRONO_BOUNDARY):
+        for c in group:
+            gen_bad_conversion(c[0], c[1], c[2], c[3])
     for c in ORDERING_OK:
         gen_ordering(c[0], c[1], c[2], c[3])
-    total = len(BAD_CONVERSIONS) + len(ADD_INCOMPATIBLE) + len(DERIVED_RESULT) + len(ORDERING_OK)
+    total = (len(BAD_CONVERSIONS) + len(ADD_INCOMPATIBLE) + len(DERIVED_RESULT) + len(SCALAR_BOUNDARY)
+             + len(COMPARE_ACROSS) + len(TRIG_DOMAIN) + len(MATH_RESULT) + len(MATH_DOMAIN)
+             + len(CHRONO_BOUNDARY) + len(ORDERING_OK))
     print(f"generated {total} cases (+ 4 curated hand-written) = {total + 4} total")
 
 if __name__ == "__main__":

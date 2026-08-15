@@ -335,6 +335,25 @@ namespace units
 	}
 #endif
 
+/**
+ * @def			UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)
+ * @brief		Like UNIT_ADD_LITERALS but emits only the floating-point literal.
+ * @details		A decibel-scale unit requires a floating-point underlying type, so no integer literal
+ *				(which would form a `<int>` unit) is generated.
+ */
+#ifdef UNIT_NO_LITERAL_SUPPORT
+#define UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)
+#else
+#define UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)                                                                                                                             \
+	namespace literals                                                                                                                                                                                 \
+	{                                                                                                                                                                                                  \
+		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept                                                                                                  \
+		{                                                                                                                                                                                              \
+			return namespaceName::namePlural<double>(static_cast<double>(d));                                                                                                                          \
+		}                                                                                                                                                                                              \
+	}
+#endif
+
 #define UNIT_ADD_CONSTANT(namespaceName, namePlural, abbreviation) static constexpr namespaceName::namePlural abbreviation{1.0};
 
 /**
@@ -380,7 +399,7 @@ namespace units
 	}                                                                                                                                                                                                  \
 	UNIT_ADD_NAME(namespaceName, abbreviation, abbreviation)                                                                                                                                           \
 	UNIT_REGISTER_NAMED_CLASS(namespaceName, abbreviation)                                                                                                                                             \
-	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
+	UNIT_ADD_DECIBEL_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
@@ -1206,6 +1225,7 @@ namespace units
 		using force                   = dimension_multiply<mass, acceleration>;                                             ///< Represents an SI derived unit of force
 		using area                    = dimension_pow<length, std::ratio<2>>;                                               ///< Represents an SI derived unit of area
 		using volume                  = dimension_pow<length, std::ratio<3>>;                                               ///< Represents an SI derived unit of volume
+		using volume_flow_rate        = dimension_divide<volume, time>;                                                     ///< Represents an SI derived unit of volumetric flow rate
 		using pressure                = dimension_divide<force, area>;                                                      ///< Represents an SI derived unit of pressure
 		using charge                  = dimension_multiply<time, current>;                                                  ///< Represents an SI derived unit of charge
 		using energy                  = dimension_multiply<force, length>;                                                  ///< Represents an SI derived unit of energy
@@ -2663,6 +2683,22 @@ namespace units
 		}
 
 		/**
+		 * @brief		conversion to a named unit
+		 * @details		Converts to a different named unit of the same dimension, e.g.
+		 *				`(100.0_cm).to<meters>()`. The named-template spelling of `convert()`; provided so a
+		 *				single accessor reads for both underlying-type extraction (`to<double>()`) and
+		 *				dimensioned conversion (`to<meters>()`).
+		 * @tparam		UnitType unit class template to convert to
+		 * @returns		a `UnitType<T>` containing the equivalent value to *this.
+		 */
+		template<template<class> class UnitType>
+			requires same_dimension<UnitType<T>, unit>
+		constexpr UnitType<T> to() const noexcept
+		{
+			return UnitType<T>(*this);
+		}
+
+		/**
 		 * @brief		linearized unit value
 		 * @returns		linearized value of unit which has a (possibly) non-linear scale.
 		 */
@@ -2698,7 +2734,7 @@ namespace units
 		 */
 		template<template<class> class UnitType>
 			requires same_dimension<UnitType<T>, unit>
-		constexpr UnitType<T> convert() noexcept
+		constexpr UnitType<T> convert() const noexcept
 		{
 			return UnitType<T>(*this);
 		}
@@ -4332,6 +4368,12 @@ namespace units
 		template<class T>
 		static T linearize(const T value) noexcept
 		{
+			// A decibel value is stored through a base-10 logarithm, so an integral underlying type cannot
+			// represent it: most decibel figures round to a wrong integer (3 dB stores as 0) and large ones
+			// overflow. Asserted here, at the point a value is actually stored, so merely naming a
+			// decibel-scale type for trait/overload resolution does not trip it.
+			static_assert(std::is_floating_point_v<T>,
+				"a decibel-scale unit requires a floating-point underlying type (an integral type cannot represent a logarithmic value)");
 			return static_cast<T>(std::pow(10, value / 10));
 		}
 
@@ -4367,6 +4409,39 @@ namespace units
 #endif
 	template<class Underlying>
 	using dBi = decibels<Underlying>;
+
+	// Register the name/abbreviation for the dimensionless decibel and its `_dB` literal. The reverse
+	// named-class map is keyed on (conversion_factor, scale); the (dimensionless, decibel_scale) key
+	// belongs to `decibels` alone (the power dB units use the watts/milliwatts factors), so the mapping
+	// is unambiguous and the member name()/abbreviation() resolve through it.
+	template<class Underlying>
+	struct unit_name<decibels<Underlying>>
+	{
+		static constexpr const char* value = "decibels";
+	};
+
+	template<class Underlying>
+	struct unit_abbreviation<decibels<Underlying>>
+	{
+		static constexpr const char* value = "dB";
+	};
+
+	namespace detail
+	{
+		::units::decibels<UNIT_LIB_DEFAULT_TYPE> named_class_of(
+			typename ::units::decibels<>::conversion_factor*, typename ::units::decibels<>::numerical_scale_type*);
+	}
+
+#ifndef UNIT_NO_LITERAL_SUPPORT
+	namespace literals
+	{
+		// only a floating-point literal: a decibel scale requires a floating-point underlying type
+		constexpr decibels<double> operator""_dB(long double d) noexcept
+		{
+			return decibels<double>(static_cast<double>(d));
+		}
+	} // namespace literals
+#endif
 
 	//------------------------------
 	//	DECIBEL ARITHMETIC

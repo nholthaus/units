@@ -71,7 +71,7 @@ stays small and the code stays legible.
 
 - **Syntax.** Quantities are written as `meters`, `60_mi / 1_hr`, `sqrt(area)`; operations are performed
   on the quantity types.
-- **Batteries included.** Over 250 units across 47 dimensions ship ready to use — SI, imperial and
+- **Batteries included.** Over 280 units across 48 dimensions ship ready to use — SI, imperial and
   US-customary, ancient, and esoteric alike (`3.0_cwt`, `10.0_fur`, `1.0_rem`), each a named type with a
   literal and an exact, canonically-sourced conversion ratio. There is no unit "system" to select or
   instantiate: every unit is first class and used directly, and units from different systems combine in
@@ -80,6 +80,10 @@ stays small and the code stays legible.
   compiles to no machine code. A quantity is a trivially-copyable value the size of its underlying type.
 - **Dimensional checking.** Adding a length to a time, or assigning an area to a length, is a compile
   error. The dimensional analysis is performed by the type system.
+- **Decibel and logarithmic scales.** A unit's scale is part of its type. Alongside the default linear
+  scale, `decibel_scale` provides `dBW`, `dBm`, and the dimensionless `dB`, with scale-correct
+  arithmetic — adding decibels multiplies the underlying linear quantities. A decibel-scale unit requires
+  a floating-point underlying type.
 - **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
   `conversion_factor<...>` template. See [Type errors](#type-errors).
 - **Trivial integration.** Header-only, no dependencies, one `#include`. Drop in the headers, or consume
@@ -116,7 +120,7 @@ using namespace units;
 using namespace units::literals;   // the _m, _s, _kg, ... literals
 ```
 
-> **Note — if compiles are slow, include less.** `<units.h>` pulls in all 47 dimensions. The library is
+> **Note — if compiles are slow, include less.** `<units.h>` pulls in all 48 dimensions. The library is
 > heavily templated, so a translation unit's compile time scales with how much it instantiates; including
 > only the per-dimension headers you use keeps it down. Include the dimension of every quantity you
 > *name*, including result dimensions (dividing a length by a time needs `<units/velocity.h>`). Run-time
@@ -396,7 +400,7 @@ auto bridge = 364.4_smoot;          // now a usable length, with its own literal
 
 ## Supported units
 
-Every built-in unit, by dimension — **47 dimensions**, ~200 named units before metric prefixes. A unit
+Every built-in unit, by dimension — **48 dimensions**, ~200 named units before metric prefixes. A unit
 marked **yes** under Prefixes also provides every SI metric prefix from femto to peta (`_km`, `_mm`, …).
 For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::pounds` vs
 `units::force::pounds`. This table is generated from the headers by `docs/reference/gen_reference.py`.
@@ -492,9 +496,31 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `bytes` | `_B` |  |
+| `kilobytes` | `_kB` |  |
+| `megabytes` | `_MB` |  |
+| `gigabytes` | `_GB` |  |
+| `terabytes` | `_TB` |  |
+| `petabytes` | `_PB` |  |
 | `exabytes` | `_EB` |  |
+| `kibibytes` | `_KiB` |  |
+| `mebibytes` | `_MiB` |  |
+| `gibibytes` | `_GiB` |  |
+| `tebibytes` | `_TiB` |  |
+| `pebibytes` | `_PiB` |  |
+| `exbibytes` | `_EiB` |  |
 | `bits` | `_b` |  |
+| `kilobits` | `_kb` |  |
+| `megabits` | `_Mb` |  |
+| `gigabits` | `_Gb` |  |
+| `terabits` | `_Tb` |  |
+| `petabits` | `_Pb` |  |
 | `exabits` | `_Eb` |  |
+| `kibibits` | `_Kib` |  |
+| `mebibits` | `_Mib` |  |
+| `gibibits` | `_Gib` |  |
+| `tebibits` | `_Tib` |  |
+| `pebibits` | `_Pib` |  |
+| `exbibits` | `_Eib` |  |
 | `nibbles` | `_nibble` |  |
 
 ### data transfer rate
@@ -888,6 +914,19 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `sacks` | `_sck` |  |
 | `shots` | `_shts` |  |
 | `strikes` | `_strk` |  |
+
+### volume flow rate
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `cubic_meters_per_second` | `_m3_per_s` |  |
+| `cubic_meters_per_hour` | `_m3_per_hr` |  |
+| `liters_per_second` | `_L_per_s` |  |
+| `liters_per_minute` | `_L_per_min` |  |
+| `gallons_per_minute` | `_gpm` |  |
+| `gallons_per_hour` | `_gph` |  |
+| `cubic_feet_per_second` | `_cfs` |  |
+| `cubic_feet_per_minute` | `_cfm` |  |
 <!-- END generated: supported-units -->
 
 ---
