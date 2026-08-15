@@ -1,10 +1,19 @@
 AccessModifierOffset: -4
-AlignAfterOpenBracket: DontAlign
-AlignConsecutiveAssignments: Consecutive
-AlignConsecutiveDeclarations: Consecutive
-AlignConsecutiveMacros: Consecutive
+AlignAfterOpenBracket: false
+AlignConsecutiveAssignments:
+  Enabled: true
+  AlignFunctionDeclarations: true
+  PadOperators: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AlignFunctionDeclarations: true
+  PadOperators: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AlignFunctionDeclarations: true
+  PadOperators: true
 AlignEscapedNewlines: Right
-AlignOperands: false
+AlignOperands: DontAlign
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 1
@@ -12,16 +21,16 @@ AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterReturnType: None
+BreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 BreakTemplateDeclarations: Yes
 BinPackArguments: true
-BinPackParameters: true
+BinPackParameters: BinPack
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
-BreakBeforeInheritanceComma: false
+BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakStringLiterals: true
@@ -38,22 +47,24 @@ IndentCaseLabels: false
 IndentPPDirectives: None
 IndentWidth: 4
 IndentWrappedFunctionNames: false
-KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLines:
+  AtStartOfBlock: false
 Language: Cpp
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PenaltyReturnTypeOnItsOwnLine: 100
 PointerAlignment: Left
-ReflowComments: true
-SortIncludes: CaseInsensitive
-SortUsingDeclarations: false
+ReflowComments: Always
+SortIncludes:
+  Enabled: true
+  IgnoreCase: true
+SortUsingDeclarations: Never
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
-SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
-SpacesInAngles: false
-SpacesInParentheses: false
+SpacesInAngles: Never
+SpacesInParens: Never
 SpacesInSquareBrackets: false
 Standard: Latest
 TabWidth: 4
