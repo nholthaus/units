@@ -6873,6 +6873,21 @@ TEST_F(Serialization, typedDeserializeFromStream)
 	EXPECT_EQ(units::deserialize_error::dimension_mismatch, wrong.error());
 }
 
+// visit() resolves EVERY library dimension by default — including ones added after the erased-visit feature.
+// Guards against builtin_dimensions drifting behind the dimension set (a CI check also enforces this).
+TEST_F(Serialization, visitResolvesRecentlyAddedDimensions)
+{
+	const auto expectResolves = [](const units::any_unit& v) {
+		bool resolved = false;
+		v.visit([&](auto) { resolved = true; });
+		return resolved;
+	};
+	// dimensions that were once missing from builtin_dimensions must now resolve without being named
+	EXPECT_TRUE(expectResolves(units::serialize(units::pascal_seconds<double>(5.0))));            // dynamic_viscosity
+	EXPECT_TRUE(expectResolves(units::serialize(units::square_meters_per_second<double>(2.0))));  // kinematic_viscosity
+	EXPECT_TRUE(expectResolves(units::serialize(units::gigabytes_per_second<double>(1.0))));      // data_transfer_rate
+}
+
 // std::hash makes any_unit a usable unordered-container key, consistent with operator==.
 TEST_F(Serialization, hashableAsAKey)
 {

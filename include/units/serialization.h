@@ -37,8 +37,6 @@
 #ifndef units_serialization_h_
 #define units_serialization_h_
 
-#include <units/core.h>
-
 #include <array>
 #include <cmath>
 #include <compare>
@@ -58,6 +56,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <units/core.h>
 #include <utility>
 #include <vector>
 
@@ -71,16 +70,13 @@ namespace units
 		/// including a user-defined `make_dimension<my_tag>` — still serializes and round-trips. `visit` cannot
 		/// resolve a user-defined dimension unless the caller lists it (`visit<my_dimension>(f)`), because C++ cannot
 		/// materialize a type from the runtime hash — the runtime→type wall. The set is otherwise open by design.
-		using builtin_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature,
-			dimension::substance, dimension::luminous_intensity, dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency,
-			dimension::velocity, dimension::angular_velocity, dimension::acceleration, dimension::force, dimension::area, dimension::volume,
-			dimension::volume_flow_rate, dimension::pressure, dimension::charge, dimension::energy, dimension::power, dimension::voltage,
-			dimension::capacitance, dimension::impedance, dimension::conductance, dimension::magnetic_flux, dimension::inductance,
-			dimension::luminous_flux, dimension::illuminance, dimension::luminance, dimension::radioactivity, dimension::substance_mass,
-			dimension::substance_concentration, dimension::magnetic_field_strength, dimension::radiant_intensity, dimension::radiance,
-			dimension::irradiance, dimension::spectral_intensity, dimension::spectral_flux, dimension::spectral_radiance,
-			dimension::spectral_irradiance, dimension::jerk, dimension::torque, dimension::density, dimension::energy_density,
-			dimension::concentration>;
+		using builtin_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature, dimension::substance, dimension::luminous_intensity,
+			dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency, dimension::velocity, dimension::angular_velocity, dimension::acceleration, dimension::force,
+			dimension::area, dimension::volume, dimension::volume_flow_rate, dimension::pressure, dimension::charge, dimension::energy, dimension::power, dimension::voltage, dimension::capacitance,
+			dimension::impedance, dimension::conductance, dimension::magnetic_flux, dimension::inductance, dimension::luminous_flux, dimension::illuminance, dimension::luminance,
+			dimension::radioactivity, dimension::substance_mass, dimension::substance_concentration, dimension::magnetic_field_strength, dimension::radiant_intensity, dimension::radiance,
+			dimension::irradiance, dimension::spectral_intensity, dimension::spectral_flux, dimension::spectral_radiance, dimension::spectral_irradiance, dimension::jerk, dimension::torque,
+			dimension::density, dimension::energy_density, dimension::concentration, dimension::data_transfer_rate, dimension::dynamic_viscosity, dimension::kinematic_viscosity>;
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: name_hash [static]
@@ -95,7 +91,7 @@ namespace units
 		constexpr std::uint64_t name_hash(std::string_view name) noexcept
 		{
 			std::uint64_t h = 1469598103934665603ULL;
-			for (char c : name)
+			for (const char c : name)
 			{
 				h ^= static_cast<std::uint8_t>(c);
 				h *= 1099511628211ULL;
@@ -169,11 +165,11 @@ namespace units
 		//------------------------------------------------------------------------------------------------------------------
 		inline bool get_uvarint(const std::byte*& cursor, const std::byte* end, std::uint64_t& value)
 		{
-			value             = 0;
+			value              = 0;
 			unsigned int shift = 0;
 			while (cursor != end)
 			{
-				const std::uint8_t byte = std::to_integer<std::uint8_t>(*cursor++);
+				const auto byte = std::to_integer<std::uint8_t>(*cursor++);
 				value |= static_cast<std::uint64_t>(byte & 0x7F) << shift;
 				if ((byte & 0x80) == 0)
 					return true;
@@ -289,8 +285,8 @@ namespace units
 		template<UnitType Unit>
 		struct signature
 		{
-			using Dim                            = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
-			static constexpr std::size_t arity   = dimension_arity<Dim>();
+			using Dim                          = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
+			static constexpr std::size_t arity = dimension_arity<Dim>();
 
 			static consteval std::array<dimension_term, arity> compute()
 			{
@@ -438,9 +434,9 @@ namespace units
 		/// @param[in]  base   the magnitude in SI canonical base
 		//------------------------------------------------------------------------------------------------------------------
 		any_unit(unit_identity id, double base)
-		  : m_identity(std::move(id))
-		  , m_base(base)
-		  , m_bytes(detail::encode(m_identity, base))
+		  : m_identity(std::move(id)),
+			m_base(base),
+			m_bytes(detail::encode(m_identity, base))
 		{
 		}
 
@@ -452,9 +448,9 @@ namespace units
 		///             the decoded quantity, or sets the stream's failbit and leaves it empty on malformed input.
 		//------------------------------------------------------------------------------------------------------------------
 		any_unit()
-		  : m_identity()
-		  , m_base(0.0)
-		  , m_bytes(detail::encode(m_identity, 0.0))
+		  : m_identity(),
+			m_base(0.0),
+			m_bytes(detail::encode(m_identity, 0.0))
 		{
 		}
 
@@ -477,7 +473,10 @@ namespace units
 		/// @brief      the magnitude in SI canonical base units, for logging or routing
 		/// @return     the value
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] double value_in_base() const noexcept { return m_base; }
+		[[nodiscard]] double value_in_base() const noexcept
+		{
+			return m_base;
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: identity [public]
@@ -485,7 +484,10 @@ namespace units
 		/// @brief      the decoded dimension signature
 		/// @return     the unit_identity
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] const unit_identity& identity() const noexcept { return m_identity; }
+		[[nodiscard]] const unit_identity& identity() const noexcept
+		{
+			return m_identity;
+		}
 
 		//======================================================================================================================
 		//	BYTES — the owned serialized form, in both a type-safe and a C-interface view
@@ -499,7 +501,10 @@ namespace units
 		///             back to `deserialize`. Copy it (e.g. into a `std::vector`) if it must outlive the `any_unit`.
 		/// @return     a span over the owned bytes
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] std::span<const std::byte> bytes() const noexcept { return m_bytes; }
+		[[nodiscard]] std::span<const std::byte> bytes() const noexcept
+		{
+			return m_bytes;
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: operator std::span<const std::byte> [public]
@@ -509,7 +514,10 @@ namespace units
 		///             `serialize` result feeds straight back in. The view is tied to this object's lifetime, as `bytes()`.
 		/// @return     a span over the owned bytes
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] operator std::span<const std::byte>() const noexcept { return m_bytes; }
+		[[nodiscard]] operator std::span<const std::byte>() const noexcept
+		{
+			return m_bytes;
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: data [public]
@@ -520,7 +528,10 @@ namespace units
 		///             call site. The pointer views the buffer owned by this `any_unit` and is valid for its lifetime.
 		/// @return     a pointer to the first byte
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] const char* data() const noexcept { return reinterpret_cast<const char*>(m_bytes.data()); }
+		[[nodiscard]] const char* data() const noexcept
+		{
+			return reinterpret_cast<const char*>(m_bytes.data());
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: size [public]
@@ -528,7 +539,10 @@ namespace units
 		/// @brief      the number of serialized bytes
 		/// @return     the byte count
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] std::size_t size() const noexcept { return m_bytes.size(); }
+		[[nodiscard]] std::size_t size() const noexcept
+		{
+			return m_bytes.size();
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: to_string [public]
@@ -600,7 +614,10 @@ namespace units
 		/// @param[in]  other  the erased quantity to compare against
 		/// @return     true iff not equal
 		//------------------------------------------------------------------------------------------------------------------
-		[[nodiscard]] bool operator!=(const any_unit& other) const noexcept { return !(*this == other); }
+		[[nodiscard]] bool operator!=(const any_unit& other) const noexcept
+		{
+			return !(*this == other);
+		}
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: operator<=> [public]
@@ -632,7 +649,9 @@ namespace units
 		template<class Unit>
 		[[nodiscard]] std::expected<Unit, deserialize_error> to() const
 		{
-			static_assert(traits::is_unit_v<Unit>, "any_unit::to<T>() collapses into a unit type (e.g. meters<double>), not a bare number. To read a plain value, collapse to a unit first, then call .value() or .to<double>() on that unit.");
+			static_assert(traits::is_unit_v<Unit>,
+				"any_unit::to<T>() collapses into a unit type (e.g. meters<double>), not a bare number. To read a plain value, collapse to a unit first, then call .value() or .to<double>() on that "
+				"unit.");
 			// gate the body so a non-unit Unit produces ONLY the friendly message above, no downstream template soup
 			if constexpr (traits::is_unit_v<Unit>)
 			{
@@ -934,13 +953,13 @@ namespace units
 	template<class Unit>
 	[[nodiscard]] std::expected<Unit, deserialize_error> deserialize(std::span<const std::byte> bytes)
 	{
-		static_assert(traits::is_unit_v<Unit>, "units::deserialize<T>(bytes) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(bytes) for an erased any_unit.");
+		static_assert(traits::is_unit_v<Unit>,
+			"units::deserialize<T>(bytes) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(bytes) for an erased any_unit.");
 		auto erased = deserialize(bytes);
 		if (!erased)
 			return std::unexpected(erased.error());
 		return erased->template to<Unit>();
 	}
-
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//      FUNCTION: deserialize [public]
@@ -1006,7 +1025,8 @@ namespace units
 	template<class Unit>
 	[[nodiscard]] std::expected<Unit, deserialize_error> deserialize(std::istream& is)
 	{
-		static_assert(traits::is_unit_v<Unit>, "units::deserialize<T>(stream) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(stream) for an erased any_unit.");
+		static_assert(traits::is_unit_v<Unit>,
+			"units::deserialize<T>(stream) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(stream) for an erased any_unit.");
 		auto erased = deserialize(is);
 		if (!erased)
 			return std::unexpected(erased.error());
