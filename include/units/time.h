@@ -83,6 +83,11 @@ namespace units
 	UNIT_ADD(time, julian_years, a_j, conversion_factor<std::ratio<31557600>, seconds_>)
 	UNIT_ADD(time, gregorian_years, a_g, conversion_factor<std::ratio<31556952>, seconds_>)
 
+	UNIT_ADD(time, fortnights, fn, conversion_factor<std::ratio<14>, days_>)
+	UNIT_ADD(time, decades, dec, conversion_factor<std::ratio<10>, julian_years<>>)
+	UNIT_ADD(time, centuries, cent, conversion_factor<std::ratio<100>, julian_years<>>)
+	UNIT_ADD(time, millennia, kyr, conversion_factor<std::ratio<1000>, julian_years<>>)
+
 	UNIT_ADD_DIMENSION_TRAIT(time)
 } // namespace units
 

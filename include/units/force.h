@@ -67,6 +67,13 @@ namespace units
 	UNIT_ADD(force, kiloponds, kp, compound_conversion_factor<standard_gravity_, kilograms_>)
 	UNIT_ADD(force, poundals, pdl, compound_conversion_factor<mass::pounds_, feet_, inverse<squared<seconds_>>>)
 
+	UNIT_ADD(force, kips, kip, conversion_factor<std::ratio<1000>, force::pounds_>)
+	UNIT_ADD(force, ounces_force, ozf, conversion_factor<std::ratio<1, 16>, force::pounds_>)
+	UNIT_ADD(force, grams_force, gf, compound_conversion_factor<acceleration::standard_gravity_, grams_>)
+	UNIT_ADD(force, short_tons_force, tonf, conversion_factor<std::ratio<2000>, force::pounds_>)
+	UNIT_ADD(force, long_tons_force, ltonf, conversion_factor<std::ratio<2240>, force::pounds_>)
+	UNIT_ADD(force, sthenes, sn, conversion_factor<std::ratio<1000>, newtons_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(force)
 } // namespace units
 

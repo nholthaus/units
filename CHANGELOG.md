@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.4.2] - 2026-08-14
+
+A units-and-correctness release: a broad set of new units, and a conversion fix.
+
+### Added
+- Over fifty new units across many dimensions — imperial and US-customary, ancient, and esoteric — each
+  defined by an exact rational against its most-canonical parent and verified against its authoritative
+  value. Highlights: length `rods`/`links`/`barleycorns`/`nails`/`spans`/`picas`/`points`; velocity
+  `feet_per_minute`/`meters_per_minute`/`inches_per_second`/`kilometers_per_second`; area
+  `roods`/`square_rods`; angle `angular_mils`/`compass_points`; time
+  `fortnights`/`decades`/`centuries`/`millennia`; `nibbles`; radiation `rem`; substance `pound_moles`;
+  mass `grains`/`avoirdupois_drams`/`pennyweights`/`troy_ounces`/`troy_pounds`/`hundredweights`; force
+  `kips`/`ounces_force`/`grams_force`/`short_tons_force`/`long_tons_force`/`sthenes`; pressure
+  `technical_atmospheres`/`pounds_per_square_foot`/`kips_per_square_inch`/`baryes`/`piezes`/water columns;
+  energy `ergs`/`calories_it`/`tons_of_tnt`; power `metric_horsepower`/`electrical_horsepower`/
+  `tons_of_refrigeration`; and the CGS `ab-`/`stat-` charge and current pairs.
+
+### Fixed
+- The `statvolt` conversion was inverted (`1 statvolt` read as `0.00333564 V` instead of `299.792458 V`).
+  Corrected to `c / 1e6` volts. `abvolts` was already correct.
+
+## [3.4.1] - 2026-08-14
+
+A documentation and maintenance release. 3.x becomes the project's default branch.
+
+### Added
+- A complete documentation set: a rewritten README (with an inlined cheat sheet, the full unit catalog,
+  and the physical-constants table) and an in-repo `docs/` manual (learn / explain / how-to / reference /
+  meta). The Doxygen reference is published to <https://nholthaus.github.io/units/> from CI, and every
+  documented code snippet is compiled as part of the test suite.
+
+### Fixed
+- `units::modf()` applied a scaled dimensionless unit's scale twice to the fractional part; for `percent`,
+  `modf(202.5%)` returned a fractional part of `0.00025` instead of `0.025`. The fractional part is now
+  returned as a dimensionless value, so the scale is applied once. (#312)
+- `minutes` had no registered name or abbreviation (it printed as its base unit and could return a null
+  `name()`/`abbreviation()`); it now reports `"minutes"` / `"min"` and prints as `1.5 min`.
+
 ## [3.4.0] - 2026-08-14
 
 The readability release: compiler diagnostics now name the friendly unit type.

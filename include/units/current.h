@@ -60,6 +60,9 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(current, amperes, A, conversion_factor<std::ratio<1>, dimension::current>)
 
+	UNIT_ADD(current, abamperes, abA, conversion_factor<std::ratio<10>, amperes_>)
+	UNIT_ADD(current, statamperes, statA, conversion_factor<std::ratio<1, 2997924580LL>, amperes_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(current)
 } // namespace units
 

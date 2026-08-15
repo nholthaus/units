@@ -63,6 +63,8 @@ namespace units
 	UNIT_ADD_WITH_METRIC_AND_BINARY_PREFIXES(data, bits, b, conversion_factor<std::ratio<1, 8>, bytes_>)
 	UNIT_ADD(data, exabits, Eb, conversion_factor<std::ratio<1000>, petabits_>)
 
+	UNIT_ADD(data, nibbles, nibble, conversion_factor<std::ratio<4>, bits_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(data)
 } // namespace units
 

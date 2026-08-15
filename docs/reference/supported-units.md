@@ -1,6 +1,6 @@
 # Supported units
 
-*The catalog of built-in units, grouped by dimension — **47 dimensions**, **199 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
+*The catalog of built-in units, grouped by dimension — **47 dimensions**, **252 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
 
 Each unit is available as a type (`meters`, `meters<double>`) and, where shown, a literal (`5.0_m`). Units marked **yes** under Prefixes also provide every SI metric prefix from femto to peta (e.g. `kilometers`/`_km`, `millimeters`/`_mm`). Include the umbrella header `<units.h>` for all of them, or a single `<units/DIMENSION.h>` for one dimension.
 
@@ -26,6 +26,8 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `milliarcseconds` | `_mas` |  |
 | `turns` | `_tr` |  |
 | `gradians` | `_gon` |  |
+| `angular_mils` | `_amil` |  |
+| `compass_points` | `_cpt` |  |
 
 ### angular velocity
 
@@ -48,6 +50,8 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `square_kilometers` | `_km2` |  |
 | `hectares` | `_ha` |  |
 | `acres` | `_acre` |  |
+| `roods` | `_rood` |  |
+| `square_rods` | `_rd2` |  |
 
 ### capacitance
 
@@ -61,6 +65,8 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 |------|---------|----------|
 | `coulombs` | `_C` | yes |
 | `ampere_hours` | `_Ah` | yes |
+| `abcoulombs` | `_abC` |  |
+| `statcoulombs` | `_statC` |  |
 
 ### concentration
 
@@ -82,6 +88,8 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `amperes` | `_A` | yes |
+| `abamperes` | `_abA` |  |
+| `statamperes` | `_statA` |  |
 
 ### data
 
@@ -91,6 +99,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `exabytes` | `_EB` |  |
 | `bits` | `_b` |  |
 | `exabits` | `_Eb` |  |
+| `nibbles` | `_nibble` |  |
 
 ### data transfer rate
 
@@ -129,6 +138,9 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `british_thermal_units_59` | `_BTU59` |  |
 | `therms` | `_thm` |  |
 | `foot_pounds` | `_ftlbf` |  |
+| `ergs` | `_erg` |  |
+| `calories_it` | `_cal_it` |  |
+| `tons_of_tnt` | `_tTNT` |  |
 
 ### energy density
 
@@ -145,6 +157,12 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `dynes` | `_dyn` |  |
 | `kiloponds` | `_kp` |  |
 | `poundals` | `_pdl` |  |
+| `kips` | `_kip` |  |
+| `ounces_force` | `_ozf` |  |
+| `grams_force` | `_gf` |  |
+| `short_tons_force` | `_tonf` |  |
+| `long_tons_force` | `_ltonf` |  |
+| `sthenes` | `_sn` |  |
 
 ### frequency
 
@@ -208,6 +226,13 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `leagues` | `_lea` |  |
 | `nautical_leagues` | `_nl` |  |
 | `yards` | `_yd` |  |
+| `rods` | `_rod` |  |
+| `links` | `_li` |  |
+| `barleycorns` | `_bc` |  |
+| `nails` | `_nail` |  |
+| `spans` | `_span` |  |
+| `picas` | `_pica` |  |
+| `points` | `_pnt` |  |
 
 ### luminance
 
@@ -261,6 +286,13 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `ounces` | `_oz` |  |
 | `carats` | `_ct` |  |
 | `slugs` | `_slug` |  |
+| `grains` | `_gr` |  |
+| `avoirdupois_drams` | `_dr_av` |  |
+| `pennyweights` | `_dwt` |  |
+| `troy_ounces` | `_ozt` |  |
+| `troy_pounds` | `_lbt` |  |
+| `hundredweights` | `_cwt` |  |
+| `short_hundredweights` | `_sh_cwt` |  |
 
 ### power
 
@@ -268,6 +300,9 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 |------|---------|----------|
 | `watts` | `_W` | yes |
 | `horsepower` | `_hp` |  |
+| `metric_horsepower` | `_hpM` |  |
+| `electrical_horsepower` | `_hpE` |  |
+| `tons_of_refrigeration` | `_TR` |  |
 
 ### pressure
 
@@ -281,6 +316,14 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `torrs` | `_torr` |  |
 | `millimeters_of_mercury` | `_mmHg` |  |
 | `inches_of_mercury` | `_inHg` |  |
+| `technical_atmospheres` | `_at` |  |
+| `pounds_per_square_foot` | `_psf` |  |
+| `kips_per_square_inch` | `_ksi` |  |
+| `baryes` | `_Ba` |  |
+| `piezes` | `_pz` |  |
+| `centimeters_of_water` | `_cmH2O` |  |
+| `millimeters_of_water` | `_mmH2O` |  |
+| `inches_of_water` | `_inH2O` |  |
 
 ### radiance
 
@@ -304,6 +347,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `curies` | `_Ci` |  |
 | `rutherfords` | `_rd` |  |
 | `radiation_absorbed_dose` | `_rads` |  |
+| `roentgens_equivalent_man` | `_rem` |  |
 
 ### solid angle
 
@@ -342,6 +386,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `mols` | `_mol` | yes |
+| `pound_moles` | `_lbmol` |  |
 
 ### substance concentration
 
@@ -377,6 +422,10 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `years` | `_yr` |  |
 | `julian_years` | `_a_j` |  |
 | `gregorian_years` | `_a_g` |  |
+| `fortnights` | `_fn` |  |
+| `decades` | `_dec` |  |
+| `centuries` | `_cent` |  |
+| `millennia` | `_kyr` |  |
 
 ### torque
 
@@ -397,6 +446,10 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `miles_per_hour` | `_mph` |  |
 | `kilometers_per_hour` | `_kph` |  |
 | `knots` | `_kts` |  |
+| `feet_per_minute` | `_fpm` |  |
+| `meters_per_minute` | `_mpm` |  |
+| `inches_per_second` | `_ips` |  |
+| `kilometers_per_second` | `_kmps` |  |
 
 ### voltage
 

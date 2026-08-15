@@ -66,6 +66,9 @@ namespace units
 	UNIT_ADD(area, hectares, ha, conversion_factor<std::ratio<10000>, square_meters_>)
 	UNIT_ADD(area, acres, acre, conversion_factor<std::ratio<43560>, square_feet_>)
 
+	UNIT_ADD(area, roods, rood, conversion_factor<std::ratio<1, 4>, acres<>>)
+	UNIT_ADD(area, square_rods, rd2, squared<rods_>)
+
 	UNIT_ADD_DIMENSION_TRAIT(area)
 } // namespace units
 
