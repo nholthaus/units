@@ -1206,6 +1206,7 @@ namespace units
 		using force                   = dimension_multiply<mass, acceleration>;                                             ///< Represents an SI derived unit of force
 		using area                    = dimension_pow<length, std::ratio<2>>;                                               ///< Represents an SI derived unit of area
 		using volume                  = dimension_pow<length, std::ratio<3>>;                                               ///< Represents an SI derived unit of volume
+		using volume_flow_rate        = dimension_divide<volume, time>;                                                     ///< Represents an SI derived unit of volumetric flow rate
 		using pressure                = dimension_divide<force, area>;                                                      ///< Represents an SI derived unit of pressure
 		using charge                  = dimension_multiply<time, current>;                                                  ///< Represents an SI derived unit of charge
 		using energy                  = dimension_multiply<force, length>;                                                  ///< Represents an SI derived unit of energy

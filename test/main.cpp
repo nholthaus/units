@@ -369,6 +369,16 @@ TEST_F(TypeTraits, is_frequency_unit)
 	static_assert(!traits::is_frequency_unit_v<seconds<double>>);
 }
 
+TEST_F(TypeTraits, is_volume_flow_rate_unit)
+{
+	static_assert(!traits::is_volume_flow_rate_unit_v<double>);
+	static_assert(traits::is_volume_flow_rate_unit_v<cubic_meters_per_second<double>>);
+	static_assert(traits::is_volume_flow_rate_unit_v<const liters_per_second<double>>);
+	static_assert(traits::is_volume_flow_rate_unit_v<const gallons_per_minute<double>&>);
+	static_assert(!traits::is_volume_flow_rate_unit_v<cubic_meters<double>>);
+	static_assert(!traits::is_volume_flow_rate_unit_v<meters_per_second<double>>);
+}
+
 TEST_F(TypeTraits, is_velocity_unit)
 {
 	static_assert(!traits::is_velocity_unit_v<double>);
@@ -3744,6 +3754,37 @@ TEST_F(ConversionFactor, frequency)
 	EXPECT_NEAR(1.0e6, test, 5.0e-5);
 }
 
+TEST_F(ConversionFactor, volume_flow_rate)
+{
+	double test;
+	bool   same;
+
+	same = std::is_same_v<cubic_meters_per_second<double>::conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::volume_flow_rate>>>;
+	EXPECT_TRUE(same);
+
+	same = traits::is_same_dimension_unit_v<liters_per_second<double>, cubic_meters_per_second<double>>;
+	EXPECT_TRUE(same);
+
+	// a volume divided by a time is a volume flow rate (dimension derived from volume/time)
+	same = traits::is_same_dimension_unit_v<decltype(liters<double>(1.0) / seconds<double>(1.0)), liters_per_second<double>>;
+	EXPECT_TRUE(same);
+
+	test = liters_per_second<double>(cubic_meters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(1000.0, test);
+	test = liters_per_minute<double>(liters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(60.0, test);
+	test = cubic_feet_per_minute<double>(cubic_feet_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(60.0, test);
+	test = liters_per_second<double>(gallons_per_minute<double>(1.0)).value();
+	EXPECT_NEAR(0.0630901964, test, 5.0e-10);
+	test = liters_per_second<double>(cubic_feet_per_second<double>(1.0)).value();
+	EXPECT_NEAR(28.316846592, test, 5.0e-9);
+	test = cubic_meters_per_hour<double>(gallons_per_minute<double>(100.0)).value();
+	EXPECT_NEAR(22.712470704, test, 5.0e-9);
+	test = cubic_meters_per_hour<double>(cubic_feet_per_minute<double>(1.0)).value();
+	EXPECT_NEAR(1.69901079552, test, 5.0e-11);
+}
+
 TEST_F(ConversionFactor, velocity)
 {
 	double test;
@@ -5707,23 +5748,19 @@ TEST_F(CaseStudies, dataReadSimulation)
 
 TEST_F(CaseStudies, selfDefinedUnits)
 {
-	using liters_per_second  = decltype(1.0_L / 1.0_s);
-	using gallons_per_minute = decltype(1.0_gal / 1.0_min);
+	// A composed unit the library does not name prints as the raw dimension form (value + dimension
+	// exponents), not a friendly abbreviation. Volume per time-squared has no named unit.
+	using liters_per_second_squared = decltype(1.0_L / (1.0_s * 1.0_s));
 
-	liters_per_second  lps(5);
-	gallons_per_minute gpm = lps;
+	liters_per_second_squared a(5);
+	liters_per_second_squared b = a;
 
-	EXPECT_NEAR(79.2516157, gpm.to<double>(), 0.5e-7);
+	EXPECT_DOUBLE_EQ(a.to<double>(), b.to<double>());
 
 	testing::internal::CaptureStdout();
-	std::cout << lps;
+	std::cout << a;
 	std::string output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("0.005 m^3 s^-1", output.c_str());
-
-	testing::internal::CaptureStdout();
-	std::cout << gpm;
-	output = testing::internal::GetCapturedStdout();
-	EXPECT_STREQ("0.005 m^3 s^-1", output.c_str());
+	EXPECT_STREQ("0.005 m^3 s^-2", output.c_str());
 }
 
 int main(int argc, char* argv[])

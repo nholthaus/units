@@ -888,6 +888,19 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `sacks` | `_sck` |  |
 | `shots` | `_shts` |  |
 | `strikes` | `_strk` |  |
+
+### volume flow rate
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `cubic_meters_per_second` | `_m3_per_s` |  |
+| `cubic_meters_per_hour` | `_m3_per_hr` |  |
+| `liters_per_second` | `_L_per_s` |  |
+| `liters_per_minute` | `_L_per_min` |  |
+| `gallons_per_minute` | `_gpm` |  |
+| `gallons_per_hour` | `_gph` |  |
+| `cubic_feet_per_second` | `_cfs` |  |
+| `cubic_feet_per_minute` | `_cfm` |  |
 <!-- END generated: supported-units -->
 
 ---

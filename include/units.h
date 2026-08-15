@@ -95,6 +95,7 @@
 #include <units/velocity.h>
 #include <units/voltage.h>
 #include <units/volume.h>
+#include <units/volume_flow_rate.h>
 
 namespace units
 {
