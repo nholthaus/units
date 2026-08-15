@@ -6828,8 +6828,8 @@ TEST_F(Serialization, toStringNamesKnownDimensions)
 	EXPECT_EQ(std::string::npos, length.find('#')); // NOT the raw hash form
 
 	// a value expressed in a non-canonical unit still names the canonical unit of its dimension (1 km -> "1000 m")
-	const std::string km = units::serialize(units::kilometers<double>(1.0)).to_string();
-	EXPECT_EQ(units::to_string(units::meters<double>(1000.0)), km);
+	const std::string serialized_km = units::serialize(units::kilometers<double>(1.0)).to_string();
+	EXPECT_EQ(units::to_string(units::meters<double>(1000.0)), serialized_km);
 
 	// a compound dimension renders its canonical dimension form (m s^-2), still no hash
 	const std::string accel = units::serialize(units::meters_per_second_squared<double>(9.81)).to_string();

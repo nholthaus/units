@@ -21,7 +21,7 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    auto  bridge  = 364.4_smoot;     // the length of the Harvard Bridge
+    auto  bridge  = 364.4 * smoot;   // the length of the Harvard Bridge
     meters in_meters = bridge;        // converts like any other length
 
     std::cout << bridge << " = " << in_meters << '\n';   // 364.4 smoot = 620.136 m

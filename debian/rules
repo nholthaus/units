@@ -16,8 +16,7 @@ override_dh_auto_configure:
 		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DBUILD_TESTING=OFF \
 		-DUNITS_BUILD_TESTS=OFF \
-		-DUNITS_BUILD_EXAMPLES=OFF \
-		-DUNITS_ENABLE_CPacks=OFF
+		-DUNITS_BUILD_EXAMPLES=OFF
 
 # Header-only, so skip compiling anything.
 override_dh_auto_build:

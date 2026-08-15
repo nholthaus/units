@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16...4.99 FATAL_ERROR)
 
-PROJECT(units VERSION 3.5.0 LANGUAGES CXX)
+PROJECT(units VERSION 3.5.1 LANGUAGES CXX)
+
+include(GNUInstallDirs)
 
 # check if this is the main project
 set(MAIN_PROJECT OFF)
@@ -36,7 +38,7 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
 if(MSVC)
 	target_sources(${PROJECT_NAME} INTERFACE
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/natvis/units.natvis>
-		$<INSTALL_INTERFACE:natvis/units.natvis>)
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_DATADIR}/units/natvis/units.natvis>)
 endif()
 
 # Remove IOStream from the library (useful for embedded development)
@@ -52,6 +54,7 @@ if(BUILD_TESTING AND UNITS_BUILD_TESTS)
 	find_package(GTest ${GTEST_VERSION} QUIET CONFIG)
 	if (NOT GTest_FOUND)
 		message(STATUS "No system googletest found. Using project-provided gtest ${GTEST_VERSION}")
+		set(INSTALL_GTEST OFF)
 		add_subdirectory(3rdParty/googletest-1.170.0)
 	endif()
 	add_subdirectory(test)
@@ -85,7 +88,6 @@ endif()
 # -----------------------------
 # Install/export for find_package(units CONFIG)
 # -----------------------------
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 # Version file for package config
@@ -100,11 +102,11 @@ install(DIRECTORY include/
 		DESTINATION include
 )
 
-# Install the debugger visualizers: the MSVC natvis (so the installed package's
-# $<INSTALL_INTERFACE:natvis/units.natvis> resolves and Visual Studio picks it up) and the LLDB Python
+# Install the debugger visualizers: the MSVC natvis (so the installed target's shared-data path resolves and
+# Visual Studio picks it up) and the LLDB Python
 # formatter (loaded manually via `command script import`; shipped so consumers of the installed package have it).
 install(FILES natvis/units.natvis natvis/units_lldb.py
-		DESTINATION natvis
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/units/natvis
 )
 
 # Exported targets -> unitsTargets.cmake

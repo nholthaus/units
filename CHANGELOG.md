@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.5.1] - 2026-08-15
+
+### Fixed
+- The installed CMake package now reports version 3.5.1 instead of the stale 3.4.0, so versioned
+  `find_package(units 3.5.1 EXACT)` requests work.
+- The Debian package now stages files under the correct `libunits-dev` package directory instead of producing
+  a package without the library headers and CMake metadata.
+- Debugger helpers now install under the standard shared-data location instead of directly under `/usr`.
+- Installing a build configured with tests no longer installs the bundled GoogleTest dependency.
+
 ## [3.5.0] - 2026-08-15
 
 New capabilities: first-class Eigen interoperability, self-describing serialization, and an LLDB debugger
@@ -200,6 +210,12 @@ The C++23 line. This is a major revision; see the
 - `unit_value_t` — use a `constexpr` quantity value instead.
 - The `units::math` namespace and the `_t` singular type aliases (see Changed).
 
+[3.5.1]: https://github.com/nholthaus/units/releases/tag/v3.5.1
+[3.5.0]: https://github.com/nholthaus/units/releases/tag/v3.5.0
+[3.4.4]: https://github.com/nholthaus/units/releases/tag/v3.4.4
+[3.4.3]: https://github.com/nholthaus/units/releases/tag/v3.4.3
+[3.4.2]: https://github.com/nholthaus/units/releases/tag/v3.4.2
+[3.4.1]: https://github.com/nholthaus/units/releases/tag/v3.4.1
 [3.4.0]: https://github.com/nholthaus/units/releases/tag/v3.4.0
 [3.3.0]: https://github.com/nholthaus/units/releases/tag/v3.3.0
 [3.2.0]: https://github.com/nholthaus/units/releases/tag/v3.2.0

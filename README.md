@@ -446,7 +446,7 @@ target_link_libraries(myapp PRIVATE units::units)
 include(FetchContent)
 FetchContent_Declare(units
   GIT_REPOSITORY https://github.com/nholthaus/units.git
-  GIT_TAG        v3.4.0)
+  GIT_TAG        v3.5.1)
 FetchContent_MakeAvailable(units)
 target_link_libraries(myapp PRIVATE units::units)
 ```
