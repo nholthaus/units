@@ -34,7 +34,7 @@ Start with [Getting started](learn/getting-started.md); the
 - [Eigen interoperability](how-to/eigen.md)
 - [Disabling iostream](how-to/disabling-iostream.md)
 - [Subset headers for compile time](how-to/subset-headers-compile-time.md)
-- [Visual Studio visualizer](how-to/natvis.md)
+- [Debugger visualizers](how-to/natvis.md)
 - [CMake integration](how-to/cmake-integration.md)
 
 ## Reference

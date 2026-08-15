@@ -3,9 +3,10 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
-## [3.4.4] - 2026-08-15
+## [3.5.0] - 2026-08-15
 
-Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.
+New capabilities: first-class Eigen interoperability, self-describing serialization, and an LLDB debugger
+visualizer.
 
 ### Added
 - Optional, dependency-free interoperability with the [Eigen](https://eigen.tuxfamily.org) linear-algebra
@@ -16,6 +17,14 @@ Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale
   `unit_dot`, `unit_squared_norm`, `unit_norm`, `unit_normalized`, `unit_cross`, and `unit_transform`. The
   support activates only when `<Eigen/Core>` is present (guarded by `__has_include`); `units` gains no
   dependency on Eigen. (#90)
+- An LLDB debugger formatter (`natvis/units_lldb.py`) so a quantity shows as its value and abbreviation
+  (`5 m`) in LLDB and its front-ends (CLion, Xcode, CodeLLDB), mirroring the MSVC natvis. (#279)
+
+## [3.4.4] - 2026-08-15
+
+Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.
+
+### Added
 - A `dynamic_viscosity` dimension (`pressure * time`) with `pascal_seconds`, `poise`, and `centipoise`, and a
   `kinematic_viscosity` dimension (`area / time`) with `square_meters_per_second`, `stokes`, and
   `centistokes`. (#205)

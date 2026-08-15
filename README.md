@@ -382,8 +382,10 @@ target_link_libraries(myapp PRIVATE units::units)
 **Linux packages.** The build produces Debian (`libunits-dev`), RPM (`units-devel`), and tarball
 artifacts via CPack; a PPA is published for Ubuntu.
 
-Linking `units::units` also attaches the [Visual Studio debugger visualizer](natvis/units.natvis) on
-MSVC, so a quantity shows as `5 m` in the debugger rather than an opaque object.
+[Debugger visualizers](docs/how-to/natvis.md) show a quantity as `5 m` in the debugger rather than an
+opaque object: linking `units::units` attaches the [natvis](natvis/units.natvis) automatically on MSVC,
+and an [LLDB formatter](natvis/units_lldb.py) (`command script import units_lldb.py`) does the same for
+LLDB, CLion, Xcode, and CodeLLDB.
 
 > **Not yet available:** vcpkg and Conan ports. Contributions welcome.
 
@@ -1068,7 +1070,7 @@ reference is published at <https://nholthaus.github.io/units/>.
 - [Eigen interoperability](docs/how-to/eigen.md)
 - [Disabling iostream](docs/how-to/disabling-iostream.md)
 - [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md)
-- [Visual Studio visualizer](docs/how-to/natvis.md)
+- [Debugger visualizers](docs/how-to/natvis.md)
 - [CMake integration](docs/how-to/cmake-integration.md)
 
 ### Reference
