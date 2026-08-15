@@ -2434,12 +2434,6 @@ namespace units
 	template<ConversionFactorType ConversionFactor, ArithmeticType T = UNIT_LIB_DEFAULT_TYPE, NumericalScaleType<T> NumericalScale = linear_scale>
 	class MSVC_EBO unit : public ConversionFactor, public NumericalScale, public detail::_unit
 	{
-		// A decibel-scale unit stores its value through a base-10 logarithm, so an integral underlying type
-		// cannot represent it: most decibel figures round to a wrong integer (3 dB stores as 0) and large
-		// ones overflow. Require a floating-point underlying type for a decibel scale.
-		static_assert(!std::is_same_v<NumericalScale, decibel_scale> || std::is_floating_point_v<T>,
-			"a decibel-scale unit requires a floating-point underlying type (an integral type cannot represent a logarithmic value)");
-
 	public:
 		using numerical_scale_type = NumericalScale;   ///< Type of the numerical scale of the unit (e.g. linear_scale)
 		using underlying_type      = T;                ///< Type of the underlying storage of the unit (e.g. double)
@@ -4374,6 +4368,12 @@ namespace units
 		template<class T>
 		static T linearize(const T value) noexcept
 		{
+			// A decibel value is stored through a base-10 logarithm, so an integral underlying type cannot
+			// represent it: most decibel figures round to a wrong integer (3 dB stores as 0) and large ones
+			// overflow. Asserted here, at the point a value is actually stored, so merely naming a
+			// decibel-scale type for trait/overload resolution does not trip it.
+			static_assert(std::is_floating_point_v<T>,
+				"a decibel-scale unit requires a floating-point underlying type (an integral type cannot represent a logarithmic value)");
 			return static_cast<T>(std::pow(10, value / 10));
 		}
 
