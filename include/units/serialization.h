@@ -402,29 +402,38 @@ namespace units
 		/// @tparam     Unit  the target unit type
 		/// @return     the value as `Unit` on a dimension match, else `deserialize_error::dimension_mismatch`
 		//------------------------------------------------------------------------------------------------------------------
-		template<UnitType Unit>
+		template<class Unit>
 		[[nodiscard]] std::expected<Unit, deserialize_error> to() const
 		{
-			if (m_identity != detail::identity_of<Unit>())
-				return std::unexpected(deserialize_error::dimension_mismatch);
-
-			using ConversionFactor = typename traits::unit_traits<Unit>::conversion_factor;
-			using Dim              = traits::dimension_of_t<ConversionFactor>;
-			using UnderlyingTarget = typename traits::unit_traits<Unit>::underlying_type;
-
-			// Express the SI-base magnitude in the TARGET unit's scale, all in double so no lossy unit conversion is
-			// attempted: a double-underlying instance of the target unit converts from the canonical base cleanly.
-			using TargetAsDouble   = unit<traits::strong_t<ConversionFactor>, double, typename traits::unit_traits<Unit>::numerical_scale_type>;
-			const double as_double = TargetAsDouble(detail::canonical_unit_t<Dim>(m_base)).template to<double>();
-
-			// Narrow to the target's underlying type. An integral target that cannot represent the value exactly is
-			// a lossy_target error rather than a silent truncation.
-			if constexpr (!std::is_floating_point_v<UnderlyingTarget>)
+			static_assert(traits::is_unit_v<Unit>, "any_unit::to<T>() collapses into a unit type (e.g. meters<double>), not a bare number. To read a plain value, collapse to a unit first, then call .value() or .to<double>() on that unit.");
+			// gate the body so a non-unit Unit produces ONLY the friendly message above, no downstream template soup
+			if constexpr (traits::is_unit_v<Unit>)
 			{
-				if (as_double != std::floor(as_double) || std::abs(as_double) > static_cast<double>(std::numeric_limits<UnderlyingTarget>::max()))
-					return std::unexpected(deserialize_error::lossy_target);
+				if (m_identity != detail::identity_of<Unit>())
+					return std::unexpected(deserialize_error::dimension_mismatch);
+
+				using ConversionFactor = typename traits::unit_traits<Unit>::conversion_factor;
+				using Dim              = traits::dimension_of_t<ConversionFactor>;
+				using UnderlyingTarget = typename traits::unit_traits<Unit>::underlying_type;
+
+				// Express the SI-base magnitude in the TARGET unit's scale, all in double so no lossy unit conversion is
+				// attempted: a double-underlying instance of the target unit converts from the canonical base cleanly.
+				using TargetAsDouble   = unit<traits::strong_t<ConversionFactor>, double, typename traits::unit_traits<Unit>::numerical_scale_type>;
+				const double as_double = TargetAsDouble(detail::canonical_unit_t<Dim>(m_base)).template to<double>();
+
+				// Narrow to the target's underlying type. An integral target that cannot represent the value exactly is
+				// a lossy_target error rather than a silent truncation.
+				if constexpr (!std::is_floating_point_v<UnderlyingTarget>)
+				{
+					if (as_double != std::floor(as_double) || std::abs(as_double) > static_cast<double>(std::numeric_limits<UnderlyingTarget>::max()))
+						return std::unexpected(deserialize_error::lossy_target);
+				}
+				return Unit(static_cast<UnderlyingTarget>(as_double));
 			}
-			return Unit(static_cast<UnderlyingTarget>(as_double));
+			else
+			{
+				return std::unexpected(deserialize_error::dimension_mismatch); // unreachable; the static_assert fired
+			}
 		}
 
 		//------------------------------------------------------------------------------------------------------------------
@@ -434,9 +443,10 @@ namespace units
 		/// @tparam     Unit  the target unit type
 		/// @return     the value as `Unit`
 		//------------------------------------------------------------------------------------------------------------------
-		template<UnitType Unit>
+		template<class Unit>
 		[[nodiscard]] Unit try_to() const
 		{
+			static_assert(traits::is_unit_v<Unit>, "any_unit::try_to<T>() collapses into a unit type (e.g. meters<double>), not a bare number.");
 			auto result = to<Unit>();
 			if (!result)
 				throw std::runtime_error("units::any_unit: dimension mismatch collapsing to the requested unit");
@@ -533,9 +543,10 @@ namespace units
 	/// @param[in]  value   the erased quantity
 	/// @return     the value as `Target`
 	//----------------------------------------------------------------------------------------------------------------------
-	template<UnitType Target>
+	template<class Target>
 	[[nodiscard]] Target unit_cast(const any_unit& value)
 	{
+		static_assert(traits::is_unit_v<Target>, "units::unit_cast<T>(any_unit) casts to a unit type (e.g. meters<double>), not a bare number. Collapse to a unit, then read its value.");
 		return value.try_to<Target>();
 	}
 
@@ -553,9 +564,15 @@ namespace units
 	/// @param[in]  quantity  the value to serialize
 	/// @return     the encoded bytes
 	//----------------------------------------------------------------------------------------------------------------------
-	template<UnitType Unit>
+	template<class Unit>
 	[[nodiscard]] std::vector<std::byte> serialize(const Unit& quantity)
 	{
+		static_assert(traits::is_unit_v<Unit>, "units::serialize requires a units quantity (e.g. meters<double>). Its argument is not a unit type; wrap the value in a unit before serializing.");
+		// gate the body so a non-unit argument produces ONLY the friendly message above, no downstream template soup
+		if constexpr (!traits::is_unit_v<Unit>)
+			return {};
+		else
+		{
 		constexpr auto& sig = detail::signature<Unit>::value;   // fixed-array compile-time signature (sorted by hash)
 
 		// value in SI canonical base
@@ -615,6 +632,7 @@ namespace units
 		}
 		}
 		return out;
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -652,8 +670,8 @@ namespace units
 			if (end - cursor < 8)
 				return std::unexpected(deserialize_error::truncated);
 			std::uint64_t hash = 0;
-			for (unsigned int b = 0; b < 8; ++b)
-				hash |= static_cast<std::uint64_t>(std::to_integer<std::uint8_t>(*cursor++)) << (8 * b);
+			for (unsigned int byteIndex = 0; byteIndex < 8; ++byteIndex)
+				hash |= static_cast<std::uint64_t>(std::to_integer<std::uint8_t>(*cursor++)) << (8 * byteIndex);
 			std::int64_t num = 0;
 			std::int64_t den = 1;
 			if (!detail::get_svarint(cursor, end, num))
@@ -710,9 +728,10 @@ namespace units
 	/// @param[in]  bytes  the encoded stream
 	/// @return     the value as `Unit` on success, else a `deserialize_error`
 	//----------------------------------------------------------------------------------------------------------------------
-	template<UnitType Unit>
+	template<class Unit>
 	[[nodiscard]] std::expected<Unit, deserialize_error> deserialize(std::span<const std::byte> bytes)
 	{
+		static_assert(traits::is_unit_v<Unit>, "units::deserialize<T>(bytes) decodes into a unit type (e.g. deserialize<meters<double>>). The requested type is not a unit; use deserialize(bytes) for an erased any_unit.");
 		auto erased = deserialize(bytes);
 		if (!erased)
 			return std::unexpected(erased.error());

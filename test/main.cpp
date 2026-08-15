@@ -18,9 +18,26 @@
 #include <string>
 #include <type_traits>
 #include <units.h>
+#include <units/serialization.h>
 
 using namespace units;
 using namespace units::literals;
+
+// A user-defined base dimension + unit, declared outside the library, to prove serialization is extensible to
+// dimensions the library has never seen (no central table, no fixed ceiling).
+namespace units
+{
+	namespace dimension
+	{
+		struct pixels_tag
+		{
+			static constexpr auto name         = "pixels";
+			static constexpr auto abbreviation = "px";
+		};
+		using pixels = make_dimension<pixels_tag>;
+	} // namespace dimension
+	UNIT_ADD(screen, dots, px, conversion_factor<std::ratio<1>, dimension::pixels>)
+} // namespace units
 
 namespace
 {
@@ -70,6 +87,10 @@ namespace
 	};
 
 	class CaseStudies : public ::testing::Test
+	{
+	};
+
+	class Serialization : public ::testing::Test
 	{
 	};
 
@@ -5915,6 +5936,739 @@ TEST_F(TorqueNaming, poundFeetIsTheTorqueUnit)
 	EXPECT_STREQ("10 lbf_ft", out.c_str());
 #endif
 }
+
+//======================================================================================================================
+//	SERIALIZATION — exhaustive coverage
+//======================================================================================================================
+
+namespace
+{
+	// round-trips a quantity through serialize -> deserialize -> to<same> and asserts bit-equality of the value.
+	template<class Q>
+	void expectRoundTrip(Q quantity)
+	{
+		const std::vector<std::byte> bytes = units::serialize(quantity);
+		const auto                   erased = units::deserialize(bytes);
+		ASSERT_TRUE(erased.has_value());
+		const auto back = erased->template to<Q>();
+		ASSERT_TRUE(back.has_value());
+		const double a = quantity.template to<double>();
+		const double b = back->template to<double>();
+		if (std::isnan(a))
+			EXPECT_TRUE(std::isnan(b));
+		else
+			EXPECT_DOUBLE_EQ(a, b);
+		// the typed fast path yields the same value
+		const auto direct = units::deserialize<Q>(bytes);
+		ASSERT_TRUE(direct.has_value());
+		if (std::isnan(a))
+			EXPECT_TRUE(std::isnan(direct->template to<double>()));
+		else
+			EXPECT_DOUBLE_EQ(a, direct->template to<double>());
+	}
+} // namespace
+
+TEST_F(Serialization, roundTripLength)
+{
+	expectRoundTrip(units::meters<double>(100.0));
+	expectRoundTrip(units::feet<double>(3.5));
+	expectRoundTrip(units::miles<double>(2.0));
+	expectRoundTrip(units::kilometers<double>(2.5));
+	expectRoundTrip(units::nanometers<double>(500.0));
+	expectRoundTrip(units::furlongs<double>(10.0));
+	expectRoundTrip(units::nautical_miles<double>(1.0));
+	expectRoundTrip(units::rods<double>(4.0));
+	expectRoundTrip(units::picas<double>(6.0));
+}
+
+TEST_F(Serialization, roundTripMass)
+{
+	expectRoundTrip(units::kilograms<double>(5.0));
+	expectRoundTrip(units::grams<double>(250.0));
+	expectRoundTrip(units::mass::pounds<double>(10.0));
+	expectRoundTrip(units::slugs<double>(1.0));
+	expectRoundTrip(units::stone<double>(11.0));
+	expectRoundTrip(units::troy_ounces<double>(2.0));
+	expectRoundTrip(units::carats<double>(0.5));
+}
+
+TEST_F(Serialization, roundTripTime)
+{
+	expectRoundTrip(units::seconds<double>(60.0));
+	expectRoundTrip(units::minutes<double>(1.5));
+	expectRoundTrip(units::hours<double>(24.0));
+	expectRoundTrip(units::milliseconds<double>(500.0));
+	expectRoundTrip(units::fortnights<double>(1.0));
+	expectRoundTrip(units::julian_years<double>(1.0));
+}
+
+TEST_F(Serialization, roundTripAngle)
+{
+	expectRoundTrip(units::radians<double>(3.14159));
+	expectRoundTrip(units::degrees<double>(90.0));
+	expectRoundTrip(units::turns<double>(0.25));
+	expectRoundTrip(units::gradians<double>(100.0));
+	expectRoundTrip(units::angular_mils<double>(1600.0));
+}
+
+TEST_F(Serialization, roundTripTemperature)
+{
+	expectRoundTrip(units::kelvin<double>(300.0));
+	expectRoundTrip(units::celsius<double>(100.0));
+	expectRoundTrip(units::fahrenheit<double>(212.0));
+	expectRoundTrip(units::rankine<double>(491.67));
+}
+
+TEST_F(Serialization, roundTripCurrentAndCharge)
+{
+	expectRoundTrip(units::amperes<double>(2.0));
+	expectRoundTrip(units::milliamperes<double>(500.0));
+	expectRoundTrip(units::coulombs<double>(1.0));
+	expectRoundTrip(units::ampere_hours<double>(3.0));
+}
+
+TEST_F(Serialization, roundTripSubstanceAndLuminous)
+{
+	expectRoundTrip(units::mols<double>(2.0));
+	expectRoundTrip(units::candelas<double>(60.0));
+	expectRoundTrip(units::lumens<double>(800.0));
+	expectRoundTrip(units::lux<double>(500.0));
+}
+
+TEST_F(Serialization, roundTripData)
+{
+	expectRoundTrip(units::bytes<double>(1024.0));
+	expectRoundTrip(units::kilobytes<double>(4.0));
+	expectRoundTrip(units::gigabytes<double>(2.0));
+	expectRoundTrip(units::kibibytes<double>(1.0));
+	expectRoundTrip(units::exbibytes<double>(1.0));
+	expectRoundTrip(units::bits<double>(8.0));
+	expectRoundTrip(units::gigabits<double>(10.0));
+}
+
+TEST_F(Serialization, roundTripDerivedDimensions)
+{
+	expectRoundTrip(units::meters_per_second<double>(26.8224));
+	expectRoundTrip(units::miles_per_hour<double>(60.0));
+	expectRoundTrip(units::knots<double>(100.0));
+	expectRoundTrip(units::meters_per_second_squared<double>(9.81));
+	expectRoundTrip(units::newtons<double>(10.0));
+	expectRoundTrip(units::force::pounds<double>(25.0));
+}
+
+TEST_F(Serialization, roundTripEnergyPowerPressure)
+{
+	expectRoundTrip(units::joules<double>(500.0));
+	expectRoundTrip(units::kilowatt_hours<double>(3.0));
+	expectRoundTrip(units::watts<double>(60.0));
+	expectRoundTrip(units::horsepower<double>(1.0));
+	expectRoundTrip(units::pascals<double>(101325.0));
+	expectRoundTrip(units::atmospheres<double>(1.0));
+	expectRoundTrip(units::pounds_per_square_inch<double>(14.7));
+}
+
+TEST_F(Serialization, roundTripElectromagnetic)
+{
+	expectRoundTrip(units::volts<double>(120.0));
+	expectRoundTrip(units::farads<double>(0.001));
+	expectRoundTrip(units::ohms<double>(50.0));
+	expectRoundTrip(units::henries<double>(2.0));
+	expectRoundTrip(units::webers<double>(1.0));
+	expectRoundTrip(units::teslas<double>(1.5));
+}
+
+TEST_F(Serialization, roundTripAreaVolumeFlow)
+{
+	expectRoundTrip(units::square_meters<double>(25.0));
+	expectRoundTrip(units::acres<double>(2.0));
+	expectRoundTrip(units::cubic_meters<double>(3.0));
+	expectRoundTrip(units::liters<double>(2.0));
+	expectRoundTrip(units::gallons<double>(5.0));
+	expectRoundTrip(units::liters_per_second<double>(1.5));
+	expectRoundTrip(units::gallons_per_minute<double>(10.0));
+	expectRoundTrip(units::cubic_feet_per_second<double>(1.0));
+}
+
+TEST_F(Serialization, roundTripFrequencyDensityTorque)
+{
+	expectRoundTrip(units::hertz<double>(60.0));
+	expectRoundTrip(units::kilohertz<double>(44.1));
+	expectRoundTrip(units::kilograms_per_cubic_meter<double>(1000.0));
+	expectRoundTrip(units::newton_meters<double>(50.0));
+}
+
+TEST_F(Serialization, roundTripDecibelScale)
+{
+	// the decibel scale is non-linear (logarithmic); the stored SI-base value must still round-trip the dB reading
+	expectRoundTrip(units::dBW<double>(10.0));
+	expectRoundTrip(units::dBW<double>(-20.0));
+	expectRoundTrip(units::dBm<double>(-3.0));
+	expectRoundTrip(units::decibels<double>(6.0));
+	expectRoundTrip(units::decibels<double>(0.0));
+
+	// a decibel stream collapses back to the same reading
+	const auto v = units::deserialize(units::serialize(units::dBW<double>(23.0)));
+	ASSERT_TRUE(v);
+	const auto back = v->to<units::dBW<double>>();
+	ASSERT_TRUE(back);
+	EXPECT_NEAR(23.0, back->to<double>(), 5.0e-9);
+}
+
+TEST_F(Serialization, crossUnitConversionNotTautological)
+{
+	// These serialize as unit A and deserialize into a DIFFERENT unit B of the same dimension, then assert against
+	// values computed here by hand (NOT read back from the library). A tautological round-trip (serialize/deserialize
+	// merely shuffling the same number) would fail these, because the value must actually cross a unit conversion.
+
+	// 60 mph -> m/s : 1 mile = 1609.344 m, 1 h = 3600 s -> 60*1609.344/3600 = 26.8224 exactly
+	{
+		const auto v = units::deserialize(units::serialize(units::miles_per_hour<double>(60.0)));
+		ASSERT_TRUE(v);
+		const auto mpsA = v->to<units::meters_per_second<double>>();
+		ASSERT_TRUE(mpsA);
+		EXPECT_NEAR(26.8224, mpsA->value(), 5.0e-10);
+	}
+	// 100 ft -> m : 1 ft = 0.3048 m -> 30.48 m
+	{
+		const auto v = units::deserialize(units::serialize(units::feet<double>(100.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(30.48, v->to<units::meters<double>>()->value(), 5.0e-11);
+	}
+	// 1 kg -> pounds (mass): 1 lb = 0.45359237 kg -> 1/0.45359237 = 2.2046226218... lb
+	{
+		const auto v = units::deserialize(units::serialize(units::kilograms<double>(1.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(2.2046226218487757, v->to<units::mass::pounds<double>>()->value(), 5.0e-12);
+	}
+	// 1 hour -> seconds : 3600
+	{
+		const auto v = units::deserialize(units::serialize(units::hours<double>(1.0)));
+		ASSERT_TRUE(v);
+		EXPECT_DOUBLE_EQ(3600.0, v->to<units::seconds<double>>()->value());
+	}
+	// 100 celsius -> fahrenheit : 100*9/5 + 32 = 212 (affine translation must survive the stream)
+	{
+		const auto v = units::deserialize(units::serialize(units::celsius<double>(100.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(212.0, v->to<units::fahrenheit<double>>()->value(), 5.0e-11);
+	}
+	// 0 celsius -> kelvin : 273.15
+	{
+		const auto v = units::deserialize(units::serialize(units::celsius<double>(0.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(273.15, v->to<units::kelvin<double>>()->value(), 5.0e-12);
+	}
+	// 180 degrees -> radians : pi
+	{
+		const auto v = units::deserialize(units::serialize(units::degrees<double>(180.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(3.141592653589793, v->to<units::radians<double>>()->value(), 5.0e-15);
+	}
+	// 1 kibibyte -> bytes : 1024 ; 1 kilobyte -> bytes : 1000 (binary vs decimal prefixes, distinct)
+	{
+		const auto kib = units::deserialize(units::serialize(units::kibibytes<double>(1.0)));
+		const auto kbV  = units::deserialize(units::serialize(units::kilobytes<double>(1.0)));
+		ASSERT_TRUE(kib && kbV);
+		EXPECT_DOUBLE_EQ(1024.0, kib->to<units::bytes<double>>()->value());
+		EXPECT_DOUBLE_EQ(1000.0, kbV->to<units::bytes<double>>()->value());
+	}
+	// 1 atmosphere -> pascals : 101325 exactly
+	{
+		const auto v = units::deserialize(units::serialize(units::atmospheres<double>(1.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(101325.0, v->to<units::pascals<double>>()->value(), 5.0e-7);
+	}
+	// 1 kWh -> joules : 3.6e6
+	{
+		const auto v = units::deserialize(units::serialize(units::kilowatt_hours<double>(1.0)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(3.6e6, v->to<units::joules<double>>()->value(), 5.0e-3);
+	}
+	// serialize m/s, read back as mph : 26.8224 m/s -> 60 mph (the reverse of the first case)
+	{
+		const auto v = units::deserialize(units::serialize(units::meters_per_second<double>(26.8224)));
+		ASSERT_TRUE(v);
+		EXPECT_NEAR(60.0, v->to<units::miles_per_hour<double>>()->value(), 5.0e-10);
+	}
+}
+
+TEST_F(Serialization, edgeValues)
+{
+	expectRoundTrip(units::meters<double>(0.0));
+	expectRoundTrip(units::meters<double>(-42.5));
+	expectRoundTrip(units::meters<double>(1e300));
+	expectRoundTrip(units::meters<double>(1e-300));
+	expectRoundTrip(units::meters<double>(3.141592653589793));
+	expectRoundTrip(units::meters<double>(9000000000000.0));
+	expectRoundTrip(units::meters<double>(std::numeric_limits<double>::quiet_NaN()));
+	expectRoundTrip(units::meters<double>(std::numeric_limits<double>::infinity()));
+	expectRoundTrip(units::meters<double>(-std::numeric_limits<double>::infinity()));
+}
+
+TEST_F(Serialization, underlyingTypes)
+{
+	expectRoundTrip(units::meters<double>(1.5));
+	expectRoundTrip(units::meters<float>(1.5f));
+	expectRoundTrip(units::meters<int>(7));
+	expectRoundTrip(units::seconds<float>(0.25f));
+	expectRoundTrip(units::kilograms<int>(5));
+}
+
+TEST_F(Serialization, valueKinds)
+{
+	// whole value -> integer varint (tersest)
+	EXPECT_LT(units::serialize(units::meters<double>(5.0)).size(), units::serialize(units::meters<double>(5.5)).size());
+	// exact-float value -> f32; irrational -> f64
+	const auto f32bytes = units::serialize(units::meters<double>(1.5));   // exact as float
+	const auto f64bytes = units::serialize(units::meters<double>(0.1));   // not exact as float
+	EXPECT_LT(f32bytes.size(), f64bytes.size());
+}
+
+TEST_F(Serialization, collapseMethods)
+{
+	const auto bytes = units::serialize(60.0_mph);
+	const auto v     = units::deserialize(bytes);
+	ASSERT_TRUE(v);
+
+	// to<> : safe, expected
+	const auto mpsV = v->to<units::meters_per_second<double>>();
+	ASSERT_TRUE(mpsV);
+	EXPECT_NEAR(26.8224, mpsV->value(), 5.0e-9);
+	const auto mphV = v->to<units::miles_per_hour<double>>();
+	ASSERT_TRUE(mphV);
+	EXPECT_NEAR(60.0, mphV->value(), 5.0e-9);
+
+	// to<> wrong dimension -> error, no throw
+	const auto wrong = v->to<units::kilograms<double>>();
+	EXPECT_FALSE(wrong);
+	EXPECT_EQ(units::deserialize_error::dimension_mismatch, wrong.error());
+
+	// try_to : throwing
+	EXPECT_NEAR(26.8224, v->try_to<units::meters_per_second<double>>().value(), 5.0e-9);
+	EXPECT_THROW((void)v->try_to<units::kilograms<double>>(), std::runtime_error);
+
+	// unit_cast : the free-function throwing idiom, same result as try_to
+	EXPECT_NEAR(26.8224, units::unit_cast<units::meters_per_second<double>>(*v).value(), 5.0e-9);
+	EXPECT_THROW((void)units::unit_cast<units::kilograms<double>>(*v), std::runtime_error);
+
+	// visit : canonical unit, no target named
+	bool visited = false;
+	v->visit(
+		[&](auto q)
+		{
+			visited = true;
+			EXPECT_NEAR(26.8224, q.template to<double>(), 5.0e-9);
+		});
+	EXPECT_TRUE(visited);
+
+	// is<>
+	EXPECT_TRUE(v->is<units::dimension::velocity>());
+	EXPECT_FALSE(v->is<units::dimension::mass>());
+	EXPECT_NEAR(26.8224, v->value_in_base(), 5.0e-9);
+}
+
+TEST_F(Serialization, visitResolvesManyDimensions)
+{
+	auto check = [](auto quantity, double expectedBase)
+	{
+		const auto v = units::deserialize(units::serialize(quantity));
+		ASSERT_TRUE(v);
+		bool visited = false;
+		v->visit(
+			[&](auto q)
+			{
+				visited = true;
+				EXPECT_NEAR(expectedBase, q.template to<double>(), std::abs(expectedBase) * 1e-9 + 1e-12);
+			});
+		EXPECT_TRUE(visited);
+	};
+	check(units::meters<double>(100.0), 100.0);
+	check(units::newtons<double>(10.0), 10.0);
+	check(units::joules<double>(5.0), 5.0);
+	check(units::watts<double>(60.0), 60.0);
+	check(units::pascals<double>(101325.0), 101325.0);
+	check(units::hertz<double>(60.0), 60.0);
+	check(units::amperes<double>(2.0), 2.0);
+	check(units::liters_per_second<double>(1.0), 0.001);
+}
+
+TEST_F(Serialization, lossyIntegerTargetRejected)
+{
+	// a fractional value cannot be represented in an integer-underlying target
+	const auto bytes = units::serialize(1.5_m);
+	const auto v     = units::deserialize(bytes);
+	ASSERT_TRUE(v);
+	const auto asInt = v->to<units::meters<int>>();
+	EXPECT_FALSE(asInt);
+	EXPECT_EQ(units::deserialize_error::lossy_target, asInt.error());
+	// a whole value converts to an integer target fine
+	const auto whole = units::deserialize(units::serialize(units::meters<double>(3.0)));
+	ASSERT_TRUE(whole);
+	const auto ok = whole->to<units::meters<int>>();
+	ASSERT_TRUE(ok);
+	EXPECT_EQ(3, ok->value());
+}
+
+TEST_F(Serialization, errorPaths)
+{
+	const auto good = units::serialize(60.0_mph);
+
+	// empty buffer -> truncated
+	{
+		std::vector<std::byte> empty;
+		const auto             r = units::deserialize(empty);
+		EXPECT_FALSE(r);
+		EXPECT_EQ(units::deserialize_error::truncated, r.error());
+	}
+	// bad version byte
+	{
+		auto bad = good;
+		bad[0]   = std::byte{0xFF};
+		const auto r = units::deserialize(bad);
+		EXPECT_FALSE(r);
+		EXPECT_EQ(units::deserialize_error::bad_version, r.error());
+	}
+	// truncated mid-stream (drop the value/tail)
+	{
+		std::vector<std::byte> partial(good.begin(), good.begin() + 3);
+		const auto             r = units::deserialize(partial);
+		EXPECT_FALSE(r);
+		EXPECT_EQ(units::deserialize_error::truncated, r.error());
+	}
+	// typed deserialize of a wrong dimension -> dimension_mismatch
+	{
+		const auto r = units::deserialize<units::kilograms<double>>(good);
+		EXPECT_FALSE(r);
+		EXPECT_EQ(units::deserialize_error::dimension_mismatch, r.error());
+	}
+}
+
+TEST_F(Serialization, userDefinedDimensionIsExtensible)
+{
+	// the whole point: a dimension the library never defined round-trips with no central table.
+	// serialize via the generated unit constant (units::px, in the inline screen namespace) to exercise it too.
+	const auto bytes = units::serialize(1920.0 * units::px);
+	const auto v     = units::deserialize(bytes);
+	ASSERT_TRUE(v);
+	EXPECT_TRUE(v->is<units::dimension::pixels>());
+	EXPECT_FALSE(v->is<units::dimension::length>());
+	const auto pxV = v->to<units::screen::dots<double>>();
+	ASSERT_TRUE(pxV);
+	EXPECT_DOUBLE_EQ(1920.0, pxV->value());
+	// zero-candidate visit cannot know a user dimension (throws); explicit candidate resolves it
+	EXPECT_THROW(v->visit([](auto) {}), std::runtime_error);
+	bool visited = false;
+	v->visit<units::dimension::pixels>([&](auto q) { visited = true; EXPECT_DOUBLE_EQ(1920.0, q.value()); });
+	EXPECT_TRUE(visited);
+}
+
+TEST_F(Serialization, compoundOfUserDimensions)
+{
+	// a compound spanning multiple base dimensions (pixels / second): arbitrary arity, no fixed ceiling
+	auto rate  = units::screen::dots<double>(60.0) / units::seconds<double>(1.0);
+	auto bytes = units::serialize(rate);
+	auto v     = units::deserialize(bytes);
+	ASSERT_TRUE(v);
+	EXPECT_EQ(2u, v->identity().terms.size());
+	auto back = v->to<decltype(rate)>();
+	ASSERT_TRUE(back);
+	EXPECT_DOUBLE_EQ(rate.template to<double>(), back->template to<double>());
+}
+
+TEST_F(Serialization, dimensionMismatchAcrossManyPairs)
+{
+	// every serialized dimension rejects collapse into an unrelated dimension
+	auto reject = [](auto quantity, auto wrongTargetPrototype)
+	{
+		using Wrong  = decltype(wrongTargetPrototype);
+		const auto v = units::deserialize(units::serialize(quantity));
+		ASSERT_TRUE(v);
+		const auto r = v->template to<Wrong>();
+		EXPECT_FALSE(r);
+		if (!r)
+		{
+			EXPECT_EQ(units::deserialize_error::dimension_mismatch, r.error());
+		}
+	};
+	reject(units::meters<double>(1.0), units::seconds<double>(0.0));
+	reject(units::kilograms<double>(1.0), units::newtons<double>(0.0));
+	reject(units::joules<double>(1.0), units::watts<double>(0.0));
+	reject(units::hertz<double>(1.0), units::seconds<double>(0.0));
+	reject(units::amperes<double>(1.0), units::coulombs<double>(0.0));
+	reject(units::square_meters<double>(1.0), units::meters<double>(0.0));
+	reject(units::cubic_meters<double>(1.0), units::square_meters<double>(0.0));
+	reject(units::meters_per_second<double>(1.0), units::meters<double>(0.0));
+}
+
+TEST_F(Serialization, wireStabilityGolden)
+{
+	// a frozen fixture guards the wire format against silent drift. 100 m: version(1) + header(kind=ivarint,0)
+	// + count(1) + hash("length" 8 bytes) + zigzag-exponent(1 -> 2) + value-varint(100 -> 200 = 0xC8 0x01)
+	const auto bytes = units::serialize(units::meters<double>(100.0));
+	ASSERT_EQ(14u, bytes.size());
+	EXPECT_EQ(std::byte{1}, bytes[0]);       // version
+	EXPECT_EQ(std::byte{0}, bytes[1]);       // header: value_kind::ivarint, no fracExp
+	EXPECT_EQ(std::byte{1}, bytes[2]);       // one dimension term
+	// bytes[3..10] the 8-byte length-name hash; bytes[11] exponent(=2 zigzag); bytes[12..13] value 100 (varint 200)
+	const std::uint64_t lengthHash = units::detail::name_hash("length");
+	for (unsigned int i = 0; i < 8; ++i)
+		EXPECT_EQ(std::byte{static_cast<std::uint8_t>(lengthHash >> (8 * i))}, bytes[3 + i]);
+}
+
+TEST_F(Serialization, nameHashIsStableAndDistinct)
+{
+	// the wire key is a hash of the dimension name; distinct built-in names must not collide
+	std::array<std::string_view, 9> names{"length", "mass", "time", "current", "temperature", "amount of substance", "luminous intensity", "angle", "data"};
+	for (std::size_t i = 0; i < names.size(); ++i)
+		for (std::size_t j = i + 1; j < names.size(); ++j)
+			EXPECT_NE(units::detail::name_hash(names[i]), units::detail::name_hash(names[j]));
+	// stable: same input, same hash
+	EXPECT_EQ(units::detail::name_hash("length"), units::detail::name_hash("length"));
+}
+
+// ---- second wave: broader, more redundant coverage --------------------------------------------------------------
+
+TEST_F(Serialization, roundTripManyLengthUnits)
+{
+	expectRoundTrip(units::millimeters<double>(12.0));
+	expectRoundTrip(units::centimeters<double>(2.5));
+	expectRoundTrip(units::decimeters<double>(3.0));
+	expectRoundTrip(units::micrometers<double>(50.0));
+	expectRoundTrip(units::inches<double>(6.0));
+	expectRoundTrip(units::yards<double>(100.0));
+	expectRoundTrip(units::chains<double>(2.0));
+	expectRoundTrip(units::fathoms<double>(3.0));
+	expectRoundTrip(units::mils<double>(500.0));
+	expectRoundTrip(units::astronomical_units<double>(1.0));
+	expectRoundTrip(units::lightyears<double>(4.0));
+	expectRoundTrip(units::parsecs<double>(1.0));
+	expectRoundTrip(units::hands<double>(15.0));
+	expectRoundTrip(units::barleycorns<double>(9.0));
+}
+
+TEST_F(Serialization, roundTripManyTimeUnits)
+{
+	expectRoundTrip(units::nanoseconds<double>(250.0));
+	expectRoundTrip(units::microseconds<double>(100.0));
+	expectRoundTrip(units::days<double>(3.0));
+	expectRoundTrip(units::weeks<double>(2.0));
+	expectRoundTrip(units::years<double>(1.0));
+	expectRoundTrip(units::decades<double>(1.0));
+	expectRoundTrip(units::centuries<double>(1.0));
+}
+
+TEST_F(Serialization, roundTripManyVelocityUnits)
+{
+	expectRoundTrip(units::feet_per_second<double>(100.0));
+	expectRoundTrip(units::kilometers_per_hour<double>(120.0));
+	expectRoundTrip(units::feet_per_minute<double>(500.0));
+	expectRoundTrip(units::inches_per_second<double>(12.0));
+	expectRoundTrip(units::kilometers_per_second<double>(7.8));
+}
+
+TEST_F(Serialization, roundTripManyPressureUnits)
+{
+	expectRoundTrip(units::bars<double>(2.0));
+	expectRoundTrip(units::millibars<double>(1013.0));
+	expectRoundTrip(units::torrs<double>(760.0));
+	expectRoundTrip(units::millimeters_of_mercury<double>(760.0));
+	expectRoundTrip(units::kilopascals<double>(101.325));
+	expectRoundTrip(units::baryes<double>(10.0));
+}
+
+TEST_F(Serialization, roundTripManyEnergyPowerUnits)
+{
+	expectRoundTrip(units::kilojoules<double>(4.0));
+	expectRoundTrip(units::calories<double>(500.0));
+	expectRoundTrip(units::british_thermal_units<double>(1.0));
+	expectRoundTrip(units::ergs<double>(1000.0));
+	expectRoundTrip(units::watt_hours<double>(50.0));
+	expectRoundTrip(units::kilowatts<double>(3.0));
+	expectRoundTrip(units::megawatts<double>(1.0));
+	expectRoundTrip(units::metric_horsepower<double>(2.0));
+}
+
+TEST_F(Serialization, everyBuiltinDimensionRoundTripsViaVisit)
+{
+	// serialize one quantity per built-in dimension and confirm the default zero-candidate visit resolves it,
+	// with the visited canonical value equal to the SI-base value. Exhaustive over the dimension zoo.
+	auto viaVisit = [](auto quantity)
+	{
+		const double base = units::detail::canonical_unit_t<traits::dimension_of_t<typename decltype(quantity)::conversion_factor>>(quantity).value();
+		const auto   v    = units::deserialize(units::serialize(quantity));
+		EXPECT_TRUE(v.has_value());
+		bool visited = false;
+		v->visit(
+			[&](auto q)
+			{
+				visited = true;
+				EXPECT_NEAR(base, q.template to<double>(), std::abs(base) * 1e-9 + 1e-12);
+			});
+		EXPECT_TRUE(visited);
+	};
+	viaVisit(units::meters<double>(2.0));
+	viaVisit(units::kilograms<double>(3.0));
+	viaVisit(units::seconds<double>(4.0));
+	viaVisit(units::amperes<double>(1.0));
+	viaVisit(units::kelvin<double>(300.0));
+	viaVisit(units::mols<double>(2.0));
+	viaVisit(units::candelas<double>(5.0));
+	viaVisit(units::radians<double>(1.0));
+	viaVisit(units::steradians<double>(1.0));
+	viaVisit(units::bytes<double>(64.0));
+	viaVisit(units::hertz<double>(50.0));
+	viaVisit(units::meters_per_second<double>(10.0));
+	viaVisit(units::radians_per_second<double>(2.0));
+	viaVisit(units::meters_per_second_squared<double>(9.8));
+	viaVisit(units::newtons<double>(5.0));
+	viaVisit(units::square_meters<double>(4.0));
+	viaVisit(units::cubic_meters<double>(2.0));
+	viaVisit(units::liters_per_second<double>(1.0));
+	viaVisit(units::pascals<double>(1000.0));
+	viaVisit(units::coulombs<double>(1.0));
+	viaVisit(units::joules<double>(7.0));
+	viaVisit(units::watts<double>(9.0));
+	viaVisit(units::volts<double>(12.0));
+	viaVisit(units::farads<double>(0.01));
+	viaVisit(units::ohms<double>(100.0));
+	viaVisit(units::siemens<double>(0.1));
+	viaVisit(units::webers<double>(1.0));
+	viaVisit(units::henries<double>(2.0));
+	viaVisit(units::lumens<double>(500.0));
+	viaVisit(units::lux<double>(300.0));
+	viaVisit(units::newton_meters<double>(20.0));
+	viaVisit(units::kilograms_per_cubic_meter<double>(998.0));
+}
+
+TEST_F(Serialization, determinismSameInputSameBytes)
+{
+	// serialization is a pure function of the value: same quantity -> identical bytes, every time
+	const auto a = units::serialize(60.0_mph);
+	const auto bytesA = units::serialize(60.0_mph);
+	EXPECT_EQ(a, bytesA);
+	const auto c = units::serialize(units::meters<double>(3.14));
+	const auto bytesC = units::serialize(units::meters<double>(3.14));
+	EXPECT_EQ(c, bytesC);
+}
+
+TEST_F(Serialization, distinctQuantitiesDistinctBytes)
+{
+	// different value -> different bytes; different dimension -> different bytes
+	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::meters<double>(2.0)));
+	EXPECT_NE(units::serialize(units::meters<double>(1.0)), units::serialize(units::seconds<double>(1.0)));
+	// same dimension, different unit but SAME base value -> SAME bytes (self-describing by dimension+base)
+	EXPECT_EQ(units::serialize(units::meters<double>(1000.0)), units::serialize(units::kilometers<double>(1.0)));
+}
+
+TEST_F(Serialization, valueKindIvarintForWholeNumbers)
+{
+	// a whole SI-base value uses the integer-varint kind (header low bits == 0)
+	const auto whole = units::serialize(units::meters<double>(42.0));
+	EXPECT_EQ(std::byte{0}, std::byte{static_cast<std::uint8_t>(std::to_integer<std::uint8_t>(whole[1]) & 0x03)});
+	// an exact-float value uses f32 (kind == 1)
+	const auto f32 = units::serialize(units::meters<double>(1.5));
+	EXPECT_EQ(1, std::to_integer<std::uint8_t>(f32[1]) & 0x03);
+	// an irrational value uses f64 (kind == 2)
+	const auto f64 = units::serialize(units::meters<double>(0.1));
+	EXPECT_EQ(2, std::to_integer<std::uint8_t>(f64[1]) & 0x03);
+}
+
+TEST_F(Serialization, negativeAndFractionalExponents)
+{
+	// frequency is time^-1 (a negative exponent); the fracExp path and negative exponents must survive
+	expectRoundTrip(units::hertz<double>(60.0));
+	expectRoundTrip(units::becquerels<double>(1000.0));
+	// area (length^2) and volume (length^3): positive multi-exponents
+	expectRoundTrip(units::square_feet<double>(100.0));
+	expectRoundTrip(units::cubic_inches<double>(50.0));
+}
+
+TEST_F(Serialization, typedFastPathMatchesErased)
+{
+	// deserialize<Unit> equals deserialize(...).to<Unit>() for a spread of units
+	auto agree = [](auto quantity)
+	{
+		using Q          = decltype(quantity);
+		const auto bytes = units::serialize(quantity);
+		const auto typed = units::deserialize<Q>(bytes);
+		const auto erased = units::deserialize(bytes);
+		ASSERT_TRUE(typed.has_value());
+		ASSERT_TRUE(erased.has_value());
+		const auto viaErased = erased->template to<Q>();
+		ASSERT_TRUE(viaErased.has_value());
+		EXPECT_DOUBLE_EQ(typed->template to<double>(), viaErased->template to<double>());
+	};
+	agree(units::meters<double>(1.5));
+	agree(units::newtons<double>(9.81));
+	agree(units::celsius<double>(37.0));
+	agree(units::dBW<double>(3.0));
+	agree(units::gallons_per_minute<double>(12.0));
+}
+
+TEST_F(Serialization, peekIdentityMatchesDeserialized)
+{
+	// deserialize surfaces the identity; it must equal the compile-time identity of the source unit
+	const auto v = units::deserialize(units::serialize(60.0_mph));
+	ASSERT_TRUE(v);
+	EXPECT_TRUE(v->identity() == units::detail::identity_of<units::meters_per_second<double>>());
+	EXPECT_FALSE(v->identity() == units::detail::identity_of<units::kilograms<double>>());
+}
+
+TEST_F(Serialization, explicitCandidateDisambiguatesSharedSignature)
+{
+	// torque and energy share a dimension (force*length); an explicit candidate selects which the visitor sees
+	const auto v = units::deserialize(units::serialize(units::newton_meters<double>(10.0)));
+	ASSERT_TRUE(v);
+	bool asTorque = false;
+	v->visit<units::dimension::torque>([&](auto q) { asTorque = true; EXPECT_NEAR(10.0, q.template to<double>(), 5.0e-9); });
+	EXPECT_TRUE(asTorque);
+}
+
+TEST_F(Serialization, truncatedAtEveryBoundary)
+{
+	// truncating the stream at EVERY length short of complete must yield truncated (never a crash or bad decode)
+	const auto full = units::serialize(60.0_mph);
+	for (std::size_t n = 0; n < full.size(); ++n)
+	{
+		std::vector<std::byte> partial(full.begin(), full.begin() + static_cast<std::ptrdiff_t>(n));
+		const auto             r = units::deserialize(partial);
+		EXPECT_FALSE(r.has_value()) << "n=" << n;
+		if (!r)
+		{
+			EXPECT_TRUE(r.error() == units::deserialize_error::truncated || r.error() == units::deserialize_error::bad_version) << "n=" << n;
+		}
+	}
+	// the full stream decodes
+	EXPECT_TRUE(units::deserialize(full).has_value());
+}
+
+TEST_F(Serialization, streamOfManyQuantitiesConcatenated)
+{
+	// serialize several quantities into one buffer and confirm each is independently well-formed on its own
+	auto a = units::serialize(units::meters<double>(1.0));
+	auto bytesB = units::serialize(units::seconds<double>(2.0));
+	auto c = units::serialize(units::kilograms<double>(3.0));
+	EXPECT_TRUE(units::deserialize(a)->is<units::dimension::length>());
+	EXPECT_TRUE(units::deserialize(bytesB)->is<units::dimension::time>());
+	EXPECT_TRUE(units::deserialize(c)->is<units::dimension::mass>());
+}
+
+TEST_F(Serialization, floatUnderlyingUsesF32OrSmaller)
+{
+	// a float-underlying quantity never needs f64 in the stream (its value is representable in <= 4 value bytes)
+	const auto bytesF = units::serialize(units::meters<float>(3.14159f));
+	const std::uint8_t kind = std::to_integer<std::uint8_t>(bytesF[1]) & 0x03;
+	EXPECT_NE(2, kind); // not f64
+}
+
+TEST_F(Serialization, unitCastAndTryToAgree)
+{
+	const auto v = units::deserialize(units::serialize(units::joules<double>(500.0)));
+	ASSERT_TRUE(v);
+	EXPECT_DOUBLE_EQ(v->try_to<units::joules<double>>().value(), units::unit_cast<units::joules<double>>(*v).value());
+	EXPECT_DOUBLE_EQ(v->try_to<units::kilojoules<double>>().value(), units::unit_cast<units::kilojoules<double>>(*v).value());
+}
+
 
 int main(int argc, char* argv[])
 {
