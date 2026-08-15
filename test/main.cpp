@@ -713,26 +713,26 @@ TEST_F(STDSpecializations, hash)
 TEST_F(STDSpecializations, unitsAsContainerKeys)
 {
 	// std::map — ordered by value via operator<.
-	std::map<meters<double>, std::string> m;
-	m[meters<double>(1.0)] = "one";
-	m[meters<double>(2.0)] = "two";
-	m[kilometers<double>(0.003)] = "three-m"; // 3 m, distinct key from 1 m / 2 m
-	EXPECT_EQ(m.size(), 3u);
-	EXPECT_EQ(m[meters<double>(1.0)], "one");
-	EXPECT_EQ(m.begin()->second, "one"); // smallest key first
+	std::map<meters<double>, std::string> byValue;
+	byValue[meters<double>(1.0)] = "one";
+	byValue[meters<double>(2.0)] = "two";
+	byValue[kilometers<double>(0.003)] = "three-m"; // 3 m, distinct key from 1 m / 2 m
+	EXPECT_EQ(byValue.size(), 3u);
+	EXPECT_EQ(byValue[meters<double>(1.0)], "one");
+	EXPECT_EQ(byValue.begin()->second, "one"); // smallest key first
 
 	// std::unordered_map — needs both std::hash<meters<double>> AND operator==.
-	std::unordered_map<meters<double>, int> um;
-	um[meters<double>(5.0)] = 50;
-	EXPECT_EQ(um.at(meters<double>(5.0)), 50);
+	std::unordered_map<meters<double>, int> byHash;
+	byHash[meters<double>(5.0)] = 50;
+	EXPECT_EQ(byHash.at(meters<double>(5.0)), 50);
 	// a scaled-but-equal key resolves to the SAME bucket (kilometers<double>(0.005) == 5 m). Look it up after
 	// converting to the map's key type, since a heterogeneous [] would insert a different key type.
-	EXPECT_EQ(um.at(meters<double>(kilometers<double>(0.005))), 50);
+	EXPECT_EQ(byHash.at(meters<double>(kilometers<double>(0.005))), 50);
 
 	// std::set — membership by value.
-	std::set<seconds<double>> s{seconds<double>(1.0), seconds<double>(2.0), seconds<double>(1.0)};
-	EXPECT_EQ(s.size(), 2u); // the duplicate 1 s collapses
-	EXPECT_TRUE(s.count(seconds<double>(2.0)) == 1);
+	std::set<seconds<double>> timeSet{seconds<double>(1.0), seconds<double>(2.0), seconds<double>(1.0)};
+	EXPECT_EQ(timeSet.size(), 2u); // the duplicate 1 s collapses
+	EXPECT_TRUE(timeSet.count(seconds<double>(2.0)) == 1);
 }
 
 TEST_F(UnitManipulators, squared)
@@ -2952,16 +2952,16 @@ TEST_F(UnitType, PpbPerYearCompoundUnitType)
 {
 	using ppb_per_year = decltype(ppb/yr);
 
-	parts_per_million s = 9.71_ppb;
+	parts_per_million concentration = 9.71_ppb;
 
-	EXPECT_EQ(s, 0.00971_ppm);
-	EXPECT_DOUBLE_EQ(s, 0.00000000971);
+	EXPECT_EQ(concentration, 0.00971_ppm);
+	EXPECT_DOUBLE_EQ(concentration, 0.00000000971);
 
-	ppb_per_year ds(0.109);
+	ppb_per_year rate(0.109);
 
-	auto time = 2013.9_yr-1994_yr;
+	auto elapsed = 2013.9_yr-1994_yr;
 
-	parts_per_million val = s + ds*time;
+	parts_per_million val = concentration + rate*elapsed;
 	EXPECT_NEAR(val, 1.18791e-08, 1e-12);
 }
 
@@ -3356,19 +3356,19 @@ TEST_F(UnitType, dBConversion)
 TEST_F(UnitType, dimensionlessDecibelLiteral)
 {
 	// the `_dB` literal yields the dimensionless decibel; its stored value is the dB figure
-	auto g = -20.0_dB;
-	static_assert(std::is_same_v<decltype(g), decibels<double>>);
-	EXPECT_DOUBLE_EQ(-20.0, g.raw());
+	auto gainDb = -20.0_dB;
+	static_assert(std::is_same_v<decltype(gainDb), decibels<double>>);
+	EXPECT_DOUBLE_EQ(-20.0, gainDb.raw());
 
 	// only a floating-point _dB literal exists; an integer decibel is rejected at compile time
 	// (see the errorMessages harness), because a decibel scale cannot use an integral underlying type
-	auto gd = 6.0_dB;
-	static_assert(std::is_same_v<decltype(gd), decibels<double>>);
+	auto gainDb2 = 6.0_dB;
+	static_assert(std::is_same_v<decltype(gainDb2), decibels<double>>);
 
 	// name/abbreviation resolve for the dimensionless decibel
-	decibels<double> d(6.0);
-	EXPECT_STREQ("decibels", d.name());
-	EXPECT_STREQ("dB", d.abbreviation());
+	decibels<double> ratioDb(6.0);
+	EXPECT_STREQ("decibels", ratioDb.name());
+	EXPECT_STREQ("dB", ratioDb.abbreviation());
 
 	// coexists with the power decibel literals (distinct types, distinct suffixes)
 	static_assert(std::is_same_v<decltype(0.0_dBW), dBW<double>>);
@@ -5529,30 +5529,30 @@ TEST(ConcentrationSemantics, ScalarTimesPercentYieldsDimensionless)
 
 TEST(ConcentrationSemantics, PercentMathPreservesPercentRepresentation)
 {
-	auto a = 100.0_pct;
-	auto b = 70.0_pct;
+	auto whole = 100.0_pct;
+	auto most  = 70.0_pct;
 
 	// subtraction should preserve the unit: 100% - 70% = 30%
-	auto d = a - b;
-	EXPECT_NEAR(d.raw(), 30.0, 0.0);
+	auto diff = whole - most;
+	EXPECT_NEAR(diff.raw(), 30.0, 0.0);
 
 	// fabs should preserve percent representation: fabs(30%) == 30%
-	auto f = units::fabs(d);
+	auto f = units::fabs(diff);
 	EXPECT_NEAR(f.raw(), 30.0, 0.0);
 
 	// abs should preserve percent representation
-	auto g = units::abs(-30_pct);
-	EXPECT_NEAR(g.raw(), 30.0, 0.0);
+	auto magnitude = units::abs(-30_pct);
+	EXPECT_NEAR(magnitude.raw(), 30.0, 0.0);
 
 	// fmin/fmax should preserve percent representation
-	auto mn = units::fmin(a, b);
+	auto mn = units::fmin(whole, most);
 	EXPECT_NEAR(mn.raw(), 70.0, 0.0);
 
-	auto mx = units::fmax(a, b);
+	auto mx = units::fmax(whole, most);
 	EXPECT_NEAR(mx.raw(), 100.0, 0.0);
 
 	// fdim should preserve percent representation: fdim(70%, 100%) == 0%
-	auto pd = units::fdim(b, a);
+	auto pd = units::fdim(most, whole);
 	EXPECT_NEAR(pd.raw(), 0.0, 0.0);
 }
 
@@ -5592,10 +5592,10 @@ TEST(ConcentrationSemantics, CommonTypePpmPpb)
 	using CT = std::common_type_t<parts_per_million<double>, parts_per_billion<double>>;
 	static_assert(units::traits::is_same_dimension_unit_v<CT, parts_per_million<double>>);
 
-	CT a = 1.0_ppm;
-	CT b = 1000.0_ppb;
-	EXPECT_DOUBLE_EQ(a.raw(), b.raw());
-	EXPECT_DOUBLE_EQ(a.value(), b.value());
+	CT inPpm  = 1.0_ppm;
+	CT inPpb  = 1000.0_ppb;
+	EXPECT_DOUBLE_EQ(inPpm.raw(), inPpb.raw());
+	EXPECT_DOUBLE_EQ(inPpm.value(), inPpb.value());
 }
 
 TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
@@ -5606,13 +5606,13 @@ TEST(ConcentrationSemantics, UnitCastUsesNormalizedForRatioDimless)
 
 TEST(ConcentrationSemantics, DimensionlessDivPercentIsNotSameAsScalarDivPercent)
 {
-	auto a = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
-	EXPECT_DOUBLE_EQ(a, 2.0);
+	auto scalarQuotient = 1.0 / 50_pct;                 // scalar/percent -> dimensionless, uses rhs.value()
+	EXPECT_DOUBLE_EQ(scalarQuotient, 2.0);
 
-	double b = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
+	double dimensionlessQuotient = dimensionless(1.0) / 50_pct;  // currently -> inverse(percent) style
 	// Nail down expected behavior (whatever you decide it should be).
 	// If keeping current behavior:
-	EXPECT_DOUBLE_EQ(b, 2);     // because 1 / rhs.raw() = 1/50
+	EXPECT_DOUBLE_EQ(dimensionlessQuotient, 2);     // because 1 / rhs.raw() = 1/50
 }
 
 
@@ -5775,13 +5775,13 @@ TEST_F(CaseStudies, selfDefinedUnits)
 	// exponents), not a friendly abbreviation. Volume per time-squared has no named unit.
 	using liters_per_second_squared = decltype(1.0_L / (1.0_s * 1.0_s));
 
-	liters_per_second_squared a(5);
-	liters_per_second_squared b = a;
+	liters_per_second_squared original(5);
+	liters_per_second_squared copy = original;
 
-	EXPECT_DOUBLE_EQ(a.to<double>(), b.to<double>());
+	EXPECT_DOUBLE_EQ(original.to<double>(), copy.to<double>());
 
 	testing::internal::CaptureStdout();
-	std::cout << a;
+	std::cout << original;
 	std::string output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("0.005 m^3 s^-2", output.c_str());
 }
