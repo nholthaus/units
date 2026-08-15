@@ -335,6 +335,25 @@ namespace units
 	}
 #endif
 
+/**
+ * @def			UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)
+ * @brief		Like UNIT_ADD_LITERALS but emits only the floating-point literal.
+ * @details		A decibel-scale unit requires a floating-point underlying type, so no integer literal
+ *				(which would form a `<int>` unit) is generated.
+ */
+#ifdef UNIT_NO_LITERAL_SUPPORT
+#define UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)
+#else
+#define UNIT_ADD_DECIBEL_LITERALS(namespaceName, namePlural, abbreviation)                                                                                                                             \
+	namespace literals                                                                                                                                                                                 \
+	{                                                                                                                                                                                                  \
+		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept                                                                                                  \
+		{                                                                                                                                                                                              \
+			return namespaceName::namePlural<double>(static_cast<double>(d));                                                                                                                          \
+		}                                                                                                                                                                                              \
+	}
+#endif
+
 #define UNIT_ADD_CONSTANT(namespaceName, namePlural, abbreviation) static constexpr namespaceName::namePlural abbreviation{1.0};
 
 /**
@@ -380,7 +399,7 @@ namespace units
 	}                                                                                                                                                                                                  \
 	UNIT_ADD_NAME(namespaceName, abbreviation, abbreviation)                                                                                                                                           \
 	UNIT_REGISTER_NAMED_CLASS(namespaceName, abbreviation)                                                                                                                                             \
-	UNIT_ADD_LITERALS(namespaceName, abbreviation, abbreviation)
+	UNIT_ADD_DECIBEL_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
  * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
@@ -2415,6 +2434,12 @@ namespace units
 	template<ConversionFactorType ConversionFactor, ArithmeticType T = UNIT_LIB_DEFAULT_TYPE, NumericalScaleType<T> NumericalScale = linear_scale>
 	class MSVC_EBO unit : public ConversionFactor, public NumericalScale, public detail::_unit
 	{
+		// A decibel-scale unit stores its value through a base-10 logarithm, so an integral underlying type
+		// cannot represent it: most decibel figures round to a wrong integer (3 dB stores as 0) and large
+		// ones overflow. Require a floating-point underlying type for a decibel scale.
+		static_assert(!std::is_same_v<NumericalScale, decibel_scale> || std::is_floating_point_v<T>,
+			"a decibel-scale unit requires a floating-point underlying type (an integral type cannot represent a logarithmic value)");
+
 	public:
 		using numerical_scale_type = NumericalScale;   ///< Type of the numerical scale of the unit (e.g. linear_scale)
 		using underlying_type      = T;                ///< Type of the underlying storage of the unit (e.g. double)
@@ -4410,13 +4435,10 @@ namespace units
 #ifndef UNIT_NO_LITERAL_SUPPORT
 	namespace literals
 	{
+		// only a floating-point literal: a decibel scale requires a floating-point underlying type
 		constexpr decibels<double> operator""_dB(long double d) noexcept
 		{
 			return decibels<double>(static_cast<double>(d));
-		}
-		constexpr decibels<int> operator""_dB(unsigned long long d) noexcept
-		{
-			return decibels<int>(static_cast<int>(d));
 		}
 	} // namespace literals
 #endif

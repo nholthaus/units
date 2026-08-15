@@ -3360,10 +3360,10 @@ TEST_F(UnitType, dimensionlessDecibelLiteral)
 	static_assert(std::is_same_v<decltype(g), decibels<double>>);
 	EXPECT_DOUBLE_EQ(-20.0, g.raw());
 
-	// the integer literal yields decibels<int>; as with the power dB units, an integral decibel scale
-	// is lossy through the log10 round-trip, so only the type is asserted here
-	auto gi = 3_dB;
-	static_assert(std::is_same_v<decltype(gi), decibels<int>>);
+	// only a floating-point _dB literal exists; an integer decibel is rejected at compile time
+	// (see the errorMessages harness), because a decibel scale cannot use an integral underlying type
+	auto gd = 6.0_dB;
+	static_assert(std::is_same_v<decltype(gd), decibels<double>>);
 
 	// name/abbreviation resolve for the dimensionless decibel
 	decibels<double> d(6.0);
@@ -3382,24 +3382,24 @@ TEST_F(UnitType, dBAddition)
 
 	auto result_dbw = dBW<double>(10.0) + decibels<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
-	result_dbw = dBW<int>(10) + decibels<int>(30);
+	result_dbw = dBW<double>(10.0) + decibels<double>(30.0);
 	EXPECT_NEAR(40.0, result_dbw.value(), 5.0e-5);
 	result_dbw = decibels<double>(12.0) + dBW<double>(30.0);
 	EXPECT_NEAR(42.0, result_dbw.value(), 5.0e-5);
-	result_dbw = decibels<int>(12) + dBW<int>(30);
-	EXPECT_NEAR(42.0, result_dbw.value(), 2);
+	result_dbw = decibels<double>(12.0) + dBW<double>(30.0);
+	EXPECT_NEAR(42.0, result_dbw.value(), 5.0e-5);
 	isSame = std::is_same_v<decltype(result_dbw), dBW<double>>;
 	EXPECT_TRUE(isSame);
 
 	auto result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
-	result_dbm = decibels<int>(30) + dBm<int>(20);
+	result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
 
 	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
 	unit<squared<dBW<double>>> result_dBW2 = ::units::power::dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
-	unit<squared<dBW<int>>> result_dBW3 = dBW<int>(10) + dBm<int>(40);
+	unit<squared<dBW<double>>> result_dBW3 = dBW<double>(10.0) + dBm<double>(40.0);
 	EXPECT_NEAR(100.0, result_dBW3.to_linearized(), 5.0e-5);
 }
 
