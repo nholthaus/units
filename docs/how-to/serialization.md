@@ -215,6 +215,60 @@ decoded->visit<dimension::velocity>([](auto q) {
 });
 ```
 
+## Inspecting without collapsing
+
+Sometimes you want to route or log an erased quantity without committing to a concrete type. Three accessors
+read it in place:
+
+- **`is<Dimension>()`** — is the decoded quantity of this dimension? A cheap check before a collapse, or to
+  branch on kind.
+- **`value_in_base()`** — the magnitude in SI canonical base units (a `double`), for logging or routing where
+  the dimension is incidental.
+- **`identity()`** — the decoded dimension signature: the set of base-dimension terms (each an 8-byte name-hash
+  and a rational exponent). The honest description of *what* the quantity is when no concrete type is named.
+
+```cpp
+auto q = deserialize(bytes);
+if (!q) return;
+
+if (q->is<dimension::velocity>())
+    route_to_velocity_channel(q->value_in_base());   // 26.8224 (m/s), no collapse
+
+for (const auto& term : q->identity().terms)          // the dimension signature
+    log("base #%llx ^ %lld/%lld", term.hash, term.num, term.den);
+```
+
+## Comparison, ordering, hashing, and text
+
+`any_unit` is a value type. It compares and hashes by *quantity* — dimension plus SI-base magnitude — not by
+unit name or by bytes, so `1000 m` and `1 km` are equal:
+
+```cpp
+serialize(meters<double>(1000.0)) == serialize(kilometers<double>(1.0));   // true (same dimension and magnitude)
+serialize(meters<double>(3.0))    <  serialize(meters<double>(5.0));       // true (ordered within a dimension)
+serialize(meters<double>(3.0))    <  serialize(seconds<double>(3.0));      // false (different dimensions: unordered)
+
+std::unordered_map<any_unit, Record> byQuantity;   // std::hash<any_unit>: a usable key
+```
+
+Equality uses the same relative tolerance as the concrete `unit` comparison, so an `any_unit` compares no more
+strictly than the units it erases. Ordering is a `std::partial_ordering`: quantities of one dimension order by
+magnitude; quantities of different dimensions are *unordered*, so `<`/`<=`/`>`/`>=` are all false between them
+(hence `any_unit` is an `unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions).
+
+For text, prefer **`to_string()`**: when the library knows the decoded dimension it renders the SI-base magnitude
+in that dimension's canonical named unit (`100 m`, `9.81 m s^-2`) — the same text `operator<<(ostream, unit)`
+produces. For a dimension the library cannot name (a user-defined `make_dimension`, whose name the wire's
+name-hash cannot recover), `to_string()` degrades to **`to_string_raw()`**, the always-available name-free form:
+the magnitude followed by the hashed base-dimension signature (`#<hash>^<exponent>`). Call `to_string_raw()`
+directly when you want that dimension-agnostic form unconditionally. (`operator<<` on a stream writes the raw
+binary bytes, not text.)
+
+```cpp
+serialize(units::joules<double>(5.0)).to_string();       // "5 m^2 kg s^-2"  (named canonical form)
+serialize(my_custom_unit<double>(3.0)).to_string();      // "3 [#a3f2..^1]"  (raw fallback: unknown dimension)
+```
+
 ## The typed fast path
 
 When the type *is* known ahead of time, `deserialize<Unit>(bytes)` decodes straight into it, skipping the erased
