@@ -59,15 +59,32 @@ namespace units
 	namespace detail
 	{
 		/// The built-in base dimensions, offered to `visit` as the default candidate set. This is NOT the wire
-		/// vocabulary: the stream keys each base dimension by its `name` STRING, so a dimension the library has
-		/// never seen — including a user-defined `make_dimension<my_tag>` — serializes and round-trips without any
-		/// central table. The set of base dimensions is open by design; the encoding must never assume it closed.
+		/// vocabulary: the stream keys each base dimension by a hash of its `name` STRING, so a dimension the library
+		/// has never seen — including a user-defined `make_dimension<my_tag>` — serializes and round-trips without any
+		/// central table or fixed dimension limit. The set of base dimensions is open by design.
 		using builtin_base_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature,
 			dimension::substance, dimension::luminous_intensity, dimension::angle, dimension::data>;
 
-		/// A quantity is composed of at most this many distinct base dimensions in its signature. Nine covers the
-		/// SI base set plus angle and data; a compound never exceeds the number of distinct bases it multiplies.
-		inline constexpr std::size_t max_base_dimensions = 12;
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: name_hash [static]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      FNV-1a 64-bit hash of a base dimension's name
+		/// @details	Hashing the library-controlled `name` string (not a compiler-generated type name) is portable
+		///				across compilers and versions, is a fixed 8 bytes regardless of name length, and needs no
+		///				central table — any dimension name, built-in or user-defined, hashes to a stable wire key.
+		/// @param[in]  name  the dimension name
+		/// @return     the 64-bit hash
+		//------------------------------------------------------------------------------------------------------------------
+		constexpr std::uint64_t name_hash(std::string_view name) noexcept
+		{
+			std::uint64_t h = 1469598103934665603ULL;
+			for (char c : name)
+			{
+				h ^= static_cast<std::uint8_t>(c);
+				h *= 1099511628211ULL;
+			}
+			return h;
+		}
 	} // namespace detail
 
 	/// @brief	the reasons a deserialize can fail
@@ -173,35 +190,36 @@ namespace units
 	//	UNIT IDENTITY — the compile-time dimension signature, and its runtime form
 	//======================================================================================================================
 
-	/// @brief	one base-dimension term of a signature: which base dimension (by name), and its rational exponent
-	/// @details	The base dimension is identified by its `name` STRING (e.g. "length"), not a numeric code, so an
-	///				arbitrary — including user-defined — base dimension round-trips without any central registry.
+	/// @brief	one base-dimension term of a signature: which base dimension (by name-hash), and its rational exponent
+	/// @details	The base dimension is identified by an FNV-1a hash of its `name` string, so an arbitrary — including
+	///				user-defined — base dimension round-trips in a fixed 8 bytes with no central registry.
 	struct dimension_term
 	{
-		std::string_view name; ///< the base dimension's stable name (e.g. "length"); the wire identity
-		std::int64_t     num;  ///< exponent numerator
-		std::int64_t     den;  ///< exponent denominator (1 for the common integer-exponent case)
+		std::uint64_t hash; ///< FNV-1a hash of the base dimension's name; the wire identity
+		std::int64_t  num;  ///< exponent numerator
+		std::int64_t  den;  ///< exponent denominator (1 for the common integer-exponent case)
 	};
 
 	/// @brief	the runtime identity of a quantity's dimension — the set of nonzero base-dimension terms
+	/// @details	Backed by a `std::vector`, so there is NO baked-in ceiling on the number of base dimensions a
+	///				quantity may compose. The terms are held sorted by hash so equality is order-independent.
 	struct unit_identity
 	{
-		std::array<dimension_term, detail::max_base_dimensions> terms{};
-		std::size_t                                             count = 0;
+		std::vector<dimension_term> terms;
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: operator== [public]
 		//------------------------------------------------------------------------------------------------------------------
 		/// @brief      dimension-signature equality
 		/// @param[in]  other  identity to compare against
-		/// @return     true iff both carry the same nonzero base-dimension terms (by name and exponent)
+		/// @return     true iff both carry the same nonzero base-dimension terms (by hash and exponent)
 		//------------------------------------------------------------------------------------------------------------------
-		constexpr bool operator==(const unit_identity& other) const noexcept
+		bool operator==(const unit_identity& other) const noexcept
 		{
-			if (count != other.count)
+			if (terms.size() != other.terms.size())
 				return false;
-			for (std::size_t i = 0; i < count; ++i)
-				if (terms[i].name != other.terms[i].name || terms[i].num != other.terms[i].num || terms[i].den != other.terms[i].den)
+			for (std::size_t i = 0; i < terms.size(); ++i)
+				if (terms[i].hash != other.terms[i].hash || terms[i].num != other.terms[i].num || terms[i].den != other.terms[i].den)
 					return false;
 			return true;
 		}
@@ -210,54 +228,88 @@ namespace units
 	namespace detail
 	{
 		//------------------------------------------------------------------------------------------------------------------
-		//      FUNCTION: append_terms [static]
+		//      FUNCTION: dimension_arity [static]
 		//------------------------------------------------------------------------------------------------------------------
-		/// @brief      walks a `dimension_t<dim<Tag,Exp>...>` list, appending a term per base dimension
-		/// @details	Each term is keyed by the base dimension's `name` string, so ANY base dimension — built-in or
-		///				user-defined `make_dimension<my_tag>` — is captured; there is no fixed vocabulary.
+		/// @brief      the number of base-dimension terms in a `dimension_t<...>` list
 		/// @tparam     DimensionList  a `dimension_t<...>` specialization
-		/// @param[out] id  identity to append to
+		/// @return     the term count
 		//------------------------------------------------------------------------------------------------------------------
 		template<class DimensionList>
-		consteval void append_terms(unit_identity& id)
+		consteval std::size_t dimension_arity()
+		{
+			if constexpr (DimensionList::empty)
+				return 0;
+			else
+				return 1 + dimension_arity<typename DimensionList::pop_front>();
+		}
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: fill_terms [static]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      writes a term per base dimension of a `dimension_t<...>` list into a fixed span
+		/// @details	Each term is keyed by a hash of the base dimension's `name`, so ANY base dimension — built-in
+		///				or user-defined `make_dimension<my_tag>` — is captured; there is no fixed vocabulary.
+		/// @tparam     DimensionList  a `dimension_t<...>` specialization
+		/// @tparam     N  the fixed capacity of the destination array
+		/// @param[out] out  the destination array
+		/// @param[in]  at   the index to write the front term at
+		//------------------------------------------------------------------------------------------------------------------
+		template<class DimensionList, std::size_t N>
+		consteval void fill_terms(std::array<dimension_term, N>& out, std::size_t at)
 		{
 			if constexpr (!DimensionList::empty)
 			{
-				using front_dim = typename DimensionList::front;                 // dim<Tag, Exp>
-				using tag       = typename front_dim::dimension;                 // a make_dimension<...> base
-				using exponent  = typename front_dim::exponent;                  // std::ratio
-				id.terms[id.count] = dimension_term{std::string_view(tag::name), exponent::num, exponent::den};
-				++id.count;
-				append_terms<typename DimensionList::pop_front>(id);
+				using front_dim = typename DimensionList::front;
+				using tag       = typename front_dim::dimension;
+				using exponent  = typename front_dim::exponent;
+				out[at]         = dimension_term{name_hash(std::string_view(tag::name)), exponent::num, exponent::den};
+				fill_terms<typename DimensionList::pop_front, N>(out, at + 1);
 			}
 		}
+
+		/// @brief	the compile-time signature of a unit as a fixed-size, sorted array of terms
+		/// @tparam	Unit  a `UnitType`
+		template<UnitType Unit>
+		struct signature
+		{
+			using Dim                            = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
+			static constexpr std::size_t arity   = dimension_arity<Dim>();
+
+			static consteval std::array<dimension_term, arity> compute()
+			{
+				std::array<dimension_term, arity> terms{};
+				fill_terms<Dim, arity>(terms, 0);
+				// insertion sort by hash — arity is tiny (the base dimensions of one quantity)
+				for (std::size_t i = 1; i < arity; ++i)
+				{
+					dimension_term key = terms[i];
+					std::size_t    j   = i;
+					while (j > 0 && terms[j - 1].hash > key.hash)
+					{
+						terms[j] = terms[j - 1];
+						--j;
+					}
+					terms[j] = key;
+				}
+				return terms;
+			}
+
+			static constexpr std::array<dimension_term, arity> value = compute();
+		};
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: identity_of [static]
 		//------------------------------------------------------------------------------------------------------------------
-		/// @brief      the compile-time dimension signature of a unit type
-		/// @details	Terms are sorted by base-dimension name so signature equality is order-independent.
+		/// @brief      the dimension signature of a unit type, as the runtime (vector-backed) identity
+		/// @details	Materializes the compile-time fixed-array signature into a `unit_identity` for runtime compare.
 		/// @tparam     Unit  a `UnitType`
-		/// @return     the unit_identity (nonzero base-dimension terms, sorted by name)
+		/// @return     the unit_identity (nonzero base-dimension terms, sorted by hash)
 		//------------------------------------------------------------------------------------------------------------------
 		template<UnitType Unit>
-		consteval unit_identity identity_of()
+		unit_identity identity_of()
 		{
-			using Dim = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
 			unit_identity id;
-			append_terms<Dim>(id);
-			// insertion sort by name — the term count is tiny (base dimensions of one quantity)
-			for (std::size_t i = 1; i < id.count; ++i)
-			{
-				dimension_term key = id.terms[i];
-				std::size_t    j   = i;
-				while (j > 0 && id.terms[j - 1].name > key.name)
-				{
-					id.terms[j] = id.terms[j - 1];
-					--j;
-				}
-				id.terms[j] = key;
-			}
+			id.terms.assign(signature<Unit>::value.begin(), signature<Unit>::value.end());
 			return id;
 		}
 
@@ -296,12 +348,10 @@ namespace units
 		/// @brief      constructs an erased quantity from a decoded identity and SI-base magnitude
 		/// @param[in]  id     the dimension signature
 		/// @param[in]  base   the magnitude in SI canonical base
-		/// @param[in]  names  backing storage the identity's name views point into (kept alive by this any_unit)
 		//------------------------------------------------------------------------------------------------------------------
-		any_unit(const unit_identity& id, double base, std::shared_ptr<std::array<std::string, detail::max_base_dimensions>> names = nullptr) noexcept
-		  : m_identity(id)
+		any_unit(unit_identity id, double base) noexcept
+		  : m_identity(std::move(id))
 		  , m_base(base)
-		  , m_names(std::move(names))
 		{
 		}
 
@@ -405,9 +455,8 @@ namespace units
 			return false;
 		}
 
-		unit_identity                                                        m_identity;
-		double                                                               m_base;
-		std::shared_ptr<std::array<std::string, detail::max_base_dimensions>> m_names; ///< backing storage for decoded names
+		unit_identity m_identity;
+		double        m_base;
 	};
 
 	//======================================================================================================================
@@ -447,7 +496,7 @@ namespace units
 	template<UnitType Unit>
 	[[nodiscard]] std::vector<std::byte> serialize(const Unit& quantity)
 	{
-		constexpr unit_identity id = detail::identity_of<Unit>();
+		constexpr auto& sig = detail::signature<Unit>::value;   // fixed-array compile-time signature (sorted by hash)
 
 		// value in SI canonical base
 		using Dim   = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
@@ -465,25 +514,23 @@ namespace units
 
 		// any fractional exponent forces the fracExp flag
 		bool fracExp = false;
-		for (std::size_t i = 0; i < id.count; ++i)
-			if (id.terms[i].den != 1)
+		for (const auto& term : sig)
+			if (term.den != 1)
 				fracExp = true;
 
 		std::vector<std::byte> out;
 		out.push_back(std::byte{detail::serialization_version});
 		const std::uint8_t header = static_cast<std::uint8_t>(static_cast<std::uint8_t>(kind) | (fracExp ? 0x04 : 0x00));
 		out.push_back(std::byte{header});
-		out.push_back(std::byte{static_cast<std::uint8_t>(id.count)});
-		for (std::size_t i = 0; i < id.count; ++i)
+		detail::put_uvarint(out, sig.size());
+		for (const auto& term : sig)
 		{
-			// base dimension keyed by name: length-prefixed UTF-8, so any (incl. user-defined) dimension round-trips
-			const std::string_view name = id.terms[i].name;
-			detail::put_uvarint(out, name.size());
-			for (char c : name)
-				out.push_back(static_cast<std::byte>(c));
-			detail::put_svarint(out, id.terms[i].num);
+			// base dimension keyed by an 8-byte name-hash: fixed size, no central table, any dimension round-trips
+			for (unsigned int i = 0; i < 8; ++i)
+				out.push_back(std::byte{static_cast<std::uint8_t>(term.hash >> (8 * i))});
+			detail::put_svarint(out, term.num);
 			if (fracExp)
-				detail::put_svarint(out, id.terms[i].den);
+				detail::put_svarint(out, term.den);
 		}
 
 		switch (kind)
@@ -534,32 +581,26 @@ namespace units
 		const auto         kind    = static_cast<detail::value_kind>(header & 0x03);
 		const bool         fracExp = (header & 0x04) != 0;
 
-		if (cursor == end)
+		std::uint64_t count = 0;
+		if (!detail::get_uvarint(cursor, end, count))
 			return std::unexpected(deserialize_error::truncated);
-		const std::uint8_t count = std::to_integer<std::uint8_t>(*cursor++);
-		if (count > detail::max_base_dimensions)
-			return std::unexpected(deserialize_error::unknown_base_dimension);
 
-		// the decoded base-dimension names are owned by the any_unit so the identity's string_views stay valid
-		auto names = std::make_shared<std::array<std::string, detail::max_base_dimensions>>();
 		unit_identity id;
-		id.count = count;
-		for (std::size_t i = 0; i < count; ++i)
+		id.terms.reserve(count);
+		for (std::uint64_t i = 0; i < count; ++i)
 		{
-			std::uint64_t len = 0;
-			if (!detail::get_uvarint(cursor, end, len))
+			if (end - cursor < 8)
 				return std::unexpected(deserialize_error::truncated);
-			if (static_cast<std::uint64_t>(end - cursor) < len)
-				return std::unexpected(deserialize_error::truncated);
-			(*names)[i].assign(reinterpret_cast<const char*>(cursor), len);
-			cursor += len;
+			std::uint64_t hash = 0;
+			for (unsigned int b = 0; b < 8; ++b)
+				hash |= static_cast<std::uint64_t>(std::to_integer<std::uint8_t>(*cursor++)) << (8 * b);
 			std::int64_t num = 0;
 			std::int64_t den = 1;
 			if (!detail::get_svarint(cursor, end, num))
 				return std::unexpected(deserialize_error::truncated);
 			if (fracExp && !detail::get_svarint(cursor, end, den))
 				return std::unexpected(deserialize_error::truncated);
-			id.terms[i] = dimension_term{std::string_view((*names)[i]), num, den};
+			id.terms.push_back(dimension_term{hash, num, den});
 		}
 
 		double base = 0.0;
@@ -598,7 +639,7 @@ namespace units
 		default: return std::unexpected(deserialize_error::bad_version);
 		}
 
-		return any_unit(id, base, std::move(names));
+		return any_unit(std::move(id), base);
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------
