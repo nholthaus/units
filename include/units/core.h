@@ -2663,6 +2663,22 @@ namespace units
 		}
 
 		/**
+		 * @brief		conversion to a named unit
+		 * @details		Converts to a different named unit of the same dimension, e.g.
+		 *				`(100.0_cm).to<meters>()`. The named-template spelling of `convert()`; provided so a
+		 *				single accessor reads for both underlying-type extraction (`to<double>()`) and
+		 *				dimensioned conversion (`to<meters>()`).
+		 * @tparam		UnitType unit class template to convert to
+		 * @returns		a `UnitType<T>` containing the equivalent value to *this.
+		 */
+		template<template<class> class UnitType>
+			requires same_dimension<UnitType<T>, unit>
+		constexpr UnitType<T> to() const noexcept
+		{
+			return UnitType<T>(*this);
+		}
+
+		/**
 		 * @brief		linearized unit value
 		 * @returns		linearized value of unit which has a (possibly) non-linear scale.
 		 */
@@ -2698,7 +2714,7 @@ namespace units
 		 */
 		template<template<class> class UnitType>
 			requires same_dimension<UnitType<T>, unit>
-		constexpr UnitType<T> convert() noexcept
+		constexpr UnitType<T> convert() const noexcept
 		{
 			return UnitType<T>(*this);
 		}

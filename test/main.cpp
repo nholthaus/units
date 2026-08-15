@@ -3017,6 +3017,23 @@ TEST_F(UnitType, convertMethod)
 	constexpr auto unit2 = meters<double>(3.0).convert<feet>();
 	constexpr auto test2 = unit2.to<double>();
 	EXPECT_NEAR(9.84252, test2, 5.0e-6);
+
+	// named-unit to<>(): returns a unit of the requested type, mirroring convert<>()
+	constexpr auto asFeet = meters<double>(3.0).to<feet>();
+	static_assert(std::is_same_v<std::remove_const_t<decltype(asFeet)>, feet<double>>);
+	EXPECT_NEAR(9.84252, asFeet.to<double>(), 5.0e-6);
+
+	constexpr auto asMeters = centimeters<double>(100.0).to<meters>();
+	static_assert(std::is_same_v<std::remove_const_t<decltype(asMeters)>, meters<double>>);
+	EXPECT_DOUBLE_EQ(1.0, asMeters.to<double>());
+
+	// arithmetic-type to<>() is unchanged: extracts the underlying value
+	EXPECT_DOUBLE_EQ(3.0, meters<double>(3.0).to<double>());
+
+	// convert<>() is callable on a const unit (const-qualified overloads)
+	const meters<double> constMeters(3.0);
+	EXPECT_NEAR(9.84252, constMeters.convert<feet>().to<double>(), 5.0e-6);
+	EXPECT_NEAR(9.84252, constMeters.to<feet>().to<double>(), 5.0e-6);
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
