@@ -94,13 +94,15 @@ TRIG_DOMAIN = [
     ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms"]),
 ]
 
-# The RESULT of a dimensional math operation has a definite dimension; assigning it to the wrong one fails.
+# The RESULT of a dimensional math operation has a definite dimension; assigning it to the wrong one
+# fails, and the diagnostic names the RESULT's friendly type (sqrt of an area is a length; the square of a
+# length is an area) alongside the wrong target — like the mul/div derived-result cases above.
 MATH_RESULT = [
     ("sqrt_area_to_time", ["area", "length", "time"],
      "units::time::seconds<double> x = sqrt(units::area::square_meters<double>(4.0));",
-     ["square_meters", "seconds"]),
+     ["meters<double>", "seconds<double>"]),
     ("pow2_length_to_volume", ["length", "area", "volume"],
-     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["cubic_meters"]),
+     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["square_meters<double>", "cubic_meters<double>"]),
 ]
 
 # fmod and hypot across incompatible dimensions are ill-formed.
