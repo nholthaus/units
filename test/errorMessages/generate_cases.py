@@ -72,9 +72,11 @@ DERIVED_RESULT = [
 
 # A dimensioned quantity does not implicitly become a bare scalar, and a bare number does not implicitly
 # become a dimensioned quantity: the conversion operator is explicit and the value constructor is explicit.
+# (Matches on the friendly STEM rather than the meters<double> form: the stem appears in every compiler's
+# diagnostic — GCC/Clang's meters<double>, the meters_ tag, and MSVC's rendering alike.)
 SCALAR_BOUNDARY = [
-    ("scalar_from_dimensioned", ["length"], "double d = 1.0_m;", ["meters<double>"]),
-    ("dimensioned_from_scalar", ["length"], "units::length::meters<double> m = 5.0;", ["meters<double>"]),
+    ("scalar_from_dimensioned", ["length"], "double d = 1.0_m;", ["meters"]),
+    ("dimensioned_from_scalar", ["length"], "units::length::meters<double> m = 5.0;", ["meters"]),
 ]
 
 # Comparing quantities of different dimensions is ill-formed. (The relational-operator diagnostic names
@@ -85,30 +87,30 @@ COMPARE_ACROSS = [
      "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["meters_per_second", "kilograms"]),
 ]
 
-# A math function whose domain is an angle rejects a non-angle argument.
+# A math function whose domain is an angle rejects a non-angle argument. (Stem match: cross-compiler.)
 TRIG_DOMAIN = [
-    ("sin_of_length", ["angle", "length"], "auto x = sin(1.0_m);", ["meters<double>"]),
-    ("cos_of_time", ["angle", "time"], "auto x = cos(units::time::seconds<double>(1.0));", ["seconds<double>"]),
-    ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms<double>"]),
+    ("sin_of_length", ["angle", "length"], "auto x = sin(1.0_m);", ["meters"]),
+    ("cos_of_time", ["angle", "time"], "auto x = cos(units::time::seconds<double>(1.0));", ["seconds"]),
+    ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms"]),
 ]
 
 # The RESULT of a dimensional math operation has a definite dimension; assigning it to the wrong one fails.
 MATH_RESULT = [
     ("sqrt_area_to_time", ["area", "length", "time"],
      "units::time::seconds<double> x = sqrt(units::area::square_meters<double>(4.0));",
-     ["square_meters<double>", "seconds<double>"]),
+     ["square_meters", "seconds"]),
     ("pow2_length_to_volume", ["length", "area", "volume"],
-     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["cubic_meters<double>"]),
+     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["cubic_meters"]),
 ]
 
 # fmod and hypot across incompatible dimensions are ill-formed.
 MATH_DOMAIN = [
-    ("fmod_length_time", ["length", "time"], "auto x = fmod(1.0_m, 1.0_s);", ["meters<double>", "seconds<double>"]),
+    ("fmod_length_time", ["length", "time"], "auto x = fmod(1.0_m, 1.0_s);", ["meters", "seconds"]),
 ]
 
 # A std::chrono::duration only converts to/from a time quantity; a non-time quantity is rejected.
 CHRONO_BOUNDARY = [
-    ("chrono_from_length", ["length", "<chrono>"], "std::chrono::seconds s = 1.0_m;", ["meters<double>"]),
+    ("chrono_from_length", ["length", "<chrono>"], "std::chrono::seconds s = 1.0_m;", ["meters"]),
 ]
 
 # #357-class ordering: an expression reducing to a dimension whose header is included LAST must still compile.
