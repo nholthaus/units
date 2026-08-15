@@ -9,6 +9,12 @@ New capabilities: first-class Eigen interoperability, self-describing serializat
 visualizer.
 
 ### Added
+- Self-describing binary serialization (`units/serialization.h`, an opt-in header not pulled in by `units.h`):
+  `serialize(q)` encodes a quantity's dimension and value to a compact byte stream, and `deserialize(bytes)`
+  recovers it with no prior agreement on the type, returning an erased `any_unit` that collapses to a concrete
+  quantity via `to<Unit>()` (checked), `try_to<Unit>()`/`unit_cast<Unit>()` (throwing), or `visit()` (the
+  decoded dimension's canonical unit). Base dimensions are keyed by a name hash, so any dimension round-trips —
+  including one defined with `make_dimension<>` — with no fixed ceiling and no reflection.
 - Optional, dependency-free interoperability with the [Eigen](https://eigen.tuxfamily.org) linear-algebra
   library (`units/eigen.h`, pulled in by `units.h`): a unit is usable as an Eigen matrix scalar, so vectors and
   matrices can hold dimensioned quantities with the dimensions checked at compile time. Same-dimension
