@@ -98,6 +98,10 @@
 #include <units/volume.h>
 #include <units/volume_flow_rate.h>
 
+// Optional interoperability with the Eigen linear-algebra library. Inert unless <Eigen/Core> is on the include
+// path; see units/eigen.h. Included last so it can reference any dimension defined above.
+#include <units/eigen.h>
+
 namespace units
 {
 	namespace detail

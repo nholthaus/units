@@ -3,6 +3,38 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.5.0] - 2026-08-15
+
+New capabilities: first-class Eigen interoperability, self-describing serialization, and an LLDB debugger
+visualizer.
+
+### Added
+- Self-describing binary serialization (`units/serialization.h`, an opt-in header not pulled in by `units.h`):
+  `serialize(q)` encodes a quantity's dimension and value to a compact byte stream, and `deserialize(bytes)`
+  recovers it with no prior agreement on the type, returning an erased `any_unit` that collapses to a concrete
+  quantity via `to<Unit>()` (checked), `assign_to(out)` (mismatch-tolerant, assigns into an existing variable
+  and returns whether the dimension fit), `try_to<Unit>()`/`unit_cast<Unit>()` (throwing), or `visit()` (the
+  decoded dimension's canonical unit). `to_string()` renders the SI-base magnitude in the decoded dimension's
+  named canonical unit when the library knows the dimension (`100 m`, `9.81 m s^-2`), and `to_string_raw()`
+  gives the always-available name-free form (the hashed dimension signature). Base dimensions are keyed by a
+  name hash, so any dimension round-trips — including one defined with `make_dimension<>` — with no fixed
+  ceiling and no reflection.
+- Optional, dependency-free interoperability with the [Eigen](https://eigen.tuxfamily.org) linear-algebra
+  library (`units/eigen.h`, pulled in by `units.h`): a unit is usable as an Eigen matrix scalar, so vectors and
+  matrices can hold dimensioned quantities with the dimensions checked at compile time. Same-dimension
+  operations (construction, add/subtract, scaling, `sum()`, blocks, `Map`, `cast`) work directly on Eigen
+  expressions; the dimension-changing operations are provided as helpers with the correct result type —
+  `unit_dot`, `unit_squared_norm`, `unit_norm`, `unit_normalized`, `unit_cross`, and `unit_transform`. The
+  support activates only when `<Eigen/Core>` is present (guarded by `__has_include`); `units` gains no
+  dependency on Eigen. (#90)
+- An LLDB debugger formatter (`natvis/units_lldb.py`) so a quantity shows as its value and abbreviation
+  (`5 m`) in LLDB and its front-ends (CLion, Xcode, CodeLLDB), mirroring the MSVC natvis. (#279)
+
+### Fixed
+- `to_string(unit)` on a unit with no registered abbreviation (rendered by its dimension form, e.g. the
+  canonical unit of `acceleration`) failed to compile and, once fixed, is now single-spaced to match
+  `operator<<` exactly (`9.81 m s^-2`, not `9.81  m s^-2`).
+
 ## [3.4.4] - 2026-08-15
 
 Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.

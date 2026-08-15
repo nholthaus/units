@@ -70,6 +70,7 @@
 
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 #include <clocale>
+#include <sstream>
 #include <string>
 
 //------------------------------
@@ -3018,7 +3019,11 @@ namespace units
 			using DimType = traits::dimension_of_t<ConversionFactor>;
 			if constexpr (!DimType::empty)
 			{
-				s.append(" ").append(DimType{});
+				// a dimension list has no string form, only an ostream inserter; render it through a stream (as operator<<
+				// does). The inserter already emits its own leading space per term, so none is added here.
+				std::ostringstream dim;
+				dim << DimType{};
+				s.append(dim.str());
 			}
 			return s;
 		}

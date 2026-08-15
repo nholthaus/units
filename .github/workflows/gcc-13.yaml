@@ -31,6 +31,9 @@ jobs:
           sudo apt install -y g++-13
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
 
+      - name: Install Eigen
+        run: sudo apt install -y libeigen3-dev
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -55,3 +58,10 @@ jobs:
         # headers; fail if a unit or constant was added/changed without regenerating them.
         run: |
           python3 docs/reference/gen_reference.py --check
+
+      - name: builtin_dimensions in sync
+        # visit()'s default candidate set (builtin_dimensions in serialization.h) is a hand-maintained list;
+        # C++ cannot enumerate the dimension namespace header-only, so this fails the build if a dimension was
+        # added to core.h without being listed (consuming the library needs nothing — this is a CI-only guard).
+        run: |
+          python3 scripts/check_builtin_dimensions.py

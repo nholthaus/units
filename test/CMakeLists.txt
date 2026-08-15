@@ -7,6 +7,7 @@ SET(SOURCE_CODE
 		${headers}
 		main.cpp
 		lossyCompoundAssign.cpp
+		eigenInterop.cpp
 )
 
 LIST(APPEND LIBRARIES
@@ -34,10 +35,22 @@ SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAN
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
 
+# Optional: if Eigen is available, expose its headers so the eigen.h interoperability tests compile and run.
+# The tests self-guard with __has_include(<Eigen/Core>), so this is purely additive — absence is a no-op.
+find_package(Eigen3 3.3 NO_MODULE QUIET)
+if (Eigen3_FOUND)
+	target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+	message(STATUS "unitLibTest: Eigen3 found (${Eigen3_VERSION}); eigen.h interop tests enabled")
+else ()
+	message(STATUS "unitLibTest: Eigen3 not found; eigen.h interop tests will compile out")
+endif ()
+
 IF (NOT MSVC)
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wconversion -Wshadow)
 ELSEIF (MSVC)
-	target_compile_options(${PROJECT_NAME} PRIVATE /Zc:templateScope /permissive-)
+	# /bigobj: the single-TU test suite is heavily templated (the serialization tests instantiate many
+	# dimensions) and exceeds MSVC's default per-object section limit (C1128) without it.
+	target_compile_options(${PROJECT_NAME} PRIVATE /Zc:templateScope /permissive- /bigobj)
 ENDIF ()
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

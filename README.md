@@ -56,6 +56,8 @@ stays small and the code stays legible.
 - [Getting started](#getting-started)
 - [Type errors](#type-errors)
 - [Run-time cost](#run-time-cost)
+- [Linear algebra with Eigen](#linear-algebra-with-eigen)
+- [Serialization](#serialization)
 - [Integration](#integration)
 - [Cheat sheet](#cheat-sheet)
 - [Supported units](#supported-units)
@@ -87,6 +89,14 @@ stays small and the code stays legible.
   a floating-point underlying type.
 - **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
   `conversion_factor<...>` template. See [Type errors](#type-errors).
+- **Linear algebra with [Eigen](https://eigen.tuxfamily.org).** Store dimensioned quantities in Eigen
+  vectors and matrices with the dimensions checked at compile time — `Eigen::Matrix<meters<double>, 3, 1>`.
+  Optional and dependency-free (activates only if Eigen is present). See
+  [Linear algebra with Eigen](#linear-algebra-with-eigen).
+- **Self-describing serialization.** `serialize(q)` writes a quantity to a compact binary stream that carries
+  its dimension as well as its value; a reader recovers it with no prior agreement on the type, and the format
+  extends to any base dimension — including your own `make_dimension<>` — with no central table and no
+  reflection. See [Serialization](#serialization).
 - **Trivial integration.** Header-only, no dependencies, one `#include`. Drop in the headers, or consume
   the CMake package. See [Integration](#integration).
 
@@ -293,6 +303,129 @@ holds with no run-time work. See [Efficiency](docs/explain/efficiency.md) for th
 
 ---
 
+## Linear algebra with Eigen
+
+`units` composes with [Eigen](https://eigen.tuxfamily.org) so you can carry dimensions through vectors and
+matrices — a rotated position, a moment computed from a lever arm and a force, a velocity integrated over a
+step — with the dimensional analysis still done by the type system, and with **no dependency added to either
+library**. The support activates automatically when `<Eigen/Core>` is on your include path and is a no-op when it
+is not (guarded by `__has_include`, exactly like the optional JSON support); there is no build flag to set.
+
+```cpp
+#include <Eigen/Core>
+#include <units.h>
+
+using namespace units;
+using namespace units::literals;
+
+Eigen::Matrix<meters<double>, 3, 1> position;
+position << 1.0_m, 2.0_m, 2.0_m;
+
+auto           doubled = position * 2.0;       // scale — still a vector of meters
+auto           sum     = position.sum();       // 5 m
+meters<double> range   = unit_norm(position);  // 3 m — the norm returns to the original dimension
+```
+
+A vector holds one scalar type, so same-dimension operations — construction, `+`/`-`, scaling, `sum()`, block
+and `Map` views, `cast()` — work directly on Eigen expressions. The operations whose result *changes* dimension
+(a dot product of lengths is an area; a cross product carries the product dimension) are provided as helpers that
+compute the dimensionally-correct type:
+
+```cpp
+#include <units/area.h>
+
+Eigen::Matrix<meters<double>,  3, 1> arm;
+Eigen::Matrix<newtons<double>, 3, 1> force;
+// ...
+auto area   = unit_dot(arm, arm);       // square_meters
+auto moment = unit_cross(arm, force);   // a vector in newton_meters (torque)
+
+// A dimensionless rotation / direction-cosine matrix applied to a dimensioned vector:
+Eigen::Matrix<double, 3, 3>          rotation = /* ... */;
+Eigen::Matrix<meters<double>, 3, 1>  rotated  = unit_transform(rotation, position);
+```
+
+The full helper set (`unit_dot`, `unit_squared_norm`, `unit_norm`, `unit_normalized`, `unit_cross`,
+`unit_transform`), the capability table, and the caveats are documented in
+[the Eigen how-to](docs/how-to/eigen.md).
+
+---
+
+## Serialization
+
+The opt-in header `<units/serialization.h>` encodes a quantity to a compact binary stream that carries its
+dimension along with its value. A reader recovers the quantity from the bytes alone — it discovers the dimension
+before it names a target type — so the two peers need no shared schema and no out-of-band agreement on the unit.
+The header is separate; `<units.h>` does not pull it in.
+
+```cpp
+#include <units.h>
+#include <units/serialization.h>
+#include <fstream>
+#include <iostream>
+
+int main()
+{
+    using namespace units;
+    using namespace units::literals;
+
+    std::fstream file("speed.bin", std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+
+    file << serialize(60.0_mph);               // write a quantity to any stream
+    file.seekg(0);
+
+    // read it back into the type you want — one call, dimension-checked
+    if (auto kph = deserialize<kilometers_per_hour<double>>(file))
+        std::cout << kph->value() << " kph\n"; // 96.5606 kph
+}
+```
+
+`serialize` returns an **`any_unit`** — a first-class value that owns its serialized bytes and behaves like a
+value type: it streams (`<<`/`>>`), compares (`==`, and `<`/`>` within a dimension), hashes (usable as an
+`unordered_map` key), and renders to text — `to_string()` names the dimension when the library knows it
+(`100 m`, `9.81 m s^-2`), or `to_string_raw()` for the always-available name-free form. `deserialize` returns
+one too (wrapped in `std::expected`, since bad bytes can fail). Collapse an `any_unit` into a concrete quantity
+with `to<Unit>()` (checked, returns `std::expected`), `assign_to(out)` (mismatch-tolerant, assigns into an
+existing variable and returns whether it fit), `try_to<Unit>()` / `unit_cast<Unit>()` (throwing), or `visit()`
+(the canonical unit of the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast
+path when the type is known.
+
+**It also drops into byte interfaces with no cast.** Away from a stream, an `any_unit` exposes a modern,
+type-safe byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`,
+`size()`) that feeds `std::fwrite`, a socket `send`, or `memcpy` directly:
+
+```cpp
+any_unit q = serialize(position);
+
+std::fwrite(q.data(), 1, q.size(), fp);         // C stdio — no cast
+::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
+
+auto same = deserialize(q);                     // an any_unit converts to a span — round-trips directly
+```
+
+The stream identifies each base dimension by an 8-byte hash of its name, so the format has **no fixed set of
+dimensions and no ceiling on how many a quantity composes**: any base dimension round-trips, including one you
+define with `make_dimension<>`, with no central registry and no reflection. Values ride in SI canonical base in
+the tersest exact encoding (integer varint, 32-bit float, or 64-bit double), so a single-term integer quantity is
+a handful of bytes.
+
+Bytes per serialized quantity across a spread, beside a naive `{"value":V,"unit":"U"}` JSON string for the same
+quantity (the JSON needs both peers to agree on the unit out of band; the binary carries the dimension itself):
+
+| Quantity | Serialized bytes | Naive JSON string |
+|---|---:|---:|
+| `100.0_m` | 14 | 24 |
+| `5000.0_g` (5 kg) | 13 | 23 |
+| `1.0_GB` | 17 | 23 |
+| `20.0_degC` | 20 | 26 |
+| `60.0_mph` | 29 | 25 |
+| `dimensionless<double>(0.25)` | 7 | — |
+
+Full guide, wire format, error model, and measured compile-time and run-time numbers:
+[Serialization](docs/how-to/serialization.md).
+
+---
+
 ## Integration
 
 `units` is header-only.
@@ -329,8 +462,10 @@ target_link_libraries(myapp PRIVATE units::units)
 **Linux packages.** The build produces Debian (`libunits-dev`), RPM (`units-devel`), and tarball
 artifacts via CPack; a PPA is published for Ubuntu.
 
-Linking `units::units` also attaches the [Visual Studio debugger visualizer](natvis/units.natvis) on
-MSVC, so a quantity shows as `5 m` in the debugger rather than an opaque object.
+[Debugger visualizers](docs/how-to/natvis.md) show a quantity as `5 m` in the debugger rather than an
+opaque object: linking `units::units` attaches the [natvis](natvis/units.natvis) automatically on MSVC,
+and an [LLDB formatter](natvis/units_lldb.py) (`command script import units_lldb.py`) does the same for
+LLDB, CLion, Xcode, and CodeLLDB.
 
 > **Not yet available:** vcpkg and Conan ports. Contributions welcome.
 
@@ -976,7 +1111,8 @@ dimensional analysis). Values are the 2018 CODATA recommended values.
 ## More capabilities
 
 Beyond the catalog: unit-aware `<cmath>` (found by ADL), `std::chrono::duration` interop, `std::hash`
-and `std::numeric_limits` specializations, NaN/infinity support, optional
+and `std::numeric_limits` specializations, NaN/infinity support, self-describing binary
+[serialization](docs/how-to/serialization.md), optional
 [nlohmann/json](docs/how-to/json-serialization.md) serialization, a concept vocabulary (`UnitType`,
 `ConversionFactorType`, …) for constraining your own templates, non-linear (decibel) scales, and affine
 temperature. Each has a how-to or reference page under [docs/](docs/).
@@ -1011,10 +1147,12 @@ reference is published at <https://nholthaus.github.io/units/>.
 - [Defining new units](docs/how-to/defining-new-units.md)
 - [Math functions](docs/how-to/math-functions.md)
 - [chrono interop](docs/how-to/chrono-interop.md)
+- [Serialization](docs/how-to/serialization.md)
 - [JSON serialization](docs/how-to/json-serialization.md)
+- [Eigen interoperability](docs/how-to/eigen.md)
 - [Disabling iostream](docs/how-to/disabling-iostream.md)
 - [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md)
-- [Visual Studio visualizer](docs/how-to/natvis.md)
+- [Debugger visualizers](docs/how-to/natvis.md)
 - [CMake integration](docs/how-to/cmake-integration.md)
 
 ### Reference

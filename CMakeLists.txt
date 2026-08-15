@@ -100,9 +100,10 @@ install(DIRECTORY include/
 		DESTINATION include
 )
 
-# Install the MSVC debugger visualizer so the installed package's $<INSTALL_INTERFACE:natvis/units.natvis>
-# resolves and Visual Studio picks it up for consumers of the installed units package.
-install(FILES natvis/units.natvis
+# Install the debugger visualizers: the MSVC natvis (so the installed package's
+# $<INSTALL_INTERFACE:natvis/units.natvis> resolves and Visual Studio picks it up) and the LLDB Python
+# formatter (loaded manually via `command script import`; shipped so consumers of the installed package have it).
+install(FILES natvis/units.natvis natvis/units_lldb.py
 		DESTINATION natvis
 )
 
