@@ -25,9 +25,15 @@ jobs:
         with:
           arch: x64
 
+      # Eigen enables the units/eigen.h interoperability tests (which self-guard on __has_include, so this is
+      # additive). windows-latest ships vcpkg at VCPKG_INSTALLATION_ROOT.
+      - name: Install Eigen (vcpkg)
+        shell: bash
+        run: vcpkg install eigen3:x64-windows
+
       - name: Configure CMake
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         run: |

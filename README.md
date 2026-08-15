@@ -56,6 +56,7 @@ stays small and the code stays legible.
 - [Getting started](#getting-started)
 - [Type errors](#type-errors)
 - [Run-time cost](#run-time-cost)
+- [Linear algebra with Eigen](#linear-algebra-with-eigen)
 - [Integration](#integration)
 - [Cheat sheet](#cheat-sheet)
 - [Supported units](#supported-units)
@@ -87,6 +88,10 @@ stays small and the code stays legible.
   a floating-point underlying type.
 - **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
   `conversion_factor<...>` template. See [Type errors](#type-errors).
+- **Linear algebra with [Eigen](https://eigen.tuxfamily.org).** Store dimensioned quantities in Eigen
+  vectors and matrices with the dimensions checked at compile time — `Eigen::Matrix<meters<double>, 3, 1>`.
+  Optional and dependency-free (activates only if Eigen is present). See
+  [Linear algebra with Eigen](#linear-algebra-with-eigen).
 - **Trivial integration.** Header-only, no dependencies, one `#include`. Drop in the headers, or consume
   the CMake package. See [Integration](#integration).
 
@@ -290,6 +295,54 @@ static_assert(1.0_km + 1.0_m == 1001.0_m);   // evaluated at compile time
 ```
 
 holds with no run-time work. See [Efficiency](docs/explain/efficiency.md) for the full comparison.
+
+---
+
+## Linear algebra with Eigen
+
+`units` composes with [Eigen](https://eigen.tuxfamily.org) so you can carry dimensions through vectors and
+matrices — a rotated position, a moment computed from a lever arm and a force, a velocity integrated over a
+step — with the dimensional analysis still done by the type system, and with **no dependency added to either
+library**. The support activates automatically when `<Eigen/Core>` is on your include path and is a no-op when it
+is not (guarded by `__has_include`, exactly like the optional JSON support); there is no build flag to set.
+
+```cpp
+#include <Eigen/Core>
+#include <units.h>
+
+using namespace units;
+using namespace units::literals;
+
+Eigen::Matrix<meters<double>, 3, 1> position;
+position << 1.0_m, 2.0_m, 2.0_m;
+
+auto           doubled = position * 2.0;       // scale — still a vector of meters
+auto           sum     = position.sum();       // 5 m
+meters<double> range   = unit_norm(position);  // 3 m — the norm returns to the original dimension
+```
+
+A vector holds one scalar type, so same-dimension operations — construction, `+`/`-`, scaling, `sum()`, block
+and `Map` views, `cast()` — work directly on Eigen expressions. The operations whose result *changes* dimension
+(a dot product of lengths is an area; a cross product carries the product dimension) are provided as helpers that
+compute the dimensionally-correct type:
+
+```cpp
+#include <units/area.h>
+
+Eigen::Matrix<meters<double>,  3, 1> arm;
+Eigen::Matrix<newtons<double>, 3, 1> force;
+// ...
+auto area   = unit_dot(arm, arm);       // square_meters
+auto moment = unit_cross(arm, force);   // a vector in newton_meters (torque)
+
+// A dimensionless rotation / direction-cosine matrix applied to a dimensioned vector:
+Eigen::Matrix<double, 3, 3>          rotation = /* ... */;
+Eigen::Matrix<meters<double>, 3, 1>  rotated  = unit_transform(rotation, position);
+```
+
+The full helper set (`unit_dot`, `unit_squared_norm`, `unit_norm`, `unit_normalized`, `unit_cross`,
+`unit_transform`), the capability table, and the caveats are documented in
+[the Eigen how-to](docs/how-to/eigen.md).
 
 ---
 
@@ -1012,6 +1065,7 @@ reference is published at <https://nholthaus.github.io/units/>.
 - [Math functions](docs/how-to/math-functions.md)
 - [chrono interop](docs/how-to/chrono-interop.md)
 - [JSON serialization](docs/how-to/json-serialization.md)
+- [Eigen interoperability](docs/how-to/eigen.md)
 - [Disabling iostream](docs/how-to/disabling-iostream.md)
 - [Subset headers for compile time](docs/how-to/subset-headers-compile-time.md)
 - [Visual Studio visualizer](docs/how-to/natvis.md)

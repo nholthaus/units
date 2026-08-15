@@ -31,6 +31,7 @@ Start with [Getting started](learn/getting-started.md); the
 - [Math functions](how-to/math-functions.md)
 - [chrono interop](how-to/chrono-interop.md)
 - [JSON serialization](how-to/json-serialization.md)
+- [Eigen interoperability](how-to/eigen.md)
 - [Disabling iostream](how-to/disabling-iostream.md)
 - [Subset headers for compile time](how-to/subset-headers-compile-time.md)
 - [Visual Studio visualizer](how-to/natvis.md)

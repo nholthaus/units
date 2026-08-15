@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.
 
 ### Added
+- Optional, dependency-free interoperability with the [Eigen](https://eigen.tuxfamily.org) linear-algebra
+  library (`units/eigen.h`, pulled in by `units.h`): a unit is usable as an Eigen matrix scalar, so vectors and
+  matrices can hold dimensioned quantities with the dimensions checked at compile time. Same-dimension
+  operations (construction, add/subtract, scaling, `sum()`, blocks, `Map`, `cast`) work directly on Eigen
+  expressions; the dimension-changing operations are provided as helpers with the correct result type —
+  `unit_dot`, `unit_squared_norm`, `unit_norm`, `unit_normalized`, `unit_cross`, and `unit_transform`. The
+  support activates only when `<Eigen/Core>` is present (guarded by `__has_include`); `units` gains no
+  dependency on Eigen. (#90)
 - A `dynamic_viscosity` dimension (`pressure * time`) with `pascal_seconds`, `poise`, and `centipoise`, and a
   `kinematic_viscosity` dimension (`area / time`) with `square_meters_per_second`, `stokes`, and
   `centistokes`. (#205)
