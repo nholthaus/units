@@ -31,6 +31,9 @@ jobs:
           sudo apt install -y g++-13
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
 
+      - name: Install Eigen
+        run: sudo apt install -y libeigen3-dev
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
