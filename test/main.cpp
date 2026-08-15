@@ -3374,6 +3374,18 @@ TEST_F(UnitType, dimensionlessDecibelLiteral)
 	static_assert(std::is_same_v<decltype(0.0_dBW), dBW<double>>);
 	static_assert(std::is_same_v<decltype(0.0_dBm), dBm<double>>);
 	static_assert(!std::is_same_v<decibels<double>, dBW<double>>);
+
+	// a floating-point underlying type other than double is allowed (only integral types are rejected)
+	decibels<float> asFloat(20.0f);
+	EXPECT_NEAR(100.0, static_cast<double>(asFloat.to_linearized()), 5.0e-4);
+
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+	// the streamed form of a decibel-arithmetic result uses the dB abbreviation (adding dB multiplies linear)
+	testing::internal::CaptureStdout();
+	std::cout << (decibels<double>(3.0) + decibels<double>(3.0));
+	std::string output = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("6 dB", output.c_str());
+#endif
 }
 
 TEST_F(UnitType, dBAddition)
@@ -3806,6 +3818,29 @@ TEST_F(ConversionFactor, volume_flow_rate)
 	EXPECT_NEAR(22.712470704, test, 5.0e-9);
 	test = cubic_meters_per_hour<double>(cubic_feet_per_minute<double>(1.0)).value();
 	EXPECT_NEAR(1.69901079552, test, 5.0e-11);
+
+	// each remaining named unit checked against its most natural base
+	test = cubic_meters_per_hour<double>(cubic_meters_per_second<double>(1.0)).value();
+	EXPECT_DOUBLE_EQ(3600.0, test);
+	test = gallons_per_minute<double>(gallons_per_hour<double>(60.0)).value();
+	EXPECT_DOUBLE_EQ(1.0, test);
+	test = liters_per_second<double>(gallons_per_hour<double>(1.0)).value();
+	EXPECT_NEAR(0.00105150327, test, 5.0e-11);
+
+	// deriving the dimension from volume / time means the composed quantity IS the named unit: it
+	// resolves to liters_per_second and streams with that unit's abbreviation, and converts as expected
+	same = std::is_same_v<decltype(5.0_L / 1.0_s), liters_per_second<double>>;
+	EXPECT_TRUE(same);
+	test = gallons_per_minute<double>(5.0_L / 1.0_s).value();
+	EXPECT_NEAR(79.2516157, test, 5.0e-7);
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+	{
+		testing::internal::CaptureStdout();
+		std::cout << (5.0_L / 1.0_s);
+		std::string output = testing::internal::GetCapturedStdout();
+		EXPECT_STREQ("5 L_per_s", output.c_str());
+	}
+#endif
 }
 
 TEST_F(ConversionFactor, velocity)
