@@ -1066,8 +1066,8 @@ TEST_F(UnitType, implicitChronoConversions)
 
 TEST_F(UnitType, negativeConstexprLiterals)
 {
-	static constexpr radians kAngularValue{-30.0_deg};
-	EXPECT_EQ(-30.0_deg, kAngularValue);
+	static constexpr radians ANGULAR_VALUE{-30.0_deg};
+	EXPECT_EQ(-30.0_deg, ANGULAR_VALUE);
 }
 
 TEST_F(UnitType, assignmentFromArithmeticType)
@@ -3134,6 +3134,22 @@ TEST_F(UnitType, to_string)
 	EXPECT_STREQ("25.1 pct", to_string(c_pct).c_str());
 }
 
+// The platform spellings of the two locales this test needs, and the command that installs them.
+#if defined(_MSC_VER)
+static constexpr const char* GERMAN_LOCALE = "de-DE";
+static constexpr const char* US_LOCALE     = "en-US";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales";
+#elif defined(__APPLE__)
+// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `de_DE.utf8` alias.
+static constexpr const char* GERMAN_LOCALE = "de_DE.UTF-8";
+static constexpr const char* US_LOCALE     = "en_US.UTF-8";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales";
+#else
+static constexpr const char* GERMAN_LOCALE = "de_DE.utf8";
+static constexpr const char* US_LOCALE     = "en_US.utf8";
+static constexpr const char* LOCALE_HINT   = "install the German and US locales, e.g. `sudo locale-gen de_DE.UTF-8 en_US.UTF-8`";
+#endif
+
 TEST_F(UnitType, to_string_locale)
 {
 	struct lconv*     lc;
@@ -3141,18 +3157,16 @@ TEST_F(UnitType, to_string_locale)
 	std::stringstream os1;
 	std::stringstream os2;
 
+	// A locale this test needs may not be present on the host; that is an environmental precondition,
+	// not a library defect, so skip (with the install hint) rather than throw from std::locale.
+	if (setlocale(LC_ALL, GERMAN_LOCALE) == nullptr || setlocale(LC_ALL, US_LOCALE) == nullptr)
+	{
+		GTEST_SKIP() << "requires the German and US locales; " << LOCALE_HINT;
+	}
+
 	// German locale
-#if defined(_MSC_VER)
-	setlocale(LC_ALL, "de-DE");
-	os1.imbue(std::locale("de-DE"));
-#elif defined(__APPLE__)
-	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `de_DE.utf8` alias.
-	EXPECT_STREQ("de_DE.UTF-8", setlocale(LC_ALL, "de_DE.UTF-8")) << "For this test to work, you need a german locale installed.";
-	os1.imbue(std::locale("de_DE.UTF-8"));
-#else
-	EXPECT_STREQ("de_DE.utf8", setlocale(LC_ALL, "de_DE.utf8")) << "For this test to work, you need a german locale installed: `sudo locale-gen de_DE.UTF-8`";
-	os1.imbue(std::locale("de_DE.utf8"));
-#endif
+	setlocale(LC_ALL, GERMAN_LOCALE);
+	os1.imbue(std::locale(GERMAN_LOCALE));
 
 	lc            = localeconv();
 	char point_de = *lc->decimal_point;
@@ -3169,17 +3183,8 @@ TEST_F(UnitType, to_string_locale)
 	EXPECT_STREQ("9,2740100783e-24 A m^2", output.c_str());
 
 	// US locale
-#if defined(_MSC_VER)
-	setlocale(LC_ALL, "en-US");
-	os2.imbue(std::locale("en-US"));
-#elif defined(__APPLE__)
-	// BSD libc (macOS) only recognizes the canonical `.UTF-8` spelling, not glibc's `en_US.utf8` alias.
-	EXPECT_STREQ("en_US.UTF-8", setlocale(LC_ALL, "en_US.UTF-8")) << "For this test to work, you need a USA locale installed.";
-	os2.imbue(std::locale("en_US.UTF-8"));
-#else
-	EXPECT_STREQ("en_US.utf8", setlocale(LC_ALL, "en_US.utf8")) << "For this test to work, you need a USA locale installed: `sudo locale-gen en_US.UTF-8`";
-	os2.imbue(std::locale("en_US.utf8"));
-#endif
+	setlocale(LC_ALL, US_LOCALE);
+	os2.imbue(std::locale(US_LOCALE));
 
 	lc            = localeconv();
 	char point_us = *lc->decimal_point;
