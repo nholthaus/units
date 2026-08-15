@@ -3546,7 +3546,7 @@ TEST_F(ConversionFactor, mass)
 	test = carats<double>(kilograms<double>(0.0002)).value();
 	EXPECT_NEAR(1.0, test, 5.0e-6);
 	test = kilograms<double>(slugs<double>(1.0)).value();
-	EXPECT_NEAR(14.593903, test, 5.0e-7);
+	EXPECT_NEAR(14.593902937206364, test, 5.0e-13);
 
 	test = carats<double>(mass::pounds<double>(6.3)).value();
 	EXPECT_NEAR(14288.2, test, 5.0e-2);
@@ -4361,7 +4361,7 @@ TEST_F(ConversionFactor, density)
 	test = kilograms_per_cubic_meter<double>(pounds_per_gallon<double>(1.0)).value();
 	EXPECT_NEAR(119.8264273, test, 5.0e-8);
 	test = kilograms_per_cubic_meter<double>(slugs_per_cubic_foot<double>(1.0)).value();
-	EXPECT_NEAR(515.3788184, test, 5.0e-6);
+	EXPECT_NEAR(515.3788183931962, test, 5.0e-11);
 }
 
 TEST_F(ConversionFactor, concentration)

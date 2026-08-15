@@ -66,7 +66,7 @@ namespace units
 	UNIT_ADD(mass, stone, st, conversion_factor<std::ratio<14>, pounds_>)
 	UNIT_ADD(mass, ounces, oz, conversion_factor<std::ratio<1, 16>, pounds_>)
 	UNIT_ADD(mass, carats, ct, conversion_factor<std::ratio<200>, milligrams_>)
-	UNIT_ADD(mass, slugs, slug, conversion_factor<std::ratio<145939029, 10000000>, kilograms_>)
+	UNIT_ADD(mass, slugs, slug, conversion_factor<std::ratio<8896443230521, 609600000000>, kilograms_>)
 
 	UNIT_ADD(mass, grains, gr, conversion_factor<std::ratio<1, 7000>, pounds_>)
 	UNIT_ADD(mass, avoirdupois_drams, dr_av, conversion_factor<std::ratio<1, 16>, ounces_>)
