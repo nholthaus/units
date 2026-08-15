@@ -3,8 +3,10 @@
 // (units::energy::foot_pounds is a separate, non-deprecated energy unit and is unaffected.)
 //
 // expect: pass
+// flags-msvc: /W3
 // expect-match: deprecated
-// expect-match: pound_feet
+// expect-match: pound-foot
+// expect-match: conventionally
 #include <units/torque.h>
 units::torque::foot_pounds<double> t(1.0); // deprecated alias of units::torque::pound_feet
 int main()
