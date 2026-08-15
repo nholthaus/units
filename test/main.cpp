@@ -6838,12 +6838,12 @@ TEST_F(Serialization, streamOperatorsRoundTripBinary)
 	// operator>> reads the classic way; back-to-back records advance correctly
 	std::stringstream seq(std::ios::in | std::ios::out | std::ios::binary);
 	seq << units::serialize(units::meters<double>(1.0)) << units::serialize(units::seconds<double>(2.0));
-	units::any_unit a;
-	units::any_unit b;
-	seq >> a >> b;
+	units::any_unit first;
+	units::any_unit second;
+	seq >> first >> second;
 	ASSERT_TRUE(seq.good() || seq.eof());
-	EXPECT_DOUBLE_EQ(1.0, a.to<units::meters<double>>()->value());
-	EXPECT_DOUBLE_EQ(2.0, b.to<units::seconds<double>>()->value());
+	EXPECT_DOUBLE_EQ(1.0, first.to<units::meters<double>>()->value());
+	EXPECT_DOUBLE_EQ(2.0, second.to<units::seconds<double>>()->value());
 
 	// a malformed stream sets failbit and leaves the target unchanged
 	std::stringstream bad(std::ios::in | std::ios::out | std::ios::binary);
@@ -6861,9 +6861,9 @@ TEST_F(Serialization, typedDeserializeFromStream)
 	stream << units::serialize(60.0_mph);
 
 	// one call, one std::expected: reads the record AND collapses to the requested unit
-	const auto kph = units::deserialize<units::kilometers_per_hour<double>>(stream);
-	ASSERT_TRUE(kph.has_value());
-	EXPECT_NEAR(96.56064, kph->value(), 1e-4);
+	const auto speed = units::deserialize<units::kilometers_per_hour<double>>(stream);
+	ASSERT_TRUE(speed.has_value());
+	EXPECT_NEAR(96.56064, speed->value(), 1e-4);
 
 	// a dimension mismatch is reported, not dereferenced blindly
 	std::stringstream length(std::ios::in | std::ios::out | std::ios::binary);

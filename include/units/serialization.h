@@ -717,11 +717,13 @@ namespace units
 		template<class... Dimensions, class Visitor>
 		void visit(Visitor&& visitor) const
 		{
+			// bind to a named lvalue so the traversal passes it through by reference (never moving it), and the
+			// single invocation site (try_dispatch_one) is the only place it is used as the caller's value category
 			bool matched;
 			if constexpr (sizeof...(Dimensions) == 0)
-				matched = dispatch_tuple<Visitor, detail::builtin_dimensions>(std::forward<Visitor>(visitor));
+				matched = dispatch_tuple<detail::builtin_dimensions>(std::forward<Visitor>(visitor));
 			else
-				matched = dispatch_list<Visitor, Dimensions...>(std::forward<Visitor>(visitor));
+				matched = dispatch_list<Dimensions...>(std::forward<Visitor>(visitor));
 			if (!matched)
 				throw std::runtime_error("units::any_unit: no candidate dimension matched the stream");
 		}
@@ -748,25 +750,28 @@ namespace units
 			return false;
 		}
 
-		/// dispatch over an explicit candidate pack, in order (first match wins)
-		template<class Visitor, class... Dimensions>
+		/// dispatch over an explicit candidate pack, in order (first match wins). The visitor is passed by
+		/// lvalue through the traversal and forwarded only at the single point it is invoked (in
+		/// try_dispatch_one), so it is moved-from at most once even for an rvalue visitor.
+		template<class... Dimensions, class Visitor>
 		bool dispatch_list(Visitor&& visitor) const
 		{
 			bool matched = false;
 			// fold in order; stop invoking once matched
-			((matched = matched || try_dispatch_one<Dimensions>(std::forward<Visitor>(visitor))), ...);
+			((matched = matched || try_dispatch_one<Dimensions>(visitor)), ...);
 			return matched;
 		}
 
-		/// dispatch over a tuple of candidate dimensions, in order (first match wins)
-		template<class Visitor, class DimTuple, std::size_t I = 0>
+		/// dispatch over a tuple of candidate dimensions, in order (first match wins). As with dispatch_list,
+		/// the visitor is passed by lvalue through the recursion and forwarded only where it is invoked.
+		template<class DimTuple, std::size_t I = 0, class Visitor>
 		bool dispatch_tuple(Visitor&& visitor) const
 		{
 			if constexpr (I < std::tuple_size_v<DimTuple>)
 			{
-				if (try_dispatch_one<std::tuple_element_t<I, DimTuple>>(std::forward<Visitor>(visitor)))
+				if (try_dispatch_one<std::tuple_element_t<I, DimTuple>>(visitor))
 					return true;
-				return dispatch_tuple<Visitor, DimTuple, I + 1>(std::forward<Visitor>(visitor));
+				return dispatch_tuple<DimTuple, I + 1>(visitor);
 			}
 			return false;
 		}
