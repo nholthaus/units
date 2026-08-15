@@ -855,7 +855,7 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `newton_meters` | `_Nm` |  |
-| `foot_pounds` | `_ftlb` |  |
+| `pound_feet` | `_lbf_ft` |  |
 | `foot_poundals` | `_ftpdl` |  |
 | `inch_pounds` | `_inlb` |  |
 | `meter_kilograms` | `_mkgf` |  |
@@ -873,6 +873,17 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `meters_per_minute` | `_mpm` |  |
 | `inches_per_second` | `_ips` |  |
 | `kilometers_per_second` | `_kmps` |  |
+
+### viscosity
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `pascal_seconds` | `_Pa_s` |  |
+| `poise` | `_P` |  |
+| `centipoise` | `_cP` |  |
+| `square_meters_per_second` | `_m2_per_s` |  |
+| `stokes` | `_St` |  |
+| `centistokes` | `_cSt` |  |
 
 ### voltage
 
