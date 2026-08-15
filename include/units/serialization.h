@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <cstring>
 #include <expected>
+#include <limits>
 #include <memory>
 #include <span>
 #include <stdexcept>
@@ -406,9 +407,24 @@ namespace units
 		{
 			if (m_identity != detail::identity_of<Unit>())
 				return std::unexpected(deserialize_error::dimension_mismatch);
-			using Dim  = traits::dimension_of_t<typename traits::unit_traits<Unit>::conversion_factor>;
-			using Base = detail::canonical_unit_t<Dim>;
-			return Unit(Base(m_base));
+
+			using ConversionFactor = typename traits::unit_traits<Unit>::conversion_factor;
+			using Dim              = traits::dimension_of_t<ConversionFactor>;
+			using UnderlyingTarget = typename traits::unit_traits<Unit>::underlying_type;
+
+			// Express the SI-base magnitude in the TARGET unit's scale, all in double so no lossy unit conversion is
+			// attempted: a double-underlying instance of the target unit converts from the canonical base cleanly.
+			using TargetAsDouble   = unit<traits::strong_t<ConversionFactor>, double, typename traits::unit_traits<Unit>::numerical_scale_type>;
+			const double as_double = TargetAsDouble(detail::canonical_unit_t<Dim>(m_base)).template to<double>();
+
+			// Narrow to the target's underlying type. An integral target that cannot represent the value exactly is
+			// a lossy_target error rather than a silent truncation.
+			if constexpr (!std::is_floating_point_v<UnderlyingTarget>)
+			{
+				if (as_double != std::floor(as_double) || std::abs(as_double) > static_cast<double>(std::numeric_limits<UnderlyingTarget>::max()))
+					return std::unexpected(deserialize_error::lossy_target);
+			}
+			return Unit(static_cast<UnderlyingTarget>(as_double));
 		}
 
 		//------------------------------------------------------------------------------------------------------------------
