@@ -29,4 +29,4 @@ override_dh_auto_test:
 
 # Ensure we install into the package staging area.
 override_dh_auto_install:
-	dh_auto_install --destdir=$(CURDIR)/debian/units-dev
+	dh_auto_install --destdir=$(CURDIR)/debian/libunits-dev
