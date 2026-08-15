@@ -36,46 +36,49 @@
 //
 //--------------------------------------------------------------------------------------------------
 //
-/// @file	units/torque.h
-/// @brief	units representing torque values
+/// @file	units/viscosity.h
+/// @brief	units representing dynamic and kinematic viscosity values
 //
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#ifndef units_torque_h_
-#define units_torque_h_
+#ifndef units_viscosity_h_
+#define units_viscosity_h_
 
-#include <units/energy.h>
-#include <units/force.h>
-#include <units/length.h>
+#include <units/area.h>
+#include <units/pressure.h>
+#include <units/time.h>
 
 namespace units
 {
 	/**
-	 * @namespace	units::torque
-	 * @brief		namespace for unit types and containers representing torque values
-	 * @details		The SI unit for torque is `newton_meters`, and the corresponding `dimension` dimension is
-	 *				`torque_units`.
-	 * @anchor		torqueContainers
+	 * @namespace	units::dynamic_viscosity
+	 * @brief		namespace for unit types and containers representing dynamic (absolute) viscosity values
+	 * @details		The SI unit for dynamic viscosity is `pascal_seconds`, and the corresponding `dimension`
+	 *				dimension is `dynamic_viscosity_unit`.
+	 * @anchor		dynamicViscosityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
-	UNIT_ADD(torque, newton_meters, Nm, conversion_factor<std::ratio<1>, joules_>)
-	// Torque is conventionally named "pound-foot" (lbf*ft) to distinguish it from the "foot-pound" (ft*lbf) energy
-	// unit. `pound_feet` is the torque unit; `foot_pounds` is a deprecated alias of it.
-	UNIT_ADD(torque, pound_feet, lbf_ft, compound_conversion_factor<feet_, force::pounds_>)
-	UNIT_ADD(torque, foot_poundals, ftpdl, compound_conversion_factor<feet_, poundals_>)
-	UNIT_ADD(torque, inch_pounds, inlb, compound_conversion_factor<inches_, force::pounds_>)
-	UNIT_ADD(torque, meter_kilograms, mkgf, compound_conversion_factor<meters<>, kiloponds<>>)
+	UNIT_ADD(dynamic_viscosity, pascal_seconds, Pa_s, compound_conversion_factor<pascals_, seconds_>)
+	UNIT_ADD(dynamic_viscosity, poise, P, conversion_factor<std::ratio<1, 10>, pascal_seconds_>)
+	UNIT_ADD(dynamic_viscosity, centipoise, cP, conversion_factor<std::ratio<1, 100>, poise_>)
 
-	inline namespace torque
-	{
-		template<class Underlying = UNIT_LIB_DEFAULT_TYPE>
-		using foot_pounds [[deprecated("torque is conventionally 'pound-foot'; use units::torque::pound_feet. "
-									   "(units::energy::foot_pounds remains the energy unit.)")]] = pound_feet<Underlying>;
-	}
+	UNIT_ADD_DIMENSION_TRAIT(dynamic_viscosity)
 
-	UNIT_ADD_DIMENSION_TRAIT(torque)
+	/**
+	 * @namespace	units::kinematic_viscosity
+	 * @brief		namespace for unit types and containers representing kinematic viscosity values
+	 * @details		The SI unit for kinematic viscosity is `square_meters_per_second`, and the corresponding
+	 *				`dimension` dimension is `kinematic_viscosity_unit`.
+	 * @anchor		kinematicViscosityContainers
+	 * @sa			See unit for more information on unit type containers.
+	 */
+	UNIT_ADD(kinematic_viscosity, square_meters_per_second, m2_per_s, compound_conversion_factor<squared<meters<>>, inverse<seconds_>>)
+	UNIT_ADD(kinematic_viscosity, stokes, St, conversion_factor<std::ratio<1, 10000>, square_meters_per_second_>)
+	UNIT_ADD(kinematic_viscosity, centistokes, cSt, conversion_factor<std::ratio<1, 100>, stokes_>)
+
+	UNIT_ADD_DIMENSION_TRAIT(kinematic_viscosity)
 } // namespace units
 
-#endif // units_torque_h_
+#endif // units_viscosity_h_

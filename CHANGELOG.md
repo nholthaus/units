@@ -3,6 +3,32 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.
+
+### Added
+- A `dynamic_viscosity` dimension (`pressure * time`) with `pascal_seconds`, `poise`, and `centipoise`, and a
+  `kinematic_viscosity` dimension (`area / time`) with `square_meters_per_second`, `stokes`, and
+  `centistokes`. (#205)
+- The `biots` unit of current, an alias of `abamperes` (the CGS-EMU name). (#205)
+- The how-to guide for defining new units now covers naming a derived unit type inline with `decltype`
+  (no macro) and building a custom, deliberately-incompatible dimension from a base-dimension tag via
+  `make_dimension`. (#133, #281)
+
+### Changed
+- The hyperbolic functions `cosh`/`sinh`/`tanh` now take a dimensionless argument and `acosh`/`asinh`/`atanh`
+  now return a dimensionless value, matching the mathematical definitions. Passing an angle or other
+  dimensioned quantity is rejected at compile time. This is a breaking change for code that relied on the
+  previous angle-based signatures. (#285)
+- Torque's conventionally-named unit is the pound-foot: `units::torque::pound_feet` (abbreviation `lbf_ft`).
+  `units::torque::foot_pounds` is now a deprecated alias of it; `units::energy::foot_pounds` (the energy unit)
+  is unchanged. (#311)
+- The compound-assignment operators (`*=`, `/=`) keep the right-hand side's own arithmetic type. Scaling an
+  integer-backed unit by a floating-point factor is lossy and now surfaces the compiler's float-to-integer
+  conversion warning (naming the friendly underlying type) instead of truncating silently. It remains a
+  warning, not a hard error. (#257)
+
 ## [3.4.3] - 2026-08-15
 
 Issue-triage follow-up: precision, ergonomics, and a new dimension.

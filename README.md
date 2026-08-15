@@ -63,6 +63,7 @@ stays small and the code stays legible.
 - [More capabilities](#more-capabilities)
 - [Documentation](#documentation)
   - [Learn](#learn) · [Explain](#explain) · [How-to](#how-to) · [Reference](#reference) · [Meta](#meta)
+- [Citing](#citing)
 - [License](#license)
 
 ---
@@ -854,7 +855,7 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `newton_meters` | `_Nm` |  |
-| `foot_pounds` | `_ftlb` |  |
+| `pound_feet` | `_lbf_ft` |  |
 | `foot_poundals` | `_ftpdl` |  |
 | `inch_pounds` | `_inlb` |  |
 | `meter_kilograms` | `_mkgf` |  |
@@ -872,6 +873,17 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `meters_per_minute` | `_mpm` |  |
 | `inches_per_second` | `_ips` |  |
 | `kilometers_per_second` | `_kmps` |  |
+
+### viscosity
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `pascal_seconds` | `_Pa_s` |  |
+| `poise` | `_P` |  |
+| `centipoise` | `_cP` |  |
+| `square_meters_per_second` | `_m2_per_s` |  |
+| `stokes` | `_St` |  |
+| `centistokes` | `_cSt` |  |
 
 ### voltage
 
@@ -1022,6 +1034,21 @@ reference is published at <https://nholthaus.github.io/units/>.
 - [Changelog](CHANGELOG.md)
 
 ---
+
+## Citing
+
+If you use `units` in academic or published work, a citation is appreciated. The repository includes a
+[`CITATION.cff`](CITATION.cff), so GitHub's **"Cite this repository"** button (top right of the repository
+page) generates a formatted citation and BibTeX for you. A BibTeX entry:
+
+```bibtex
+@software{holthaus_units,
+  author  = {Holthaus, Nic},
+  title   = {units: a compile-time C++ dimensional-analysis and unit-conversion library},
+  url     = {https://github.com/nholthaus/units},
+  license = {MIT}
+}
+```
 
 ## License
 

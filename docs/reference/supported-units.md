@@ -1,6 +1,6 @@
 # Supported units
 
-*The catalog of built-in units, grouped by dimension — **48 dimensions**, **282 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
+*The catalog of built-in units, grouped by dimension — **49 dimensions**, **288 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
 
 Each unit is available as a type (`meters`, `meters<double>`) and, where shown, a literal (`5.0_m`). Units marked **yes** under Prefixes also provide every SI metric prefix from femto to peta (e.g. `kilometers`/`_km`, `millimeters`/`_mm`). Include the umbrella header `<units.h>` for all of them, or a single `<units/DIMENSION.h>` for one dimension.
 
@@ -454,7 +454,7 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | Unit | Literal | Prefixes |
 |------|---------|----------|
 | `newton_meters` | `_Nm` |  |
-| `foot_pounds` | `_ftlb` |  |
+| `pound_feet` | `_lbf_ft` |  |
 | `foot_poundals` | `_ftpdl` |  |
 | `inch_pounds` | `_inlb` |  |
 | `meter_kilograms` | `_mkgf` |  |
@@ -472,6 +472,17 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `meters_per_minute` | `_mpm` |  |
 | `inches_per_second` | `_ips` |  |
 | `kilometers_per_second` | `_kmps` |  |
+
+### viscosity
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `pascal_seconds` | `_Pa_s` |  |
+| `poise` | `_P` |  |
+| `centipoise` | `_cP` |  |
+| `square_meters_per_second` | `_m2_per_s` |  |
+| `stokes` | `_St` |  |
+| `centistokes` | `_cSt` |  |
 
 ### voltage
 

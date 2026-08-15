@@ -1255,6 +1255,8 @@ namespace units
 		using jerk               = make_dimension<length, std::ratio<1>, time, std::ratio<-3>>;   ///< Represents an SI derived unit of jerk
 		using torque             = dimension_multiply<force, length>;                             ///< Represents an SI derived unit of torque
 		using density            = dimension_divide<mass, volume>;                                ///< Represents an SI derived unit of density
+		using dynamic_viscosity   = dimension_multiply<pressure, time>;                            ///< Represents an SI derived unit of dynamic (absolute) viscosity
+		using kinematic_viscosity = dimension_divide<area, time>;                                  ///< Represents an SI derived unit of kinematic viscosity
 		using energy_density     = make_dimension<energy, std::ratio<1>, volume, std::ratio<-1>>; ///< Represents an SI derived unit of energy density
 		using concentration      = make_dimension<volume, std::ratio<-1>>;                        ///< Represents a unit of concentration
 		using data               = make_dimension<data_tag>;                                      ///< Represents a unit of data size
@@ -3412,11 +3414,17 @@ namespace units
 		return (lhs -= rhs.value());
 	}
 
-	template<UnitType UnitTypeLhs>
+	template<UnitType UnitTypeLhs, ArithmeticType T>
 		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
-	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T& rhs)
 	{
-		lhs = lhs * rhs;
+		// The rhs is taken as its own arithmetic type (not narrowed to the lhs underlying type at the call
+		// boundary), so a value-narrowing scale (e.g. meters<int> *= 2.0) applies normal conversion rules. The
+		// narrowing is performed by an implicit conversion into a local of the lhs's underlying type, which surfaces
+		// the compiler's -Wfloat-conversion warning naming `meters<int>::underlying_type (aka int)` rather than
+		// truncating silently; it is a warning, not an error, and the result stays a UnitTypeLhs.
+		typename UnitTypeLhs::underlying_type scaled = lhs.raw() * rhs;
+		lhs                                          = UnitTypeLhs(scaled, linearized_value);
 		return lhs;
 	}
 
@@ -3511,12 +3519,31 @@ namespace units
 		return (lhs *= rhs.value());
 	}
 
-	template<UnitType UnitTypeLhs>
+	// scale a dimensioned quantity by a dimensionless quantity: use its numeric value and route through the
+	// arithmetic overload above (preserves the warn-on-lossy-integer-scale behavior)
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
 		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
-	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D& rhs)
 	{
-		lhs = lhs / rhs;
+		return (lhs *= rhs.value());
+	}
+
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T& rhs)
+	{
+		// see operator*= above: a floating-point divisor narrowing an integer-underlying quantity surfaces
+		// -Wfloat-conversion via the implicit narrow into a local of the lhs underlying type
+		typename UnitTypeLhs::underlying_type scaled = lhs.raw() / rhs;
+		lhs                                          = UnitTypeLhs(scaled, linearized_value);
 		return lhs;
+	}
+
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
+	{
+		return (lhs /= rhs.value());
 	}
 
 	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>

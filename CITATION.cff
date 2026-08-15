@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: units
+message: If you use this software, please cite it using these metadata.
+type: software
+authors:
+  - family-names: Holthaus
+    given-names: Nic
+repository-code: https://github.com/nholthaus/units
+url: https://github.com/nholthaus/units
+abstract: >-
+  A compile-time, header-only, dimensional-analysis and unit-conversion library
+  for C++23 with no dependencies. Quantities carry their units in the type
+  system, so dimensionally inconsistent expressions do not compile and unit
+  conversions are resolved at compile time with no run-time cost.
+keywords:
+  - c++
+  - c++23
+  - units
+  - dimensional-analysis
+  - unit-conversion
+  - header-only
+  - compile-time
+license: MIT
+version: 3.4.3

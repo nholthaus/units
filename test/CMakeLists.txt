@@ -6,6 +6,7 @@ SET(SOURCE_CODE
 		../include/units.h
 		${headers}
 		main.cpp
+		lossyCompoundAssign.cpp
 )
 
 LIST(APPEND LIBRARIES

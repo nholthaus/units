@@ -546,7 +546,7 @@ TEST_F(TypeTraits, is_torque_unit)
 	static_assert(traits::is_torque_unit_v<newton_meters<double>>);
 	static_assert(traits::is_torque_unit_v<const newton_meters<double>>);
 	static_assert(traits::is_torque_unit_v<const newton_meters<double>&>);
-	static_assert(traits::is_torque_unit_v<torque::foot_pounds<double>>);
+	static_assert(traits::is_torque_unit_v<torque::pound_feet<double>>);
 	static_assert(!traits::is_torque_unit_v<cubic_meters<double>>);
 }
 
@@ -2703,21 +2703,13 @@ TEST_F(UnitType, compoundAssignmentMultiplication)
 
 	EXPECT_EQ((meters<int>(4)), c);
 
-	c *= dimensionless<double>(2.0);
+	c *= dimensionless<int>(2);
 
 	EXPECT_EQ((meters<int>(8)), c);
 
 	c *= 2;
 
 	EXPECT_EQ((meters<int>(16)), c);
-
-	c *= 2.0;
-
-	EXPECT_EQ((meters<int>(32)), c);
-
-	c *= 200.0_pct;
-
-	EXPECT_EQ((meters<int>(64)), c);
 
 	// dimensionless
 	dimensionless<double> b_dim(2);
@@ -2742,17 +2734,13 @@ TEST_F(UnitType, compoundAssignmentMultiplication)
 
 	EXPECT_EQ((dimensionless<int>(4)), d_dim);
 
-	d_dim *= dimensionless<double>(2.0);
+	d_dim *= dimensionless<int>(2);
 
 	EXPECT_EQ((dimensionless<int>(8)), d_dim);
 
 	d_dim *= 2;
 
 	EXPECT_EQ((dimensionless<int>(16)), d_dim);
-
-	d_dim *= 2.0;
-
-	EXPECT_EQ((dimensionless<int>(32)), d_dim);
 
 	// concentration
 	percent<double> e_pct(2);
@@ -2827,17 +2815,13 @@ TEST_F(UnitType, compoundAssignmentDivision)
 
 	EXPECT_EQ((meters<int>(16)), c);
 
-	c /= dimensionless<double>(2.0);
+	c /= dimensionless<int>(2);
 
 	EXPECT_EQ((meters<int>(8)), c);
 
 	c /= 2;
 
 	EXPECT_EQ((meters<int>(4)), c);
-
-	c /= 2.0;
-
-	EXPECT_EQ((meters<int>(2)), c);
 
 	// dimensionless
 	dimensionless<double> b_dim(8);
@@ -2862,17 +2846,13 @@ TEST_F(UnitType, compoundAssignmentDivision)
 
 	EXPECT_EQ((dimensionless<int>(16)), d_dim);
 
-	d_dim /= dimensionless<double>(2.0);
+	d_dim /= dimensionless<int>(2);
 
 	EXPECT_EQ((dimensionless<int>(8)), d_dim);
 
 	d_dim /= 2;
 
 	EXPECT_EQ((dimensionless<int>(4)), d_dim);
-
-	d_dim /= 2.0;
-
-	EXPECT_EQ((dimensionless<int>(2)), d_dim);
 
 	// concentration
 	percent<double> e_pct(8);
@@ -4355,7 +4335,7 @@ TEST_F(ConversionFactor, torque)
 {
 	double test;
 
-	test = newton_meters<double>(torque::foot_pounds<double>(1.0)).value();
+	test = newton_meters<double>(torque::pound_feet<double>(1.0)).value();
 	EXPECT_NEAR(1.355817948, test, 5.0e-5);
 	test = newton_meters<double>(inch_pounds<double>(1.0)).value();
 	EXPECT_NEAR(0.112984829, test, 5.0e-5);
@@ -4986,88 +4966,64 @@ TEST_F(UnitMath, atan2)
 	EXPECT_NEAR(angle::degrees<double>(30).to<double>(), angle::degrees<double>(atan2(dimensionless<int>(1), sqrt(dimensionless<int>(3)))).to<double>(), 5.0e-12);
 }
 
+// Hyperbolic functions operate on a dimensionless real (a hyperbolic angle), not a geometric angle: they
+// take a dimensionless argument with no radian conversion, and the inverse functions return dimensionless.
 TEST_F(UnitMath, cosh)
 {
-	static_assert(std::is_same_v<dimensionless<double>, decltype(cosh(angle::radians<double>(0)))>);
-	static_assert(std::is_same_v<dimensionless<double>, decltype(cosh(degrees<int>(0)))>);
-	EXPECT_NEAR(dimensionless<double>(3.76219569108), cosh(angle::radians<double>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(3.76219569108), cosh(radians<int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(5.32275215), cosh(angle::degrees<double>(135)), 5.0e-9);
-	EXPECT_NEAR(dimensionless<double>(5.32275215), cosh(degrees<int>(135)), 5.0e-9);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(cosh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(cosh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::cosh(2.0), cosh(dimensionless<double>(2.0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::cosh(2.0), cosh(dimensionless<int>(2)).to<double>(), 5.0e-11);
+	// a ratio-dimensionless argument uses its normalized value (50% -> 0.5)
+	EXPECT_NEAR(std::cosh(0.5), cosh(percent<double>(50)).to<double>(), 5.0e-11);
 }
 
 TEST_F(UnitMath, sinh)
 {
-	static_assert(std::is_same_v<dimensionless<double>, decltype(sinh(angle::radians<double>(0)))>);
-	static_assert(std::is_same_v<dimensionless<double>, decltype(sinh(degrees<int>(0)))>);
-	EXPECT_NEAR(dimensionless<double>(3.62686040785), sinh(angle::radians<double>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(3.62686040785), sinh(radians<int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(5.22797192), sinh(angle::degrees<double>(135)), 5.0e-9);
-	EXPECT_NEAR(dimensionless<double>(5.22797192), sinh(degrees<int>(135)), 5.0e-9);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(sinh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(sinh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::sinh(2.0), sinh(dimensionless<double>(2.0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::sinh(2.0), sinh(dimensionless<int>(2)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::sinh(0.5), sinh(percent<double>(50)).to<double>(), 5.0e-11);
 }
 
 TEST_F(UnitMath, tanh)
 {
-	static_assert(std::is_same_v<dimensionless<double>, decltype(tanh(angle::radians<double>(0)))>);
-	static_assert(std::is_same_v<dimensionless<double>, decltype(tanh(degrees<int>(0)))>);
-	EXPECT_NEAR(dimensionless<double>(0.96402758007), tanh(angle::radians<double>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0.96402758007), tanh(radians<int>(2)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0.98219338), tanh(angle::degrees<double>(135)), 5.0e-11);
-	EXPECT_NEAR(dimensionless<double>(0.98219338), tanh(degrees<int>(135)), 5.0e-11);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(tanh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(tanh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::tanh(2.0), tanh(dimensionless<double>(2.0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::tanh(2.0), tanh(dimensionless<int>(2)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::tanh(0.5), tanh(percent<double>(50)).to<double>(), 5.0e-11);
 }
 
 TEST_F(UnitMath, acosh)
 {
-	static_assert(std::is_same_v<angle::radians<double>, decltype(acosh(dimensionless<double>(0)))>);
-	static_assert(std::is_same_v<angle::radians<double>, decltype(acosh(dimensionless<int>(0)))>);
-	auto ins  = 2;
-	auto out1 = 1.316957896924817;
-	auto out2 = 75.456129290216893;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(dimensionless<double>(ins)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(dimensionless<int>(ins)).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(dimensionless<int>(ins))).to<double>(), 5.0e-12);
-	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(uins).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), acosh(uins).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(uins)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(acosh(uins)).to<double>(), 5.0e-12);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(acosh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(acosh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::acosh(2.0), acosh(dimensionless<double>(2.0)).to<double>(), 5.0e-11);
+	EXPECT_NEAR(std::acosh(2.0), acosh(dimensionless<int>(2)).to<double>(), 5.0e-11);
+	auto uins = 2.0 * 1.0_m * (1.0 / (1000.0_mm));   // a dimensionless expression
+	EXPECT_NEAR(std::acosh(2.0), acosh(uins).to<double>(), 5.0e-11);
 }
 
 TEST_F(UnitMath, asinh)
 {
-	static_assert(std::is_same_v<angle::radians<double>, decltype(asinh(dimensionless<double>(0)))>);
-	static_assert(std::is_same_v<angle::radians<double>, decltype(asinh(dimensionless<int>(0)))>);
-	auto ins  = 2;
-	auto out1 = 1.443635475178810;
-	auto out2 = 82.714219883108939;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(dimensionless<double>(ins)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(dimensionless<int>(ins)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(dimensionless<int>(ins))).to<double>(), 5.0e-12);
-	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(uins).to<double>(), 5.0e-11);
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), asinh(uins).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(uins)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(asinh(uins)).to<double>(), 5.0e-12);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(asinh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(asinh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::asinh(2.0), asinh(dimensionless<double>(2.0)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(std::asinh(2.0), asinh(dimensionless<int>(2)).to<double>(), 5.0e-9);
+	auto uins = 2.0 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(std::asinh(2.0), asinh(uins).to<double>(), 5.0e-9);
 }
 
 TEST_F(UnitMath, atanh)
 {
-	static_assert(std::is_same_v<angle::radians<double>, decltype(atanh(dimensionless<double>(0)))>);
-	static_assert(std::is_same_v<angle::radians<double>, decltype(atanh(dimensionless<int>(0)))>);
-	auto ins  = 0.5;
-	auto out1 = 0.549306144334055;
-	auto out2 = 31.472923730945389;
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(dimensionless<double>(ins)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(0).to<double>(), atanh(dimensionless<int>(0)).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(atanh(dimensionless<double>(ins))).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(0).to<double>(), angle::degrees<double>(atanh(dimensionless<int>(0))).to<double>(), 5.0e-12);
-	auto uins = ins * 1.0_m * (1.0 / (1000.0_mm));
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(uins).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::radians<double>(out1).to<double>(), atanh(uins).to<double>(), 5.0e-9);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(atanh(uins)).to<double>(), 5.0e-12);
-	EXPECT_NEAR(angle::degrees<double>(out2).to<double>(), angle::degrees<double>(atanh(uins)).to<double>(), 5.0e-12);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(atanh(dimensionless<double>(0)))>);
+	static_assert(std::is_same_v<dimensionless<double>, decltype(atanh(dimensionless<int>(0)))>);
+	EXPECT_NEAR(std::atanh(0.5), atanh(dimensionless<double>(0.5)).to<double>(), 5.0e-9);
+	EXPECT_NEAR(std::atanh(0.0), atanh(dimensionless<int>(0)).to<double>(), 5.0e-9);
+	auto uins = 0.5 * 1.0_m * (1.0 / (1000.0_mm));
+	EXPECT_NEAR(std::atanh(0.5), atanh(uins).to<double>(), 5.0e-9);
 }
 
 TEST_F(UnitMath, exp)
@@ -5819,6 +5775,145 @@ TEST_F(CaseStudies, selfDefinedUnits)
 	std::cout << original;
 	std::string output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("0.005 m^3 s^-2", output.c_str());
+}
+
+//======================================================================================================================
+//	BACKLOG-CLEANUP additions — viscosity (#205), compound-assign (#257), torque naming (#311)
+//======================================================================================================================
+
+namespace
+{
+	class Viscosity : public ::testing::Test
+	{
+	};
+	class CompoundAssign : public ::testing::Test
+	{
+	};
+	class TorqueNaming : public ::testing::Test
+	{
+	};
+	class CgsBiot : public ::testing::Test
+	{
+	};
+} // namespace
+
+// ---- #205: biot ----------------------------------------------------------------------------------------------------
+TEST_F(CgsBiot, biotIsAbampere)
+{
+	using units::current::biots;
+	// biot is the CGS-EMU name for the abampere: exactly 10 amperes
+	EXPECT_DOUBLE_EQ(10.0, units::amperes<double>(biots<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(30.0, units::amperes<double>(biots<double>(3.0)).value());
+	// round-trips through amperes
+	EXPECT_DOUBLE_EQ(5.0, biots<double>(units::amperes<double>(50.0)).value());
+	// same type as abamperes (it is an alias)
+	static_assert(std::is_same_v<biots<double>, units::current::abamperes<double>>);
+	// same dimension as current
+	static_assert(traits::is_current_unit_v<biots<double>>);
+}
+
+// ---- #205: dynamic viscosity (poise) -------------------------------------------------------------------------------
+TEST_F(Viscosity, dynamicViscosityUnitsAndDimension)
+{
+	using namespace units::dynamic_viscosity;
+	// poise = 0.1 Pa*s ; centipoise = 0.01 poise = 0.001 Pa*s
+	EXPECT_DOUBLE_EQ(0.1, pascal_seconds<double>(poise<double>(1.0)).value());
+	EXPECT_DOUBLE_EQ(1.0, poise<double>(centipoise<double>(100.0)).value());
+	EXPECT_NEAR(0.001, pascal_seconds<double>(centipoise<double>(1.0)).value(), 5.0e-15);
+	// water is ~1 cP ~ 0.001 Pa*s
+	EXPECT_NEAR(0.001, pascal_seconds<double>(centipoise<double>(1.0)).value(), 5.0e-15);
+	// dimension: pressure * time
+	static_assert(traits::is_dynamic_viscosity_unit_v<poise<double>>);
+	static_assert(traits::is_dynamic_viscosity_unit_v<pascal_seconds<double>>);
+	static_assert(!traits::is_dynamic_viscosity_unit_v<units::pascals<double>>);
+	static_assert(traits::is_same_dimension_unit_v<poise<double>, pascal_seconds<double>>);
+	// a pressure times a time IS a dynamic viscosity
+	static_assert(traits::is_same_dimension_unit_v<decltype(units::pascals<double>(1) * units::seconds<double>(1)), pascal_seconds<double>>);
+}
+
+// ---- #205: kinematic viscosity (stokes) ----------------------------------------------------------------------------
+TEST_F(Viscosity, kinematicViscosityUnitsAndDimension)
+{
+	using namespace units::kinematic_viscosity;
+	// stokes = 1e-4 m^2/s ; centistokes = 0.01 stokes = 1e-6 m^2/s
+	EXPECT_NEAR(1.0e-4, square_meters_per_second<double>(stokes<double>(1.0)).value(), 5.0e-16);
+	EXPECT_DOUBLE_EQ(1.0, stokes<double>(centistokes<double>(100.0)).value());
+	EXPECT_NEAR(1.0e-6, square_meters_per_second<double>(centistokes<double>(1.0)).value(), 5.0e-18);
+	// dimension: area / time
+	static_assert(traits::is_kinematic_viscosity_unit_v<stokes<double>>);
+	static_assert(traits::is_kinematic_viscosity_unit_v<square_meters_per_second<double>>);
+	static_assert(!traits::is_kinematic_viscosity_unit_v<units::square_meters<double>>);
+	// dynamic and kinematic viscosity are DISTINCT dimensions
+	static_assert(!traits::is_same_dimension_unit_v<stokes<double>, units::dynamic_viscosity::poise<double>>);
+}
+
+// ---- #257: compound assignment keeps the lhs type and value; warns on lossy integer scale -------------------------
+TEST_F(CompoundAssign, multiplyKeepsTypeAndValue)
+{
+	// double lhs: exact
+	units::meters<double> len(10.0);
+	len *= 2.0;
+	static_assert(std::is_same_v<decltype(len), units::meters<double>>);
+	EXPECT_DOUBLE_EQ(20.0, len.value());
+	len *= 0.5;
+	EXPECT_DOUBLE_EQ(10.0, len.value());
+	// integer lhs, integer factor: exact, no narrowing
+	units::meters<int> ilen(10);
+	ilen *= 3;
+	static_assert(std::is_same_v<decltype(ilen), units::meters<int>>);
+	EXPECT_EQ(30, ilen.value());
+	// integer lhs scaled by a floating-point factor narrows and surfaces -Wfloat-conversion; that lossy path's
+	// value/type behavior is proven in the dedicated lossyCompoundAssign translation unit (compiled with the
+	// float-conversion diagnostic disabled) and the diagnostic itself by test/errorMessages/cases.
+}
+
+TEST_F(CompoundAssign, divideKeepsTypeAndValue)
+{
+	units::meters<double> len(10.0);
+	len /= 4.0;
+	EXPECT_DOUBLE_EQ(2.5, len.value());
+	units::meters<int> ilen(10);
+	ilen /= 2;
+	EXPECT_EQ(5, ilen.value());
+	static_assert(std::is_same_v<decltype(ilen), units::meters<int>>);
+}
+
+TEST_F(CompoundAssign, worksAcrossDimensions)
+{
+	// the operators are generic over the (non-ratio-dimensionless) unit; spot-check several dimensions
+	units::seconds<double> dur(60.0);
+	dur *= 2.0;
+	EXPECT_DOUBLE_EQ(120.0, dur.value());
+	units::kilograms<double> mass(5.0);
+	mass /= 2.0;
+	EXPECT_DOUBLE_EQ(2.5, mass.value());
+	units::newtons<double> f(10.0);
+	f *= 3.0;
+	EXPECT_DOUBLE_EQ(30.0, f.value());
+	units::meters_per_second<double> v(26.8224);
+	v *= 2.0;
+	EXPECT_NEAR(53.6448, v.value(), 5.0e-9);
+}
+
+// ---- #311: torque pound_feet is the named unit; foot_pounds is a deprecated alias ---------------------------------
+TEST_F(TorqueNaming, poundFeetIsTheTorqueUnit)
+{
+	using units::torque::pound_feet;
+	// pound_feet == foot * pound-force
+	EXPECT_NEAR(1.3558179483314004, units::newton_meters<double>(pound_feet<double>(1.0)).value(), 5.0e-9);
+	static_assert(traits::is_torque_unit_v<pound_feet<double>>);
+	// torque and energy share the force*length dimension in this library, so the distinction is by NAME, not
+	// dimension: pound_feet (torque, lbf*ft) and energy::foot_pounds (energy, ft*lbf) are the same magnitude but
+	// carry different abbreviations so a reader can tell which is meant
+	static_assert(traits::is_energy_unit_v<units::energy::foot_pounds<double>>);
+	EXPECT_NEAR(units::newton_meters<double>(pound_feet<double>(1.0)).value(), units::joules<double>(units::energy::foot_pounds<double>(1.0)).value(), 5.0e-9);
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+	// prints with the correct engineering abbreviation
+	testing::internal::CaptureStdout();
+	std::cout << pound_feet<double>(10.0);
+	std::string out = testing::internal::GetCapturedStdout();
+	EXPECT_STREQ("10 lbf_ft", out.c_str());
+#endif
 }
 
 int main(int argc, char* argv[])
