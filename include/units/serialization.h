@@ -58,12 +58,22 @@ namespace units
 {
 	namespace detail
 	{
-		/// The built-in base dimensions, offered to `visit` as the default candidate set. This is NOT the wire
-		/// vocabulary: the stream keys each base dimension by a hash of its `name` STRING, so a dimension the library
-		/// has never seen — including a user-defined `make_dimension<my_tag>` — serializes and round-trips without any
-		/// central table or fixed dimension limit. The set of base dimensions is open by design.
-		using builtin_base_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature,
-			dimension::substance, dimension::luminous_intensity, dimension::angle, dimension::data>;
+		/// The library's known dimensions, offered to `visit` as the default candidate set so a stream of any
+		/// built-in dimension resolves without the caller naming it. This is NOT the wire vocabulary: the stream
+		/// keys each base dimension by a hash of its `name` STRING, so a dimension the library has never seen —
+		/// including a user-defined `make_dimension<my_tag>` — still serializes and round-trips. `visit` cannot
+		/// resolve a user-defined dimension unless the caller lists it (`visit<my_dimension>(f)`), because C++ cannot
+		/// materialize a type from the runtime hash — the runtime→type wall. The set is otherwise open by design.
+		using builtin_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature,
+			dimension::substance, dimension::luminous_intensity, dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency,
+			dimension::velocity, dimension::angular_velocity, dimension::acceleration, dimension::force, dimension::area, dimension::volume,
+			dimension::volume_flow_rate, dimension::pressure, dimension::charge, dimension::energy, dimension::power, dimension::voltage,
+			dimension::capacitance, dimension::impedance, dimension::conductance, dimension::magnetic_flux, dimension::inductance,
+			dimension::luminous_flux, dimension::illuminance, dimension::luminance, dimension::radioactivity, dimension::substance_mass,
+			dimension::substance_concentration, dimension::magnetic_field_strength, dimension::radiant_intensity, dimension::radiance,
+			dimension::irradiance, dimension::spectral_intensity, dimension::spectral_flux, dimension::spectral_radiance,
+			dimension::spectral_irradiance, dimension::jerk, dimension::torque, dimension::density, dimension::energy_density,
+			dimension::concentration>;
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: name_hash [static]
@@ -421,36 +431,70 @@ namespace units
 		//      FUNCTION: visit [public]
 		//------------------------------------------------------------------------------------------------------------------
 		/// @brief      invokes a visitor with the canonical quantity for the decoded dimension
-		/// @details	The visitor is called with the canonical SI unit of whichever dimension the stream held, so no
-		///				target type is named at the call site and all arithmetic inside the visitor is compile-time checked.
-		///				The visitor must be a generic callable (e.g. a `[](auto q)` lambda).
-		/// @tparam     Visitor  a callable invocable with each candidate canonical unit
+		/// @details	The visitor is called with the canonical SI unit of whichever candidate dimension the stream
+		///				holds, so no target type is named at the call site and all arithmetic inside the visitor is
+		///				compile-time checked. With no explicit candidates, every dimension the library defines is a
+		///				candidate (so velocity/force/energy/... resolve out of the box); pass explicit candidate
+		///				dimensions (`visit<my_dimension>(f)`) to resolve a user-defined dimension or to disambiguate
+		///				dimensions that share a signature (e.g. torque vs energy — the first listed wins). The visitor
+		///				must be a generic callable (e.g. a `[](auto q)` lambda). Throws if no candidate matched.
+		/// @tparam     Dimensions  candidate dimension types (defaults to the library's known dimensions)
+		/// @tparam     Visitor  a callable invocable with each candidate's canonical unit
 		/// @param[in]  visitor  the callable
 		//------------------------------------------------------------------------------------------------------------------
-		template<class Visitor>
+		template<class... Dimensions, class Visitor>
 		void visit(Visitor&& visitor) const
 		{
-			if (dispatch<Visitor, detail::builtin_base_dimensions>(std::forward<Visitor>(visitor)))
-				return;
-			throw std::runtime_error("units::any_unit: no known dimension matched the stream");
+			bool matched;
+			if constexpr (sizeof...(Dimensions) == 0)
+				matched = dispatch_tuple<Visitor, detail::builtin_dimensions>(std::forward<Visitor>(visitor));
+			else
+				matched = dispatch_list<Visitor, Dimensions...>(std::forward<Visitor>(visitor));
+			if (!matched)
+				throw std::runtime_error("units::any_unit: no candidate dimension matched the stream");
 		}
 
 	private:
-		/// dispatch over the canonical base dimensions and their pairwise/derived combinations is future work;
-		/// for now visit resolves the base dimensions and any dimension expressible as a single canonical unit.
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: try_dispatch_one [private]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      if the erased dimension matches `Dimension`, invokes the visitor with its canonical unit
+		/// @tparam     Dimension  the candidate dimension
+		/// @tparam     Visitor  the visitor callable
+		/// @param[in]  visitor  the callable
+		/// @return     true iff the dimension matched and the visitor was invoked
+		//------------------------------------------------------------------------------------------------------------------
+		template<class Dimension, class Visitor>
+		bool try_dispatch_one(Visitor&& visitor) const
+		{
+			using Base = detail::canonical_unit_t<Dimension>;
+			if (m_identity == detail::identity_of<Base>())
+			{
+				std::forward<Visitor>(visitor)(Base(m_base));
+				return true;
+			}
+			return false;
+		}
+
+		/// dispatch over an explicit candidate pack, in order (first match wins)
+		template<class Visitor, class... Dimensions>
+		bool dispatch_list(Visitor&& visitor) const
+		{
+			bool matched = false;
+			// fold in order; stop invoking once matched
+			((matched = matched || try_dispatch_one<Dimensions>(std::forward<Visitor>(visitor))), ...);
+			return matched;
+		}
+
+		/// dispatch over a tuple of candidate dimensions, in order (first match wins)
 		template<class Visitor, class DimTuple, std::size_t I = 0>
-		bool dispatch(Visitor&& visitor) const
+		bool dispatch_tuple(Visitor&& visitor) const
 		{
 			if constexpr (I < std::tuple_size_v<DimTuple>)
 			{
-				using Dim  = std::tuple_element_t<I, DimTuple>;
-				using Base = detail::canonical_unit_t<Dim>;
-				if (m_identity == detail::identity_of<Base>())
-				{
-					std::forward<Visitor>(visitor)(Base(m_base));
+				if (try_dispatch_one<std::tuple_element_t<I, DimTuple>>(std::forward<Visitor>(visitor)))
 					return true;
-				}
-				return dispatch<Visitor, DimTuple, I + 1>(std::forward<Visitor>(visitor));
+				return dispatch_tuple<Visitor, DimTuple, I + 1>(std::forward<Visitor>(visitor));
 			}
 			return false;
 		}
