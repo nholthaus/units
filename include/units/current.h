@@ -63,6 +63,14 @@ namespace units
 	UNIT_ADD(current, abamperes, abA, conversion_factor<std::ratio<10>, amperes_>)
 	UNIT_ADD(current, statamperes, statA, conversion_factor<std::ratio<1, 2997924580LL>, amperes_>)
 
+	// the biot is the CGS-EMU name for the abampere (identical unit); provided as an alias, since two units
+	// cannot share the same conversion factor
+	inline namespace current
+	{
+		template<class Underlying = UNIT_LIB_DEFAULT_TYPE>
+		using biots = abamperes<Underlying>;
+	}
+
 	UNIT_ADD_DIMENSION_TRAIT(current)
 } // namespace units
 

@@ -93,6 +93,7 @@
 #include <units/time.h>
 #include <units/torque.h>
 #include <units/velocity.h>
+#include <units/viscosity.h>
 #include <units/voltage.h>
 #include <units/volume.h>
 #include <units/volume_flow_rate.h>

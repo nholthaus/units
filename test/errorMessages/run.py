@@ -26,7 +26,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 def parse_directives(text):
-    d = {"expect_fail": False, "expect_match": [], "forbid_match": []}
+    d = {"expect_fail": False, "expect_match": [], "forbid_match": [], "flags": [], "flags_msvc": []}
     for line in text.splitlines():
         m = re.search(r'//\s*expect:\s*(\w+)', line)
         if m:
@@ -37,19 +37,26 @@ def parse_directives(text):
         m = re.search(r'//\s*forbid-match:\s*(.+?)\s*$', line)
         if m:
             d["forbid_match"].append(m.group(1))
+        m = re.search(r'//\s*flags:\s*(.+?)\s*$', line)
+        if m:
+            d["flags"].extend(m.group(1).split())
+        m = re.search(r'//\s*flags-msvc:\s*(.+?)\s*$', line)
+        if m:
+            d["flags_msvc"].extend(m.group(1).split())
     return d
 
 def is_msvc(cc):
     return Path(cc).stem.lower() == "cl"
 
-def compile_cmd(cc, std, include, path):
-    # Syntax-only compile that PRODUCES the diagnostic but no object file, across compilers.
+def compile_cmd(cc, std, include, path, extra=None, extra_msvc=None):
+    # Syntax-only compile that PRODUCES the diagnostic but no object file, across compilers. A case may add
+    # per-case compiler flags (e.g. warning flags to surface a diagnostic) via a // flags: / // flags-msvc: directive.
     if is_msvc(cc):
         # /Zs = syntax check only; /EHsc for standard C++; /permissive- for conformance; /diagnostics:classic
         # keeps the message form stable. /std:c++latest when std is c++23 (older MSVC lacks /std:c++23).
         stdflag = "/std:c++latest" if std in ("c++23", "c++2b") else f"/std:{std}"
-        return [cc, "/nologo", "/Zs", "/EHsc", "/permissive-", stdflag, f"/I{include}", str(path)]
-    return [cc, f"-std={std}", "-I", include, "-fsyntax-only", str(path)]
+        return [cc, "/nologo", "/Zs", "/EHsc", "/permissive-", stdflag, f"/I{include}", *(extra_msvc or []), str(path)]
+    return [cc, f"-std={std}", "-I", include, "-fsyntax-only", *(extra or []), str(path)]
 
 def normalize(diag):
     # Make token matching COMPILER-INDEPENDENT: the exact diagnostic text differs by compiler (MSVC prefixes
@@ -63,7 +70,7 @@ def normalize(diag):
 def run_case(path, cc, std, include):
     text = path.read_text()
     d = parse_directives(text)
-    cmd = compile_cmd(cc, std, include, path)
+    cmd = compile_cmd(cc, std, include, path, extra=d["flags"], extra_msvc=d["flags_msvc"])
     t0 = time.perf_counter()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
     dt = time.perf_counter() - t0
