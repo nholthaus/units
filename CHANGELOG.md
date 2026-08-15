@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
-## [3.5.0] - 2026-08-15
+## [3.4.4] - 2026-08-15
 
 Backlog cleanup: a correctness fix, new units, clearer naming, and a lossy-scale warning.
 
