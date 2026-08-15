@@ -35,20 +35,12 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    // write straight to a stream — a file, a socket, any std::ostream
-    {
-        std::ofstream out("speed.bin", std::ios::binary);
-        const auto     speed = serialize(60.0_mph);
-        out.write(speed.data(), speed.size());        // const char* + size, no cast
-    }
+    std::fstream file("speed.bin", std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
 
-    // read it back, knowing nothing about the type in advance
-    std::ifstream          in("speed.bin", std::ios::binary | std::ios::ate);
-    std::vector<std::byte> bytes(in.tellg());
-    in.seekg(0);
-    in.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
+    file << serialize(60.0_mph);                  // write the quantity to any stream
+    file.seekg(0);
 
-    auto decoded = deserialize(bytes);                // decode
+    auto decoded = deserialize(file);             // read it back, knowing nothing about the type
     if (!decoded)
         return 1;
 
@@ -68,22 +60,34 @@ Both `serialize` and `deserialize` center on `any_unit`: `serialize(q)` returns 
 and `deserialize` returns one (wrapped in `std::expected`, since malformed bytes can fail). It is a value type,
 not a bag of bytes — it compares, orders within a dimension, hashes, and prints.
 
-**Its bytes, two ways.** `any_unit` owns the serialized form; you view it through a type-safe span or a
-C-interface pair, both valid for the object's lifetime:
+**Streams — the terse I/O.** `operator<<` writes an `any_unit`'s binary bytes and `operator>>` (or
+`deserialize(istream)`) reads one back:
+
+```cpp
+file << serialize(60.0_mph);        // write
+
+any_unit q;
+file >> q;                          // read (classic form; failbit on a bad record)
+auto    r = deserialize(file);      // read (single expression; std::expected on a bad record)
+```
+
+A record is self-delimiting, so writing several and reading them back in order just works
+(`file << serialize(a) << serialize(b); file >> x >> y;`). Reading rewinds the stream to just past each
+record, so the stream must be seekable (a file or memory stream, opened in binary); for a non-seekable socket,
+frame the records yourself and `deserialize` each frame.
+
+**Its bytes directly, two ways.** When you are not going through a stream, `any_unit` owns the serialized form
+and exposes it as a type-safe span or a C-interface pair (both valid for the object's lifetime):
 
 - `bytes()` → `std::span<const std::byte>` — the modern view; feed it straight back to `deserialize`.
-- `data()` → `const char*` and `size()` → `std::size_t` — for the byte-oriented interfaces that take a
-  `const char*`/`const void*` and a length. They drop into `std::ostream::write`, `std::fwrite`, and a socket
-  `send` with **no cast at the call site** (the one `reinterpret_cast` lives inside `data()`).
+- `data()` → `const char*` and `size()` → `std::size_t` — for byte-oriented interfaces that take a
+  `const char*`/`const void*` and a length: `std::fwrite`, a socket `send`, `memcpy` — **no cast at the call
+  site** (the one `reinterpret_cast` lives inside `data()`).
 
 ```cpp
 any_unit q = serialize(60.0_mph);
-
-file.write(q.data(), q.size());                 // std::ostream::write(const char*, n) — no cast
 std::fwrite(q.data(), 1, q.size(), fp);         // C stdio
 ::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
-
-for (std::byte b : q.bytes()) { /* type-safe iteration */ }
 auto same = deserialize(q.bytes());             // span round-trips
 ```
 
@@ -92,24 +96,25 @@ auto same = deserialize(q.bytes());             // span round-trips
 > `serialize(q).bytes()` on a temporary. To hold the bytes past the `any_unit`, copy them into your own
 > `std::vector<std::byte>`.
 
-**Comparison, ordering, hashing, printing.** `any_unit` behaves like the value it represents:
+**Comparison, ordering, hashing, text.** `any_unit` behaves like the value it represents:
 
 ```cpp
 serialize(meters<double>(1000.0)) == serialize(kilometers<double>(1.0));   // true — same dimension AND base value
 serialize(meters<double>(3.0))    <  serialize(meters<double>(5.0));       // true — ordered within a dimension
 serialize(meters<double>(3.0))    <  serialize(seconds<double>(3.0));      // false — different dimensions are UNORDERED
 
-std::unordered_map<any_unit, Job> byQuantity;   // std::hash<any_unit> — a usable key
-std::cout << serialize(meters<double>(100.0));   // text form: base value + hashed dimension signature
+std::unordered_map<any_unit, Job> byQuantity;         // std::hash<any_unit> — a usable key
+std::cout << serialize(meters<double>(100.0)).to_string();   // human-readable text
 ```
 
 Equality is *same dimension and same SI-base magnitude* (using the same relative tolerance as the concrete
 `unit` comparison), so it is a comparison of quantities, not of unit names or of bytes. Ordering is a
 `std::partial_ordering`: quantities of one dimension order by magnitude, and quantities of different dimensions
 are unordered — so `<`/`<=`/`>`/`>=` are all false between them (and `any_unit` is therefore an
-`unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions). Because the erased form
-carries each base dimension by *name hash*, not name, `operator<<` prints the SI-base magnitude and the hashed
-signature (`#<hash>^<exponent>`); to print with unit names, collapse to a concrete unit first and stream that.
+`unordered_map`/`unordered_set` key, not a `std::set` key across mixed dimensions). For text, `to_string()`
+renders the SI-base magnitude and the hashed dimension signature (`#<hash>^<exponent>`) — the erased form
+carries each base dimension by *name hash*, not name; to render with unit names, collapse to a concrete unit
+first and stream that. (`operator<<` on a stream writes the binary bytes, not text.)
 
 ## Collapsing an erased quantity
 

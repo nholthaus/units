@@ -6806,20 +6806,52 @@ TEST_F(Serialization, orderingWithinDimensionOnly)
 	EXPECT_TRUE((shorter <=> time) == std::partial_ordering::unordered);
 }
 
-// operator<< prints a human-readable text form (base magnitude + hashed dimension signature).
-TEST_F(Serialization, streamsAHumanReadableForm)
+// to_string() renders a human-readable text form (base magnitude + hashed dimension signature).
+TEST_F(Serialization, toStringIsHumanReadable)
 {
-	std::ostringstream dimensionless;
-	dimensionless << units::serialize(units::dimensionless<double>(0.25));
-	EXPECT_NE(std::string::npos, dimensionless.str().find("0.25"));
-	EXPECT_NE(std::string::npos, dimensionless.str().find("dimensionless"));
+	const std::string dimensionless = units::serialize(units::dimensionless<double>(0.25)).to_string();
+	EXPECT_NE(std::string::npos, dimensionless.find("0.25"));
+	EXPECT_NE(std::string::npos, dimensionless.find("dimensionless"));
 
-	std::ostringstream length;
-	length << units::serialize(units::meters<double>(100.0));
+	const std::string length = units::serialize(units::meters<double>(100.0)).to_string();
 	// carries the base value and a bracketed dimension signature
-	EXPECT_NE(std::string::npos, length.str().find("100"));
-	EXPECT_NE(std::string::npos, length.str().find('['));
-	EXPECT_NE(std::string::npos, length.str().find('#')); // a hashed base-dimension term
+	EXPECT_NE(std::string::npos, length.find("100"));
+	EXPECT_NE(std::string::npos, length.find('['));
+	EXPECT_NE(std::string::npos, length.find('#')); // a hashed base-dimension term
+}
+
+// operator<< writes the raw binary bytes; operator>> and deserialize(istream) read them back.
+TEST_F(Serialization, streamOperatorsRoundTripBinary)
+{
+	std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+
+	// << writes the exact serialized bytes (not text)
+	const units::any_unit written = units::serialize(units::meters<double>(100.0));
+	stream << written;
+	EXPECT_EQ(written.size(), stream.str().size());
+
+	// deserialize(istream) reads one record in a single expression
+	const auto decoded = units::deserialize(stream);
+	ASSERT_TRUE(decoded.has_value());
+	EXPECT_DOUBLE_EQ(100.0, decoded->to<units::meters<double>>()->value());
+
+	// operator>> reads the classic way; back-to-back records advance correctly
+	std::stringstream seq(std::ios::in | std::ios::out | std::ios::binary);
+	seq << units::serialize(units::meters<double>(1.0)) << units::serialize(units::seconds<double>(2.0));
+	units::any_unit a;
+	units::any_unit b;
+	seq >> a >> b;
+	ASSERT_TRUE(seq.good() || seq.eof());
+	EXPECT_DOUBLE_EQ(1.0, a.to<units::meters<double>>()->value());
+	EXPECT_DOUBLE_EQ(2.0, b.to<units::seconds<double>>()->value());
+
+	// a malformed stream sets failbit and leaves the target unchanged
+	std::stringstream bad(std::ios::in | std::ios::out | std::ios::binary);
+	bad << "not a unit record";
+	units::any_unit target = units::serialize(units::meters<double>(7.0));
+	bad >> target;
+	EXPECT_TRUE(bad.fail());
+	EXPECT_DOUBLE_EQ(7.0, target.to<units::meters<double>>()->value()); // unchanged
 }
 
 // std::hash makes any_unit a usable unordered-container key, consistent with operator==.

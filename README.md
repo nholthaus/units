@@ -369,39 +369,32 @@ int main()
     using namespace units;
     using namespace units::literals;
 
-    // write a quantity straight to a stream — a file, a socket, any std::ostream
-    {
-        std::ofstream out("speed.bin", std::ios::binary);
-        const auto     speed = serialize(60.0_mph);
-        out.write(speed.data(), speed.size());
-    }
+    std::fstream file("speed.bin", std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
 
-    // read it back with no prior agreement on the type — the stream carries the dimension
-    std::ifstream          in("speed.bin", std::ios::binary | std::ios::ate);
-    std::vector<std::byte> bytes(in.tellg());
-    in.seekg(0);
-    in.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
-    if (auto decoded = deserialize(bytes))
+    file << serialize(60.0_mph);               // write a quantity to any stream
+    file.seekg(0);
+
+    if (auto decoded = deserialize(file))      // read it back — the stream carries the dimension
         std::cout << decoded->to<kilometers_per_hour<double>>()->value() << " kph\n";  // 96.5606 kph
 }
 ```
 
 `serialize` returns an **`any_unit`** — a first-class value that owns its serialized bytes and behaves like a
-value type: it compares (`==`, and `<`/`>` within a dimension), hashes (usable as an `unordered_map` key), and
-prints. `deserialize` returns one too (wrapped in `std::expected`, since bad bytes can fail). Collapse an
-`any_unit` into a concrete quantity with `to<Unit>()` (checked, returns `std::expected`), `try_to<Unit>()` /
-`unit_cast<Unit>()` (throwing), or `visit()` (the canonical unit of the decoded dimension, no target named).
-`deserialize<Unit>(bytes)` is the typed fast path when the type is known.
+value type: it streams (`<<`/`>>`), compares (`==`, and `<`/`>` within a dimension), hashes (usable as an
+`unordered_map` key), and renders to text (`to_string()`). `deserialize` returns one too (wrapped in
+`std::expected`, since bad bytes can fail). Collapse an `any_unit` into a concrete quantity with `to<Unit>()`
+(checked, returns `std::expected`), `try_to<Unit>()` / `unit_cast<Unit>()` (throwing), or `visit()` (the
+canonical unit of the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast path
+when the type is known.
 
-**It drops into the interfaces you already have, with no cast.** An `any_unit` exposes both a modern, type-safe
-byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`, `size()`)
-that feeds `std::ostream::write`, `std::fwrite`, and a socket `send` directly:
+**It also drops into byte interfaces with no cast.** Away from a stream, an `any_unit` exposes a modern,
+type-safe byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`,
+`size()`) that feeds `std::fwrite`, a socket `send`, or `memcpy` directly:
 
 ```cpp
 any_unit q = serialize(position);
 
-file.write(q.data(), q.size());                 // std::ostream::write(const char*, n) — no cast
-std::fwrite(q.data(), 1, q.size(), fp);         // C stdio
+std::fwrite(q.data(), 1, q.size(), fp);         // C stdio — no cast
 ::send(sock, q.data(), q.size(), 0);            // const char* decays to const void*
 
 auto same = deserialize(q.bytes());             // the type-safe span round-trips

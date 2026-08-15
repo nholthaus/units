@@ -44,9 +44,12 @@
 #include <compare>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <expected>
 #include <functional>
+#include <istream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <ostream>
@@ -442,6 +445,20 @@ namespace units
 		}
 
 		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: any_unit [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      constructs an empty erased quantity (dimensionless, zero) — the target for stream extraction
+		/// @details    Provided so `any_unit value; stream >> value;` is well-formed; `operator>>` overwrites it with
+		///             the decoded quantity, or sets the stream's failbit and leaves it empty on malformed input.
+		//------------------------------------------------------------------------------------------------------------------
+		any_unit()
+		  : m_identity()
+		  , m_base(0.0)
+		  , m_bytes(detail::encode(m_identity, 0.0))
+		{
+		}
+
+		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: is [public]
 		//------------------------------------------------------------------------------------------------------------------
 		/// @brief      whether this erased quantity is of the requested dimension
@@ -512,6 +529,44 @@ namespace units
 		/// @return     the byte count
 		//------------------------------------------------------------------------------------------------------------------
 		[[nodiscard]] std::size_t size() const noexcept { return m_bytes.size(); }
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: to_string [public]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      a human-readable text rendering of the erased quantity, for logging and diagnostics
+		/// @details    The erased form carries each base dimension by NAME HASH, not name, so the rendering is the
+		///             SI-base magnitude followed by each base term as `#<hash>^<exponent>` — not a named unit like
+		///             `meters`. To render with unit names, collapse to a concrete unit with `to<Unit>()` and stream
+		///             that. This is the TEXT form; `operator<<`/`operator>>` on a stream move the raw BINARY bytes.
+		/// @return     the text rendering
+		//------------------------------------------------------------------------------------------------------------------
+		[[nodiscard]] std::string to_string() const
+		{
+			std::string out = std::to_string(m_base);
+			if (m_identity.terms.empty())
+			{
+				out += " [dimensionless]";
+				return out;
+			}
+			out += " [";
+			for (std::size_t i = 0; i < m_identity.terms.size(); ++i)
+			{
+				if (i != 0)
+					out += ' ';
+				char hex[19];
+				std::snprintf(hex, sizeof(hex), "#%llx", static_cast<unsigned long long>(m_identity.terms[i].hash));
+				out += hex;
+				out += '^';
+				out += std::to_string(m_identity.terms[i].num);
+				if (m_identity.terms[i].den != 1)
+				{
+					out += '/';
+					out += std::to_string(m_identity.terms[i].den);
+				}
+			}
+			out += ']';
+			return out;
+		}
 
 		//======================================================================================================================
 		//	COMPARISON
@@ -705,35 +760,17 @@ namespace units
 	//----------------------------------------------------------------------------------------------------------------------
 	//      FUNCTION: operator<< [public]
 	//----------------------------------------------------------------------------------------------------------------------
-	/// @brief      writes a human-readable representation of an erased quantity to a text stream
-	/// @details    The erased form carries each base dimension by NAME HASH, not name, so the printed dimension is the
-	///             hashed signature — the SI-base magnitude followed by each base term as `#<hash>^<exponent>` — rather
-	///             than a named unit like `meters`. This is for logging and diagnostics; to print with unit names,
-	///             collapse to a concrete unit first with `to<Unit>()` and stream that. This is the TEXT representation;
-	///             the raw binary form is `data()`/`size()`/`bytes()`.
-	/// @param[in]  os  the output stream
+	/// @brief      writes an erased quantity's self-describing BINARY bytes to a stream
+	/// @details    Writes exactly `bytes()` — the serialized form — so `stream << serialize(q)` persists a quantity to
+	///             a file/socket and a later `stream >> value` recovers it. Open the stream in binary mode. This moves
+	///             the raw bytes, NOT text; for a human-readable rendering use `to_string()`.
+	/// @param[in]  os     the output stream
 	/// @param[in]  value  the erased quantity
 	/// @return     the stream
 	//----------------------------------------------------------------------------------------------------------------------
 	inline std::ostream& operator<<(std::ostream& os, const any_unit& value)
 	{
-		os << value.value_in_base();
-		const auto& terms = value.identity().terms;
-		if (terms.empty())
-			os << " [dimensionless]";
-		else
-		{
-			os << " [";
-			for (std::size_t i = 0; i < terms.size(); ++i)
-			{
-				if (i != 0)
-					os << ' ';
-				os << '#' << std::hex << terms[i].hash << std::dec << '^' << terms[i].num;
-				if (terms[i].den != 1)
-					os << '/' << terms[i].den;
-			}
-			os << ']';
-		}
+		os.write(value.data(), static_cast<std::streamsize>(value.size()));
 		return os;
 	}
 
@@ -802,6 +839,9 @@ namespace units
 	//      FUNCTION: deserialize [public]
 	//----------------------------------------------------------------------------------------------------------------------
 	/// @brief      decodes a self-describing byte stream into an erased quantity
+	/// @details    Decodes exactly one record from the front of `bytes`; any trailing bytes (a following record) are
+	///             ignored. The decoded record's byte length is `result->size()` — a reader consuming a sequence
+	///             advances by that to reach the next record (this is how `operator>>` reads records back-to-back).
 	/// @param[in]  bytes  the encoded stream
 	/// @return     an `any_unit` on success, else a `deserialize_error`
 	//----------------------------------------------------------------------------------------------------------------------
@@ -899,6 +939,55 @@ namespace units
 		if (!erased)
 			return std::unexpected(erased.error());
 		return erased->template to<Unit>();
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: deserialize [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      reads and decodes one self-describing erased quantity from a binary stream, in a single expression
+	/// @details    The stream counterpart to `deserialize(span)`: `auto q = deserialize(file);` reads the next record
+	///             written by `stream << serialize(q)` with no pre-declared value and no manual buffer. A record is
+	///             self-delimiting, so this decodes exactly one and rewinds the stream to just past it (a subsequent
+	///             read gets the following record); the stream must be seekable (a file or memory stream, opened in
+	///             binary mode) and, for a non-seekable stream such as a live socket, frame the records yourself and
+	///             call `deserialize(span)` on each frame.
+	/// @param[in]  is  the input stream, positioned at the start of a record
+	/// @return     the decoded `any_unit`, or a `deserialize_error`
+	//----------------------------------------------------------------------------------------------------------------------
+	[[nodiscard]] inline std::expected<any_unit, deserialize_error> deserialize(std::istream& is)
+	{
+		const std::istream::pos_type start = is.tellg();
+		if (start == std::istream::pos_type(-1))
+			return std::unexpected(deserialize_error::truncated); // not seekable: records can't be self-delimited here
+
+		const std::vector<char> buffer{std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>()};
+		is.clear(); // the drain set eofbit; clear it so a good decode leaves the stream usable
+
+		auto decoded = deserialize(std::span<const std::byte>(reinterpret_cast<const std::byte*>(buffer.data()), buffer.size()));
+		if (decoded)
+			is.seekg(start + static_cast<std::istream::off_type>(decoded->size())); // rewind past exactly this record
+		return decoded;
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: operator>> [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      reads one self-describing erased quantity from a binary stream (classic stream-extraction form)
+	/// @details    The counterpart to `operator<<`: `stream >> value` decodes the next record written by
+	///             `stream << serialize(q)`, setting the stream's `failbit` (and leaving `value` unchanged) on a
+	///             malformed or truncated record. Equivalent to `deserialize(stream)`; use that overload when the
+	///             richer `deserialize_error` is wanted. Same seekable-stream requirement.
+	/// @param[in]  is     the input stream
+	/// @param[out] value  receives the decoded quantity on success
+	/// @return     the stream
+	//----------------------------------------------------------------------------------------------------------------------
+	inline std::istream& operator>>(std::istream& is, any_unit& value)
+	{
+		if (auto decoded = deserialize(is))
+			value = std::move(*decoded);
+		else
+			is.setstate(std::ios::failbit);
+		return is;
 	}
 } // namespace units
 
