@@ -1,7 +1,8 @@
 // visit() requires a generic visitor: a body that names one concrete unit cannot be invoked for every candidate
 // dimension, so it fails to compile. (Restrict the candidate set to name a concrete type.)
+// The rejection is a raw compiler lambda-arity error whose wording differs per compiler (GCC/Clang say "call to",
+// MSVC phrases it otherwise), so this case asserts only that it is rejected, without a readable-token match.
 // expect: fail
-// expect-match: call to
 #include <units/length.h>
 #include <units/time.h>
 #include <units/serialization.h>
