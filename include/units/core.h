@@ -1986,6 +1986,16 @@ namespace units
 
 		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		inline constexpr bool is_same_dimension_conversion_factor_v = is_same_dimension_conversion_factor<Cf1, Cf2>::value;
+
+		/**
+		 * @brief		`true` when a conversion factor carries a non-zero datum offset — i.e. it is AFFINE, not
+		 *				a pure scale (the archetype is temperature: degrees Celsius/Fahrenheit have an offset to
+		 *				the Kelvin datum). Absolute affine quantities do not add meaningfully, and their
+		 *				difference is a pure delta (the offsets cancel).
+		 * @tparam		Cf	the conversion factor to test.
+		 */
+		template<ConversionFactorType Cf>
+		inline constexpr bool is_affine_conversion_factor_v = !std::ratio_equal_v<typename conversion_factor_traits<Cf>::translation_ratio, std::ratio<0>>;
 	} // namespace traits
 
 	//------------------------------
@@ -2181,21 +2191,25 @@ namespace units
 		// PI REQUIRED, no translation
 		else if constexpr (!std::same_as<std::ratio<0>, PiRatio> && std::same_as<std::ratio<0>, Translation>)
 		{
-			using CommonUnderlying             = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
-			constexpr long double PiRatioValue = PiRatio::num / PiRatio::den;
+			using CommonUnderlying = std::common_type_t<To, From, UNIT_LIB_DEFAULT_TYPE>;
+			// The pi exponent as a real number. Compute in long double: PiRatio::num/PiRatio::den are
+			// intmax_t, so an integer division here would truncate a fractional exponent (e.g. ratio<1,2>
+			// -> 0), which both corrupts the value and, for the fractional case, produced a non-constant
+			// expression / missing-return compile error.
+			constexpr long double PiRatioValue      = static_cast<long double>(PiRatio::num) / static_cast<long double>(PiRatio::den);
+			constexpr bool        integerExponent   = (PiRatio::num % PiRatio::den == 0);
 
-			// constexpr pi in numerator
-			if constexpr (PiRatioValue >= 1 && PiRatio::num % PiRatio::den == 0)
+			// A whole-number exponent uses the constexpr integer `pow`; a fractional exponent needs
+			// `std::pow` (not constant-evaluable), so that sole case degrades to a run-time computation.
+			if constexpr (integerExponent && PiRatioValue >= 0)
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(pow(detail::PI_VAL, PiRatioValue))));
 			}
-			// constexpr pi in denominator
-			else if constexpr (PiRatioValue <= -1 && PiRatio::num % PiRatio::den == 0)
+			else if constexpr (integerExponent)    // PiRatioValue < 0
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(pow(detail::PI_VAL, -PiRatioValue))));
 			}
-			// non-constexpr pi in numerator. This case (only) isn't actually constexpr.
-			else if constexpr (PiRatioValue < 1 && PiRatio::num / PiRatioValue > -1)
+			else    // fractional exponent (either sign): std::pow handles both directions
 			{
 				return static_cast<To>(normal_convert(static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(std::pow(detail::PI_VAL, PiRatioValue))));
 			}
@@ -2332,6 +2346,12 @@ namespace units
 
 	namespace traits
 	{
+		/// `true` when a unit type is affine — its conversion factor carries a non-zero datum offset (e.g. a
+		/// temperature in degrees Celsius/Fahrenheit). Absolute affine quantities do not add meaningfully;
+		/// their difference is a pure delta.
+		template<UnitType U>
+		inline constexpr bool is_affine_unit_v = is_affine_conversion_factor_v<typename unit_traits<U>::conversion_factor>;
+
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are units of the same dimension.
@@ -3526,9 +3546,23 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	template<UnitType UnitTypeLhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
+		return lhs;
+	}
+
+	/// Compound addition for AFFINE units (e.g. temperatures). The lhs is an absolute point; the rhs is
+	/// interpreted as a RELATIVE delta and the point is moved in place by that magnitude, staying in the lhs
+	/// unit (celsius(20) += celsius(5) -> celsius(25), i.e. "warm by 5 degrees"). The rhs's datum offset is
+	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. (Binary `a + b`
+	/// of two absolute affine points is disabled; use `+=` to move a point by a relative amount.)
+	template<UnitType UnitTypeLhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() + rhs.raw());
 		return lhs;
 	}
 
@@ -3598,9 +3632,23 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
+		return lhs;
+	}
+
+	/// Compound subtraction for AFFINE units (e.g. temperatures). The lhs is an absolute point; the rhs is
+	/// interpreted as a RELATIVE delta and the point is moved down in place by that magnitude, staying in the
+	/// lhs unit (celsius(20) -= celsius(5) -> celsius(15), i.e. "cool by 5 degrees"). The rhs's datum offset
+	/// is intentionally not applied. (Binary `a - b` of two absolute affine points yields a non-affine delta;
+	/// use `-=` to move a point down by a relative amount.)
+	template<UnitType UnitTypeLhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() - rhs.raw());
 		return lhs;
 	}
 
@@ -3933,8 +3981,12 @@ namespace units
 	//------------------------------
 
 	/// Addition operator for unit types with a linear_scale.
+	/// @note	Disabled when either operand is AFFINE (carries a datum offset, e.g. degrees Celsius): the sum
+	///			of two absolute affine quantities has no physical meaning (20 degC + 5 degC is not 25 degC in
+	///			any absolute sense). Non-affine units of the same dimension add normally.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -3996,13 +4048,38 @@ namespace units
 		return CommonUnit(InverseCommonUnit(lhs).value() + rhs.raw());
 	}
 
-	/// Subtraction operator for unit types with a linear_scale.
+	/// Subtraction operator for NON-AFFINE unit types with a linear_scale.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs - rhs);
 		return CommonUnit(CommonUnit(lhs).raw() - CommonUnit(rhs).raw());
+	}
+
+	/// Subtraction operator for AFFINE unit types (e.g. temperatures with a datum offset).
+	/// @details	The difference of two absolute affine quantities is a DELTA: the datum offsets cancel, so
+	///				the result must be a pure (non-affine) quantity — otherwise storing it back into an affine
+	///				unit would re-apply the offset (e.g. celsius(0) - kelvin(0) would read 546.30 K instead of
+	///				the true 273.15 K delta). Both operands are reconciled to their common affine unit, their
+	///				raw values subtracted (the offsets cancel exactly), and the result returned in the
+	///				offset-stripped counterpart of that common unit so it never re-applies a datum.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			(traits::is_affine_unit_v<UnitTypeLhs> || traits::is_affine_unit_v<UnitTypeRhs>))
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonCf      = typename traits::unit_traits<CommonUnit>::conversion_factor;
+		// The common unit with its datum offset removed: a pure delta in the same scale/dimension.
+		using DeltaCf       = conversion_factor<typename traits::conversion_factor_traits<CommonCf>::conversion_ratio,
+			typename traits::conversion_factor_traits<CommonCf>::dimension_type,
+			typename traits::conversion_factor_traits<CommonCf>::pi_exponent_ratio, std::ratio<0>>;
+		using DeltaUnit     = unit<traits::strong_t<DeltaCf>, typename CommonUnit::underlying_type, typename CommonUnit::numerical_scale_type>;
+		// The raw difference in the common affine unit is the true delta (offsets cancel); return it as a
+		// non-affine DeltaUnit so no offset is ever re-applied.
+		return DeltaUnit(CommonUnit(lhs).raw() - CommonUnit(rhs).raw());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
@@ -4354,13 +4431,18 @@ namespace units
 		return dimensionless<Under>(static_cast<Under>(lhs.value()) / static_cast<Under>(rhs.value()));
 	}
 
-	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, whose type
-	/// is their common type
+	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, in
+	/// their common (finer) unit.
+	/// @note	The result is the `std::common_type` of the operands — the finer of the two units — not the
+	///			lhs unit. Returning the lhs unit made the operator order-dependent: `meters % kilometers`
+	///			compiled (finer lhs) but `kilometers % meters` did not (converting the finer common result
+	///			back to the coarser lhs is lossy for an integer underlying, disabling the constructor). The
+	///			common-unit result mirrors `fmod` and removes the asymmetry.
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr traits::replace_underlying_t<UnitTypeLhs, typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = decltype(lhs % rhs);
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
 		return CommonUnit(CommonUnit(lhs).raw() % CommonUnit(rhs).raw());
 	}
 
@@ -4958,16 +5040,7 @@ namespace units
 	template<UnitType Unit>
 	constexpr detail::floating_point_promotion_t<Unit> ceil(const Unit x) noexcept
 	{
-		using promoted_t = detail::floating_point_promotion_t<Unit>;
-
-		const promoted_t xv = static_cast<promoted_t>(x.raw());
-		const long long  i  = static_cast<long long>(xv);
-
-		// For negative non-integers, truncation goes toward zero, which is already ceil.
-		// For positive non-integers, we need to bump up by 1.
-		const promoted_t y = (xv > static_cast<promoted_t>(i)) ? static_cast<promoted_t>(i + 1) : static_cast<promoted_t>(i);
-
-		return promoted_t(y);
+		return detail::floating_point_promotion_t<Unit>(std::ceil(x.raw()));
 	}
 
 	/**
@@ -4980,16 +5053,7 @@ namespace units
 	template<UnitType Unit>
 	constexpr detail::floating_point_promotion_t<Unit> floor(const Unit x) noexcept
 	{
-		using promoted_t = detail::floating_point_promotion_t<Unit>;
-
-		const promoted_t xv = static_cast<promoted_t>(x.raw());
-		const long long  i  = static_cast<long long>(xv);
-
-		// For negative non-integers, truncation goes toward zero, so we must subtract 1.
-		// For positive values (and exact integers), truncation already matches floor.
-		const promoted_t y = (xv < static_cast<promoted_t>(i)) ? static_cast<promoted_t>(i - 1) : static_cast<promoted_t>(i);
-
-		return promoted_t(y);
+		return detail::floating_point_promotion_t<Unit>(std::floor(x.raw()));
 	}
 
 	/**
@@ -5148,12 +5212,16 @@ namespace units
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Multiply-add
-	 * @details		Returns x*y+z. The function computes the result without losing precision in
-	 *				any intermediate result. The resulting unit type is a compound unit of x* y.
-	 * @param[in]	x	Values to be multiplied.
-	 * @param[in]	y	Values to be multiplied.
+	 * @details		Returns x*y+z, computed with a single rounding via `std::fma` — preserving both the
+	 *				accuracy and the performance contract of the underlying operation (a fused multiply-add
+	 *				maps to one hardware instruction where available). The three operands may be expressed in
+	 *				different units of their respective dimensions; each is reconciled to the result unit
+	 *				within the single fused step so the multiply and the add share a consistent basis. The
+	 *				result unit is the common type of the product `x*y` and the addend `z`.
+	 * @param[in]	x	Value to be multiplied.
+	 * @param[in]	y	Value to be multiplied.
 	 * @param[in]	z	Value to be added.
-	 * @returns		The result of x*y+z
+	 * @returns		The result of x*y+z.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitMultiply, UnitType UnitAdd>
 		requires(traits::is_same_dimension_conversion_factor_v<
@@ -5162,8 +5230,15 @@ namespace units
 	constexpr auto fma(const UnitTypeLhs x, const UnitMultiply y, const UnitAdd z) noexcept
 		-> std::common_type_t<decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) * detail::floating_point_promotion_t<UnitMultiply>(y)), UnitAdd>
 	{
-		using CommonUnit = decltype(units::fma(x, y, z));
-		return CommonUnit(std::fma(x.raw(), y.raw(), CommonUnit(z).raw()));
+		using CommonUnit  = decltype(units::fma(x, y, z));
+		using ProductUnit = decltype(detail::floating_point_promotion_t<UnitTypeLhs>(x) * detail::floating_point_promotion_t<UnitMultiply>(y));
+
+		// Fold the product-unit -> result-unit conversion into one multiplicand (a compile-time-constant
+		// scale), so a SINGLE std::fma performs the multiply and the add in the result's basis with one
+		// rounding: x_raw * (y_raw * scale) + z_in_result. Feeding the raw operands directly (each in its
+		// own unit) would combine inconsistent bases and give a wrong result.
+		constexpr auto scale = CommonUnit(ProductUnit(1)).raw();
+		return CommonUnit(std::fma(x.raw(), y.raw() * scale, CommonUnit(z).raw()));
 	}
 
 	//----------------------------
