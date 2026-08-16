@@ -426,6 +426,105 @@ Full guide, wire format, error model, and measured compile-time and run-time num
 
 ---
 
+## Formatting with `std::format`
+
+Every quantity works with `std::format`, `std::print`, `std::println`, and `std::format_to` out of the box —
+no extra include beyond `<units.h>` (or the relevant dimension header). With no format-spec you get the same
+text `operator<<` and `to_string()` produce:
+
+```cpp
+#include <format>
+#include <print>
+#include <units.h>
+using namespace units::literals;
+
+std::println("{}", 3.5_m);          // 3.5 m
+std::string s = std::format("{}", 9.81_mps_sq);   // 9.81 m s^-2  (dimension form for an unnamed unit)
+```
+
+### The format grammar
+
+```
+{: value-spec [ % unit-opts ] }
+```
+
+Everything **before** an optional `%` is the *value-spec* and is forwarded verbatim to the underlying
+number's own `std::formatter`, so the entire standard numeric grammar applies (precision, width, fill/align,
+sign, `#`, `0`, `L`, and type). Everything **after** the `%` are *unit-opts* (any order): at most one
+label-form flag, at most one show flag, and an optional quoted separator literal.
+
+| Opt        | Effect |
+|------------|--------|
+| `a`        | the unit's own abbreviated label (default); base-dimension list if the unit is unnamed. Never converts the value. |
+| `n`        | the unit's own full name; base-dimension list if the unit is unnamed. Never converts the value. |
+| `b`        | convert the value **and** label to SI base units (`6 ft` → `1.8288 m`, `2 km` → `2000 m`) |
+| `v`        | value only — suppress the unit label |
+| `u`        | unit only — suppress the value and separator |
+| `'`…`'`    | separator literal between value and label (default is one space); `\t` `\n` `\\` `\'` escapes; `''` is empty |
+
+Only `%b` converts. `%a` and `%n` always show the value exactly as stored, in the unit's own symbol/name —
+there is no lossy "force the dimension symbols onto the stored number" mode, because a unit's identity
+(feet vs meters) is flattened to a single ratio at the type level and cannot be recovered as its own
+dimensional symbols. To normalize to SI, use `%b`.
+
+An invalid spec is a compile error for a literal format string, or a thrown `std::format_error` for a
+runtime (`std::vformat`) string.
+
+### Worked examples
+
+Every row is produced by the actual formatter (the library's docs examples are compiled, so they cannot
+drift from what the code does):
+
+| Format string | Argument | Result |
+|---|---|---|
+| `{}`         | `3.5_m`    | `3.5 m` |
+| `{:.2f}`     | `3.5_m`    | `3.50 m` |
+| `{:.0f}`     | `3.5_m`    | `4 m` |
+| `{:>10.2f}`  | `3.5_m`    | `⟨6 spaces⟩3.50 m` |
+| `{:<10.2f}`  | `3.5_m`    | `3.50⟨7 spaces⟩m` |
+| `{:^10.2f}`  | `3.5_m`    | `⟨3⟩3.50⟨4⟩m` |
+| `{:*>10.2f}` | `3.5_m`    | `******3.50 m` |
+| `{:+.1f}`    | `3.5_m`    | `+3.5 m` |
+| `{: .1f}`    | `3.5_m`    | `␣3.5 m` |
+| `{:e}`       | `3.5_m`    | `3.500000e+00 m` |
+| `{:d}`       | `meters<int>(255)` | `255 m` |
+| `{:#x}`      | `meters<int>(255)` | `0xff m` |
+| `{:#06x}`    | `meters<int>(255)` | `0x00ff m` |
+| `{:b}`       | `meters<int>(255)` | `11111111 m` |
+| `{:%a}`      | `3.5_m`    | `3.5 m` |
+| `{:%a}`      | `6.0_ft`   | `6 ft` (never converts) |
+| `{:%n}`      | `3.5_m`    | `3.5 meters` |
+| `{:%n}`      | `6.0_ft`   | `6 feet` |
+| `{:%b}`      | `6.0_ft`   | `1.8288 m` (converted to SI) |
+| `{:%b}`      | `kilometers<>(2)` | `2000 m` |
+| `{:.4f%b}`   | `10.0_fps` | `3.0480 m s^-1` |
+| `{}`         | `9.81_mps` | `9.81 mps` |
+| `{}`         | `meters<>(6)/(seconds<>(2)*seconds<>(1))` | `3 mps2` |
+| `{:%v}`      | `3.5_m`    | `3.5` |
+| `{:%u}`      | `3.5_m`    | `m` |
+| `{:.2f%v}`   | `3.5_m`    | `3.50` |
+| `{:%a''}`    | `3.5_m`    | `3.5m` |
+| `{:%a'_'}`   | `3.5_m`    | `3.5_m` |
+| `{:%a' - '}` | `3.5_m`    | `3.5 - m` |
+| `{:.2f%n'_'}`| `3.5_m`    | `3.50_meters` |
+
+### Disabling text features
+
+Text support is on by default. It is opt-**out**, via three macros (each also a CMake option, all default
+`OFF`), chosen to preserve backward compatibility for embedded builds:
+
+| Macro / CMake option                              | Effect |
+|---------------------------------------------------|--------|
+| `UNIT_LIB_DISABLE_IOSTREAM` / `UNITS_DISABLE_IOSTREAM` | Drops the stream inserters. For backward compatibility this **also** drops `to_string`, `<string>`, and `std::format` — a legacy iostream-disabled build has always been the lean, string-free build, and stays byte-for-byte that. |
+| `UNIT_LIB_DISABLE_FORMAT` / `UNITS_DISABLE_FORMAT`     | Drops only `std::format` support; iostream and `to_string` remain. |
+| `UNIT_LIB_DISABLE_STRING` / `UNITS_DISABLE_STRING`     | The leanest build: forbids `<string>`, and therefore implies both of the above. |
+
+To keep `std::format` while dropping the iostream inserters, define `UNIT_LIB_DISABLE_IOSTREAM` **and**
+`UNIT_LIB_ENABLE_FORMAT`. `std::format` support additionally requires the standard library to provide
+`<format>`.
+
+---
+
 ## Integration
 
 `units` is header-only.

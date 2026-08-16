@@ -26,11 +26,22 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 def parse_directives(text):
-    d = {"expect_fail": False, "expect_match": [], "forbid_match": [], "flags": [], "flags_msvc": []}
+    d = {"expect_fail": False, "expect_match": [], "expect_match_gcc": [], "expect_match_msvc": [],
+         "forbid_match": [], "flags": [], "flags_msvc": []}
     for line in text.splitlines():
         m = re.search(r'//\s*expect:\s*(\w+)', line)
         if m:
             d["expect_fail"] = (m.group(1).lower() == "fail")
+        # Compiler-specific readable-token expectations. The exact diagnostic differs by compiler: GCC/clang
+        # surface a thrown std::format_error's string in the message, while MSVC reports only C7595 ("call to
+        # immediate function is not a constant expression") for the same consteval rejection. `expect-match:`
+        # applies to every compiler; `expect-match-gcc:` / `expect-match-msvc:` apply only to that compiler.
+        m = re.search(r'//\s*expect-match-gcc:\s*(.+?)\s*$', line)
+        if m:
+            d["expect_match_gcc"].append(m.group(1))
+        m = re.search(r'//\s*expect-match-msvc:\s*(.+?)\s*$', line)
+        if m:
+            d["expect_match_msvc"].append(m.group(1))
         m = re.search(r'//\s*expect-match:\s*(.+?)\s*$', line)
         if m:
             d["expect_match"].append(m.group(1))
@@ -83,8 +94,13 @@ def run_case(path, cc, std, include):
         problems.append("expected compile FAILURE but it compiled")
     if not d["expect_fail"] and not compiled:
         problems.append("expected compile SUCCESS but it FAILED")
-    # Match against the whitespace/keyword-normalized diagnostic so tokens are compiler-portable.
-    for sub in d["expect_match"]:
+    # Match against the whitespace/keyword-normalized diagnostic so tokens are compiler-portable. The
+    # generic expect-match applies to every compiler; the per-compiler sets add tokens only for the compiler
+    # in use (a diagnostic that a compiler simply does not emit — e.g. MSVC not surfacing a thrown
+    # std::format_error string — is asserted against that compiler's own form instead).
+    expected = list(d["expect_match"])
+    expected += d["expect_match_msvc"] if is_msvc(cc) else d["expect_match_gcc"]
+    for sub in expected:
         if normalize(sub) not in norm:
             problems.append(f"missing readable token: {sub!r}")
     for sub in d["forbid_match"]:
