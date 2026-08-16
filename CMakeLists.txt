@@ -15,6 +15,8 @@ OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${MAIN_PROJECT})
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
+OPTION(UNITS_DISABLE_FORMAT "Disables std::format / std::print support (keeps iostream and to_string)" OFF)
+OPTION(UNITS_DISABLE_STRING "Disables all <string> use (leanest build; implies DISABLE_IOSTREAM and DISABLE_FORMAT)" OFF)
 
 # header-only library target. To use this project as a subdirectory,
 # add the following to your code:
@@ -41,10 +43,19 @@ if(MSVC)
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_DATADIR}/units/natvis/units.natvis>)
 endif()
 
-# Remove IOStream from the library (useful for embedded development)
+# Text-feature opt-outs (all default OFF = full capability). See the "TEXT-FEATURE CONFIGURATION" block in
+# include/units/core.h for the exact semantics and backward-compatibility guarantees.
 if(UNITS_DISABLE_IOSTREAM)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE UNIT_LIB_DISABLE_IOSTREAM)
 endif(UNITS_DISABLE_IOSTREAM)
+
+if(UNITS_DISABLE_FORMAT)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE UNIT_LIB_DISABLE_FORMAT)
+endif(UNITS_DISABLE_FORMAT)
+
+if(UNITS_DISABLE_STRING)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE UNIT_LIB_DISABLE_STRING)
+endif(UNITS_DISABLE_STRING)
 
 # unit tests
 include(CTest)

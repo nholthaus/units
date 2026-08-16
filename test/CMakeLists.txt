@@ -55,6 +55,25 @@ ENDIF ()
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Lean-configuration compile-and-run guards.
+#
+# Each text-feature opt-out is proven to still build (and the core math to still run) as its own tiny target. This is
+# the backward-compatibility guard for the embedded audience: the lean builds must never silently break.
+# ---------------------------------------------------------------------------------------------------------------------
+function(units_add_lean_config name)
+	add_executable(${name} leanConfig.cpp)
+	target_link_libraries(${name} units)
+	target_compile_features(${name} PRIVATE cxx_std_23)
+	target_compile_definitions(${name} PRIVATE ${ARGN})
+	add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+units_add_lean_config(leanDisableIostream            UNIT_LIB_DISABLE_IOSTREAM)
+units_add_lean_config(leanDisableFormat              UNIT_LIB_DISABLE_FORMAT)
+units_add_lean_config(leanDisableString              UNIT_LIB_DISABLE_STRING)
+units_add_lean_config(leanFormatWithoutIostream      UNIT_LIB_DISABLE_IOSTREAM UNIT_LIB_ENABLE_FORMAT UNIT_LIB_ENABLE_FORMAT_EXPECTED)
+
 # use gtags if present on the system to populate the vscode intellisense
 find_program(GTAGS name gtags HINTS /usr/local/bin DOC "Path to gtags parser")
 if (GTAGS)

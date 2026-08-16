@@ -12,10 +12,12 @@
 #include <compare>
 #include <complex>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <locale>
 #include <ratio>
 #include <sstream>
@@ -7052,6 +7054,423 @@ TEST_F(Serialization, typedFastPathPropagatesDecodeError)
 	const auto             r = units::deserialize<units::meters<double>>(garbage);
 	EXPECT_FALSE(r.has_value());
 	EXPECT_EQ(units::deserialize_error::bad_version, r.error());
+}
+
+//======================================================================================================================
+//  std::format SUPPORT
+//======================================================================================================================
+//
+// These exercise the units-aware std::formatter specialization: value-spec passthrough to the underlying arithmetic
+// type's formatter, the unit-opts mini-language after '%', the label forms, the show flags, separators, the byte-
+// identical cross-check against to_string/operator<<, the full public API surface, and every runtime throw path.
+
+namespace
+{
+	// Render a unit through operator<< into a string, for the byte-identical cross-check against std::format("{}").
+	template<class T>
+	std::string ostreamString(const T& value)
+	{
+		std::ostringstream os;
+		os << value;
+		return os.str();
+	}
+} // namespace
+
+//-----------------------------
+//  DEFAULT: {} == to_string == operator<<
+//-----------------------------
+
+// The default spec "{}" must be byte-identical to units::to_string AND to an operator<< ostringstream for a named
+// unit — this three-way equality is the anchor invariant of the whole feature.
+TEST(Format, defaultMatchesToStringAndOstreamNamed)
+{
+	const auto m = 3.5_m;
+	EXPECT_EQ(std::format("{}", m), "3.5 m");
+	EXPECT_EQ(std::format("{}", m), units::to_string(m));
+	EXPECT_EQ(std::format("{}", m), ostreamString(m));
+
+	const auto ft = 6.0_ft;
+	EXPECT_EQ(std::format("{}", ft), "6 ft");
+	EXPECT_EQ(std::format("{}", ft), units::to_string(ft));
+	EXPECT_EQ(std::format("{}", ft), ostreamString(ft));
+}
+
+// The same three-way equality for a percent (named dimensionless) unit: it prints its abbreviation "pct", NOT "%".
+TEST(Format, defaultMatchesToStringAndOstreamPercent)
+{
+	const auto p = units::percent<double>(50);
+	EXPECT_EQ(std::format("{}", p), "50 pct");
+	EXPECT_EQ(std::format("{}", p), units::to_string(p));
+	EXPECT_EQ(std::format("{}", p), ostreamString(p));
+}
+
+// A genuinely unnamed compound unit (ampere*meter has no named form) prints in dimension-list form; the three-way
+// equality still holds, and the value is the base-unit value.
+TEST(Format, defaultMatchesToStringAndOstreamUnnamedCompound)
+{
+	const auto am = units::amperes<double>(3) * units::meters<double>(2);
+	EXPECT_EQ(std::format("{}", am), "6 A m");
+	EXPECT_EQ(std::format("{}", am), units::to_string(am));
+	EXPECT_EQ(std::format("{}", am), ostreamString(am));
+}
+
+// A named acceleration compound (meters/second^2 == "mps2") reduces to its NAMED abbreviation, not a dimension list.
+TEST(Format, defaultMatchesToStringAndOstreamNamedCompound)
+{
+	const auto accel = units::meters<double>(6) / (units::seconds<double>(2) * units::seconds<double>(1));
+	EXPECT_EQ(std::format("{}", accel), "3 mps2");
+	EXPECT_EQ(std::format("{}", accel), units::to_string(accel));
+	EXPECT_EQ(std::format("{}", accel), ostreamString(accel));
+}
+
+// An integer-underlying named unit: the value formatter is the underlying int type, so the default renders the int
+// as-is; still byte-identical to to_string and operator<<.
+TEST(Format, defaultMatchesToStringAndOstreamIntUnderlying)
+{
+	const units::meters<int> mi(42);
+	EXPECT_EQ(std::format("{}", mi), "42 m");
+	EXPECT_EQ(std::format("{}", mi), units::to_string(mi));
+	EXPECT_EQ(std::format("{}", mi), ostreamString(mi));
+}
+
+// A unit needing floating-point promotion (float underlying) matches across all three sinks.
+TEST(Format, defaultMatchesToStringAndOstreamFloatUnderlying)
+{
+	const units::meters<float> mf(3.5f);
+	EXPECT_EQ(std::format("{}", mf), "3.5 m");
+	EXPECT_EQ(std::format("{}", mf), units::to_string(mf));
+	EXPECT_EQ(std::format("{}", mf), ostreamString(mf));
+}
+
+//-----------------------------
+//  VALUE-SPEC PASSTHROUGH (float/double delegate)
+//-----------------------------
+
+// Precision variants reach the NUMBER and the unit label still appends.
+TEST(Format, precisionReachesValueLabelAppends)
+{
+	EXPECT_EQ(std::format("{:.0f}", 3.5_m), "4 m"); // banker's-agnostic: 3.5 -> "4" at .0f (round-half-to-even)
+	EXPECT_EQ(std::format("{:.2f}", 3.5_m), "3.50 m");
+	EXPECT_EQ(std::format("{:.5f}", 3.5_m), "3.50000 m");
+}
+
+// Width pads the numeric field; the unit label is appended after the padded value.
+TEST(Format, widthPadsValueThenLabel)
+{
+	EXPECT_EQ(std::format("{:8.2f}", 3.5_m), "    3.50 m");
+	EXPECT_EQ(std::format("{:>10.2f}", 3.5_m), "      3.50 m");
+}
+
+// Fill + alignment (left/right/center) apply to the numeric field only.
+TEST(Format, fillAndAlignApplyToValue)
+{
+	EXPECT_EQ(std::format("{:*>10.1f}", 3.5_m), "*******3.5 m");
+	EXPECT_EQ(std::format("{:_^12}", 3.5_m), "____3.5_____ m");
+	EXPECT_EQ(std::format("{:<8.1f}", 3.5_m), "3.5      m");
+}
+
+// Sign controls '+' and space-for-positive on the value.
+TEST(Format, signControls)
+{
+	EXPECT_EQ(std::format("{:+.1f}", 3.5_m), "+3.5 m");
+	EXPECT_EQ(std::format("{: }", 3.5_m), " 3.5 m");
+	EXPECT_EQ(std::format("{:+.1f}", units::meters<double>(-3.5)), "-3.5 m");
+}
+
+// Zero-fill pads the numeric field with leading zeros, still appending the label.
+TEST(Format, zeroFillValue)
+{
+	EXPECT_EQ(std::format("{:08.2f}", 3.5_m), "00003.50 m");
+}
+
+// Integer presentation types (x/#06x/b/d) work when the underlying type is an integer named unit — the value
+// formatter delegate is the underlying int in that case, so the standard int grammar passes through.
+TEST(Format, integerPresentationTypesOnIntUnit)
+{
+	const units::meters<int> mi(255);
+	EXPECT_EQ(std::format("{:x}", mi), "ff m");
+	EXPECT_EQ(std::format("{:#06x}", mi), "0x00ff m");
+	EXPECT_EQ(std::format("{:b}", mi), "11111111 m");
+	EXPECT_EQ(std::format("{:d}", mi), "255 m");
+	// combined with a show flag
+	EXPECT_EQ(std::format("{:x%v}", mi), "ff");
+	EXPECT_EQ(std::format("{:x%u}", mi), "m");
+}
+
+//-----------------------------
+//  LABEL FORMS: %a %n %b
+//-----------------------------
+
+// %a is explicitly the abbreviation form and equals the default.
+TEST(Format, abbreviationFlagEqualsDefault)
+{
+	EXPECT_EQ(std::format("{:%a}", 3.5_m), std::format("{}", 3.5_m));
+	EXPECT_EQ(std::format("{:%a}", 3.5_m), "3.5 m");
+	EXPECT_EQ(std::format("{:.2f%a}", 3.5_m), std::format("{:.2f}", 3.5_m));
+}
+
+// %n emits the full unit name for a named unit.
+TEST(Format, nameFlagFullName)
+{
+	EXPECT_EQ(std::format("{:%n}", 3.5_m), "3.5 meters");
+	EXPECT_EQ(std::format("{:.3f%n}", 6.0_ft), "6.000 feet");
+	EXPECT_EQ(std::format("{:%n}", units::kilometers<double>(2)), "2 kilometers");
+	EXPECT_EQ(std::format("{:%n}", units::degrees<double>(90)), "90 degrees");
+}
+
+// %b converts BOTH the value and the label to SI base units.
+TEST(Format, baseFlagConvertsToBaseSI)
+{
+	// A non-base named unit is converted: 6 ft = 1.8288 m.
+	EXPECT_EQ(std::format("{:%b}", 6.0_ft), "1.8288 m");
+	EXPECT_EQ(std::format("{:%b}", units::kilometers<double>(2)), "2000 m");
+	// A named compound already expressed in base units is unchanged in value; its label decomposes.
+	EXPECT_EQ(std::format("{:%b}", 9.81_mps), "9.81 m s^-1");
+	// An already-base unit is unchanged.
+	EXPECT_EQ(std::format("{:%b}", 3.5_m), "3.5 m");
+	// The value-spec still applies to the (converted) number.
+	EXPECT_EQ(std::format("{:.4f%b}", 10.0_fps), "3.0480 m s^-1");
+}
+
+// %a and %n never convert the value — they render the unit's OWN symbol/name.
+TEST(Format, abbreviationAndNameNeverConvert)
+{
+	EXPECT_EQ(std::format("{:%a}", 6.0_ft), "6 ft");
+	EXPECT_EQ(std::format("{:%n}", 6.0_ft), "6 feet");
+	EXPECT_EQ(std::format("{:%a}", 10.0_fps), "10 fps");
+	EXPECT_EQ(std::format("{:%a}", units::kilometers<double>(2)), "2 km");
+}
+
+// %b on an already-unnamed unit yields the same base-symbol form as the default label (the value is
+// already in base units, so nothing changes).
+TEST(Format, baseFlagOnUnnamedUnit)
+{
+	const auto am = units::amperes<double>(3) * units::meters<double>(2);
+	EXPECT_EQ(std::format("{:%b}", am), "6 A m");
+	EXPECT_EQ(std::format("{:%b}", am), std::format("{}", am));
+}
+
+// %n on an unnamed compound falls back to the base-symbol form (there is no full name to print).
+TEST(Format, nameFlagOnUnnamedFallsBackToDimension)
+{
+	const auto am = units::amperes<double>(3) * units::meters<double>(2);
+	EXPECT_EQ(std::format("{:%n}", am), "6 A m");
+	EXPECT_EQ(std::format("{:%n}", am), std::format("{:%a}", am));
+}
+
+//-----------------------------
+//  SHOW FLAGS: %v (value only) %u (unit only)
+//-----------------------------
+
+// %v suppresses the unit label and its separator — value only, no trailing space.
+TEST(Format, showValueOnly)
+{
+	EXPECT_EQ(std::format("{:%v}", 3.5_m), "3.5");
+	EXPECT_EQ(std::format("{:.2f%v}", 3.5_m), "3.50");
+	EXPECT_EQ(std::format("{:*>10.1f%v}", 3.5_m), "*******3.5");
+}
+
+// %u suppresses the value AND the separator — unit label only, no leading space.
+TEST(Format, showUnitOnly)
+{
+	EXPECT_EQ(std::format("{:%u}", 3.5_m), "m");
+	EXPECT_EQ(std::format("{:%u}", 6.0_ft), "ft");
+	// a value-spec is harmlessly parsed but the value is not emitted under %u.
+	EXPECT_EQ(std::format("{:.2f%u}", 3.5_m), "m");
+	// the full name under unit-only.
+	EXPECT_EQ(std::format("{:%nu}", 3.5_m), "meters");
+	// the base-SI form under unit-only (no leading space).
+	EXPECT_EQ(std::format("{:%bu}", 9.81_mps), "m s^-1");
+}
+
+// %v / %u on an integer-underlying named unit.
+TEST(Format, showFlagsIntUnderlying)
+{
+	const units::meters<int> mi(42);
+	EXPECT_EQ(std::format("{:%v}", mi), "42");
+	EXPECT_EQ(std::format("{:%u}", mi), "m");
+}
+
+// %u never emits a separator regardless of a supplied separator literal.
+TEST(Format, unitOnlyIgnoresSeparator)
+{
+	EXPECT_EQ(std::format("{:%u'_'}", 3.5_m), "m");
+	EXPECT_EQ(std::format("{:%u''}", 3.5_m), "m");
+	EXPECT_EQ(std::format("{:%'_'u}", 3.5_m), "m");
+}
+
+//-----------------------------
+//  SEPARATORS
+//-----------------------------
+
+// The default separator (no quotes) is a single space.
+TEST(Format, defaultSeparatorIsSingleSpace)
+{
+	EXPECT_EQ(std::format("{:%a}", 3.5_m), "3.5 m");
+	EXPECT_EQ(std::format("{}", 3.5_m), "3.5 m");
+}
+
+// An empty separator '' glues value and label together.
+TEST(Format, emptySeparator)
+{
+	EXPECT_EQ(std::format("{:%a''}", 3.5_m), "3.5m");
+	EXPECT_EQ(std::format("{:.2f%a''}", 3.5_m), "3.50m");
+}
+
+// A single-character separator literal.
+TEST(Format, underscoreSeparator)
+{
+	EXPECT_EQ(std::format("{:%a'_'}", 3.5_m), "3.5_m");
+}
+
+// Escape sequences inside the separator: tab, newline, backslash, quote.
+TEST(Format, escapeSeparators)
+{
+	EXPECT_EQ(std::format("{:%a'\t'}", 3.5_m), "3.5\tm");
+	EXPECT_EQ(std::format("{:%a'\n'}", 3.5_m), "3.5\nm");
+	EXPECT_EQ(std::format("{:%a'\\\\'}", 3.5_m), "3.5\\m");
+	EXPECT_EQ(std::format("{:%a'\\''}", 3.5_m), "3.5'm");
+}
+
+// A multi-character separator literal.
+TEST(Format, multiCharacterSeparator)
+{
+	EXPECT_EQ(std::format("{:%a' - '}", 3.5_m), "3.5 - m");
+}
+
+// A separator combined with the name form.
+TEST(Format, separatorWithNameForm)
+{
+	EXPECT_EQ(std::format("{:%n'_'}", 3.5_m), "3.5_meters");
+}
+
+//-----------------------------
+//  FLAG-ORDER INDEPENDENCE
+//-----------------------------
+
+// Form-then-separator and separator-then-form parse identically.
+TEST(Format, formSeparatorOrderIndependent)
+{
+	EXPECT_EQ(std::format("{:%n'_'}", 3.5_m), std::format("{:%'_'n}", 3.5_m));
+	EXPECT_EQ(std::format("{:%'_'n}", 3.5_m), "3.5_meters");
+}
+
+// Show-then-form and form-then-show parse identically (each category may appear once).
+TEST(Format, showFormOrderIndependent)
+{
+	EXPECT_EQ(std::format("{:%va}", 3.5_m), std::format("{:%av}", 3.5_m));
+	EXPECT_EQ(std::format("{:%va}", 3.5_m), "3.5");
+	EXPECT_EQ(std::format("{:%ua}", 3.5_m), std::format("{:%au}", 3.5_m));
+	EXPECT_EQ(std::format("{:%ua}", 3.5_m), "m");
+}
+
+//-----------------------------
+//  API SURFACE
+//-----------------------------
+
+// std::format_to into a back_inserter produces the same text as std::format.
+TEST(Format, formatToBackInserter)
+{
+	std::string out;
+	std::format_to(std::back_inserter(out), "{:.2f%n}", 3.5_m);
+	EXPECT_EQ(out, "3.50 meters");
+	EXPECT_EQ(out, std::format("{:.2f%n}", 3.5_m));
+}
+
+// std::vformat with make_format_args honors a runtime spec.
+TEST(Format, vformatRuntimeSpec)
+{
+	const auto  m    = 3.5_m;
+	std::string spec = "{:%u}";
+	EXPECT_EQ(std::vformat(spec, std::make_format_args(m)), "m");
+	spec = "{:.2f%n}";
+	EXPECT_EQ(std::vformat(spec, std::make_format_args(m)), "3.50 meters");
+}
+
+//-----------------------------
+//  MANY UNIT TYPES / UNDERLYING TYPES
+//-----------------------------
+
+// A spread of unit types and underlying arithmetic types all format sensibly.
+TEST(Format, manyUnitTypes)
+{
+	EXPECT_EQ(std::format("{}", units::meters<double>(1.5)), "1.5 m");
+	EXPECT_EQ(std::format("{}", units::feet<double>(2.0)), "2 ft");
+	EXPECT_EQ(std::format("{}", units::kilometers<double>(3.0)), "3 km");
+	EXPECT_EQ(std::format("{}", units::degrees<double>(45.0)), "45 deg");
+	EXPECT_EQ(std::format("{}", units::seconds<double>(10.0)), "10 s");
+	EXPECT_EQ(std::format("{}", 9.81_mps), "9.81 mps");
+	EXPECT_EQ(std::format("{}", units::percent<double>(25.0)), "25 pct");
+
+	// vary the underlying type on the same dimension.
+	EXPECT_EQ(std::format("{}", units::meters<int>(7)), "7 m");
+	EXPECT_EQ(std::format("{}", units::meters<float>(7.25f)), "7.25 m");
+	EXPECT_EQ(std::format("{}", units::meters<long>(7L)), "7 m");
+}
+
+//======================================================================================================================
+//  std::format ERROR PATHS
+//======================================================================================================================
+//
+// Every throw the parser can raise, one message per case, driven through std::vformat so the (runtime) format string
+// reaches parse() and the std::format_error escapes to the caller. A LITERAL bad spec is a compile error instead —
+// those live under test/errorMessages/cases/format_*.cpp.
+
+// An unknown unit-format flag throws.
+TEST(Format, throwsOnUnknownFlag)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%z}", std::make_format_args(m)), std::format_error);
+}
+
+// A duplicated label-form flag throws.
+TEST(Format, throwsOnDuplicateLabelForm)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%aa}", std::make_format_args(m)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%an}", std::make_format_args(m)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%ba}", std::make_format_args(m)), std::format_error);
+}
+
+// A duplicated show flag throws.
+TEST(Format, throwsOnDuplicateShowFlag)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%vv}", std::make_format_args(m)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%vu}", std::make_format_args(m)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%uv}", std::make_format_args(m)), std::format_error);
+}
+
+// An unterminated separator literal throws.
+TEST(Format, throwsOnUnterminatedSeparator)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%a'foo}", std::make_format_args(m)), std::format_error);
+}
+
+// A dangling escape at the end of a separator throws.
+TEST(Format, throwsOnDanglingEscape)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%a'\\}", std::make_format_args(m)), std::format_error);
+}
+
+// A value-spec the underlying value formatter rejects throws.
+TEST(Format, throwsOnInvalidValueSpec)
+{
+	const auto m = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:Zf}", std::make_format_args(m)), std::format_error);
+}
+
+// A float presentation type on an integer-underlying unit's value formatter throws (the delegate is the int
+// formatter, which rejects '.2f'); an int presentation type on a floating-point delegate likewise throws.
+TEST(Format, throwsOnMismatchedValueTypeSpec)
+{
+	const units::meters<int> mi(3);
+	EXPECT_THROW((void)std::vformat("{:.2f}", std::make_format_args(mi)), std::format_error);
+
+	const units::meters<double> md(3.5);
+	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
 }
 
 int main(int argc, char* argv[])

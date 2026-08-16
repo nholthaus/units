@@ -67,14 +67,66 @@
 #include <ratio>
 #include <type_traits>
 #include <utility>
+#include <version>
 
+// ---------------------------------------------------------------------------------------------------------------------
+//	TEXT-FEATURE CONFIGURATION (opt-out; full capability is the default)
+// ---------------------------------------------------------------------------------------------------------------------
+// Out of the box every text feature is ON: stream inserters, to_string, and std::format (where <format> is
+// available). Consumers opt OUT with the DISABLE_ macros. The ENABLE_* macros are derived internal switches
+// — do not define them directly, with the single exception of UNIT_LIB_ENABLE_FORMAT (the documented opt-in
+// that restores std::format under UNIT_LIB_DISABLE_IOSTREAM).
+//
+//   UNIT_LIB_DISABLE_IOSTREAM  Drops the stream inserters. For BACKWARD COMPATIBILITY this also drops
+//                              to_string, <string>, and std::format: a legacy iostream-disabled build has
+//                              always been the lean, string-free build, and stays byte-for-byte that. To
+//                              keep std::format while dropping streams, ALSO define UNIT_LIB_ENABLE_FORMAT.
+//   UNIT_LIB_DISABLE_FORMAT    Drops only std::format support; iostream and to_string remain.
+//   UNIT_LIB_DISABLE_STRING    The leanest build: forbids <string>, and therefore implies both of the above.
+//
+// std::format support additionally requires the standard library to provide <format> (__cpp_lib_format).
+
+#if defined(UNIT_LIB_DISABLE_STRING)
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
-#include <clocale>
-#include <sstream>
+#define UNIT_LIB_DISABLE_IOSTREAM
+#endif
+#if !defined(UNIT_LIB_DISABLE_FORMAT)
+#define UNIT_LIB_DISABLE_FORMAT
+#endif
+#endif
+
+// std::format: on by default when <format> exists; off if explicitly disabled or if string is disabled; off
+// alongside iostream UNLESS the caller opts back in with UNIT_LIB_ENABLE_FORMAT.
+#if !defined(UNIT_LIB_DISABLE_FORMAT) && !defined(UNIT_LIB_DISABLE_STRING) && defined(__cpp_lib_format) && __cpp_lib_format >= 201907L &&                       \
+    (!defined(UNIT_LIB_DISABLE_IOSTREAM) || defined(UNIT_LIB_ENABLE_FORMAT))
+#if !defined(UNIT_LIB_ENABLE_FORMAT)
+#define UNIT_LIB_ENABLE_FORMAT
+#endif
+#else
+// If format cannot be enabled, ensure a stray UNIT_LIB_ENABLE_FORMAT does not leak through.
+#undef UNIT_LIB_ENABLE_FORMAT
+#endif
+
+// The value stringifier + unit-label builders (and <string>) exist whenever any text feature — the stream
+// inserters or std::format — is compiled in.
+#if !defined(UNIT_LIB_DISABLE_STRING) && (!defined(UNIT_LIB_DISABLE_IOSTREAM) || defined(UNIT_LIB_ENABLE_FORMAT))
+#define UNIT_LIB_ENABLE_STRING
+#endif
+
+#if defined(UNIT_LIB_ENABLE_STRING)
 #include <string>
+#endif
+
+#if defined(UNIT_LIB_ENABLE_FORMAT)
+#include <format>
+#include <string_view>
+#endif
+
+#if defined(UNIT_LIB_ENABLE_STRING)
+#include <clocale>
 
 //------------------------------
-//	STRING FORMATTER
+//	VALUE STRINGIFIER
 //------------------------------
 
 namespace units::detail
@@ -103,7 +155,11 @@ namespace units::detail
 	}
 } // namespace units::detail
 
-#endif // !defined(UNIT_LIB_DISABLE_IOSTREAM)
+#endif // UNIT_LIB_ENABLE_STRING
+
+#if !defined(UNIT_LIB_DISABLE_IOSTREAM)
+#include <sstream>
+#endif
 
 //------------------------------
 //	FORWARD DECLARATIONS
@@ -2930,6 +2986,169 @@ namespace units
 		return UnitType(value);
 	}
 
+	//-----------------------------------------
+	//	UNIT-LABEL STRING BUILDERS
+	//-----------------------------------------
+
+#if defined(UNIT_LIB_ENABLE_STRING)
+
+	namespace detail
+	{
+		//----------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: dimension_to_string [static]
+		//----------------------------------------------------------------------------------------------------------------------
+		/// @brief      Renders a single dimension term (base dimension + exponent) as text.
+		/// @tparam     D    the base dimension (supplies `D::abbreviation`).
+		/// @tparam     E    the exponent, a `std::ratio` (`E::num`/`E::den`).
+		/// @return     the term as `" <abbrev>"`, plus `"^num"` when the exponent is not 1 and `"/den"`
+		///             when the denominator is not 1 — matching the ostream inserter's format, including
+		///             its leading space per term.
+		//----------------------------------------------------------------------------------------------------------------------
+		template<class D, class E>
+		std::string dimension_to_string(const dim<D, E>&)
+		{
+			std::string s;
+			if constexpr (E::num != 0)
+			{
+				s.append(" ").append(D::abbreviation);
+			}
+			if constexpr (E::num != 0 && E::num != 1)
+			{
+				s.append("^").append(std::to_string(E::num));
+			}
+			if constexpr (E::den != 1)
+			{
+				s.append("/").append(std::to_string(E::den));
+			}
+			return s;
+		}
+
+		//----------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: dimension_to_string [static]
+		//----------------------------------------------------------------------------------------------------------------------
+		/// @brief      Renders a full dimension list as text by concatenating each term.
+		/// @tparam     Dims    the dimension terms of the list.
+		/// @return     the concatenation of each term's `dimension_to_string`, e.g. `" m s^-2"`.
+		//----------------------------------------------------------------------------------------------------------------------
+		template<class... Dims>
+		std::string dimension_to_string(const dimension_t<Dims...>&)
+		{
+			std::string s;
+			((s.append(dimension_to_string(Dims{}))), ...);
+			return s;
+		}
+
+		//----------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: unit_label [static]
+		//----------------------------------------------------------------------------------------------------------------------
+		/// @brief      Builds the unit-label suffix for a unit — the text that follows its numeric value.
+		/// @details    Resolves the named form of the unit first, so a named unit yields its abbreviation
+		///             (`meters_per_second` → `"mps"`); an unnamed compound unit yields its dimension list
+		///             (`" m s^-2"`). The value itself is NOT included. Depends only on `<string>`, so it
+		///             is available whether or not iostream support is compiled in.
+		/// @tparam     ConversionFactor    the unit's conversion factor.
+		/// @tparam     T                   the unit's underlying arithmetic type.
+		/// @tparam     NumericalScale      the unit's numerical scale.
+		/// @return     the label, either `" <abbrev>"` (with a leading space) for a named unit, or the
+		///             dimension-list text (also leading-space-prefixed per term) for an unnamed unit; empty
+		///             for a dimensionless unnamed unit.
+		//----------------------------------------------------------------------------------------------------------------------
+		/// The form a unit label may take.
+		/// @details	`abbreviation` and `name` render the unit's OWN symbol/name and never convert the value;
+		///				for an unnamed compound they fall back to the base-dimension list (which is honest,
+		///				since an unnamed unit carries no conversion of its own). `base` is the SI base form —
+		///				the base-dimension list — and its VALUE must be converted to base SI to stay honest,
+		///				because the type system flattens a named unit's identity into a single ratio and cannot
+		///				recover a non-SI factor's own symbols (e.g. `feet_per_second` cannot render as
+		///				`ft s^-1`; only `m s^-1` against the base-converted value is correct).
+		enum class label_form
+		{
+			abbreviation,    ///< the unit's own abbreviation (`"m"`, `"ft"`), the default; base-dimension list if unnamed.
+			name,            ///< the unit's own full name (`"meters"`, `"feet"`); base-dimension list if unnamed.
+			base             ///< the SI base-dimension list (`" m s^-1"`); pairs with a base-converted value.
+		};
+
+		template<label_form Form = label_form::abbreviation, ConversionFactorType ConversionFactor, ArithmeticType T, NumericalScaleType<T> NumericalScale>
+		std::string unit_label(const unit<ConversionFactor, T, NumericalScale>&)
+		{
+			// The name/abbreviation traits are specialized on the NAMED class, not the plain unit<...> base,
+			// so resolve the named form first and query THAT (a named unit prints its name/abbreviation).
+			using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
+			using DimType   = traits::dimension_of_t<ConversionFactor>;
+
+			if constexpr (Form == label_form::base)
+			{
+				// SI base-dimension list, regardless of the unit's own name (the caller base-converts the value).
+				if constexpr (!DimType::empty)
+					return dimension_to_string(DimType{});
+				else
+					return std::string{};
+			}
+			else if constexpr (Form == label_form::name && unit_name_v<NamedForm>)
+			{
+				return std::string(" ").append(unit_name<NamedForm>::value);
+			}
+			else if constexpr (unit_abbreviation_v<NamedForm>)
+			{
+				return std::string(" ").append(unit_abbreviation<NamedForm>::value);
+			}
+			else
+			{
+				// Unnamed unit: its honest label IS the base-dimension list (no own symbol exists).
+				if constexpr (!DimType::empty)
+					return dimension_to_string(DimType{});
+				else
+					return std::string{};
+			}
+		}
+
+		//----------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: label_uses_base_unit [static]
+		//----------------------------------------------------------------------------------------------------------------------
+		/// @brief      Whether a unit's label is its dimension list rather than a named abbreviation.
+		/// @details    An unnamed unit is rendered in its BASE unit (its value must be converted to the base
+		///             before the dimension label applies); a named unit prints its value as-is. This
+		///             predicate lets the value-rendering paths decide whether to convert to the base unit.
+		/// @tparam     ConversionFactor    the unit's conversion factor.
+		/// @tparam     T                   the unit's underlying arithmetic type.
+		/// @tparam     NumericalScale      the unit's numerical scale.
+		/// @return     `true` when the unit is unnamed (dimension-labelled), `false` when it is named.
+		//----------------------------------------------------------------------------------------------------------------------
+		template<ConversionFactorType ConversionFactor, ArithmeticType T, NumericalScaleType<T> NumericalScale>
+		inline constexpr bool label_uses_base_unit()
+		{
+			using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
+			return !static_cast<bool>(unit_abbreviation_v<NamedForm>);
+		}
+	}    // namespace detail
+
+#endif // UNIT_LIB_ENABLE_STRING
+
+#if defined(UNIT_LIB_ENABLE_FORMAT)
+
+	//-----------------------------------------
+	//	std::format SUPPORT
+	//-----------------------------------------
+
+	namespace detail
+	{
+		//----------------------------------------------------------------------------------------------------------------------
+		//      STRUCT: unit_format_options
+		//----------------------------------------------------------------------------------------------------------------------
+		/// @brief      The parsed unit-opts portion of a unit format-spec (see the `std::formatter` below).
+		//----------------------------------------------------------------------------------------------------------------------
+		struct unit_format_options
+		{
+			label_form  form      = label_form::abbreviation;    ///< which label form was requested
+			bool        showValue = true;                        ///< emit the numeric value
+			bool        showUnit  = true;                        ///< emit the unit label
+			bool        customSep = false;                       ///< a separator literal was supplied
+			std::string separator = " ";                         ///< separator between value and label
+		};
+	}    // namespace detail
+
+#endif    // UNIT_LIB_ENABLE_FORMAT
+
 #if !defined(UNIT_LIB_DISABLE_IOSTREAM)
 
 	//-----------------------------------------
@@ -2971,21 +3190,15 @@ namespace units
 		// its abbreviation instead of the dimension form.
 		using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
 
-		std::locale loc;
 		if constexpr (unit_abbreviation_v<NamedForm>)
 		{
-			os << obj.raw() << " " << unit_abbreviation<NamedForm>::value;
+			os << obj.raw();
 		}
 		else
 		{
 			os << std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit, PromotedBaseUnit>(obj).raw();
-
-			using DimType = traits::dimension_of_t<ConversionFactor>;
-			if constexpr (!DimType::empty)
-			{
-				os << DimType{};
-			}
 		}
+		os << detail::unit_label(obj);
 
 		return os;
 	}
@@ -3006,27 +3219,14 @@ namespace units
 		// (feet<double>) then still prints its abbreviation ("ft") instead of falling to the dimension path.
 		using NamedForm = detail::rewrap_to_named_t<unit<ConversionFactor, T, NumericalScale>>;
 
+		std::string s;
 		if constexpr (unit_abbreviation_v<NamedForm>)
-		{
-			std::string s = detail::to_string(obj.raw());
-			s.append(" ").append(unit_abbreviation<NamedForm>::value);
-			return s;
-		}
+			s = detail::to_string(obj.raw());
 		else
-		{
-			std::string s = detail::to_string(std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit, PromotedBaseUnit>(obj).raw());
+			s = detail::to_string(std::conditional_t<detail::is_losslessly_convertible_unit<std::decay_t<decltype(obj)>, BaseUnit>, BaseUnit, PromotedBaseUnit>(obj).raw());
 
-			using DimType = traits::dimension_of_t<ConversionFactor>;
-			if constexpr (!DimType::empty)
-			{
-				// a dimension list has no string form, only an ostream inserter; render it through a stream (as operator<<
-				// does). The inserter already emits its own leading space per term, so none is added here.
-				std::ostringstream dim;
-				dim << DimType{};
-				s.append(dim.str());
-			}
-			return s;
-		}
+		s.append(detail::unit_label(obj));
+		return s;
 	}
 #endif
 
@@ -5204,6 +5404,276 @@ namespace units
 	template<typename T, typename Cf = dimension::dimensionless, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 	unit(T) -> unit<Cf, T>;
 } // namespace units
+
+//----------------------------------------------------------------------------------------------------------------------
+//  std::format SUPPORT
+//----------------------------------------------------------------------------------------------------------------------
+
+#if defined(UNIT_LIB_ENABLE_FORMAT)
+
+//----------------------------------------------------------------------------------------------------------------------
+//      CLASS: std::formatter<units::unit<...>, char>
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief      Formats a `units::unit` for `std::format`, `std::print`, `std::println`, and `std::format_to`,
+///             with a units-aware mini-language.
+/// @details    The value-spec (everything before an optional `%`) is delegated to the underlying arithmetic
+///             type's `std::formatter`, so the full standard numeric grammar is supported (precision, width,
+///             fill/align, sign, `#`, `0`, `L`, type, …). The unit-opts (after `%`) control the label form,
+///             whether the value/unit are shown, and the separator. This support needs only `<format>`, not
+///             iostream, so it is available even under `UNIT_LIB_DISABLE_IOSTREAM`.
+///
+///             Grammar: `{:` value-spec [ `%` unit-opts ] `}`, where unit-opts are, in any order:
+///               - `a` own abbreviated label (default), `n` own full-name label — neither converts the value
+///               - `b` convert the value and label to SI base units (`6 ft` → `1.8288 m`)
+///               - `v` value only, `u` unit only
+///               - `'`…`'` a separator literal between value and label (`''` none, `'_'`, `'\t'`, …)
+/// @tparam     U    any unit type — the `unit<...>` template itself OR a named unit derived from it
+///                  (e.g. `meters<double>`), matched through the `units::UnitType` concept so a named unit
+///                  formats the same as its `unit<...>` base.
+//----------------------------------------------------------------------------------------------------------------------
+template<units::UnitType U>
+struct std::formatter<U, char>
+{
+	using conversion_factor   = typename units::traits::unit_traits<U>::conversion_factor;
+	using value_type          = typename units::traits::unit_traits<U>::underlying_type;
+	using scale_type          = typename units::traits::unit_traits<U>::numerical_scale_type;
+	using promoted_value_type = units::detail::floating_point_promotion_t<value_type>;
+
+	// A named unit prints its stored value as-is, so its value formatter is the underlying type — integer
+	// specs (d/x/b/…) then work for an integer-underlying unit. An unnamed unit is rendered in its base
+	// unit, a conversion that is floating-point, so its value formatter is the promoted type.
+	static constexpr bool renders_in_base_unit = units::detail::label_uses_base_unit<conversion_factor, value_type, scale_type>();
+	using formatted_value_type                  = std::conditional_t<renders_in_base_unit, promoted_value_type, value_type>;
+
+	// The %b flag base-converts a NAMED unit's value to SI, which is a floating-point result; it is emitted
+	// through a promoted-type formatter. (For an unnamed unit the primary formatter is already promoted.)
+	std::formatter<formatted_value_type, char> m_valueFormatter;        ///< delegate for the stored-value portion
+	std::formatter<promoted_value_type, char>  m_baseFormatter;         ///< delegate for the %b base-converted value
+	units::detail::unit_format_options         m_options;               ///< the parsed unit-opts
+	bool                                       m_usesBaseFormatter = false;    ///< value-spec was parsed into m_baseFormatter (%b)
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: parse [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      Parses the format-spec: the value-spec is forwarded to the value formatter, then the
+	///             unit-opts after `%` are decoded.
+	/// @param[in,out]	ctx		the parse context, positioned at the start of the spec.
+	/// @return     an iterator past the consumed spec (at the closing `}`).
+	//----------------------------------------------------------------------------------------------------------------------
+	constexpr auto parse(std::format_parse_context& ctx)
+	{
+		auto it  = ctx.begin();
+		auto end = ctx.end();
+
+		// The value-spec runs to the first '%' (or to the closing '}').
+		auto valueSpecEnd = it;
+		for (auto scan = it; scan != end && *scan != '}'; ++scan)
+		{
+			if (*scan == '%')
+				break;
+			valueSpecEnd = scan + 1;
+		}
+
+		// The %b flag (base-SI conversion) needs the promoted-type formatter; every other flag uses the
+		// stored-type formatter. Determine which is in play by scanning the unit-opts for 'b' before
+		// delegating the value-spec, so the value-spec is parsed into exactly the formatter that will emit
+		// it (parsing an integer spec such as `d` into a floating-point formatter would wrongly reject it).
+		m_usesBaseFormatter = false;
+		for (auto scan = valueSpecEnd; scan != end && *scan != '}'; ++scan)
+		{
+			if (*scan == 'b')
+			{
+				m_usesBaseFormatter = true;
+				break;
+			}
+		}
+
+		// Delegate the value-spec to the chosen value formatter. Present it a parse context spanning only
+		// the value-spec and require it consumed the whole thing.
+		if (valueSpecEnd != it)
+		{
+			std::string_view valueSpec(it, valueSpecEnd);
+			if (m_usesBaseFormatter)
+			{
+				std::format_parse_context baseCtx(valueSpec);
+				if (m_baseFormatter.parse(baseCtx) != valueSpec.end())
+					throw std::format_error("units: invalid value format-spec");
+			}
+			else
+			{
+				std::format_parse_context valueCtx(valueSpec);
+				if (m_valueFormatter.parse(valueCtx) != valueSpec.end())
+					throw std::format_error("units: invalid value format-spec");
+			}
+		}
+
+		it = valueSpecEnd;
+
+		// Unit-opts after '%'.
+		if (it != end && *it == '%')
+		{
+			++it;
+			bool sawForm = false;
+			bool sawShow = false;
+			while (it != end && *it != '}')
+			{
+				const char c = *it;
+				if (c == 'a' || c == 'n' || c == 'b')
+				{
+					if (sawForm)
+						throw std::format_error("units: duplicate label-form flag");
+					sawForm        = true;
+					m_options.form = (c == 'a') ? units::detail::label_form::abbreviation
+					    : (c == 'n')            ? units::detail::label_form::name
+					                            : units::detail::label_form::base;
+					++it;
+				}
+				else if (c == 'v' || c == 'u')
+				{
+					if (sawShow)
+						throw std::format_error("units: duplicate show flag");
+					sawShow             = true;
+					m_options.showValue = (c == 'v');
+					m_options.showUnit  = (c == 'u');
+					++it;
+				}
+				else if (c == '\'')
+				{
+					++it;    // opening quote
+					std::string sep;
+					bool        closed = false;
+					while (it != end && *it != '}')
+					{
+						if (*it == '\\')
+						{
+							++it;
+							if (it == end || *it == '}')
+								throw std::format_error("units: dangling escape in separator");
+							switch (*it)
+							{
+								case 't': sep.push_back('\t'); break;
+								case 'n': sep.push_back('\n'); break;
+								case '\\': sep.push_back('\\'); break;
+								case '\'': sep.push_back('\''); break;
+								default: sep.push_back(*it); break;
+							}
+							++it;
+						}
+						else if (*it == '\'')
+						{
+							closed = true;
+							++it;    // closing quote
+							break;
+						}
+						else
+						{
+							sep.push_back(*it);
+							++it;
+						}
+					}
+					if (!closed)
+						throw std::format_error("units: unterminated separator literal");
+					m_options.separator = std::move(sep);
+					m_options.customSep = true;
+				}
+				else
+				{
+					throw std::format_error("units: unknown unit-format flag");
+				}
+			}
+		}
+
+		return it;
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//      FUNCTION: format [public]
+	//----------------------------------------------------------------------------------------------------------------------
+	/// @brief      Renders the unit: the numeric value (via the delegated value formatter) then the unit
+	///             label, honoring the parsed show flags, label form, and separator.
+	/// @param[in]	obj		the unit to format.
+	/// @param[in,out]	ctx		the format context / output iterator.
+	/// @return     the output iterator past the written characters.
+	//----------------------------------------------------------------------------------------------------------------------
+	template<class FormatContext>
+	auto format(const U& obj, FormatContext& ctx) const
+	{
+		using base_unit_type = units::unit<units::conversion_factor<std::ratio<1>, typename conversion_factor::dimension_type>, promoted_value_type, scale_type>;
+
+		// The value: an unnamed unit is always rendered in its base unit (its honest label is the
+		// base-dimension list); the %b flag likewise base-converts a named unit's value so the base-SI
+		// label is honest. Otherwise a named unit shows its stored value as-is (so integer specs work).
+		formatted_value_type value{};
+		promoted_value_type  baseValue{};
+		if constexpr (renders_in_base_unit)
+			value = base_unit_type(obj).raw();
+		else
+			value = static_cast<formatted_value_type>(obj.raw());
+		if (m_options.form == units::detail::label_form::base)
+			baseValue = base_unit_type(obj).raw();
+
+		std::string label;
+		if (m_options.showUnit)
+		{
+			switch (m_options.form)
+			{
+				case units::detail::label_form::name: label = units::detail::unit_label<units::detail::label_form::name>(obj); break;
+				case units::detail::label_form::base: label = units::detail::unit_label<units::detail::label_form::base>(obj); break;
+				case units::detail::label_form::abbreviation:
+				default: label = units::detail::unit_label<units::detail::label_form::abbreviation>(obj); break;
+			}
+		}
+
+		auto out = ctx.out();
+
+		if (m_options.showValue)
+		{
+			if (m_usesBaseFormatter)
+			{
+				// %b: emit the base-SI value through the promoted-type formatter. For an unnamed unit the
+				// value is already the promoted base value; for a named unit it is the base-converted one.
+				const promoted_value_type emitted = renders_in_base_unit ? static_cast<promoted_value_type>(value) : baseValue;
+				out                               = m_baseFormatter.format(emitted, ctx);
+			}
+			else
+			{
+				out = m_valueFormatter.format(value, ctx);
+			}
+		}
+
+		if (m_options.showUnit && !label.empty())
+		{
+			// The core builders prefix a label with a single space (the default separator). Keep it when no
+			// separator was overridden and a value precedes the label; otherwise strip it and, for a shown
+			// value, emit the chosen separator.
+			std::string_view labelView(label);
+			const bool       hasLeadingSpace = !labelView.empty() && labelView.front() == ' ';
+
+			if (m_options.showValue)
+			{
+				if (m_options.customSep)
+				{
+					if (hasLeadingSpace)
+						labelView.remove_prefix(1);
+					for (char ch : m_options.separator)
+						*out++ = ch;
+				}
+			}
+			else
+			{
+				if (hasLeadingSpace)
+					labelView.remove_prefix(1);
+			}
+
+			for (char ch : labelView)
+				*out++ = ch;
+		}
+
+		return out;
+	}
+};
+
+#endif    // UNIT_LIB_ENABLE_FORMAT
 
 //----------------------------------------------------------------------------------------------------------------------
 //  JSON SUPPORT

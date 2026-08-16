@@ -1,0 +1,9 @@
+# Normalize line endings: store text with LF in the repository, regardless of a contributor's platform or
+# editor. Git detects text automatically; committed content is LF. Working-tree files are left as checked
+# out (no forced re-conversion on checkout), so this is "commit LF, check out as-is".
+* text=auto eol=lf
+
+# Binary assets must never be line-ending normalized.
+*.zip   binary
+*.png   binary
+*.natvis text eol=lf
