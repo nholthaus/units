@@ -213,6 +213,34 @@ That is enough for most use cases. How `meters a(5.0)` deduces its type and why 
 `units::` prefix are covered in [CTAD and ADL](docs/explain/ctad-and-adl-for-humans.md); the full
 walkthrough is in [Getting started](docs/learn/getting-started.md).
 
+### Temperatures and other affine units
+
+A few units are **affine**: they carry a datum offset, not just a scale. Degrees Celsius and Fahrenheit
+are the common examples — `0 °C` is `273.15 K`, not `0 K`. An affine quantity is an absolute **point** on a
+scale, and a *difference* of two points is a **delta** (an amount of temperature, with no datum). The
+library keeps this distinction quiet — you write ordinary arithmetic and it does the physically correct
+thing — but the rules are worth knowing:
+
+```cpp
+using namespace units::temperature;
+
+// point − point → a delta (the datum offsets cancel):
+auto d = celsius<double>(100.0) - fahrenheit<double>(32.0);   // 100 K  (a temperature difference)
+kelvin<double>(celsius<double>(0.0) - kelvin<double>(0.0));   // 273.15 K
+
+// point ± delta → move the point (compound assignment reads the rhs as a relative amount):
+celsius<double> t(20.0);
+t += celsius<double>(5.0);   // warm by 5 degrees → 25 °C   (still an absolute temperature)
+t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
+
+// point + point is disabled — the sum of two absolute temperatures has no physical meaning:
+// auto bad = celsius<double>(20.0) + celsius<double>(5.0);   // does not compile (by design)
+```
+
+Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
+units (lengths, masses, everything without an offset) are unaffected — they add, subtract, and combine with
+no special cases.
+
 ---
 
 ## Type errors

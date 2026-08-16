@@ -131,7 +131,7 @@ namespace units
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acos(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::acos(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::acos(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 
 	/**
@@ -145,7 +145,7 @@ namespace units
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asin(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::asin(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::asin(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 
 	/**
@@ -163,7 +163,7 @@ namespace units
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atan(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::atan(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::atan(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 
 	/**
@@ -249,7 +249,7 @@ namespace units
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acosh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::acosh(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::acosh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 
 	/**
@@ -264,7 +264,7 @@ namespace units
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asinh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::asinh(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::asinh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 
 	/**
@@ -280,7 +280,7 @@ namespace units
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atanh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
-			std::atanh(x.template to<typename dimensionlessUnit::underlying_type>()));
+			std::atanh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
 } // namespace units
 

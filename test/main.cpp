@@ -1968,6 +1968,47 @@ TEST_F(UnitType, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, dim, 5.0e-6);
 }
 
+// Affine (offset-carrying) units: the difference of two absolute temperatures is a DELTA — the datum
+// offsets cancel and the result must not re-apply an offset. Previously celsius(0) - kelvin(0) read 546.30 K
+// (the +273.15 offset was re-applied); the delta is 273.15 K. Absolute affine ADDITION is disabled (no
+// physical meaning), so only subtraction is exercised here.
+TEST_F(UnitType, affineTemperatureSubtractionIsADelta)
+{
+	using namespace units::temperature;
+	EXPECT_NEAR(273.15, kelvin<double>(celsius<double>(0.0) - kelvin<double>(0.0)).value(), 5.0e-11);
+	EXPECT_NEAR(100.0, kelvin<double>(celsius<double>(100.0) - fahrenheit<double>(32.0)).value(), 5.0e-11);
+	EXPECT_NEAR(15.0, kelvin<double>(celsius<double>(20.0) - celsius<double>(5.0)).value(), 5.0e-11);
+	EXPECT_NEAR(56.0, kelvin<double>(fahrenheit<double>(212.0) - fahrenheit<double>(111.2)).value(), 5.0e-9);
+	// The result of an affine subtraction is a non-affine (delta) unit: converting it applies no offset.
+	static_assert(!traits::is_affine_unit_v<decltype(celsius<double>(0.0) - kelvin<double>(0.0))>,
+		"an affine temperature difference must be a non-affine delta type");
+	// A non-affine same-dimension subtraction/addition is unaffected.
+	EXPECT_NEAR(2.0, meters<double>(meters<double>(5.0) - meters<double>(3.0)).value(), 5.0e-12);
+}
+
+// Compound assignment on an affine unit treats the rhs as a RELATIVE delta and moves the absolute point in
+// place ("warm/cool by N degrees"), staying in the lhs unit. This is the point-centric convenience: the
+// point/delta distinction stays a quiet detail rather than a pervasive type calculus.
+TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
+{
+	using namespace units::temperature;
+	celsius<double> a(20.0);
+	a += celsius<double>(5.0);
+	EXPECT_NEAR(25.0, a.value(), 5.0e-12);    // warmed by 5 degrees, still absolute celsius
+	a -= celsius<double>(10.0);
+	EXPECT_NEAR(15.0, a.value(), 5.0e-12);    // cooled by 10 degrees
+
+	// The result stays an absolute affine point (not converted to a delta type).
+	static_assert(traits::is_affine_unit_v<decltype(a)>, "compound assignment keeps the affine point type");
+
+	// Non-affine compound assignment is unchanged.
+	meters<double> m(5.0);
+	m += meters<double>(3.0);
+	EXPECT_NEAR(8.0, m.value(), 5.0e-12);
+	m -= meters<double>(2.0);
+	EXPECT_NEAR(6.0, m.value(), 5.0e-12);
+}
+
 TEST_F(UnitType, unitTypeUnarySubtraction)
 {
 	meters<double> a_m(4.0);
@@ -2466,6 +2507,14 @@ TEST_F(UnitType, unitTypeModulo)
 	constexpr auto d_m = a_m % a_km;
 	EXPECT_EQ(200, d_m.value());
 	static_assert(has_equivalent_conversion_factor(d_m, a_m));
+
+	// Coarser lhs: the result is the common (finer) unit, so the operator is not order-dependent. This
+	// direction previously failed to compile (the result was declared as the lhs unit, and converting the
+	// finer common result back to the coarser integer kilometers is lossy → the constructor was disabled).
+	constexpr kilometers f_km(3);
+	constexpr auto       g_m = f_km % b_m;    // 3000 m % 1800 m = 1200 m, in meters (the finer common unit)
+	EXPECT_EQ(1200, g_m.value());
+	static_assert(has_equivalent_conversion_factor(g_m, b_m));
 
 	constexpr auto b_km = a_km % dimensionless<int>(3);
 	EXPECT_EQ(2, b_km.value());
@@ -4961,6 +5010,24 @@ TEST_F(UnitMath, asin)
 	EXPECT_NEAR(angle::degrees<double>(out4).to<double>(), angle::degrees<double>(asin(uin4)).to<double>(), 5.0e-12);
 }
 
+// Regression: the inverse trig / hyperbolic family must promote a FRACTIONAL integer-underlying
+// dimensionless argument to floating point before the cmath call. A scaled dimensionless such as
+// percent<int>(50) has value 0.5 but an integer underlying of 50; converting to the raw underlying
+// truncated 0.5 -> 0, so asin/acos/atan (and the inverse hyperbolics) returned the wrong result for any
+// non-whole ratio. They must match std::* on the promoted value, exactly as the forward trig already does.
+TEST_F(UnitMath, inverseTrigPromotesFractionalIntegerUnderlying)
+{
+	const percent<int> half(50);    // value() == 0.5, underlying int == 50
+	EXPECT_NEAR(std::asin(0.5), asin(half).to<double>(), 5.0e-12);
+	EXPECT_NEAR(std::acos(0.5), acos(half).to<double>(), 5.0e-12);
+	EXPECT_NEAR(std::atan(0.5), atan(half).to<double>(), 5.0e-12);
+	EXPECT_NEAR(std::asinh(0.5), asinh(half).to<double>(), 5.0e-12);
+	EXPECT_NEAR(std::atanh(0.5), atanh(half).to<double>(), 5.0e-12);
+	// acosh needs an argument >= 1; use 150% = 1.5.
+	const percent<int> onePointFive(150);
+	EXPECT_NEAR(std::acosh(1.5), acosh(onePointFive).to<double>(), 5.0e-12);
+}
+
 TEST_F(UnitMath, atan)
 {
 	static_assert(std::is_same_v<angle::radians<double>, decltype(atan(dimensionless<double>(0)))>);
@@ -5211,12 +5278,37 @@ TEST_F(UnitMath, ceil)
 	double val = 101.1;
 	EXPECT_EQ(ceil(val), ceil(meters<double>(val)).to<double>());
 	static_assert(std::is_same_v<meters<double>, decltype(ceil(meters<double>(val)))>);
+
+	// ceil must match std::ceil across the WHOLE domain, including non-finite and magnitudes beyond the
+	// 2^63 range of a signed integer. A prior hand-rolled `static_cast<long long>` path returned garbage
+	// (~-9.22e18) for NaN, +/-Inf, and |x| >= 2^63; delegating to std::ceil fixes it.
+	const double nan = std::numeric_limits<double>::quiet_NaN();
+	const double inf = std::numeric_limits<double>::infinity();
+	EXPECT_TRUE(std::isnan(ceil(meters<double>(nan)).to<double>()));
+	EXPECT_EQ(inf, ceil(meters<double>(inf)).to<double>());
+	EXPECT_EQ(-inf, ceil(meters<double>(-inf)).to<double>());
+	EXPECT_EQ(std::ceil(1e19), ceil(meters<double>(1e19)).to<double>());
+	EXPECT_EQ(std::ceil(-1e19), ceil(meters<double>(-1e19)).to<double>());
+	// ordinary positive/negative rounding stays correct.
+	EXPECT_EQ(3.0, ceil(meters<double>(2.3)).to<double>());
+	EXPECT_EQ(-2.0, ceil(meters<double>(-2.3)).to<double>());
 }
 
 TEST_F(UnitMath, floor)
 {
 	double val = 101.1;
 	EXPECT_EQ(floor(val), floor(dimensionless<double>(val)));
+
+	// floor must match std::floor across the whole domain (see ceil above for the fixed regression).
+	const double nan = std::numeric_limits<double>::quiet_NaN();
+	const double inf = std::numeric_limits<double>::infinity();
+	EXPECT_TRUE(std::isnan(floor(meters<double>(nan)).to<double>()));
+	EXPECT_EQ(inf, floor(meters<double>(inf)).to<double>());
+	EXPECT_EQ(-inf, floor(meters<double>(-inf)).to<double>());
+	EXPECT_EQ(std::floor(1e19), floor(meters<double>(1e19)).to<double>());
+	EXPECT_EQ(std::floor(-1e19), floor(meters<double>(-1e19)).to<double>());
+	EXPECT_EQ(2.0, floor(meters<double>(2.3)).to<double>());
+	EXPECT_EQ(-3.0, floor(meters<double>(-2.3)).to<double>());
 }
 
 TEST_F(UnitMath, fmod)
@@ -5284,6 +5376,26 @@ TEST_F(UnitMath, fma)
 	meters<double>        y(3.0);
 	square_meters<double> z(1.0);
 	EXPECT_EQ(square_meters<double>(7.0), (units::fma(x, y, z)));
+
+	// Regression for #373: the three operands may be in DIFFERENT units of their dimensions, and each must
+	// be reconciled to the result unit before the fused multiply-add. Feeding each operand's own-unit raw
+	// value combined inconsistent bases (6 ft * 3 ft + 1 m^2 wrongly gave ~1.0 m^2 instead of 2.672255).
+	using units::literals::operator""_ft;
+	using units::literals::operator""_m2;
+	const auto crossUnit = units::fma(6.0_ft, 3.0_ft, 1.0_m2);
+	EXPECT_NEAR(2.67225472, square_meters<double>(crossUnit).to<double>(), 1.0e-6);
+
+	// Cross-DIMENSION product: (speed * time) + length, all reconciled to meters.
+	const auto crossDim = units::fma(10.0_mps, 2.0_s, 5.0_m);
+	EXPECT_NEAR(25.0, meters<double>(crossDim).to<double>(), 1.0e-9);
+
+	// Same-unit exact case stays exact.
+	EXPECT_EQ(square_meters<double>(10.0), (units::fma(meters<double>(2.0), meters<double>(3.0), square_meters<double>(4.0))));
+
+	// Integer-underlying operands promote (matching C's usual arithmetic conversions) and stay correct.
+	const auto intFma = units::fma(meters<int>(2), meters<int>(3), square_meters<int>(4));
+	EXPECT_NEAR(10.0, square_meters<double>(intFma).to<double>(), 1.0e-9);
+	static_assert(!std::is_integral_v<typename decltype(intFma)::underlying_type>, "fma result must be floating-point-promoted like C");
 }
 
 TEST_F(UnitMath, isnan)
