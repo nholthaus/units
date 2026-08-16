@@ -5075,6 +5075,259 @@ namespace units
 	{
 		return std::isunordered(lhs.raw(), rhs.raw());
 	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//	AFFINE POINT / DELTA WRAPPERS
+	//----------------------------------------------------------------------------------------------------------------------
+	// Opt-in wrappers that make the point-vs-delta distinction explicit in the type, for code that wants it
+	// enforced. `absolute<U>` is a POINT on a scale (it carries the unit's datum — 0 degC is 273.15 K).
+	// `delta<U>` is an AMOUNT (offset-free — a 10 degC delta is a 10 K delta, not 283.15 K). Plain unit types
+	// are unaffected; you reach for these only where the distinction matters (temperatures, epochs vs
+	// durations, absolute vs gauge pressure, positions vs displacements). For a non-affine unit the datum is
+	// zero, so `absolute` and `delta` coincide numerically. The type algebra the wrappers enforce:
+	//   absolute - absolute -> delta      (the datum offsets cancel)
+	//   absolute +/- delta   -> absolute  (move the point by a relative amount)
+	//   delta +/- delta      -> delta
+	//   absolute + absolute  -> ill-formed (the sum of two points has no meaning)
+
+	namespace detail
+	{
+		/// The offset-free counterpart of a unit: same dimension, scale, and pi factor, but translation
+		/// stripped. Converting a `delta` between units uses THIS (scale only, no datum), so a temperature
+		/// difference converts by degree size, not as an absolute point.
+		template<UnitType U>
+		using delta_unit_t = unit<traits::strong_t<conversion_factor<typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::conversion_ratio,
+											 typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::dimension_type,
+											 typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::pi_exponent_ratio, std::ratio<0>>>,
+			typename traits::unit_traits<U>::underlying_type, typename traits::unit_traits<U>::numerical_scale_type>;
+	} // namespace detail
+
+	template<UnitType U>
+	class delta;
+
+	//	----------------------------------------------------------------------------
+	//	CLASS		absolute
+	//  ----------------------------------------------------------------------------
+	///	@brief		A point on an (possibly affine) scale — carries the unit's datum.
+	///	@tparam		U	the wrapped unit type.
+	//  ----------------------------------------------------------------------------
+	template<UnitType U>
+	class absolute
+	{
+	public:
+		using unit_type       = U;
+		using underlying_type = typename traits::unit_traits<U>::underlying_type;
+
+		constexpr absolute() noexcept = default;
+		constexpr explicit absolute(const U& point) noexcept : m_point(point) {}
+
+		/// The wrapped point as a plain unit (still carrying its datum).
+		constexpr const U& quantity() const noexcept { return m_point; }
+		/// The point's numeric value in its own unit.
+		constexpr auto value() const noexcept { return m_point.value(); }
+		constexpr auto raw() const noexcept { return m_point.raw(); }
+
+		/// Convert this point to another unit of the same dimension — the datum offset IS applied.
+		template<UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr absolute<V> to() const noexcept
+		{
+			return absolute<V>(V(m_point));
+		}
+
+	private:
+		U m_point{};
+	};
+
+	//	----------------------------------------------------------------------------
+	//	CLASS		delta
+	//  ----------------------------------------------------------------------------
+	///	@brief		An amount of a quantity — offset-free (no datum).
+	///	@tparam		U	the wrapped unit type (its datum is ignored; only its scale matters).
+	//  ----------------------------------------------------------------------------
+	template<UnitType U>
+	class delta
+	{
+	public:
+		using unit_type       = U;
+		using underlying_type = typename traits::unit_traits<U>::underlying_type;
+
+		constexpr delta() noexcept = default;
+		constexpr explicit delta(const U& amount) noexcept : m_amount(amount) {}
+
+		/// The wrapped amount as a plain unit.
+		constexpr const U& quantity() const noexcept { return m_amount; }
+		constexpr auto value() const noexcept { return m_amount.value(); }
+		constexpr auto raw() const noexcept { return m_amount.raw(); }
+
+		/// Convert this delta to another unit of the same dimension — SCALE ONLY, the datum is never applied
+		/// (a 10 degC delta becomes an 18 degF delta, not an absolute 50 degF).
+		template<UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr delta<V> to() const noexcept
+		{
+			// Reinterpret both units as their offset-free counterparts, convert there, rewrap as V.
+			const detail::delta_unit_t<U> here(m_amount.raw());
+			const detail::delta_unit_t<V> there(here);    // scale-only conversion (no translation on either)
+			return delta<V>(V(there.raw()));
+		}
+
+	private:
+		U m_amount{};
+	};
+
+	//----------------------------------
+	//	ABSOLUTE / DELTA OPERATORS
+	//----------------------------------
+
+	// The wrapper operators reconcile the two operands to their COMMON unit (the finer of the two, via
+	// std::common_type) before combining — exactly as the plain-unit operators do. Reconciling to the lhs
+	// unit instead would narrow when the lhs is the coarser unit, which for an integer underlying is a
+	// lossy conversion the unit's constructor rejects — so `delta<kilometers<int>> - delta<meters<int>>`
+	// would be found by overload resolution yet hard-error deep in the conversion on instantiation. The
+	// common-unit reconciliation never narrows.
+
+	/// point - point -> delta (the datum offsets cancel), in the common (finer) unit.
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr delta<U> operator-(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
+	{
+		// The rhs point is converted into the lhs unit AFFINELY (offset applied), then subtracted; the datum
+		// cancels, leaving an offset-free delta expressed in the lhs unit. (Converting a point is safe and
+		// intuitive — "celsius point - X" yields a difference in celsius-degrees.)
+		return delta<U>(U(lhs.quantity().raw() - U(rhs.quantity()).raw()));
+	}
+
+	/// point + delta -> point (move the point up by a relative amount). The point keeps its OWN unit — a
+	/// point has a datum, and reconciling two affine frames to a "common" unit mangles the datum; only the
+	/// delta (offset-free) is converted, scale-only, into the point's unit.
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr absolute<U> operator+(const absolute<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		return absolute<U>(U(lhs.quantity().raw() + rhs.template to<U>().quantity().raw()));
+	}
+
+	/// delta + point -> point (commutative form).
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<V, U>
+	constexpr absolute<U> operator+(const delta<V>& lhs, const absolute<U>& rhs) noexcept
+	{
+		return rhs + lhs;
+	}
+
+	/// point - delta -> point (move the point down by a relative amount), in the point's own unit.
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr absolute<U> operator-(const absolute<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		return absolute<U>(U(lhs.quantity().raw() - rhs.template to<U>().quantity().raw()));
+	}
+
+	/// delta + delta -> delta, in the common unit.
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr auto operator+(const delta<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return delta<C>(C(lhs.template to<C>().quantity().raw() + rhs.template to<C>().quantity().raw()));
+	}
+
+	/// delta - delta -> delta, in the common unit.
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr auto operator-(const delta<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return delta<C>(C(lhs.template to<C>().quantity().raw() - rhs.template to<C>().quantity().raw()));
+	}
+
+	/// Unary negation of a delta (an amount can be negated; a point cannot).
+	template<UnitType U>
+	constexpr delta<U> operator-(const delta<U>& d) noexcept
+	{
+		return delta<U>(U(-d.quantity().raw()));
+	}
+
+	/// delta scaled by a bare number -> delta. The underlying type promotes exactly as the wrapped unit's own
+	/// `operator*` does (scaling an integer delta by a floating factor yields a floating delta — the wrapper
+	/// is never less precise than the unit it wraps).
+	template<UnitType U, ArithmeticType T>
+	constexpr auto operator*(const delta<U>& lhs, T rhs) noexcept
+	{
+		using ScaledUnit = decltype(lhs.quantity() * rhs);
+		return delta<ScaledUnit>(lhs.quantity() * rhs);
+	}
+	template<UnitType U, ArithmeticType T>
+	constexpr auto operator*(T lhs, const delta<U>& rhs) noexcept
+	{
+		return rhs * lhs;
+	}
+
+	/// delta divided by a bare number -> delta (promotes like the wrapped unit's own `operator/`).
+	template<UnitType U, ArithmeticType T>
+	constexpr auto operator/(const delta<U>& lhs, T rhs) noexcept
+	{
+		using ScaledUnit = decltype(lhs.quantity() / rhs);
+		return delta<ScaledUnit>(lhs.quantity() / rhs);
+	}
+
+	/// Compound move of a point by a delta. The point stays in its own unit (in-place semantics), so the rhs
+	/// delta is converted to the lhs unit; this is well-formed whenever that conversion is (a lossy integer
+	/// case is cleanly rejected by the delta conversion, as elsewhere in the library).
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr absolute<U>& operator+=(absolute<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		lhs = absolute<U>(U(lhs.quantity().raw() + rhs.template to<U>().quantity().raw()));
+		return lhs;
+	}
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr absolute<U>& operator-=(absolute<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		lhs = absolute<U>(U(lhs.quantity().raw() - rhs.template to<U>().quantity().raw()));
+		return lhs;
+	}
+
+	//----------------------------------
+	//	ABSOLUTE / DELTA COMPARISONS
+	//----------------------------------
+
+	// Comparisons reconcile to the common (finer) unit — never narrowing — so a mixed integer comparison
+	// (e.g. delta<kilometers<int>> vs delta<meters<int>>) is well-formed rather than hard-erroring.
+
+	/// Compare two points (reconciled to the common unit; the datum is applied on each side).
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr bool operator==(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return C(lhs.quantity()).raw() == C(rhs.quantity()).raw();
+	}
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr auto operator<=>(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return C(lhs.quantity()).raw() <=> C(rhs.quantity()).raw();
+	}
+
+	/// Compare two deltas (scale-only reconciliation to the common unit).
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr bool operator==(const delta<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return lhs.template to<C>().quantity().raw() == rhs.template to<C>().quantity().raw();
+	}
+	template<UnitType U, UnitType V>
+		requires traits::is_same_dimension_unit_v<U, V>
+	constexpr auto operator<=>(const delta<U>& lhs, const delta<V>& rhs) noexcept
+	{
+		using C = std::common_type_t<U, V>;
+		return lhs.template to<C>().quantity().raw() <=> rhs.template to<C>().quantity().raw();
+	}
 } // end namespace units
 
 //----------------------------------------------------------------------------------------------------------------------

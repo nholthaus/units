@@ -241,6 +241,36 @@ Comparisons (`==`, `<`, …) and conversions between affine units are exact and 
 units (lengths, masses, everything without an offset) are unaffected — they add, subtract, and combine with
 no special cases.
 
+#### Making the point/delta distinction explicit: `absolute<>` and `delta<>`
+
+The rules above are enforced at run time by convention. When you want the compiler to enforce them, wrap a
+quantity in **`absolute<U>`** (a point on a scale — carries the datum) or **`delta<U>`** (an amount —
+offset-free). These are opt-in: plain unit types are unchanged, and you reach for the wrappers only where
+the safety matters (temperatures, epochs vs durations, absolute vs gauge pressure, positions vs
+displacements). They wrap *any* unit — for a non-affine unit the datum is zero, so `absolute` and `delta`
+coincide.
+
+```cpp
+using namespace units::temperature;
+
+absolute<celsius<double>> room(celsius<double>(20.0));
+delta<celsius<double>>    step(celsius<double>(5.0));
+
+auto d      = room - absolute<kelvin<double>>(kelvin<double>(273.15)); // delta<>  (20 K difference)
+auto warmer = room + step;                                            // absolute<> (25 degC)
+room       += step;                                                    // move the point in place
+
+// enforced at compile time:
+// auto bad = room + room;   // ill-formed — the sum of two points is meaningless
+// auto x   = room + 5.0_m;  // ill-formed — a plain unit is neither a point nor a delta here
+```
+
+The type algebra: `absolute − absolute → delta` (the datum cancels), `absolute ± delta → absolute` (move
+the point), `delta ± delta → delta`, `delta * scalar → delta`; `absolute + absolute` does not compile. An
+`absolute`'s `.to<V>()` applies the datum (a point conversion); a `delta`'s `.to<V>()` is scale-only (a
+10 °C delta converts to an 18 °F delta, not to 50 °F). The wrappers are trivially copyable and the same
+size as the wrapped unit — zero overhead.
+
 ---
 
 ## Type errors

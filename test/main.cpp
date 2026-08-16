@@ -28,6 +28,13 @@
 using namespace units;
 using namespace units::literals;
 
+// Adversarial type-safety tests for the absolute<>/delta<> wrappers (self-contained: own usings + anonymous-namespace
+// helpers + WrapperSafety suite). Included as a header so it joins the single-TU suite.
+#include "wrapperTest_safety.h"
+
+// General (non-affine, cross-dimension) absolute<>/delta<> tests (GeneralWrapper suite).
+#include "wrapperTest_general.h"
+
 // A user-defined base dimension + unit, declared outside the library, to prove serialization is extensible to
 // dimensions the library has never seen (no central table, no fixed ceiling).
 namespace units
@@ -7164,6 +7171,216 @@ TEST_F(Serialization, typedFastPathPropagatesDecodeError)
 	const auto             r = units::deserialize<units::meters<double>>(garbage);
 	EXPECT_FALSE(r.has_value());
 	EXPECT_EQ(units::deserialize_error::bad_version, r.error());
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+//	AFFINE POINT / DELTA WRAPPER TESTS (absolute<>/delta<>) — the temperature (affine) slice.
+// ---------------------------------------------------------------------------------------------------------------------
+// These hammer the point-vs-delta distinction against physical truth: a POINT carries the scale's datum (0 degC =
+// 273.15 K), a DELTA is offset-free (a 10 degC change is a 10 K change, and an 18 degF change — SCALE only, never 50).
+namespace
+{
+	using units::absolute;
+	using units::delta;
+	using units::temperature::celsius;
+	using units::temperature::fahrenheit;
+	using units::temperature::kelvin;
+	using units::temperature::rankine;
+	using units::temperature::reaumur;
+
+	// Build wrappers tersely: aPoint<U>(v) / aDelta<U>(v) wrap a plain value in the point/delta wrapper.
+	template<class U>
+	constexpr absolute<U> aPoint(double v) noexcept
+	{
+		return absolute<U>(U(v));
+	}
+	template<class U>
+	constexpr delta<U> aDelta(double v) noexcept
+	{
+		return delta<U>(U(v));
+	}
+
+	constexpr double kTol = 1e-9; ///< tolerance for double temperature comparisons.
+} // namespace
+
+// point - point cancels the datum and yields a DELTA expressed in the lhs unit, across every temperature pair.
+TEST(AffineWrapper, pointMinusPointCancelsDatum)
+{
+	EXPECT_NEAR(273.15, (aPoint<celsius<>>(0.0) - aPoint<kelvin<>>(0.0)).value(), kTol);
+	EXPECT_NEAR(100.0, (aPoint<celsius<>>(100.0) - aPoint<fahrenheit<>>(32.0)).value(), kTol);
+
+	// 212 degF - 32 degF = 180 F-deg, which is exactly 100 K/C-deg once rescaled.
+	const auto fdiff = aPoint<fahrenheit<>>(212.0) - aPoint<fahrenheit<>>(32.0);
+	EXPECT_NEAR(180.0, fdiff.value(), kTol);
+	EXPECT_NEAR(100.0, fdiff.to<kelvin<>>().value(), kTol);
+	EXPECT_NEAR(100.0, fdiff.to<celsius<>>().value(), kTol);
+
+	// rankine and kelvin share the absolute-zero datum (491.67 R == 273.15 K), so their difference is ~0.
+	EXPECT_NEAR(0.0, (aPoint<rankine<>>(491.67) - aPoint<kelvin<>>(273.15)).value(), 1e-6);
+
+	// reaumur shares celsius's datum (0 Re = 0 C) but is 1.25x the degree size (100 C = 80 Re).
+	const auto rediff = aPoint<reaumur<>>(80.0) - aPoint<celsius<>>(0.0);
+	EXPECT_NEAR(80.0, rediff.value(), kTol);            // 80 Re-deg in the lhs (reaumur) unit
+	EXPECT_NEAR(100.0, rediff.to<celsius<>>().value(), kTol); // == 100 C-deg
+}
+
+// The result type of point - point is delta<lhs-unit>, and self-subtraction is an exact zero delta.
+TEST(AffineWrapper, pointMinusPointResultTypeAndSelf)
+{
+	// 0 C = 32 F, so 212 F - 32 F = 180 F-deg = 100 K. The difference is a delta wrapper in the common
+	// (finer) unit; compare via a conversion so the test is independent of that unit choice.
+	const auto diff = aPoint<fahrenheit<>>(212.0) - aPoint<celsius<>>(0.0);
+	EXPECT_NEAR(180.0, diff.template to<fahrenheit<>>().value(), kTol);
+	EXPECT_NEAR(100.0, diff.template to<kelvin<>>().value(), kTol);
+
+	const auto body = aPoint<celsius<>>(37.0);
+	EXPECT_NEAR(0.0, (body - body).template to<kelvin<>>().value(), kTol);
+}
+
+// point +/- delta moves the point and keeps the lhs unit; a cross-unit delta is added SCALE-only.
+TEST(AffineWrapper, pointPlusMinusDelta)
+{
+	EXPECT_NEAR(25.0, (aPoint<celsius<>>(20.0) + aDelta<celsius<>>(5.0)).value(), kTol);
+	EXPECT_NEAR(25.0, (aPoint<celsius<>>(20.0) + aDelta<kelvin<>>(5.0)).value(), kTol);
+	// 9 F-deg is 5 C-deg (SCALE only), so 20 C + delta(9 F) = 25 C — the delta never drags the 32-degree offset in.
+	EXPECT_NEAR(25.0, (aPoint<celsius<>>(20.0) + aDelta<fahrenheit<>>(9.0)).value(), kTol);
+	EXPECT_NEAR(15.0, (aPoint<celsius<>>(20.0) - aDelta<celsius<>>(5.0)).value(), kTol);
+	EXPECT_NEAR(273.0, (aPoint<kelvin<>>(300.0) - aDelta<celsius<>>(27.0)).value(), kTol);
+
+	// commuted form delta + point.
+	EXPECT_NEAR(25.0, (aDelta<kelvin<>>(5.0) + aPoint<celsius<>>(20.0)).value(), kTol);
+
+	// result keeps the lhs (point) unit.
+	const auto moved = aPoint<celsius<>>(20.0) + aDelta<fahrenheit<>>(9.0);
+	EXPECT_TRUE((std::is_same_v<std::remove_const_t<decltype(moved)>, absolute<celsius<>>>));
+}
+
+// A ZERO delta of an affine unit must NOT smuggle the datum in: celsius(20) + delta<celsius>(0) stays 20, not 293.15.
+// This is the core correctness property that distinguishes delta from absolute.
+TEST(AffineWrapper, zeroDeltaDoesNotCarryOffset)
+{
+	EXPECT_NEAR(20.0, (aPoint<celsius<>>(20.0) + aDelta<celsius<>>(0.0)).value(), kTol);
+	EXPECT_NEAR(20.0, (aPoint<celsius<>>(20.0) + aDelta<fahrenheit<>>(0.0)).value(), kTol);
+	EXPECT_NEAR(20.0, (aPoint<celsius<>>(20.0) - aDelta<kelvin<>>(0.0)).value(), kTol);
+	// a delta's wrapped quantity is the bare amount, never datum-shifted.
+	EXPECT_NEAR(10.0, aDelta<celsius<>>(10.0).quantity().raw(), kTol);
+	EXPECT_NEAR(10.0, aDelta<celsius<>>(10.0).value(), kTol);
+}
+
+// delta.to<V>() is SCALE-only: 10 C-deg == 18 F-deg == 10 K, never an absolute 50 degF.
+TEST(AffineWrapper, deltaConversionIsScaleOnly)
+{
+	EXPECT_NEAR(18.0, aDelta<celsius<>>(10.0).to<fahrenheit<>>().value(), kTol);
+	EXPECT_NEAR(10.0, aDelta<fahrenheit<>>(18.0).to<celsius<>>().value(), kTol);
+	EXPECT_NEAR(10.0, aDelta<celsius<>>(10.0).to<kelvin<>>().value(), kTol);
+	EXPECT_NEAR(5.0, aDelta<fahrenheit<>>(9.0).to<celsius<>>().value(), kTol);
+	EXPECT_NEAR(5.0, aDelta<rankine<>>(9.0).to<kelvin<>>().value(), kTol);
+	EXPECT_NEAR(10.0, aDelta<reaumur<>>(8.0).to<celsius<>>().value(), kTol); // 8 Re-deg == 10 C-deg
+}
+
+// delta +/- delta and delta * scalar, reconciled scale-only to the common (finer) unit. Results are
+// compared via a conversion to a fixed unit so the test is independent of which unit std::common_type picks.
+TEST(AffineWrapper, deltaArithmetic)
+{
+	// celsius-degree and kelvin-degree are the same size, so these are numerically clean either way.
+	EXPECT_NEAR(15.0, (aDelta<celsius<>>(10.0) + aDelta<kelvin<>>(5.0)).template to<kelvin<>>().value(), kTol);
+	EXPECT_NEAR(-3.0, (aDelta<celsius<>>(5.0) - aDelta<kelvin<>>(8.0)).template to<kelvin<>>().value(), kTol);
+	// cross-unit delta + delta reconciles scale-only: 10 F-deg + 5 C-deg (== 9 F-deg) = 19 F-deg.
+	EXPECT_NEAR(19.0, (aDelta<fahrenheit<>>(10.0) + aDelta<celsius<>>(5.0)).template to<fahrenheit<>>().value(), kTol);
+
+	EXPECT_NEAR(30.0, (aDelta<celsius<>>(10.0) * 3).value(), kTol);
+	EXPECT_NEAR(20.0, (2 * aDelta<celsius<>>(10.0)).value(), kTol);
+	EXPECT_NEAR(-25.0, (aDelta<celsius<>>(10.0) * -2.5).value(), kTol);
+
+	// The result of a cross-unit delta sum is a delta wrapper (of the common unit).
+	const auto sum = aDelta<celsius<>>(1.0) + aDelta<kelvin<>>(2.0);
+	EXPECT_NEAR(3.0, sum.template to<kelvin<>>().value(), kTol);
+}
+
+// += / -= compound-move a point by a (possibly cross-unit) delta, and chaining a + d1 + d2 accumulates correctly.
+TEST(AffineWrapper, compoundAssignAndChaining)
+{
+	auto p = aPoint<celsius<>>(20.0);
+	p += aDelta<kelvin<>>(5.0);
+	EXPECT_NEAR(25.0, p.value(), kTol);
+	p -= aDelta<fahrenheit<>>(9.0); // 9 F-deg == 5 C-deg
+	EXPECT_NEAR(20.0, p.value(), kTol);
+
+	const auto chained = aPoint<celsius<>>(20.0) + aDelta<celsius<>>(5.0) + aDelta<kelvin<>>(3.0);
+	EXPECT_NEAR(28.0, chained.value(), kTol);
+}
+
+// Point comparisons reconcile across the datum (celsius(0) == kelvin(273.15) == fahrenheit(32)); delta comparisons
+// are scale-only (10 C-deg == 18 F-deg).
+TEST(AffineWrapper, comparisons)
+{
+	EXPECT_TRUE(aPoint<celsius<>>(0.0) == aPoint<fahrenheit<>>(32.0));
+	EXPECT_TRUE(aPoint<celsius<>>(100.0) > aPoint<kelvin<>>(300.0)); // 100 C = 373.15 K
+	EXPECT_TRUE(aPoint<celsius<>>(0.0) < aPoint<fahrenheit<>>(33.0));
+	EXPECT_TRUE(aPoint<kelvin<>>(273.15) >= aPoint<celsius<>>(0.0));
+
+	EXPECT_TRUE(aDelta<celsius<>>(10.0) == aDelta<fahrenheit<>>(18.0));
+	EXPECT_TRUE(aDelta<fahrenheit<>>(9.0) == aDelta<celsius<>>(5.0));
+	EXPECT_TRUE(aDelta<celsius<>>(10.0) > aDelta<fahrenheit<>>(9.0));   // 18 F-deg > 9 F-deg
+	EXPECT_FALSE(aDelta<celsius<>>(5.0) == aDelta<fahrenheit<>>(10.0)); // 5 C = 9 F != 10 F
+}
+
+// absolute.to<V>() APPLIES the datum offset (20 C -> 293.15 K) and round-trips exactly.
+TEST(AffineWrapper, pointConversionAppliesOffsetAndRoundTrips)
+{
+	const auto k = aPoint<celsius<>>(20.0).to<kelvin<>>();
+	EXPECT_NEAR(293.15, k.value(), kTol);
+	EXPECT_NEAR(20.0, k.to<celsius<>>().value(), kTol);
+
+	// reaumur point -> celsius/kelvin applies both the scale and the offset.
+	EXPECT_NEAR(100.0, aPoint<reaumur<>>(80.0).to<celsius<>>().value(), kTol);
+	EXPECT_NEAR(373.15, aPoint<reaumur<>>(80.0).to<kelvin<>>().value(), kTol);
+
+	// fahrenheit point round-trips through kelvin.
+	const auto f = aPoint<fahrenheit<>>(98.6);
+	EXPECT_NEAR(98.6, f.to<kelvin<>>().to<fahrenheit<>>().value(), 1e-6);
+}
+
+// default-constructed wrappers are zero (a plain unit's zero), for both point and delta.
+TEST(AffineWrapper, defaultConstructedIsZero)
+{
+	EXPECT_NEAR(0.0, absolute<kelvin<>>{}.value(), kTol);
+	EXPECT_NEAR(0.0, delta<kelvin<>>{}.value(), kTol);
+	EXPECT_NEAR(0.0, absolute<celsius<>>{}.value(), kTol);
+}
+
+// Integer-underlying temperatures truncate C-style; lossless (same-datum, scale-1) conversions still compile.
+TEST(AffineWrapper, integerUnderlyingConversionAndScaling)
+{
+	// 20 C -> 293.15 K truncates toward zero to 293 (an integer-underlying point conversion).
+	EXPECT_EQ(293, absolute<celsius<int>>(celsius<int>(20)).to<kelvin<int>>().raw());
+	// delta same-datum scale-1 conversion is lossless.
+	EXPECT_EQ(10, delta<celsius<int>>(celsius<int>(10)).to<kelvin<int>>().raw());
+	// delta * fractional scalar promotes exactly as the wrapped unit's own operator* does: an int delta scaled by
+	// a floating factor yields a floating delta (the wrapper is never less precise than the unit it wraps).
+	const auto d = delta<celsius<int>>(celsius<int>(10)) * 1.19; // 11.9, promoted to double
+	EXPECT_TRUE((std::is_same_v<decltype(d)::underlying_type, double>));
+	EXPECT_NEAR(11.9, d.raw(), 5.0e-12);
+	// delta * integer keeps the integer underlying type.
+	const auto di = delta<celsius<int>>(celsius<int>(10)) * 2;
+	EXPECT_TRUE((std::is_same_v<decltype(di)::underlying_type, int>));
+	EXPECT_EQ(20, di.raw());
+}
+
+// Constant-evaluable math is provably correct at compile time (point-point, point+delta, scale-only delta, +=).
+TEST(AffineWrapper, constexprMath)
+{
+	static_assert((absolute<celsius<>>(celsius<>(100.0)) - absolute<celsius<>>(celsius<>(0.0))).value() == 100.0);
+	static_assert((absolute<celsius<>>(celsius<>(20.0)) + delta<kelvin<>>(kelvin<>(5.0))).value() == 25.0);
+	static_assert(delta<celsius<>>(celsius<>(10.0)).to<kelvin<>>().value() == 10.0);
+	static_assert(delta<fahrenheit<>>(fahrenheit<>(9.0)).to<celsius<>>().value() == 5.0);
+	static_assert(absolute<celsius<>>(celsius<>(0.0)) == absolute<fahrenheit<>>(fahrenheit<>(32.0)));
+	static_assert([] {
+		auto a = absolute<celsius<>>(celsius<>(20.0));
+		a += delta<celsius<>>(celsius<>(5.0));
+		return a.value();
+	}() == 25.0);
+	SUCCEED();
 }
 
 int main(int argc, char* argv[])
