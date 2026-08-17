@@ -27,7 +27,7 @@ HERE = Path(__file__).resolve().parent
 
 def parse_directives(text):
     d = {"expect_fail": False, "expect_match": [], "expect_match_gcc": [], "expect_match_msvc": [],
-         "forbid_match": [], "flags": [], "flags_msvc": []}
+         "forbid_match": [], "forbid_match_gcc": [], "forbid_match_msvc": [], "flags": [], "flags_msvc": []}
     for line in text.splitlines():
         m = re.search(r'//\s*expect:\s*(\w+)', line)
         if m:
@@ -45,6 +45,18 @@ def parse_directives(text):
         m = re.search(r'//\s*expect-match:\s*(.+?)\s*$', line)
         if m:
             d["expect_match"].append(m.group(1))
+        # Compiler-specific anti-soup guards, symmetric to expect-match-gcc/-msvc. A token that is genuinely
+        # absent on GCC/clang but that MSVC legitimately spells (e.g. the `units::cos(AngleUnit)` candidate
+        # signature carries `dimension_t<`/`conversion_factor<...>` in an overload-resolution note) is forbidden
+        # only where it is truly soup. `forbid-match:` applies to every compiler; `forbid-match-gcc:` /
+        # `forbid-match-msvc:` apply only to that compiler. Checked before the generic form so the `-gcc`/`-msvc`
+        # suffix is not swallowed by the generic pattern.
+        m = re.search(r'//\s*forbid-match-gcc:\s*(.+?)\s*$', line)
+        if m:
+            d["forbid_match_gcc"].append(m.group(1))
+        m = re.search(r'//\s*forbid-match-msvc:\s*(.+?)\s*$', line)
+        if m:
+            d["forbid_match_msvc"].append(m.group(1))
         m = re.search(r'//\s*forbid-match:\s*(.+?)\s*$', line)
         if m:
             d["forbid_match"].append(m.group(1))
@@ -103,7 +115,9 @@ def run_case(path, cc, std, include):
     for sub in expected:
         if normalize(sub) not in norm:
             problems.append(f"missing readable token: {sub!r}")
-    for sub in d["forbid_match"]:
+    forbidden = list(d["forbid_match"])
+    forbidden += d["forbid_match_msvc"] if is_msvc(cc) else d["forbid_match_gcc"]
+    for sub in forbidden:
         if normalize(sub) in norm:
             problems.append(f"contains forbidden soup: {sub!r}")
 
