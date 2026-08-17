@@ -172,6 +172,21 @@ namespace units
 			inline constexpr bool dependent_false = false;
 			template<class...>
 			inline constexpr bool dependent_false_t = false;
+
+			/// A three-way ordering of two plain units built from their own relational operators, so a wrapper's
+			/// `<=>` inherits the core unit's value-based (signedness-safe) comparison. `unit` exposes `<`/`==`, not
+			/// a spaceship, so the ordering is synthesized; an incomparable (NaN) pair is `unordered`.
+			template<class LhsUnit, class RhsUnit>
+			constexpr std::partial_ordering order(const LhsUnit& lhs, const RhsUnit& rhs) noexcept
+			{
+				if (lhs < rhs)
+					return std::partial_ordering::less;
+				if (rhs < lhs)
+					return std::partial_ordering::greater;
+				if (lhs == rhs)
+					return std::partial_ordering::equivalent;
+				return std::partial_ordering::unordered;
+			}
 		} // namespace wrap_detail
 		/** @endcond */ // END DOXYGEN IGNORE
 	} // inline namespace affine (forward declarations only)
@@ -690,36 +705,45 @@ namespace units
 		// comparison has no `.value()` to keep intuitive, so the common-unit reconciliation (which cannot lose an
 		// equality) is the right choice here even though the arithmetic operators keep the LHS unit.
 
-		/// Compare two points (reconciled to the common unit; the datum is applied on each side).
+		// Point/amount comparisons delegate to the WRAPPED plain units' own comparison operators, so they inherit
+		// the core's value-based (signedness-safe) integer comparison: a signed-rep and an unsigned-rep wrapper of
+		// the same dimension compare by mathematical value, not by unsigned wraparound.
+
+		/// Compare two points (the datum is applied on each side as it unwraps to the plain unit).
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr bool operator==(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return C(wrap_detail::unwrap(lhs)).raw() == C(wrap_detail::unwrap(rhs)).raw();
+			return wrap_detail::unwrap(lhs) == wrap_detail::unwrap(rhs);
 		}
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
-		constexpr auto operator<=>(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
+		constexpr std::partial_ordering operator<=>(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return C(wrap_detail::unwrap(lhs)).raw() <=> C(wrap_detail::unwrap(rhs)).raw();
+			return wrap_detail::order(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs));
 		}
 
-		/// Compare two deltas (scale-only reconciliation to the common unit).
+		// Reconcile two deltas to the common UNIT (scale only) while keeping EACH side's own underlying type — so a
+		// signed and an unsigned delta reach the plain-unit comparison in their own representations, and the core's
+		// value-based comparison orders them by mathematical value rather than wrapping the negative side.
+		/// Compare two deltas.
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr bool operator==(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return lhs.template to<C>().raw() == rhs.template to<C>().raw();
+			using C     = std::common_type_t<U, V>;
+			using CLhs  = traits::replace_underlying_t<C, typename traits::unit_traits<U>::underlying_type>;
+			using CRhs  = traits::replace_underlying_t<C, typename traits::unit_traits<V>::underlying_type>;
+			return lhs.template to<CLhs>() == rhs.template to<CRhs>();
 		}
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
-		constexpr auto operator<=>(const delta<U>& lhs, const delta<V>& rhs) noexcept
+		constexpr std::partial_ordering operator<=>(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return lhs.template to<C>().raw() <=> rhs.template to<C>().raw();
+			using C    = std::common_type_t<U, V>;
+			using CLhs = traits::replace_underlying_t<C, typename traits::unit_traits<U>::underlying_type>;
+			using CRhs = traits::replace_underlying_t<C, typename traits::unit_traits<V>::underlying_type>;
+			return wrap_detail::order(lhs.template to<CLhs>(), rhs.template to<CRhs>());
 		}
 
 		//----------------------------------
@@ -1008,20 +1032,19 @@ namespace units
 			return lhs;
 		}
 
-		/// Compare two kinds of the SAME tag (reconciled to the common unit). Different tags do not compare.
+		/// Compare two kinds of the SAME tag; the wrapped plain units compare (inheriting the core's value-based,
+		/// signedness-safe integer comparison). Different tags do not compare.
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr bool operator==(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return C(wrap_detail::unwrap(lhs)).raw() == C(wrap_detail::unwrap(rhs)).raw();
+			return wrap_detail::unwrap(lhs) == wrap_detail::unwrap(rhs);
 		}
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
-		constexpr auto operator<=>(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
+		constexpr std::partial_ordering operator<=>(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			using C = std::common_type_t<U, V>;
-			return C(wrap_detail::unwrap(lhs)).raw() <=> C(wrap_detail::unwrap(rhs)).raw();
+			return wrap_detail::order(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs));
 		}
 
 		//----------------------------------

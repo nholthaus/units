@@ -1098,3 +1098,28 @@ TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
 	static_assert(decltype(t)::tag() == fixed_string("torque"));
 	EXPECT_UNIT_NEAR(t, 7.0);
 }
+
+//======================================================================================================================
+//	CORRECTNESS PARITY — the wrappers inherit the core's value-based (signedness-safe) comparison
+//======================================================================================================================
+
+// A signed-rep and an unsigned-rep wrapper of the same dimension compare by mathematical value, not by C++'s
+// int/unsigned wraparound — the wrappers are not left behind by the core comparison fix.
+TEST(WrapperCorrectness, mixedSignednessComparesByValue)
+{
+	// delta
+	EXPECT_TRUE(D<meters<int>>(-1) < D<meters<unsigned>>(1u));
+	EXPECT_FALSE(D<meters<int>>(-1) == D<meters<unsigned>>(1u));
+	EXPECT_TRUE(D<meters<int>>(-5) != D<meters<unsigned>>(5u));
+	EXPECT_TRUE(D<meters<unsigned>>(1u) > D<meters<int>>(-1));
+	// absolute
+	EXPECT_TRUE(A<meters<int>>(-1) < A<meters<unsigned>>(1u));
+	EXPECT_FALSE(A<meters<int>>(-1) >= A<meters<unsigned>>(1u));
+	// kind
+	EXPECT_TRUE((kind<"radial", meters<int>>(-1) < kind<"radial", meters<unsigned>>(1u)));
+	EXPECT_TRUE((kind<"radial", meters<int>>(2) == kind<"radial", meters<unsigned>>(2u)));
+
+	// Same-signedness and cross-unit wrapper comparisons remain correct.
+	EXPECT_TRUE(D<meters<int>>(3) < D<meters<int>>(5));
+	EXPECT_TRUE(A<meters<int>>(1000) == A<kilometers<int>>(1));
+}
