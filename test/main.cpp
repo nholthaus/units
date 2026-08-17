@@ -1977,6 +1977,71 @@ TEST_F(UnitType, unitTypeSubtraction)
 	EXPECT_NEAR(0.0, dim, 5.0e-6);
 }
 
+// The result of a same-dimension +/- is expressed in the LEFT operand's unit (the caller controls it by
+// operand order), so the value reads in the unit they wrote and no anonymous sub-unit is conjured. The
+// left-operand's underlying is widened to the common lossless unit only when it is integral and cannot hold
+// the right operand without truncation — the case where integer exactness requires the finest common unit.
+TEST_F(UnitType, arithmeticResultIsLeftOperandUnit)
+{
+	using namespace units::length;
+	using namespace units::mass;
+
+	// Floating point: the result is the LEFT operand's unit, both orders — caller controls it by ordering.
+	static_assert(std::is_same_v<decltype(meters<double>(1) - feet<double>(1)), meters<double>>);
+	static_assert(std::is_same_v<decltype(feet<double>(1) - meters<double>(1)), feet<double>>);
+	static_assert(std::is_same_v<decltype(meters<double>(1) + feet<double>(1)), meters<double>>);
+	static_assert(std::is_same_v<decltype(kilometers<double>(1) - meters<double>(1)), kilometers<double>>);
+
+	// The value reads correctly in that left-operand unit.
+	EXPECT_NEAR(7.73203815, (kilograms<double>(10) - units::mass::pounds<double>(5)).value(), 1.0e-6);   // 10 kg - 5 lb, in kg (LHS)
+	EXPECT_NEAR(9.0, (meters<double>(10) - feet<double>(3.280839895013123)).value(), 1.0e-9);  // 10 m - 1 m in m
+
+	// A named result carries its friendly name (not an anonymous unit): abbreviation is non-empty.
+	EXPECT_STRNE("", (meters<double>(1) - feet<double>(1)).abbreviation());
+	EXPECT_STREQ("m", (meters<double>(1) - feet<double>(1)).abbreviation());
+
+	// Integer, commensurable: the left operand cannot hold the finer right operand losslessly, so the result
+	// reconciles to the finer real named unit (meters), exact.
+	static_assert(std::is_same_v<decltype(kilometers<int>(1) - meters<int>(500)), meters<int>>);
+	EXPECT_EQ(500, (kilometers<int>(1) - meters<int>(500)).value());
+
+	// Integer, incommensurable (meters vs feet): no real named unit holds the result without truncation, so it
+	// falls to the finest common (anonymous) unit — the exact reconciliation. The VALUE stays correct.
+	{
+		const auto d = meters<int>(3) - feet<int>(1);   // 3 m - 1 ft, exact in the common sub-unit
+		EXPECT_NEAR(2.6952, meters<double>(d).value(), 1.0e-4);
+	}
+}
+
+// The common type of two same-dimension units recovers a friendly name even when the finer operand's unit is
+// registered as a composed conversion factor (centimeters is centi<meters>, minutes is 60 seconds): the
+// reconciliation result names centimeters / minutes rather than an anonymous sub-unit, while a cross-kind pair
+// that shares a dimension and ratio (torque's newton_meters and energy's joules) stays symmetric and is not
+// renamed from one kind to the other.
+TEST_F(UnitType, commonTypeRecoversComposedName)
+{
+	using namespace units::length;
+	using namespace units::time;
+
+	using m_cm  = std::common_type_t<meters<double>, centimeters<double>>;
+	using cm_m  = std::common_type_t<centimeters<double>, meters<double>>;
+	using hr_min = std::common_type_t<hours<double>, minutes<double>>;
+	EXPECT_STREQ("cm", m_cm().abbreviation());
+	EXPECT_STREQ("cm", cm_m().abbreviation());
+	EXPECT_STREQ("min", hr_min().abbreviation());   // hours (3600 s) and minutes (60 s) reconcile to minutes, the finer
+
+	// common_type stays symmetric (a type function must be); recovery never breaks that.
+	static_assert(std::is_same_v<std::common_type_t<meters<double>, centimeters<double>>,
+								 std::common_type_t<centimeters<double>, meters<double>>>);
+	// Cross-kind equivalent pair (same dimension AND ratio) is NOT renamed and stays order-independent.
+	static_assert(std::is_same_v<std::common_type_t<units::torque::newton_meters<double>, units::energy::joules<double>>,
+								 std::common_type_t<units::energy::joules<double>, units::torque::newton_meters<double>>>);
+
+	// The name recovery preserves the RATIO (integer exactness): comparison across scales is unaffected.
+	static_assert(units::length::kilometers<int>(1) == units::length::meters<int>(1000));
+	static_assert(!(units::length::meters<int>(1) == units::length::feet<int>(3)));
+}
+
 // Affine (offset-carrying) units: the difference of two absolute temperatures is a DELTA — the datum
 // offsets cancel and the result must not re-apply an offset. Previously celsius(0) - kelvin(0) read 546.30 K
 // (the +273.15 offset was re-applied); the delta is 273.15 K. Absolute affine ADDITION is disabled (no

@@ -2465,6 +2465,20 @@ namespace units
 				std::conjunction<std::negation<std::is_floating_point<typename UnitFrom::underlying_type>>,
 					is_non_truncated_convertible_unit<typename UnitFrom::conversion_factor, typename UnitTo::conversion_factor>>>>;
 
+		/// True when both units have a floating-point underlying type.
+		template<class L, class R>
+		inline constexpr bool both_floating_v = std::is_floating_point_v<typename traits::unit_traits<L>::underlying_type> &&
+												std::is_floating_point_v<typename traits::unit_traits<R>::underlying_type>;
+
+		/// The result unit of a same-dimension `+`/`-` of `L` and `R`. It is the LEFT operand's unit — so the caller
+		/// controls the result unit by operand order and reads the value in the unit they wrote — whenever that is
+		/// lossless: either the right operand converts into the left as-is, or both operands are floating point (a
+		/// floating result in either unit loses nothing). When neither holds — an integral left operand that cannot
+		/// hold the right without truncation — it falls back to the symmetric common (finest, lossless) unit, the
+		/// same exact reconciliation integer comparisons use.
+		template<class L, class R>
+		using lhs_result_unit_t = std::conditional_t<is_losslessly_convertible_unit<R, L> || both_floating_v<L, R>, L, std::common_type_t<L, R>>;
+
 		// The underlying type a NAMED unit's from-unit deduction guide should produce when constructed from `Source`:
 		// the source's own underlying when losslessly convertible into the target (StrongCf, Scale), else its
 		// floating-point promotion (so e.g. radians(degrees{1}) deduces radians<double>). A SFINAE-friendly class
@@ -2991,6 +3005,29 @@ namespace units
 		template<class T>
 		inline constexpr bool is_named_unit_v = is_named_unit_impl<T>::value;
 
+		// Two conversion factors are EQUIVALENT when they describe the same physical mapping — same dimension,
+		// conversion ratio, pi exponent, and datum — even if they are different C++ types (a flattened
+		// `conversion_factor<ratio<1,100>, length>` versus the composed `centi<meters_>` that `centimeters` is
+		// registered as). Type identity is stricter than equivalence; a reconciliation result that is equivalent
+		// to an operand's unit should still recover that operand's friendly name.
+		template<class Cf1, class Cf2>
+		inline constexpr bool is_equivalent_conversion_factor_v =
+			traits::is_same_dimension_conversion_factor_v<Cf1, Cf2> &&
+			std::ratio_equal_v<typename Cf1::conversion_ratio, typename Cf2::conversion_ratio> &&
+			std::ratio_equal_v<typename Cf1::pi_exponent_ratio, typename Cf2::pi_exponent_ratio> &&
+			std::ratio_equal_v<typename Cf1::translation_ratio, typename Cf2::translation_ratio>;
+
+		// A conversion factor is RAW when it carries no registered name of its own — a bare reconciliation result
+		// such as the flattened gcd of meters and centimeters, for which `named_class_of` finds no registration and
+		// `rewrap_to_named` is the identity. A named unit's registered factor (meters_, joules_, …) is NOT raw: it
+		// resolves to its named class. Equivalence-based name recovery fires only for a RAW factor, because
+		// recovering a name for an already-named factor could rename one physical kind to another that shares its
+		// dimension and ratio (torque's newton_meters_ and energy's joules_ are equivalent) — so recovery is
+		// restricted to the anonymous reconciliation results that have no name to preserve.
+		template<class Cf>
+		inline constexpr bool is_raw_conversion_factor_v =
+			std::is_void_v<decltype(named_class_of(static_cast<Cf*>(nullptr), static_cast<linear_scale*>(nullptr)))>;
+
 		// Re-wrap a computed base result `unit<Cf, U, Ns>` into a NAMED unit when a candidate operand `Named` is a
 		// named unit of the SAME conversion_factor: the friendly name is preserved through the trait (so
 		// common_type<meters<int>, meters<double>> is meters<double>, not unit<meters_, double, linear_scale>). When no
@@ -3003,6 +3040,18 @@ namespace units
 		template<class Base, class Named>
 		struct rewrap_named<Base, Named,
 			std::enable_if_t<is_named_unit_v<Named> && std::is_same_v<typename Base::conversion_factor, typename Named::conversion_factor>>>
+		{
+			using type = typename Named::template rebind<typename Base::underlying_type>;
+		};
+		// Equivalence recovery: when `Base`'s factor is RAW (an anonymous reconciliation result, e.g. the flattened
+		// gcd of meters and centimeters) and is equivalent to a named operand's factor, recover that operand's name.
+		// This names an m − cm result `centimeters` and an hr − min result `minutes` where exact-type matching missed
+		// them, without renaming an already-named result (the raw guard excludes strong factors such as joules_).
+		template<class Base, class Named>
+		struct rewrap_named<Base, Named,
+			std::enable_if_t<is_named_unit_v<Named> && !std::is_same_v<typename Base::conversion_factor, typename Named::conversion_factor> &&
+				is_raw_conversion_factor_v<typename Base::conversion_factor> &&
+				is_equivalent_conversion_factor_v<typename Base::conversion_factor, typename Named::conversion_factor>>>
 		{
 			using type = typename Named::template rebind<typename Base::underlying_type>;
 		};
@@ -3341,6 +3390,15 @@ namespace units
 		 */
 		template<RatioType Ratio1, RatioType Ratio2>
 		using ratio_gcd = std::ratio<std::gcd(Ratio1::num, Ratio2::num), std::lcm(Ratio1::den, Ratio2::den)>;
+
+		/// The datum offset a reconciliation of two units should carry. When both operands share the offset it is
+		/// kept (celsius with celsius stays celsius). When they differ — one carries a datum and the other does not
+		/// (celsius vs kelvin) — the common unit takes the CLEAN, offset-free value: a sane user reconciling degrees
+		/// Celsius with kelvin expects kelvin, not a hybrid scale carrying an arbitrary zero. Applied only to the
+		/// translation ratio; the conversion and pi ratios keep their greatest common measure so magnitudes stay
+		/// lossless (that is what integer comparisons rely on).
+		template<RatioType Ratio1, RatioType Ratio2>
+		using common_baggage_ratio = std::conditional_t<std::ratio_equal_v<Ratio1, Ratio2>, Ratio1, std::ratio<0>>;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 } // end namespace units
@@ -3365,7 +3423,7 @@ namespace std
 			units::unit<
 				units::traits::strong_t<units::conversion_factor<units::detail::ratio_gcd<typename ConversionFactorLhs::conversion_ratio, typename ConversionFactorRhs::conversion_ratio>,
 					units::traits::dimension_of_t<ConversionFactorLhs>, units::detail::ratio_gcd<typename ConversionFactorLhs::pi_exponent_ratio, typename ConversionFactorRhs::pi_exponent_ratio>,
-					units::detail::ratio_gcd<typename ConversionFactorLhs::translation_ratio, typename ConversionFactorRhs::translation_ratio>>>,
+					units::detail::common_baggage_ratio<typename ConversionFactorLhs::translation_ratio, typename ConversionFactorRhs::translation_ratio>>>,
 				common_type_t<Tx, Ty>, NumericalScale>>
 	{
 	};
@@ -4065,13 +4123,22 @@ namespace units
 	///			25 degC in any absolute sense). Zero-offset scales of the same dimension (including kelvin and
 	///			rankine) add normally — the sum is well-defined arithmetically even where it is rarely the
 	///			physically intended operation.
+	/// @details	The result is expressed in the LEFT operand's unit, so the caller controls the result unit by
+	///			operand order (`meters + feet` is meters, `feet + meters` is feet) and the value reads in the unit
+	///			they named. The underlying is widened only when the left operand's is integral and the right cannot
+	///			convert into it without truncation, in which case the result reconciles to the common (finest,
+	///			lossless) unit — the same exact behavior integer comparisons rely on.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
-	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		return CommonUnit(CommonUnit(lhs).raw() + CommonUnit(rhs).raw());
+		// The result unit is computed in the body (not the signature) so the trait is never instantiated for a
+		// non-unit operand that the constraint above already rejects — a stricter compiler evaluates a trailing
+		// return type during overload resolution and would otherwise hard-error on, e.g., a vector iterator's
+		// pointer subtraction that briefly considers this operator.
+		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
+		return ResultUnit(ResultUnit(lhs).raw() + ResultUnit(rhs).raw());
 	}
 
 	/// Addition template for ratio-like dimensionless units (concentrations, etc)
@@ -4130,13 +4197,17 @@ namespace units
 	}
 
 	/// Subtraction operator for NON-AFFINE unit types with a linear_scale.
+	/// @details	Like `operator+`, the result is in the LEFT operand's unit (caller controls the result unit by
+	///			operand order), widening to the common lossless unit only when the left operand is integral and cannot
+	///			hold the right without truncation.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
-	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit = decltype(lhs - rhs);
-		return CommonUnit(CommonUnit(lhs).raw() - CommonUnit(rhs).raw());
+		// Result unit computed in the body, not the signature — see operator+ above.
+		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
+		return ResultUnit(ResultUnit(lhs).raw() - ResultUnit(rhs).raw());
 	}
 
 	/// Subtraction operator for AFFINE unit types (e.g. temperatures with a datum offset).
@@ -4151,16 +4222,16 @@ namespace units
 			(traits::is_affine_unit_v<UnitTypeLhs> || traits::is_affine_unit_v<UnitTypeRhs>))
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		using CommonUnit    = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
-		using CommonCf      = typename traits::unit_traits<CommonUnit>::conversion_factor;
-		// The common unit with its datum offset removed: a pure delta in the same scale/dimension.
-		using DeltaCf       = conversion_factor<typename traits::conversion_factor_traits<CommonCf>::conversion_ratio,
-			typename traits::conversion_factor_traits<CommonCf>::dimension_type,
-			typename traits::conversion_factor_traits<CommonCf>::pi_exponent_ratio, std::ratio<0>>;
-		using DeltaUnit     = unit<traits::strong_t<DeltaCf>, typename CommonUnit::underlying_type, typename CommonUnit::numerical_scale_type>;
-		// The raw difference in the common affine unit is the true delta (offsets cancel); return it as a
-		// non-affine DeltaUnit so no offset is ever re-applied.
-		return DeltaUnit(CommonUnit(lhs).raw() - CommonUnit(rhs).raw());
+		// Reconcile to the LEFT operand's affine unit (its datum applied to the right operand as it converts),
+		// so the delta is expressed in the left operand's scale — celsius(100) - fahrenheit(32) is 100 celsius
+		// degrees, not a value in an anonymous sub-unit of the two scales' common measure. The result is the
+		// offset-STRIPPED counterpart of the left unit so no datum is ever re-applied to the delta.
+		using LhsCf     = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
+		using DeltaCf   = conversion_factor<typename traits::conversion_factor_traits<LhsCf>::conversion_ratio,
+			typename traits::conversion_factor_traits<LhsCf>::dimension_type,
+			typename traits::conversion_factor_traits<LhsCf>::pi_exponent_ratio, std::ratio<0>>;
+		using DeltaUnit = unit<traits::strong_t<DeltaCf>, typename UnitTypeLhs::underlying_type, typename UnitTypeLhs::numerical_scale_type>;
+		return DeltaUnit(lhs.raw() - UnitTypeLhs(rhs).raw());
 	}
 
 	/// Subtraction operator for dimensionless unit types with a linear_scale. dimensionless types can be implicitly
