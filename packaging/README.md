@@ -14,6 +14,10 @@ authoritative copy to track.
 After `find_package(units CONFIG REQUIRED)`, link `units::units`. See
 [`docs/how-to/cmake-integration.md`](../docs/how-to/cmake-integration.md).
 
+Bumping these to a new release is a short checklist — [`RELEASE.md`](RELEASE.md). Two values are filled
+only after the `v<version>` tag exists (they hash its archive tarball): the vcpkg `SHA512` and the Conan
+`sha256`.
+
 ## The one rule every package follows: compile nothing
 
 The library's tests and examples are development artifacts, never part of a package. A packaging build
