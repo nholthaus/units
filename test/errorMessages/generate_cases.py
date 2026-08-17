@@ -157,9 +157,17 @@ def write(name, text):
     (CASES / f"generated_{name}.cpp").write_text(text)
 
 def gen_bad_conversion(name, hdrs, body, matches):
-    directives = ["// expect: fail"] + [f"// expect-match: {m}" for m in matches] + [f"// forbid-match: {SOUP}"]
+    # Two anti-soup guards: the dimensionless SOUP marker (a friendly name must never collapse to the bare
+    # conversion_factor<std::ratio<1>, units::dimension_t...> form) AND the broader SOUP_DIMENSION marker
+    # (`dimension_t<` — the friendly name must not be drowned in a dimension_t<...> wall). Both are confirmed
+    # absent across every generated cross-dimension case on GCC-15 and clang-19: the bare `conversion_factor<...>`
+    # template chain that clang echoes in constructor-candidate notes carries a NAMED dimension (dimension::length,
+    # dimension::frequency, ...), never the dimensionless `dimension_t<>` form these markers catch, so the guards
+    # never false-fire while still catching a regression that drowns the friendly type in dimensionless soup.
+    directives = (["// expect: fail"] + [f"// expect-match: {m}" for m in matches]
+                  + [f"// forbid-match: {SOUP}", f"// forbid-match: {SOUP_DIMENSION}"])
     txt = f"""// GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension use — the diagnostic must name the
-// FRIENDLY unit types, never the raw conversion_factor<...> soup.
+// FRIENDLY unit types, never the raw conversion_factor<...> / dimension_t<...> soup.
 {chr(10).join(directives)}
 {header_includes(hdrs)}
 using namespace units;
