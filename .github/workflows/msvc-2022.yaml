@@ -36,7 +36,13 @@ jobs:
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
+        # Build the main test binary first, then the rest. The vcpkg toolchain runs a `z-applocal` post-link step
+        # on every executable, copying the same vcpkg DLLs into build/test/; under a single fully-parallel build
+        # those applocal steps race on the shared DLL files ("cannot access the file because it is being used by
+        # another process"). Staggering the heavy target (unitLibTest) into its own pass keeps the compile parallel
+        # while the applocal steps no longer collide.
         run: |
+          cmake --build build --parallel --target unitLibTest
           cmake --build build --parallel
 
       - name: Run Tests
