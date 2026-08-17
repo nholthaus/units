@@ -15,6 +15,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <cstring>
 #include <type_traits>
 #include <units.h>
 #include <units/serialization.h>
@@ -224,6 +225,79 @@ TEST(OdrSafetyInvariant, SerializationIsIdenticalNamedVsPlainBase)
 	ASSERT_TRUE(backBase.has_value());
 	EXPECT_DOUBLE_EQ(2.5, backNamed->template to<velocity_base>()->value());
 	EXPECT_DOUBLE_EQ(2.5, backBase->template to<velocity_base>()->value());
+}
+
+//======================================================================================================================
+//	OBSERVATIONAL-EQUIVALENCE THEOREM — the named and plain-base forms differ ONLY in type identity
+//======================================================================================================================
+//
+// The #378 divergence produces, for one computed quantity, at most two C++ types across translation units: the named
+// form (e.g. `meters_per_second<double>`) where the result's dimension header is in scope, and the plain
+// `unit<conversion_factor<...>, double>` base where it is not. These proofs establish that the two forms are identical
+// in every ODR-observable channel EXCEPT the type identity (name-mangling) itself: same size, alignment, and
+// trivial-copyability (so any object representation carried through either is bit-identical); same value; same
+// serialized bytes; same std::hash. The type identity does diverge — and BECAUSE it does, the two forms mangle to
+// distinct symbols, so a template/overload/specialization instantiated on them yields distinct, non-colliding weak
+// symbols; the linker never folds one onto the other. The residual observable is therefore confined to overload
+// resolution that keys on the concrete named type: such an overload matches only in a TU that formed the named form,
+// which is why every dispatch the library exposes keys on the dimension concept (`Velocity`, `Force`, ...) — proven
+// above to classify identically in every TU — and not on the named type.
+
+namespace
+{
+	// Assert the full equivalence channel-set between a named result form and the plain dimension base of the same
+	// dimension and underlying type. `named` and `base` hold the same magnitude.
+	template<class Named, class Base>
+	void assertObservationallyEquivalent(const Named& named, const Base& base)
+	{
+		// Type identity DOES diverge (this is the premise, not a defect); distinct identity => distinct mangling =>
+		// distinct, non-colliding symbols for anything instantiated on the two forms.
+		static_assert(!std::is_same_v<Named, Base>, "the two forms are distinct types (distinct mangling)");
+
+		// Layout: identical size, alignment, and trivial-copyability — an object representation is interchangeable.
+		static_assert(sizeof(Named) == sizeof(Base), "size parity");
+		static_assert(alignof(Named) == alignof(Base), "alignment parity");
+		static_assert(std::is_trivially_copyable_v<Named> == std::is_trivially_copyable_v<Base>, "trivial-copy parity");
+		static_assert(sizeof(Named) == sizeof(typename Named::underlying_type), "no hidden state beyond the underlying");
+		static_assert(same_dimension<Named, Base>, "same dimension");
+
+		// Value representation: the stored value is bit-identical.
+		const auto vNamed = named.template to<double>();
+		const auto vBase  = base.template to<double>();
+		EXPECT_EQ(0, std::memcmp(&vNamed, &vBase, sizeof(double))) << "value representation is bit-identical";
+
+		// Serialization: identical byte stream and identical erased rendering.
+		const units::any_unit encNamed = units::serialize(named);
+		const units::any_unit encBase  = units::serialize(base);
+		ASSERT_EQ(encNamed.size(), encBase.size());
+		EXPECT_EQ(0, std::memcmp(encNamed.data(), encBase.data(), encNamed.size())) << "serialized bytes are identical";
+		EXPECT_EQ(encNamed.to_string(), encBase.to_string());
+
+		// Hash: equal values hash equally under either type identity.
+		EXPECT_EQ(std::hash<Named>()(named), std::hash<Base>()(base)) << "hash is identical";
+	}
+} // namespace
+
+TEST(OdrEquivalence, NamedAndBaseFormsAreObservationallyEquivalent)
+{
+	// One representative computed result per exercised dimension; each is reconciled to its plain dimension base and
+	// checked across every observable channel. Extend the set as dimensions gain named computed results.
+	{
+		const auto v = meters<double>(6) / seconds<double>(2);           // velocity
+		assertObservationallyEquivalent(v, velocity_base(v));
+	}
+	{
+		const auto f = kilograms<double>(2) * (meters<double>(5) / pow<2>(seconds<double>(1))); // force
+		assertObservationallyEquivalent(f, force_base(f));
+	}
+	{
+		const auto a = meters<double>(9) * meters<double>(9);           // area
+		assertObservationallyEquivalent(a, unit<conversion_factor<std::ratio<1>, dimension::area>, double>(a));
+	}
+	{
+		const auto r = 1.0 / seconds<double>(4);                        // frequency
+		assertObservationallyEquivalent(r, unit<conversion_factor<std::ratio<1>, dimension::frequency>, double>(r));
+	}
 }
 
 //======================================================================================================================
