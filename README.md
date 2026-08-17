@@ -133,9 +133,11 @@ using namespace units::literals;   // the _m, _s, _kg, ... literals
 
 > **Note — if compiles are slow, include less.** `<units.h>` pulls in all 48 dimensions. The library is
 > heavily templated, so a translation unit's compile time scales with how much it instantiates; including
-> only the per-dimension headers you use keeps it down. Include the dimension of every quantity you
-> *name*, including result dimensions (dividing a length by a time needs `<units/velocity.h>`). Run-time
-> behavior and code size are unaffected either way.
+> only the per-dimension headers you use keeps it down. As a best practice — not a requirement — include the
+> dimension a computed result lands in (dividing a length by a time yields a velocity, so `<units/velocity.h>`
+> lets you name and print that result as `meters_per_second`); a translation unit that omits it still computes
+> the correct value and dimension, just under the plain `unit<...>` type. Run-time behavior and code size are
+> unaffected either way.
 
 **Make a quantity.** Four equivalent forms:
 
@@ -233,8 +235,10 @@ celsius<double> t(20.0);
 t += celsius<double>(5.0);   // warm by 5 degrees → 25 °C   (still an absolute temperature)
 t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
 
-// point + point is disabled — the sum of two absolute temperatures has no physical meaning:
+// point + point is disabled for OFFSET scales — summing two degrees-Celsius values adds their datums,
+// which is arithmetically corrupt (20 °C + 5 °C is not 25 °C in any absolute sense):
 // auto bad = celsius<double>(20.0) + celsius<double>(5.0);   // does not compile (by design)
+// Zero-offset scales (kelvin, rankine) have no datum to corrupt, so they add like any linear unit.
 ```
 
 Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
@@ -651,6 +655,13 @@ double pts  = (50.0_pct).raw();     // 50    (.raw() is the point count)
 
 // Constrain your own templates with the concepts
 template <units::UnitType U> U twice(U x) { return x + x; }
+
+// Constrain on a physical quantity by DIMENSION — every dimension emits a
+// PascalCase concept (Velocity, Force, Length, Frequency, ...). Being
+// dimension-keyed, these classify a computed result the same way in every
+// translation unit, regardless of which dimension headers it included.
+void report(units::Velocity auto v);              // any velocity
+template <units::Force F> F clamp_force(F f);     // any force
 
 // Define a unit in one line
 namespace units {
@@ -1241,8 +1252,10 @@ Beyond the catalog: unit-aware `<cmath>` (found by ADL), `std::chrono::duration`
 and `std::numeric_limits` specializations, NaN/infinity support, self-describing binary
 [serialization](docs/how-to/serialization.md), optional
 [nlohmann/json](docs/how-to/json-serialization.md) serialization, a concept vocabulary (`UnitType`,
-`ConversionFactorType`, …) for constraining your own templates, non-linear (decibel) scales, and affine
-temperature. Each has a how-to or reference page under [docs/](docs/).
+`ConversionFactorType`, …) plus a per-dimension concept for every dimension (`Velocity`, `Force`, `Length`,
+…) so you can constrain a template on a physical quantity by dimension (`void f(Velocity auto v)`),
+non-linear (decibel) scales, and affine temperature. Each has a how-to or reference page under
+[docs/](docs/).
 
 ---
 
@@ -1268,6 +1281,7 @@ reference is published at <https://nholthaus.github.io/units/>.
 - [Affine temperature](docs/explain/affine-temperature.md)
 - [Namespaces](docs/explain/namespaces.md)
 - [Named-type internals](docs/explain/internals-named-types.md)
+- [Naming computed results consistently](docs/explain/naming-computed-results.md)
 
 ### How-to
 

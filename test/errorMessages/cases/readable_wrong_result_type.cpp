@@ -1,8 +1,8 @@
 // Case: assigning an area (m^2) to a length (m) must FAIL readably, naming both friendly types.
 //
 // expect: fail
-// expect-match: square_meters
-// expect-match: meters
+// expect-match: square_meters<
+// expect-match: meters<
 #include <units/length.h>
 #include <units/area.h>
 using namespace units;

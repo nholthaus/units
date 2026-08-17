@@ -62,7 +62,7 @@ namespace units
 
 	UNIT_ADD(substance, pound_moles, lbmol, conversion_factor<std::ratio<45359237, 100000>, mols_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(substance)
+	UNIT_ADD_DIMENSION_TRAIT(substance, Substance)
 } // namespace units
 
 #endif // units_substance_h_

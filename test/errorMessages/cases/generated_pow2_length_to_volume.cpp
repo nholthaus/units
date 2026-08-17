@@ -1,8 +1,8 @@
 // GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension use — the diagnostic must name the
 // FRIENDLY unit types, never the raw conversion_factor<...> soup.
 // expect: fail
-// expect-match: square_meters<double>
-// expect-match: cubic_meters<double>
+// expect-match: square_meters<
+// expect-match: cubic_meters<
 // forbid-match: conversion_factor<std::ratio<1>, units::dimension_t
 #include <units/length.h>
 #include <units/area.h>

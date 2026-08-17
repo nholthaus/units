@@ -62,7 +62,7 @@ namespace units
 	UNIT_ADD(voltage, statvolts, statV, conversion_factor<std::ratio<299792458, 1000000>, volts_>)
 	UNIT_ADD(voltage, abvolts, abV, conversion_factor<std::ratio<1, 100000000>, volts_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(voltage)
+	UNIT_ADD_DIMENSION_TRAIT(voltage, Voltage)
 } // namespace units
 
 #endif // units_voltage_h_

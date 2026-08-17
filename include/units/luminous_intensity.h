@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_intensity, candelas, cd, conversion_factor<std::ratio<1>, dimension::luminous_intensity>)
 
-	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity)
+	UNIT_ADD_DIMENSION_TRAIT(luminous_intensity, LuminousIntensity)
 } // namespace units
 
 #endif // units_luminous_intensity_h_

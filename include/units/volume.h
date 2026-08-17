@@ -88,7 +88,7 @@ namespace units
 	UNIT_ADD(volume, shots, shts, conversion_factor<std::ratio<3, 2>, fluid_ounces<>>)
 	UNIT_ADD(volume, strikes, strk, conversion_factor<std::ratio<2>, bushels<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(volume)
+	UNIT_ADD_DIMENSION_TRAIT(volume, Volume)
 } // namespace units
 
 #endif // units_volume_h_

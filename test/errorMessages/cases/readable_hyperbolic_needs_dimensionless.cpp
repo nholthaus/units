@@ -2,7 +2,7 @@
 // readably, naming the offending strong type and the dimensionless constraint it did not satisfy.
 //
 // expect: fail
-// expect-match: meters<double>
+// expect-match: meters<
 // expect-match: dimensionless
 #include <units/angle.h>
 #include <units/length.h>

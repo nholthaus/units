@@ -1,8 +1,8 @@
 // Case: adding incompatible units (length + time) must FAIL readably, naming the strong types.
 //
 // expect: fail
-// expect-match: meters
-// expect-match: seconds
+// expect-match: meters<
+// expect-match: seconds<
 #include <units/length.h>
 #include <units/time.h>
 using namespace units::literals;

@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(luminous_flux, lumens, lm, conversion_factor<std::ratio<1>, dimension::luminous_flux>)
 
-	UNIT_ADD_DIMENSION_TRAIT(luminous_flux)
+	UNIT_ADD_DIMENSION_TRAIT(luminous_flux, LuminousFlux)
 } // namespace units
 
 #endif // units_luminous_flux_h_

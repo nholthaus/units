@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(impedance, ohms, Ohm, conversion_factor<std::ratio<1>, dimension::impedance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(impedance)
+	UNIT_ADD_DIMENSION_TRAIT(impedance, Impedance)
 } // namespace units
 
 #endif // units_impedance_h_

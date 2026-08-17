@@ -68,7 +68,7 @@ namespace units
 	UNIT_ADD(volume_flow_rate, cubic_feet_per_second, cfs, compound_conversion_factor<cubic_feet<>, inverse<seconds_>>)
 	UNIT_ADD(volume_flow_rate, cubic_feet_per_minute, cfm, compound_conversion_factor<cubic_feet<>, inverse<minutes_>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(volume_flow_rate)
+	UNIT_ADD_DIMENSION_TRAIT(volume_flow_rate, VolumeFlowRate)
 } // namespace units
 
 #endif // units_volume_flow_rate_h_

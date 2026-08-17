@@ -67,7 +67,7 @@ namespace units
 	UNIT_ADD(temperature, reaumur, Re, conversion_factor<std::ratio<10, 8>, celsius_>)
 	UNIT_ADD(temperature, rankine, Ra, conversion_factor<std::ratio<5, 9>, kelvin<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(temperature)
+	UNIT_ADD_DIMENSION_TRAIT(temperature, Temperature)
 } // namespace units
 
 #endif // units_temperature_h_

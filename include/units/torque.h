@@ -75,7 +75,7 @@ namespace units
 									   "(units::energy::foot_pounds remains the energy unit.)")]] = pound_feet<Underlying>;
 	}
 
-	UNIT_ADD_DIMENSION_TRAIT(torque)
+	UNIT_ADD_DIMENSION_TRAIT(torque, Torque)
 } // namespace units
 
 #endif // units_torque_h_

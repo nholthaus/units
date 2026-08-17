@@ -58,7 +58,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(radiant_intensity, watts_per_steradian, W_per_sr, conversion_factor<std::ratio<1>, dimension::radiant_intensity>)
 
-	UNIT_ADD_DIMENSION_TRAIT(radiant_intensity)
+	UNIT_ADD_DIMENSION_TRAIT(radiant_intensity, RadiantIntensity)
 } // namespace units
 
 #endif // units_radiant_intensity_h_

@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(frequency, hertz, Hz, conversion_factor<std::ratio<1>, dimension::frequency>)
 
-	UNIT_ADD_DIMENSION_TRAIT(frequency)
+	UNIT_ADD_DIMENSION_TRAIT(frequency, Frequency)
 } // namespace units
 
 #endif // units_frequency_h_

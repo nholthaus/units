@@ -56,8 +56,8 @@ namespace units
 	/**
 	 * @namespace	units::force
 	 * @brief		namespace for unit types and containers representing force values
-	 * @details		The SI unit for force is `newtons`, and the corresponding `dimension` dimension is
-	 *				`force_unit`.
+	 * @details		The SI unit for force is `newtons`, and the corresponding dimension concept is
+	 *				`Force` (backed by the `traits::is_force_unit_v` trait).
 	 * @anchor		forceContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
@@ -74,7 +74,7 @@ namespace units
 	UNIT_ADD(force, long_tons_force, ltonf, conversion_factor<std::ratio<2240>, force::pounds_>)
 	UNIT_ADD(force, sthenes, sn, conversion_factor<std::ratio<1000>, newtons_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(force)
+	UNIT_ADD_DIMENSION_TRAIT(force, Force)
 } // namespace units
 
 #endif // units_force_h_

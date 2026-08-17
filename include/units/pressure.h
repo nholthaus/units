@@ -87,7 +87,7 @@ namespace units
 	UNIT_ADD(pressure, millimeters_of_water, mmH2O, conversion_factor<std::ratio<1, 10>, centimeters_of_water_>)
 	UNIT_ADD(pressure, inches_of_water, inH2O, conversion_factor<std::ratio<254, 100>, centimeters_of_water_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(pressure)
+	UNIT_ADD_DIMENSION_TRAIT(pressure, Pressure)
 } // namespace units
 
 #ifdef _MSC_VER

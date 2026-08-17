@@ -69,7 +69,7 @@ namespace units
 	UNIT_ADD(angle, angular_mils, amil, conversion_factor<std::ratio<1, 6400>, turns<>>)
 	UNIT_ADD(angle, compass_points, cpt, conversion_factor<std::ratio<1, 32>, turns<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(angle)
+	UNIT_ADD_DIMENSION_TRAIT(angle, Angle)
 
 	//----------------------------------
 	//	UNIT-ENABLED CMATH FUNCTIONS

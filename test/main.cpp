@@ -30,6 +30,10 @@
 using namespace units;
 using namespace units::literals;
 
+// #378 ODR-audit regression guards: dimension-keyed physical-quantity concepts (Velocity/Force/...) and the
+// value/dimension/layout/serialization safety invariants that make the cross-TU type-identity split value-safe.
+#include "odrDimensionConcept.h"
+
 // A user-defined base dimension + unit, declared outside the library, to prove serialization is extensible to
 // dimensions the library has never seen (no central table, no fixed ceiling).
 namespace units
@@ -3476,11 +3480,35 @@ TEST_F(UnitType, dBAddition)
 	result_dbm = decibels<double>(30.0) + dBm<double>(20.0);
 	EXPECT_NEAR(50.0, result_dbm.value(), 5.0e-5);
 
-	// adding dBW to dBW is something you probably shouldn't do, but let's see if it works...
-	unit<squared<dBW<double>>> result_dBW2 = ::units::power::dBW<double>(10.0) + dBm<double>(40.0);
-	EXPECT_NEAR(100.0, result_dBW2.to_linearized(), 5.0e-5);
-	unit<squared<dBW<double>>> result_dBW3 = dBW<double>(10.0) + dBm<double>(40.0);
-	EXPECT_NEAR(100.0, result_dBW3.to_linearized(), 5.0e-5);
+	// Adding two absolute decibel LEVELS (dBW + dBm, both dimensioned) is a point + point and is ill-formed:
+	// two power levels do not sum by adding their dB numbers (that would be a product of powers). The addition
+	// operator for two dimensioned same-dimension decibel operands is deleted; the compile-time rejection is
+	// proven by the errorMessages case decibel_level_plus_level.cpp (a deleted overload is still selected by
+	// overload resolution, so it cannot be probed with a `requires` expression — the negative test lives there).
+}
+
+TEST_F(UnitType, dBAffineSemantics)
+{
+	// A dimensioned decibel value (dBW, dBm) is an absolute LEVEL — a point on a logarithmic reference scale.
+	// A dimensionless decibel (decibels) is a relative GAIN — a delta. The defined operations mirror an affine
+	// space: level + gain -> level, gain + gain -> gain, level - level -> gain. (level + level is ill-formed;
+	// see dBAddition and the decibel_level_plus_level errorMessages case.)
+
+	// level + gain -> level (the point stays a dimensioned power level, moved by the gain)
+	const auto boosted = dBW<double>(10.0) + decibels<double>(3.0);
+	EXPECT_NEAR(13.0, boosted.value(), 5.0e-5);
+	static_assert(std::is_same_v<std::remove_const_t<decltype(boosted)>, dBW<double>>, "level + gain stays a level");
+	static_assert(traits::is_power_unit_v<decltype(boosted)>, "a dBW level is a power");
+
+	// gain + gain -> gain (two relative ratios compound; their dB numbers add)
+	const auto chained = decibels<double>(3.0) + decibels<double>(3.0);
+	EXPECT_NEAR(6.0, chained.value(), 5.0e-5);
+	static_assert(traits::is_dimensionless_unit_v<decltype(chained)>, "gain + gain is a dimensionless gain");
+
+	// level - level -> gain (the ratio of two levels is a relative dB, i.e. a delta)
+	const auto ratio = dBW<double>(30.0) - dBW<double>(10.0);
+	EXPECT_NEAR(20.0, ratio.value(), 5.0e-5);
+	static_assert(traits::is_dimensionless_unit_v<decltype(ratio)>, "level - level is a dimensionless gain");
 }
 
 TEST_F(UnitType, dBSubtraction)
@@ -5926,6 +5954,21 @@ TEST_F(CaseStudies, selfDefinedUnits)
 	std::cout << original;
 	std::string output = testing::internal::GetCapturedStdout();
 	EXPECT_STREQ("0.005 m^3 s^-2", output.c_str());
+}
+
+TEST_F(CaseStudies, idealGasLaw)
+{
+	// PV = nRT, solved for pressure. Temperature is a factor in the product just like any other quantity —
+	// a physicist writes the equation directly, with no unwrapping of the affine scale. One mole at 273.15 K
+	// in 22.414 L is one standard atmosphere.
+	const substance::mols<>       n = substance::mols<>(1.0);
+	const temperature::kelvin<>   T = temperature::kelvin<>(273.15);
+	const volume::liters<>        V = volume::liters<>(22.414);
+	const auto                    R = energy::joules<>(8.314462618) / (substance::mols<>(1.0) * temperature::kelvin<>(1.0));
+
+	const pressure::pascals<double> P = (n * R * T) / V;
+
+	EXPECT_NEAR(101325.0, P.value(), 1.0);
 }
 
 //======================================================================================================================

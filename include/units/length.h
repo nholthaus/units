@@ -53,8 +53,8 @@ namespace units
 	/**
 	 * @namespace	units::length
 	 * @brief		namespace for unit types and containers representing length values
-	 * @details		The SI unit for length is `meters`, and the corresponding `dimension` dimension is
-	 *				`length_unit`.
+	 * @details		The SI unit for length is `meters`, and the corresponding dimension concept is
+	 *				`Length` (backed by the `traits::is_length_unit_v` trait).
 	 * @anchor		lengthContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
@@ -89,7 +89,7 @@ namespace units
 	UNIT_ADD(length, picas, pica, conversion_factor<std::ratio<1, 6>, inches<>>)
 	UNIT_ADD(length, points, pnt, conversion_factor<std::ratio<1, 72>, inches<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(length)
+	UNIT_ADD_DIMENSION_TRAIT(length, Length)
 } // namespace units
 
 #endif // units_length_h_

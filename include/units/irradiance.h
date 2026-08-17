@@ -58,7 +58,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(irradiance, watts_per_meter_squared, W_per_m2, conversion_factor<std::ratio<1>, dimension::irradiance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(irradiance)
+	UNIT_ADD_DIMENSION_TRAIT(irradiance, Irradiance)
 } // namespace units
 
 #endif // units_irradiance_h_

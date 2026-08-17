@@ -101,6 +101,35 @@ int main()
 
 > **Caveat:** `DimensionedUnitType` and `DimensionlessUnitType` partition the set of unit types — a `UnitType` satisfies exactly one of them. When you overload on the two, the concepts are mutually exclusive, so no ambiguity arises. Likewise `OrdinaryDimensionlessUnitType` and `RatioDimensionlessUnitType` partition the *dimensionless* units (ratio-1 versus not).
 
+## Per-dimension concepts
+
+Every dimension emits its own concept in namespace `units`, PascalCase-named after the dimension —
+`Length`, `Mass`, `Time`, `Velocity`, `Force`, `Frequency`, `Area`, `Energy`, `Power`, `Pressure`,
+`Dimensionless`, and one for each of the library's dimensions. Each is generated alongside its
+`traits::is_<dimension>_unit_v` trait by the `UNIT_ADD_DIMENSION_TRAIT(dimension, ConceptName)` macro that
+every dimension header invokes (`units/velocity.h` emits `Velocity`, `units/force.h` emits `Force`, and so
+on), so a new dimension you define with that macro gets a concept for free.
+
+A per-dimension concept is satisfied by any unit whose SI dimension matches, regardless of the named type —
+`Velocity` accepts `meters_per_second`, a `feet / seconds`, or any computed length-over-time. Use it to
+constrain a template on a *physical quantity by dimension* instead of on a concrete named type:
+
+```cpp
+#include <units/velocity.h>
+#include <units/force.h>
+
+void report(units::Velocity auto v);            // any velocity
+
+template <units::Force F>
+F clamp_force(F f);                             // any force
+```
+
+Because the concept classifies by dimension — at the core level, independent of the named-type
+registration — it answers identically in every translation unit no matter which dimension headers are in
+scope. That makes dimension-concept dispatch the robust way to accept a computed derived quantity across
+translation units; constraining on a concrete named type instead can diverge with include order (see
+[naming computed results consistently](../explain/naming-computed-results.md)).
+
 ## Concepts versus traits
 
 Concepts and the [type traits](type-traits.md) they wrap are two views of the same predicate. Prefer the concept in new code:
@@ -119,4 +148,5 @@ The concept form participates in overload resolution as a named constraint and y
 
 - [Type traits](type-traits.md) — the traits these concepts are built on, plus the ones with no concept form.
 - [Numerical scales](../explain/scales.md) — `NumericalScaleType`, `linear_scale`, `decibel_scale`.
+- [Naming computed results consistently](../explain/naming-computed-results.md) — include result headers and dispatch on the dimension concept.
 - [Cheat sheet](cheat-sheet.md) — the API on one page.

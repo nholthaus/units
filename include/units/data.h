@@ -92,7 +92,7 @@ namespace units
 
 	UNIT_ADD(data, nibbles, nibble, conversion_factor<std::ratio<4>, bits_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(data)
+	UNIT_ADD_DIMENSION_TRAIT(data, Data)
 } // namespace units
 
 #endif // units_data_h_

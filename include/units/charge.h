@@ -65,7 +65,7 @@ namespace units
 	UNIT_ADD(charge, abcoulombs, abC, conversion_factor<std::ratio<10>, coulombs_>)
 	UNIT_ADD(charge, statcoulombs, statC, conversion_factor<std::ratio<1, 2997924580LL>, coulombs_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(charge)
+	UNIT_ADD_DIMENSION_TRAIT(charge, Charge)
 } // namespace units
 
 #endif // units_charge_h_

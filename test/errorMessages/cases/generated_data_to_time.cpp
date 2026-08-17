@@ -1,8 +1,8 @@
 // GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension use — the diagnostic must name the
 // FRIENDLY unit types, never the raw conversion_factor<...> soup.
 // expect: fail
-// expect-match: bytes<double>
-// expect-match: seconds<double>
+// expect-match: bytes<
+// expect-match: seconds<
 // forbid-match: conversion_factor<std::ratio<1>, units::dimension_t
 #include <units/data.h>
 #include <units/time.h>

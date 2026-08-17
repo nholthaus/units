@@ -1,7 +1,7 @@
 // Case: adding a bare double to a dimensioned quantity must FAIL readably, naming the unit type.
 //
 // expect: fail
-// expect-match: meters<double>
+// expect-match: meters<
 #include <units/length.h>
 using namespace units;
 using namespace units::literals;

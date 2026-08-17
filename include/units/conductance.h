@@ -64,7 +64,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(conductance, siemens, S, conversion_factor<std::ratio<1>, dimension::conductance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(conductance)
+	UNIT_ADD_DIMENSION_TRAIT(conductance, Conductance)
 } // namespace units
 
 #endif // units_conductance_h_
