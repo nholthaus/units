@@ -2999,7 +2999,7 @@ namespace units
 		{
 			using CfTraits = traits::conversion_factor_traits<ConversionFactor>;
 
-			static constexpr bool needs_fp = traits::is_ratio_dimensionless_cf_v<ConversionFactor> || !std::ratio_equal_v<typename CfTraits::pi_exponent_ratio, std::ratio<0>> ||
+			constexpr bool needs_fp = traits::is_ratio_dimensionless_cf_v<ConversionFactor> || !std::ratio_equal_v<typename CfTraits::pi_exponent_ratio, std::ratio<0>> ||
 				!std::ratio_equal_v<typename CfTraits::translation_ratio, std::ratio<0>>;
 
 			using normalized_value_type = std::conditional_t<needs_fp, detail::floating_point_promotion_t<underlying_type>, underlying_type>;
