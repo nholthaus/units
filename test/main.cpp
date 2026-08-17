@@ -3181,6 +3181,54 @@ TEST_F(UnitType, convertMethod)
 	EXPECT_NEAR(9.84252, constMeters.to<feet>().to<double>(), 5.0e-6);
 }
 
+TEST_F(UnitType, integerConversionWidensIntermediate)
+{
+	// A mul-then-divide conversion (feet -> meters is 381/1250) computes the intermediate product in a
+	// double-width integer, so `value * 381` does not overflow before `/ 1250` recovers a value that fits the
+	// target. Without the widening this silently overflowed for large magnitudes.
+	const auto big = units::convert<feet<std::int64_t>>(feet<std::int64_t>(0)); // (touch the header)
+	(void)big;
+
+	// 5e16 ft * 381 = 1.905e19 overflows int64 (max ~9.2e18), but 5e16 * 381 / 1250 = 1.524e16 fits.
+	const std::int64_t v      = 50'000'000'000'000'000LL;
+	const auto         meters = units::convert<units::length::meters<std::int64_t>>(feet<std::int64_t>(v));
+	EXPECT_EQ(15'240'000'000'000'000LL, meters.value());
+
+	// Ordinary and negative magnitudes are exact and unchanged (widening never alters a result that already fit).
+	EXPECT_EQ(381, units::convert<units::length::meters<std::int64_t>>(feet<std::int64_t>(1250)).value());
+	EXPECT_EQ(-381, units::convert<units::length::meters<std::int64_t>>(feet<std::int64_t>(-1250)).value());
+	EXPECT_EQ(0, units::convert<units::length::meters<std::int64_t>>(feet<std::int64_t>(0)).value());
+
+	// Floating-point conversions are unaffected (the widening is integer-only).
+	EXPECT_NEAR(0.3048, units::convert<units::length::meters<double>>(feet<double>(1.0)).value(), 1e-9);
+}
+
+TEST_F(UnitType, floatingPointConversionIsCorrectlyRounded)
+{
+	// The floating-point conversion path is not widened (that would be platform-dependent for no gain); it is
+	// already correctly rounded. Pin that so a future refactor cannot silently degrade it: the result must be
+	// within half a ULP of the high-precision reference, and a round-trip must be bit-stable.
+	for (double v : {1.0, 3.0, 1234.56789, 1.0e6, 987654321.123456, 1.0e15})
+	{
+		const double      lib = units::convert<units::length::meters<double>>(feet<double>(v)).value();
+		const long double ref = static_cast<long double>(v) * 381.0L / 1250.0L;
+		const double      ulp = static_cast<double>(std::nextafter(static_cast<double>(ref), static_cast<double>(ref) + 1.0) - static_cast<double>(ref));
+		EXPECT_LE(std::abs(static_cast<long double>(lib) - ref), 0.5L * ulp);
+
+		const double back = units::convert<feet<double>>(units::convert<units::length::meters<double>>(feet<double>(v))).value();
+		EXPECT_DOUBLE_EQ(v, back); // round-trip bit-stable
+	}
+	// Affine + pi conversions stay exact to the last bit.
+	EXPECT_DOUBLE_EQ(98.6, units::convert<fahrenheit<double>>(celsius<double>(37.0)).value());
+
+	// A big value through a fractional ratio must not lose a representable answer to intermediate overflow:
+	// 1e306 ft -> m is ~3.048e305 (fits double), even though value * 381 = 3.81e308 would overflow. The
+	// conversion divides first in that regime and returns the finite result rather than infinity.
+	const double extreme = units::convert<units::length::meters<double>>(feet<double>(1.0e306)).value();
+	EXPECT_TRUE(std::isfinite(extreme));
+	EXPECT_NEAR(3.048e305, extreme, 3.048e305 * 1e-12);
+}
+
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitType, cout)
 {

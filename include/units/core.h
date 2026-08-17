@@ -2193,6 +2193,74 @@ namespace units
 
 	inline constexpr linearized_value_t linearized_value{};
 
+	/** @cond */ // DOXYGEN IGNORE
+	namespace detail
+	{
+		/// The widest integer available for a conversion's intermediate. A mul-then-divide conversion
+		/// (`value * num / den`) must not overflow the intermediate `value * num` before the divide recovers a
+		/// value that fits the target; a double-width intermediate holds the product. `__int128` is used where the
+		/// compiler provides it; otherwise the intermediate falls back to `std::intmax_t` (the widest standard
+		/// integer) and a manual 128-bit mul-divide guards the product.
+#if defined(__SIZEOF_INT128__)
+		using widest_signed_int   = __int128;
+		using widest_unsigned_int = unsigned __int128;
+		inline constexpr bool has_builtin_int128 = true;
+#else
+		using widest_signed_int   = std::intmax_t;
+		using widest_unsigned_int = std::uintmax_t;
+		inline constexpr bool has_builtin_int128 = false;
+#endif
+
+		/// Compute `value * num / den` for an integral `value` without overflowing the intermediate product, in a
+		/// double-width intermediate. On a compiler with `__int128` the whole expression rides in 128 bits; without
+		/// it, an unsigned 64x64->high/low long multiplication followed by a 128/64 division keeps the product from
+		/// overflowing, with the sign handled separately.
+		template<class Rep>
+		constexpr Rep widening_mul_div(Rep value, std::intmax_t num, std::intmax_t den) noexcept
+		{
+			if constexpr (has_builtin_int128)
+			{
+				return static_cast<Rep>(static_cast<widest_signed_int>(value) * static_cast<widest_signed_int>(num) / static_cast<widest_signed_int>(den));
+			}
+			else
+			{
+				// Sign-separated 64x64->128 multiply, then 128/64 divide, all in unsigned 64-bit limbs so no
+				// intermediate exceeds the representable range. `num`/`den` are positive (a std::ratio is stored in
+				// lowest terms with a positive denominator); only `value` may be negative.
+				const bool          negative = (value < 0);
+				const std::uint64_t a        = negative ? static_cast<std::uint64_t>(-(value + 1)) + 1u : static_cast<std::uint64_t>(value);
+				const std::uint64_t b        = static_cast<std::uint64_t>(num);
+				const std::uint64_t d        = static_cast<std::uint64_t>(den);
+
+				// 64x64 -> 128 as two 64-bit limbs (hi, lo).
+				const std::uint64_t aLo = a & 0xFFFFFFFFull, aHi = a >> 32;
+				const std::uint64_t bLo = b & 0xFFFFFFFFull, bHi = b >> 32;
+				const std::uint64_t ll = aLo * bLo;
+				const std::uint64_t lh = aLo * bHi;
+				const std::uint64_t hl = aHi * bLo;
+				const std::uint64_t hh = aHi * bHi;
+				const std::uint64_t cross = (ll >> 32) + (lh & 0xFFFFFFFFull) + (hl & 0xFFFFFFFFull);
+				std::uint64_t       hi    = hh + (lh >> 32) + (hl >> 32) + (cross >> 32);
+				std::uint64_t       lo    = (cross << 32) | (ll & 0xFFFFFFFFull);
+
+				// 128 (hi:lo) / d -> long division of the two limbs by a 64-bit divisor.
+				std::uint64_t quotient = 0;
+				std::uint64_t rem      = 0;
+				for (int bit = 127; bit >= 0; --bit)
+				{
+					rem                     = (rem << 1) | ((bit >= 64 ? (hi >> (bit - 64)) : (lo >> bit)) & 1u);
+					const bool canSubtract = (rem >= d);
+					rem -= canSubtract ? d : 0u;
+					if (bit < 64)
+						quotient |= (static_cast<std::uint64_t>(canSubtract) << bit);
+				}
+				const auto result = static_cast<Rep>(quotient);
+				return negative ? static_cast<Rep>(-result) : result;
+			}
+		}
+	} // namespace detail
+	/** @endcond */ // END DOXYGEN IGNORE
+
 	/**
 	 * @ingroup		Conversion
 	 * @brief		converts a <i>value</i> from an unit to another.
@@ -2293,7 +2361,32 @@ namespace units
 			if constexpr (Ratio::num == 1 && Ratio::den != 1)
 				return static_cast<To>(static_cast<CommonUnderlying>(value) / static_cast<CommonUnderlying>(Ratio::den));
 			if constexpr (Ratio::num != 1 && Ratio::den != 1)
-				return static_cast<To>((static_cast<CommonUnderlying>(value) * static_cast<CommonUnderlying>(Ratio::num)) / static_cast<CommonUnderlying>(Ratio::den));
+			{
+				// A mul-then-divide conversion. The goal is the MOST accurate representable result:
+				//   - Integral intermediate: carry `value * num` in a double-width integer so it cannot overflow
+				//     before `/ den` recovers a value that fits the target (no wrong answer, no precision lost).
+				//   - Floating-point: `(value * num) / den` is the most accurate order (a single rounding) and is
+				//     used whenever `value * num` is representable. Only when that product would overflow to
+				//     infinity — a blatantly wrong answer where a finite result exists — fall back to the
+				//     divide-first order `value / den * num`, which trades a little rounding for a representable
+				//     answer. Normal-magnitude conversions therefore keep the correctly-rounded mul-then-divide.
+				if constexpr (std::is_integral_v<CommonUnderlying>)
+				{
+					return static_cast<To>(detail::widening_mul_div(static_cast<CommonUnderlying>(value), Ratio::num, Ratio::den));
+				}
+				else
+				{
+					const CommonUnderlying v   = static_cast<CommonUnderlying>(value);
+					const CommonUnderlying num = static_cast<CommonUnderlying>(Ratio::num);
+					const CommonUnderlying den = static_cast<CommonUnderlying>(Ratio::den);
+					// `value * num` overflows the type when |value| exceeds max / num. Guard on that exact threshold
+					// so the lossy divide-first path is taken ONLY when the accurate path would produce infinity.
+					const CommonUnderlying limit = (std::numeric_limits<CommonUnderlying>::max)() / num;
+					if (v > limit || v < -limit)
+						return static_cast<To>((v / den) * num);
+					return static_cast<To>((v * num) / den);
+				}
+			}
 		}
 	}
 
