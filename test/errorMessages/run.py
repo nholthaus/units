@@ -20,7 +20,7 @@ Compare two runs:
 Capture verbatim diagnostics for the docs (so a shown error can never drift from the compiler):
   run.py --emit-doc --cc g++ --compiler-label "GCC 13" --include ../../include --out-dir ../../docs/diagnostics
 """
-import argparse, json, re, subprocess, sys, time
+import argparse, json, os, re, subprocess, sys, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -126,7 +126,17 @@ def run_case(path, cc, std, include):
 
 def do_run(args):
     cases = sorted((HERE / "cases").glob("*.cpp"))
-    results = [run_case(c, args.cc, args.std, args.include) for c in cases]
+    # Each case is an independent compiler invocation with no shared state, so the cases run concurrently across
+    # a thread pool (the work is dominated by the compiler subprocess, which releases the GIL). Results are
+    # gathered back into the original sorted order so the report and pass/fail are deterministic regardless of
+    # completion order. --jobs 1 forces the serial path.
+    jobs = args.jobs if args.jobs and args.jobs > 0 else (os.cpu_count() or 1)
+    if jobs == 1:
+        results = [run_case(c, args.cc, args.std, args.include) for c in cases]
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            results = list(pool.map(lambda c: run_case(c, args.cc, args.std, args.include), cases))
     total_time = round(sum(r["seconds"] for r in results), 3)
     passed = sum(1 for r in results if r["ok"])
     report = {"label": args.label, "cc": args.cc, "std": args.std,
@@ -214,6 +224,8 @@ def main():
     ap.add_argument("--cc", default="g++")
     ap.add_argument("--std", default="c++23")
     ap.add_argument("--include", default=str(HERE.parent.parent / "include"))
+    ap.add_argument("--jobs", type=int, default=0,
+                    help="number of cases to compile concurrently (0 = one per CPU; 1 = serial)")
     ap.add_argument("--json")
     ap.add_argument("--label", default="run")
     ap.add_argument("--compare", nargs=2, metavar=("A.json", "B.json"))

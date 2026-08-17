@@ -45,4 +45,4 @@ jobs:
 
       - name: Error-message tests
         run: |
-          python test/errorMessages/run.py --cc cl --std c++23 --include include
+          python test/errorMessages/run.py --cc cl --std c++23 --include include --jobs 4
