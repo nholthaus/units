@@ -156,10 +156,25 @@ def header_includes(hdrs):
 def write(name, text):
     (CASES / f"generated_{name}.cpp").write_text(text)
 
-def gen_bad_conversion(name, hdrs, body, matches):
-    directives = ["// expect: fail"] + [f"// expect-match: {m}" for m in matches] + [f"// forbid-match: {SOUP}"]
+def gen_bad_conversion(name, hdrs, body, matches, soup_gcc_only=False):
+    # Two anti-soup guards: the dimensionless SOUP marker (a friendly name must never collapse to the bare
+    # conversion_factor<std::ratio<1>, units::dimension_t...> form) AND the broader SOUP_DIMENSION marker
+    # (`dimension_t<` — the friendly name must not be drowned in a dimension_t<...> wall). Both are confirmed
+    # absent across every generated cross-dimension case on GCC-15 and clang-19: the bare `conversion_factor<...>`
+    # template chain that clang echoes in constructor-candidate notes carries a NAMED dimension (dimension::length,
+    # dimension::frequency, ...), never the dimensionless `dimension_t<>` form these markers catch, so the guards
+    # never false-fire while still catching a regression that drowns the friendly type in dimensionless soup.
+    #
+    # soup_gcc_only: when a rejected call resolves against a DIMENSIONLESS-domain candidate (the trig functions
+    # take an angle, whose conversion factor IS the dimensionless `conversion_factor<ratio<1>, dimension_t<>>`),
+    # MSVC prints that candidate's full signature in an overload-resolution note, so both soup markers legitimately
+    # appear on MSVC even though the friendly argument type is also named. There the guards are scoped to
+    # forbid-match-gcc (kept tight on GCC/clang, where they are genuinely absent) rather than universal.
+    soup_kind = "forbid-match-gcc" if soup_gcc_only else "forbid-match"
+    directives = (["// expect: fail"] + [f"// expect-match: {m}" for m in matches]
+                  + [f"// {soup_kind}: {SOUP}", f"// {soup_kind}: {SOUP_DIMENSION}"])
     txt = f"""// GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension use — the diagnostic must name the
-// FRIENDLY unit types, never the raw conversion_factor<...> soup.
+// FRIENDLY unit types, never the raw conversion_factor<...> / dimension_t<...> soup.
 {chr(10).join(directives)}
 {header_includes(hdrs)}
 using namespace units;
@@ -214,9 +229,13 @@ def main():
         gen_bad_conversion(c[0], c[1], c[2], c[3])
     for c in DERIVED_RESULT:
         gen_bad_conversion(c[0], c[1], c[2], c[3])
-    for group in (SCALAR_BOUNDARY, TRIG_DOMAIN, MATH_RESULT, MATH_DOMAIN, CHRONO_BOUNDARY):
+    for group in (SCALAR_BOUNDARY, MATH_RESULT, MATH_DOMAIN, CHRONO_BOUNDARY):
         for c in group:
             gen_bad_conversion(c[0], c[1], c[2], c[3])
+    # The trig functions take an angle (a dimensionless conversion factor), so a rejected non-angle call surfaces
+    # the dimensionless-domain candidate signature on MSVC — its soup guards are GCC/clang-only.
+    for c in TRIG_DOMAIN:
+        gen_bad_conversion(c[0], c[1], c[2], c[3], soup_gcc_only=True)
     for c in COMPARE_ACROSS:
         gen_compare(c[0], c[1], c[2], c[3])
     for c in ORDERING_OK:
