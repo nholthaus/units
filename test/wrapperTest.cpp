@@ -7,16 +7,21 @@
 // not a common sub-unit), promoting only the underlying when a coarse integer LHS cannot hold the RHS losslessly.
 
 #include <gtest/gtest.h>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 
 #include <units/angle.h>
 #include <units/concentration.h>
 #include <units/core.h>
+#include <units/energy.h>
+#include <units/kind.h>
 #include <units/length.h>
 #include <units/temperature.h>
 #include <units/time.h>
+#include <units/torque.h>
 
 // The unit namespaces are inline, so `using namespace units;` exposes every unit type (celsius, meters, ...) AND
 // every single-letter literal-abbreviation variable (`d` days, `m` meters, `s` seconds, `span`) at `units::` scope.
@@ -44,7 +49,21 @@ namespace
 	// The underlying numeric type of a wrapper.
 	template<class W>
 	using under_t = typename W::underlying_type;
+
+	// The value of a wrapper (absolute/delta/kind) OR a plain unit, as a double — one accessor for both, so a
+	// test reads the same whether it holds a wrapper or has unwrapped to a plain unit.
+	template<class T>
+	constexpr double val(const T& x) noexcept
+	{
+		return static_cast<double>(x.value());
+	}
 } // namespace
+
+// Assert a wrapper/unit's value equals `expected` (double), to ~1e-9 — absorbs the ULP noise from datum/scale
+// round-trips (273.15 offsets, 5/9 ratios) so a test states the physical answer, not a bit pattern. Pair form
+// `EXPECT_UNIT_EQ(a, b)` compares two wrappers/units by value.
+#define EXPECT_UNIT_NEAR(wrapperOrUnit, expected) EXPECT_NEAR((expected), val(wrapperOrUnit), 1e-9)
+#define EXPECT_UNIT_EQ(lhs, rhs) EXPECT_NEAR(val(lhs), val(rhs), 1e-9)
 
 //======================================================================================================================
 //	CONSTRUCTION, ACCESSORS, TYPE PROPERTIES
@@ -102,8 +121,8 @@ TEST(WrapperConstruction, trivialCopyAndSameSize)
 TEST(WrapperConstruction, accessorsQuantityValueRaw)
 {
 	const A<kelvin<double>> p(celsius<double>(0.0)); // 0 degC = 273.15 K
-	// quantity() gives the wrapped plain unit (datum intact).
-	EXPECT_DOUBLE_EQ(273.15, p.quantity().value());
+	// to<PlainUnit>() unwraps to the plain unit (datum intact).
+	EXPECT_DOUBLE_EQ(273.15, p.to<kelvin<double>>().value());
 	EXPECT_DOUBLE_EQ(273.15, p.value());
 	EXPECT_DOUBLE_EQ(273.15, p.raw());
 
@@ -118,9 +137,9 @@ TEST(WrapperConstruction, accessorsQuantityValueRaw)
 
 TEST(WrapperKindNamespace, inlineNamespaceNamesSameType)
 {
-	static_assert(std::is_same_v<absolute<celsius<double>>, kind::absolute<celsius<double>>>);
-	static_assert(std::is_same_v<delta<meters<int>>, kind::delta<meters<int>>>);
-	static_assert(std::is_same_v<units::absolute<radians<float>>, units::kind::absolute<radians<float>>>);
+	static_assert(std::is_same_v<absolute<celsius<double>>, affine::absolute<celsius<double>>>);
+	static_assert(std::is_same_v<delta<meters<int>>, affine::delta<meters<int>>>);
+	static_assert(std::is_same_v<units::absolute<radians<float>>, units::affine::absolute<radians<float>>>);
 	SUCCEED();
 }
 
@@ -223,47 +242,51 @@ TEST(WrapperAffine, pointPlusMixedUnitDeltaScaleOnly)
 
 TEST(WrapperAffine, deltaConversionIsScaleOnlyNotAffine)
 {
-	// A 10 degC delta is an 18 degF delta (scale only), NOT an absolute 50 degF.
+	// A 10 degC delta is an 18 degF delta (scale only), NOT an absolute 50 degF. to<PlainUnit>() unwraps to a
+	// plain fahrenheit; to<delta<fahrenheit>>() keeps it a delta — both are the same scale-only 18.
 	const D<celsius<double>> del(10.0);
-	const D<fahrenheit<double>> f = del.to<fahrenheit<double>>();
-	EXPECT_DOUBLE_EQ(18.0, f.value());
+	const fahrenheit<double> plainF = del.to<fahrenheit<double>>(); // unwraps to a plain unit
+	EXPECT_DOUBLE_EQ(18.0, plainF.value());
+	const D<fahrenheit<double>> deltaF = del.to<D<fahrenheit<double>>>(); // stays a delta
+	EXPECT_UNIT_NEAR(deltaF, 18.0);
 
 	// And a zero delta carries no offset: 0 degC delta -> 0 degF delta (not 32).
 	const D<celsius<double>> z(0.0);
-	EXPECT_DOUBLE_EQ(0.0, z.to<fahrenheit<double>>().value());
+	EXPECT_UNIT_NEAR(z.to<fahrenheit<double>>(), 0.0);
 
 	// A point conversion DOES apply the datum: 0 degC point -> 32 degF point.
 	const A<celsius<double>> zeroPoint(0.0);
-	EXPECT_DOUBLE_EQ(32.0, zeroPoint.to<fahrenheit<double>>().value());
-	EXPECT_DOUBLE_EQ(273.15, zeroPoint.to<kelvin<double>>().value());
+	EXPECT_UNIT_NEAR(zeroPoint.to<fahrenheit<double>>(), 32.0);
+	EXPECT_UNIT_NEAR(zeroPoint.to<kelvin<double>>(), 273.15);
 }
 
 TEST(WrapperAffine, pointConversionRoundTrips)
 {
+	// Round-trip staying in the wrapper: to<absolute<V>> keeps it a point at each hop.
 	const A<celsius<double>> body(37.0);
-	const auto               k    = body.to<kelvin<double>>();
-	const auto               back = k.to<celsius<double>>();
-	EXPECT_NEAR(37.0, back.value(), 1e-9);
+	const auto               k    = body.to<A<kelvin<double>>>();
+	const auto               back = k.to<A<celsius<double>>>();
+	EXPECT_UNIT_NEAR(back, 37.0);
 }
 
 TEST(WrapperAffine, minMaxClampOfPoints)
 {
 	const A<celsius<double>> a(10.0);
 	const A<celsius<double>> b(30.0);
-	EXPECT_DOUBLE_EQ(10.0, kind::min(a, b).value());
-	EXPECT_DOUBLE_EQ(30.0, kind::max(a, b).value());
+	EXPECT_DOUBLE_EQ(10.0, affine::min(a, b).value());
+	EXPECT_DOUBLE_EQ(30.0, affine::max(a, b).value());
 
 	// min/max reconcile the rhs affinely but keep the LHS unit.
 	const A<fahrenheit<double>> f(32.0); // == 0 degC
-	auto                        extremum = kind::min(a, f);
+	auto                        extremum = affine::min(a, f);
 	static_assert(std::is_same_v<wrapped_t<decltype(extremum)>, celsius<double>>);
 	EXPECT_DOUBLE_EQ(0.0, extremum.value()); // the colder of 10 degC and 0 degC is 0 degC
 
 	// clamp of a point.
 	const A<celsius<double>> lo(0.0), hi(20.0), v(37.0);
-	EXPECT_DOUBLE_EQ(20.0, kind::clamp(v, lo, hi).value());
+	EXPECT_DOUBLE_EQ(20.0, affine::clamp(v, lo, hi).value());
 	const A<celsius<double>> v2(-5.0);
-	EXPECT_DOUBLE_EQ(0.0, kind::clamp(v2, lo, hi).value());
+	EXPECT_DOUBLE_EQ(0.0, affine::clamp(v2, lo, hi).value());
 }
 
 //======================================================================================================================
@@ -580,13 +603,13 @@ TEST(WrapperPrint, streamAndToStringDistinguishPointVsDelta)
 TEST(WrapperMath, absOfDelta)
 {
 	const D<celsius<double>> neg(-7.5);
-	auto                     mag = kind::abs(neg);
+	auto                     mag = affine::abs(neg);
 	static_assert(traits::is_delta_v<decltype(mag)>);
 	EXPECT_DOUBLE_EQ(7.5, mag.value());
 
 	// integer delta promotes to floating (matching the plain unit's abs promotion contract).
 	const D<meters<int>> negi(-4);
-	auto                 magi = kind::abs(negi);
+	auto                 magi = affine::abs(negi);
 	static_assert(std::is_floating_point_v<under_t<decltype(magi)>>);
 	EXPECT_DOUBLE_EQ(4.0, magi.value());
 }
@@ -594,20 +617,20 @@ TEST(WrapperMath, absOfDelta)
 TEST(WrapperMath, minMaxClampOfDeltas)
 {
 	const D<celsius<double>> a(10.0), b(30.0);
-	EXPECT_DOUBLE_EQ(10.0, kind::min(a, b).value());
-	EXPECT_DOUBLE_EQ(30.0, kind::max(a, b).value());
+	EXPECT_DOUBLE_EQ(10.0, affine::min(a, b).value());
+	EXPECT_DOUBLE_EQ(30.0, affine::max(a, b).value());
 
 	// mixed unit min/max keeps the LHS unit.
 	const D<fahrenheit<double>> f(18.0); // == 10 celsius-degrees
-	auto                        extremum = kind::max(a, f);
+	auto                        extremum = affine::max(a, f);
 	static_assert(std::is_same_v<wrapped_t<decltype(extremum)>, celsius<double>>);
 	EXPECT_DOUBLE_EQ(10.0, extremum.value()); // 10 degC and 10-celsius-degree delta are equal; max keeps lhs
 
 	// clamp.
 	const D<celsius<double>> lo(0.0), hi(20.0), v(30.0);
-	EXPECT_DOUBLE_EQ(20.0, kind::clamp(v, lo, hi).value());
+	EXPECT_DOUBLE_EQ(20.0, affine::clamp(v, lo, hi).value());
 	const D<celsius<double>> v2(-5.0);
-	EXPECT_DOUBLE_EQ(0.0, kind::clamp(v2, lo, hi).value());
+	EXPECT_DOUBLE_EQ(0.0, affine::clamp(v2, lo, hi).value());
 }
 
 //======================================================================================================================
@@ -658,4 +681,256 @@ TEST(WrapperGeneral, lengthDisplacements)
 	auto                    displacement = there - here;
 	static_assert(traits::is_delta_v<decltype(displacement)>);
 	EXPECT_DOUBLE_EQ(150.0, displacement.value());
+}
+
+//======================================================================================================================
+//	EDGE-UNIT HARDENING (adversarial): integer-datum truncation, angle/pi, percent, promotion, NaN/inf
+//======================================================================================================================
+
+// An integer POINT converted across a datum-differing pair whose ratio is 1 (celsius<->kelvin) must NOT truncate the
+// fractional datum. `absolute_result_unit_t` promotes the underlying because the translation ratios differ, so the
+// 273.15 offset survives. (Before the affine-aware predicate, this silently returned 100.0.)
+TEST(WrapperEdge, integerCelsiusMinusKelvinKeepsDatum)
+{
+	const A<celsius<int>> hot(100);
+	const A<kelvin<int>>  cold(273); // 273 K == -0.15 degC
+	auto                  diff = hot - cold;
+	static_assert(traits::is_delta_v<decltype(diff)>);
+	EXPECT_DOUBLE_EQ(100.15, static_cast<double>(diff.value())); // 100 - (-0.15)
+}
+
+TEST(WrapperEdge, integerPointMaxAcrossDatumKeepsDatum)
+{
+	// 280 K == 6.85 degC, warmer than 0 degC. (Near, not exact: the 273.15 datum round-trip through the
+	// linearized scale carries a few ULPs of floating-point error — the value is 6.85 to ~13 digits.)
+	auto hotter = affine::max(A<celsius<int>>(0), A<kelvin<int>>(280));
+	EXPECT_NEAR(6.85, static_cast<double>(hotter.value()), 1e-9);
+}
+
+TEST(WrapperEdge, floatingPointDatumWasAlwaysCorrect)
+{
+	// The double path is the correctness oracle the integer fix must match.
+	EXPECT_DOUBLE_EQ(100.15, (A<celsius<double>>(100.0) - A<kelvin<double>>(273.0)).value());
+}
+
+TEST(WrapperEdge, fahrenheitPairPromotesByRatio)
+{
+	// C<->F ratio is 5/9 (not 1), so the underlying already promotes; the datum survives regardless.
+	auto diff = A<celsius<int>>(100) - A<fahrenheit<int>>(32); // 100 degC vs 0 degC
+	EXPECT_DOUBLE_EQ(100.0, static_cast<double>(diff.value()));
+	EXPECT_TRUE((std::is_floating_point_v<typename decltype(diff)::underlying_type>));
+}
+
+// A DELTA is offset-free: its conversion is scale-only, so a same-ratio integer delta pair (celsius<->kelvin deltas)
+// must STAY integral — the datum-aware promotion of the point path must NOT leak into the delta path.
+TEST(WrapperEdge, integerDeltaSameRatioStaysIntegral)
+{
+	auto sum = D<celsius<int>>(5) + D<celsius<int>>(3);
+	static_assert(std::is_same_v<decltype(sum), D<celsius<int>>>);
+	static_assert(std::is_same_v<typename decltype(sum)::underlying_type, int>);
+	EXPECT_EQ(8, sum.to<celsius<int>>().raw());
+
+	auto mixed = D<celsius<int>>(10) + D<kelvin<int>>(5); // deltas ignore datum; C and K share ratio 1
+	static_assert(std::is_same_v<typename decltype(mixed)::underlying_type, int>);
+	EXPECT_EQ(15, mixed.to<celsius<int>>().raw());
+}
+
+TEST(WrapperEdge, integerDeltaCoarseRhsStaysIntegralFineLhsPromotes)
+{
+	auto lossless = D<meters<int>>(500) + D<kilometers<int>>(1); // 1 km into m is exact
+	static_assert(std::is_same_v<typename decltype(lossless)::underlying_type, int>);
+	EXPECT_EQ(1500, lossless.value());
+
+	auto lossy = D<kilometers<int>>(1) - D<meters<int>>(500); // 500 m into km<int> would truncate -> promote
+	EXPECT_TRUE((std::is_floating_point_v<typename decltype(lossy)::underlying_type>));
+	EXPECT_DOUBLE_EQ(0.5, static_cast<double>(lossy.value()));
+}
+
+TEST(WrapperEdge, angleDeltaKeepsPiRatio)
+{
+	constexpr double pi = 3.14159265358979323846;
+	EXPECT_DOUBLE_EQ(pi, D<degrees<double>>(180.0).to<radians<double>>().value());
+	EXPECT_TRUE(D<degrees<double>>(90.0) == D<radians<double>>(pi / 2.0));
+	EXPECT_DOUBLE_EQ(pi, (D<radians<double>>(pi / 2.0) + D<degrees<double>>(90.0)).value());   // LHS radians
+	EXPECT_DOUBLE_EQ(180.0, (D<degrees<double>>(90.0) + D<radians<double>>(pi / 2.0)).value()); // LHS degrees
+}
+
+TEST(WrapperEdge, percentValueVsRawMatchesPlainUnit)
+{
+	// A percent's ratio is 1/100, so .value() is 0.5 and .raw() is 50 — the wrapper mirrors the plain unit.
+	EXPECT_DOUBLE_EQ(0.5, D<percent<double>>(50.0).value());
+	EXPECT_DOUBLE_EQ(50.0, static_cast<double>(D<percent<double>>(50.0).raw()));
+	auto p = A<percent<double>>(50.0) + D<percent<double>>(10.0);
+	EXPECT_DOUBLE_EQ(60.0, static_cast<double>(p.raw()));
+}
+
+TEST(WrapperEdge, deltaScaleNeverLeaksDatum)
+{
+	const D<celsius<double>> warmBy10(10.0);
+	EXPECT_DOUBLE_EQ(20.0, (warmBy10 * 2.0).value());
+	EXPECT_DOUBLE_EQ(20.0, (2.0 * warmBy10).value());
+	EXPECT_DOUBLE_EQ(5.0, (warmBy10 / 2.0).value());
+	EXPECT_DOUBLE_EQ(-10.0, (-warmBy10).value());
+	EXPECT_DOUBLE_EQ(273.15, affine::abs(D<celsius<double>>(-273.15)).value()); // magnitude, no datum
+}
+
+TEST(WrapperEdge, clampIsTotalEvenForInvertedRange)
+{
+	// affine::clamp is min(max(v,lo),hi): total (returns hi for an inverted range), NOT std::clamp's UB.
+	EXPECT_DOUBLE_EQ(2.0, affine::clamp(D<meters<double>>(5.0), D<meters<double>>(10.0), D<meters<double>>(2.0)).value());
+	EXPECT_DOUBLE_EQ(5.0, affine::clamp(D<meters<double>>(5.0), D<meters<double>>(2.0), D<meters<double>>(10.0)).value());
+}
+
+TEST(WrapperEdge, nanAndInfinityFollowStandardSemantics)
+{
+	const double nan = std::numeric_limits<double>::quiet_NaN();
+	const double inf = std::numeric_limits<double>::infinity();
+	EXPECT_TRUE(std::isnan(affine::abs(D<meters<double>>(nan)).value()));
+	EXPECT_TRUE(std::isinf(affine::abs(D<meters<double>>(-inf)).value()));
+	// min/max follow std::min/std::max (asymmetric, first-argument biased under NaN) — pinned so nobody "fixes" it.
+	EXPECT_DOUBLE_EQ(1.0, affine::min(D<meters<double>>(nan), D<meters<double>>(1.0)).value());
+	EXPECT_TRUE(std::isnan(affine::min(D<meters<double>>(1.0), D<meters<double>>(nan)).value()));
+	EXPECT_FALSE(D<meters<double>>(nan) == D<meters<double>>(nan));
+	EXPECT_EQ(std::partial_ordering::unordered, (D<meters<double>>(nan) <=> D<meters<double>>(1.0)));
+}
+
+// The wrapper free functions are found by ARGUMENT-DEPENDENT LOOKUP — an UNqualified `abs`/`min`/`max`/`clamp`/
+// `to_string` call on a wrapper resolves via the associated namespace (`units`) of the wrapper argument, with no
+// `affine::` prefix and no `using`. This is the idiomatic call form and must keep working (a generic algorithm that
+// says `using std::min; min(a, b);` picks up the wrapper's `min` for wrapper arguments through ADL).
+TEST(WrapperEdge, freeFunctionsFoundViaAdl)
+{
+	const D<meters<double>> a(3.0);
+	const D<meters<double>> b(5.0);
+
+	// unqualified — resolved by ADL on the delta<meters<double>> argument, NOT affine::/units:: qualified
+	EXPECT_DOUBLE_EQ(3.0, abs(D<meters<double>>(-3.0)).value());
+	EXPECT_DOUBLE_EQ(3.0, min(a, b).value());
+	EXPECT_DOUBLE_EQ(5.0, max(a, b).value());
+	EXPECT_DOUBLE_EQ(4.0, clamp(D<meters<double>>(4.0), a, b).value());
+
+	// to_string via ADL (no units:: qualifier), and operator<< via the stream
+	using std::to_string; // ADL still selects the wrapper overload for a wrapper argument
+	EXPECT_EQ("delta 3 m", to_string(a));
+	EXPECT_EQ("delta 5 m", to_string(b));
+
+	std::ostringstream os;
+	os << a; // operator<< found by ADL
+	EXPECT_EQ("delta 3 m", os.str());
+
+	// points, too: min/max via ADL
+	const A<meters<double>> p(10.0);
+	const A<meters<double>> q(20.0);
+	EXPECT_DOUBLE_EQ(10.0, min(p, q).value());
+	EXPECT_DOUBLE_EQ(20.0, max(p, q).value());
+}
+
+// A wrapper is hashable exactly like the unit it wraps — it drops into an unordered container, and equal wrappers
+// hash equally.
+TEST(WrapperEdge, hashableInUnorderedContainer)
+{
+	std::unordered_set<D<meters<int>>> amounts;
+	amounts.insert(D<meters<int>>(3));
+	amounts.insert(D<meters<int>>(5));
+	amounts.insert(D<meters<int>>(3)); // duplicate
+	EXPECT_EQ(2u, amounts.size());
+	EXPECT_EQ(1u, amounts.count(D<meters<int>>(3)));
+
+	// equal wrappers hash equally
+	EXPECT_EQ(std::hash<D<meters<int>>>()(D<meters<int>>(7)), std::hash<D<meters<int>>>()(D<meters<int>>(7)));
+	EXPECT_EQ(std::hash<A<meters<int>>>()(A<meters<int>>(7)), std::hash<A<meters<int>>>()(A<meters<int>>(7)));
+}
+
+// numeric_limits is specialized (NOT the silent-zero default): max() is the largest representable wrapper.
+TEST(WrapperEdge, numericLimitsSpecialized)
+{
+	static_assert(std::numeric_limits<D<meters<double>>>::is_specialized);
+	static_assert(std::numeric_limits<A<meters<double>>>::is_specialized);
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::max(), std::numeric_limits<D<meters<double>>>::max().value());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::lowest(), std::numeric_limits<A<meters<double>>>::lowest().value());
+}
+
+//======================================================================================================================
+//	GENERIC STRING-TAGGED `kind<Tag, U>` — quantities that share a unit+dimension but are distinct kinds
+//======================================================================================================================
+
+TEST(WrapperKind, sameTagInteroperatesKeepsLhsUnit)
+{
+	const kind<"radial", meters<double>> a(5.0);
+	const kind<"radial", meters<double>> b(3.0);
+	auto sum = a + b; // same tag -> a radial kind, LHS unit
+	static_assert(traits::is_kind_v<decltype(sum)>);
+	static_assert(decltype(sum)::tag() == fixed_string("radial"));
+	EXPECT_UNIT_NEAR(sum, 8.0);
+	EXPECT_UNIT_NEAR(a - b, 2.0);
+	EXPECT_UNIT_NEAR(a * 2.0, 10.0);
+	EXPECT_UNIT_NEAR(b / 3.0, 1.0);
+	EXPECT_UNIT_NEAR(-a, -5.0);
+	const kind<"radial", meters<double>> aCopy(5.0);
+	EXPECT_TRUE(a == aCopy);
+	EXPECT_TRUE(b < a);
+}
+
+TEST(WrapperKind, toKeepsTagOrUnwraps)
+{
+	const kind<"radial", meters<double>> r(5.0);
+	// to<kind<sameTag, V>> stays a radial kind, converting the unit.
+	auto radialFeet = r.to<kind<"radial", feet<double>>>();
+	static_assert(traits::is_kind_v<decltype(radialFeet)>);
+	static_assert(decltype(radialFeet)::tag() == fixed_string("radial"));
+	EXPECT_UNIT_NEAR(radialFeet, 16.404199475);
+	// to<PlainUnit> unwraps (drops the tag).
+	const feet<double> plainFeet = r.to<feet<double>>();
+	EXPECT_NEAR(16.404199475, plainFeet.value(), 1e-6);
+	const meters<double> plainMeters = r.to<meters<double>>(); // same-unit unwrap
+	EXPECT_DOUBLE_EQ(5.0, plainMeters.value());
+}
+
+TEST(WrapperKind, constructibleFromPlainButNotInterchangeable)
+{
+	// CONSTRUCTIBLE: a plain unit converts into a kind by copy-initialization / assignment (clear intent).
+	kind<"radial", meters<double>> r = meters<double>(3.0);
+	EXPECT_UNIT_NEAR(r, 3.0);
+	r = meters<double>(4.0);
+	EXPECT_UNIT_NEAR(r, 4.0);
+	// NOT INTERCHANGEABLE: no IMPLICIT conversion, and mixing in arithmetic is ill-formed (compile-time; the
+	// errorMessages suite covers the readable diagnostics). Here we assert the trait boundaries.
+	static_assert(!std::is_convertible_v<kind<"radial", meters<double>>, meters<double>>);   // no implicit unwrap
+	static_assert(std::is_constructible_v<kind<"radial", meters<double>>, meters<double>>);   // explicit wrap OK
+	SUCCEED();
+}
+
+TEST(WrapperKind, differentTagsAreDistinctTypes)
+{
+	// radial vs straight: same unit+dimension, DIFFERENT type — cannot be assigned or compared without unwrapping.
+	static_assert(!std::is_same_v<kind<"radial", meters<double>>, kind<"straight", meters<double>>>);
+	static_assert(!std::is_convertible_v<kind<"radial", meters<double>>, kind<"straight", meters<double>>>);
+
+	// torque vs energy: the ISO "kind of quantity" headline — same dimension (both N·m), different kind.
+	using torque_kind = kind<"torque", units::torque::newton_meters<double>>;
+	using energy_kind = kind<"energy", units::energy::joules<double>>;
+	static_assert(!std::is_same_v<torque_kind, energy_kind>);
+	SUCCEED();
+}
+
+TEST(WrapperKind, formattingShowsTag)
+{
+	std::ostringstream os;
+	os << kind<"radial", meters<double>>(5.0);
+	EXPECT_EQ("[radial] 5 m", os.str());
+	EXPECT_EQ("[radial] 5 m", to_string(kind<"radial", meters<double>>(5.0)));
+}
+
+TEST(WrapperKind, traitsAndTrivialProperties)
+{
+	static_assert(traits::is_kind_v<kind<"radial", meters<double>>>);
+	static_assert(!traits::is_kind_v<A<meters<double>>>);
+	static_assert(!traits::is_kind_v<D<meters<double>>>);
+	static_assert(!traits::is_kind_v<meters<double>>);
+	static_assert(KindType<kind<"radial", meters<double>>>);
+	static_assert(!KindType<meters<double>>);
+
+	static_assert(std::is_trivially_copyable_v<kind<"radial", meters<double>>>);
+	static_assert(sizeof(kind<"radial", meters<double>>) == sizeof(meters<double>));
+	SUCCEED();
 }
