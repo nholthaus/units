@@ -1,8 +1,8 @@
-// Case: a point divided by a point is meaningless — there is no ratio of two absolute positions.
-// `absolute<U> / absolute<V>` must be ill-formed.
+// Case: a point divided by a point is meaningless (no ratio of two absolute positions). The library emits a
+// readable message rather than an overload-resolution wall.
 //
 // expect: fail
-// expect-match: meters
+// expect-match: a point cannot be divided by a point
 // forbid-match: conversion_factor<std::ratio
 #include <units/kind.h>
 #include <units/length.h>
