@@ -706,6 +706,9 @@ meters<int> f(5);         // explicit integer representation
 meters mm = 100.0_ft;     // feet -> meters
 feet   ff = mm;           // meters -> feet
 // meters<int> x = 1.0_ft;   // ERROR: lossy into an integer representation
+constexpr bytes<int> two = 16_b;         // OK: exact at compile time (16 bits == 2 bytes)
+// constexpr bytes<int> bad = 17_b;      // ERROR: not a whole number of bytes (never silently truncated)
+bytes<int> n = units::floor<bytes<int>>(runtimeBits); // runtime lossy: floor/ceil/round/trunc<To>
 
 // Arithmetic (dimensions are tracked)
 square_meters     area  = 15.0_m * 5.0_m;    // m * m -> area

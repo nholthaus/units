@@ -65,6 +65,23 @@ This is the general rule, not a special case for integers: any conversion the co
 lossless requires you to ask for it explicitly. For the full catalog of what the type system rejects and
 the verbatim diagnostics, see [type safety](../explain/type-safety.md).
 
+### A compile-time-known value that *is* exact converts anyway
+
+The rejection above is about a *runtime* value, which the type system cannot inspect. When the value is a
+compile-time constant, the compiler can check exactness and let an exact conversion through — even into an
+integer of a coarser unit:
+
+```cpp
+constexpr bytes<int> two = 16_b;   // OK   — 16 bits is exactly 2 bytes, proven at compile time
+constexpr bytes<int> bad = 17_b;   // error — 17 bits is not a whole number of bytes; never truncated silently
+bytes<int> runtime = someBits;     // still rejected — a runtime bit count need not divide evenly
+```
+
+This is the same mechanism that already lets `feet<int> f = 16_ft;` compile while `16.5_ft` does not: a
+`consteval` constructor that converts when the value is exact and makes the program ill-formed when it is
+not. You get the frictionless assignment for the common (constant, exact) case, and a compile error — never
+a silent truncation — for a constant that would lose data.
+
 ## Converting through arithmetic
 
 Conversions also fall out of arithmetic. When you divide a distance by a time, the operands may be in any
@@ -108,6 +125,19 @@ meters      exact  = height;                 // implicit, lossless: 21.6408 m
 meters<int> rounded{ round(exact).to<int>() }; // round the quantity (ADL), then narrow explicitly
 std::cout << exact << " -> " << rounded << '\n';
 // 21.6408 m -> 22 m
+```
+
+For a *runtime* value that need not divide evenly — the case the exact compile-time conversion above cannot
+serve — `round`, `floor`, `ceil`, and `trunc` also take the target unit as an explicit template argument,
+the same shape as `std::chrono::floor<To>`. They convert to the coarser integer unit with the rounding you
+name:
+
+```cpp
+bits<int> received = someRuntimeBits;              // e.g. 17 bits
+units::floor<bytes<int>>(received);                //  2 bytes  (toward negative infinity)
+units::ceil <bytes<int>>(received);                //  3 bytes  (toward positive infinity)
+units::round<bytes<int>>(received);                //  2 bytes  (nearest, halfway away from zero)
+units::trunc<bytes<int>>(received);                //  2 bytes  (toward zero)
 ```
 
 > **Note — extraction is a boundary.** Keep quantities typed for as long as they stay inside your code;
