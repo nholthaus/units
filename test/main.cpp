@@ -3260,6 +3260,80 @@ TEST_F(UnitType, hashOfLargeValueDoesNotOverflow)
 	EXPECT_EQ(std::hash<meters<int>>()(meters<int>(7)), std::hash<meters<int>>()(meters<int>(7)));
 }
 
+TEST_F(UnitType, exactIntegralNarrowingConstructor)
+{
+	using units::data::bits;
+	using units::data::bytes;
+	using units::data::nibbles;
+
+	// A compile-time-known finer integral value that is an exact whole number of the coarser unit converts, at
+	// compile time, to the exact count. `bits` is ratio<1,8> of `bytes`, so 16 bits is exactly 2 bytes.
+	constexpr bytes<int> two = bits<int>(16);
+	static_assert(two.value() == 2, "16 bits is 2 bytes");
+	EXPECT_EQ(2, two.value());
+
+	constexpr bytes<int> one = bits<int>(8);
+	static_assert(one.value() == 1, "8 bits is 1 byte");
+
+	// Negative carriers convert exactly (divisibility ignores sign).
+	constexpr bytes<int> negTwo = bits<int>(-16);
+	static_assert(negTwo.value() == -2, "-16 bits is -2 bytes");
+	EXPECT_EQ(-2, negTwo.value());
+
+	// A multi-step finer ratio: a nibble is 4 bits, so 2 nibbles is exactly 1 byte.
+	constexpr bytes<int> fromNibbles = nibbles<int>(2);
+	static_assert(fromNibbles.value() == 1, "2 nibbles is 1 byte");
+
+	// The reverse direction is already lossless and unchanged (coarser -> finer never truncates).
+	constexpr bits<int> sixteen = bytes<int>(2);
+	static_assert(sixteen.value() == 16, "2 bytes is 16 bits");
+
+	// The exactness test rides in a double-width intermediate, so a large exact value still converts (no overflow
+	// of value*num before the divide). 2^60 bits is exactly 2^57 bytes.
+	constexpr bytes<std::int64_t> big = bits<std::int64_t>(1LL << 60);
+	static_assert(big.value() == (1LL << 57), "2^60 bits is 2^57 bytes");
+}
+
+TEST_F(UnitType, runtimeLossyRoundingConversion)
+{
+	using units::data::bits;
+	using units::data::bytes;
+
+	// A genuinely run-time finer value need not be a whole number of the coarser unit; the caller states the
+	// rounding intent with the target-taking round/floor/ceil/trunc, mirroring std::chrono::floor<To>.
+	const bits<int> seventeen(17); // 2.125 bytes
+	EXPECT_EQ(2, units::floor<bytes<int>>(seventeen).value());
+	EXPECT_EQ(3, units::ceil<bytes<int>>(seventeen).value());
+	EXPECT_EQ(2, units::round<bytes<int>>(seventeen).value());
+	EXPECT_EQ(2, units::trunc<bytes<int>>(seventeen).value());
+
+	const bits<int> twenty(20); // 2.5 bytes -> round halfway away from zero
+	EXPECT_EQ(2, units::floor<bytes<int>>(twenty).value());
+	EXPECT_EQ(3, units::ceil<bytes<int>>(twenty).value());
+	EXPECT_EQ(3, units::round<bytes<int>>(twenty).value());
+	EXPECT_EQ(2, units::trunc<bytes<int>>(twenty).value());
+
+	// Negative values distinguish floor (toward -inf) from trunc (toward zero).
+	const bits<int> negSeventeen(-17); // -2.125 bytes
+	EXPECT_EQ(-3, units::floor<bytes<int>>(negSeventeen).value());
+	EXPECT_EQ(-2, units::ceil<bytes<int>>(negSeventeen).value());
+	EXPECT_EQ(-2, units::round<bytes<int>>(negSeventeen).value());
+	EXPECT_EQ(-2, units::trunc<bytes<int>>(negSeventeen).value());
+
+	// An exactly-divisible run-time value rounds to itself under every mode.
+	const bits<int> sixteen(16); // exactly 2 bytes
+	EXPECT_EQ(2, units::floor<bytes<int>>(sixteen).value());
+	EXPECT_EQ(2, units::ceil<bytes<int>>(sixteen).value());
+	EXPECT_EQ(2, units::round<bytes<int>>(sixteen).value());
+	EXPECT_EQ(2, units::trunc<bytes<int>>(sixteen).value());
+
+	// The target-taking overloads do not shadow the deduced-argument rounding math functions.
+	EXPECT_DOUBLE_EQ(3.0, units::floor(meters<double>(3.7)).value());
+	EXPECT_DOUBLE_EQ(4.0, units::ceil(meters<double>(3.7)).value());
+	EXPECT_DOUBLE_EQ(4.0, units::round(meters<double>(3.7)).value());
+	EXPECT_DOUBLE_EQ(3.0, units::trunc(meters<double>(3.7)).value());
+}
+
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitType, cout)
 {

@@ -288,11 +288,12 @@ namespace units
 		/* synthesized inheriting wrapper — it treats the base subobject as uninitialized (accessing uninitialized */    \
 		/* member, this is not a constant expression) — while an explicit derived ctor evaluates correctly. The */       \
 		/* base's own requires-clause gates viability; the derived constraint keeps this a candidate only for the */     \
-		/* floating-source-to-integral-target narrowing the base ctor accepts. */                                        \
+		/* narrowing the base ctors accept — a floating-point source, or a finer integral source that is an exact */    \
+		/* whole number of this integral unit. `base(rhs)` selects whichever base consteval ctor matches the source. */ \
 		template<::units::ConversionFactorType Cf, ::units::ArithmeticType Ty, ::units::NumericalScaleType<Ty> Ns>       \
 			requires(::units::traits::is_same_dimension_unit_v<::units::unit<Cf, Ty, Ns>, base> &&                       \
 					 !::units::detail::is_losslessly_convertible_unit<::units::unit<Cf, Ty, Ns>, base> &&                 \
-					 ::std::is_floating_point_v<Ty> && ::std::is_integral_v<Underlying>)                                  \
+					 (::std::is_floating_point_v<Ty> || ::std::is_integral_v<Ty>) && ::std::is_integral_v<Underlying>)    \
 		consteval unitName(const ::units::unit<Cf, Ty, Ns>& rhs) : base(rhs) {}                                          \
 		/* Forward a scalar assignment to the base's operator= so the dimensionless '= 0.30' path (which the derived */ \
 		/* class would otherwise route through the raw-value converting ctor, off by the CF ratio) is used. Templated */\
@@ -2258,6 +2259,39 @@ namespace units
 				return negative ? static_cast<Rep>(-result) : result;
 			}
 		}
+
+		/// Whether `value * num` is an exact multiple of `den` for an integral `value` — i.e. `value * num / den`
+		/// loses nothing. The product is carried in the widest available signed integer so the divisibility test is
+		/// exact and cannot be defeated by an intermediate overflow (a `value * num` that wrapped could spuriously
+		/// look divisible). `num`/`den` are the numerator/denominator of a `std::ratio` in lowest terms, so `den`
+		/// is positive; only `value` may be negative. Sign does not affect divisibility, so the magnitude of the
+		/// product is tested.
+		template<class Rep>
+		constexpr bool integral_conversion_is_exact(Rep value, std::intmax_t num, std::intmax_t den) noexcept
+		{
+			const widest_signed_int product = static_cast<widest_signed_int>(value) * static_cast<widest_signed_int>(num);
+			return product % static_cast<widest_signed_int>(den) == 0;
+		}
+
+		/// Convert an integral `value` from a finer to a coarser same-dimension unit (`num`/`den` the conversion
+		/// ratio), exactly. When `value * num` is a whole multiple of `den` the exact quotient is returned; when it
+		/// is not, the `throw` makes this a non-constant expression, so the narrowing unit constructor that calls it
+		/// in a constant-evaluated context is ill-formed rather than silently truncating. The exactness test and the
+		/// quotient both ride in a double-width intermediate, so neither is defeated by an intermediate overflow. `To`
+		/// and `From` are integral.
+		/// @tparam		To		the integral target type.
+		/// @tparam		From	the integral source type.
+		/// @param[in]	value	the source magnitude, in the source unit.
+		/// @param[in]	num		the conversion ratio numerator.
+		/// @param[in]	den		the conversion ratio denominator.
+		/// @return		`value * num / den` as `To`, when exact.
+		template<class To, class From>
+		constexpr To exact_integral_unit_cast(From value, std::intmax_t num, std::intmax_t den)
+		{
+			if (!integral_conversion_is_exact(value, num, den))
+				throw "an integral unit converts to a coarser integral unit only when the value is an exact whole number of the target unit";
+			return static_cast<To>(widening_mul_div(value, num, den));
+		}
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -2721,6 +2755,31 @@ namespace units
 					 std::is_floating_point_v<Ty> && std::is_integral_v<T>)
 		consteval unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs)
 		  : _linearized_value(detail::exact_integral_cast<T>(unit<ConversionFactor, detail::floating_point_promotion_t<T>, NumericalScale>(rhs).raw()))
+		{
+		}
+
+		/**
+		 * @brief		compile-time exact integral converting constructor
+		 * @details		Constructs an integral-underlying unit from a same-dimension integral one of a FINER unit when
+		 *				the value is an exact whole number of this (coarser) unit — the case the ordinary converting
+		 *				constructor rejects as potentially-lossy because a run-time value need not divide evenly
+		 *				(`bytes<int> b = 16_bit;` is `2`, but a run-time `bits<int>` might be `17`). It is `consteval`,
+		 *				so it participates only in a constant-evaluated context; a value that is not a whole number of
+		 *				the target unit (`17_bit` into `bytes<int>`) makes the constructor a non-constant expression and
+		 *				the program ill-formed — never a silent truncation. The exactness test is exact integer
+		 *				arithmetic in a double-width intermediate, so it cannot be defeated by an intermediate overflow.
+		 *				A run-time integral-to-coarser-integral unit conversion remains rejected; use `round`/`floor`/
+		 *				`ceil`/`trunc<To>` for a deliberate run-time rounding.
+		 * @param[in]	rhs unit to convert.
+		 */
+		template<ConversionFactorType ConversionFactorRhs, ArithmeticType Ty, NumericalScaleType<Ty> NsRhs>
+			requires(traits::is_same_dimension_unit_v<unit<ConversionFactorRhs, Ty, NsRhs>, unit> &&
+					 !detail::is_losslessly_convertible_unit<unit<ConversionFactorRhs, Ty, NsRhs>, unit> &&
+					 std::is_integral_v<Ty> && std::is_integral_v<T>)
+		consteval unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs)
+		  : _linearized_value(detail::exact_integral_unit_cast<T>(rhs.raw(),
+				std::ratio_divide<typename ConversionFactorRhs::conversion_ratio, typename ConversionFactor::conversion_ratio>::num,
+				std::ratio_divide<typename ConversionFactorRhs::conversion_ratio, typename ConversionFactor::conversion_ratio>::den))
 		{
 		}
 
@@ -5375,6 +5434,101 @@ namespace units
 	constexpr detail::floating_point_promotion_t<UnitType> round(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::round(x.raw()));
+	}
+
+	/** @cond */ // DOXYGEN IGNORE
+	namespace detail
+	{
+		/// A run-time conversion to a coarser same-dimension unit that need not divide evenly, with the caller's
+		/// rounding intent applied in the target unit. `x` is expressed in `To`'s unit as floating point, the supplied
+		/// rounding function (`std::floor`/`ceil`/`round`/`trunc`) reduces it to a whole number, and the result is
+		/// constructed as `To` from that already-linearized whole value — bypassing the lossless-conversion
+		/// constructor, which correctly rejects the implicit form. `To` and `From` are same-dimension units, `To`
+		/// integral; `From` need not be. This is the run-time counterpart to the compile-time exact narrowing
+		/// constructor.
+		template<class To, class From, class RoundingFn>
+		constexpr To rounded_unit_cast(const From& x, RoundingFn round) noexcept
+		{
+			using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<typename To::underlying_type>, typename To::numerical_scale_type>;
+			return To(static_cast<typename To::underlying_type>(round(Promoted(x).to_linearized())), linearized_value);
+		}
+
+		/// Whether a run-time rounding conversion from `From` to `To` is meaningful: same dimension, an integral
+		/// target, and a source not already losslessly convertible into the target (a lossless conversion needs no
+		/// rounding and the ordinary converting constructor serves it). Gating the target-unit rounding overloads on
+		/// this keeps them from shadowing the deduced-argument `round`/`floor`/`ceil`/`trunc` math functions.
+		template<class To, class From>
+		inline constexpr bool is_roundable_unit_conversion =
+			traits::is_unit_v<To> && traits::is_unit_v<From> && same_dimension<From, To> &&
+			std::is_integral_v<typename To::underlying_type> && !is_losslessly_convertible_unit<From, To>;
+	} // namespace detail
+	/** @endcond */ // END DOXYGEN IGNORE
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Convert to a coarser integral unit, rounding down (toward negative infinity).
+	 * @details		The run-time counterpart to the compile-time exact narrowing conversion: where
+	 *				`bytes<int> b = someRuntimeBits;` is correctly rejected (a run-time value need not be a whole
+	 *				number of bytes), `units::floor<bytes<int>>(someRuntimeBits)` states the rounding intent and
+	 *				yields the number of whole bytes at or below the value. Same shape as `std::chrono::floor<To>`.
+	 * @tparam		To		the coarser integral target unit (e.g. `bytes<int>`).
+	 * @tparam		From	the source unit (deduced), same dimension as `To`.
+	 * @param[in]	x		the value to convert.
+	 * @return		`x` in units of `To`, rounded toward negative infinity.
+	 */
+	template<class To, UnitType From>
+		requires detail::is_roundable_unit_conversion<To, From>
+	constexpr To floor(const From& x) noexcept
+	{
+		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::floor(v); });
+	}
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Convert to a coarser integral unit, rounding up (toward positive infinity).
+	 * @details		Run-time lossy conversion with explicit rounding intent; see `floor<To>`.
+	 * @tparam		To		the coarser integral target unit.
+	 * @tparam		From	the source unit (deduced), same dimension as `To`.
+	 * @param[in]	x		the value to convert.
+	 * @return		`x` in units of `To`, rounded toward positive infinity.
+	 */
+	template<class To, UnitType From>
+		requires detail::is_roundable_unit_conversion<To, From>
+	constexpr To ceil(const From& x) noexcept
+	{
+		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::ceil(v); });
+	}
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Convert to a coarser integral unit, rounding to nearest (halfway away from zero).
+	 * @details		Run-time lossy conversion with explicit rounding intent; see `floor<To>`.
+	 * @tparam		To		the coarser integral target unit.
+	 * @tparam		From	the source unit (deduced), same dimension as `To`.
+	 * @param[in]	x		the value to convert.
+	 * @return		`x` in units of `To`, rounded to the nearest whole target unit.
+	 */
+	template<class To, UnitType From>
+		requires detail::is_roundable_unit_conversion<To, From>
+	constexpr To round(const From& x) noexcept
+	{
+		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::round(v); });
+	}
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Convert to a coarser integral unit, rounding toward zero.
+	 * @details		Run-time lossy conversion with explicit rounding intent; see `floor<To>`.
+	 * @tparam		To		the coarser integral target unit.
+	 * @tparam		From	the source unit (deduced), same dimension as `To`.
+	 * @param[in]	x		the value to convert.
+	 * @return		`x` in units of `To`, rounded toward zero.
+	 */
+	template<class To, UnitType From>
+		requires detail::is_roundable_unit_conversion<To, From>
+	constexpr To trunc(const From& x) noexcept
+	{
+		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::trunc(v); });
 	}
 
 	//----------------------------------
