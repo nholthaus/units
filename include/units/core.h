@@ -282,6 +282,18 @@ namespace units
 		unitName& operator=(const unitName&) = default;                                                                                                                                                 \
 		unitName& operator=(unitName&&) = default;                                                                                                                                                      \
 		constexpr unitName(const base& other) noexcept : base(other) {}                                                                                                                               \
+		/* Explicit consteval forwarding of the base's compile-time narrowing converting constructor. The base is */    \
+		/* constructed directly (`base(rhs)`), so the named class does not rely on `using base::base` to SYNTHESIZE an */\
+		/* inheriting-constructor wrapper for this consteval ctor. GCC 13's constant evaluator mis-handles that */       \
+		/* synthesized inheriting wrapper — it treats the base subobject as uninitialized (accessing uninitialized */    \
+		/* member, this is not a constant expression) — while an explicit derived ctor evaluates correctly. The */       \
+		/* base's own requires-clause gates viability; the derived constraint keeps this a candidate only for the */     \
+		/* floating-source-to-integral-target narrowing the base ctor accepts. */                                        \
+		template<::units::ConversionFactorType Cf, ::units::ArithmeticType Ty, ::units::NumericalScaleType<Ty> Ns>       \
+			requires(::units::traits::is_same_dimension_unit_v<::units::unit<Cf, Ty, Ns>, base> &&                       \
+					 !::units::detail::is_losslessly_convertible_unit<::units::unit<Cf, Ty, Ns>, base> &&                 \
+					 ::std::is_floating_point_v<Ty> && ::std::is_integral_v<Underlying>)                                  \
+		consteval unitName(const ::units::unit<Cf, Ty, Ns>& rhs) : base(rhs) {}                                          \
 		/* Forward a scalar assignment to the base's operator= so the dimensionless '= 0.30' path (which the derived */ \
 		/* class would otherwise route through the raw-value converting ctor, off by the CF ratio) is used. Templated */\
 		/* + constrained to arithmetic so it never competes with unit-to-unit assignment (that stays the base's job). */\
@@ -2601,7 +2613,7 @@ namespace units
 					 !detail::is_losslessly_convertible_unit<unit<ConversionFactorRhs, Ty, NsRhs>, unit> &&
 					 std::is_floating_point_v<Ty> && std::is_integral_v<T>)
 		consteval unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs)
-		  : unit(detail::exact_integral_cast<T>(unit<ConversionFactor, detail::floating_point_promotion_t<T>, NumericalScale>(rhs).raw()), linearized_value)
+		  : _linearized_value(detail::exact_integral_cast<T>(unit<ConversionFactor, detail::floating_point_promotion_t<T>, NumericalScale>(rhs).raw()))
 		{
 		}
 
