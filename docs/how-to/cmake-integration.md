@@ -29,15 +29,24 @@ Pull it at configure time — no vendored copy in your tree:
 include(FetchContent)
 FetchContent_Declare(units
   GIT_REPOSITORY https://github.com/nholthaus/units.git
-  GIT_TAG        v3.5.1)          # pin a release tag
+  GIT_TAG        v3.6.0)          # pin a release tag
 FetchContent_MakeAvailable(units)
 
 target_link_libraries(myapp PRIVATE units::units)
 ```
 
-> **Note — turn off the extras in a consumer build.** When `units` is not the top-level project it does
-> not build its own tests or examples by default. If you want to be explicit, set the options before
-> `MakeAvailable`/`add_subdirectory`: `set(UNITS_BUILD_TESTS OFF)` and `set(UNITS_BUILD_EXAMPLES OFF)`.
+> **Note — a nested consumer build is inert.** When `units` is not the top-level project it builds
+> nothing of its own: no tests, no examples, no documentation, and it pulls in no CTest scaffolding (your
+> cache gets no `BUILD_TESTING` option and no `Nightly`/`Continuous`/`Experimental` targets from `units`).
+> Linking `units::units` is header-only, so all you get is the include path and `cxx_std_23`. If you want to
+> be explicit, set the options before `MakeAvailable`/`add_subdirectory`: `set(UNITS_BUILD_TESTS OFF)` and
+> `set(UNITS_BUILD_EXAMPLES OFF)`.
+>
+> A nested `units` also generates **no install/export rules**, so your application's `cmake --install` does
+> not stage `units`' headers or CMake package files into your install tree. A packager that vendors `units`
+> as a subdirectory and *does* want it installed can force the rules on with `set(UNITS_INSTALL ON)` before
+> `add_subdirectory`. When `units` is the top-level project (a CPack build, or a Conan/vcpkg recipe that
+> configures `units` directly), the install rules are on by default.
 
 ## Installed package: `find_package`
 

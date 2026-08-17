@@ -3,6 +3,63 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.6.0] - 2026-08-17
+
+New capabilities: opt-in affine and string-tagged quantity wrappers, per-dimension concepts, `std::format`
+support, floating-point literals with exact compile-time narrowing to integer units, and a set of
+correctness and packaging fixes.
+
+### Added
+- Opt-in affine wrappers `absolute<Unit>` and `delta<Unit>` (`units/kind.h`, an opt-in header not pulled in
+  by `units.h`). `absolute<>` is a point that carries a datum; `delta<>` is an offset-free amount. The
+  affine algebra is enforced at compile time: point − point yields a delta, point ± delta yields a point,
+  delta ± delta yields a delta, and point + point is ill-formed. Plain `units.h` sees none of this.
+- A generic string-tagged quantity kind, `units::kind<"tag", Unit>` (`units/kind.h`). Two kinds with the
+  same tag interoperate; different tags are a compile error with a readable diagnostic; a plain unit is
+  constructible into a kind by deliberate assignment but does not mix with one in arithmetic. Same-tag
+  `kind / kind` yields a dimensionless result. Full parity with a plain unit: `std::hash`,
+  `std::numeric_limits`, `abs`/`min`/`max`/`clamp`, and the compound-assignment operators.
+- A single conversion verb `to<Target>()` across the wrappers: a plain-unit target unwraps (a point applies
+  its datum; a delta or kind scales only), a wrapper target stays wrapped, and an arithmetic target
+  (`to<int>`) yields the number.
+- A per-dimension concept beside each `is_<dimension>_unit` trait (`units::Velocity`, `units::Force`,
+  `units::Length`, `units::Frequency`, `units::Area`, `units::Dimensionless`, …), so a function can
+  constrain on a dimension (`void handle(units::Velocity auto v)`) and a computed result classifies the same
+  way in every translation unit. (#379)
+- `std::format` / `std::print` support for units, with a format specification for the value and the unit
+  rendering; `to_string` and `operator<<` are unaffected. Can be disabled with `UNITS_DISABLE_FORMAT`. (#374)
+- Unit literals are floating-point, and a compile-time-known value that is exact narrows into an integer
+  representation through a `consteval` constructor: `feet<int> f = 16_ft;` compiles while `16.5_ft` is a
+  compile error. This extends to a finer integer unit converting into a coarser integer unit when the value
+  is an exact whole number of the target (`bytes<int> b = 16_b;` is 2 bytes; `17_b` is a compile error,
+  never a silent truncation); a run-time value that need not divide evenly remains rejected. (#375, #380)
+- Run-time lossy conversion to a coarser integer unit with explicit rounding intent: `round`, `floor`,
+  `ceil`, and `trunc` gain a target-unit overload (`units::floor<bytes<int>>(runtimeBits)`), the same shape
+  as `std::chrono::floor<To>`. Exact-or-fail is still served by `to<Unit>()` → `expected` / `try_to<Unit>()`,
+  and the deliberate cast by `unit_cast`. (#375)
+
+### Fixed
+- Unit conversions no longer overflow the intermediate computation. An integer conversion carries the
+  `value * num` product in a double-width intermediate before the divide, so a large magnitude through a
+  fractional ratio yields the correct value instead of a wrapped one; a floating-point conversion divides
+  first only when the accurate `value * num` order would overflow to infinity, keeping a finite result
+  where one exists. (#387)
+- Same-dimension comparison between a signed-underlying and an unsigned-underlying unit is by mathematical
+  value, not C++ integer-promotion rules: `meters<int>(-1) < meters<unsigned>(1u)` is now true.
+- A cluster of `<cmath>`-analog correctness bugs, including `fma`. (#376)
+- Mixed-unit arithmetic reconciles its result to a real named unit and recovers composed and offset-free
+  names, computed in the function body rather than the signature. (#381)
+
+### Changed
+- Consuming `units` via `add_subdirectory` is now inert: a nested `units` builds no tests, examples, or
+  documentation, pulls in no CTest scaffolding (no `BUILD_TESTING` option or `Nightly`/`Continuous`/
+  `Experimental` targets in the consumer's cache), and generates no install/export rules — so a consuming
+  application's `cmake --install` does not stage `units`' headers or CMake package files. When `units` is
+  the top-level project (a CPack build, or a Conan/vcpkg recipe that configures it directly) the install
+  rules are on; a subdirectory consumer that wants them can set `UNITS_INSTALL=ON`.
+- The continuous-integration suite gained an UndefinedBehaviorSanitizer job, so a conversion that invoked
+  runtime undefined behavior fails the build rather than returning a wrong value silently.
+
 ## [3.5.1] - 2026-08-15
 
 ### Fixed
@@ -210,6 +267,7 @@ The C++23 line. This is a major revision; see the
 - `unit_value_t` — use a `constexpr` quantity value instead.
 - The `units::math` namespace and the `_t` singular type aliases (see Changed).
 
+[3.6.0]: https://github.com/nholthaus/units/releases/tag/v3.6.0
 [3.5.1]: https://github.com/nholthaus/units/releases/tag/v3.5.1
 [3.5.0]: https://github.com/nholthaus/units/releases/tag/v3.5.0
 [3.4.4]: https://github.com/nholthaus/units/releases/tag/v3.4.4
