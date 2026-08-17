@@ -895,73 +895,76 @@ namespace units
 			/// selected mismatch overload fires ONLY when that overload is actually instantiated (never eagerly).
 			template<fixed_string...>
 			inline constexpr bool dependent_false = false;
+			template<class...>
+			inline constexpr bool dependent_false_t = false;
 		}
 		/** @endcond */ // END DOXYGEN IGNORE
 
 		// Combining two DIFFERENT kinds is meaningless (a radial distance is not a straight-line distance; a torque
 		// is not an energy). These catch-all overloads are the LEAST-preferred candidates (the same-tag overloads
 		// above win whenever the tags match), so a mismatched combination selects one of these and stops at a single
-		// readable message that names BOTH kinds — instead of a wall of "no matching operator / N candidates". To do
-		// arithmetic across kinds you must intend it: unwrap one side with `to<PlainUnit>()`.
+		// readable message naming the mistake — instead of a wall of "no matching operator". They return a real
+		// value (not void) so the compiler must instantiate the body to deduce the return type, which fires the
+		// static_assert on g++, clang, AND MSVC (a void-returning body is not instantiated by MSVC's return-type
+		// deduction, so the assert would be skipped there). To do arithmetic across kinds you must intend it:
+		// unwrap one side with to<PlainUnit>().
 		template<fixed_string TagL, fixed_string TagR, UnitType U, UnitType V>
 			requires(!(TagL == TagR))
-		constexpr void operator+(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
+		constexpr auto operator+(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false<TagL, TagR>,
 				"units::kind: cannot add two DIFFERENT kinds (their tags differ, e.g. \"radial\" vs \"straight\"). "
 				"They share a unit and a dimension but are semantically distinct; unwrap one side with "
 				"to<PlainUnit>() to operate on the plain unit if that is truly intended.");
+			return basic_kind<TagL, U>{};
 		}
 		template<fixed_string TagL, fixed_string TagR, UnitType U, UnitType V>
 			requires(!(TagL == TagR))
-		constexpr void operator-(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
+		constexpr auto operator-(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false<TagL, TagR>,
 				"units::kind: cannot subtract two DIFFERENT kinds (their tags differ, e.g. \"radial\" vs "
 				"\"straight\"). Unwrap one side with to<PlainUnit>() to operate on the plain unit if intended.");
+			return basic_kind<TagL, U>{};
 		}
 		template<fixed_string TagL, fixed_string TagR, UnitType U, UnitType V>
 			requires(!(TagL == TagR))
-		constexpr void operator==(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
+		constexpr bool operator==(const basic_kind<TagL, U>&, const basic_kind<TagR, V>&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false<TagL, TagR>,
 				"units::kind: cannot compare two DIFFERENT kinds (their tags differ, e.g. \"radial\" vs "
 				"\"straight\"). Unwrap one side with to<PlainUnit>() to compare the plain units if intended.");
+			return false;
 		}
 
 		// Mixing a `kind` with a PLAIN unit is ill-formed: a plain unit carries no kind, so combining it with a
 		// tagged quantity would silently launder an untagged value into (or out of) a kind. A plain unit becomes a
 		// kind only by DELIBERATE construction/assignment (`kind<Tag,U> k = plain;`), never in arithmetic. These
 		// catch-alls turn the raw "no matching operator" wall into one readable message.
-		/** @cond */ // DOXYGEN IGNORE
-		namespace wrap_detail
-		{
-			template<class...>
-			inline constexpr bool dependent_false_t = false;
-		}
-		/** @endcond */ // END DOXYGEN IGNORE
-
 		template<fixed_string Tag, UnitType U, UnitType Plain>
-		constexpr void operator+(const basic_kind<Tag, U>&, const Plain&) noexcept
+		constexpr auto operator+(const basic_kind<Tag, U>& lhs, const Plain&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
 				"units::kind: cannot add a plain unit to a kind — a plain unit carries no kind, so mixing them in "
 				"arithmetic is disallowed. Wrap the plain unit in the same kind first, or unwrap the kind with "
 				"to<PlainUnit>() to work in plain units.");
+			return lhs;
 		}
 		template<fixed_string Tag, UnitType U, UnitType Plain>
-		constexpr void operator+(const Plain&, const basic_kind<Tag, U>&) noexcept
+		constexpr auto operator+(const Plain&, const basic_kind<Tag, U>& rhs) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
 				"units::kind: cannot add a plain unit to a kind — a plain unit carries no kind. Wrap the plain unit "
 				"in the same kind first, or unwrap the kind with to<PlainUnit>() to work in plain units.");
+			return rhs;
 		}
 		template<fixed_string Tag, UnitType U, UnitType Plain>
-		constexpr void operator-(const basic_kind<Tag, U>&, const Plain&) noexcept
+		constexpr auto operator-(const basic_kind<Tag, U>& lhs, const Plain&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
 				"units::kind: cannot subtract a plain unit from a kind — a plain unit carries no kind. Wrap it in the "
 				"same kind first, or unwrap the kind with to<PlainUnit>().");
+			return lhs;
 		}
 
 		//----------------------------------
