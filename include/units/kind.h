@@ -883,6 +883,29 @@ namespace units
 			return basic_kind<Tag, ScaledUnit>(wrap_detail::unwrap(lhs) / rhs);
 		}
 
+		/// The ratio of two SAME-tag kinds is a plain dimensionless quantity — the tag cancels, exactly as the
+		/// ratio of two lengths is a number. (Different tags do not divide; that stays ill-formed.)
+		template<fixed_string Tag, UnitType U, UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr auto operator/(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
+		{
+			return wrap_detail::unwrap(lhs) / wrap_detail::unwrap(rhs);
+		}
+
+		/// Compound scale of a same-tag kind by a bare number, in place (mirrors `delta`'s `*=`/`/=`).
+		template<fixed_string Tag, UnitType U, ArithmeticType T>
+		constexpr basic_kind<Tag, U>& operator*=(basic_kind<Tag, U>& lhs, T rhs) noexcept
+		{
+			lhs = basic_kind<Tag, U>(U(lhs.raw() * rhs));
+			return lhs;
+		}
+		template<fixed_string Tag, UnitType U, ArithmeticType T>
+		constexpr basic_kind<Tag, U>& operator/=(basic_kind<Tag, U>& lhs, T rhs) noexcept
+		{
+			lhs = basic_kind<Tag, U>(U(lhs.raw() / rhs));
+			return lhs;
+		}
+
 		/// Compound add/subtract of a same-tag kind, in place (the rhs is converted to the lhs unit).
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
@@ -1014,6 +1037,49 @@ namespace units
 		{
 			return std::string("[").append(Tag.value).append("] ").append(units::to_string(wrap_detail::unwrap(obj)));
 		}
+
+		//----------------------------------
+		//	KIND (TAGGED) MATH
+		//----------------------------------
+		// Parity with `delta`: magnitude and extrema keep the tag (the tag is preserved through the operation).
+
+		/// Absolute magnitude of a kind (|value|), keeping the tag, promoting like the wrapped unit's `units::abs`.
+		template<fixed_string Tag, UnitType U>
+		constexpr auto abs(const basic_kind<Tag, U>& k) noexcept
+		{
+			using R = detail::floating_point_promotion_t<U>;
+			return basic_kind<Tag, R>(units::abs(R(wrap_detail::unwrap(k))));
+		}
+
+		/// The smaller of two same-tag kinds, kept in the LHS unit (the tag is preserved).
+		template<fixed_string Tag, UnitType U, UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr auto min(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
+		{
+			using R               = units::detail::delta_result_unit_t<U, V>;
+			const basic_kind<Tag, R> a = lhs.template to<basic_kind<Tag, R>>();
+			const basic_kind<Tag, R> b = rhs.template to<basic_kind<Tag, R>>();
+			return a < b ? a : b;
+		}
+
+		/// The larger of two same-tag kinds, kept in the LHS unit (the tag is preserved).
+		template<fixed_string Tag, UnitType U, UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr auto max(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
+		{
+			using R               = units::detail::delta_result_unit_t<U, V>;
+			const basic_kind<Tag, R> a = lhs.template to<basic_kind<Tag, R>>();
+			const basic_kind<Tag, R> b = rhs.template to<basic_kind<Tag, R>>();
+			return a > b ? a : b;
+		}
+
+		/// Clamp a same-tag kind into `[lo, hi]`, kept in the value's LHS unit.
+		template<fixed_string Tag, UnitType U, UnitType V, UnitType W>
+			requires(traits::is_same_dimension_unit_v<U, V> && traits::is_same_dimension_unit_v<U, W>)
+		constexpr auto clamp(const basic_kind<Tag, U>& value, const basic_kind<Tag, V>& lo, const basic_kind<Tag, W>& hi) noexcept
+		{
+			return affine::min(affine::max(value, lo), hi);
+		}
 	} // inline namespace affine
 
 
@@ -1050,6 +1116,13 @@ struct std::hash<units::affine::delta<U>>
 	constexpr std::size_t operator()(const units::affine::delta<U>& x) const noexcept { return std::hash<U>()(x.template to<U>()); }
 };
 
+/// Hash a kind by the hash of its wrapped quantity (the tag does not participate — equal values hash equally).
+template<units::affine::fixed_string Tag, units::UnitType U>
+struct std::hash<units::affine::basic_kind<Tag, U>>
+{
+	constexpr std::size_t operator()(const units::affine::basic_kind<Tag, U>& x) const noexcept { return std::hash<U>()(x.template to<U>()); }
+};
+
 //------------------------------
 //	std::numeric_limits
 //------------------------------
@@ -1074,6 +1147,16 @@ namespace std
 		static constexpr units::affine::delta<U> min() { return units::affine::delta<U>(std::numeric_limits<U>::min()); }
 		static constexpr units::affine::delta<U> max() { return units::affine::delta<U>(std::numeric_limits<U>::max()); }
 		static constexpr units::affine::delta<U> lowest() { return units::affine::delta<U>(std::numeric_limits<U>::lowest()); }
+	};
+
+	/// Numeric limits of a kind: the wrapped unit's limits, re-wrapped as the same kind (tag preserved).
+	template<units::affine::fixed_string Tag, units::UnitType U>
+	struct numeric_limits<units::affine::basic_kind<Tag, U>>
+	{
+		static constexpr bool is_specialized = true;
+		static constexpr units::affine::basic_kind<Tag, U> min() { return units::affine::basic_kind<Tag, U>(std::numeric_limits<U>::min()); }
+		static constexpr units::affine::basic_kind<Tag, U> max() { return units::affine::basic_kind<Tag, U>(std::numeric_limits<U>::max()); }
+		static constexpr units::affine::basic_kind<Tag, U> lowest() { return units::affine::basic_kind<Tag, U>(std::numeric_limits<U>::lowest()); }
 	};
 } // namespace std
 
