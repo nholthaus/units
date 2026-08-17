@@ -8,6 +8,7 @@ SET(SOURCE_CODE
 		main.cpp
 		lossyCompoundAssign.cpp
 		eigenInterop.cpp
+		wrapperTest.cpp
 )
 
 LIST(APPEND LIBRARIES

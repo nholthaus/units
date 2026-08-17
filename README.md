@@ -245,6 +245,59 @@ Comparisons (`==`, `<`, …) and conversions between affine units are exact and 
 units (lengths, masses, everything without an offset) are unaffected — they add, subtract, and combine with
 no special cases.
 
+#### Opt-in `absolute<>` / `delta<>` wrappers
+
+The point/delta distinction above is enforced *quietly* on plain units. When you want the compiler to enforce
+it **in the type** — so a function that takes a temperature *difference* cannot be handed an absolute
+temperature, or an epoch cannot be added to an epoch — reach for the two opt-in wrappers:
+
+- `absolute<U>` — a **point** on a scale. It carries the unit's datum: `absolute<celsius<double>>(0.0)` is
+  `273.15 K`, and `.to<kelvin<double>>()` applies the offset.
+- `delta<U>` — an **amount** (offset-free). `delta<celsius<double>>(10.0).to<fahrenheit<double>>()` is an
+  `18 °F` delta (scale only), never an absolute `50 °F`.
+
+They wrap **any** unit (for a non-affine unit the datum is zero, so the two coincide numerically), are
+trivially copyable, and are exactly the size of the wrapped unit — zero overhead. The type algebra, enforced
+at compile time:
+
+```cpp
+using namespace units;
+using namespace units::temperature;
+
+// point − point → delta (the datum cancels), kept in the LEFT operand's unit:
+auto span = absolute<celsius<double>>(100.0) - absolute<fahrenheit<double>>(32.0);  // delta of 100 °C-degrees
+static_assert(traits::is_delta_v<decltype(span)>);
+
+// point ± delta → point (move the point), delta ± delta → delta, delta */ scalar → delta:
+auto warmer = absolute<celsius<double>>(20.0) + delta<celsius<double>>(5.0);        // 25 °C (a point)
+delta<celsius<double>> d(10.0);
+d += delta<fahrenheit<double>>(18.0);   // +10 °C-degrees (mixed unit converts by degree size)
+d *= 2.0;                               // 40 °C-degrees
+
+// point + point is ill-formed — the sum of two points has no meaning:
+// auto bad = absolute<celsius<double>>(20.0) + absolute<celsius<double>>(5.0);     // does not compile
+```
+
+**Result unit — the LHS-unit tie-break.** A wrapper arithmetic operator keeps the **left operand's unit**, so
+`.value()` reads in the unit you wrote: `absolute<celsius> − absolute<fahrenheit>` is a difference in
+**celsius-degrees** (reads `100`), not a value in some common sub-unit. The only adjustment is to the
+*underlying type*: when the left operand's underlying is integral and cannot hold the right operand losslessly
+(e.g. `absolute<kilometers<int>> − absolute<meters<int>>`), the underlying promotes to floating point while
+the unit stays kilometers (the delta reads `0.5`). Comparisons reconcile to the common (finer) unit so a mixed
+integer comparison never narrows.
+
+Traits and concepts let a template constrain on the role: `traits::is_absolute_v<T>`, `traits::is_delta_v<T>`,
+and the concepts `AbsoluteType` / `DeltaType`. `units::abs`/`min`/`max`/`clamp` work on a `delta`; `min`/`max`/
+`clamp` work on an `absolute`. Streaming and `units::to_string` forward to the wrapped quantity, prefixing a
+`delta ` marker so a difference is visually distinct from a point.
+
+The wrappers live in an `inline namespace kind` inside `namespace units` (`kind` is the ISO/VIM metrology term
+for a *kind of quantity*), so `units::absolute` and `units::kind::absolute` name the same type — the qualifier
+is there only when you need to disambiguate `delta`/`absolute` from an identifier of your own.
+
+> Serialization of the wrappers is not yet supported (a follow-up); serialize the wrapped quantity via
+> `.quantity()`.
+
 ---
 
 ## Type errors
