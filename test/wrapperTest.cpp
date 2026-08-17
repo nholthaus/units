@@ -934,3 +934,52 @@ TEST(WrapperKind, traitsAndTrivialProperties)
 	static_assert(sizeof(kind<"radial", meters<double>>) == sizeof(meters<double>));
 	SUCCEED();
 }
+
+//======================================================================================================================
+//	API PARITY WITH THE PLAIN UNIT — a wrapper exposes the same accessors the wrapped unit does
+//======================================================================================================================
+
+// to<Arithmetic>() gives the numeric value in the wrapper's own unit, cast to the target type — matching the
+// plain unit's to<Arithmetic>() (a truncating cast for an integral target).
+TEST(WrapperParity, toArithmeticMatchesPlainUnit)
+{
+	EXPECT_EQ(20, A<celsius<double>>(20.7).to<int>());
+	EXPECT_DOUBLE_EQ(20.7, A<celsius<double>>(20.7).to<double>());
+	EXPECT_EQ(5, D<meters<double>>(5.7).to<int>());
+	EXPECT_DOUBLE_EQ(5.7, D<meters<double>>(5.7).to<double>());
+	EXPECT_EQ(5, (kind<"radial", meters<double>>(5.7).to<int>()));
+	EXPECT_DOUBLE_EQ(5.7, (kind<"radial", meters<double>>(5.7).to<double>()));
+	// same value the wrapped unit would give
+	EXPECT_EQ(meters<double>(5.7).to<int>(), D<meters<double>>(5.7).to<int>());
+}
+
+// to<Arithmetic>() must NOT collide with to<Unit>()/to<Wrapper>(): a plain-unit target still unwraps, a wrapper
+// target still stays wrapped.
+TEST(WrapperParity, toDispatchStillDisjointWithArithmeticOverload)
+{
+	const D<meters<double>> d(5.0);
+	static_assert(std::is_same_v<decltype(d.to<double>()), double>);            // arithmetic -> number
+	static_assert(std::is_same_v<decltype(d.to<meters<double>>()), meters<double>>);   // plain unit -> unwrap
+	static_assert(std::is_same_v<decltype(d.to<D<feet<double>>>()), D<feet<double>>>); // wrapper -> stays
+	SUCCEED();
+}
+
+TEST(WrapperParity, toLinearizedForwardsToWrappedUnit)
+{
+	EXPECT_DOUBLE_EQ(meters<double>(5.0).to_linearized(), D<meters<double>>(5.0).to_linearized());
+	EXPECT_DOUBLE_EQ(celsius<double>(0.0).to_linearized(), A<celsius<double>>(0.0).to_linearized());
+	EXPECT_DOUBLE_EQ(meters<double>(5.0).to_linearized(), (kind<"radial", meters<double>>(5.0).to_linearized()));
+}
+
+// name()/abbreviation(): absolute/delta forward to the wrapped unit; a kind's abbreviation is the unit's, and its
+// name is "<tag> <unitname>".
+TEST(WrapperParity, nameAndAbbreviation)
+{
+	EXPECT_STREQ("meters", D<meters<double>>(1.0).name());
+	EXPECT_STREQ("m", D<meters<double>>(1.0).abbreviation());
+	EXPECT_STREQ("celsius", A<celsius<double>>(1.0).name());
+
+	const kind<"radial", meters<double>> k(1.0);
+	EXPECT_EQ("radial meters", k.name());        // tag + unit
+	EXPECT_STREQ("m", k.abbreviation());          // unit's abbreviation, unchanged
+}

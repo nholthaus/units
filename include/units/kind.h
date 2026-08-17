@@ -291,6 +291,19 @@ namespace units
 			constexpr auto value() const noexcept { return m_point.value(); }
 			/// The point's raw (linearized) value.
 			constexpr auto raw() const noexcept { return m_point.raw(); }
+			/// The point's linearized value (as the wrapped unit's `to_linearized()`).
+			constexpr auto to_linearized() const noexcept { return m_point.to_linearized(); }
+			/// The wrapped unit's name/abbreviation (a point does not rename the unit).
+			[[nodiscard]] constexpr const char* name() const noexcept { return m_point.name(); }
+			[[nodiscard]] constexpr const char* abbreviation() const noexcept { return m_point.abbreviation(); }
+
+			/// Express this point's value as a plain arithmetic type — the numeric value in its own unit
+			/// (`absolute<celsius<double>>(20).to<int>()` is `20`), matching the wrapped unit's `to<Arithmetic>()`.
+			template<ArithmeticType Arithmetic>
+			constexpr Arithmetic to() const noexcept
+			{
+				return m_point.template to<Arithmetic>();
+			}
 
 			/// Express this point as a PLAIN unit of the same dimension — unwraps, applying the datum offset
 			/// (`absolute<celsius>(0).to<kelvin<double>>()` is `273.15 K`; `.to<celsius<double>>()` is the plain
@@ -339,6 +352,19 @@ namespace units
 			constexpr auto value() const noexcept { return m_amount.value(); }
 			/// The amount's raw (linearized) value.
 			constexpr auto raw() const noexcept { return m_amount.raw(); }
+			/// The amount's linearized value (as the wrapped unit's `to_linearized()`).
+			constexpr auto to_linearized() const noexcept { return m_amount.to_linearized(); }
+			/// The wrapped unit's name/abbreviation (an amount does not rename the unit).
+			[[nodiscard]] constexpr const char* name() const noexcept { return m_amount.name(); }
+			[[nodiscard]] constexpr const char* abbreviation() const noexcept { return m_amount.abbreviation(); }
+
+			/// Express this amount's value as a plain arithmetic type — the numeric value in its own unit, matching
+			/// the wrapped unit's `to<Arithmetic>()`.
+			template<ArithmeticType Arithmetic>
+			constexpr Arithmetic to() const noexcept
+			{
+				return m_amount.template to<Arithmetic>();
+			}
 
 			/// Express this amount as a PLAIN unit of the same dimension — unwraps, SCALE ONLY (the datum is never
 			/// applied): a 10 degC delta is an 18 degF delta, never an absolute 50 degF. `.to<celsius<double>>()` is
@@ -457,6 +483,21 @@ namespace units
 			constexpr auto value() const noexcept { return m_value.value(); }
 			/// The raw (linearized) value.
 			constexpr auto raw() const noexcept { return m_value.raw(); }
+			/// The linearized value (as the wrapped unit's `to_linearized()`).
+			constexpr auto to_linearized() const noexcept { return m_value.to_linearized(); }
+			/// The abbreviation is the wrapped unit's (a kind does not change the abbreviation — `"m"` for a
+			/// `kind<"radial", meters<double>>`).
+			[[nodiscard]] constexpr const char* abbreviation() const noexcept { return m_value.abbreviation(); }
+			/// The name is the tag followed by the wrapped unit's name — e.g. `"radial meters"`.
+			[[nodiscard]] std::string name() const { return std::string(Tag.value).append(" ").append(m_value.name()); }
+
+			/// Express this kind's value as a plain arithmetic type — the numeric value in its own unit, matching
+			/// the wrapped unit's `to<Arithmetic>()`.
+			template<ArithmeticType Arithmetic>
+			constexpr Arithmetic to() const noexcept
+			{
+				return m_value.template to<Arithmetic>();
+			}
 
 			/// Express this kind as a PLAIN unit of the same dimension — unwraps (dropping the tag), scale-only.
 			/// `radial.to<feet<double>>()` is plain `feet`; `.to<meters<double>>()` is the plain wrapped value.
