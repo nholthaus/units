@@ -148,10 +148,11 @@ meters c = 5.0 * m;     // a value times a unit constant (units::m)
 meters d{5.0};          // braced construction
 ```
 
-> **Note — write the decimal point for fractional values.** A literal's type follows what you write:
-> `5.0_m` is `meters<double>`, but `5_m` is `meters<int>`. Integer-backed quantities do integer
-> arithmetic, so `1_m / 2_m` is `0`, whereas `1.0_m / 2.0_m` is `0.5`. Use a decimal point (or write
-> `meters<double>`) when you want fractional results.
+> **Note — unit literals are floating-point.** Both `5.0_m` and `5_m` are `meters<double>`, so `1_m / 2_m`
+> is `0.5`, not `0` — a literal never silently does integer arithmetic. An integer representation is opt-in
+> through the type (`meters<int> n{5}`, or CTAD from an integer initializer `meters a(5)`); a compile-time
+> value that is exact narrows into it (`meters<int> n = 5_m;`), while a fractional one (`5.5_m`) is a
+> compile error rather than a silent truncation.
 
 **Spelling the type: `meters`, `meters<>`, `meters<T>`.** Three ways to name the type:
 
@@ -676,15 +677,15 @@ find_package(units CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE units::units)
 ```
 
-**Linux packages.** The build produces Debian (`libunits-dev`), RPM (`units-devel`), and tarball
-artifacts via CPack; a PPA is published for Ubuntu.
+**Package managers.** `units` is available through vcpkg (`vcpkg install units`), Conan
+(`conan install --requires=units/<version>`), and Debian/Ubuntu (`apt install libunits-dev`; an RPM and a
+tarball are also produced via CPack, and a PPA is published for Ubuntu). The reference sources for all three
+integrations live in [`packaging/`](packaging/).
 
 [Debugger visualizers](docs/how-to/natvis.md) show a quantity as `5 m` in the debugger rather than an
 opaque object: linking `units::units` attaches the [natvis](natvis/units.natvis) automatically on MSVC,
 and an [LLDB formatter](natvis/units_lldb.py) (`command script import units_lldb.py`) does the same for
 LLDB, CLion, Xcode, and CodeLLDB.
-
-> **Not yet available:** vcpkg and Conan ports. Contributions welcome.
 
 ---
 

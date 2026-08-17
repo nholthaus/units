@@ -35,8 +35,10 @@ correctness and packaging fixes.
   never a silent truncation); a run-time value that need not divide evenly remains rejected. (#375, #380)
 - Run-time lossy conversion to a coarser integer unit with explicit rounding intent: `round`, `floor`,
   `ceil`, and `trunc` gain a target-unit overload (`units::floor<bytes<int>>(runtimeBits)`), the same shape
-  as `std::chrono::floor<To>`. Exact-or-fail is still served by `to<Unit>()` → `expected` / `try_to<Unit>()`,
-  and the deliberate cast by `unit_cast`. (#375)
+  as `std::chrono::floor<To>`. The rounding is exact integer arithmetic, so it is correct at every magnitude
+  (a value beyond 2^53 is not rounded through a lossy double), and a result that does not fit the target
+  integer wraps like any integer narrowing rather than invoking undefined behavior. A deliberate value cast
+  without rounding remains `unit_cast`. (#375)
 
 ### Fixed
 - Unit conversions no longer overflow the intermediate computation. An integer conversion carries the

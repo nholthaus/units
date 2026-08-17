@@ -1,3 +1,14 @@
+units (3.6.0-0ppa1~noble1) noble; urgency=medium
+
+  * New release: opt-in affine (absolute/delta) and string-tagged kind wrappers,
+    a unified to<Target>() conversion verb, per-dimension concepts, std::format
+    support, floating-point literals with exact compile-time narrowing to integer
+    units (and runtime round/floor/ceil/trunc<To>), overflow-safe conversions and
+    value-based integer comparison, cmath fixes, and inert add_subdirectory
+    consumption.
+
+ -- Nic Holthaus <nholthaus@gmail.com>  Sun, 17 Aug 2026 12:00:00 -0400
+
 units (3.5.1-0ppa1~noble1) noble; urgency=medium
 
   * Correct the installed CMake package version.
