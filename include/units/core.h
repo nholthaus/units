@@ -881,6 +881,41 @@ namespace units
 		};
 
 		/**
+		 * @brief		Whether `T` is a complete type, decided by SFINAE on `sizeof(T)` without instantiating any
+		 *				other trait.
+		 * @details		`std::is_base_of<Base, T>` is ill-formed when `T` is an incomplete, non-same class type (a
+		 *				conforming library — libc++ — rejects it). `is_unit` must stay usable as a SFINAE probe on
+		 *				arbitrary foreign types, and one such type is a standard-library class caught mid-definition:
+		 *				libc++'s `<chrono>` evaluates every `std::common_type` partial specialization while
+		 *				`std::chrono::duration` is still incomplete, which would instantiate `is_base_of<_unit,
+		 *				duration>` on the incomplete `duration`. Gating the base-of test on completeness avoids that.
+		 */
+		template<class T, class = void>
+		struct is_complete : std::false_type
+		{
+		};
+
+		template<class T>
+		struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type
+		{
+		};
+
+		/**
+		 * @brief		`is_unit` implementation: an incomplete or non-class type is never a unit, decided WITHOUT
+		 *				instantiating `is_base_of` (which is ill-formed on an incomplete non-same class type). Only a
+		 *				complete type reaches the `is_base_of` test in the specialization below.
+		 */
+		template<class T, bool = is_complete<T>::value>
+		struct is_unit_impl : std::false_type
+		{
+		};
+
+		template<class T>
+		struct is_unit_impl<T, true> : std::is_base_of<_unit, T>::type
+		{
+		};
+
+		/**
 		 * @brief		ADL customization point that maps a `conversion_factor` to its friendly strong type.
 		 * @details		This is the anchor `traits::strong` resolves through. A dimension header registers a named
 		 *				strong type by declaring a better-matching overload of `strong_name` (see the
@@ -908,7 +943,7 @@ namespace units
 		 *				whether `class T` implements a `unit`.
 		 */
 		template<class T>
-		struct is_unit : std::is_base_of<units::detail::_unit, T>::type
+		struct is_unit : units::detail::is_unit_impl<T>::type
 		{
 		};
 
@@ -5439,18 +5474,83 @@ namespace units
 	/** @cond */ // DOXYGEN IGNORE
 	namespace detail
 	{
-		/// A run-time conversion to a coarser same-dimension unit that need not divide evenly, with the caller's
-		/// rounding intent applied in the target unit. `x` is expressed in `To`'s unit as floating point, the supplied
-		/// rounding function (`std::floor`/`ceil`/`round`/`trunc`) reduces it to a whole number, and the result is
-		/// constructed as `To` from that already-linearized whole value — bypassing the lossless-conversion
-		/// constructor, which correctly rejects the implicit form. `To` and `From` are same-dimension units, `To`
-		/// integral; `From` need not be. This is the run-time counterpart to the compile-time exact narrowing
-		/// constructor.
-		template<class To, class From, class RoundingFn>
-		constexpr To rounded_unit_cast(const From& x, RoundingFn round) noexcept
+		/// The rounding direction for a run-time lossy conversion to a coarser integral unit.
+		enum class rounding_mode
 		{
-			using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<typename To::underlying_type>, typename To::numerical_scale_type>;
-			return To(static_cast<typename To::underlying_type>(round(Promoted(x).to_linearized())), linearized_value);
+			toward_neg_infinity, ///< floor
+			toward_pos_infinity, ///< ceil
+			nearest_half_away,   ///< round (halfway cases away from zero)
+			toward_zero          ///< trunc
+		};
+
+		/// Round an exact integer quotient `q = value*num/den` (truncated toward zero) with remainder
+		/// `r = value*num % den` in the requested direction, entirely in integer arithmetic. `den` is positive (a
+		/// `std::ratio` denominator); `r` carries the sign of the dividend. This is the integer counterpart of
+		/// applying `std::floor`/`ceil`/`round`/`trunc` to `value*num/den`, without ever forming that ratio as a
+		/// floating-point number — so it is exact at every magnitude, unlike a double-promoted rounding which loses
+		/// the fractional part above 2^53.
+		template<class Int>
+		constexpr Int apply_integer_rounding(Int q, Int r, Int den, rounding_mode mode) noexcept
+		{
+			if (r == 0)
+				return q; // exact — every mode agrees
+			switch (mode)
+			{
+			case rounding_mode::toward_zero:
+				return q; // integer division already truncated toward zero
+			case rounding_mode::toward_neg_infinity:
+				return r < 0 ? q - 1 : q; // a nonzero negative remainder means the true value is below q
+			case rounding_mode::toward_pos_infinity:
+				return r > 0 ? q + 1 : q; // a nonzero positive remainder means the true value is above q
+			case rounding_mode::nearest_half_away:
+			{
+				// Halfway-away-from-zero: step away from zero when twice the remainder magnitude reaches den.
+				const Int twiceRemainder = (r < 0 ? -r : r) * 2;
+				if (twiceRemainder >= den)
+					return r < 0 ? q - 1 : q + 1;
+				return q;
+			}
+			}
+			return q;
+		}
+
+		/// A run-time conversion to a coarser same-dimension unit that need not divide evenly, with the caller's
+		/// rounding intent applied in the target unit. When both source and target are integral the divide and the
+		/// rounding are done in exact integer arithmetic carried in a double-width intermediate (so the result is
+		/// exact at every magnitude and the final store is an ordinary — implementation-defined — integer narrowing,
+		/// matching `std::chrono::floor<To>`); when a floating-point underlying is involved the value is expressed in
+		/// the target unit and the matching `std::` rounding is applied. The result is constructed from the
+		/// already-linearized whole value, bypassing the lossless-conversion constructor that correctly rejects the
+		/// implicit form. `To` and `From` are same-dimension units, `To` integral; `From` need not be.
+		template<class To, class From>
+		constexpr To rounded_unit_cast(const From& x, rounding_mode mode) noexcept
+		{
+			using ToRep   = typename To::underlying_type;
+			using FromRep = typename From::underlying_type;
+
+			if constexpr (std::is_integral_v<FromRep>)
+			{
+				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder.
+				using Ratio = std::ratio_divide<typename From::conversion_factor::conversion_ratio, typename To::conversion_factor::conversion_ratio>;
+				const widest_signed_int value   = static_cast<widest_signed_int>(x.raw());
+				const widest_signed_int product = value * static_cast<widest_signed_int>(Ratio::num);
+				const widest_signed_int den     = static_cast<widest_signed_int>(Ratio::den);
+				const widest_signed_int quotient  = product / den;
+				const widest_signed_int remainder = product % den;
+				const widest_signed_int rounded   = apply_integer_rounding(quotient, remainder, den, mode);
+				return To(static_cast<ToRep>(rounded), linearized_value);
+			}
+			else
+			{
+				// A floating-point source: express in the target unit and apply the matching std:: rounding.
+				using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<ToRep>, typename To::numerical_scale_type>;
+				const auto inTarget = Promoted(x).to_linearized();
+				const auto rounded  = mode == rounding_mode::toward_neg_infinity ? std::floor(inTarget)
+									: mode == rounding_mode::toward_pos_infinity ? std::ceil(inTarget)
+									: mode == rounding_mode::nearest_half_away   ? std::round(inTarget)
+																				 : std::trunc(inTarget);
+				return To(static_cast<ToRep>(rounded), linearized_value);
+			}
 		}
 
 		/// Whether a run-time rounding conversion from `From` to `To` is meaningful: same dimension, an integral
@@ -5480,7 +5580,7 @@ namespace units
 		requires detail::is_roundable_unit_conversion<To, From>
 	constexpr To floor(const From& x) noexcept
 	{
-		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::floor(v); });
+		return detail::rounded_unit_cast<To>(x, detail::rounding_mode::toward_neg_infinity);
 	}
 
 	/**
@@ -5496,7 +5596,7 @@ namespace units
 		requires detail::is_roundable_unit_conversion<To, From>
 	constexpr To ceil(const From& x) noexcept
 	{
-		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::ceil(v); });
+		return detail::rounded_unit_cast<To>(x, detail::rounding_mode::toward_pos_infinity);
 	}
 
 	/**
@@ -5512,7 +5612,7 @@ namespace units
 		requires detail::is_roundable_unit_conversion<To, From>
 	constexpr To round(const From& x) noexcept
 	{
-		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::round(v); });
+		return detail::rounded_unit_cast<To>(x, detail::rounding_mode::nearest_half_away);
 	}
 
 	/**
@@ -5528,7 +5628,7 @@ namespace units
 		requires detail::is_roundable_unit_conversion<To, From>
 	constexpr To trunc(const From& x) noexcept
 	{
-		return detail::rounded_unit_cast<To>(x, [](auto v) { return std::trunc(v); });
+		return detail::rounded_unit_cast<To>(x, detail::rounding_mode::toward_zero);
 	}
 
 	//----------------------------------

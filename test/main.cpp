@@ -3327,6 +3327,22 @@ TEST_F(UnitType, runtimeLossyRoundingConversion)
 	EXPECT_EQ(2, units::round<bytes<int>>(sixteen).value());
 	EXPECT_EQ(2, units::trunc<bytes<int>>(sixteen).value());
 
+	// The rounding is exact integer arithmetic, so a magnitude beyond 2^53 (where a double intermediate would lose
+	// the fractional byte and round the wrong way) is still correct. 2^53+1 bits is 1125899906842624.125 bytes.
+	const bits<std::int64_t> above2p53(9007199254740993LL);
+	EXPECT_EQ(1125899906842624LL, units::floor<bytes<std::int64_t>>(above2p53).value());
+	EXPECT_EQ(1125899906842625LL, units::ceil<bytes<std::int64_t>>(above2p53).value());
+	EXPECT_EQ(1125899906842624LL, units::round<bytes<std::int64_t>>(above2p53).value());
+	EXPECT_EQ(1125899906842624LL, units::trunc<bytes<std::int64_t>>(above2p53).value());
+	// A byte count above 2^53 itself: 2^56+12 bits is 2^53+1.5 bytes, floor must land on the exact 2^53+1.
+	EXPECT_EQ((std::int64_t(1) << 53) + 1, units::floor<bytes<std::int64_t>>(bits<std::int64_t>((std::int64_t(1) << 56) + 12)).value());
+	// A large negative value: floor goes toward negative infinity even past 2^53.
+	EXPECT_EQ(-((std::int64_t(1) << 57) + 1), units::floor<bytes<std::int64_t>>(bits<std::int64_t>(-((std::int64_t(1) << 60) + 5))).value());
+
+	// A result that does not fit the target integer wraps like any integer narrowing (the semantics of
+	// std::chrono::floor<To>), never an out-of-range floating-to-integer conversion: 3e9 bytes exceeds int.
+	EXPECT_EQ(static_cast<int>(3000000000LL), units::floor<bytes<int>>(bits<std::int64_t>(8 * 3000000000LL)).value());
+
 	// The target-taking overloads do not shadow the deduced-argument rounding math functions.
 	EXPECT_DOUBLE_EQ(3.0, units::floor(meters<double>(3.7)).value());
 	EXPECT_DOUBLE_EQ(4.0, units::ceil(meters<double>(3.7)).value());

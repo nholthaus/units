@@ -13,7 +13,11 @@ endif()
 # cmake options
 OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
-OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${MAIN_PROJECT})
+# The examples are compiled artifacts for development and CI, like the tests — a consumer of this header-only
+# library never needs them built. They therefore follow UNITS_BUILD_TESTS: on for a repo/developer build, and off
+# whenever a packaging build turns tests off (a Conan/vcpkg recipe passes -DUNITS_BUILD_TESTS=OFF), so a package
+# install compiles nothing and stages only the headers.
+OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${UNITS_BUILD_TESTS})
 # Generate install/export rules. On by default when units is the top-level project (a package build: CPack, a
 # Conan/vcpkg recipe that configures units directly), off when units is pulled in via add_subdirectory so a
 # consuming application's `cmake --install` does not also stage units' headers and CMake package files. A packager
@@ -169,7 +173,9 @@ endif() # UNITS_INSTALL
 # -----------------------------
 # CPack (packaging)
 # -----------------------------
-if(MAIN_PROJECT)
+# Requires the install rules: without them CPack would produce an empty package (headers and CMake files come from
+# the install(...) commands above), so packaging is gated on UNITS_INSTALL as well as being the top-level project.
+if(MAIN_PROJECT AND UNITS_INSTALL)
 	# ---- CPack (Linux packages) ----
 
 	# Choose generators based on host capabilities
