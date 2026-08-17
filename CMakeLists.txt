@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16...4.99 FATAL_ERROR)
 
-PROJECT(units VERSION 3.5.1 LANGUAGES CXX)
+PROJECT(units VERSION 3.6.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -14,6 +14,11 @@ endif()
 OPTION(UNITS_BUILD_TESTS "Build unit tests" ${MAIN_PROJECT})
 OPTION(UNITS_BUILD_DOCS "Build the documentation" OFF)
 OPTION(UNITS_BUILD_EXAMPLES "Build the documentation examples" ${MAIN_PROJECT})
+# Generate install/export rules. On by default when units is the top-level project (a package build: CPack, a
+# Conan/vcpkg recipe that configures units directly), off when units is pulled in via add_subdirectory so a
+# consuming application's `cmake --install` does not also stage units' headers and CMake package files. A packager
+# that DOES vendor units as a subdirectory and still wants it installed can force it on with -DUNITS_INSTALL=ON.
+OPTION(UNITS_INSTALL "Generate the install/export rules for units" ${MAIN_PROJECT})
 OPTION(UNITS_DISABLE_IOSTREAM "Disables <iostream> (cout) support for embedded applications" OFF)
 OPTION(UNITS_DISABLE_FORMAT "Disables std::format / std::print support (keeps iostream and to_string)" OFF)
 OPTION(UNITS_DISABLE_STRING "Disables all <string> use (leanest build; implies DISABLE_IOSTREAM and DISABLE_FORMAT)" OFF)
@@ -57,9 +62,13 @@ if(UNITS_DISABLE_STRING)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE UNIT_LIB_DISABLE_STRING)
 endif(UNITS_DISABLE_STRING)
 
-# unit tests
-include(CTest)
-if(BUILD_TESTING AND UNITS_BUILD_TESTS)
+# unit tests. include(CTest) — which defines the BUILD_TESTING option (default ON) and adds the Dart/CTest
+# targets — is pulled in only when units is actually building its own tests, so a consumer that adds units via
+# add_subdirectory does not inherit units' testing scaffolding in their cache or target list.
+if(UNITS_BUILD_TESTS)
+	include(CTest)
+endif()
+if(UNITS_BUILD_TESTS AND BUILD_TESTING)
 	find_package(Threads)
 	set(GTEST_VERSION 1.17.0)
 	find_package(GTest ${GTEST_VERSION} QUIET CONFIG)
@@ -99,6 +108,9 @@ endif()
 # -----------------------------
 # Install/export for find_package(units CONFIG)
 # -----------------------------
+# Guarded by UNITS_INSTALL (default = top-level project) so a consuming application that vendors units via
+# add_subdirectory does not have units' headers and package files injected into its own `cmake --install`.
+if(UNITS_INSTALL)
 include(CMakePackageConfigHelpers)
 
 # Version file for package config
@@ -152,6 +164,7 @@ install(FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/unitsConfigVersion.cmake"
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/units
 )
+endif() # UNITS_INSTALL
 
 # -----------------------------
 # CPack (packaging)
