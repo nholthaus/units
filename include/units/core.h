@@ -4070,8 +4070,12 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
-	constexpr detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs> operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
+		// The result unit is computed in the body (not the signature) so the trait is never instantiated for a
+		// non-unit operand that the constraint above already rejects — a stricter compiler evaluates a trailing
+		// return type during overload resolution and would otherwise hard-error on, e.g., a vector iterator's
+		// pointer subtraction that briefly considers this operator.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
 		return ResultUnit(ResultUnit(lhs).raw() + ResultUnit(rhs).raw());
 	}
@@ -4138,8 +4142,9 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
-	constexpr detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs> operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
+		// Result unit computed in the body, not the signature — see operator+ above.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
 		return ResultUnit(ResultUnit(lhs).raw() - ResultUnit(rhs).raw());
 	}
