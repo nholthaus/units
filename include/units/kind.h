@@ -945,7 +945,7 @@ namespace units
 		constexpr auto operator+(const basic_kind<Tag, U>& lhs, const Plain&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
-				"units::kind: cannot add a plain unit to a kind — a plain unit carries no kind, so mixing them in "
+				"units::kind: cannot add a plain unit to a kind - a plain unit carries no kind, so mixing them in "
 				"arithmetic is disallowed. Wrap the plain unit in the same kind first, or unwrap the kind with "
 				"to<PlainUnit>() to work in plain units.");
 			return lhs;
@@ -954,7 +954,7 @@ namespace units
 		constexpr auto operator+(const Plain&, const basic_kind<Tag, U>& rhs) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
-				"units::kind: cannot add a plain unit to a kind — a plain unit carries no kind. Wrap the plain unit "
+				"units::kind: cannot add a plain unit to a kind - a plain unit carries no kind. Wrap the plain unit "
 				"in the same kind first, or unwrap the kind with to<PlainUnit>() to work in plain units.");
 			return rhs;
 		}
@@ -962,7 +962,7 @@ namespace units
 		constexpr auto operator-(const basic_kind<Tag, U>& lhs, const Plain&) noexcept
 		{
 			static_assert(wrap_detail::dependent_false_t<Plain>,
-				"units::kind: cannot subtract a plain unit from a kind — a plain unit carries no kind. Wrap it in the "
+				"units::kind: cannot subtract a plain unit from a kind - a plain unit carries no kind. Wrap it in the "
 				"same kind first, or unwrap the kind with to<PlainUnit>().");
 			return lhs;
 		}
