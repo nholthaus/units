@@ -65,3 +65,43 @@ jobs:
         # added to core.h without being listed (consuming the library needs nothing — this is a CI-only guard).
         run: |
           python3 scripts/check_builtin_dimensions.py
+
+  undefined-behavior-sanitizer:
+    name: UndefinedBehaviorSanitizer (GCC-13)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add GCC Toolchain PPA
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+
+      - name: Install GCC-13
+        run: |
+          sudo apt install -y g++-13
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
+
+      - name: Install Eigen
+        run: sudo apt install -y libeigen3-dev
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Build and run the suite under UBSan so any runtime undefined behavior (integer overflow in a conversion,
+      # a bad cast, misaligned access) FAILS the build instead of silently returning a wrong value.
+      # -fno-sanitize-recover makes the first UB abort with a non-zero exit; ctest then fails.
+      - name: Configure CMake (UBSan)
+        run: |
+          cmake -B build-ubsan -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-13 \
+            -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined"
+
+      - name: Build (UBSan)
+        run: cmake --build build-ubsan --parallel
+
+      - name: Run tests under UBSan
+        working-directory: build-ubsan
+        env:
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: ctest --output-on-failure --parallel 4

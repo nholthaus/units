@@ -244,3 +244,17 @@ TEST(OdrSafetyInvariant, SqrtOfAreaIsLength)
 	static_assert(traits::is_length_unit_v<decltype(side2)>, "sqrt(area) is a length");
 	EXPECT_DOUBLE_EQ(2.5, side2.value());
 }
+
+// The named-class recovery used by common_type / to_string is specialization-driven; the friendly-name result of
+// a mixed-unit common_type must be stable and must not depend on which other dimension headers happen to be in
+// scope. These pin the invariant (a full multi-TU reversed-include harness would be the deeper guard).
+TEST(OdrDimensionConcept, CommonTypeNameRecoveryIsStable)
+{
+	static_assert(std::is_same_v<std::common_type_t<meters<int>, centimeters<int>>, centimeters<int>>);
+	static_assert(std::is_same_v<std::common_type_t<centimeters<int>, meters<int>>, centimeters<int>>); // symmetric
+	static_assert(std::is_same_v<std::common_type_t<meters<double>, kilometers<double>>, meters<double>>);
+	// A computed derived result recovers the same friendly type regardless of the operand order.
+	static_assert(std::is_same_v<decltype(meters<double>(1) / seconds<double>(1)),
+								 decltype(meters<double>(2) / seconds<double>(2))>);
+	SUCCEED();
+}

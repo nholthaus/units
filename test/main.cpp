@@ -3250,6 +3250,16 @@ TEST_F(UnitType, mixedSignednessComparesByValue)
 	EXPECT_TRUE(meters<double>(-1.0) < meters<double>(1.0));
 }
 
+TEST_F(UnitType, hashOfLargeValueDoesNotOverflow)
+{
+	// std::hash forwards through a unit conversion; a large value converted to a fine unit used to overflow the
+	// intermediate. With the widened conversion the hash of a big value is computed without undefined behavior
+	// (run under -fsanitize=undefined this must not trip). Equal values under one key type hash equally.
+	const auto h = std::hash<millimeters<std::int64_t>>()(kilometers<std::int64_t>(3000)); // 3e9 mm
+	EXPECT_EQ(h, std::hash<millimeters<std::int64_t>>()(millimeters<std::int64_t>(3'000'000'000LL)));
+	EXPECT_EQ(std::hash<meters<int>>()(meters<int>(7)), std::hash<meters<int>>()(meters<int>(7)));
+}
+
 #ifndef UNIT_LIB_DISABLE_IOSTREAM
 TEST_F(UnitType, cout)
 {
