@@ -17,6 +17,7 @@
 #include <units/concentration.h>
 #include <units/core.h>
 #include <units/energy.h>
+#include <units/frequency.h>
 #include <units/kind.h>
 #include <units/length.h>
 #include <units/temperature.h>
@@ -982,4 +983,118 @@ TEST(WrapperParity, nameAndAbbreviation)
 	const kind<"radial", meters<double>> k(1.0);
 	EXPECT_EQ("radial meters", k.name());        // tag + unit
 	EXPECT_STREQ("m", k.abbreviation());          // unit's abbreviation, unchanged
+}
+
+//======================================================================================================================
+//	CASE STUDIES (mp-units-informed): chained arithmetic, boundaries, kind ratio/parity, std concepts
+//======================================================================================================================
+
+TEST(WrapperCaseStudy, chainedPointDeltaAcrossUnitsAndDatum)
+{
+	// (point - point) is a delta; + a delta stays a delta, keeping the FIRST operand's unit at each step.
+	const A<celsius<double>>    hot(100.0);
+	const A<fahrenheit<double>> freezing(32.0); // == 0 degC
+	auto                        chain = (hot - freezing) + D<celsius<double>>(5.0);
+	static_assert(traits::is_delta_v<decltype(chain)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(chain)>, celsius<double>>);
+	EXPECT_UNIT_NEAR(chain, 105.0);
+
+	// point + delta - delta round-trips the point (datum preserved through the chain).
+	const A<celsius<double>>    p(20.0);
+	const D<fahrenheit<double>> up(18.0); // +10 celsius-degrees, scale only
+	auto                        back = (p + up) - up;
+	static_assert(traits::is_absolute_v<decltype(back)>);
+	EXPECT_UNIT_NEAR(back, 20.0);
+
+	// Associativity where the LHS-unit tie-break matters: ((km - m) + m) keeps km throughout.
+	auto res = (A<kilometers<double>>(2.0) - A<meters<double>>(500.0)) + D<meters<double>>(250.0);
+	static_assert(std::is_same_v<wrapped_t<decltype(res)>, kilometers<double>>);
+	EXPECT_UNIT_NEAR(res, 1.75);
+}
+
+TEST(WrapperCaseStudy, affineBoundaryValues)
+{
+	// Absolute zero across scales, as POINTS (datum applied both sides).
+	EXPECT_TRUE(A<kelvin<double>>(0.0) == A<celsius<double>>(-273.15));
+	// -40 is the C==F crossover.
+	EXPECT_TRUE(A<celsius<double>>(-40.0) == A<fahrenheit<double>>(-40.0));
+	// A negative point minus a positive point is a negative delta, LHS unit kept.
+	EXPECT_UNIT_NEAR(A<celsius<double>>(-40.0) - A<celsius<double>>(10.0), -50.0);
+	// Zero delta is the additive identity and carries no datum.
+	EXPECT_UNIT_NEAR(A<celsius<double>>(21.0) + D<fahrenheit<double>>(0.0), 21.0);
+	EXPECT_UNIT_NEAR(D<celsius<double>>(0.0).to<fahrenheit<double>>(), 0.0); // 0, not 32
+	// Large-magnitude point round-trip stability (datum must not swamp a big value).
+	EXPECT_NEAR(1.0e6, A<kelvin<double>>(1.0e6).to<A<celsius<double>>>().to<A<kelvin<double>>>().value(), 1e-3);
+}
+
+TEST(WrapperCaseStudy, stdConceptParity)
+{
+	static_assert(std::regular<A<meters<double>>>);
+	static_assert(std::regular<D<meters<double>>>);
+	static_assert(std::regular<kind<"radial", meters<double>>>);
+	static_assert(std::totally_ordered<A<meters<double>>>);
+	static_assert(std::totally_ordered<D<meters<double>>>);
+	static_assert(std::totally_ordered<kind<"radial", meters<double>>>);
+	static_assert(std::three_way_comparable<A<meters<double>>>);
+	static_assert(std::three_way_comparable<D<meters<double>>>);
+	SUCCEED();
+}
+
+TEST(WrapperCaseStudy, sameTagRatioIsDimensionless)
+{
+	// The ratio of two same-tag kinds cancels the tag AND the unit, yielding a plain dimensionless number.
+	const kind<"radial", meters<double>> a(10.0);
+	const kind<"radial", meters<double>> b(2.0);
+	EXPECT_DOUBLE_EQ(5.0, static_cast<double>((a / b).value()));
+	// kind / scalar still stays a kind.
+	static_assert(traits::is_kind_v<decltype(a / 2.0)>);
+	EXPECT_UNIT_NEAR(a / 2.0, 5.0);
+}
+
+TEST(WrapperCaseStudy, kindParityHashLimitsMathCompound)
+{
+	// Full parity with absolute/delta: hash (unordered container), numeric_limits, abs/min/max/clamp, *=//=.
+	std::unordered_set<kind<"radial", meters<int>>> s;
+	s.insert(kind<"radial", meters<int>>(3));
+	s.insert(kind<"radial", meters<int>>(3));
+	EXPECT_EQ(1u, s.size());
+
+	static_assert(std::numeric_limits<kind<"radial", meters<double>>>::is_specialized);
+
+	EXPECT_UNIT_NEAR(abs(kind<"radial", meters<double>>(-5.0)), 5.0);
+	EXPECT_UNIT_NEAR(min(kind<"radial", meters<double>>(3.0), kind<"radial", meters<double>>(5.0)), 3.0);
+	EXPECT_UNIT_NEAR(max(kind<"radial", meters<double>>(3.0), kind<"radial", meters<double>>(5.0)), 5.0);
+	EXPECT_UNIT_NEAR(clamp(kind<"radial", meters<double>>(7.0), kind<"radial", meters<double>>(0.0), kind<"radial", meters<double>>(5.0)), 5.0);
+
+	kind<"radial", meters<double>> c(10.0);
+	c *= 2.0;
+	c /= 4.0;
+	EXPECT_UNIT_NEAR(c, 5.0);
+	// min/max/abs keep the tag.
+	static_assert(decltype(abs(kind<"radial", meters<double>>(1.0)))::tag() == fixed_string("radial"));
+}
+
+TEST(WrapperCaseStudy, kindMixedUnitSameTagTieBreak)
+{
+	const kind<"radial", kilometers<int>> a(1);
+	const kind<"radial", meters<int>>     b(500);
+	auto                                  sum = a + b; // 1.5 km — underlying promotes, unit stays km, tag kept
+	static_assert(decltype(sum)::tag() == fixed_string("radial"));
+	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, kilometers<double>>);
+	EXPECT_UNIT_NEAR(sum, 1.5);
+}
+
+TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
+{
+	// Torque and energy share the N*m dimension; frequency is its own — three distinct kinds.
+	using torque_k = kind<"torque", units::torque::newton_meters<double>>;
+	using energy_k = kind<"energy", units::energy::joules<double>>;
+	using freq_k   = kind<"frequency", units::frequency::hertz<double>>;
+	static_assert(!std::is_same_v<torque_k, energy_k>);
+	static_assert(!std::is_same_v<torque_k, freq_k>);
+	static_assert(!std::is_same_v<energy_k, freq_k>);
+	// Same-tag torque adds; the result is still a torque.
+	auto t = torque_k(3.0) + torque_k(4.0);
+	static_assert(decltype(t)::tag() == fixed_string("torque"));
+	EXPECT_UNIT_NEAR(t, 7.0);
 }
