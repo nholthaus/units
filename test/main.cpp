@@ -1028,14 +1028,17 @@ TEST_F(UnitType, CTAD)
 	constexpr unit a_min(1.0min);
 	static_assert(minutes<double>(1.0) == a_min && std::is_floating_point_v<decltype(a_min.value())>);
 
+	// A unit literal is floating-point (1_s is seconds<double>, the same as 1.0_s), so a quantity deduced from
+	// one is floating-point. An integer-backed quantity comes from an explicit seconds<int>(1) or a std::chrono
+	// integer duration (1s), both exercised above.
 	constexpr seconds b_s(1_s);
-	static_assert(std::is_integral_v<decltype(b_s.value())>);
+	static_assert(std::is_floating_point_v<decltype(b_s.value())>);
 
 	constexpr seconds c_s(1.0_s);
 	static_assert(std::is_floating_point_v<decltype(c_s.value())>);
 
 	constexpr seconds d_s(1_min);
-	static_assert(std::is_integral_v<decltype(d_s.value())>);
+	static_assert(std::is_floating_point_v<decltype(d_s.value())>);
 
 	constexpr seconds e_s(1.0_min);
 	static_assert(std::is_floating_point_v<decltype(e_s.value())>);
@@ -2567,10 +2570,13 @@ TEST_F(UnitType, unitTypeModulo)
 	EXPECT_EQ(2_pct, z);
 	static_assert(has_equivalent_conversion_factor(z, percent<int>(12)));
 
+	// Integer-percent iteration with modulo. `%` requires integral operands, so the modulus and remainder are
+	// explicit percent<int> (a literal is floating-point); the iterator is likewise percent<int>. This exercises
+	// that integer-backed ratio-dimensionless units support modulo arithmetic.
 	std::vector<percent<int>> vec;
-	for (percent<int> i = 1_pct; i <= 100_pct; ++i)
+	for (percent<int> i(1); i <= 100_pct; ++i)
 	{
-		if (i % 10_pct == 0_pct)
+		if (i % percent<int>(10) == percent<int>(0))
 			vec.push_back(i);
 	}
 	EXPECT_EQ(vec.size(), 10);
@@ -3557,17 +3563,28 @@ TEST_F(UnitType, unit_cast)
 // literal syntax is only supported in GCC 4.7+ and MSVC2015+
 TEST_F(UnitType, literals)
 {
-	// basic functionality testing
+	// A literal is always floating-point — an integer literal (16_m) yields the same type as 16.0_m, matching
+	// the unit-constant form (16 * m is also floating-point), so a value written inline never silently becomes
+	// integer-backed (16_m / 5_m is 3.2, not 3). An integer-backed quantity remains available explicitly
+	// (meters<int>(16)) or by CTAD from an integer argument (meters(16)); a whole-number literal converts into
+	// one at compile time (meters<int> m = 16_m), while a fractional literal is a compile error.
 	static_assert(std::is_same_v<decltype(16.2_m), meters<double>>);
-	static_assert(std::is_same_v<decltype(16_m), meters<int>>);
+	static_assert(std::is_same_v<decltype(16_m), meters<double>>);
+	static_assert(std::is_same_v<decltype(16_m), decltype(16.0_m)>);
 	EXPECT_TRUE(meters<double>(16.2) == 16.2_m);
 	EXPECT_TRUE(meters<double>(16) == 16.0_m);
-	EXPECT_TRUE(meters<int>(16) == 16_m);
+	EXPECT_TRUE(meters<double>(16) == 16_m);
+	EXPECT_DOUBLE_EQ(3.2, (16_m / 5_m).value());   // floating-point division, not integer truncation
+	static_assert(std::is_same_v<decltype(meters<int>(16)), meters<int>>);   // integer reachable explicitly
+	static_assert(std::is_same_v<decltype(meters(16)), meters<int>>);        // and by CTAD from an int argument
+	EXPECT_EQ(16, (meters<int>{16_m}).value());     // whole-number literal narrows into meters<int> at compile time
+	EXPECT_TRUE(meters<int>(16) == 16_m);           // meters<int> compares equal to the floating-point literal
 
 	static_assert(std::is_same_v<decltype(11.2_ft), feet<double>>);
-	static_assert(std::is_same_v<decltype(11_ft), feet<int>>);
+	static_assert(std::is_same_v<decltype(11_ft), feet<double>>);
 	EXPECT_TRUE(feet<double>(11.2) == 11.2_ft);
 	EXPECT_TRUE(feet<double>(11) == 11.0_ft);
+	EXPECT_EQ(11, (feet<int>{11_ft}).value());      // whole-number literal narrows into feet<int>
 	EXPECT_TRUE(feet<int>(11) == 11_ft);
 
 	// auto using literal syntax
@@ -3584,6 +3601,37 @@ TEST_F(UnitType, literals)
 	meters<double> b_m = 4.0_m;
 	meters<double> c_m = sqrt(pow<2>(a_m) + pow<2>(b_m));
 	EXPECT_TRUE(c_m == 5.0_m);
+}
+
+// A whole-number floating-point quantity converts into an integer-backed unit of the same dimension at
+// compile time; the ordinary run-time converting constructor still rejects a floating-to-integral conversion
+// (a fractional or run-time value is ill-formed — proven by the errorMessages case
+// narrow_fractional_literal_to_int.cpp). This is what lets `feet<int> f = 16_ft;` compile now that a literal
+// is floating-point, without allowing a lossy run-time narrowing.
+TEST_F(UnitType, compileTimeNarrowingToIntegral)
+{
+	// Whole-number literal narrows into the same unit's integral form, at compile time.
+	static_assert(meters<int>{16_m}.value() == 16);
+	static_assert(feet<int>{11_ft}.value() == 11);
+
+	// Cross-unit whole conversions narrow when exact: 1000 m is exactly 1 km.
+	static_assert(kilometers<int>{1000_m}.value() == 1);
+	static_assert(meters<int>{1_km}.value() == 1000);
+
+	// Ratio-dimensionless units narrow on their stored point count, not the fraction: 50_pct is percent<int> 50.
+	static_assert(percent<int>{50_pct}.raw() == 50);
+
+	// Widening int -> double is a normal implicit conversion.
+	static_assert(std::is_constructible_v<meters<double>, meters<int>>);
+	// The floating-to-integral narrowing constructor is consteval, so it is well-formed only in a constant
+	// expression — a run-time value cannot invoke it, and a fractional value is ill-formed even in one. Both
+	// rejections are proven by the errorMessages case narrow_fractional_literal_to_int.cpp; a type trait cannot
+	// express "constructible only in a constant expression," so the guard lives there rather than as a
+	// static_assert here.
+
+	// Run-time confirmation the compile-time narrowing stored the right value.
+	constexpr feet<int> f{16_ft};
+	EXPECT_EQ(16, f.value());
 }
 
 TEST_F(UnitType, Constants)
