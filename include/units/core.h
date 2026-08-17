@@ -282,6 +282,18 @@ namespace units
 		unitName& operator=(const unitName&) = default;                                                                                                                                                 \
 		unitName& operator=(unitName&&) = default;                                                                                                                                                      \
 		constexpr unitName(const base& other) noexcept : base(other) {}                                                                                                                               \
+		/* Explicit consteval forwarding of the base's compile-time narrowing converting constructor. The base is */    \
+		/* constructed directly (`base(rhs)`), so the named class does not rely on `using base::base` to SYNTHESIZE an */\
+		/* inheriting-constructor wrapper for this consteval ctor. GCC 13's constant evaluator mis-handles that */       \
+		/* synthesized inheriting wrapper — it treats the base subobject as uninitialized (accessing uninitialized */    \
+		/* member, this is not a constant expression) — while an explicit derived ctor evaluates correctly. The */       \
+		/* base's own requires-clause gates viability; the derived constraint keeps this a candidate only for the */     \
+		/* floating-source-to-integral-target narrowing the base ctor accepts. */                                        \
+		template<::units::ConversionFactorType Cf, ::units::ArithmeticType Ty, ::units::NumericalScaleType<Ty> Ns>       \
+			requires(::units::traits::is_same_dimension_unit_v<::units::unit<Cf, Ty, Ns>, base> &&                       \
+					 !::units::detail::is_losslessly_convertible_unit<::units::unit<Cf, Ty, Ns>, base> &&                 \
+					 ::std::is_floating_point_v<Ty> && ::std::is_integral_v<Underlying>)                                  \
+		consteval unitName(const ::units::unit<Cf, Ty, Ns>& rhs) : base(rhs) {}                                          \
 		/* Forward a scalar assignment to the base's operator= so the dimensionless '= 0.30' path (which the derived */ \
 		/* class would otherwise route through the raw-value converting ctor, off by the CF ratio) is used. Templated */\
 		/* + constrained to arithmetic so it never competes with unit-to-unit assignment (that stays the base's job). */\
@@ -381,13 +393,21 @@ namespace units
 #define UNIT_ADD_LITERALS(namespaceName, namePlural, abbreviation)                                                                                                                                     \
 	namespace literals                                                                                                                                                                                 \
 	{                                                                                                                                                                                                  \
-		constexpr namespaceName::namePlural<double> operator""_##abbreviation(long double d) noexcept                                                                                                  \
+		/* A literal is always floating-point. It uses the library default type when that is a floating-point */    \
+		/* type, and its floating-point promotion otherwise, so a literal is never integer-backed even if the */    \
+		/* default representation is integral. */                                                                    \
+		constexpr namespaceName::namePlural<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>> operator""_##abbreviation(long double d) noexcept \
 		{                                                                                                                                                                                              \
-			return namespaceName::namePlural<double>(static_cast<double>(d));                                                                                                                          \
+			return namespaceName::namePlural<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>>(static_cast<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>>(d));   \
 		}                                                                                                                                                                                              \
-		constexpr namespaceName::namePlural<int> operator""_##abbreviation(unsigned long long d) noexcept                                                                                              \
+		/* An integer literal (5_m) yields the same floating-point type as 5.0_m. A literal is a value a user */    \
+		/* writes inline; deducing an integer representation from it silently opts into integer arithmetic */        \
+		/* (5_m / 2_m == 0), which is rarely intended, and diverges from the unit constant form (5 * m is always */  \
+		/* floating-point). An integer-backed quantity is still available explicitly (namePlural<int>(5)) or by */    \
+		/* CTAD from an integer argument (namePlural(5)). */                                                          \
+		constexpr namespaceName::namePlural<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>> operator""_##abbreviation(unsigned long long d) noexcept \
 		{                                                                                                                                                                                              \
-			return namespaceName::namePlural<int>(static_cast<int>(d));                                                                                                                                \
+			return namespaceName::namePlural<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>>(static_cast<::units::detail::floating_point_promotion_t<UNIT_LIB_DEFAULT_TYPE>>(d));   \
 		}                                                                                                                                                                                              \
 	}
 #endif
@@ -2037,6 +2057,26 @@ namespace units
 		{
 			using type = unit<Cf, floating_point_promotion_t<T>, Ns>;
 		};
+
+		/**
+		 * @brief		Cast a floating-point value to an integral type, exactly.
+		 * @details		Returns `value` as `To` when it is a whole number in `To`'s range. When it is not — a
+		 *				fractional part, or out of range — the `throw` makes this ill-formed in a constant-evaluated
+		 *				context, which is the only context the narrowing unit constructor uses it in. `To` is an
+		 *				integral type; `From` is floating point.
+		 * @tparam		To		the integral target type.
+		 * @tparam		From	the floating-point source type.
+		 * @param[in]	value	the value to cast.
+		 * @return		`value` as `To`.
+		 */
+		template<class To, class From>
+		constexpr To exact_integral_cast(From value)
+		{
+			const To result = static_cast<To>(value);
+			if (static_cast<From>(result) != value)
+				throw "a floating-point unit converts to an integral unit only when its value is a whole number in range";
+			return result;
+		}
 	} // namespace detail
 
 	namespace Detail
@@ -2553,6 +2593,27 @@ namespace units
 			requires traits::is_same_dimension_unit_v<unit<ConversionFactorRhs, Ty, NsRhs>, unit> && detail::is_losslessly_convertible_unit<unit<ConversionFactorRhs, Ty, NsRhs>, unit>
 		constexpr unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) noexcept
 		  : _linearized_value(units::convert<unit>(rhs)._linearized_value)
+		{
+		}
+
+		/**
+		 * @brief		compile-time narrowing converting constructor
+		 * @details		Constructs an integral-underlying unit from a same-dimension floating-point one when the
+		 *				conversion is exact — the case the ordinary converting constructor rejects as lossy. It is
+		 *				`consteval`, so it participates only in a constant-evaluated context (`feet<int> f = 16_ft;`);
+		 *				a value not exactly representable in the target (a fractional or out-of-range magnitude, e.g.
+		 *				`16.5_ft`) makes the constructor a non-constant expression and the program ill-formed. A
+		 *				run-time floating-to-integral unit conversion remains rejected. Wholeness is judged on the
+		 *				stored point count (`raw()`), so a ratio-dimensionless unit converts correctly too
+		 *				(`percent<int> p = 1_pct;` is percent<int> holding 1, not a rejected 0.01).
+		 * @param[in]	rhs unit to convert.
+		 */
+		template<ConversionFactorType ConversionFactorRhs, ArithmeticType Ty, NumericalScaleType<Ty> NsRhs>
+			requires(traits::is_same_dimension_unit_v<unit<ConversionFactorRhs, Ty, NsRhs>, unit> &&
+					 !detail::is_losslessly_convertible_unit<unit<ConversionFactorRhs, Ty, NsRhs>, unit> &&
+					 std::is_floating_point_v<Ty> && std::is_integral_v<T>)
+		consteval unit(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs)
+		  : _linearized_value(detail::exact_integral_cast<T>(unit<ConversionFactor, detail::floating_point_promotion_t<T>, NumericalScale>(rhs).raw()))
 		{
 		}
 
