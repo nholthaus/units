@@ -1,33 +1,16 @@
-// ---------------------------------------------------------------------------------------------------------------------
-//			                 __
-//			               _/ /          /
-//			    __________/  /__ _______/
-//			   /  _______   ___//  ____/
-//			  /  /___   /  /   /  /   /   SYSTEMS
-//			  \____  \ /  /   /  /   /    & TECHNOLOGY
-//			 _____/  //  /___/  /   /     RESEARCH
-//			/_______/ \________/   /
-//			                      /
-//			                     /
-// ---------------------------------------------------------------------------------------------------------------------
+// Regression guards for the #378 ODR audit and the dimension-keyed physical-quantity concepts.
 //
-/// @file       odrDimensionConcept.h
-/// @brief      Regression guards for the #378 ODR audit and the dimension-keyed physical-quantity concepts.
-/// @details    Issue #378 is a cross-translation-unit type-identity divergence: arithmetic that yields a compound
-///             result (e.g. `meters/seconds`) rewraps to a "canonical named type" (`meters_per_second`) via an
-///             ADL registration that is only visible in a TU that included the result's dimension header; a TU
-///             without it sees the plain `unit<...>` base. The fix emits a PascalCase, dimension-keyed concept per
-///             dimension (`units::Velocity`, `units::Force`, ...) so a computed result classifies the same way
-///             regardless of which dimension headers a TU included — dispatch on the concept cannot flip by link
-///             order. These tests codify (1) that the concepts classify by dimension and reject the wrong one,
-///             (2) that concept-based overload dispatch selects correctly at runtime, (3) the VALUE / DIMENSION /
-///             LAYOUT / SERIALIZATION safety invariants from the audit that make the residual type-identity split
-///             value-safe (so a future rewrap change trips a test instead of silently corrupting), and (4) the
-///             audit's proven-STABLE `sqrt` reduction. The full audit lives in docs/odr-audit/FINDINGS.md.
-///             The library is dimension-only by design (torque and energy share a dimension), so these tests
-///             assert dimensions and values only — never a physical-"kind" identity.
-//
-// ---------------------------------------------------------------------------------------------------------------------
+// Issue #378 is a cross-translation-unit type-identity divergence: arithmetic that yields a compound result
+// (e.g. `meters/seconds`) rewraps to a "canonical named type" (`meters_per_second`) via an ADL registration that is
+// only visible in a TU that included the result's dimension header; a TU without it sees the plain `unit<...>` base.
+// The fix emits a PascalCase, dimension-keyed concept per dimension (`units::Velocity`, `units::Force`, ...) so a
+// computed result classifies the same way regardless of which dimension headers a TU included — dispatch on the
+// concept cannot flip by link order. These tests codify (1) that the concepts classify by dimension and reject the
+// wrong one, (2) that concept-based overload dispatch selects correctly at runtime, (3) the VALUE / DIMENSION /
+// LAYOUT / SERIALIZATION safety invariants that make the residual type-identity split value-safe (so a future rewrap
+// change trips a test instead of silently corrupting), and (4) the proven-STABLE `sqrt` reduction. The library is
+// dimension-only by design (torque and energy share a dimension), so these tests assert dimensions and values only —
+// never a physical-"kind" identity.
 
 #pragma once
 
