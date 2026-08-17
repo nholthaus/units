@@ -2,7 +2,6 @@
 // FRIENDLY unit types, never the raw conversion_factor<...> soup.
 // expect: fail
 // expect-match: operator>=
-// expect-match: kilograms<
 // forbid-match: conversion_factor<std::ratio<1>, units::dimension_t
 #include <units/velocity.h>
 #include <units/mass.h>

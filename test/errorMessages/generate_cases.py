@@ -86,13 +86,16 @@ SCALAR_BOUNDARY = [
 # Comparing quantities of different dimensions is ill-formed. The relational-operator diagnostic reports the
 # operands through their conversion-factor tag inside the `unit<...>` base (e.g. `unit<units::meters_>`), so it
 # does not spell the friendly `meters<double>` form on any compiler. Assert what IS portably present and is not
-# soup: the failing operator name (`operator>` / `operator>=`), plus any friendly type the source states
-# explicitly (`kilograms<` here — the RHS is written as `units::mass::kilograms<double>`). A bare `meters` stem
-# is rejected because it would silently match the `meters_` tag in the soup, defeating the readability check.
+# soup: the failing operator name (`operator>` / `operator>=`), which every compiler surfaces in the
+# instantiation context of the rejected relational overload, together with the forbidden conversion-factor
+# soup. A friendly type token (`kilograms<`, `meters<`, a bare stem, ...) is NOT asserted here: it appears in a
+# compiler's output only where that compiler happens to echo the offending SOURCE line — which g++-13 omits and
+# g++-15/clang include — so matching it grades the source echo, not the diagnostic, and is fragile across
+# compiler versions. The operator token is the portable, honest readability assertion for a comparison.
 COMPARE_ACROSS = [
     ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ["operator>"]),
     ("compare_velocity_mass_ge", ["velocity", "mass"],
-     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["operator>=", "kilograms<"]),
+     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["operator>="]),
 ]
 
 # A math function whose domain is an angle rejects a non-angle argument. The `name<` token matches the
