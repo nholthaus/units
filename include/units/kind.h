@@ -165,6 +165,13 @@ namespace units
 			{
 				return w.template to<typename Wrapper::unit_type>();
 			}
+
+			/// A `false` that DEPENDS on template parameters, so a `static_assert(dependent_false<...>)` in a
+			/// selected catch-all overload fires ONLY when that overload is instantiated (never eagerly).
+			template<fixed_string...>
+			inline constexpr bool dependent_false = false;
+			template<class...>
+			inline constexpr bool dependent_false_t = false;
 		} // namespace wrap_detail
 		/** @endcond */ // END DOXYGEN IGNORE
 	} // inline namespace affine (forward declarations only)
@@ -829,6 +836,85 @@ namespace units
 		}
 
 		//----------------------------------
+		//	ABSOLUTE / DELTA MISUSE DIAGNOSTICS (readable, not a candidate wall)
+		//----------------------------------
+		// The common naive fumbles get a one-line library message instead of an overload-resolution wall. Each
+		// returns a real value so the compiler must instantiate the body (fires the static_assert on MSVC too).
+
+		/// Scaling or dividing a POINT is meaningless — a point has no magnitude; only a `delta` (an amount) scales.
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator*(const absolute<U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: a point cannot be scaled (a point has no magnitude). Take the difference of two "
+				"points for a delta, or scale a delta.");
+			return lhs;
+		}
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator*(T, const absolute<U>& rhs) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: a point cannot be scaled (a point has no magnitude). Scale a delta instead.");
+			return rhs;
+		}
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator/(const absolute<U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: a point cannot be divided by a number (a point has no magnitude). Divide a delta.");
+			return lhs;
+		}
+		/// Dividing a POINT by a POINT is meaningless — there is no ratio of two absolute positions.
+		template<UnitType U, UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr auto operator/(const absolute<U>& lhs, const absolute<V>&) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: a point cannot be divided by a point (there is no ratio of two positions). "
+				"Take the difference of two points for a delta.");
+			return lhs;
+		}
+
+		/// Summing two POINTS is meaningless (the sum of two positions has no meaning); subtract them for a delta,
+		/// or add a `delta` to move a point.
+		template<UnitType U, UnitType V>
+			requires traits::is_same_dimension_unit_v<U, V>
+		constexpr auto operator+(const absolute<U>& lhs, const absolute<V>&) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: cannot add two points (the sum of two positions has no meaning). Subtract them "
+				"for a delta, or add a delta to move a point.");
+			return lhs;
+		}
+
+		/// A `delta`/`absolute` does not combine with a BARE NUMBER — an amount adds an amount, a point moves by an
+		/// amount. Wrap the number in a `delta` of the same unit.
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator+(const delta<U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::delta: cannot add a bare number to a delta. Wrap the number in a delta of the same unit "
+				"(e.g. delta<meters<double>>(3)).");
+			return lhs;
+		}
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator-(const delta<U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::delta: cannot subtract a bare number from a delta. Wrap the number in a delta of the same "
+				"unit.");
+			return lhs;
+		}
+		template<UnitType U, ArithmeticType T>
+		constexpr auto operator+(const absolute<U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false_t<U>,
+				"units::absolute: cannot add a bare number to a point. Add a delta of the same unit to move the "
+				"point (e.g. point + delta<meters<double>>(3)).");
+			return lhs;
+		}
+
+		//----------------------------------
 		//	KIND (TAGGED) OPERATORS
 		//----------------------------------
 
@@ -942,18 +1028,6 @@ namespace units
 		//	KIND MISMATCH DIAGNOSTICS (great errors, not overload-resolution soup)
 		//----------------------------------
 
-		/** @cond */ // DOXYGEN IGNORE
-		namespace wrap_detail
-		{
-			/// A `false` that DEPENDS on template parameters, so a `static_assert(dependent_false<...>)` in a
-			/// selected mismatch overload fires ONLY when that overload is actually instantiated (never eagerly).
-			template<fixed_string...>
-			inline constexpr bool dependent_false = false;
-			template<class...>
-			inline constexpr bool dependent_false_t = false;
-		}
-		/** @endcond */ // END DOXYGEN IGNORE
-
 		// Combining two DIFFERENT kinds is meaningless (a radial distance is not a straight-line distance; a torque
 		// is not an energy). These catch-all overloads are the LEAST-preferred candidates (the same-tag overloads
 		// above win whenever the tags match), so a mismatched combination selects one of these and stops at a single
@@ -1017,6 +1091,31 @@ namespace units
 			static_assert(wrap_detail::dependent_false_t<Plain>,
 				"units::kind: cannot subtract a plain unit from a kind - a plain unit carries no kind. Wrap it in the "
 				"same kind first, or unwrap the kind with to<PlainUnit>().");
+			return lhs;
+		}
+
+		// A bare NUMBER does not add to / subtract from a kind (only kind +/- same-tag kind, and kind * / scalar
+		// are defined). The most common naive fumble (`aKind + 3.0`) gets this message rather than a candidate wall.
+		template<fixed_string Tag, UnitType U, ArithmeticType T>
+		constexpr auto operator+(const basic_kind<Tag, U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false<Tag>,
+				"units::kind: cannot add a bare number to a kind. Wrap the number in the same kind, or unwrap the "
+				"kind with to<PlainUnit>() to work in plain units.");
+			return lhs;
+		}
+		template<fixed_string Tag, UnitType U, ArithmeticType T>
+		constexpr auto operator+(T, const basic_kind<Tag, U>& rhs) noexcept
+		{
+			static_assert(wrap_detail::dependent_false<Tag>,
+				"units::kind: cannot add a bare number to a kind. Wrap the number in the same kind first.");
+			return rhs;
+		}
+		template<fixed_string Tag, UnitType U, ArithmeticType T>
+		constexpr auto operator-(const basic_kind<Tag, U>& lhs, T) noexcept
+		{
+			static_assert(wrap_detail::dependent_false<Tag>,
+				"units::kind: cannot subtract a bare number from a kind. Wrap the number in the same kind first.");
 			return lhs;
 		}
 

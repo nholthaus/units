@@ -2,15 +2,11 @@
 // `absolute<U> + absolute<V>` must be ill-formed. Only point - point (-> delta), point +/- delta,
 // and delta +/- delta are defined; to move a point by a relative amount, add a `delta` to it.
 //
-// The diagnostic names the friendly `absolute`/`celsius<double>` wrapper types and the operator under
-// consideration. g++/clang spell it tight (`operator+`), MSVC inserts a space (`operator +`), so the operator
-// token is per-compiler. The message does not fall back to the raw conversion_factor<std::ratio<...>> soup.
+// The library emits a readable message (a static_assert in a catch-all overload) naming the mistake, rather than
+// an overload-resolution wall. The message is asserted near-verbatim; it fires on g++, clang, and MSVC.
 //
 // expect: fail
-// expect-match-gcc: operator+
-// expect-match-msvc: operator +
-// expect-match: absolute
-// expect-match: celsius<double>
+// expect-match: cannot add two points
 // forbid-match: conversion_factor<std::ratio
 #include <units/kind.h>
 #include <units/temperature.h>
