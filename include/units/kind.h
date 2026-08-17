@@ -60,25 +60,20 @@ namespace units
 	//----------------------------------------------------------------------------------------------------------------------
 	//	AFFINE POINT / DELTA WRAPPERS
 	//----------------------------------------------------------------------------------------------------------------------
-	// Opt-in wrappers that make the point-vs-delta distinction explicit in the type, for code that wants it
-	// enforced. `absolute<U>` is a POINT on a scale (it carries the unit's datum — 0 degC is 273.15 K).
-	// `delta<U>` is an AMOUNT (offset-free — a 10 degC delta is a 10 K delta, not 283.15 K). Plain unit types
-	// are unaffected; you reach for these only where the distinction matters (temperatures, epochs vs
-	// durations, absolute vs gauge pressure, positions vs displacements). For a non-affine unit the datum is
-	// zero, so `absolute` and `delta` coincide numerically. The type algebra the wrappers enforce:
+	// Opt-in wrappers that make the point-vs-amount distinction explicit in the type. `absolute<U>` is a POINT on
+	// a scale (it carries the unit's datum — 0 degC is 273.15 K); `delta<U>` is an AMOUNT (offset-free — a 10 degC
+	// delta is a 10 K delta). Reach for these where the distinction matters (temperatures, epochs vs durations,
+	// absolute vs gauge pressure, positions vs displacements); for a non-affine unit the datum is zero, so the two
+	// coincide numerically. The type algebra:
 	//   absolute - absolute -> delta      (the datum offsets cancel)
 	//   absolute +/- delta   -> absolute  (move the point by a relative amount)
 	//   delta +/- delta      -> delta
 	//   delta * / scalar     -> delta
-	//   absolute + absolute  -> ill-formed (the sum of two points has no meaning)
+	//   absolute + absolute  -> ill-formed
 	//
-	// The wrappers are opt-in at the HEADER level: they exist only in a translation unit that includes
-	// <units/kind.h>. A translation unit that includes only the dimension headers (or the core) never sees
-	// `absolute`/`delta` at all — no name, no operator, no cost — so plain-unit code, and a user's own
-	// `delta`/`absolute` identifiers, are never disturbed. Within this header the wrappers, their operators,
-	// comparisons, and traits live in `inline namespace affine`; because the namespace is INLINE, once opted in
-	// `units::absolute` and `units::affine::absolute` name the SAME type (top-level ergonomics), and the `affine::`
-	// qualifier is available where a user needs to disambiguate a `delta`/`absolute` from their own identifier.
+	// The wrappers exist only where <units/kind.h> is included, so a user's own `absolute`/`delta` names are
+	// undisturbed otherwise. They live in `inline namespace affine`, so `units::absolute` and
+	// `units::affine::absolute` name the same type; the `affine::` qualifier disambiguates when needed.
 
 	namespace detail
 	{
@@ -98,14 +93,10 @@ namespace units
 		/// (a coarse integer LHS that cannot hold the RHS), so in that case the underlying is promoted to floating
 		/// point. The result UNIT is always `U`'s unit; only its underlying may widen.
 		///
-		/// This is the deliberate wrapper counterpart of `lhs_result_unit_t` (which the plain-unit `operator+`/
-		/// `operator-` use). Both keep the LHS unit on the lossless path; they diverge only on the coarse-integer-
-		/// LHS fallback. The plain operators reconcile that case to the symmetric common (finest) UNIT — a plain
-		/// quantity is a magnitude, so a common sub-unit is a natural, lossless home for the sum. A wrapper is a
-		/// point-or-amount ROLE the caller reached for BY unit; switching that unit out from under them would read
-		/// the value in a scale they never named (and for a point, reconciling two affine frames through a common
-		/// unit mangles the datum). So the wrapper holds the LHS unit and widens only the underlying — the locked
-		/// affine-wrapper result rule.
+		/// This is the wrapper counterpart of `lhs_result_unit_t` (which the plain-unit `operator+`/`operator-`
+		/// use). Both keep the LHS unit on the lossless path; they diverge only on the coarse-integer-LHS fallback:
+		/// the plain operators reconcile to the common (finest) unit, the wrappers hold the LHS unit and widen only
+		/// the underlying (a point keeps its datum in its own unit).
 		///
 		/// A POINT's lossless test is AFFINE-aware: `is_losslessly_convertible_unit` examines only the conversion
 		/// RATIO, so it reports a datum-differing pair whose ratio happens to be 1 (e.g. kelvin↔celsius, ratio 1,
@@ -494,11 +485,10 @@ namespace units
 		//	ABSOLUTE / DELTA OPERATORS
 		//----------------------------------
 
-		// The wrapper operators keep the LHS UNIT (the "LHS-unit tie-break") so `.value()` reads intuitively in
-		// the left operand's unit — a point difference in celsius-degrees, not a common sub-unit. Reconciling to
-		// a std::common_type sub-unit instead reads a surprising 900 for `100 degC - 32 degF` (the difference IS
-		// 100 celsius-degrees). Keeping the LHS unit would narrow when the LHS is a coarse integer that cannot
-		// hold the RHS losslessly, so in that case the underlying is promoted to floating point (an `absolute`
+		// The wrapper operators keep the LHS UNIT (the "LHS-unit tie-break") so `.value()` reads in the left
+		// operand's unit — a point difference `100 degC - 32 degF` is 100 celsius-degrees. Keeping the LHS unit
+		// would narrow when the LHS is a coarse integer that cannot hold the RHS losslessly, so in that case the
+		// underlying is promoted to floating point (an `absolute`
 		// operator uses `units::detail::absolute_result_unit_t`, datum-aware; a `delta` operator uses
 		// `units::detail::delta_result_unit_t`, scale-only); the result UNIT stays the LHS unit, only the underlying
 		// widens. This keeps `absolute<kilometers<int>> - absolute<meters<int>>` well-formed (a km delta with a
@@ -937,9 +927,8 @@ namespace units
 			return false;
 		}
 
-		// Mixing a `kind` with a PLAIN unit is ill-formed: a plain unit carries no kind, so combining it with a
-		// tagged quantity would silently launder an untagged value into (or out of) a kind. A plain unit becomes a
-		// kind only by DELIBERATE construction/assignment (`kind<Tag,U> k = plain;`), never in arithmetic. These
+		// Mixing a `kind` with a PLAIN unit is ill-formed: a plain unit carries no kind. A plain unit becomes a
+		// kind only by construction/assignment (`kind<Tag,U> k = plain;`), never in arithmetic. These
 		// catch-alls turn the raw "no matching operator" wall into one readable message.
 		template<fixed_string Tag, UnitType U, UnitType Plain>
 		constexpr auto operator+(const basic_kind<Tag, U>& lhs, const Plain&) noexcept
@@ -1000,8 +989,7 @@ namespace units
 //      STD Namespace extensions
 //----------------------------------------------------------------------------------------------------------------------
 // A wrapper is hashable and has numeric limits exactly as the unit it wraps does — so a wrapper drops into an
-// unordered container and generic `numeric_limits`-driven code without the plain unit's std-integration silently
-// vanishing (an unspecialized `numeric_limits<delta<...>>::max()` would otherwise read a meaningless zero).
+// unordered container and generic `numeric_limits`-driven code the same way the plain unit does.
 
 //------------------------------
 //	std::hash
@@ -1027,8 +1015,7 @@ struct std::hash<units::affine::delta<U>>
 
 namespace std
 {
-	/// Numeric limits of a point: the wrapped unit's limits, re-wrapped as points (so `max()` is the largest
-	/// representable point, not a silent zero).
+	/// Numeric limits of a point: the wrapped unit's limits, re-wrapped as points.
 	template<units::UnitType U>
 	struct numeric_limits<units::affine::absolute<U>>
 	{

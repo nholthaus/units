@@ -14,23 +14,23 @@ opt-in wrappers:
 - **`delta<U>`** — an offset-free amount. Converting it is scale-only, never the datum:
   `delta<celsius<double>>(10.0).to<fahrenheit<double>>()` is an `18 °F` difference, **not** an absolute `50 °F`.
 
-For a non-affine unit (metres, seconds, …) the datum is zero, so a point and an amount coincide numerically —
-the wrappers still document intent and stop you from mixing the two roles by accident.
+For a non-affine unit (metres, seconds, …) the datum is zero, so a point and an amount coincide numerically; the
+wrappers still keep the two roles distinct in the type.
 
 ## Opt in — include the header
 
-The wrappers are **strictly opt-in at the header level**. They exist only in a translation unit that includes:
+The wrappers are **strictly opt-in**. They exist only where you include:
 
 ```cpp
 #include <units/kind.h>
 ```
 
-A translation unit that does not include it — even one that includes the umbrella `<units.h>` — has no
-`absolute`, no `delta`, and no `kind` namespace at all. Your own identifiers by those names are undisturbed,
-and there is zero compile-time or run-time cost. You pay for the wrappers only where you ask for them.
+Without that include — even with the umbrella `<units.h>` — there is no `absolute`, no `delta`, and no `kind`,
+so your own names by those spellings are undisturbed and there is no added cost. You get the wrappers only where
+you ask for them.
 
-Once included, the wrappers sit in an `inline namespace kind` inside `namespace units`, so both spellings name
-the same type:
+`absolute`/`delta` sit in an `inline namespace affine` inside `namespace units`, so both spellings name the same
+type:
 
 ```cpp
 #include <units/kind.h>
@@ -38,11 +38,11 @@ the same type:
 using namespace units;
 using namespace units::temperature;
 
-absolute<celsius<double>>       room(20.0);   // units::absolute
-units::kind::delta<celsius<double>> rise(5.0);   // fully qualified — same delta type
+absolute<celsius<double>>         room(20.0);   // units::absolute
+units::affine::delta<celsius<double>> rise(5.0);   // fully qualified — same delta type
 ```
 
-Use the `kind::` qualifier only when you need to disambiguate `delta`/`absolute` from an identifier of your own.
+Use the `affine::` qualifier only to disambiguate `delta`/`absolute` from an identifier of your own.
 
 ## The type algebra
 
@@ -74,8 +74,7 @@ Compound assignment mirrors the binary operators: `absolute += / -= delta`, `del
 
 ## The datum rule — points apply the offset, amounts do not
 
-This is the whole point of the distinction. Converting an **absolute** applies the datum; converting a
-**delta** is scale-only:
+Converting an **absolute** applies the datum; converting a **delta** is scale-only:
 
 ```cpp
 absolute<celsius<double>>(0.0).to<kelvin<double>>().value();      // 273.15  (offset applied)
@@ -101,12 +100,11 @@ A wrapper arithmetic operator keeps the **left operand's unit**, so `.value()` r
 (absolute<fahrenheit<double>>(32.0) - absolute<celsius<double>>(100.0)).value();  // -180 (fahrenheit-degrees)
 ```
 
-The difference is genuinely 100 celsius-degrees; reading it as some common sub-unit would surface a surprising
-`900`. The library chooses your unit instead. The one adjustment is to the **underlying type**: if the left
-operand's underlying is integral and cannot hold the right operand losslessly — e.g.
-`absolute<kilometers<int>> − absolute<meters<int>>` — the underlying promotes to floating point while the unit
-stays kilometres (the delta reads `0.5`), rather than truncating or hard-erroring. Comparisons reconcile to the
-common (finer) unit, so a mixed-integer comparison never narrows and never loses an equality.
+The result is expressed in the left operand's unit — `100` celsius-degrees, not a value in some other unit. The
+one adjustment is to the **underlying type**: if the left operand's underlying is integral and cannot hold the
+right operand losslessly — e.g. `absolute<kilometers<int>> − absolute<meters<int>>` — the underlying promotes to
+floating point while the unit stays kilometres (the delta reads `0.5`). Comparisons reconcile to the common
+(finer) unit, so a mixed-integer comparison does not narrow.
 
 ## Traits, concepts, math, and formatting
 
@@ -163,21 +161,20 @@ kind<"straight", meters<double>> s(3.0);
 // auto bad = r + s;               // ill-formed: "cannot add two DIFFERENT kinds (… "radial" vs "straight")"
 ```
 
-- **Prefer the top-level spelling `units::kind<"tag", U>`.**
+- Spell it `units::kind<"tag", U>`.
 - A **plain unit is constructible into a kind** by deliberate assignment (`kind<"radial", meters<double>> r =
-  someMeters;`) — the intent is explicit — but is **not interchangeable**: mixing a plain unit with a kind in
-  arithmetic (`r + plainMeters`) is ill-formed, so an untagged value never silently launders into a kind.
-- Two different tags, or a kind mixed with a plain unit, produce a **readable, tag-naming diagnostic**, not an
-  overload-resolution wall.
+  someMeters;`) but is **not interchangeable**: mixing a plain unit with a kind in arithmetic (`r + plainMeters`)
+  is ill-formed. A value enters a kind only where you name it.
+- Two different tags, or a kind mixed with a plain unit, produce a **readable, tag-naming diagnostic**.
 - `traits::is_kind_v<T>` / the `KindType` concept classify a kind; `.tag()` reads its tag.
 
 ## Guarantees and limits
 
 - **Trivially copyable** and **exactly the size of the wrapped unit** — zero overhead over `U`.
 - **`constexpr`** throughout; usable in constant expressions wherever `U` is.
-- **No silent interchange:** an `absolute`, a `delta`, and a `kind` never implicitly convert to one another or to a
-  bare number; the only way out is `to<PlainUnit>()`. (A plain unit constructs into a `kind` by explicit
-  assignment, as above — but never mixes with one in arithmetic.)
+- **No implicit interchange:** an `absolute`, a `delta`, and a `kind` do not implicitly convert to one another or
+  to a bare number; the way out is `to<PlainUnit>()`. (A plain unit constructs into a `kind` by explicit
+  assignment, as above.)
 - **Opt-in, always:** absent `<units/kind.h>` none of these exist. Once you include it and write
   `using namespace units;`, the names `absolute`, `delta`, `kind`, and `fixed_string` are visible at `units::`
   scope; if you have your own identifier by one of those names, qualify with `units::` / `units::affine::`.

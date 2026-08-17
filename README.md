@@ -254,12 +254,11 @@ temperature, or an epoch cannot be added to an epoch — reach for the two opt-i
 They live in their own header, so they are **strictly opt-in**: nothing about them exists until you ask for it.
 
 ```cpp
-#include <units/kind.h>   // the wrappers exist ONLY in a TU that includes this
+#include <units/kind.h>   // the wrappers exist only where you include this
 ```
 
-A translation unit that does not include `<units/kind.h>` (even one that includes `<units.h>`) has no
-`absolute`, no `delta`, no `kind` — so your own identifiers by those names are never disturbed, and there is
-no cost. Once included, the two wrappers are:
+Without that include (even with `<units.h>`) there is no `absolute`, no `delta`, no `kind` — so your own names
+by those spellings are never disturbed, and there is no cost. Once included, the two wrappers are:
 
 - `absolute<U>` — a **point** on a scale. It carries the unit's datum: `absolute<celsius<double>>(0.0)` is
   `273.15 K`, and `.to<kelvin<double>>()` applies the offset.
@@ -321,13 +320,9 @@ auto ok  = r + kind<"radial", meters<double>>(1.0);   // same kind → radial 6 
 // auto no = r + s;                                    // ill-formed: "cannot add two DIFFERENT kinds"
 ```
 
-Prefer the top-level spelling `units::kind<"tag", U>`. Different tags never interoperate; a plain unit is
-constructible into a kind by deliberate assignment but never mixes with one in arithmetic; a mismatch produces a
-readable, tag-naming diagnostic.
-
-The wrappers live in `namespace units` (with `absolute`/`delta` in an `inline namespace affine`), so
-`units::absolute` / `units::kind<…>` are the ergonomic spellings; qualify with `units::affine::` only to
-disambiguate from an identifier of your own.
+A plain unit is constructible into a kind by deliberate assignment but does not mix with one in arithmetic; a
+tag mismatch produces a readable, tag-naming diagnostic. `absolute`/`delta` live in an `inline namespace affine`,
+so `units::absolute` and `units::affine::absolute` name the same type — qualify only to disambiguate.
 
 See the how-to guide **[absolute & delta wrappers](docs/how-to/absolute-and-delta.md)** for the full type
 algebra, the datum rules, `kind<>`, and worked examples, and **[affine temperature](docs/explain/affine-temperature.md)**
