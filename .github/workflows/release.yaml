@@ -1,0 +1,44 @@
+name: release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+# Publish a GitHub Release when a version tag is pushed, with notes taken from the matching CHANGELOG.md
+# section. The build/test workflows also run on the tag; this only creates the Release object.
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract the CHANGELOG section for this version
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # Pull the lines between this version's heading and the next version heading.
+          awk -v ver="$version" '
+            $0 ~ ("^## \\[" ver "\\]") { grab = 1; next }
+            grab && /^## \[/ { exit }
+            grab { print }
+          ' CHANGELOG.md > release-notes.md
+          # Fall back to a minimal note if the section is empty (a tag without a changelog entry).
+          if [ ! -s release-notes.md ]; then
+            echo "Release ${GITHUB_REF_NAME}." > release-notes.md
+          fi
+
+      - name: Create the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release edit "${GITHUB_REF_NAME}" --title "units ${version}" --notes-file release-notes.md
+          else
+            gh release create "${GITHUB_REF_NAME}" --title "units ${version}" --notes-file release-notes.md
+          fi
