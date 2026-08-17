@@ -24,6 +24,9 @@ import pathlib
 HERE = pathlib.Path(__file__).resolve().parent
 CASES = HERE / "cases"
 SOUP = "conversion_factor<std::ratio<1>, units::dimension_t"  # the thing readability must never show
+# A second soup marker: the friendly name must not be drowned in a `dimension_t<...>` wall either. Forbidding
+# both proves the diagnostic names the type/operator WITHOUT descending into the template internals.
+SOUP_DIMENSION = "dimension_t<"
 
 # (name, headers, using, body-lines, expect, [expect-match...], [forbid-match...])
 BAD_CONVERSIONS = [
@@ -85,17 +88,20 @@ SCALAR_BOUNDARY = [
 
 # Comparing quantities of different dimensions is ill-formed. The relational-operator diagnostic reports the
 # operands through their conversion-factor tag inside the `unit<...>` base (e.g. `unit<units::meters_>`), so it
-# does not spell the friendly `meters<double>` form on any compiler. Assert what IS portably present and is not
-# soup: the failing operator name (`operator>` / `operator>=`), which every compiler surfaces in the
-# instantiation context of the rejected relational overload, together with the forbidden conversion-factor
-# soup. A friendly type token (`kilograms<`, `meters<`, a bare stem, ...) is NOT asserted here: it appears in a
+# does not spell the friendly `meters<double>` form on any compiler. Assert what IS present and is not soup: the
+# failing operator name, which every compiler surfaces in the instantiation context of the rejected relational
+# overload. The operator token is per-compiler because the SPELLING differs — g++/clang write it tight
+# (`operator<`), MSVC writes a space (`operator <`) — so it is emitted as expect-match-gcc / expect-match-msvc.
+# A friendly type token (`kilograms<`, `meters<`, a bare stem, ...) is NOT asserted here: it appears in a
 # compiler's output only where that compiler happens to echo the offending SOURCE line — which g++-13 omits and
 # g++-15/clang include — so matching it grades the source echo, not the diagnostic, and is fragile across
-# compiler versions. The operator token is the portable, honest readability assertion for a comparison.
+# compiler versions. Readability is verified two-sided: the operator IS named AND the message is not buried in
+# conversion-factor / dimension soup (both forbid tokens confirmed absent on GCC-13/15, clang, and MSVC).
+# Entry shape: (name, headers, body, operator-symbol).
 COMPARE_ACROSS = [
-    ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ["operator>"]),
+    ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ">"),
     ("compare_velocity_mass_ge", ["velocity", "mass"],
-     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["operator>="]),
+     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ">="),
 ]
 
 # A math function whose domain is an angle rejects a non-angle argument. The `name<` token matches the
@@ -163,6 +169,26 @@ int main() {{ return 0; }}
 """
     write(name, txt)
 
+def gen_compare(name, hdrs, body, op):
+    # A cross-dimension relational compare: the readable signal is the failing operator, asserted per-compiler
+    # because g++/clang spell it tight (`operator>`) and MSVC inserts a space (`operator >`). Two forbid guards
+    # confirm the message is not buried in conversion-factor / dimension soup.
+    directives = ["// expect: fail",
+                  f"// expect-match-gcc: operator{op}",
+                  f"// expect-match-msvc: operator {op}",
+                  f"// forbid-match: {SOUP}",
+                  f"// forbid-match: {SOUP_DIMENSION}"]
+    txt = f"""// GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension comparison — the diagnostic must name
+// the failing operator, never the raw conversion_factor<...> / dimension_t<...> soup.
+{chr(10).join(directives)}
+{header_includes(hdrs)}
+using namespace units;
+using namespace units::literals;
+{body}
+int main() {{ return 0; }}
+"""
+    write(name, txt)
+
 def gen_ordering(name, hdrs, body, last_dim):
     # include the reduced dimension's header LAST, after the expression is formed, to exercise #357.
     txt = f"""// GENERATED (generate_cases.py). #357-class ordering: an expression reducing to the '{last_dim}' dimension is
@@ -188,9 +214,11 @@ def main():
         gen_bad_conversion(c[0], c[1], c[2], c[3])
     for c in DERIVED_RESULT:
         gen_bad_conversion(c[0], c[1], c[2], c[3])
-    for group in (SCALAR_BOUNDARY, COMPARE_ACROSS, TRIG_DOMAIN, MATH_RESULT, MATH_DOMAIN, CHRONO_BOUNDARY):
+    for group in (SCALAR_BOUNDARY, TRIG_DOMAIN, MATH_RESULT, MATH_DOMAIN, CHRONO_BOUNDARY):
         for c in group:
             gen_bad_conversion(c[0], c[1], c[2], c[3])
+    for c in COMPARE_ACROSS:
+        gen_compare(c[0], c[1], c[2], c[3])
     for c in ORDERING_OK:
         gen_ordering(c[0], c[1], c[2], c[3])
     total = (len(BAD_CONVERSIONS) + len(ADD_INCOMPATIBLE) + len(DERIVED_RESULT) + len(SCALAR_BOUNDARY)

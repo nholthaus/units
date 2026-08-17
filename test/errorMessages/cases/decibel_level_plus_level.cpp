@@ -4,14 +4,18 @@
 // gain + gain -> gain, and level - level -> gain; to combine independent power levels, add them in the linear
 // domain (two equal powers sum to +3 dB), not by adding their dB numbers.
 //
-// The diagnostic names the deleted operator+ and the concrete dBW operand type (portable across compilers: the
-// operator name and `dBW` survive g++/clang/MSVC spelling differences), and does not fall back to raw
-// conversion_factor soup.
+// The diagnostic names the deleted operator and the concrete dBW operand type, and does not fall back to raw
+// conversion_factor / dimension soup. `dBW` is the friendly operand name and survives on every compiler, so it
+// is asserted universally; the operator SPELLING differs (g++/clang write it tight, `operator+`, MSVC inserts a
+// space, `operator +`), so it is asserted per-compiler. Readability is verified two-sided: the friendly name and
+// operator ARE present AND the message is not buried in soup (both forbid tokens confirmed absent on all four).
 //
 // expect: fail
-// expect-match: operator+
 // expect-match: dBW
+// expect-match-gcc: operator+
+// expect-match-msvc: operator +
 // forbid-match: conversion_factor<std::ratio
+// forbid-match: dimension_t<
 #include <units/power.h>
 using namespace units;
 using namespace units::power;
