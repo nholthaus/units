@@ -1,7 +1,7 @@
 // Case: calling sin() on a length must FAIL readably; trigonometric functions require an angle.
 //
 // expect: fail
-// expect-match: meters<double>
+// expect-match: meters<
 #include <units/length.h>
 using namespace units;
 using namespace units::literals;

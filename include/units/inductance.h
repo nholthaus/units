@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(inductance, henries, H, conversion_factor<std::ratio<1>, dimension::inductance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(inductance)
+	UNIT_ADD_DIMENSION_TRAIT(inductance, Inductance)
 } // namespace units
 
 #endif // units_inductance_h__

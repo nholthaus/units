@@ -10,8 +10,11 @@ Each generated cases/*.cpp carries in-file directives the runner (run.py) grades
 The corpus proves two things across the unit zoo:
   1. #357-class include-ordering never regresses (an expression reducing to a not-yet-included
      dimension still compiles);
-  2. a deliberate ill-formed use names the FRIENDLY unit type (meters<double>, hertz<double>,
-     square_meters<int>, ...) and never the raw conversion_factor<...> template soup.
+  2. a deliberate ill-formed use names the FRIENDLY unit type (asserted as `meters<`, `hertz<`,
+     `square_meters<`, ...) and never the raw conversion_factor<...> template soup. The `name<` token
+     matches the template form on every compiler — g++'s `meters<double>` and the default-elided
+     `meters<>` of clang/MSVC — while rejecting the `meters_` conversion-factor tag and the plain
+     `unit<...>` base, so a soup regression fails the assertion.
 
 Hand-written cases (357_ordering.cpp, readable_*.cpp) are left in place; this only (re)writes the
 generated_*.cpp files, so re-running is idempotent and won't clobber the curated ones.
@@ -26,72 +29,79 @@ SOUP = "conversion_factor<std::ratio<1>, units::dimension_t"  # the thing readab
 BAD_CONVERSIONS = [
     # deliberate cross-dimension assignment -> must name BOTH friendly types, never soup
     ("length_to_time", ["length", "time"], "units::time::seconds<double> x = 1.0_m;",
-     ["meters<double>", "seconds<double>"]),
+     ["meters<", "seconds<"]),
     ("velocity_to_length", ["velocity", "length"], "units::length::meters<double> x = 1.0_mps;",
-     ["meters_per_second<double>", "meters<double>"]),
+     ["meters_per_second<", "meters<"]),
     ("mass_to_force", ["mass", "force"], "units::force::newtons<double> x = 1.0_kg;",
-     ["kilograms<double>", "newtons<double>"]),
+     ["kilograms<", "newtons<"]),
     ("area_to_length", ["area", "length"], "units::length::meters<double> x = units::area::square_meters<double>(4.0);",
-     ["square_meters<double>", "meters<double>"]),
+     ["square_meters<", "meters<"]),
     ("frequency_to_time", ["frequency", "time"], "units::time::seconds<double> x = units::frequency::hertz<double>(2.0);",
-     ["hertz<double>", "seconds<double>"]),
+     ["hertz<", "seconds<"]),
     ("angle_to_length", ["angle", "length"], "units::length::meters<double> x = units::angle::radians<double>(1.0);",
-     ["radians<double>", "meters<double>"]),
+     ["radians<", "meters<"]),
     ("energy_to_power", ["energy", "power"], "units::power::watts<double> x = units::energy::joules<double>(3.0);",
-     ["joules<double>", "watts<double>"]),
+     ["joules<", "watts<"]),
     ("pressure_to_force", ["pressure", "force"], "units::force::newtons<double> x = units::pressure::pascals<double>(5.0);",
-     ["pascals<double>", "newtons<double>"]),
+     ["pascals<", "newtons<"]),
     ("temperature_to_time", ["temperature", "time"], "units::time::seconds<double> x = units::temperature::kelvin<double>(300.0);",
-     ["kelvin<double>", "seconds<double>"]),
+     ["kelvin<", "seconds<"]),
     ("charge_to_current", ["charge", "current"], "units::current::amperes<double> x = units::charge::coulombs<double>(1.0);",
-     ["coulombs<double>", "amperes<double>"]),
+     ["coulombs<", "amperes<"]),
     ("volume_to_area", ["volume", "area"], "units::area::square_meters<double> x = units::volume::cubic_meters<double>(1.0);",
-     ["cubic_meters<double>", "square_meters<double>"]),
+     ["cubic_meters<", "square_meters<"]),
     ("data_to_time", ["data", "time"], "units::time::seconds<double> x = units::data::bytes<double>(8.0);",
-     ["bytes<double>", "seconds<double>"]),
+     ["bytes<", "seconds<"]),
 ]
 
 ADD_INCOMPATIBLE = [
-    ("add_length_time", ["length", "time"], "auto bad = 1.0_m + 1.0_s;", ["meters<double>", "seconds<double>"]),
-    ("add_mass_length", ["mass", "length"], "auto bad = 1.0_kg + 1.0_m;", ["kilograms<double>", "meters<double>"]),
+    ("add_length_time", ["length", "time"], "auto bad = 1.0_m + 1.0_s;", ["meters<", "seconds<"]),
+    ("add_mass_length", ["mass", "length"], "auto bad = 1.0_kg + 1.0_m;", ["kilograms<", "meters<"]),
     ("sub_velocity_area", ["velocity", "area"], "auto bad = 1.0_mps - units::area::square_meters<double>(1.0);",
-     ["meters_per_second<double>", "square_meters<double>"]),
+     ["meters_per_second<", "square_meters<"]),
     ("add_frequency_angle", ["frequency", "angle"], "auto bad = units::frequency::hertz<double>(1.0) + units::angle::radians<double>(1.0);",
-     ["hertz<double>", "radians<double>"]),
+     ["hertz<", "radians<"]),
 ]
 
 # derived-result cases: forming the product/quotient must name the DERIVED friendly type when assigned wrong
 DERIVED_RESULT = [
     ("mul_length_length_to_time", ["length", "time", "area"],
-     "units::time::seconds<double> x = 2.0_m * 2.0_m;", ["square_meters<double>", "seconds<double>"]),
+     "units::time::seconds<double> x = 2.0_m * 2.0_m;", ["square_meters<", "seconds<"]),
     ("div_length_time_to_mass", ["length", "time", "velocity", "mass"],
-     "units::mass::kilograms<double> x = 10.0_m / 2.0_s;", ["meters_per_second<double>", "kilograms<double>"]),
+     "units::mass::kilograms<double> x = 10.0_m / 2.0_s;", ["meters_per_second<", "kilograms<"]),
     ("div_energy_time_to_length", ["energy", "time", "power", "length"],
-     "units::length::meters<double> x = units::energy::joules<double>(6.0) / 2.0_s;", ["watts<double>", "meters<double>"]),
+     "units::length::meters<double> x = units::energy::joules<double>(6.0) / 2.0_s;", ["watts<", "meters<"]),
 ]
 
 # A dimensioned quantity does not implicitly become a bare scalar, and a bare number does not implicitly
 # become a dimensioned quantity: the conversion operator is explicit and the value constructor is explicit.
-# (Matches on the friendly STEM rather than the meters<double> form: the stem appears in every compiler's
-# diagnostic — GCC/Clang's meters<double>, the meters_ tag, and MSVC's rendering alike.)
+# The `meters<` token matches the friendly template form (`meters<double>` on g++, default-elided `meters<>`
+# on clang/MSVC) while rejecting the `meters_` conversion-factor tag and the plain `unit<...>` base, so a
+# soup regression fails the assertion.
 SCALAR_BOUNDARY = [
-    ("scalar_from_dimensioned", ["length"], "double d = 1.0_m;", ["meters"]),
-    ("dimensioned_from_scalar", ["length"], "units::length::meters<double> m = 5.0;", ["meters"]),
+    ("scalar_from_dimensioned", ["length"], "double d = 1.0_m;", ["meters<"]),
+    ("dimensioned_from_scalar", ["length"], "units::length::meters<double> m = 5.0;", ["meters<"]),
 ]
 
-# Comparing quantities of different dimensions is ill-formed. (The relational-operator diagnostic names
-# the strong tag, e.g. meters_, so the match is on the friendly stem rather than the meters<double> form.)
+# Comparing quantities of different dimensions is ill-formed. The relational-operator diagnostic reports the
+# operands through their conversion-factor tag inside the `unit<...>` base (e.g. `unit<units::meters_>`), so it
+# does not spell the friendly `meters<double>` form on any compiler. Assert what IS portably present and is not
+# soup: the failing operator name (`operator>` / `operator>=`), plus any friendly type the source states
+# explicitly (`kilograms<` here — the RHS is written as `units::mass::kilograms<double>`). A bare `meters` stem
+# is rejected because it would silently match the `meters_` tag in the soup, defeating the readability check.
 COMPARE_ACROSS = [
-    ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ["meters", "seconds"]),
+    ("compare_length_time_gt", ["length", "time"], "bool b = (1.0_m > 1.0_s);", ["operator>"]),
     ("compare_velocity_mass_ge", ["velocity", "mass"],
-     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["meters_per_second", "kilograms"]),
+     "bool b = (1.0_mps >= units::mass::kilograms<double>(1.0));", ["operator>=", "kilograms<"]),
 ]
 
-# A math function whose domain is an angle rejects a non-angle argument. (Stem match: cross-compiler.)
+# A math function whose domain is an angle rejects a non-angle argument. The `name<` token matches the
+# friendly template form (`meters<double>` on g++, default-elided `meters<>` on clang/MSVC) while rejecting
+# the conversion-factor tag and the plain `unit<...>` base.
 TRIG_DOMAIN = [
-    ("sin_of_length", ["angle", "length"], "auto x = sin(1.0_m);", ["meters"]),
-    ("cos_of_time", ["angle", "time"], "auto x = cos(units::time::seconds<double>(1.0));", ["seconds"]),
-    ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms"]),
+    ("sin_of_length", ["angle", "length"], "auto x = sin(1.0_m);", ["meters<"]),
+    ("cos_of_time", ["angle", "time"], "auto x = cos(units::time::seconds<double>(1.0));", ["seconds<"]),
+    ("tan_of_mass", ["angle", "mass"], "auto x = tan(units::mass::kilograms<double>(1.0));", ["kilograms<"]),
 ]
 
 # The RESULT of a dimensional math operation has a definite dimension; assigning it to the wrong one
@@ -100,19 +110,21 @@ TRIG_DOMAIN = [
 MATH_RESULT = [
     ("sqrt_area_to_time", ["area", "length", "time"],
      "units::time::seconds<double> x = sqrt(units::area::square_meters<double>(4.0));",
-     ["meters<double>", "seconds<double>"]),
+     ["meters<", "seconds<"]),
     ("pow2_length_to_volume", ["length", "area", "volume"],
-     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["square_meters<double>", "cubic_meters<double>"]),
+     "units::volume::cubic_meters<double> x = pow<2>(1.0_m);", ["square_meters<", "cubic_meters<"]),
 ]
 
-# fmod and hypot across incompatible dimensions are ill-formed.
+# fmod and hypot across incompatible dimensions are ill-formed. The `name<` token matches the friendly
+# template form while rejecting the conversion-factor tag and the plain `unit<...>` base.
 MATH_DOMAIN = [
-    ("fmod_length_time", ["length", "time"], "auto x = fmod(1.0_m, 1.0_s);", ["meters", "seconds"]),
+    ("fmod_length_time", ["length", "time"], "auto x = fmod(1.0_m, 1.0_s);", ["meters<", "seconds<"]),
 ]
 
-# A std::chrono::duration only converts to/from a time quantity; a non-time quantity is rejected.
+# A std::chrono::duration only converts to/from a time quantity; a non-time quantity is rejected. The
+# `meters<` token matches the friendly template form while rejecting the `meters_` tag and the `unit<...>` base.
 CHRONO_BOUNDARY = [
-    ("chrono_from_length", ["length", "<chrono>"], "std::chrono::seconds s = 1.0_m;", ["meters"]),
+    ("chrono_from_length", ["length", "<chrono>"], "std::chrono::seconds s = 1.0_m;", ["meters<"]),
 ]
 
 # #357-class ordering: an expression reducing to a dimension whose header is included LAST must still compile.

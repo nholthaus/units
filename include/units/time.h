@@ -88,7 +88,7 @@ namespace units
 	UNIT_ADD(time, centuries, cent, conversion_factor<std::ratio<100>, julian_years<>>)
 	UNIT_ADD(time, millennia, kyr, conversion_factor<std::ratio<1000>, julian_years<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(time)
+	UNIT_ADD_DIMENSION_TRAIT(time, Time)
 } // namespace units
 
 #endif // units_time_h_

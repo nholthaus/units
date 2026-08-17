@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(capacitance, farads, F, conversion_factor<std::ratio<1>, dimension::capacitance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(capacitance)
+	UNIT_ADD_DIMENSION_TRAIT(capacitance, Capacitance)
 } // namespace units
 
 #endif // units_capacitance_h__

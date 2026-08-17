@@ -62,7 +62,7 @@ namespace units
 	UNIT_ADD(solid_angle, degrees_squared, deg2, squared<degrees_>)
 	UNIT_ADD(solid_angle, spats, sp, conversion_factor<std::ratio<4>, steradians_, std::ratio<1>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(solid_angle)
+	UNIT_ADD_DIMENSION_TRAIT(solid_angle, SolidAngle)
 } // namespace units
 
 #endif // units_solid_angle_h__

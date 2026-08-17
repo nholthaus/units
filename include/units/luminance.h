@@ -76,7 +76,7 @@ namespace units
 	template<class T>
 	using blondels = apostilbs<T>;
 
-	UNIT_ADD_DIMENSION_TRAIT(luminance)
+	UNIT_ADD_DIMENSION_TRAIT(luminance, Luminance)
 } // namespace units
 
 #endif // units_luminance_h__

@@ -69,7 +69,7 @@ namespace units
 	UNIT_ADD(area, roods, rood, conversion_factor<std::ratio<1, 4>, acres<>>)
 	UNIT_ADD(area, square_rods, rd2, squared<rods_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(area)
+	UNIT_ADD_DIMENSION_TRAIT(area, Area)
 } // namespace units
 
 #endif // units_area_h_

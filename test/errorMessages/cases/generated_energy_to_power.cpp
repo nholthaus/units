@@ -1,8 +1,8 @@
 // GENERATED (generate_cases.py). Deliberate ill-formed cross-dimension use — the diagnostic must name the
 // FRIENDLY unit types, never the raw conversion_factor<...> soup.
 // expect: fail
-// expect-match: joules<double>
-// expect-match: watts<double>
+// expect-match: joules<
+// expect-match: watts<
 // forbid-match: conversion_factor<std::ratio<1>, units::dimension_t
 #include <units/energy.h>
 #include <units/power.h>

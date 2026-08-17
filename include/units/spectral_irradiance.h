@@ -58,7 +58,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_irradiance, watts_per_meter_cubed, W_per_m3, conversion_factor<std::ratio<1>, dimension::spectral_irradiance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(spectral_irradiance)
+	UNIT_ADD_DIMENSION_TRAIT(spectral_irradiance, SpectralIrradiance)
 } // namespace units
 
 #endif // units_spectral_irradiance_h_

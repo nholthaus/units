@@ -64,7 +64,7 @@ namespace units
 	UNIT_ADD(dynamic_viscosity, poise, P, conversion_factor<std::ratio<1, 10>, pascal_seconds_>)
 	UNIT_ADD(dynamic_viscosity, centipoise, cP, conversion_factor<std::ratio<1, 100>, poise_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(dynamic_viscosity)
+	UNIT_ADD_DIMENSION_TRAIT(dynamic_viscosity, DynamicViscosity)
 
 	/**
 	 * @namespace	units::kinematic_viscosity
@@ -78,7 +78,7 @@ namespace units
 	UNIT_ADD(kinematic_viscosity, stokes, St, conversion_factor<std::ratio<1, 10000>, square_meters_per_second_>)
 	UNIT_ADD(kinematic_viscosity, centistokes, cSt, conversion_factor<std::ratio<1, 100>, stokes_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(kinematic_viscosity)
+	UNIT_ADD_DIMENSION_TRAIT(kinematic_viscosity, KinematicViscosity)
 } // namespace units
 
 #endif // units_viscosity_h_

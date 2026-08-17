@@ -54,8 +54,8 @@ namespace units
 	/**
 	 * @namespace	units::velocity
 	 * @brief		namespace for unit types and containers representing velocity values
-	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding `dimension` dimension is
-	 *				`velocity_unit`.
+	 * @details		The SI unit for velocity is `meters_per_second`, and the corresponding dimension concept is
+	 *				`Velocity` (backed by the `traits::is_velocity_unit_v` trait).
 	 * @anchor		velocityContainers
 	 * @sa			See unit for more information on unit type containers.
 	 */
@@ -70,7 +70,7 @@ namespace units
 	UNIT_ADD(velocity, inches_per_second, ips, compound_conversion_factor<inches<>, inverse<seconds_>>)
 	UNIT_ADD(velocity, kilometers_per_second, kmps, compound_conversion_factor<kilometers<>, inverse<seconds_>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(velocity)
+	UNIT_ADD_DIMENSION_TRAIT(velocity, Velocity)
 } // namespace units
 
 #endif // units_velocity_h_

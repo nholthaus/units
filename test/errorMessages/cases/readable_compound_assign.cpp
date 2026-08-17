@@ -2,7 +2,7 @@
 // velocity = length / time; assigning it to acceleration_ names both strong types.
 //
 // expect: fail
-// expect-match: meters_per_second
+// expect-match: meters_per_second<
 // expect-match: acceleration
 #include <units/length.h>
 #include <units/time.h>

@@ -60,7 +60,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(substance_mass, grams_per_mole, g_per_mol, conversion_factor<std::ratio<1, 1000>, dimension::substance_mass>)
 
-	UNIT_ADD_DIMENSION_TRAIT(substance_mass)
+	UNIT_ADD_DIMENSION_TRAIT(substance_mass, SubstanceMass)
 } // namespace units
 
 #endif // units_substance_mass_h_

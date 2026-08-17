@@ -76,7 +76,7 @@ namespace units
 	UNIT_ADD(mass, hundredweights, cwt, conversion_factor<std::ratio<112>, pounds_>)
 	UNIT_ADD(mass, short_hundredweights, sh_cwt, conversion_factor<std::ratio<100>, pounds_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(mass)
+	UNIT_ADD_DIMENSION_TRAIT(mass, Mass)
 } // namespace units
 
 #endif // units_mass_h_

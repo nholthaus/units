@@ -459,29 +459,42 @@ namespace units
 	UNIT_ADD_DECIBEL_LITERALS(namespaceName, abbreviation, abbreviation)
 
 /**
- * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension)
- * @brief		Macro to create the `is_dimension_unit` type trait.
- * @details		This trait allows users to test whether a given type matches
- *				an intended dimension. This macro comprises all the boilerplate
- *				code necessary to do so.
- * @param		unitdimension The name of the dimension of unit, e.g. length or mass.
+ * @def			UNIT_ADD_DIMENSION_TRAIT(unitdimension, ConceptName)
+ * @brief		Macro to create the `is_dimension_unit` type trait and the `ConceptName` concept.
+ * @details		The `is_ ## unitdimension ## _unit` trait (in namespace `units::traits`) allows users to test
+ *				whether a given type matches an intended dimension, and the `ConceptName` concept (in namespace
+ *				`units`) lets a function constrain a parameter on a physical quantity by dimension
+ *				(`void f(Velocity auto)`) rather than a concrete named type. Being dimension-keyed, the concept
+ *				classifies a computed result consistently regardless of which dimension headers a translation
+ *				unit included. This macro comprises all the boilerplate code necessary to do so. The C
+ *				preprocessor cannot uppercase a token, so the PascalCase concept name is supplied as a separate
+ *				argument rather than derived from `unitdimension`.
+ * @param		unitdimension	The name of the dimension of unit, e.g. length or mass.
+ * @param		ConceptName		The PascalCase name of the emitted concept, e.g. Length or Mass.
  */
 
-#define UNIT_ADD_DIMENSION_TRAIT(unitdimension)                                                                                                                                                        \
-	/** @ingroup	TypeTraits*/                                                                                                                                                                          \
-	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                                                                         \
-	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                                                                   \
-	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                                                                            \
-	/** @tparam		T	type to test*/                                                                                                                                                                      \
-	namespace traits                                                                                                                                                                                   \
-	{                                                                                                                                                                                                  \
-		template<typename T>                                                                                                                                                                           \
-		struct is_##unitdimension##_unit : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension>                                                                         \
-		{                                                                                                                                                                                              \
-		};                                                                                                                                                                                             \
-		template<typename T>                                                                                                                                                                           \
-		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T>::value;                                                                                                       \
-	}
+#define UNIT_ADD_DIMENSION_TRAIT(unitdimension, ConceptName)                                                                                                                                           \
+	/** @ingroup	TypeTraits*/                                                                                                                                                                   \
+	/** @brief		`UnaryTypeTrait` for querying whether `T` represents a unit of unitdimension*/                                                                                         \
+	/** @details	The base characteristic is a specialization of the template `std::bool_constant`.*/                                                                                            \
+	/**				Use `is_ ## unitdimension ## _unit_v<T>` to test the unit represents a unitdimension quantity.*/                                                               \
+	/** @tparam		T	type to test*/                                                                                                                                                 \
+	namespace traits                                                                                                                                                                               \
+	{                                                                                                                                                                                              \
+		template<typename T>                                                                                                                                                                   \
+		struct is_##unitdimension##_unit : ::units::detail::has_dimension_of<std::decay_t<T>, units::dimension::unitdimension>                                                                 \
+		{                                                                                                                                                                                      \
+		};                                                                                                                                                                                     \
+		template<typename T>                                                                                                                                                                   \
+		inline constexpr bool is_##unitdimension##_unit_v = is_##unitdimension##_unit<T>::value;                                                                                               \
+	}                                                                                                                                                                                              \
+	/** @ingroup	Concepts*/                                                                                                                                                                     \
+	/** @brief		Concept satisfied by any unit whose SI dimension is unitdimension; being dimension-keyed it*/                                                                          \
+	/**				classifies a computed result consistently regardless of which dimension headers a translation*/                                                                \
+	/**				unit included.*/                                                                                                                                               \
+	/** @tparam		T	type to test*/                                                                                                                                                 \
+	template<typename T>                                                                                                                                                                           \
+	concept ConceptName = ::units::traits::is_##unitdimension##_unit_v<std::decay_t<T>>;
 
 /**
  * @def			UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, definition)
@@ -2585,7 +2598,8 @@ namespace units
 		 * @param[in]	value value of the unit
 		 */
 		template<ArithmeticType Rep, RatioType Period>
-			requires detail::is_time_conversion_factor<ConversionFactor> && detail::is_losslessly_convertible<Rep, T>
+			requires detail::is_time_conversion_factor<ConversionFactor> && detail::is_losslessly_convertible<Rep, T> &&
+			detail::is_losslessly_convertible_unit<units::unit<units::conversion_factor<Period, dimension::time>, Rep>, unit>
 		constexpr unit(const std::chrono::duration<Rep, Period>& value) noexcept
 		  : _linearized_value(units::convert<unit>(units::unit<units::conversion_factor<Period, dimension::time>, Rep>(value.count()))._linearized_value)
 		{
@@ -2860,8 +2874,10 @@ namespace units
 		[[nodiscard]] constexpr const char* name() const noexcept
 		{
 			// unit_name is specialized on the NAMED class, not this unit<...> base; resolve the named form first so a
-			// named unit (feet) reports "feet" instead of null. Identity for a plain unit<...>.
-			return unit_name_v<detail::rewrap_to_named_t<Unit>>;
+			// named unit (feet) reports "feet" instead of null. A compound/unnamed unit has no registered name; report
+			// the empty string rather than nullptr so the result is always a valid C string to print or copy.
+			constexpr const char* n = unit_name_v<detail::rewrap_to_named_t<Unit>>;
+			return n ? n : "";
 		}
 
 		/**
@@ -2871,8 +2887,10 @@ namespace units
 		[[nodiscard]] constexpr const char* abbreviation() const noexcept
 		{
 			// unit_abbreviation is specialized on the NAMED class, not this unit<...> base; resolve the named form
-			// first so a named unit (feet) reports "ft" instead of null. Identity for a plain unit<...>.
-			return unit_abbreviation_v<detail::rewrap_to_named_t<Unit>>;
+			// first so a named unit (feet) reports "ft" instead of null. A compound/unnamed unit has no registered
+			// abbreviation; report the empty string rather than nullptr so the result is always a valid C string.
+			constexpr const char* a = unit_abbreviation_v<detail::rewrap_to_named_t<Unit>>;
+			return a ? a : "";
 		}
 
 		template<ConversionFactorType Cf, ArithmeticType Ty, NumericalScaleType<Ty> Ns>
@@ -3522,7 +3540,7 @@ namespace units
 	template<class Underlying = UNIT_LIB_DEFAULT_TYPE>
 	using dimensionless = unit<traits::strong_t<conversion_factor<std::ratio<1>, dimension::dimensionless>>, Underlying, linear_scale>;
 
-	UNIT_ADD_DIMENSION_TRAIT(dimensionless)
+	UNIT_ADD_DIMENSION_TRAIT(dimensionless, Dimensionless)
 
 	//----------------------------------------
 	//	UNIT COMPOUND ASSIGNMENT OPERATORS
@@ -3981,9 +3999,11 @@ namespace units
 	//------------------------------
 
 	/// Addition operator for unit types with a linear_scale.
-	/// @note	Disabled when either operand is AFFINE (carries a datum offset, e.g. degrees Celsius): the sum
-	///			of two absolute affine quantities has no physical meaning (20 degC + 5 degC is not 25 degC in
-	///			any absolute sense). Non-affine units of the same dimension add normally.
+	/// @note	Disabled when either operand is AFFINE (carries a datum offset, e.g. degrees Celsius): summing two
+	///			offset quantities adds their datums, which is arithmetically corrupt (20 degC + 5 degC is not
+	///			25 degC in any absolute sense). Zero-offset scales of the same dimension (including kelvin and
+	///			rankine) add normally — the sum is well-defined arithmetically even where it is rarely the
+	///			physically intended operation.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
@@ -4761,17 +4781,24 @@ namespace units
 	//	DECIBEL ARITHMETIC
 	//------------------------------
 
-	/// Addition for convertible unit types with a decibel_scale
-	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+	/// Addition of two absolute decibel LEVELS (both dimensioned, same dimension — e.g. `dBW + dBW`) is ill-formed.
+	/// A dimensioned decibel value is an absolute point on a logarithmic reference scale, exactly like an affine
+	/// temperature: `dBW + dBW` is a point + point, which has no meaning (two 10 dBW sources are not a 20 dBW
+	/// source). The defined operations are `level + gain -> level` (add a dimensionless dB gain), `gain + gain ->
+	/// gain`, and `level - level -> gain`. To combine two independent power levels, add them in the linear domain
+	/// (two equal powers sum to +3 dB), not by adding their dB numbers.
+	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
-		-> detail::rewrap_to_named_t<unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
-			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type, decibel_scale>>
-	{
-		using SquaredUnit = decltype(lhs + rhs);
-		using CommonUnit  = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+	auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept = delete;
 
-		return SquaredUnit(CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
+	/// Addition of two dimensionless decibel GAINS (`dB + dB`). Both are relative ratios, so their dB numbers add
+	/// (a linear multiplication of the ratios): 3 dB + 3 dB is 6 dB. The result is a dimensionless dB gain.
+	template<DimensionlessUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
+		requires(traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		return CommonUnit(CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
 	/// Addition between unit types with a decibel_scale and dimensionless dB units

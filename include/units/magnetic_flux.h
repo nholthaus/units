@@ -61,7 +61,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_flux, webers, Wb, conversion_factor<std::ratio<1>, dimension::magnetic_flux>)
 	UNIT_ADD(magnetic_flux, maxwells, Mx, conversion_factor<std::ratio<1, 100000000>, webers_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(magnetic_flux)
+	UNIT_ADD_DIMENSION_TRAIT(magnetic_flux, MagneticFlux)
 } // namespace units
 
 #endif // units_magnetic_flux_h_

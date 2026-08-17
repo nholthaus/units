@@ -63,7 +63,7 @@ namespace units
 	UNIT_ADD_WITH_METRIC_PREFIXES(magnetic_field_strength, teslas, Te, conversion_factor<std::ratio<1>, dimension::magnetic_field_strength>)
 	UNIT_ADD(magnetic_field_strength, gauss, G, compound_conversion_factor<maxwells_, inverse<squared<centimeters_>>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength)
+	UNIT_ADD_DIMENSION_TRAIT(magnetic_field_strength, MagneticFieldStrength)
 } // namespace units
 
 #endif // units_magnetic_field_strength_h_

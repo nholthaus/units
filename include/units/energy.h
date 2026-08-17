@@ -72,7 +72,7 @@ namespace units
 	UNIT_ADD(energy, calories_it, cal_it, conversion_factor<std::ratio<41868, 10000>, joules_>)
 	UNIT_ADD(energy, tons_of_tnt, tTNT, conversion_factor<std::ratio<4184000000LL>, joules_>)
 
-	UNIT_ADD_DIMENSION_TRAIT(energy)
+	UNIT_ADD_DIMENSION_TRAIT(energy, Energy)
 } // namespace units
 
 #endif // units_energy_h_

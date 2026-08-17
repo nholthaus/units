@@ -24,6 +24,7 @@ Start with [Getting started](learn/getting-started.md); the
 - [Affine temperature](explain/affine-temperature.md)
 - [Namespaces](explain/namespaces.md)
 - [Named-type internals](explain/internals-named-types.md)
+- [Naming computed results consistently](explain/naming-computed-results.md)
 
 ## How-to
 

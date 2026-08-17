@@ -71,7 +71,7 @@ namespace units
 		using biots = abamperes<Underlying>;
 	}
 
-	UNIT_ADD_DIMENSION_TRAIT(current)
+	UNIT_ADD_DIMENSION_TRAIT(current, Current)
 } // namespace units
 
 #endif // units_current_h_

@@ -71,7 +71,7 @@ namespace units
 
 	UNIT_ADD(radiation, roentgens_equivalent_man, rem, conversion_factor<std::ratio<1>, centisieverts<>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(radioactivity)
+	UNIT_ADD_DIMENSION_TRAIT(radioactivity, Radioactivity)
 } // namespace units
 
 #endif // units_radiation_h_

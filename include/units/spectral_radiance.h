@@ -59,7 +59,7 @@ namespace units
 	 */
 	UNIT_ADD_WITH_METRIC_PREFIXES(spectral_radiance, watts_per_steradian_per_meter_cubed, W_per_srm3, conversion_factor<std::ratio<1>, dimension::spectral_radiance>)
 
-	UNIT_ADD_DIMENSION_TRAIT(spectral_radiance)
+	UNIT_ADD_DIMENSION_TRAIT(spectral_radiance, SpectralRadiance)
 } // namespace units
 
 #endif // units_spectral_radiance_h_

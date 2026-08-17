@@ -64,7 +64,7 @@ namespace units
 	UNIT_ADD(illuminance, lumens_per_square_inch, lm_per_in2, compound_conversion_factor<lumens_, inverse<squared<inches_>>>)
 	UNIT_ADD(illuminance, phots, ph, compound_conversion_factor<lumens_, inverse<squared<centimeters<>>>>)
 
-	UNIT_ADD_DIMENSION_TRAIT(illuminance)
+	UNIT_ADD_DIMENSION_TRAIT(illuminance, Illuminance)
 } // namespace units
 
 #endif // units_illuminance_h_
