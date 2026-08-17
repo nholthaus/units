@@ -249,7 +249,17 @@ no special cases.
 
 The point/delta distinction above is enforced *quietly* on plain units. When you want the compiler to enforce
 it **in the type** — so a function that takes a temperature *difference* cannot be handed an absolute
-temperature, or an epoch cannot be added to an epoch — reach for the two opt-in wrappers:
+temperature, or an epoch cannot be added to an epoch — reach for the two opt-in wrappers.
+
+They live in their own header, so they are **strictly opt-in**: nothing about them exists until you ask for it.
+
+```cpp
+#include <units/kind.h>   // the wrappers exist ONLY in a TU that includes this
+```
+
+A translation unit that does not include `<units/kind.h>` (even one that includes `<units.h>`) has no
+`absolute`, no `delta`, no `kind` — so your own identifiers by those names are never disturbed, and there is
+no cost. Once included, the two wrappers are:
 
 - `absolute<U>` — a **point** on a scale. It carries the unit's datum: `absolute<celsius<double>>(0.0)` is
   `273.15 K`, and `.to<kelvin<double>>()` applies the offset.
@@ -291,12 +301,40 @@ and the concepts `AbsoluteType` / `DeltaType`. `units::abs`/`min`/`max`/`clamp` 
 `clamp` work on an `absolute`. Streaming and `units::to_string` forward to the wrapped quantity, prefixing a
 `delta ` marker so a difference is visually distinct from a point.
 
-The wrappers live in an `inline namespace kind` inside `namespace units` (`kind` is the ISO/VIM metrology term
-for a *kind of quantity*), so `units::absolute` and `units::kind::absolute` name the same type — the qualifier
-is there only when you need to disambiguate `delta`/`absolute` from an identifier of your own.
+One conversion verb, `to<Target>()`, crosses between types: a **plain-unit** target unwraps (a point applies its
+datum, a delta is scale-only), a **wrapper** target stays wrapped — `c.to<kelvin<double>>()` is a plain
+`273.15 K`, `c.to<absolute<kelvin<double>>>()` stays a point. There is no `.quantity()` accessor; `to<PlainUnit>()`
+is the way out.
 
-> Serialization of the wrappers is not yet supported (a follow-up); serialize the wrapped quantity via
-> `.quantity()`.
+**String-tagged `kind<Tag, U>` — same unit, different *kind*.** When two quantities share a unit *and* a
+dimension yet are semantically different — a *radial* vs. a *straight-line* distance, a *torque* vs. an *energy* —
+tag each with a compile-time string so the types don't mix:
+
+```cpp
+#include <units/kind.h>
+using namespace units;
+using namespace units::length;
+
+kind<"radial",   meters<double>> r(5.0);
+kind<"straight", meters<double>> s(3.0);
+auto ok  = r + kind<"radial", meters<double>>(1.0);   // same kind → radial 6 m
+// auto no = r + s;                                    // ill-formed: "cannot add two DIFFERENT kinds"
+```
+
+Prefer the top-level spelling `units::kind<"tag", U>`. Different tags never interoperate; a plain unit is
+constructible into a kind by deliberate assignment but never mixes with one in arithmetic; a mismatch produces a
+readable, tag-naming diagnostic.
+
+The wrappers live in `namespace units` (with `absolute`/`delta` in an `inline namespace affine`), so
+`units::absolute` / `units::kind<…>` are the ergonomic spellings; qualify with `units::affine::` only to
+disambiguate from an identifier of your own.
+
+See the how-to guide **[absolute & delta wrappers](docs/how-to/absolute-and-delta.md)** for the full type
+algebra, the datum rules, `kind<>`, and worked examples, and **[affine temperature](docs/explain/affine-temperature.md)**
+for the why.
+
+> Serialization of the wrappers is not yet supported (a follow-up); unwrap with `to<PlainUnit>()` and serialize
+> that.
 
 ---
 
