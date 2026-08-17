@@ -51,7 +51,7 @@ jobs:
 
       - name: Error-message tests
         run: |
-          python3 test/errorMessages/run.py --cc g++-13 --std c++23 --include include
+          python3 test/errorMessages/run.py --cc g++-13 --std c++23 --include include --jobs 4
 
       - name: Reference tables up to date
         # The supported-units and constants tables in README.md and docs/reference are generated from the
