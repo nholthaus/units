@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [3.6.1] - 2026-08-18
+
+### Fixed
+- `unit::value()` declared its `needs_fp` compile-time selector as a `static constexpr` local. A `static`
+  local in a `constexpr` function is only well-formed from GCC 13 / Clang 17, so GCC 11 and 12 rejected any
+  translation unit that instantiated `value()` ("declared 'static' in 'constexpr' function"). The variable is
+  used only as a compile-time condition, so dropping `static` is behavior-identical on every compiler while
+  restoring the build on GCC 11/12. The declared support floor is unchanged (GCC 13).
+
 ## [3.6.0] - 2026-08-17
 
 New capabilities: opt-in affine and string-tagged quantity wrappers, per-dimension concepts, `std::format`
@@ -269,6 +278,7 @@ The C++23 line. This is a major revision; see the
 - `unit_value_t` — use a `constexpr` quantity value instead.
 - The `units::math` namespace and the `_t` singular type aliases (see Changed).
 
+[3.6.1]: https://github.com/nholthaus/units/releases/tag/v3.6.1
 [3.6.0]: https://github.com/nholthaus/units/releases/tag/v3.6.0
 [3.5.1]: https://github.com/nholthaus/units/releases/tag/v3.5.1
 [3.5.0]: https://github.com/nholthaus/units/releases/tag/v3.5.0

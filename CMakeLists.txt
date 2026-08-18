@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16...4.99 FATAL_ERROR)
 
-PROJECT(units VERSION 3.6.0 LANGUAGES CXX)
+PROJECT(units VERSION 3.6.1 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 

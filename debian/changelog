@@ -1,3 +1,10 @@
+units (3.6.1-0ppa1~noble1) noble; urgency=medium
+
+  * Portability fix: a constexpr function's local is no longer declared static,
+    so units compiles on GCC 11/12 (behavior-identical on GCC 13+).
+
+ -- Nic Holthaus <nholthaus@gmail.com>  Mon, 18 Aug 2026 09:00:00 -0400
+
 units (3.6.0-0ppa1~noble1) noble; urgency=medium
 
   * New release: opt-in affine (absolute/delta) and string-tagged kind wrappers,
