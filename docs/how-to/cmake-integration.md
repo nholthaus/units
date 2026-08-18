@@ -29,7 +29,7 @@ Pull it at configure time — no vendored copy in your tree:
 include(FetchContent)
 FetchContent_Declare(units
   GIT_REPOSITORY https://github.com/nholthaus/units.git
-  GIT_TAG        v3.6.0)          # pin a release tag
+  GIT_TAG        v3.6.1)          # pin a release tag
 FetchContent_MakeAvailable(units)
 
 target_link_libraries(myapp PRIVATE units::units)
