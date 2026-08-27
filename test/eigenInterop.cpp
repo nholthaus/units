@@ -220,6 +220,199 @@ namespace
 		EXPECT_DOUBLE_EQ(7.0, unit_norm(t).value()); // sqrt(4+9+36) = 7
 		static_assert(std::is_same_v<decltype(unit_norm(t)), seconds<double>>);
 	}
+
+	// Regression guards. Each fails on the pre-fix header and passes on the fixed one.
+
+	// A dynamically-sized vector is normalized without out-of-bounds indexing (issue #406): the output is
+	// sized from the runtime length, not a zero compile-time size.
+	TEST_F(EigenInterop, unitNormalizedHandlesDynamicSize)
+	{
+		Eigen::Matrix<meters<double>, Eigen::Dynamic, 1> v(3);
+		v << 3.0_m, 4.0_m, 0.0_m;
+
+		auto dir = unit_normalized(v);
+		EXPECT_EQ(3, dir.size());
+		EXPECT_DOUBLE_EQ(0.6, dir(0));
+		EXPECT_DOUBLE_EQ(0.8, dir(1));
+		EXPECT_DOUBLE_EQ(0.0, dir(2));
+		EXPECT_NEAR(1.0, dir.norm(), 1e-12);
+	}
+
+	// An integral underlying type is floating-point promoted before division (issue #407), so a direction is
+	// the true ratio rather than a truncated (1,1).
+	TEST_F(EigenInterop, unitNormalizedPromotesIntegralScalar)
+	{
+		Eigen::Matrix<meters<int>, 2, 1> v;
+		v << meters<int>(1), meters<int>(1);
+
+		auto dir = unit_normalized(v);
+		EXPECT_NEAR(0.70710678, dir(0), 1e-8);
+		EXPECT_NEAR(0.70710678, dir(1), 1e-8);
+		static_assert(std::is_floating_point_v<decltype(dir)::Scalar>);
+	}
+
+	// The norm of a ratio-scaled dimensionless unit reads in the unit's own raw scale (issue #392): a single
+	// 50% component has a raw norm of 50, and a (30%,40%) vector has a raw norm of 50.
+	TEST_F(EigenInterop, unitNormRatioScaledDimensionless)
+	{
+		Eigen::Matrix<concentration::percent<double>, 1, 1> one;
+		one << concentration::percent<double>(50);
+		EXPECT_DOUBLE_EQ(50.0, unit_norm(one).raw());
+
+		Eigen::Matrix<concentration::percent<double>, 2, 1> two;
+		two << concentration::percent<double>(30), concentration::percent<double>(40);
+		EXPECT_DOUBLE_EQ(50.0, unit_norm(two).raw()); // sqrt(30^2 + 40^2) on the percent scale
+	}
+
+	// A dynamically-sized transform sizes its intermediates from the runtime length (issue #406) instead of
+	// indexing a zero-length matrix.
+	TEST_F(EigenInterop, unitTransformHandlesDynamicSize)
+	{
+		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> rotation(3, 3);
+		rotation << 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
+
+		Eigen::Matrix<meters<double>, Eigen::Dynamic, 1> pos(3);
+		pos << 1.0_m, 0.0_m, 0.0_m;
+
+		auto rotated = unit_transform(rotation, pos);
+		EXPECT_EQ(3, rotated.size());
+		EXPECT_NEAR(0.0, rotated(0).value(), 1e-12);
+		EXPECT_NEAR(1.0, rotated(1).value(), 1e-12);
+		EXPECT_NEAR(0.0, rotated(2).value(), 1e-12);
+	}
+
+	// Broad coverage of paths the fixed-size floating-point tests miss.
+
+	// Dynamic-size dot, squared-norm, and norm match their fixed-size equivalents.
+	TEST_F(EigenInterop, dynamicSizeMatchesFixedSize)
+	{
+		Vector3m fixed;
+		fixed << 3.0_m, 4.0_m, 0.0_m;
+
+		Eigen::Matrix<meters<double>, Eigen::Dynamic, 1> dyn(3);
+		dyn << 3.0_m, 4.0_m, 0.0_m;
+
+		EXPECT_DOUBLE_EQ(unit_dot(fixed, fixed).value(), unit_dot(dyn, dyn).value());
+		EXPECT_DOUBLE_EQ(unit_squared_norm(fixed).value(), unit_squared_norm(dyn).value());
+		EXPECT_DOUBLE_EQ(unit_norm(fixed).value(), unit_norm(dyn).value());
+		EXPECT_DOUBLE_EQ(25.0, unit_squared_norm(dyn).value());
+		EXPECT_DOUBLE_EQ(5.0, unit_norm(dyn).value());
+	}
+
+	// The norm and direction helpers work on a non-length dimension at dynamic size.
+	TEST_F(EigenInterop, normAndNormalizedForSecondsAtDynamicSize)
+	{
+		Eigen::Matrix<seconds<double>, Eigen::Dynamic, 1> t(3);
+		t << 2.0_s, 3.0_s, 6.0_s;
+
+		seconds<double> n = unit_norm(t);
+		EXPECT_DOUBLE_EQ(7.0, n.value()); // sqrt(4 + 9 + 36) = 7
+		static_assert(std::is_same_v<decltype(unit_norm(t)), seconds<double>>);
+
+		auto dir = unit_normalized(t);
+		EXPECT_EQ(3, dir.size());
+		EXPECT_NEAR(2.0 / 7.0, dir(0), 1e-12);
+		EXPECT_NEAR(3.0 / 7.0, dir(1), 1e-12);
+		EXPECT_NEAR(6.0 / 7.0, dir(2), 1e-12);
+		EXPECT_NEAR(1.0, dir.norm(), 1e-12);
+	}
+
+	// An integral underlying type keeps an exact integer result for a dot and squared norm whose value is whole.
+	TEST_F(EigenInterop, integralDotAndSquaredNormStayExact)
+	{
+		Eigen::Matrix<meters<int>, 3, 1> a;
+		a << meters<int>(3), meters<int>(4), meters<int>(0);
+
+		auto dot = unit_dot(a, a);
+		auto sq  = unit_squared_norm(a);
+		EXPECT_EQ(25, dot.value()); // 9 + 16
+		EXPECT_EQ(25, sq.value());
+		static_assert(std::is_integral_v<decltype(sq)::underlying_type>);
+		static_assert(traits::is_area_unit_v<decltype(sq)>);
+	}
+
+	// Normalizing an axis-aligned vector returns that axis exactly.
+	TEST_F(EigenInterop, unitNormalizedOfSingleAxisIsExact)
+	{
+		Vector3m axis;
+		axis << 0.0_m, 0.0_m, 1.0_m;
+
+		Eigen::Matrix<double, 3, 1> dir = unit_normalized(axis);
+		EXPECT_DOUBLE_EQ(0.0, dir(0));
+		EXPECT_DOUBLE_EQ(0.0, dir(1));
+		EXPECT_DOUBLE_EQ(1.0, dir(2));
+	}
+
+	// A non-square transform's result follows the matrix rows, and the dimension is preserved: a 2x3
+	// projection of a 3-vector of meters yields a 2-vector of meters.
+	TEST_F(EigenInterop, unitTransformWithNonSquareMatrix)
+	{
+		Eigen::Matrix<double, 2, 3> projection;
+		projection << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0;
+
+		Vector3m pos;
+		pos << 5.0_m, 7.0_m, 9.0_m;
+
+		auto projected = unit_transform(projection, pos);
+		EXPECT_EQ(2, projected.size());
+		EXPECT_DOUBLE_EQ(5.0, projected(0).value());
+		EXPECT_DOUBLE_EQ(7.0, projected(1).value());
+		static_assert(std::is_same_v<decltype(projected)::Scalar, meters<double>>);
+	}
+
+	// A dynamically-sized non-square transform sizes its result from the matrix rows.
+	TEST_F(EigenInterop, unitTransformDynamicNonSquare)
+	{
+		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> matrix(2, 3);
+		matrix << 1.0, 1.0, 1.0, 2.0, 0.0, 0.0;
+
+		Eigen::Matrix<meters<double>, Eigen::Dynamic, 1> v(3);
+		v << 1.0_m, 2.0_m, 3.0_m;
+
+		auto out = unit_transform(matrix, v);
+		EXPECT_EQ(2, out.size());
+		EXPECT_DOUBLE_EQ(6.0, out(0).value()); // 1 + 2 + 3
+		EXPECT_DOUBLE_EQ(2.0, out(1).value()); // 2 * 1
+		static_assert(std::is_same_v<decltype(out)::Scalar, meters<double>>);
+	}
+
+	// The cross product on integral meters yields the product dimension and stays anticommutative.
+	TEST_F(EigenInterop, unitCrossWithIntegralScalar)
+	{
+		Eigen::Matrix<meters<int>, 3, 1> x;
+		x << meters<int>(1), meters<int>(0), meters<int>(0);
+		Eigen::Matrix<meters<int>, 3, 1> y;
+		y << meters<int>(0), meters<int>(1), meters<int>(0);
+
+		auto z = unit_cross(x, y); // x cross y = +z
+		EXPECT_EQ(0, z(0).value());
+		EXPECT_EQ(0, z(1).value());
+		EXPECT_EQ(1, z(2).value());
+		static_assert(traits::is_area_unit_v<decltype(z)::Scalar>);
+
+		auto negz = unit_cross(y, x); // anticommutativity: y cross x = -z
+		EXPECT_EQ(-1, negz(2).value());
+	}
+
+	// The norm of a zero vector is zero.
+	TEST_F(EigenInterop, unitNormOfZeroVectorIsZero)
+	{
+		Vector3m zero;
+		zero << 0.0_m, 0.0_m, 0.0_m;
+		EXPECT_DOUBLE_EQ(0.0, unit_norm(zero).value());
+	}
+
+	// The norm of an integral vector whose magnitude is not whole is floating-point promoted, not truncated
+	// (issue #407): (1,1) meters has a norm near sqrt(2), not 1.
+	TEST_F(EigenInterop, unitNormOfIntegralVectorIsPromoted)
+	{
+		Eigen::Matrix<meters<int>, 2, 1> v;
+		v << meters<int>(1), meters<int>(1);
+
+		auto n = unit_norm(v);
+		EXPECT_NEAR(std::sqrt(2.0), n.value(), 1e-12);
+		static_assert(std::is_floating_point_v<decltype(n)::underlying_type>);
+	}
 }
 
 #endif // UNITS_HAVE_EIGEN
