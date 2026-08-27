@@ -3,7 +3,7 @@
 *Giving a quantity a type makes the compiler refuse the operations that have no physical meaning. This
 page catalogs the mistakes the library is built to catch, and shows the **verbatim** diagnostic each one
 produces. The diagnostics below are captured directly from the compiler by the
-[error-message test harness](../../test/errorMessages/) (`run.py --emit-doc`), so what you read here is
+[error-message test harness](https://github.com/nholthaus/units/tree/main/test/errorMessages) (`run.py --emit-doc`), so what you read here is
 what the compiler emits, not a paraphrase.*
 
 Each example is a case in `test/errorMessages/cases/`; the harness asserts that it fails to compile

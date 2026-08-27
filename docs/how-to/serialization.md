@@ -415,7 +415,7 @@ asks for.
 
 The numbers below are measured on the machine that built the docs (GCC 15, `x86-64`); treat them as
 representative, not as guarantees. Reproduce them with the snippets under
-[`examples/`](../../examples/) compiled at `-std=c++23 -I include`.
+[`examples/`](https://github.com/nholthaus/units/tree/main/examples) compiled at `-std=c++23 -I include`.
 
 ### Size
 
