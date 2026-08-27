@@ -5225,6 +5225,30 @@ TEST_F(UnitMath, max)
 	EXPECT_EQ(e_cm, max(d_m, e_cm));
 }
 
+// Regression for issue #394: fmax/fmin select the larger/smaller quantity and keep the result in the common
+// unit's raw scale, including for ratio-scaled dimensionless units. fmax(50%, 25%) is 50% (raw 50), not 0.5%.
+// The functions have a single evaluation path built on .raw() (not the normalized .value()), so the C++23
+// constexpr result and the runtime result are necessarily identical -- there is no separate constexpr branch
+// that could diverge, contrary to the issue's premise.
+TEST_F(UnitMath, fmaxFminKeepRawScale)
+{
+	EXPECT_EQ(percent<double>(50), fmax(percent<double>(50), percent<double>(25)));
+	EXPECT_EQ(percent<double>(25), fmin(percent<double>(50), percent<double>(25)));
+	EXPECT_DOUBLE_EQ(50.0, fmax(percent<double>(50), percent<double>(25)).raw());
+	EXPECT_DOUBLE_EQ(25.0, fmin(percent<double>(50), percent<double>(25)).raw());
+
+	// Mixed dimensioned units resolve in their common unit and pick the physically larger/smaller value.
+	EXPECT_EQ(meters<double>(1), fmax(meters<double>(1), centimeters<double>(50)));
+	EXPECT_EQ(centimeters<double>(50), fmin(meters<double>(1), centimeters<double>(50)));
+
+	// The constexpr result equals the runtime result -- the single .raw() path cannot diverge at compile time.
+	// Guarded to standard libraries whose <cmath> makes fmax/fmin constexpr (C++23 P0533).
+#if defined(__cpp_lib_constexpr_cmath) || (defined(__GLIBCXX__) && !defined(__clang__))
+	static_assert(fmax(percent<double>(50), percent<double>(25)).raw() == 50.0, "constexpr fmax must be 50%, not 0.5%");
+	static_assert(fmin(percent<double>(50), percent<double>(25)).raw() == 25.0, "constexpr fmin must be 25%");
+#endif
+}
+
 TEST_F(UnitMath, ternaryOperator)
 {
 	degrees val1 = 10_deg;
