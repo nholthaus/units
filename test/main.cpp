@@ -741,6 +741,31 @@ TEST_F(STDSpecializations, hash)
 	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW<>(2.0).to_linearized()));
 }
 
+// Documents the intended relationship between std::hash and operator== for floating units (issue #397).
+// operator== is deliberately tolerant (relative epsilon); std::hash hashes the exact linearized value, which is
+// the standard and correct behavior for floating-point keys. The exact-value guarantee that container use relies
+// on holds: values that are EXACTLY equal always hash equal. Two values that differ by one ULP compare equal
+// under the tolerant operator== yet may hash to different buckets -- exactly as they would with std::hash<double>
+// -- which is harmless: it degrades to ordinary float-keyed-container behavior, never a wrong result. A hash that
+// were "consistent" with the relative-tolerant, non-transitive operator== is impossible without being constant,
+// so exact-value hashing is the only coherent choice. This is working as designed, not a defect.
+TEST_F(STDSpecializations, hashIsExactValueNotTolerant)
+{
+	const meters<double> a(1.0);
+	const meters<double> b(std::nextafter(1.0, 2.0)); // one ULP above a
+
+	// operator== is tolerant: a and b are "equal" quantities.
+	EXPECT_TRUE(a == b);
+
+	// The guarantee that matters: exactly-equal values hash equal (deterministic, representation-independent).
+	EXPECT_EQ(std::hash<meters<double>>()(a), std::hash<meters<double>>()(meters<double>(1.0)));
+	EXPECT_EQ(std::hash<meters<double>>()(a), std::hash<double>()(1.0));
+
+	// std::hash reflects the exact stored value; the one-ULP neighbour is a distinct hash input, just as it is for
+	// std::hash<double>. This mirror is the documented, intentional behavior.
+	EXPECT_EQ(std::hash<meters<double>>()(b), std::hash<double>()(std::nextafter(1.0, 2.0)));
+}
+
 // General coverage (not tied to a specific change): units must work END-TO-END as STL associative-container
 // keys — an ordered container exercises operator<, an unordered one exercises std::hash + operator== together.
 // The hash test above only calls std::hash directly; this proves the real use case, and that a scaled key
