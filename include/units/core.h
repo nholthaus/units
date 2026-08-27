@@ -5392,9 +5392,12 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
+	constexpr auto hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		using Result = decltype(units::hypot(x, y));
+		// The result unit is computed in the body (not the signature) so lhs_result_unit_t is never instantiated for
+		// a non-unit operand that the constraint above already rejects -- a stricter compiler evaluates an explicit
+		// return type during overload resolution and would otherwise hard-error on, e.g., fmod(double, double).
+		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		return Result(std::hypot(Result(x).raw(), Result(y).raw()));
 	}
 
@@ -5439,9 +5442,9 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
+	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		using Result = decltype(units::fmod(numer, denom));
+		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		return Result(std::fmod(Result(numer).raw(), Result(denom).raw()));
 	}
 
@@ -5674,9 +5677,9 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr auto fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using Result = decltype(units::fdim(x, y));
+		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		return Result(std::fdim(Result(x).raw(), Result(y).raw()));
 	}
 
@@ -5691,9 +5694,9 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr auto fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using Result = decltype(units::fmax(x, y));
+		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		return Result(std::fmax(Result(x).raw(), Result(y).raw()));
 	}
 
@@ -5708,9 +5711,9 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr auto fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using Result = decltype(units::fmin(x, y));
+		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		return Result(std::fmin(Result(x).raw(), Result(y).raw()));
 	}
 
