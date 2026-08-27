@@ -171,52 +171,43 @@ namespace units
 	 * @brief		Euclidean magnitude of an Eigen vector of units, in the vector's own unit.
 	 * @details		The magnitude is the square root of the sum of squares. The squared sum has the squared
 	 *				dimension, and its square root returns to the vector's original dimension, so the norm of a
-	 *				`meters` vector is a `meters`. The sum of squares is accumulated in the underlying arithmetic
-	 *				type and rewrapped, since Eigen's `norm()` cannot express the dimension round-trip.
+	 *				`meters` vector is a `meters`. It is the square root of `unit_squared_norm`, so it shares that
+	 *				helper's dimension-correct native accumulation (never Eigen's `norm()`, which cannot express the
+	 *				dimension round-trip) and stays correct for ratio-scaled dimensionless units. An integral scalar
+	 *				is promoted to floating point by `sqrt`, so a magnitude that is not a whole number is not truncated.
 	 * @tparam		Derived the Eigen expression type.
 	 * @param[in]	v the vector.
-	 * @returns		the magnitude, in the vector's scalar unit.
+	 * @returns		the magnitude, in the vector's scalar unit (floating-point promoted for an integral scalar).
 	 */
 	template<class Derived>
 	auto unit_norm(const Eigen::MatrixBase<Derived>& v)
 	{
-		using Unit       = typename Derived::Scalar;
-		using Underlying = typename traits::unit_traits<Unit>::underlying_type;
-
-		Underlying accumulator = Underlying(0);
-		for (Eigen::Index i = 0; i < v.size(); ++i)
-		{
-			const Underlying raw = v(i).template to<Underlying>();
-			accumulator += raw * raw;
-		}
-		return Unit(std::sqrt(accumulator));
+		return units::sqrt(unit_squared_norm(v));
 	}
 
 	/**
 	 * @brief		Direction (dimensionless unit vector) of an Eigen vector of units.
-	 * @details		Divides each component by the magnitude, yielding a plain dimensionless vector of the
-	 *				underlying type. A direction has no dimension, so the result is not a vector of units.
+	 * @details		Divides each component by the magnitude, yielding a plain dimensionless vector. A direction has
+	 *				no dimension, so the result is not a vector of units. Each component is the dimensionless ratio of
+	 *				the component to the magnitude (both the same unit), so the result is correct for ratio-scaled
+	 *				dimensionless units and an integral scalar is promoted to floating point rather than truncated. The
+	 *				result is sized to the input's runtime length, so it is correct for dynamically-sized vectors.
 	 * @tparam		Derived the Eigen expression type.
 	 * @param[in]	v the vector.
-	 * @returns		a fixed-size column vector of the underlying arithmetic type, of unit length.
+	 * @returns		a column vector of the (floating-point promoted) underlying arithmetic type, of unit length, the
+	 *				same size as the input.
 	 */
 	template<class Derived>
 	auto unit_normalized(const Eigen::MatrixBase<Derived>& v)
 	{
 		using Unit       = typename Derived::Scalar;
-		using Underlying = typename traits::unit_traits<Unit>::underlying_type;
+		using Underlying = detail::floating_point_promotion_t<typename traits::unit_traits<Unit>::underlying_type>;
 
-		Underlying accumulator = Underlying(0);
-		for (Eigen::Index i = 0; i < v.size(); ++i)
-		{
-			const Underlying raw = v(i).template to<Underlying>();
-			accumulator += raw * raw;
-		}
-		const Underlying magnitude = std::sqrt(accumulator);
+		const auto magnitude = unit_norm(v);
 
-		Eigen::Matrix<Underlying, Derived::RowsAtCompileTime, 1> direction;
+		Eigen::Matrix<Underlying, Derived::RowsAtCompileTime, 1> direction(v.size());
 		for (Eigen::Index i = 0; i < v.size(); ++i)
-			direction(i) = v(i).template to<Underlying>() / magnitude;
+			direction(i) = (v(i) / magnitude).template to<Underlying>();
 		return direction;
 	}
 
@@ -264,13 +255,16 @@ namespace units
 		using Unit       = typename VectorDerived::Scalar;
 		using Underlying = typename traits::unit_traits<Unit>::underlying_type;
 
-		Eigen::Matrix<Underlying, VectorDerived::RowsAtCompileTime, 1> raw;
+		// Operate on each component's own-scale value (raw), so a ratio-scaled dimensionless input transforms in the
+		// scale the caller sees and the result reconstructs on that same scale. Every intermediate is sized to its
+		// runtime length so a dynamically-sized transform does not index a zero-length matrix.
+		Eigen::Matrix<Underlying, VectorDerived::RowsAtCompileTime, 1> raw(vector.size());
 		for (Eigen::Index i = 0; i < vector.size(); ++i)
-			raw(i) = vector(i).template to<Underlying>();
+			raw(i) = vector(i).raw();
 
 		const Eigen::Matrix<Underlying, MatrixDerived::RowsAtCompileTime, 1> product = matrix * raw;
 
-		Eigen::Matrix<Unit, MatrixDerived::RowsAtCompileTime, 1> result;
+		Eigen::Matrix<Unit, MatrixDerived::RowsAtCompileTime, 1> result(product.size());
 		for (Eigen::Index i = 0; i < product.size(); ++i)
 			result(i) = Unit(product(i));
 		return result;
