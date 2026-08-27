@@ -5386,15 +5386,16 @@ namespace units
 	 * @details		Only implemented for linear_scale units.
 	 * @param[in]	x	unit type value
 	 * @param[in]	y	unit type value
-	 * @returns		square root of the sum-of-squares of x and y in the same units
-	 *				as x.
+	 * @returns		square root of the sum-of-squares of x and y, in x's unit when that is lossless (both operands
+	 *				floating point, or y converts into x's unit without truncation), otherwise in the common unit of
+	 *				x and y so no value is truncated.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
+	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
-		using CommonUnit = decltype(units::hypot(x, y));
-		return CommonUnit(std::hypot(CommonUnit(x).raw(), CommonUnit(y).raw()));
+		using Result = decltype(units::hypot(x, y));
+		return Result(std::hypot(Result(x).raw(), Result(y).raw()));
 	}
 
 	//----------------------------------
@@ -5433,14 +5434,15 @@ namespace units
 	 * @details		Returns the floating-point remainder of numer/denom (rounded towards zero).
 	 * @param[in]	numer	Value of the quotient numerator.
 	 * @param[in]	denom	Value of the quotient denominator.
-	 * @returns		The remainder of dividing the arguments.
+	 * @returns		The remainder of dividing the arguments, in numer's unit when that is lossless, otherwise in the
+	 *				common unit of the arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
+	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		using CommonUnit = decltype(units::fmod(numer, denom));
-		return CommonUnit(std::fmod(CommonUnit(numer).raw(), CommonUnit(denom).raw()));
+		using Result = decltype(units::fmod(numer, denom));
+		return Result(std::fmod(Result(numer).raw(), Result(denom).raw()));
 	}
 
 	/**
@@ -5664,50 +5666,52 @@ namespace units
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Positive difference
-	 * @details		The function returns x-y if x>y, and zero otherwise, in their common type.
+	 * @details		The function returns x-y if x>y, and zero otherwise, in x's unit when that is lossless, otherwise
+	 *				in the common unit of x and y.
 	 * @param[in]	x	Values whose difference is calculated.
 	 * @param[in]	y	Values whose difference is calculated.
 	 * @returns		The positive difference between x and y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = decltype(units::fdim(x, y));
-		return CommonUnit(std::fdim(CommonUnit(x).raw(), CommonUnit(y).raw()));
+		using Result = decltype(units::fdim(x, y));
+		return Result(std::fdim(Result(x).raw(), Result(y).raw()));
 	}
 
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Maximum value
-	 * @details		Returns the larger of its arguments: either x or y, in their common type.
+	 * @details		Returns the larger of its arguments: either x or y, in x's unit when that is lossless, otherwise
+	 *				in the common unit of x and y.
 	 * @param[in]	x	Values among which the function selects a maximum.
 	 * @param[in]	y	Values among which the function selects a maximum.
 	 * @returns		The maximum numeric value of its arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmax(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = decltype(units::fmax(x, y));
-		return CommonUnit(std::fmax(CommonUnit(x).raw(), CommonUnit(y).raw()));
+		using Result = decltype(units::fmax(x, y));
+		return Result(std::fmax(Result(x).raw(), Result(y).raw()));
 	}
 
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Minimum value
-	 * @details		Returns the smaller of its arguments: either x or y, in their common type.
-	 *				If one of the arguments in a NaN, the other is returned.
+	 * @details		Returns the smaller of its arguments: either x or y, in x's unit when that is lossless, otherwise
+	 *				in the common unit of x and y. If one of the arguments in a NaN, the other is returned.
 	 * @param[in]	x	Values among which the function selects a minimum.
 	 * @param[in]	y	Values among which the function selects a minimum.
 	 * @returns		The minimum numeric value of its arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr detail::floating_point_promotion_t<std::common_type_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	constexpr detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>> fmin(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using CommonUnit = decltype(units::fmin(x, y));
-		return CommonUnit(std::fmin(CommonUnit(x).raw(), CommonUnit(y).raw()));
+		using Result = decltype(units::fmin(x, y));
+		return Result(std::fmin(Result(x).raw(), Result(y).raw()));
 	}
 
 	//----------------------------------

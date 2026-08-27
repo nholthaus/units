@@ -5630,8 +5630,37 @@ TEST_F(UnitMath, hypot)
 	static_assert(std::is_same_v<meters<double>, decltype(hypot(meters<double>(3.0), meters<double>(4.0)))>);
 	EXPECT_NEAR(meters<double>(5.0).to<double>(), (hypot(meters<double>(3.0), meters<double>(4.0))).to<double>(), 5.0e-9);
 
-	static_assert(traits::is_same_dimension_unit_v<feet<double>, decltype(hypot(feet<double>(3.0), meters<double>(1.2192)))>);
+	// Mixed floating-point units resolve to the left operand's unit (lossless), so the result is readable in x's
+	// unit and the documented "in x's unit" contract holds. See hypotMixedUnitsReturnLeftOperandUnit for the full
+	// two-argument-math contract (issue #393).
+	static_assert(std::is_same_v<feet<double>, decltype(hypot(feet<double>(3.0), meters<double>(1.2192)))>);
 	EXPECT_NEAR(feet<double>(5.0).to<double>(), feet<double>(hypot(feet<double>(3.0), meters<double>(1.2192))).to<double>(), 5.0e-9);
+}
+
+// Regression for issue #393: the two-argument math functions (hypot, fmax, fmin, fmod, fdim) return the result in
+// the LEFT operand's unit when that is lossless -- both operands floating point, or the right operand converts into
+// the left's unit without truncation -- so the value is readable in a named unit the caller wrote instead of an
+// anonymous common unit. This mirrors operator+/operator- (lhs_result_unit_t). When returning the left unit WOULD
+// truncate an integer, the functions fall back to the finest common unit so no value is lost.
+TEST_F(UnitMath, mixedUnitMathReturnsLeftOperandUnit)
+{
+	// Floating-point operands -> left operand's unit, in either order.
+	static_assert(std::is_same_v<feet<double>, decltype(hypot(feet<double>(3.0), meters<double>(1.0)))>);
+	static_assert(std::is_same_v<meters<double>, decltype(hypot(meters<double>(3.0), feet<double>(1.0)))>);
+	static_assert(std::is_same_v<feet<double>, decltype(fmax(feet<double>(3.0), meters<double>(1.0)))>);
+	static_assert(std::is_same_v<meters<double>, decltype(fmin(meters<double>(3.0), feet<double>(1.0)))>);
+	static_assert(std::is_same_v<feet<double>, decltype(fdim(feet<double>(3.0), meters<double>(1.0)))>);
+	static_assert(std::is_same_v<feet<double>, decltype(fmod(feet<double>(3.0), meters<double>(1.0)))>);
+
+	// The result carries the correct physical quantity in that unit: 3 ft and 4 ft legs -> 5 ft hypotenuse.
+	EXPECT_NEAR(5.0, hypot(feet<double>(3.0), feet<double>(4.0)).raw(), 5.0e-9);
+
+	// Integer-lossy fallback: meters<int> cannot hold feet<int> without truncation, so the result stays in the
+	// finest common unit (floating-point promoted) and no value is lost -- the anonymous unit earns its keep here.
+	using LossyResult = decltype(fmax(meters<int>(3), feet<int>(4)));
+	static_assert(!std::is_same_v<LossyResult, meters<int>>, "integer-lossy result must not collapse to the left int unit");
+	static_assert(std::is_same_v<LossyResult, detail::floating_point_promotion_t<std::common_type_t<meters<int>, feet<int>>>>,
+		"integer-lossy result falls back to the common unit");
 }
 
 TEST_F(UnitMath, ceil)
