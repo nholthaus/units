@@ -2,7 +2,7 @@
 
 *The `units::constants` namespace provides the physical constants as typed quantities — each carries its
 correct dimension, so it participates in dimensional analysis like any other quantity. Values are the
-2018 CODATA recommended values. Defined in [`include/units.h`](../../include/units.h).*
+2018 CODATA recommended values. Defined in [`include/units.h`](https://github.com/nholthaus/units/blob/main/include/units.h).*
 
 ```cpp
 #include <units.h>

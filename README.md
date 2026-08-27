@@ -37,8 +37,8 @@ int main()
 `units` favors syntax that reads as ordinary code: quantities are written and combined the way you would
 write them by hand, so the common cases are apparent from the code without consulting the reference.
 
-Every snippet in this README and in the [documentation](docs/) is compiled and run as part of the test
-suite — see [`examples/`](examples/).
+Every snippet in this README and in the [documentation](docs/README.md) is compiled and run as part of the test
+suite — see [`examples/`](https://github.com/nholthaus/units/tree/main/examples).
 
 ## Design
 
@@ -119,7 +119,7 @@ series (see [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)).
 
 ## Getting started
 
-This section covers what most code needs. The [full manual](docs/) has the rest.
+This section covers what most code needs. The [full manual](docs/README.md) has the rest.
 
 **Include a header, and bring in the literal operators.** Include the umbrella header `<units.h>` for
 every dimension, or one per-dimension header (`<units/length.h>`, `<units/time.h>`, …) for just the
@@ -680,11 +680,11 @@ target_link_libraries(myapp PRIVATE units::units)
 **Package managers.** `units` is available through vcpkg (`vcpkg install units`), Conan
 (`conan install --requires=units/<version>`), and Debian/Ubuntu (`apt install libunits-dev`; an RPM and a
 tarball are also produced via CPack, and a PPA is published for Ubuntu). The reference sources for all three
-integrations live in [`packaging/`](packaging/).
+integrations live in [`packaging/`](https://github.com/nholthaus/units/tree/main/packaging).
 
 [Debugger visualizers](docs/how-to/natvis.md) show a quantity as `5 m` in the debugger rather than an
-opaque object: linking `units::units` attaches the [natvis](natvis/units.natvis) automatically on MSVC,
-and an [LLDB formatter](natvis/units_lldb.py) (`command script import units_lldb.py`) does the same for
+opaque object: linking `units::units` attaches the [natvis](https://github.com/nholthaus/units/blob/main/natvis/units.natvis) automatically on MSVC,
+and an [LLDB formatter](https://github.com/nholthaus/units/blob/main/natvis/units_lldb.py) (`command script import units_lldb.py`) does the same for
 LLDB, CLion, Xcode, and CodeLLDB.
 
 ---
@@ -1345,13 +1345,13 @@ and `std::numeric_limits` specializations, NaN/infinity support, self-describing
 `ConversionFactorType`, …) plus a per-dimension concept for every dimension (`Velocity`, `Force`, `Length`,
 …) so you can constrain a template on a physical quantity by dimension (`void f(Velocity auto v)`),
 non-linear (decibel) scales, and affine temperature. Each has a how-to or reference page under
-[docs/](docs/).
+[docs/](docs/README.md).
 
 ---
 
 ## Documentation
 
-The manual is under **[docs/](docs/)** (hub: [docs/README.md](docs/README.md)). The generated API
+The manual is under **[docs/](docs/README.md)** (hub: [docs/README.md](docs/README.md)). The generated API
 reference is published at <https://nholthaus.github.io/units/>.
 
 ### Learn
@@ -1407,7 +1407,7 @@ reference is published at <https://nholthaus.github.io/units/>.
 ## Citing
 
 If you use `units` in academic or published work, a citation is appreciated. The repository includes a
-[`CITATION.cff`](CITATION.cff), so GitHub's **"Cite this repository"** button (top right of the repository
+[`CITATION.cff`](https://github.com/nholthaus/units/blob/main/CITATION.cff), so GitHub's **"Cite this repository"** button (top right of the repository
 page) generates a formatted citation and BibTeX for you. A BibTeX entry:
 
 ```bibtex

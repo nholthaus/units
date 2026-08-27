@@ -23,7 +23,7 @@ time, frequency, compound, dimensionless, decibel — with no unit name enumerat
 
 ## Visual Studio (natvis)
 
-The file [`natvis/units.natvis`](../../natvis/units.natvis) is attached to the `units` CMake interface
+The file [`natvis/units.natvis`](https://github.com/nholthaus/units/blob/main/natvis/units.natvis) is attached to the `units` CMake interface
 target and installed with the package. When you link `units::units` (see
 [CMake integration](cmake-integration.md)) under MSVC, Visual Studio picks it up automatically for that
 target — no project setting, no manual "add existing item."
@@ -34,7 +34,7 @@ or add it to your project.
 
 ## LLDB (and CLion / Xcode / CodeLLDB)
 
-The file [`natvis/units_lldb.py`](../../natvis/units_lldb.py) is an LLDB summary provider. Load it into a
+The file [`natvis/units_lldb.py`](https://github.com/nholthaus/units/blob/main/natvis/units_lldb.py) is an LLDB summary provider. Load it into a
 debug session, or once from your `~/.lldbinit`:
 
 ```
