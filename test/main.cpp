@@ -2369,6 +2369,86 @@ TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
 	EXPECT_NEAR(3.5, d.value(), 5.0e-12);
 }
 
+// A DIMENSIONED decibel value (dBW, dBm) is a point on a logarithmic reference scale and a DIMENSIONLESS decibel value
+// (decibels) is a relative gain, so the decibel surface carries the same point/change split as an affine temperature:
+// level + gain -> level, gain + gain -> gain, level - level -> gain. `raw()` is the dB number; `to_linearized()` is the
+// linear ratio behind it. Decibel-ness is a NUMERICAL SCALE, an axis independent of the affine datum, so the affine
+// rules must not reach these types -- that independence is asserted below.
+TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
+{
+	static_assert(traits::has_decibel_scale_v<dBW<double>>, "a dB level has a decibel scale");
+	static_assert(!traits::is_affine_unit_v<dBW<double>>, "decibel-ness is a numerical scale, not an affine datum");
+	static_assert(!traits::is_affine_unit_v<decibels<double>>, "a dB gain carries no datum either");
+
+	// gain + gain -> gain: the dB numbers add (the linear ratios multiply)
+	EXPECT_NEAR(5.75, (decibels<double>(3.5) + decibels<double>(2.25)).raw(), 5.0e-12);
+
+	// level + gain -> level, in either order, keeping the level's unit
+	EXPECT_NEAR(15.75, (dBW<double>(12.5) + decibels<double>(3.25)).raw(), 5.0e-12);
+	EXPECT_NEAR(15.75, (decibels<double>(3.25) + dBW<double>(12.5)).raw(), 5.0e-12);
+	static_assert(std::is_same_v<dBW<double>, decltype(dBW<double>(1.0) + decibels<double>(1.0))>, "a level moved by a gain is a level");
+
+	// level - level -> gain: the reference cancels, exactly as an affine datum does
+	EXPECT_NEAR(8.25, (dBW<double>(12.5) - dBW<double>(4.25)).raw(), 5.0e-12);
+	static_assert(std::is_same_v<decibels<double>, decltype(dBW<double>(1.0) - dBW<double>(1.0))>, "the difference of two levels is a gain");
+
+	// level - gain -> level
+	EXPECT_NEAR(9.25, (dBW<double>(12.5) - decibels<double>(3.25)).raw(), 5.0e-12);
+
+	// a milliwatt reference sits 30 dB below a watt reference, so the same power reads 30 dB higher in dBm, and the
+	// difference of the two identical levels across the two references is 0 dB
+	EXPECT_NEAR(42.5, dBm<double>(dBW<double>(12.5)).raw(), 5.0e-11);
+	EXPECT_NEAR(0.0, (dBW<double>(12.5) - dBm<double>(42.5)).raw(), 5.0e-11);
+
+	// level + level is disabled (two 12.5 dBW sources are not a 25 dBW source); gain + gain is not
+	static_assert(!can_add<dBW<double>, dBW<double>>, "adding two logarithmic levels has no meaning");
+	static_assert(can_add<decibels<double>, decibels<double>>, "adding two gains does");
+	static_assert(can_add<dBW<double>, decibels<double>>, "moving a level by a gain does");
+
+	// the in-place move of a gain by a gain is the compound form of gain + gain
+	decibels<double> gain(3.5);
+	gain += decibels<double>(2.25);
+	EXPECT_NEAR(5.75, gain.raw(), 5.0e-12);
+
+	// ++ and -- step the dB NUMBER, round-tripping through the scale (they rebuild via the ordinary constructor)
+	dBW<double> level(12.5);
+	++level;
+	EXPECT_NEAR(13.5, level.raw(), 5.0e-12);
+	--level;
+	EXPECT_NEAR(12.5, level.raw(), 5.0e-12);
+}
+
+// The affine rules key on the datum, so an INTEGER-backed temperature takes the same paths as a double-backed one.
+// This exercises the integer branch of the cross-scale delta conversion, where the amount is promoted to floating point
+// for the scale ratio and cast back: a 9 degF change is a 5 degC change, so the promotion must not truncate to 0.
+TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
+{
+	celsius<int> c(21);
+	c += celsius<int>(7);
+	EXPECT_EQ(28, c.raw());
+	c -= celsius<int>(3);
+	EXPECT_EQ(25, c.raw());
+
+	// cross-scale move: the rhs is an AMOUNT, so only the scale ratio applies (9 degF of change == 5 degC of change)
+	c += fahrenheit<int>(9);
+	EXPECT_EQ(30, c.raw());
+	c -= fahrenheit<int>(18);
+	EXPECT_EQ(20, c.raw());
+
+	// the difference of two integer readings is an integer change in the left operand's degrees
+	EXPECT_EQ(14, (celsius<int>(21) - celsius<int>(7)).raw());
+
+	// scaling an integer reading yields an integer change
+	EXPECT_EQ(42, (celsius<int>(21) * 2).raw());
+	static_assert(std::is_same_v<decltype(celsius<int>(1) * 2), detail::delta_unit_t<celsius<int>>>, "an integer reading scaled is an integer change");
+
+	// an offset-free integer scale stays an ordinary magnitude
+	kelvin<int> k(21);
+	k += kelvin<int>(7);
+	EXPECT_EQ(28, k.raw());
+	EXPECT_EQ(28, (kelvin<int>(21) + kelvin<int>(7)).raw());
+}
+
 TEST_F(UnitType, unitTypeUnarySubtraction)
 {
 	meters<double> a_m(4.0);
@@ -7419,7 +7499,9 @@ TEST_F(Serialization, errorPaths)
 		const auto r = units::deserialize(m);
 		EXPECT_FALSE(r);
 		if (!r)
+		{
 			EXPECT_EQ(units::deserialize_error::malformed, r.error());
+		}
 	}
 	// #398: a huge term count must be rejected before reserving, not throw std::length_error out of deserialize.
 	{

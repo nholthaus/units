@@ -41,5 +41,6 @@ else
 fi
 
 echo; echo "================================================"
-[ $fail -eq 0 ] && echo "CI GATES PASS LOCALLY${FULL:+ (full)}" || echo "*** CI GATES FAILED LOCALLY (fix before push) ***"
+[ $FULL -eq 1 ] && scope=" (full)" || scope=" (fast; errorMessages harness NOT run)"
+[ $fail -eq 0 ] && echo "CI GATES PASS LOCALLY${scope}" || echo "*** CI GATES FAILED LOCALLY (fix before push) ***"
 exit $fail
