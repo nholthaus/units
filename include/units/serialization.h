@@ -70,8 +70,8 @@ namespace units
 		/// including a user-defined `make_dimension<my_tag>` — still serializes and round-trips. `visit` cannot
 		/// resolve a user-defined dimension unless the caller lists it (`visit<my_dimension>(f)`), because C++ cannot
 		/// materialize a type from the runtime hash — the runtime→type wall. The set is otherwise open by design.
-		using builtin_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature, dimension::substance, dimension::luminous_intensity,
-			dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency, dimension::velocity, dimension::angular_velocity, dimension::acceleration, dimension::force,
+		using builtin_dimensions = std::tuple<dimension::dimensionless, dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature, dimension::substance, dimension::luminous_intensity,
+			dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency, dimension::velocity, dimension::angular_velocity, dimension::angular_acceleration, dimension::angular_jerk, dimension::acceleration, dimension::force,
 			dimension::area, dimension::volume, dimension::volume_flow_rate, dimension::pressure, dimension::charge, dimension::energy, dimension::power, dimension::voltage, dimension::capacitance,
 			dimension::impedance, dimension::conductance, dimension::magnetic_flux, dimension::inductance, dimension::luminous_flux, dimension::illuminance, dimension::luminance,
 			dimension::radioactivity, dimension::substance_mass, dimension::substance_concentration, dimension::magnetic_field_strength, dimension::radiant_intensity, dimension::radiance,
