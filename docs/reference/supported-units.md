@@ -1,6 +1,6 @@
 # Supported units
 
-*The catalog of built-in units, grouped by dimension — **49 dimensions**, **288 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
+*The catalog of built-in units, grouped by dimension — **51 dimensions**, **298 named units** (before metric prefixes). Generated from the headers by `docs/reference/gen_reference.py`; do not edit by hand.*
 
 Each unit is available as a type (`meters`, `meters<double>`) and, where shown, a literal (`5.0_m`). Units marked **yes** under Prefixes also provide every SI metric prefix from femto to peta (e.g. `kilometers`/`_km`, `millimeters`/`_mm`). Include the umbrella header `<units.h>` for all of them, or a single `<units/DIMENSION.h>` for one dimension.
 
@@ -28,6 +28,26 @@ For units shared across dimensions (e.g. `pounds` of mass vs. force), qualify wi
 | `gradians` | `_gon` |  |
 | `angular_mils` | `_amil` |  |
 | `compass_points` | `_cpt` |  |
+
+### angular acceleration
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `radians_per_second_squared` | `_rad_per_s_sq` | yes |
+| `degrees_per_second_squared` | `_deg_per_s_sq` |  |
+| `gradians_per_second_squared` | `_gon_per_s_sq` |  |
+| `revolutions_per_second_squared` | `_rev_per_s_sq` |  |
+| `revolutions_per_minute_squared` | `_rev_per_min_sq` |  |
+
+### angular jerk
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `radians_per_second_cubed` | `_rad_per_s_cu` | yes |
+| `degrees_per_second_cubed` | `_deg_per_s_cu` |  |
+| `gradians_per_second_cubed` | `_gon_per_s_cu` |  |
+| `revolutions_per_second_cubed` | `_rev_per_s_cu` |  |
+| `revolutions_per_minute_cubed` | `_rev_per_min_cu` |  |
 
 ### angular velocity
 

@@ -793,6 +793,26 @@ For a name shared across dimensions (e.g. `pounds`), qualify it: `units::mass::p
 | `angular_mils` | `_amil` |  |
 | `compass_points` | `_cpt` |  |
 
+### angular acceleration
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `radians_per_second_squared` | `_rad_per_s_sq` | yes |
+| `degrees_per_second_squared` | `_deg_per_s_sq` |  |
+| `gradians_per_second_squared` | `_gon_per_s_sq` |  |
+| `revolutions_per_second_squared` | `_rev_per_s_sq` |  |
+| `revolutions_per_minute_squared` | `_rev_per_min_sq` |  |
+
+### angular jerk
+
+| Unit | Literal | Prefixes |
+|------|---------|----------|
+| `radians_per_second_cubed` | `_rad_per_s_cu` | yes |
+| `degrees_per_second_cubed` | `_deg_per_s_cu` |  |
+| `gradians_per_second_cubed` | `_gon_per_s_cu` |  |
+| `revolutions_per_second_cubed` | `_rev_per_s_cu` |  |
+| `revolutions_per_minute_cubed` | `_rev_per_min_cu` |  |
+
 ### angular velocity
 
 | Unit | Literal | Prefixes |

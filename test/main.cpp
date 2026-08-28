@@ -4349,6 +4349,50 @@ TEST_F(ConversionFactor, angular_velocity)
 	EXPECT_NEAR(1.537e-16, test, 5.0e-20);
 }
 
+TEST_F(ConversionFactor, angular_acceleration_and_jerk)
+{
+	double test;
+	bool   same;
+
+	same = std::is_same_v<radians_per_second_squared<double>::conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_acceleration>>>;
+	EXPECT_TRUE(same);
+	same = std::is_same_v<radians_per_second_cubed<double>::conversion_factor, traits::strong_t<conversion_factor<std::ratio<1>, dimension::angular_jerk>>>;
+	EXPECT_TRUE(same);
+
+	test = radians_per_second_squared<double>(2.25).value();
+	EXPECT_EQ(2.25, test);
+	test = radians_per_second_squared<double>(degrees_per_second_squared<double>(37.5)).value();
+	EXPECT_NEAR(0.65449847, test, 5.0e-8); // 37.5 deg = 37.5 * pi/180 rad
+
+	// The remaining angular-acceleration measures convert into radians per second squared: a gradian is 1/400 turn,
+	// a turn (one revolution) is 2 pi radians, and a metric prefix scales the SI unit. Fractional inputs are used so a
+	// wrong conversion factor produces a visibly wrong result rather than coinciding on a whole number.
+	test = radians_per_second_squared<double>(gradians_per_second_squared<double>(37.5)).value();
+	EXPECT_NEAR(0.58904862, test, 5.0e-8); // 37.5 gon = 37.5/400 turn = 0.09375 turn = 0.58904862 rad
+	test = radians_per_second_squared<double>(revolutions_per_second_squared<double>(2.5)).value();
+	EXPECT_NEAR(15.70796327, test, 5.0e-8); // 2.5 rev = 5 pi rad
+	test = revolutions_per_minute_squared<double>(radians_per_second_squared<double>(1.0)).value();
+	EXPECT_NEAR(572.95779513, test, 5.0e-8); // 1 rad/s^2 = 3600/(2pi) rev/min^2
+	test = milliradians_per_second_squared<double>(radians_per_second_squared<double>(0.125)).value();
+	EXPECT_NEAR(125.0, test, 5.0e-8);
+
+	test = radians_per_second_cubed<double>(2.75).value();
+	EXPECT_EQ(2.75, test);
+	test = radians_per_second_cubed<double>(degrees_per_second_cubed<double>(37.5)).value();
+	EXPECT_NEAR(0.65449847, test, 5.0e-8); // 37.5 deg = 37.5 * pi/180 rad
+	test = radians_per_second_cubed<double>(gradians_per_second_cubed<double>(37.5)).value();
+	EXPECT_NEAR(0.58904862, test, 5.0e-8);
+	test = radians_per_second_cubed<double>(revolutions_per_second_cubed<double>(2.5)).value();
+	EXPECT_NEAR(15.70796327, test, 5.0e-8);
+	test = kiloradians_per_second_cubed<double>(radians_per_second_cubed<double>(1234.5)).value();
+	EXPECT_NEAR(1.2345, test, 5.0e-12);
+
+	same = traits::is_same_dimension_unit_v<decltype(radians_per_second<double>(1.0) / seconds<double>(1.0)), radians_per_second_squared<double>>;
+	EXPECT_TRUE(same);
+	same = traits::is_same_dimension_unit_v<decltype(radians_per_second_squared<double>(1.0) / seconds<double>(1.0)), radians_per_second_cubed<double>>;
+	EXPECT_TRUE(same);
+}
+
 TEST_F(ConversionFactor, acceleration)
 {
 	double test;
@@ -6683,6 +6727,20 @@ TEST_F(Serialization, roundTripAngle)
 	expectRoundTrip(units::angular_mils<double>(1600.0));
 }
 
+TEST_F(Serialization, roundTripAngularAccelerationAndJerk)
+{
+	expectRoundTrip(units::radians_per_second_squared<double>(2.375));
+	expectRoundTrip(units::degrees_per_second_squared<double>(91.25));
+	expectRoundTrip(units::radians_per_second_cubed<double>(3.125));
+	expectRoundTrip(units::degrees_per_second_cubed<double>(47.5));
+	expectRoundTrip(units::gradians_per_second_squared<double>(63.75));
+	expectRoundTrip(units::revolutions_per_minute_squared<double>(1234.5));
+	expectRoundTrip(units::milliradians_per_second_squared<double>(500.0));
+	expectRoundTrip(units::gradians_per_second_cubed<double>(63.75));
+	expectRoundTrip(units::revolutions_per_second_cubed<double>(2.5));
+	expectRoundTrip(units::kiloradians_per_second_cubed<double>(1.25));
+}
+
 TEST_F(Serialization, roundTripTemperature)
 {
 	expectRoundTrip(units::kelvin<double>(300.0));
@@ -6704,13 +6762,13 @@ TEST_F(Serialization, roundTripCurrentAndCharge)
 // the point value would rescale by that ratio, so serialize(50 percent) must read back as the physical value 0.5.
 TEST_F(Serialization, roundTripConcentration)
 {
-	expectRoundTrip(units::concentration::percent<double>(50.0));
+	expectRoundTrip(units::concentration::percent<double>(37.25));
 	expectRoundTrip(units::concentration::percent<double>(0.0));
-	expectRoundTrip(units::concentration::percent<double>(100.0));
-	expectRoundTrip(units::concentration::parts_per_million<double>(300000.0));
-	expectRoundTrip(units::concentration::parts_per_billion<double>(1.0));
-	expectRoundTrip(units::concentration::parts_per_trillion<double>(42.0));
-	expectRoundTrip(units::dimensionless<double>(0.5));
+	expectRoundTrip(units::concentration::percent<double>(103.75));
+	expectRoundTrip(units::concentration::parts_per_million<double>(312500.5));
+	expectRoundTrip(units::concentration::parts_per_billion<double>(1.875));
+	expectRoundTrip(units::concentration::parts_per_trillion<double>(42.125));
+	expectRoundTrip(units::dimensionless<double>(0.53125));
 
 	// Integer-backed ratio-scaled dimensionless units travel the integer narrowing path on decode; a percent whose
 	// point value is a whole number reconstructs exactly, agreeing with the floating-point representation.
@@ -7247,6 +7305,181 @@ TEST_F(Serialization, everyBuiltinDimensionRoundTripsViaVisit)
 	viaVisit(units::kilograms_per_cubic_meter<double>(998.0));
 }
 
+// #395: dimensionless and the angular acceleration/jerk dimensions were added to builtin_dimensions, so the default
+// zero-candidate visit resolves them and to_string() names them instead of rendering the raw '#<hash>' fallback.
+// The angular acceleration and jerk dimensions resolve through the default visit() candidate set and render with a
+// name, not the raw '#<hash>' fallback -- the substantive #395 additions.
+TEST_F(Serialization, angularAccelerationAndJerkResolveByDefaultVisit)
+{
+	bool visited = false;
+
+	visited = false;
+	units::serialize(units::radians_per_second_squared<double>(1.375)).visit([&](const auto&) { visited = true; });
+	EXPECT_TRUE(visited);
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_squared<double>(1.375)).to_string().find('#'));
+
+	visited = false;
+	units::serialize(units::radians_per_second_cubed<double>(2.125)).visit([&](const auto&) { visited = true; });
+	EXPECT_TRUE(visited);
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_cubed<double>(2.125)).to_string().find('#'));
+}
+
+// A generic units-visitor -- the visit() contract's `[](auto q)` shape -- also accepts a plain arithmetic value,
+// because a dimensionless unit converts implicitly to its underlying type and `.to<double>()` reads any unit. This
+// establishes that dispatching the empty (dimensionless) signature as a raw scalar rather than a unit wrapper would
+// satisfy the same visitor. It also shows the limit: a serialized percent and a serialized plain scalar of equal
+// physical value are indistinguishable once erased, so a scalar dispatch recovers the value but never the "percent"
+// scale -- the same identity collapse every unit undergoes (a serialized kilometer visits as canonical meters).
+TEST_F(Serialization, genericVisitorAcceptsScalarAndPercentCollapsesToValue)
+{
+	using units::concentration::percent;
+
+	// A generic visitor written for units reads a raw double through the same `.to<double>()` / implicit-scalar path.
+	const auto readValue = [](const auto& q) -> double {
+		if constexpr (units::traits::is_unit_v<std::decay_t<decltype(q)>>)
+			return q.template to<double>();
+		else
+			return static_cast<double>(q); // a raw arithmetic value is read directly
+	};
+	EXPECT_DOUBLE_EQ(0.3725, readValue(units::dimensionless<double>(0.3725)));
+	EXPECT_DOUBLE_EQ(0.3725, readValue(0.3725)); // the same visitor handles a bare double
+
+	// percent(37.25) is the physical 0.3725; erased, it is identical to dimensionless(0.3725), so neither the value
+	// nor a scalar/canonical dispatch can recover the percent scale -- it must be named explicitly to read as percent.
+	EXPECT_DOUBLE_EQ(percent<double>(37.25).to<double>(), units::dimensionless<double>(0.3725).to<double>());
+}
+
+// Every ratio-scaled dimensionless unit (percent, parts-per-million/billion/trillion) and a plain dimensionless
+// quantity of the SAME physical value share ONE erased dimension identity: the empty base signature. So the wire
+// form carries only the physical (SI-base) value, never the "percent"/"ppm" scale label. This documents the limit
+// and the safe recovery path -- the crux of why dimensionless is not a default visit() candidate: dispatching the
+// empty signature (as a unit OR as a scalar) can only ever yield the physical value, and would silently flatten
+// every ratio-scaled dimensionless quantity to that value. Naming the exact unit (to<percent>() / visit<percent>)
+// is the only way to read it back on its own scale.
+TEST_F(Serialization, ratioScaledDimensionlessEraseToPhysicalValueOnly)
+{
+	using units::concentration::percent;
+	using units::concentration::parts_per_million;
+	using units::concentration::parts_per_billion;
+
+	// 37.25 percent, 372500 ppm, and 372500000 ppb are all the physical value 0.3725; each erases identically to a
+	// plain dimensionless(0.3725). Equal renderings, no raw '#' hash.
+	const auto pct  = units::serialize(percent<double>(37.25));
+	const auto ppm  = units::serialize(parts_per_million<double>(372500.0));
+	const auto ppb  = units::serialize(parts_per_billion<double>(372500000.0));
+	const auto bare = units::serialize(units::dimensionless<double>(0.3725));
+	EXPECT_EQ(bare.to_string(), pct.to_string());
+	EXPECT_EQ(bare.to_string(), ppm.to_string());
+	EXPECT_EQ(bare.to_string(), ppb.to_string());
+	EXPECT_EQ(std::string::npos, pct.to_string().find('#'));
+
+	// Reading each back by VALUE recovers the physical magnitude (0.3725) -- the scale is gone.
+	const auto asValue = units::serialize(percent<double>(37.25)).to<units::dimensionless<double>>();
+	ASSERT_TRUE(asValue.has_value());
+	EXPECT_DOUBLE_EQ(0.3725, asValue->to<double>());
+
+	// Reading it back NAMED as percent recovers the percent scale (raw 37.25) -- the caller must supply the unit.
+	const auto asPercent = units::serialize(percent<double>(37.25)).to<percent<double>>();
+	ASSERT_TRUE(asPercent.has_value());
+	EXPECT_DOUBLE_EQ(37.25, asPercent->raw());
+	EXPECT_DOUBLE_EQ(0.3725, asPercent->to<double>());
+
+	// A default visit() resolves the empty signature to dimensionless and hands the visitor the physical value, the
+	// same for percent, ppm, ppb, and a bare scalar -- proving a canonical dispatch cannot preserve the scale.
+	double vPct = 0.0, vPpm = 0.0;
+	units::serialize(percent<double>(37.25)).visit([&](const auto& q) { vPct = q.template to<double>(); });
+	units::serialize(parts_per_million<double>(372500.0)).visit([&](const auto& q) { vPpm = q.template to<double>(); });
+	EXPECT_DOUBLE_EQ(0.3725, vPct);
+	EXPECT_DOUBLE_EQ(vPct, vPpm);
+}
+
+// A dimensionless stream resolves under the default candidate set instead of hard-throwing: the empty signature is
+// dispatched to dimensionless directly. This covers the common case of a same-dimension ratio (meters / meters),
+// which is dimensionless, being serialized and visited -- it must not throw. A dimensionless renders as a bare
+// number with no dimension tag. An explicit candidate set that does not include the stream's dimension still throws.
+TEST_F(Serialization, dimensionlessResolvesUnderDefaultVisitWithoutThrowing)
+{
+	const auto ratio = units::meters<double>(3.0) / units::meters<double>(4.0); // 0.75, dimensionless
+	const auto blob  = units::serialize(ratio);
+
+	bool   visited = false;
+	double value   = 0.0;
+	EXPECT_NO_THROW(blob.visit([&](const auto& q) { visited = true; value = q.template to<double>(); }));
+	EXPECT_TRUE(visited);
+	EXPECT_DOUBLE_EQ(0.75, value);
+
+	// Bare number, no "[dimensionless]" tag, no raw '#' hash.
+	EXPECT_EQ("0.75", blob.to_string());
+	EXPECT_EQ(std::string::npos, blob.to_string().find('['));
+
+	// A plain scalar likewise resolves rather than throwing.
+	EXPECT_NO_THROW(units::serialize(units::dimensionless<double>(0.53125)).visit([](const auto&) {}));
+
+	// But an explicit, mismatched candidate set is still strict: naming the wrong dimension throws.
+	EXPECT_THROW(units::serialize(units::meters<double>(5.0)).visit<units::dimension::mass>([](const auto&) {}), std::runtime_error);
+}
+
+// #395 recurrence guard: every dimension in serialization.h's builtin_dimensions tuple must resolve to a named
+// rendering. A dimension missing from the tuple degrades to the raw '#<hash>' fallback, which this fails on. When a
+// new dimension is added to the library, add its flagship unit line here; if this test then fails, the dimension was
+// omitted from builtin_dimensions. One flagship unit per dimension, in tuple order.
+TEST_F(Serialization, everyShippedDimensionResolvesByDefault)
+{
+	EXPECT_EQ(std::string::npos, units::serialize(units::dimensionless<double>(0.5)).to_string().find('#')) << "dimensionless missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::meters<double>(1.0)).to_string().find('#')) << "length missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::kilograms<double>(1.0)).to_string().find('#')) << "mass missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::seconds<double>(1.0)).to_string().find('#')) << "time missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::amperes<double>(1.0)).to_string().find('#')) << "current missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::kelvin<double>(1.0)).to_string().find('#')) << "temperature missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::mols<double>(1.0)).to_string().find('#')) << "substance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::candelas<double>(1.0)).to_string().find('#')) << "luminous_intensity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians<double>(1.0)).to_string().find('#')) << "angle missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::bytes<double>(1.0)).to_string().find('#')) << "data missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::steradians<double>(1.0)).to_string().find('#')) << "solid_angle missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::hertz<double>(1.0)).to_string().find('#')) << "frequency missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::meters_per_second<double>(1.0)).to_string().find('#')) << "velocity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second<double>(1.0)).to_string().find('#')) << "angular_velocity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_squared<double>(1.0)).to_string().find('#')) << "angular_acceleration missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_cubed<double>(1.0)).to_string().find('#')) << "angular_jerk missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::meters_per_second_squared<double>(1.0)).to_string().find('#')) << "acceleration missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::newtons<double>(1.0)).to_string().find('#')) << "force missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::square_meters<double>(1.0)).to_string().find('#')) << "area missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::cubic_meters<double>(1.0)).to_string().find('#')) << "volume missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::cubic_meters_per_second<double>(1.0)).to_string().find('#')) << "volume_flow_rate missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::pascals<double>(1.0)).to_string().find('#')) << "pressure missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::coulombs<double>(1.0)).to_string().find('#')) << "charge missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::joules<double>(1.0)).to_string().find('#')) << "energy missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts<double>(1.0)).to_string().find('#')) << "power missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::volts<double>(1.0)).to_string().find('#')) << "voltage missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::farads<double>(1.0)).to_string().find('#')) << "capacitance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::ohms<double>(1.0)).to_string().find('#')) << "impedance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::siemens<double>(1.0)).to_string().find('#')) << "conductance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::webers<double>(1.0)).to_string().find('#')) << "magnetic_flux missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::henries<double>(1.0)).to_string().find('#')) << "inductance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::lumens<double>(1.0)).to_string().find('#')) << "luminous_flux missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::lux<double>(1.0)).to_string().find('#')) << "illuminance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::candelas_per_square_meter<double>(1.0)).to_string().find('#')) << "luminance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::becquerels<double>(1.0)).to_string().find('#')) << "radioactivity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::grams_per_mole<double>(1.0)).to_string().find('#')) << "substance_mass missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::molars<double>(1.0)).to_string().find('#')) << "substance_concentration missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::teslas<double>(1.0)).to_string().find('#')) << "magnetic_field_strength missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_steradian<double>(1.0)).to_string().find('#')) << "radiant_intensity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_steradian_per_meter_squared<double>(1.0)).to_string().find('#')) << "radiance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_meter_squared<double>(1.0)).to_string().find('#')) << "irradiance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_steradian_per_meter<double>(1.0)).to_string().find('#')) << "spectral_intensity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_meter<double>(1.0)).to_string().find('#')) << "spectral_flux missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_steradian_per_meter_cubed<double>(1.0)).to_string().find('#')) << "spectral_radiance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::watts_per_meter_cubed<double>(1.0)).to_string().find('#')) << "spectral_irradiance missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::meters_per_second_cubed<double>(1.0)).to_string().find('#')) << "jerk missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::newton_meters<double>(1.0)).to_string().find('#')) << "torque missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::kilograms_per_cubic_meter<double>(1.0)).to_string().find('#')) << "density missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::joules_per_meter_cubed<double>(1.0)).to_string().find('#')) << "energy_density missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::concentration::percent<double>(1.0)).to_string().find('#')) << "concentration missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::bytes_per_second<double>(1.0)).to_string().find('#')) << "data_transfer_rate missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::pascal_seconds<double>(1.0)).to_string().find('#')) << "dynamic_viscosity missing from builtin_dimensions";
+	EXPECT_EQ(std::string::npos, units::serialize(units::square_meters_per_second<double>(1.0)).to_string().find('#')) << "kinematic_viscosity missing from builtin_dimensions";
+}
+
 TEST_F(Serialization, determinismSameInputSameBytes)
 {
 	// serialization is a pure function of the value: same quantity -> identical bytes, every time
@@ -7522,8 +7755,10 @@ TEST_F(Serialization, toStringRawIsAlwaysHashKeyed)
 	EXPECT_NE(std::string::npos, dimensionless.find("0.25"));
 	EXPECT_NE(std::string::npos, dimensionless.find("dimensionless"));
 
-	// dimensionless names nothing, so to_string() and to_string_raw() agree
-	EXPECT_EQ(dimensionless, units::serialize(units::dimensionless<double>(0.25)).to_string());
+	// #395: dimensionless is a builtin dimension, so to_string() resolves it to the named form and diverges from the
+	// raw hash-keyed rendering, which keys every dimension — including dimensionless — the same way regardless
+	EXPECT_NE(dimensionless, units::serialize(units::dimensionless<double>(0.25)).to_string());
+	EXPECT_EQ(std::string::npos, units::serialize(units::dimensionless<double>(0.25)).to_string().find('#'));
 
 	const std::string length = units::serialize(units::meters<double>(100.0)).to_string_raw();
 	EXPECT_NE(std::string::npos, length.find("100"));

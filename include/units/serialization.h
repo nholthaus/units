@@ -71,7 +71,7 @@ namespace units
 		/// resolve a user-defined dimension unless the caller lists it (`visit<my_dimension>(f)`), because C++ cannot
 		/// materialize a type from the runtime hash — the runtime→type wall. The set is otherwise open by design.
 		using builtin_dimensions = std::tuple<dimension::length, dimension::mass, dimension::time, dimension::current, dimension::temperature, dimension::substance, dimension::luminous_intensity,
-			dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency, dimension::velocity, dimension::angular_velocity, dimension::acceleration, dimension::force,
+			dimension::angle, dimension::data, dimension::solid_angle, dimension::frequency, dimension::velocity, dimension::angular_velocity, dimension::angular_acceleration, dimension::angular_jerk, dimension::acceleration, dimension::force,
 			dimension::area, dimension::volume, dimension::volume_flow_rate, dimension::pressure, dimension::charge, dimension::energy, dimension::power, dimension::voltage, dimension::capacitance,
 			dimension::impedance, dimension::conductance, dimension::magnetic_flux, dimension::inductance, dimension::luminous_flux, dimension::illuminance, dimension::luminance,
 			dimension::radioactivity, dimension::substance_mass, dimension::substance_concentration, dimension::magnetic_field_strength, dimension::radiant_intensity, dimension::radiance,
@@ -769,7 +769,13 @@ namespace units
 		///				candidate (so velocity/force/energy/... resolve out of the box); pass explicit candidate
 		///				dimensions (`visit<my_dimension>(f)`) to resolve a user-defined dimension or to disambiguate
 		///				dimensions that share a signature (e.g. torque vs energy — the first listed wins). The visitor
-		///				must be a generic callable (e.g. a `[](auto q)` lambda). Throws if no candidate matched.
+		///				must be a generic callable (e.g. a `[](auto q)` lambda). A dimensionless stream (a bare scalar,
+		///				or a ratio of same-dimension quantities such as `meters / meters`) resolves under the default
+		///				candidate set to `dimensionless` — the empty signature is not a listed candidate (it is the
+		///				universal sink every dimensionless quantity shares, so it can never carry a ratio-scale such as
+		///				percent), so it is dispatched directly. The visitor sees the physical value; a ratio scale like
+		///				percent is not recoverable from the erased form and must be named (`to<percent>()`). Throws only
+		///				when an explicit candidate set is given and none matched.
 		/// @tparam     Dimensions  candidate dimension types (defaults to the library's known dimensions)
 		/// @tparam     Visitor  a callable invocable with each candidate's canonical unit
 		/// @param[in]  visitor  the callable
@@ -781,7 +787,15 @@ namespace units
 			// single invocation site (try_dispatch_one) is the only place it is used as the caller's value category
 			bool matched;
 			if constexpr (sizeof...(Dimensions) == 0)
+			{
 				matched = dispatch_tuple<detail::builtin_dimensions>(std::forward<Visitor>(visitor));
+				// The empty (dimensionless) signature is deliberately not a listed candidate — it is the sink every
+				// dimensionless quantity erases to, so listing it would silently claim ratio-scaled quantities. Under
+				// the default set it is still resolved directly, so a serialized scalar or same-dimension ratio never
+				// hard-throws.
+				if (!matched)
+					matched = try_dispatch_one<dimension::dimensionless>(std::forward<Visitor>(visitor));
+			}
 			else
 				matched = dispatch_list<Dimensions...>(std::forward<Visitor>(visitor));
 			if (!matched)

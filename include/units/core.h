@@ -1348,6 +1348,8 @@ namespace units
 		using velocity                = dimension_divide<length, time>;                                                     ///< Represents an SI derived unit of velocity
 		using angular_velocity        = dimension_divide<angle, time>;                                                      ///< Represents an SI derived unit of angular velocity
 		using acceleration            = dimension_divide<velocity, time>;                                                   ///< Represents an SI derived unit of acceleration
+		using angular_acceleration    = dimension_divide<angular_velocity, time>;                                           ///< Represents an SI derived unit of angular acceleration
+		using angular_jerk            = dimension_divide<angular_acceleration, time>;                                       ///< Represents an SI derived unit of angular jerk
 		using force                   = dimension_multiply<mass, acceleration>;                                             ///< Represents an SI derived unit of force
 		using area                    = dimension_pow<length, std::ratio<2>>;                                               ///< Represents an SI derived unit of area
 		using volume                  = dimension_pow<length, std::ratio<3>>;                                               ///< Represents an SI derived unit of volume
