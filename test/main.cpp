@@ -2704,6 +2704,187 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 	static_assert(std::is_same_v<units::energy::joules<double>, decltype(budget)>, "a scaled energy is still an energy");
 }
 
+// A quantity measured from an arbitrary origin -- an affine reading (a datum) or a decibel LEVEL (a logarithmic
+// reference) -- has no origin-free magnitude, sign, remainder or root, so those are refused rather than answered with
+// an origin-dependent number. The refusals are body-level diagnostics, graded in errorMessages (origin_abs_of_reading,
+// origin_fmod_of_readings, origin_copysign_of_reading, origin_hypot_of_readings, origin_sqrt_of_reading); asserted here
+// is that a DIFFERENCE -- which carries no origin -- does support all of them, so the rule is targeted rather than a
+// blanket ban, and that an offset-free scale is unaffected.
+// A quantity stores its value in the numerical scale's LINEARIZED domain, so anything that writes the stored value
+// directly has to linearize first. Two places did not, giving a value that was neither reading.
+// The origin rule applies to operators as well as to the cmath functions: negating a reading, taking the remainder of
+// two, or taking their ratio all give origin-dependent answers and are refused (graded in errorMessages as
+// origin_negate_reading / origin_modulo_of_readings / origin_ratio_of_readings). Increment and decrement are NOT
+// refused -- they step by one unit of the operand's own scale, which is a stated amount, not a bare number.
+TEST_F(UnitType, originRuleAppliesToOperatorsToo)
+{
+	using namespace units::temperature;
+
+	// ++ / -- stay available on a reading and on a level, and mean "by one unit of its own scale"
+	celsius<double> reading(20.5);
+	++reading;
+	EXPECT_NEAR(21.5, reading.value(), 5.0e-12);
+	--reading;
+	EXPECT_NEAR(20.5, reading.value(), 5.0e-12);
+	// `++` is exactly a move by one unit of the operand's own scale (sequenced explicitly: both sides would
+	// otherwise read `reading` while one of them increments it)
+	const auto movedByOneDegree = reading + (celsius<double>(1.0) - celsius<double>(0.0));
+	++reading;
+	EXPECT_EQ(movedByOneDegree, reading);
+	--reading;
+
+	units::power::dBW<double> level(12.5);
+	++level;
+	EXPECT_NEAR(13.5, level.raw(), 5.0e-12);
+	--level;
+	EXPECT_NEAR(12.5, level.raw(), 5.0e-12);
+
+	// the refused operations ARE available on differences, which carry no origin
+	const auto a = celsius<double>(20.5) - celsius<double>(0.0);
+	const auto smaller = celsius<double>(7.25) - celsius<double>(0.0);
+	EXPECT_NEAR(-20.5, (-a).raw(), 5.0e-12);
+	EXPECT_NEAR(2.82758620689655, (a / smaller).value(), 5.0e-12);
+	EXPECT_EQ(6, ((celsius<int>(20) - celsius<int>(0)) % (celsius<int>(7) - celsius<int>(0))).raw());
+
+	// and on an offset-free scale, which is an ordinary magnitude
+	EXPECT_NEAR(-20.5, (-kelvin<double>(20.5)).value(), 5.0e-12);
+	EXPECT_NEAR(2.0, (kelvin<double>(20.5) / kelvin<double>(10.25)).value(), 5.0e-12);
+	EXPECT_EQ(6, (kelvin<int>(20) % kelvin<int>(7)).raw());
+
+	// negating a dimensionless dB GAIN is the inverse gain, which is well defined
+	EXPECT_NEAR(-3.25, (-decibels<double>(3.25)).raw(), 5.0e-12);
+
+	// an ordinary dimensioned quantity is untouched
+	EXPECT_NEAR(-12.5, (-units::meters<double>(12.5)).value(), 5.0e-12);
+	EXPECT_NEAR(2.5, (units::meters<double>(12.5) / units::meters<double>(5.0)).value(), 5.0e-12);
+}
+
+TEST_F(UnitType, nonLinearScaleStoresThroughItsScale)
+{
+	// Assignment from a bare number must mean what the value CONSTRUCTOR means, or assign-then-read would not round
+	// trip: `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB.
+	decibels<double> gain(3.25);
+	EXPECT_NEAR(3.25, gain.raw(), 5.0e-12);
+	EXPECT_NEAR(2.113489039, gain.to_linearized(), 5.0e-9);
+	gain = 12.5;
+	EXPECT_NEAR(12.5, gain.raw(), 5.0e-12);
+	EXPECT_EQ(decibels<double>(12.5), gain);
+	EXPECT_NEAR(12.5, static_cast<double>(gain), 5.0e-12);    // the round trip the defect broke
+
+	// a RATIO-scaled dimensionless is unaffected: a bare number there IS the base-dimensionless fraction
+	concentration::percent<double> percentage(12.5);
+	percentage = 0.5;
+	EXPECT_NEAR(50.0, percentage.raw(), 5.0e-12);
+	EXPECT_NEAR(0.5, percentage.value(), 5.0e-12);
+	// and so is a plain dimensionless
+	dimensionless<double> plain(1.0);
+	plain = 3.25;
+	EXPECT_NEAR(3.25, plain.value(), 5.0e-12);
+}
+
+// `std::numeric_limits` must describe the STORED representation. Pushing T's limits through the value constructor
+// linearized them, so on a decibel scale max() was INFINITY -- breaking the contract that max() is finite -- and
+// epsilon() collapsed to zero, which silently zeroes any generic tolerance written against it.
+TEST_F(UnitType, numericLimitsAreFiniteOnADecibelScale)
+{
+	using Level = std::numeric_limits<units::power::dBW<double>>;
+	EXPECT_TRUE(std::isfinite(Level::max().raw()));
+	EXPECT_TRUE(std::isfinite(Level::lowest().raw()));
+	EXPECT_GT(Level::max().raw(), 0.0);
+	EXPECT_LT(Level::lowest().raw(), 0.0);
+	EXPECT_LT(Level::lowest().raw(), Level::max().raw());
+	EXPECT_NE(0.0, Level::epsilon().raw());
+	EXPECT_GT(Level::epsilon().raw(), 0.0);
+	EXPECT_TRUE(std::isinf(Level::infinity().raw()));    // an infinite ratio IS infinite decibels
+
+	using Gain = std::numeric_limits<decibels<double>>;
+	EXPECT_TRUE(std::isfinite(Gain::max().raw()));
+	EXPECT_NE(0.0, Gain::epsilon().raw());
+
+	// a linear scale is unchanged
+	using Linear = std::numeric_limits<units::power::watts<double>>;
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::max(), Linear::max().raw());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::lowest(), Linear::lowest().raw());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::epsilon(), Linear::epsilon().raw());
+}
+
+TEST_F(UnitMath, originFreeMathOnDifferencesNotReadings)
+{
+	using namespace units::temperature;
+
+	const auto cooling = celsius<double>(12.5) - celsius<double>(20.0);    // an amount, -7.5 degrees
+	EXPECT_NEAR(-7.5, cooling.raw(), 5.0e-12);
+	EXPECT_NEAR(7.5, units::abs(cooling).raw(), 5.0e-12);
+	EXPECT_NEAR(7.5, units::fabs(cooling).raw(), 5.0e-12);
+	EXPECT_NEAR(-7.5, units::copysign(units::abs(cooling), -1.0).raw(), 5.0e-12);
+	EXPECT_NEAR(5.0, units::fmod(celsius<double>(20.0) - celsius<double>(0.0), cooling).raw(), 5.0e-12);
+	EXPECT_NEAR(12.5, units::hypot(celsius<double>(7.5) - celsius<double>(0.0), celsius<double>(10.0) - celsius<double>(0.0)).raw(), 5.0e-12);
+
+	// an offset-free scale carries no datum, so it is an ordinary magnitude and keeps all of these
+	EXPECT_NEAR(7.5, units::abs(kelvin<double>(-7.5)).raw(), 5.0e-12);
+	EXPECT_NEAR(2.5, units::fmod(kelvin<double>(12.5), kelvin<double>(5.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(12.5, units::hypot(rankine<double>(7.5), rankine<double>(10.0)).raw(), 5.0e-12);
+
+	// a dimensionless decibel GAIN is a ratio, not a level, so its magnitude is origin-free too
+	EXPECT_NEAR(3.25, units::abs(decibels<double>(-3.25)).raw(), 5.0e-12);
+}
+
+// `fdim` is the positive difference, so its result must be the same KIND the library's own `operator-` produces: an
+// amount for two affine readings, a gain for two decibel levels. It formerly returned the left operand's unit, so
+// fdim(celsius(30), celsius(10)) was a celsius READING of 20 -- i.e. 293.15 K -- while celsius(30) - celsius(10) was
+// correctly a 20-degree amount. The two disagreed by the whole datum.
+TEST_F(UnitMath, fdimAgreesWithSubtraction)
+{
+	using namespace units::temperature;
+
+	const auto positive = units::fdim(celsius<double>(30.0), celsius<double>(12.5));
+	EXPECT_NEAR(17.5, positive.raw(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(positive)>, "the positive difference of two readings is an amount");
+	static_assert(std::is_same_v<std::remove_cv_t<decltype(positive)>,
+					  detail::floating_point_promotion_t<decltype(celsius<double>(1) - celsius<double>(0))>>,
+		"fdim returns exactly the type operator- does");
+
+	// the clamped-at-zero branch, and the cross-scale case in the left operand's degrees
+	EXPECT_NEAR(0.0, units::fdim(celsius<double>(12.5), celsius<double>(30.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(180.0, units::fdim(fahrenheit<double>(212.0), fahrenheit<double>(32.0)).raw(), 5.0e-12);
+
+	// two decibel LEVELS give a dimensionless gain, matching level - level
+	const auto gain = units::fdim(units::power::dBW<double>(12.5), units::power::dBW<double>(4.25));
+	EXPECT_NEAR(8.25, gain.raw(), 5.0e-9);
+	static_assert(traits::is_dimensionless_unit_v<decltype(gain)>, "the positive difference of two levels is a gain");
+
+	// an ordinary dimensioned quantity is unchanged: still the left operand's unit
+	EXPECT_NEAR(7.5, units::fdim(units::meters<double>(12.5), units::meters<double>(5.0)).value(), 5.0e-12);
+	static_assert(std::is_same_v<units::meters<double>, std::remove_cv_t<decltype(units::fdim(units::meters<double>(1), units::meters<double>(0)))>>,
+		"fdim of ordinary quantities keeps the left operand's unit");
+}
+
+// Rounding to an integer target must apply the DATUM, not just the conversion ratio. The exact-integer path did the
+// latter, so round<celsius<int>>(fahrenheit<int>(54)) read 30 degC instead of 12 -- the datum was dropped entirely.
+// An affine pair now takes the datum-aware floating-point path (exactness is unreachable there anyway, the datum
+// being fractional).
+TEST_F(UnitMath, roundingAnAffineConversionAppliesTheDatum)
+{
+	using namespace units::temperature;
+
+	EXPECT_EQ(12, (units::round<celsius<int>>(fahrenheit<int>(54))).raw());     // 54 degF == 12.22 degC
+	EXPECT_EQ(12, (units::floor<celsius<int>>(fahrenheit<int>(54))).raw());
+	EXPECT_EQ(13, (units::ceil<celsius<int>>(fahrenheit<int>(54))).raw());
+	EXPECT_EQ(12, (units::trunc<celsius<int>>(fahrenheit<int>(54))).raw());
+	EXPECT_EQ(100, (units::round<celsius<int>>(fahrenheit<int>(212))).raw());
+	EXPECT_EQ(0, (units::round<celsius<int>>(fahrenheit<int>(32))).raw());
+	EXPECT_EQ(-18, (units::round<celsius<int>>(fahrenheit<int>(0))).raw());
+	EXPECT_EQ(68, (units::round<fahrenheit<int>>(celsius<int>(20))).raw());
+	EXPECT_EQ(80, (units::round<fahrenheit<int>>(kelvin<int>(300))).raw());     // 300 K == 80.33 degF
+	EXPECT_EQ(285, (units::round<kelvin<int>>(fahrenheit<int>(54))).raw());     // 54 degF == 285.37 K
+	EXPECT_EQ(5, (units::round<celsius<int>>(rankine<int>(500))).raw());        // 500 degR == 4.63 degC
+
+	// a non-affine conversion still takes the exact-integer path and is unchanged
+	EXPECT_EQ(16, (units::round<units::feet<int>>(units::meters<int>(5))).raw());
+	// and a floating-point source was always correct
+	EXPECT_EQ(12, (units::round<celsius<int>>(fahrenheit<double>(54.0))).raw());
+}
+
 TEST_F(UnitType, unitTypeUnarySubtraction)
 {
 	meters<double> a_m(4.0);
@@ -2719,7 +2900,10 @@ TEST_F(UnitType, unitTypeUnarySubtraction)
 	EXPECT_EQ(--b_dBW, dBW<double>(3));
 	EXPECT_EQ(b_dBW--, dBW<double>(3));
 	EXPECT_EQ(b_dBW, dBW<double>(2));
-	EXPECT_EQ(-b_dBW, dBW<double>(-2));
+	// Unary minus is NOT available on a decibel LEVEL: negating the dB number inverts the ratio relative to the
+	// reference, so the answer depends on which reference is written. -dBW(2) is 0.63 W while -dBm(32) -- the same
+	// input power -- is 6.3e-7 W. Negating a dimensionless GAIN is well defined (it is the inverse gain) and stays.
+	EXPECT_EQ(-decibels<double>(2.0), decibels<double>(-2.0));
 	EXPECT_EQ(b_dBW, dBW<double>(2));
 
 	percent<double> c_pct(4.0);
@@ -5887,8 +6071,14 @@ TEST_F(ConversionFactor, squaredTemperature)
 	using squared_celsius   = compound_conversion_factor<squared<celsius<double>>>;
 	using squared_celsius_t = unit<squared_celsius>;
 	constexpr squared_celsius_t right(100);
-	constexpr celsius           rootRight = sqrt(right);
-	EXPECT_EQ(celsius<double>(10), rootRight);
+
+	// `squared<>` drops the datum, as its documentation states: there is no origin for a degC^2. So the root is an
+	// origin-free temperature MAGNITUDE of ten degrees, not the reading 10 degC -- storing it in celsius would
+	// re-apply the 273.15 datum and read -263.15 degC. Compared as a magnitude for that reason.
+	constexpr auto rootRight = sqrt(right);
+	static_assert(!traits::is_affine_unit_v<decltype(rootRight)>, "the root of a squared temperature carries no datum");
+	EXPECT_DOUBLE_EQ(10.0, rootRight.value());
+	EXPECT_EQ(kelvin<double>(10), rootRight);
 }
 
 TEST_F(ConversionFactor, unitsAddedIn3_4_2)

@@ -1666,8 +1666,11 @@ namespace units
 		struct squared_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
+			// The datum is dropped, as this manipulator's documentation states: there is no origin for degC^2, and
+			// carrying celsius's 273.15 into a squared type made it compare "affine" and re-apply the datum on the
+			// way back out.
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>, dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<2>>,
-					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, typename Cf::translation_ratio>;
+					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1693,8 +1696,9 @@ namespace units
 		struct cubed_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
+			// The datum is dropped, for the reason given in `squared_impl`.
 			using type       = conversion_factor<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, typename Cf::translation_ratio>;
+					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1895,7 +1899,7 @@ namespace units
 		{
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<ratio_sqrt<Conversion, Eps>, dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -2889,8 +2893,20 @@ namespace units
 			requires traits::is_dimensionless_unit<Cf>::value
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
-			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
-			_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			// `has_linear_scale_v` is not declared this early in the header, and the test is inverted deliberately: only
+			// a decibel scale changes behavior here, so every other scale keeps the existing conversion path exactly.
+			if constexpr (!std::is_same_v<NumericalScale, decibel_scale>)
+			{
+				unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
+				_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			}
+			else
+			{
+				// A logarithmic scale: the number means what it means to the value constructor -- decibels, not the
+				// linear ratio -- or `g = 3.25` would store 3.25 as the ratio and read back 5.12 dB while
+				// `decibels(3.25)` is 3.25 dB, so an assign-then-read round trip would not hold.
+				_linearized_value = unit(rhs)._linearized_value;
+			}
 			return *this;
 		}
 
@@ -3948,6 +3964,15 @@ namespace units
 		template<class UnitTypeLhs, class UnitTypeRhs>
 		inline constexpr bool is_decibel_level_and_gain_v =
 			is_decibel_level_v<UnitTypeLhs> && DimensionlessUnitType<UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeRhs>;
+
+		/// True for a quantity measured from an ARBITRARY ORIGIN: an affine reading (which carries a datum) or a
+		/// decibel LEVEL (which carries a logarithmic reference). Such a value has no origin-free magnitude, sign,
+		/// remainder, or power -- `abs(celsius(-5))` names a different temperature than `abs(kelvin(268))` does for the
+		/// same input, and `abs(dBW(-3))` a different power than `abs(dBm(27))` -- so the library refuses those
+		/// operations on it rather than returning an origin-dependent number. A DIFFERENCE of two such values, and a
+		/// decibel GAIN, carry no origin and are unaffected.
+		template<class U>
+		inline constexpr bool has_arbitrary_origin_v = traits::is_affine_unit_v<U> || is_decibel_level_v<U>;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -4690,6 +4715,10 @@ namespace units
 		return u;
 	}
 
+	// Increment and decrement ARE defined on a quantity measured from an arbitrary origin, unlike `+= 1.0`. A bare
+	// number is refused because it states no unit, whereas `++` unambiguously steps by ONE unit of the operand's own
+	// scale -- `++celsius(20)` is `celsius(20) += celsius(1)`, a move by a stated amount, and `++dBW(12.5)` is a
+	// one-decibel gain. The amount is implied by the type, so nothing is guessed.
 	// prefix increment: ++T
 	template<UnitType UnitTypeLhs>
 	constexpr UnitTypeLhs& operator++(UnitTypeLhs& u) noexcept
@@ -4709,6 +4738,7 @@ namespace units
 
 	// unary addition: -T
 	template<UnitType UnitTypeLhs>
+		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
 		return UnitTypeLhs(-u.raw());
@@ -5047,7 +5077,8 @@ namespace units
 	/// dimensionless
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(
-			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs>)
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs> &&
+			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
 	constexpr dimensionless<std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -5280,7 +5311,8 @@ namespace units
 	///			common-unit result mirrors `fmod` and removes the asymmetry.
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs>)
+			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeLhs> &&
+			!detail::has_arbitrary_origin_v<UnitTypeRhs>)
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -5684,6 +5716,116 @@ namespace units
 	}
 
 	//----------------------------------
+	//	ORIGIN-DEPENDENT OPERATOR DIAGNOSTICS
+	//----------------------------------
+	// The same rule as the math diagnostics below, for operators: negating, taking a remainder of, or taking the ratio
+	// of quantities measured from an arbitrary origin gives an origin-dependent answer. (Increment and decrement are
+	// NOT here -- they step by one unit of the operand's own scale, which is a stated amount.)
+
+	/// Negating a reading measured from a datum or reference.
+	template<UnitType UnitTypeLhs>
+		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot negate a reading measured from a datum or reference; negate a difference.");
+		return u;
+	}
+
+	/// The remainder of two readings measured from a datum or reference.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> &&
+			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+	constexpr UnitTypeLhs operator%(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: no origin-free remainder for a reading measured from a datum or reference; take the remainder of differences.");
+		return lhs;
+	}
+
+	/// The ratio of two readings measured from a datum or reference: celsius(20)/celsius(10) is 2, yet the same two
+	/// temperatures in kelvin give 1.035.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs> &&
+			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+	// Returns the LHS type rather than the real `dimensionless<...>` result: the body never returns, and naming
+	// `dimensionless` here would print its conversion factor in the diagnostic's signature, burying the message in
+	// exactly the soup the harness forbids.
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: no origin-free ratio of two readings measured from a datum or reference; divide their differences.");
+		return lhs;
+	}
+
+	//----------------------------------
+	//	ORIGIN-DEPENDENT MATH DIAGNOSTICS
+	//----------------------------------
+	// A quantity measured from an arbitrary origin -- an affine reading or a decibel LEVEL -- has no origin-free
+	// magnitude, sign, remainder, or power, so these are refused rather than answered with an origin-dependent number.
+	// Each names the operation that IS defined: the same function on a DIFFERENCE of two such values, which carries no
+	// origin. Each returns a value so the body is instantiated and the message fires on every compiler.
+
+	template<UnitType UnitType>
+		requires(detail::has_arbitrary_origin_v<UnitType>)
+	constexpr UnitType abs(const UnitType x) noexcept
+	{
+		static_assert(detail::dependent_false<UnitType>,
+			"units: no origin-free magnitude for a reading measured from a datum or reference; take abs of a difference.");
+		return x;
+	}
+	template<UnitType UnitType>
+		requires(detail::has_arbitrary_origin_v<UnitType>)
+	constexpr UnitType fabs(const UnitType x) noexcept
+	{
+		static_assert(detail::dependent_false<UnitType>,
+			"units: no origin-free magnitude for a reading measured from a datum or reference; take fabs of a difference.");
+		return x;
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+	constexpr UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: no origin-free remainder for a reading measured from a datum or reference; take fmod of differences.");
+		return numer;
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs copysign(const UnitTypeLhs x, const UnitTypeRhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: no origin-free sign for a reading measured from a datum or reference; copysign a difference.");
+		return x;
+	}
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs copysign(const UnitTypeLhs x, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: no origin-free sign for a reading measured from a datum or reference; copysign a difference.");
+		return x;
+	}
+	template<UnitType UnitType>
+		requires(detail::has_arbitrary_origin_v<UnitType>)
+	constexpr UnitType sqrt(const UnitType& value) noexcept
+	{
+		static_assert(detail::dependent_false<UnitType>,
+			"units: no origin-free root of a reading measured from a datum or reference; take sqrt of a difference.");
+		return value;
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+	constexpr UnitTypeLhs hypot(const UnitTypeLhs& x, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: no origin-free magnitude for a reading measured from a datum or reference; take hypot of differences.");
+		return x;
+	}
+
+	//----------------------------------
 	//	UNIT-ENABLED CMATH FUNCTIONS
 	//----------------------------------
 
@@ -5876,7 +6018,7 @@ namespace units
 	 *				unit type may have errors no larger than `1e-10`.
 	 */
 	template<UnitType UnitType>
-		requires(traits::has_linear_scale_v<UnitType>)
+		requires(traits::has_linear_scale_v<UnitType> && !detail::has_arbitrary_origin_v<UnitType>)
 	constexpr auto sqrt(const UnitType& value) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<square_root<typename traits::unit_traits<UnitType>::conversion_factor>>, detail::floating_point_promotion_t<typename traits::unit_traits<UnitType>::underlying_type>>>
 	{
@@ -5894,7 +6036,8 @@ namespace units
 	 *				x and y so no value is truncated.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
 	constexpr auto hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		// The result unit is computed in the body (not the signature) so lhs_result_unit_t is never instantiated for
@@ -5944,7 +6087,8 @@ namespace units
 	 *				common unit of the arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeLhs> &&
+			!detail::has_arbitrary_origin_v<UnitTypeRhs>)
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
@@ -6036,7 +6180,12 @@ namespace units
 			using ToRep   = typename To::underlying_type;
 			using FromRep = typename From::underlying_type;
 
-			if constexpr (std::is_integral_v<FromRep>)
+			// An AFFINE source or target is excluded from the exact-integer path below. That path applies only the
+			// conversion RATIO, and a datum lives in the conversion factor's translation, so it was dropped entirely:
+			// `round<celsius<int>>(fahrenheit<int>(54))` gave 30 degC instead of 12. Exactness is unreachable for such a
+			// conversion anyway (the datum is fractional -- 273.15), so an affine pair takes the floating-point path,
+			// whose `Promoted(x)` is a real datum-aware conversion.
+			if constexpr (std::is_integral_v<FromRep> && !traits::is_affine_unit_v<From> && !traits::is_affine_unit_v<To>)
 			{
 				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder. The
 				// intermediate is the widest UNSIGNED integer when both source and target are unsigned, so an unsigned
@@ -6057,7 +6206,8 @@ namespace units
 			}
 			else
 			{
-				// A floating-point source: express in the target unit and apply the matching std:: rounding.
+				// A floating-point source, or any affine conversion: express in the target unit -- a full conversion, so
+				// the datum is applied -- and apply the matching std:: rounding.
 				using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<ToRep>, typename To::numerical_scale_type>;
 				const auto inTarget = Promoted(x).to_linearized();
 				const auto rounded  = mode == rounding_mode::toward_neg_infinity ? std::floor(inTarget)
@@ -6160,6 +6310,7 @@ namespace units
 	 * @returns		value with the magnitude and dimension of x, and the sign of y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y.raw())); // no need for conversion to get the correct sign.
@@ -6167,6 +6318,7 @@ namespace units
 
 	/// Overload to copy the sign from a raw double
 	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y));
@@ -6186,11 +6338,15 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && requires(UnitTypeLhs a, UnitTypeRhs b) { a - b; })
 	constexpr auto fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
-		return Result(std::fdim(Result(x).raw(), Result(y).raw()));
+		// Computed from the library's own difference, so the RESULT KIND follows the same rules: the positive
+		// difference of two affine readings is an AMOUNT and of two decibel levels a GAIN, never another reading or
+		// level. Returning `lhs_result_unit_t` made `fdim(celsius(30), celsius(10))` a celsius READING of 20, i.e.
+		// 293.15 K, while `celsius(30) - celsius(10)` correctly gave a 20 K amount -- the two disagreed by the datum.
+		using Result = detail::floating_point_promotion_t<decltype(x - y)>;
+		return x > y ? Result(x - y) : Result(0);
 	}
 
 	/**
@@ -6239,6 +6395,7 @@ namespace units
 	 * @returns		The absolute value of x.
 	 */
 	template<UnitType UnitType>
+		requires(!detail::has_arbitrary_origin_v<UnitType>)
 	constexpr detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.raw()));
@@ -6252,6 +6409,7 @@ namespace units
 	 * @returns		The absolute value of x.
 	 */
 	template<UnitType UnitType>
+		requires(!detail::has_arbitrary_origin_v<UnitType>)
 	constexpr UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::abs(x.raw()));
@@ -6368,34 +6526,64 @@ namespace std
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	struct numeric_limits<units::unit<ConversionFactor, T, NonLinearScale>>
 	{
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> min()
+	private:
+		using Q = units::unit<ConversionFactor, T, NonLinearScale>;
+
+		// A limit is a property of the STORED representation, so on a non-linear scale it must be built from the
+		// stored value rather than pushed through the value constructor, which linearizes. `Q(max())` on a decibel
+		// scale evaluated pow(10, DBL_MAX/10) and returned INFINITY -- violating the contract that max() is finite --
+		// and epsilon() collapsed to 0, silently zeroing any generic tolerance. Built from the stored value, the
+		// limits read as finite decibel figures. For a linear scale the two forms are identical.
+		static constexpr Q fromStored(T stored) noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::min());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(stored);
+			else
+				return Q(stored, units::linearized_value);
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> denorm_min() noexcept
+	public:
+		static constexpr Q min()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::denorm_min());
+			return fromStored(std::numeric_limits<T>::min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> max()
+		static constexpr Q denorm_min() noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::max());
+			return fromStored(std::numeric_limits<T>::denorm_min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> lowest()
+		static constexpr Q max()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+			return fromStored(std::numeric_limits<T>::max());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> epsilon()
+		/// On a non-linear scale the stored value is a ratio and is strictly positive, so the lowest representable
+		/// quantity is the smallest positive stored value (a very negative number of decibels), not `T`'s lowest.
+		static constexpr Q lowest()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::lowest());
+			else
+				return fromStored(std::numeric_limits<T>::min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> round_error()
+		/// The smallest distinguishable step. On a non-linear scale that is the quantity whose stored ratio differs
+		/// from unity by one epsilon, which is a small non-zero number of decibels.
+		static constexpr Q epsilon()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::epsilon());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::epsilon()));
+		}
+
+		static constexpr Q round_error()
+		{
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::round_error());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::round_error()));
 		}
 
 		static constexpr units::unit<ConversionFactor, T, NonLinearScale> infinity()
