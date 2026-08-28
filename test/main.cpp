@@ -8325,6 +8325,17 @@ TEST(Format, separatorWithNameForm)
 	EXPECT_EQ(std::format("{:%n'_'}", 3.5_m), "3.5_meters");
 }
 
+// A separator literal that contains 'b' must not be mistaken for the %b base-conversion flag (issue #401): the
+// value stays as written and the label is the unit's own, the 'b' is just separator text.
+TEST(Format, separatorContainingBIsNotTheBaseFlag)
+{
+	EXPECT_EQ(std::format("{:%'_b_'}", units::length::feet<double>(6.0)), "6_b_ft");
+	EXPECT_EQ(std::format("{:%'b'}", 3.5_m), "3.5bm");
+	// the actual %b flag still base-converts, even alongside a 'b'-containing separator
+	EXPECT_EQ(std::format("{:%b}", units::length::feet<double>(6.0)), "1.8288 m");
+	EXPECT_EQ(std::format("{:%b'_b_'}", units::length::feet<double>(6.0)), "1.8288_b_m");
+}
+
 //-----------------------------
 //  FLAG-ORDER INDEPENDENCE
 //-----------------------------
