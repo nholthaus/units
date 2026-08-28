@@ -36,7 +36,7 @@ jobs:
         run: sudo apt install -y libeigen3-dev
 
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure CMake
         run: |
