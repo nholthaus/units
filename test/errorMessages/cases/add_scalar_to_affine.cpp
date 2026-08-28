@@ -6,7 +6,8 @@
 //
 // expect: fail
 // expect-match: cannot add a bare number to an affine point
-// expect-match: units::delta<
+// expect-match: add a quantity of the same dimension
+// expect-match: celsius(5)
 // expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
@@ -15,6 +16,6 @@ using namespace units;
 int main()
 {
 	units::temperature::celsius<double> c(20.0);
-	c += 5.0; // ill-formed: cannot add a bare number to an affine point
+	c += 5.0; // ill-formed
 	return 0;
 }

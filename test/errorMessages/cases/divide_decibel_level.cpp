@@ -11,6 +11,6 @@ using namespace units;
 int main()
 {
 	units::power::dBW<double> level(12.5);
-	level /= 2.0; // ill-formed: cannot divide a decibel value
+	level /= 2.0; // ill-formed
 	return 0;
 }

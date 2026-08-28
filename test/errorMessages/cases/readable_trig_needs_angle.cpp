@@ -14,7 +14,7 @@
 #include <units/length.h>
 using namespace units;
 using namespace units::literals;
-auto bad = sin(1.0_m); // ill-formed: sin expects an angle, not a length
+auto bad = sin(1.0_m); // ill-formed
 int main()
 {
 	(void)bad;

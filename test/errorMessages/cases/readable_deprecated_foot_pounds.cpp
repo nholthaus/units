@@ -11,7 +11,7 @@
 // expect-match: deprecated
 // expect-match: torque is conventionally 'pound-foot'; use units::torque::pound_feet. (units::energy::foot_pounds remains the energy unit.)
 #include <units/torque.h>
-units::torque::foot_pounds<double> t(1.0); // deprecated alias of units::torque::pound_feet
+units::torque::foot_pounds<double> t(1.0); // ill-formed
 int main()
 {
 	(void)t;

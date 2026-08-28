@@ -3,6 +3,47 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Changed (source-breaking)
+- **Scaling an affine quantity (`celsius`, `fahrenheit`, `reaumur`) by a number is now ill-formed.** `c * 2.0`,
+  `2.0 * c`, `c / 2.0`, `c *= 2.0`, `c /= 2.0`, and the same operations written with a dimensionless *quantity*
+  (`c * dimensionless(2)`, `c * percent(50)`) are refused with a message naming the remedy. Previously they scaled
+  the point, which is datum-dependent and therefore meaningless: "twice 20 °C" depends on where zero was put, and
+  the answer differs in every scale. Scale an *amount* instead — a difference of two readings (`t1 - t2`) is
+  offset-free and scales, as does `delta<celsius<double>>` from the opt-in `units/kind.h`.
+- **Scaling or dividing a decibel value by a number is now ill-formed** (`dBW *= 2.0`, `dBW /= 2.0`,
+  `decibels *= 2.0`). These previously compiled and returned a value that was neither reading: the value was read
+  *through* the numerical scale and written back *past* it, so `dBW(12.5) *= 2.0` yielded 13.98 dBW — neither the
+  naive 25 dBW nor a linear doubling's +3.01 dB. The by-value `dBW * 2.0` was already ill-formed; the compound
+  forms now agree with it.
+- **Adding or subtracting two decibel LEVELS in place is now ill-formed** (`dBW += dBW`, `dBW -= dBW`), matching the
+  already-deleted `dBW + dBW`. These previously failed inside the library, at an assignment that could not hold the
+  resulting gain, rather than at the call site.
+
+### Fixed
+- **Compound assignment of a cross-scale affine quantity applied the rhs's datum** (#402). `celsius(20) +=
+  fahrenheit(9)` reinterpreted the rhs as the absolute point −12.78 °C, giving 7.22 °C. The rhs of a compound move
+  is a relative *amount*, so only its scale factor applies: nine Fahrenheit-degrees of change is five
+  Celsius-degrees, and the result is 25 °C. The same holds for `-=` and for an offset-free rhs (`+= kelvin(5)`).
+- **A reading moved by an amount had no by-value form.** `celsius(20) + amount` and `amount + celsius(20)` now
+  compile and yield the moved reading, as the compound `+=` always did.
+- **Moving a decibel level by a dimensionless dB gain in place** (`dBW += decibels(3.25)`, and `-=`) now works. The
+  by-value `dBW + decibels(3.25)` already did; the compound form was rejected as a dimension mismatch, though a
+  gain is a ratio and moves a level exactly as a delta moves an affine point.
+- **A bare number added to or subtracted from a decibel value** (`decibels += 2.25`) reported a failure from inside
+  the library. It is now refused at the call site, naming a `decibels(...)` gain as the remedy.
+- **`delta<>` and `kind<>` wrapping an affine unit now scale.** Their by-value `*` and `/` delegated to the wrapped
+  unit's operator, which for an affine unit is (correctly) refused; a wrapper holds a magnitude, so it now scales
+  its own value. This also fixes `delta<dBW<double>> * 2.0`, which previously failed inside the library.
+
+### Added
+- Diagnostics naming a concrete remedy for every affine and decibel misuse, in place of a wall of declined
+  overloads. Each is graded by a case in `test/errorMessages/`.
+- `scripts/ci_local_msvc.cmd`, a local mirror of the MSVC CI leg (build + ctest, and `harness` for the
+  diagnostic-message suite). `scripts/ci_local.sh` covers the GCC leg only, so a change to operators, constraints,
+  or traits should be run through both.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

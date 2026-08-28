@@ -164,8 +164,11 @@ namespace units
 			/// selected catch-all overload fires ONLY when that overload is instantiated (never eagerly).
 			template<fixed_string...>
 			inline constexpr bool dependent_false = false;
-			template<class...>
-			inline constexpr bool dependent_false_t = false;
+
+			/// The TYPE-keyed form is defined once in core.h; this is the wrapper layer's spelling of it, not a second
+			/// definition. Only the tag-keyed form above is unique to this header.
+			template<class... T>
+			inline constexpr bool dependent_false_t = ::units::detail::dependent_false<T...>;
 
 			/// A three-way ordering of two plain units built from their own relational operators, so a wrapper's
 			/// `<=>` inherits the core unit's value-based (signedness-safe) comparison. `unit` exposes `<`/`==`, not
@@ -617,14 +620,17 @@ namespace units
 			return delta<U>(U(-wrap_detail::unwrap(d).raw()));
 		}
 
-		/// delta scaled by a bare number -> delta. The underlying type promotes exactly as the wrapped unit's own
-		/// `operator*` does (scaling an integer delta by a floating factor yields a floating delta — the wrapper
-		/// is never less precise than the unit it wraps).
+		/// delta scaled by a bare number -> delta. A delta holds a MAGNITUDE, so its own number is scaled and the
+		/// wrapped unit is rebuilt from it -- the wrapped unit's `operator*` is deliberately not used, because for an
+		/// affine unit scaling a point is refused (and would be meaningless here anyway). The underlying type promotes
+		/// exactly as the plain unit's `operator*` does, so scaling an integer delta by a floating factor yields a
+		/// floating delta and the wrapper is never less precise than the unit it wraps.
 		template<UnitType U, ArithmeticType T>
 		constexpr auto operator*(const delta<U>& lhs, T rhs) noexcept
 		{
-			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) * rhs);
-			return delta<ScaledUnit>(wrap_detail::unwrap(lhs) * rhs);
+			using Under      = std::common_type_t<typename U::underlying_type, T>;
+			using ScaledUnit = traits::replace_underlying_t<U, Under>;
+			return delta<ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) * static_cast<Under>(rhs)));
 		}
 		template<UnitType U, ArithmeticType T>
 		constexpr auto operator*(T lhs, const delta<U>& rhs) noexcept
@@ -632,12 +638,14 @@ namespace units
 			return rhs * lhs;
 		}
 
-		/// delta divided by a bare number -> delta (promotes like the wrapped unit's own `operator/`).
+		/// delta divided by a bare number -> delta, dividing its own magnitude (see `operator*` above) and promoting
+		/// exactly as the plain unit's `operator/` does.
 		template<UnitType U, ArithmeticType T>
 		constexpr auto operator/(const delta<U>& lhs, T rhs) noexcept
 		{
-			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) / rhs);
-			return delta<ScaledUnit>(wrap_detail::unwrap(lhs) / rhs);
+			using Under      = std::common_type_t<typename U::underlying_type, T>;
+			using ScaledUnit = traits::replace_underlying_t<U, Under>;
+			return delta<ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) / static_cast<Under>(rhs)));
 		}
 
 		/// Compound move of a point by a delta. The point stays in its own unit (in-place semantics), so the rhs
@@ -966,12 +974,14 @@ namespace units
 			return basic_kind<Tag, U>(U(-wrap_detail::unwrap(k).raw()));
 		}
 
-		/// kind scaled by a bare number -> kind (same tag), promoting like the wrapped unit's own `operator*`.
+		/// kind scaled by a bare number -> kind (same tag), scaling its own magnitude (as `delta` does, so a kind over
+		/// an affine unit still scales) and promoting exactly as the plain unit's `operator*` does.
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator*(const basic_kind<Tag, U>& lhs, T rhs) noexcept
 		{
-			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) * rhs);
-			return basic_kind<Tag, ScaledUnit>(wrap_detail::unwrap(lhs) * rhs);
+			using Under      = std::common_type_t<typename U::underlying_type, T>;
+			using ScaledUnit = traits::replace_underlying_t<U, Under>;
+			return basic_kind<Tag, ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) * static_cast<Under>(rhs)));
 		}
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator*(T lhs, const basic_kind<Tag, U>& rhs) noexcept
@@ -979,12 +989,13 @@ namespace units
 			return rhs * lhs;
 		}
 
-		/// kind divided by a bare number -> kind (same tag).
+		/// kind divided by a bare number -> kind (same tag), dividing its own magnitude.
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator/(const basic_kind<Tag, U>& lhs, T rhs) noexcept
 		{
-			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) / rhs);
-			return basic_kind<Tag, ScaledUnit>(wrap_detail::unwrap(lhs) / rhs);
+			using Under      = std::common_type_t<typename U::underlying_type, T>;
+			using ScaledUnit = traits::replace_underlying_t<U, Under>;
+			return basic_kind<Tag, ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) / static_cast<Under>(rhs)));
 		}
 
 		/// The ratio of two SAME-tag kinds is a plain dimensionless quantity — the tag cancels, exactly as the

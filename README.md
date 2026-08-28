@@ -85,7 +85,7 @@ stays small and the code stays legible.
   error. The dimensional analysis is performed by the type system.
 - **Decibel and logarithmic scales.** A unit's scale is part of its type. Alongside the default linear
   scale, `decibel_scale` provides `dBW`, `dBm`, and the dimensionless `dB`, with scale-correct
-  arithmetic — adding decibels multiplies the underlying linear quantities. A decibel-scale unit requires
+  arithmetic — adding a dB gain multiplies the underlying linear quantity. A decibel-scale unit requires
   a floating-point underlying type.
 - **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
   `conversion_factor<...>` template. See [Type errors](#type-errors).
@@ -251,15 +251,39 @@ scale like `kelvin`). Nothing here requires a wrapper:
 | `celsius(20)`, `fahrenheit(c)`, `c1 < c2` | reading, conversion, comparison | exact, always available |
 | `c += celsius(5)` / `+= fahrenheit(9)` / `+= kelvin(5)` | reading, moved by that amount | the rhs is a relative amount; its datum is never applied |
 | `c -= fahrenheit(18)` | reading, moved down | |
-| `t1 - t2` (any two readings) | **amount**, in the left operand's degrees | the datums cancel |
+| `t1 - t2` (two readings of the same underlying type) | **amount**, in the left operand's degrees | the datums cancel |
 | `c + amount`, `amount + c` | reading, moved | the by-value form of `+=`; commutative |
-| `c * 2.0`, `2.0 * c`, `c / 2.0` | **amount** in its own degrees | scaling a reading has no meaning; scaling the *amount* does |
-| `amount + amount`, `amount * 2.0`, `amount /= 4.0` | amount | an amount is an ordinary quantity |
+| `amount + amount`, `amount * 2.0`, `amount /= 4.0` | amount | an amount is an ordinary quantity, so it scales |
 | `kelvin + kelvin`, `kelvin * 2.0` | kelvin | an offset-free scale behaves as a magnitude |
 | `c1 + c2` (two readings) | **disabled** | subtract them for an amount, or move one with `+=` |
-| `c *= 2.0`, `c /= 2.0` | **disabled** | the in-place form cannot hold an amount — use `c * 2.0` |
+| `c * 2.0`, `2.0 * c`, `c / 2.0`, `c *= 2.0`, `c /= 2.0` | **disabled** | scaling a reading has no meaning — scale the *amount* (`t1 - t2`), or a `delta<celsius<double>>` |
+| `c * dimensionless(2)`, `c * percent(50)` | **disabled** | the same operation written differently, refused the same way |
 | `c += 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
 | `c += meters(1)` | **disabled** | different dimensions |
+
+Scaling a reading is **refused rather than reinterpreted**, and that is a deliberate limit worth understanding.
+The tempting behavior is to return "the change" — but a change cannot be represented as a bare unit, because the
+offset-free counterpart of an affine unit is itself a valid *absolute* unit (celsius's counterpart is
+kelvin-shaped). A returned change therefore converts straight back into the point type and re-applies the datum,
+so `celsius c = celsius(20) * 2.0;` would compile and read **−233.15 °C**. Rather than ship that, the operation
+is refused. What a user usually means is available without a wrapper — express the value as an amount and scale
+that:
+
+```cpp
+const auto rise = celsius<double>(20.0) - celsius<double>(0.0);   // an amount
+const auto twice = rise * 2.0;                                    // 40 K of change
+c += twice;                                                       // move the reading by it
+```
+
+`delta<celsius<double>>` from `<units/kind.h>` is the same thing with the intent stated in the type; it is a
+*distinct* type that does not convert back into a reading, so it scales freely and the assignment above cannot
+be written by mistake.
+
+One caveat on the *printed* form of an amount: the offset-free counterpart of celsius is kelvin-shaped and so
+prints as kelvin, and the counterparts of fahrenheit and reaumur have no strong name at all, so they also print
+in kelvin — `fahrenheit(212) - fahrenheit(32)` holds 180 Fahrenheit-degrees (`.raw()` is 180) but streams as
+`100 K`. The value is right in either reading; only the label is the base unit. `delta<fahrenheit<double>>`
+prints `delta 180 degF`.
 
 Every disabled row reports one line naming the remedy, not a wall of declined overloads:
 
@@ -372,7 +396,7 @@ algebra follows from it:
 | `level + gain`, `gain + level`, `level += gain` | level | the level moves by the gain |
 | `level - level` | **gain** | the references cancel, as two datums do |
 | `level - gain`, `level -= gain` | level | |
-| `++level`, `--level` | level | steps the dB number |
+| `++level`, `--level` | level | steps the dB *number* by one. Note the tension with the row below: these predate the level/gain model and are not held to it |
 | `level + level` | disabled | two 10 dBW sources are not a 20 dBW source — sum them in the linear domain, where two equal powers make +3 dB |
 | `level * 2.0`, `level *= 2.0`, `gain *= 2.0` | disabled | a dB number and the ratio behind it do not scale alike — scale the linear quantity |
 | `level += 5.0`, `gain += 5.0` | disabled | a bare number states neither a reference nor a ratio — add a `decibels(...)` gain |
@@ -386,7 +410,9 @@ auto gain = dBW<double>(15.75) - dBW<double>(12.5);           // 3.25 dB  — a 
 units::dBm<double>(dBW<double>(12.5));                        // 42.5 dBm — a milliwatt reference is 30 dB lower
 ```
 
-Every disabled row names its remedy rather than printing a candidate list:
+Each row above that names a remedy does so through a library diagnostic rather than a list of declined overloads.
+The by-value `level * 2.0`, `2.0 * level` and `level / 2.0` are the exception: they have no overload at all, so the
+compiler prints its own candidate list. Sample output:
 
 ```
 units: cannot scale a decibel value; scale the linear quantity instead.

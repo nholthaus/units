@@ -13,6 +13,6 @@ using namespace units;
 int main()
 {
 	units::decibels<double> gain(3.5);
-	gain += 2.25; // ill-formed: cannot add a bare number to a decibel value
+	gain += 2.25; // ill-formed
 	return 0;
 }

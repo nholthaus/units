@@ -2072,16 +2072,14 @@ TEST_F(UnitType, commonTypeRecoversComposedName)
 // meaningful when the quantity is genuinely dimensionless (a plain scalar or a ratio-scaled dimensionless); for any
 // other unit -- a length, a named angle, an affine temperature -- a bare number has no dimension to add, so the
 // expression must not be well-formed (matching the binary `unit + number`, which is already rejected).
-template<class A, class T>
-concept can_add_scalar = requires(A a, T scalar) { a += scalar; };
 
-// Companion concepts for the affine point rules: whether two quantities can be added, and whether a quantity can be
-// scaled by a bare number. A temperature is a POINT on an affine dimension (kelvin and rankine included, even though
-// they carry no per-unit offset), so point + point is undefined and a point does not scale.
+// Whether two quantities can be added. NOTE the limit of this probe: a refusal implemented as a body-level
+// `static_assert` still RESOLVES an overload, so the requires-expression is satisfied and this reports TRUE even for a
+// refused operation. It is evidence ONLY in the negative, and only where the refusal is expressed by overload
+// resolution -- `= delete`, as `dBW + dBW` is. Every other refusal is graded in test/errorMessages against the
+// compiler's real output, so no positive assertion is made here.
 template<class A, class B>
 concept can_add = requires(A a, B rhs) { a + rhs; };
-template<class A, class T>
-concept can_scale = requires(A a, T scalar) { a *= scalar; };
 
 // Affine (offset-carrying) units: the difference of two absolute temperatures is a DELTA — the datum
 // offsets cancel and the result must not re-apply an offset. Previously celsius(0) - kelvin(0) read 546.30 K
@@ -2226,10 +2224,10 @@ TEST_F(UnitType, matrixReadingCompoundMove)
 	re -= kelvin<double>(1.25);                      // 1.25 kelvin == 1 reaumur-degree
 	EXPECT_NEAR(23.4, re.value(), 5.0e-12);
 	static_assert(std::is_same_v<reaumur<double>, decltype(re)>, "a reaumur reading stays a reaumur reading");
-	// a reaumur difference is an amount, and scaling a reaumur reading yields one
+	// a reaumur difference is an amount, and that amount scales (the reading itself does not)
 	EXPECT_NEAR(8.4, (reaumur<double>(24.4) - reaumur<double>(16.0)).value(), 5.0e-12);
 	static_assert(!traits::is_affine_unit_v<decltype(reaumur<double>(1.0) - reaumur<double>(1.0))>, "a difference is offset-free");
-	static_assert(std::is_same_v<decltype(reaumur<double>(1.0) * 2.0), detail::delta_unit_t<reaumur<double>>>, "a scaled reading is a change");
+	EXPECT_NEAR(16.8, ((reaumur<double>(24.4) - reaumur<double>(16.0)) * 2.0).raw(), 5.0e-12);
 
 	// the point keeps its own type and remains a reading
 	static_assert(std::is_same_v<celsius<double>, decltype(c)>);
@@ -2252,22 +2250,36 @@ TEST_F(UnitType, matrixReadingDifferenceIsAChange)
 }
 
 // READING: scaled or divided by a number yields a CHANGE in its own degrees (scaling a point has no meaning), and
-// scalar multiplication stays commutative.
-TEST_F(UnitType, matrixReadingScaledYieldsAChange)
+// scaling one is refused in every spelling, and only a reading is refused.
+TEST_F(UnitType, matrixReadingDoesNotScale)
 {
 	using namespace units::temperature;
-	auto twice = celsius<double>(20.0) * 2.0;
-	EXPECT_NEAR(40.0, twice.value(), 5.0e-12);
-	static_assert(!traits::is_affine_unit_v<decltype(twice)>, "a scaled reading is a change");
-	static_assert(std::is_same_v<decltype(twice), decltype(celsius<double>(1) - celsius<double>(0))>,
-		"scaling yields the same change type a difference does");
 
-	EXPECT_NEAR(40.0, (2.0 * celsius<double>(20.0)).value(), 5.0e-12);                 // commutative
-	EXPECT_NEAR(10.0, (celsius<double>(20.0) / 2.0).value(), 5.0e-12);
-	EXPECT_NEAR(-7.5, (celsius<double>(-2.5) * 3.0).value(), 5.0e-12);                 // signed, fractional
-	EXPECT_NEAR(34.2, (fahrenheit<double>(22.8) * 1.5).value(), 5.0e-12);
-	// NOT compilable (errorMessages): celsius *= 2.0, celsius /= 2.0 -- the in-place form cannot hold a change
-	// NOT compilable (errorMessages): celsius + celsius, celsius + fahrenheit -- the sum of two readings
+	// Scaling a reading is refused rather than reinterpreted. Returning "the change" is not open to us: the
+	// offset-free counterpart of an affine unit is itself a valid ABSOLUTE unit (celsius's counterpart is
+	// kelvin-shaped), so a returned change converts straight back into the point type and re-applies the datum --
+	// `celsius c = celsius(20) * 2.0;` then compiles and reads -233.15 degC. The refusal names `units::delta<...>`,
+	// which IS a distinct type and does scale; the message and the remedy are graded by the errorMessages cases
+	// scale_affine_point / divide_affine_point_by_scalar / scale_affine_point_by_dimensionless, and the wrapper's
+	// scaling is exercised in wrapperTest.cpp.
+	//
+	// NOT compilable (errorMessages): celsius * 2.0, 2.0 * celsius, celsius / 2.0, and the same three written with a
+	// dimensionless QUANTITY instead of a bare number; celsius *= 2.0, celsius /= 2.0; celsius + celsius.
+
+	// The refusal is targeted: an offset-free scale carries no datum, so it is a magnitude and still scales.
+	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(150.0, (rankine<double>(300.0) / 2.0).value(), 5.0e-12);
+	static_assert(std::is_same_v<kelvin<double>, decltype(kelvin<double>(1) * 2.0)>, "an offset-free scale keeps its unit");
+
+	// A DIFFERENCE of two readings is still an amount, and that amount scales -- so the magnitude arithmetic a user
+	// wants is reachable without a wrapper as soon as the value is expressed as a difference rather than a reading.
+	const auto amount = celsius<double>(20.0) - celsius<double>(0.0);
+	static_assert(!traits::is_affine_unit_v<decltype(amount)>, "a difference is offset-free");
+	EXPECT_NEAR(40.0, (amount * 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(10.0, (amount / 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(40.0, (2.0 * amount).value(), 5.0e-12);
+	EXPECT_NEAR(-7.5, ((celsius<double>(-2.5) - celsius<double>(0.0)) * 3.0).value(), 5.0e-12);
+	EXPECT_NEAR(34.2, ((fahrenheit<double>(22.8) - fahrenheit<double>(0.0)) * 1.5).raw(), 5.0e-12);
 }
 
 // OFFSET-FREE temperature (kelvin, rankine): no datum in the type, so it behaves as a magnitude -- it adds,
@@ -2379,8 +2391,6 @@ TEST_F(UnitType, matrixNonTemperatureUnaffected)
 // cases add_scalar_to_length / add_scalar_to_angle / add_scalar_to_affine, so the diagnostic is checked too.
 TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
 {
-	static_assert(can_add_scalar<dimensionless<double>, double>, "a plain scalar accepts += a number");
-	static_assert(can_add_scalar<concentration::percent<double>, double>, "a ratio-scaled dimensionless accepts += a number");
 
 	dimensionless<double> scalar(1.0);
 	scalar += 2.5;
@@ -2420,8 +2430,6 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 
 	// level + level is disabled (two 12.5 dBW sources are not a 25 dBW source); gain + gain is not
 	static_assert(!can_add<dBW<double>, dBW<double>>, "adding two logarithmic levels has no meaning");
-	static_assert(can_add<decibels<double>, decibels<double>>, "adding two gains does");
-	static_assert(can_add<dBW<double>, decibels<double>>, "moving a level by a gain does");
 
 	// the in-place move of a gain by a gain is the compound form of gain + gain
 	decibels<double> gain(3.5);
@@ -2437,8 +2445,6 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	EXPECT_NEAR(12.5, moved.raw(), 5.0e-12);
 	static_assert(std::is_same_v<dBW<double>, decltype(moved)>, "a level moved in place stays a level");
 
-	static_assert(can_add_scalar<decibels<double>, decibels<double>>, "a gain moves by a gain");
-	static_assert(can_add_scalar<dBW<double>, decibels<double>>, "a level moves by a gain");
 
 	// Scaling a decibel value in place, and moving one by a bare number, are refused -- matching the by-value `dBW *
 	// 2.0` and `dBW + 2.0`, which have no overload either. `*=` formerly compiled and returned a value that was neither
@@ -2475,15 +2481,227 @@ TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
 	// the difference of two integer readings is an integer change in the left operand's degrees
 	EXPECT_EQ(14, (celsius<int>(21) - celsius<int>(7)).raw());
 
-	// scaling an integer reading yields an integer change
-	EXPECT_EQ(42, (celsius<int>(21) * 2).raw());
-	static_assert(std::is_same_v<decltype(celsius<int>(1) * 2), detail::delta_unit_t<celsius<int>>>, "an integer reading scaled is an integer change");
+	// an integer reading does not scale, but an integer difference does, and stays integer
+	const auto intAmount = celsius<int>(21) - celsius<int>(0);
+	EXPECT_EQ(42, (intAmount * 2).raw());
+	static_assert(std::is_same_v<int, typename decltype(intAmount * 2)::underlying_type>, "an integer amount scaled stays integer");
 
 	// an offset-free integer scale stays an ordinary magnitude
 	kelvin<int> k(21);
 	k += kelvin<int>(7);
 	EXPECT_EQ(28, k.raw());
 	EXPECT_EQ(28, (kelvin<int>(21) + kelvin<int>(7)).raw());
+}
+
+//======================================================================================================================
+//	CASE STUDIES
+//======================================================================================================================
+// Whole calculations of the kind a user actually writes, rather than one operator at a time. Each mixes several units
+// and several steps, so a rule that is individually correct but does not COMPOSE shows up here. Every expected value is
+// computed independently in exact rational arithmetic and uses fractional inputs, so a wrong conversion factor cannot
+// coincide with the right answer.
+
+// A building thermostat. The setpoint is in Fahrenheit, the sensor reports Celsius, and the deadband is quoted in
+// kelvin -- three scales in one control decision, which is exactly where a datum applied by mistake would show up. The
+// error is a DIFFERENCE of two readings, so it is an amount, and comparing it against the deadband is amount-to-amount.
+TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
+{
+	using namespace units::temperature;
+
+	// The night setback is quoted in kelvin: 2.5 K is 4.5 Fahrenheit-degrees, so the AMOUNT's scale factor applies
+	// while its (absent) datum does not. Quoting it in a DIFFERENT scale from the setpoint is deliberate -- a setback
+	// written in Fahrenheit would convert by a ratio of 1 and so could not detect a wrong conversion factor.
+	fahrenheit<double> setpoint(68.5);
+	setpoint -= kelvin<double>(2.5);
+	EXPECT_NEAR(64.0, setpoint.value(), 5.0e-12);
+	static_assert(std::is_same_v<fahrenheit<double>, decltype(setpoint)>, "a setpoint stays a reading");
+
+	// the sensor reads 17.25 degC, which is 63.05 degF -- below the setpoint, so heat would be called for
+	const celsius<double> sensor(17.25);
+	EXPECT_NEAR(63.05, fahrenheit<double>(sensor).value(), 5.0e-12);
+	EXPECT_TRUE(sensor < setpoint);
+
+	// the error is reading - reading, so an AMOUNT in the left operand's degrees; it must NOT be a reading, or a
+	// later conversion would apply Fahrenheit's datum to a difference
+	const auto error = setpoint - sensor;
+	EXPECT_NEAR(0.95, error.raw(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(error)>, "an error is an amount, not a reading");
+	EXPECT_NEAR(0.527777777777778, kelvin<double>(error).value(), 5.0e-12);
+
+	// the deadband is quoted in kelvin: 1.25 K is 2.25 Fahrenheit-degrees. The comparison is amount to amount.
+	const kelvin<double> deadband(1.25);
+	EXPECT_NEAR(2.25, decltype(error)(deadband).value(), 5.0e-12);
+	EXPECT_TRUE(units::abs(error) < deadband);    // 0.53 K of error is inside a 1.25 K deadband -- do not actuate
+}
+
+// An engine coolant loop warming up under a heater, checked against an overheat limit quoted in Fahrenheit. The rise
+// arrives as a RATE times a TIME -- an amount produced by dimensional analysis, never constructed as a temperature
+// reading -- and the headroom is a difference of two readings written in different scales.
+TEST_F(UnitType, caseStudyCoolantWarmupAgainstAnOverheatLimit)
+{
+	using namespace units::temperature;
+
+	// 2.75 K per second for 12.5 s is a 34.375 K rise. The product of a rate and a time is an AMOUNT by construction.
+	const auto heatRate = kelvin<double>(2.75) / units::time::seconds<double>(1.0);
+	const auto rise     = heatRate * units::time::seconds<double>(12.5);
+	EXPECT_NEAR(34.375, rise.value(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(rise)>, "a rise is an amount");
+
+	celsius<double> coolant(18.5);
+	coolant += rise;    // a kelvin amount converts into Celsius-degrees by a ratio of 1
+	EXPECT_NEAR(52.875, coolant.value(), 5.0e-12);
+
+	// A second stage is quoted in Fahrenheit-degrees, so the amount converts by 5/9: nine Fahrenheit-degrees of rise
+	// is five Celsius-degrees. Only a non-unity ratio can detect a wrong conversion factor here.
+	coolant += fahrenheit<double>(9.0);
+	EXPECT_NEAR(57.875, coolant.value(), 5.0e-12);
+
+	// the same reading displayed on the other three scales
+	EXPECT_NEAR(136.175, fahrenheit<double>(coolant).value(), 5.0e-12);
+	EXPECT_NEAR(46.3, reaumur<double>(coolant).value(), 5.0e-12);
+	EXPECT_NEAR(331.025, kelvin<double>(coolant).value(), 5.0e-12);
+
+	// the limit is quoted in Fahrenheit; the headroom is reading - reading, so an amount in Fahrenheit-degrees
+	const fahrenheit<double> limit(230.0);
+	EXPECT_NEAR(110.0, celsius<double>(limit).value(), 5.0e-12);
+	const auto headroom = limit - coolant;
+	EXPECT_NEAR(93.825, headroom.raw(), 5.0e-12);
+	EXPECT_TRUE(headroom > decltype(headroom)(0.0));    // still below the limit
+
+	// Halving the READING is meaningless as a temperature and is refused (errorMessages: scale_affine_point). What a
+	// user actually means -- half the RISE -- is a magnitude and scales without a wrapper.
+	EXPECT_NEAR(17.1875, (rise * 0.5).value(), 5.0e-12);
+	EXPECT_NEAR(19.6875, (coolant - celsius<double>(38.1875)).raw(), 5.0e-12);    // half the rise above the halfway point
+}
+
+// A historical instrument reads in Reaumur and its calibration offset is supplied in Rankine. Reaumur is affine (it
+// carries a datum) while Rankine is not (it is an absolute scale with Fahrenheit-sized degrees), so this exercises the
+// pure scale-ratio path in both directions: 1.44 degR is 0.8 K, which is 0.64 Reaumur-degrees and 0.8 Celsius-degrees.
+// All four scales must agree on the corrected reading.
+TEST_F(UnitType, caseStudyInstrumentCalibrationAcrossAllFourTemperatureScales)
+{
+	using namespace units::temperature;
+	static_assert(traits::is_affine_unit_v<reaumur<double>>, "reaumur carries a datum");
+	static_assert(!traits::is_affine_unit_v<rankine<double>>, "rankine is an absolute scale, so it carries no datum");
+
+	const reaumur<double> asRead(33.75);
+	EXPECT_NEAR(42.1875, celsius<double>(asRead).value(), 5.0e-12);
+	EXPECT_NEAR(107.9375, fahrenheit<double>(asRead).value(), 5.0e-12);
+
+	// the offset is an AMOUNT in Rankine: its own scale factor applies, its (absent) datum does not
+	const rankine<double> calibration(1.44);
+
+	reaumur<double> corrected = asRead;
+	corrected += calibration;
+	EXPECT_NEAR(34.39, corrected.value(), 5.0e-12);    // 1.44 degR == 0.64 Reaumur-degrees
+
+	celsius<double> correctedC(42.1875);
+	correctedC += calibration;
+	EXPECT_NEAR(42.9875, correctedC.value(), 5.0e-12);    // 1.44 degR == 0.8 Celsius-degrees
+
+	// every scale agrees on the corrected reading, which it would not if a datum had leaked into the offset
+	EXPECT_NEAR(42.9875, celsius<double>(corrected).value(), 5.0e-12);
+	EXPECT_NEAR(correctedC.value(), celsius<double>(corrected).value(), 5.0e-12);
+
+	// the correction itself, recovered as a difference, is an amount and not a reading
+	const auto applied = corrected - asRead;
+	EXPECT_NEAR(0.64, applied.raw(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(applied)>, "a correction is an amount");
+}
+
+// A satellite downlink budget: a transmit LEVEL walked through antenna gains and a path loss, converted to the
+// receiver's units, and compared against its sensitivity. Every intermediate is a level moved by a gain, and the final
+// margin is level - level, which must come out a dimensionless GAIN rather than a power level.
+TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
+{
+	using namespace units::power;
+
+	const auto received = dBW<double>(12.5)                 // transmitter output
+		+ units::decibels<double>(34.25)                    // transmit antenna gain
+		- units::decibels<double>(205.75)                   // free-space path loss
+		+ units::decibels<double>(42.5)                     // receive antenna gain
+		- units::decibels<double>(1.25);                    // receiver feed loss
+	EXPECT_NEAR(-117.75, received.raw(), 5.0e-9);
+	static_assert(std::is_same_v<dBW<double>, std::remove_cv_t<decltype(received)>>, "a level walked through gains is still a level");
+
+	// the receiver quotes dBm; a milliwatt reference sits 30 dB below a watt reference
+	const auto atReceiver = dBm<double>(received);
+	EXPECT_NEAR(-87.75, atReceiver.raw(), 5.0e-9);
+
+	// margin is level - level, so a GAIN: the references cancel
+	const auto margin = atReceiver - dBm<double>(-95.5);
+	EXPECT_NEAR(7.75, margin.raw(), 5.0e-9);
+	static_assert(traits::is_dimensionless_unit_v<decltype(margin)>, "a margin between two levels is a gain");
+	EXPECT_TRUE(margin > units::decibels<double>(3.0));    // the link closes with better than 3 dB of margin
+
+	// the same walk written in place
+	dBW<double> inPlace(12.5);
+	inPlace += units::decibels<double>(34.25);
+	inPlace -= units::decibels<double>(205.75);
+	inPlace += units::decibels<double>(42.5);
+	inPlace -= units::decibels<double>(1.25);
+	EXPECT_NEAR(received.raw(), inPlace.raw(), 5.0e-9);
+
+	// two transmitters do not add in the dB domain -- their POWERS add, which is +3 dB for two equal sources
+	static_assert(!can_add<dBW<double>, dBW<double>>, "adding two levels has no meaning");
+	const auto combined = units::power::watts<double>(dBW<double>(12.5)) * 2.0;
+	EXPECT_NEAR(3.0102999566398, (dBW<double>(combined) - dBW<double>(12.5)).raw(), 5.0e-9);
+}
+
+// Mixing two solutions. Concentrations are ratio-dimensionless, where the number a user writes (12.5 percent) and the
+// physical fraction it denotes (0.125) are deliberately different -- `raw()` is the former, `value()` the latter. A
+// weighted blend has to use the fraction, and the result must re-express correctly in both percent and ppm.
+TEST_F(UnitType, caseStudySolutionMixingConcentration)
+{
+	using units::concentration::parts_per_million;
+	using units::concentration::percent;
+	using units::volume::liters;
+
+	const percent<double> strong(12.5);
+	EXPECT_NEAR(12.5, strong.raw(), 5.0e-12);      // the number as written
+	EXPECT_NEAR(0.125, strong.value(), 5.0e-12);   // the fraction it denotes
+
+	const auto solute = liters<double>(2.5) * strong + liters<double>(7.5) * percent<double>(3.25);
+	const auto total  = liters<double>(2.5) + liters<double>(7.5);
+	EXPECT_NEAR(0.55625, solute.value(), 5.0e-12);
+	EXPECT_NEAR(10.0, total.value(), 5.0e-12);
+
+	// a volume over a volume is dimensionless, and re-expressing it must not double-apply the ratio
+	const auto blended = solute / total;
+	EXPECT_NEAR(0.055625, blended.value(), 5.0e-12);
+	EXPECT_NEAR(5.5625, percent<double>(blended).raw(), 5.0e-12);
+	EXPECT_NEAR(55625.0, parts_per_million<double>(blended).raw(), 5.0e-9);
+
+	// the blend sits between its two inputs, as any weighted mean must
+	EXPECT_TRUE(percent<double>(3.25) < percent<double>(blended));
+	EXPECT_TRUE(percent<double>(blended) < strong);
+}
+
+// A launch energy budget, carried entirely by dimensional analysis: mass and velocity give energy, energy over time
+// gives power, and no step names the result unit. This is the regression guard that the affine and decibel rules did
+// not disturb ordinary dimensioned arithmetic, exercised as a real calculation rather than one operator at a time.
+TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
+{
+	const units::mass::kilograms<double>            mass(4.25);
+	const units::velocity::meters_per_second<double> speed(87.5);
+
+	const auto kinetic = 0.5 * mass * speed * speed;
+	EXPECT_NEAR(16269.53125, kinetic.value(), 5.0e-9);
+	EXPECT_NEAR(16.26953125, units::energy::kilojoules<double>(kinetic).value(), 5.0e-12);
+
+	const auto averagePower = kinetic / units::time::seconds<double>(3.5);
+	EXPECT_NEAR(4648.4375, averagePower.value(), 5.0e-9);
+	EXPECT_NEAR(4.6484375, units::power::kilowatts<double>(averagePower).value(), 5.0e-12);
+
+	// the energy is recoverable from the power and the burn time, closing the loop
+	EXPECT_NEAR(kinetic.value(), (averagePower * units::time::seconds<double>(3.5)).value(), 5.0e-9);
+
+	// scaling and accumulating an ordinary quantity is unchanged by the affine rules: it stays its own type
+	auto budget = units::energy::joules<double>(0.0);
+	budget += kinetic;
+	budget += kinetic * 0.5;
+	EXPECT_NEAR(24404.296875, budget.value(), 5.0e-9);
+	static_assert(std::is_same_v<units::energy::joules<double>, decltype(budget)>, "a scaled energy is still an energy");
 }
 
 TEST_F(UnitType, unitTypeUnarySubtraction)

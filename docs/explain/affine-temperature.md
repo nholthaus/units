@@ -33,8 +33,7 @@ Reading these:
   `27315/100 = 273.15` — the kelvin value of the ice point. So `0 °C` is `273.15 K`.
 - **fahrenheit** is defined relative to celsius: a degree Fahrenheit is `5/9` of a degree Celsius, plus
   its own datum offset. Its zero and step differ from both other scales.
-- **reaumur** and **rankine** are *pure ratios* of celsius and kelvin respectively — no offset — and so
-  behave like ordinary multiplicative units. Rankine is the absolute scale sized in Fahrenheit degrees.
+- **rankine** is a *pure ratio* of kelvin — no offset — and so behaves like an ordinary multiplicative unit. **reaumur** does not: it is defined against celsius and inherits its datum, so it is affine exactly as celsius and fahrenheit are (`traits::is_affine_unit_v<reaumur<double>>` is `true`, and `kelvin(reaumur(0))` is 273.15, not 0). The library has three affine units, not two. Rankine is the absolute scale sized in Fahrenheit degrees.
 
 The presence of a non-zero translation ratio is exactly what makes a scale affine rather than linear.
 

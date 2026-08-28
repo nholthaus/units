@@ -37,8 +37,21 @@ step "5. UBSan warm build + ctest (Debug)"
   -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined" > /tmp/ci_ubsan_cfg.log 2>&1 || { echo "UBSAN CONFIGURE FAILED"; cat /tmp/ci_ubsan_cfg.log; exit 1; }
 cmake --build build-ci-ubsan --parallel 2>&1 | tail -2 && ( cd build-ci-ubsan && ctest --output-on-failure --parallel 4 2>&1 | tail -3 ) || fail=1
 
+step "6. Doxygen docs (warnings are errors, as on a PR)"
+# The docs CI leg sets DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS for pull requests, and it reads it at CONFIGURE time
+# (the value is substituted into the generated Doxyfile), so it must be set on the cmake call, not the build. A
+# markdown edit under docs/ can fail this leg while every compiler leg stays green -- that is how a mangled
+# docs/explain page reached CI once.
+if command -v doxygen > /dev/null; then
+	[ -f build-docs/CMakeCache.txt ] || DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
+		-DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF > /tmp/ci_docs_cfg.log 2>&1 || { echo "DOCS CONFIGURE FAILED"; cat /tmp/ci_docs_cfg.log; fail=1; }
+	cmake --build build-docs --target doc > /tmp/ci_docs.log 2>&1 && echo "doxygen clean" || { echo "DOXYGEN FAILED:"; grep -E ": (error|warning):" /tmp/ci_docs.log | head -20; fail=1; }
+else
+	echo "(doxygen not installed; the docs CI leg cannot be mirrored here)"
+fi
+
 if [ $FULL -eq 1 ]; then
-	step "6. errorMessages diagnostic harness (g++-13, c++23) [--full]"
+	step "7. errorMessages diagnostic harness (g++-13, c++23) [--full]"
 	python3 test/errorMessages/run.py --cc $CC --std c++23 --include include --jobs 4 2>&1 | tail -2 || fail=1
 else
 	echo; echo "(skipped the ~130s errorMessages harness; pass --full when diagnostics/operators/serialization changed)"

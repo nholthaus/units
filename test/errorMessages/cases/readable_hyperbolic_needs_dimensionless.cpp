@@ -19,7 +19,7 @@
 #include <units/length.h>
 using namespace units;
 using namespace units::literals;
-auto bad = cosh(1.0_m); // ill-formed: cosh expects a dimensionless value, not a length
+auto bad = cosh(1.0_m); // ill-formed
 int main()
 {
 	(void)bad;

@@ -206,6 +206,15 @@ DOC_CASES = {
     "scalar-plus-unit":    "readable_scalar_plus_unit.cpp",
     "trig-needs-angle":    "readable_trig_needs_angle.cpp",
     "compare-dimensions":  "readable_compare_across_dimensions.cpp",
+    # The affine and decibel refusals, whose messages the README quotes verbatim. Registered here so the quoted
+    # text is regenerated from the compiler rather than hand-typed, and cannot drift as the diagnostics change.
+    "add-two-affine-points":   "add_two_temperature_points.cpp",
+    "scale-affine-point":      "scale_affine_point.cpp",
+    "add-scalar-to-affine":    "add_scalar_to_affine.cpp",
+    "scale-decibel-level":     "scale_decibel_level.cpp",
+    "add-scalar-to-decibel":   "add_scalar_to_decibel.cpp",
+    "add-different-dimensions": "add_different_dimensions.cpp",
+    "multiply-in-place":       "multiply_in_place_by_quantity.cpp",
 }
 
 def trim_diagnostic(out, abs_path, case_name, max_lines=8):

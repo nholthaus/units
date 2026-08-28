@@ -4,7 +4,7 @@
 //
 // expect: fail
 // expect-match: cannot add two affine points
-// expect-match: units::delta<
+// expect-match: subtract them for an amount
 // expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<

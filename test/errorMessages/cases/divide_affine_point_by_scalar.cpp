@@ -14,6 +14,6 @@ using namespace units;
 int main()
 {
 	units::temperature::celsius<double> c(20.0);
-	c /= 2.0; // ill-formed: cannot divide an affine point by a bare number
+	c /= 2.0; // ill-formed
 	return 0;
 }

@@ -15,7 +15,7 @@ using namespace units::literals;
 void scale()
 {
 	units::length::meters<int> m(3);
-	m *= 1.5; // lossy: warns (float -> int), does not fail
+	m *= 1.5; // ill-formed
 }
 int main()
 {

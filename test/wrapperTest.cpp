@@ -1391,3 +1391,55 @@ TEST(WrapperConvert, pointMinMaxClampCrossScaleKeepsLhsUnitAndDatum)
 	EXPECT_DOUBLE_EQ(0.0, affine::clamp(A<celsius<double>>(-10.0), lo, hi).value());
 	EXPECT_DOUBLE_EQ(37.5, affine::clamp(A<celsius<double>>(37.5), lo, hi).value()); // in-range fractional passes through
 }
+
+// The wrapper is the REMEDY the bare-unit diagnostics name, so it has to actually work for an affine unit. A plain
+// affine reading refuses to scale (a datum-relative value has no meaningful multiple), which means a wrapper cannot
+// implement its own scaling by delegating to the wrapped unit's `operator*` -- it holds a MAGNITUDE, so it scales its
+// own value and rebuilds the unit. These pin that, since a regression here silently turns the documented remedy into
+// a library-internal compile error.
+TEST(WrapperDelta, affineDeltaScalesEvenThoughTheReadingItWrapsDoesNot)
+{
+	using units::temperature::celsius;
+	using units::temperature::fahrenheit;
+
+	D<celsius<double>> change(20.5);
+	EXPECT_DOUBLE_EQ(41.0, (change * 2.0).value());
+	EXPECT_DOUBLE_EQ(41.0, (2.0 * change).value());
+	EXPECT_DOUBLE_EQ(8.2, (change / 2.5).value());
+	change *= 2.0;
+	EXPECT_DOUBLE_EQ(41.0, change.value());
+	change /= 4.0;
+	EXPECT_DOUBLE_EQ(10.25, change.value());
+
+	// the wrapped unit is preserved, so the magnitude stays in its own degrees rather than sliding to the base scale
+	D<fahrenheit<double>> inFahrenheit(18.0);
+	EXPECT_DOUBLE_EQ(27.0, (inFahrenheit * 1.5).value());
+	static_assert(std::is_same_v<D<fahrenheit<double>>, std::remove_cv_t<decltype(inFahrenheit * 1.5)>>,
+		"scaling a delta keeps both the wrapper and the unit it wraps");
+
+	// scaling an integer-backed delta by a floating factor promotes, exactly as the plain unit's operator* does
+	D<celsius<int>> integral(21);
+	EXPECT_DOUBLE_EQ(52.5, (integral * 2.5).value());
+	static_assert(std::is_same_v<double, typename std::remove_cv_t<decltype(integral * 2.5)>::underlying_type>,
+		"an integer delta scaled by a floating factor promotes");
+
+	// and a scaled delta still moves a point, which is the whole reason to have it
+	A<celsius<double>> reading(20.0);
+	reading += D<celsius<double>>(2.5) * 2.0;
+	EXPECT_DOUBLE_EQ(25.0, reading.value());
+}
+
+// A kind wrapping an affine unit scales for the same reason a delta does; it also holds a magnitude with a tag.
+TEST(WrapperDelta, affineKindScalesAndKeepsItsTag)
+{
+	using units::temperature::celsius;
+	using units::kind;
+
+	kind<"cabin", celsius<double>> tagged(20.5);
+	EXPECT_DOUBLE_EQ(41.0, (tagged * 2.0).value());
+	EXPECT_DOUBLE_EQ(8.2, (tagged / 2.5).value());
+	static_assert(std::is_same_v<kind<"cabin", celsius<double>>, std::remove_cv_t<decltype(tagged * 2.0)>>,
+		"scaling a kind keeps its tag and its unit");
+	tagged *= 2.0;
+	EXPECT_DOUBLE_EQ(41.0, tagged.value());
+}
