@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <locale>
 #include <ratio>
 #include <sstream>
@@ -3430,6 +3431,40 @@ TEST_F(UnitType, runtimeLossyRoundingConversion)
 	EXPECT_DOUBLE_EQ(4.0, units::ceil(meters<double>(3.7)).value());
 	EXPECT_DOUBLE_EQ(4.0, units::round(meters<double>(3.7)).value());
 	EXPECT_DOUBLE_EQ(3.0, units::trunc(meters<double>(3.7)).value());
+
+	// #400: an unsigned source whose magnitude exceeds the widest SIGNED integer must keep its value through the
+	// conversion, not be narrowed to a negative intermediate first. On a platform whose widest signed type is 64-bit
+	// (no __int128), casting UINT64_MAX to signed would wrap to -1 and yield 0; the unsigned intermediate preserves
+	// it. UINT64_MAX bits floored to bytes is UINT64_MAX / 8 = 2305843009213693951.
+	constexpr std::uint64_t maxBits = std::numeric_limits<std::uint64_t>::max();
+	EXPECT_EQ(2305843009213693951ULL, units::floor<bytes<std::uint64_t>>(bits<std::uint64_t>(maxBits)).value());
+	EXPECT_EQ(2305843009213693952ULL, units::ceil<bytes<std::uint64_t>>(bits<std::uint64_t>(maxBits)).value());
+	// UINT64_MAX = 8 * 2305843009213693951 + 7, so the remainder 7/8 rounds up to the next byte for nearest-half-away.
+	EXPECT_EQ(2305843009213693952ULL, units::round<bytes<std::uint64_t>>(bits<std::uint64_t>(maxBits)).value());
+	EXPECT_EQ(2305843009213693951ULL, units::trunc<bytes<std::uint64_t>>(bits<std::uint64_t>(maxBits)).value());
+	// An exact unsigned multiple near the top of the range converts exactly (no rounding).
+	EXPECT_EQ(maxBits / 8 - 1, units::floor<bytes<std::uint64_t>>(bits<std::uint64_t>((maxBits / 8 - 1) * 8)).value());
+}
+
+// #400, platform-independent guard: on a platform whose widest signed integer is 64-bit (MSVC without __int128) the
+// unsigned-intermediate selection is what keeps a huge unsigned source correct -- this box has __int128, which would
+// mask the bug, so this test replicates the conversion's integer path with the intermediate FORCED to 64-bit and
+// proves the unsigned intermediate preserves the value where a signed one wraps it to zero. It mirrors the selection
+// rule in detail::rounded_unit_cast without depending on the platform's actual widest-integer width.
+TEST_F(UnitType, unsignedRoundingIntermediateSurvivesNarrowSignedWidth)
+{
+	// The floor-of-a-nonnegative conversion value*num/den with a FORCED 64-bit intermediate (num=1, den=8: bits->bytes).
+	const auto floorWithIntermediate = [](auto intermediateTag, std::uint64_t raw) -> std::uint64_t {
+		using Intermediate = decltype(intermediateTag);
+		const Intermediate value    = static_cast<Intermediate>(raw);
+		const Intermediate quotient = (value * static_cast<Intermediate>(1)) / static_cast<Intermediate>(8);
+		return static_cast<std::uint64_t>(quotient);
+	};
+	const std::uint64_t maxBits = std::numeric_limits<std::uint64_t>::max();
+	// The unsigned 64-bit intermediate (what the fix selects for an unsigned source+target) preserves the magnitude.
+	EXPECT_EQ(2305843009213693951ULL, floorWithIntermediate(std::uint64_t{0}, maxBits));
+	// A signed 64-bit intermediate (the pre-fix path) wraps UINT64_MAX to -1 and yields 0 -- the defect this guards.
+	EXPECT_EQ(0ULL, floorWithIntermediate(std::int64_t{0}, maxBits));
 }
 
 #ifndef UNIT_LIB_DISABLE_IOSTREAM

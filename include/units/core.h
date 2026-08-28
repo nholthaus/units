@@ -5578,14 +5578,21 @@ namespace units
 
 			if constexpr (std::is_integral_v<FromRep>)
 			{
-				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder.
+				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder. The
+				// intermediate is the widest UNSIGNED integer when both source and target are unsigned, so an unsigned
+				// magnitude wider than the signed intermediate can hold (e.g. a uint64 near its maximum on a platform
+				// whose widest signed type is 64-bit) is not narrowed to a negative value before the conversion; any
+				// signed operand keeps the signed intermediate so negative sources and toward-negative rounding stay
+				// correct. A conversion ratio's num and den are always positive, so the quotient and remainder are
+				// non-negative on the unsigned path and the rounding modes behave as for a non-negative value.
 				using Ratio = std::ratio_divide<typename From::conversion_factor::conversion_ratio, typename To::conversion_factor::conversion_ratio>;
-				const widest_signed_int value   = static_cast<widest_signed_int>(x.raw());
-				const widest_signed_int product = value * static_cast<widest_signed_int>(Ratio::num);
-				const widest_signed_int den     = static_cast<widest_signed_int>(Ratio::den);
-				const widest_signed_int quotient  = product / den;
-				const widest_signed_int remainder = product % den;
-				const widest_signed_int rounded   = apply_integer_rounding(quotient, remainder, den, mode);
+				using Intermediate = std::conditional_t<std::is_unsigned_v<FromRep> && std::is_unsigned_v<ToRep>, widest_unsigned_int, widest_signed_int>;
+				const Intermediate value   = static_cast<Intermediate>(x.raw());
+				const Intermediate product = value * static_cast<Intermediate>(Ratio::num);
+				const Intermediate den     = static_cast<Intermediate>(Ratio::den);
+				const Intermediate quotient  = product / den;
+				const Intermediate remainder = product % den;
+				const Intermediate rounded   = apply_integer_rounding(quotient, remainder, den, mode);
 				return To(static_cast<ToRep>(rounded), linearized_value);
 			}
 			else
