@@ -7957,6 +7957,36 @@ TEST_F(Serialization, streamOperatorsRoundTripBinary)
 	EXPECT_DOUBLE_EQ(7.0, target.to<units::meters<double>>()->value()); // unchanged
 }
 
+// #399: deserialize(istream) consumes exactly ONE record, not the whole remaining stream. Reading a record from a
+// long sequence must leave the get-position at that record's end (so N reads are linear, not a quadratic re-drain of
+// the remainder each call). This checks the position deterministically rather than timing, so it is not flaky.
+TEST_F(Serialization, streamDeserializeConsumesOneRecordNotTheRemainder)
+{
+	std::stringstream seq(std::ios::in | std::ios::out | std::ios::binary);
+	const units::any_unit r0 = units::serialize(units::meters<double>(1.0));
+	const units::any_unit r1 = units::serialize(units::seconds<double>(2.0));
+	const units::any_unit r2 = units::serialize(units::kilograms<double>(3.0));
+	seq << r0 << r1 << r2;
+	const std::streamoff total = static_cast<std::streamoff>(r0.size() + r1.size() + r2.size());
+
+	seq.seekg(0);
+	const auto d0 = units::deserialize(seq);
+	ASSERT_TRUE(d0.has_value());
+	// the position advanced by exactly the first record, NOT to end-of-stream (which a whole-remainder drain would do)
+	EXPECT_EQ(static_cast<std::streamoff>(r0.size()), static_cast<std::streamoff>(seq.tellg()));
+	EXPECT_LT(static_cast<std::streamoff>(seq.tellg()), total);
+
+	const auto d1 = units::deserialize(seq);
+	ASSERT_TRUE(d1.has_value());
+	EXPECT_EQ(static_cast<std::streamoff>(r0.size() + r1.size()), static_cast<std::streamoff>(seq.tellg()));
+	EXPECT_DOUBLE_EQ(2.0, d1->to<units::seconds<double>>()->value());
+
+	const auto d2 = units::deserialize(seq);
+	ASSERT_TRUE(d2.has_value());
+	EXPECT_EQ(total, static_cast<std::streamoff>(seq.tellg()));
+	EXPECT_DOUBLE_EQ(3.0, d2->to<units::kilograms<double>>()->value());
+}
+
 // deserialize<Unit>(istream) reads and collapses in one checked step (the front-page idiom).
 TEST_F(Serialization, typedDeserializeFromStream)
 {
