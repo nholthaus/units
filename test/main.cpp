@@ -2213,6 +2213,24 @@ TEST_F(UnitType, matrixReadingCompoundMove)
 	f -= kelvin<double>(5.0);
 	EXPECT_NEAR(68.0, f.value(), 5.0e-12);
 
+	// Reaumur is the library's THIRD affine unit, and the rules key on the datum rather than on a named list of
+	// units, so it takes the identical paths. Its degree is 5/4 of a celsius degree (80 degRe spans 100 degC), so a
+	// 8.4 degRe change is a 10.5 degC change.
+	static_assert(traits::is_affine_unit_v<reaumur<double>>, "reaumur carries a datum");
+	celsius<double> viaReaumur(20.5);
+	viaReaumur += reaumur<double>(8.4);
+	EXPECT_NEAR(31.0, viaReaumur.value(), 5.0e-12);
+	reaumur<double> re(16.0);
+	re += celsius<double>(10.5);                     // 10.5 celsius-degrees == 8.4 reaumur-degrees
+	EXPECT_NEAR(24.4, re.value(), 5.0e-12);
+	re -= kelvin<double>(1.25);                      // 1.25 kelvin == 1 reaumur-degree
+	EXPECT_NEAR(23.4, re.value(), 5.0e-12);
+	static_assert(std::is_same_v<reaumur<double>, decltype(re)>, "a reaumur reading stays a reaumur reading");
+	// a reaumur difference is an amount, and scaling a reaumur reading yields one
+	EXPECT_NEAR(8.4, (reaumur<double>(24.4) - reaumur<double>(16.0)).value(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(reaumur<double>(1.0) - reaumur<double>(1.0))>, "a difference is offset-free");
+	static_assert(std::is_same_v<decltype(reaumur<double>(1.0) * 2.0), detail::delta_unit_t<reaumur<double>>>, "a scaled reading is a change");
+
 	// the point keeps its own type and remains a reading
 	static_assert(std::is_same_v<celsius<double>, decltype(c)>);
 	static_assert(traits::is_affine_unit_v<decltype(c)>);
