@@ -2682,6 +2682,63 @@ TEST_F(UnitType, unitTypeModulo)
 	EXPECT_EQ(vec[9], 100_pct);
 }
 
+// True iff `a % b` / `a %= b` are valid expressions. `%` is an integer count operation on point values, so it is
+// well-formed only when the operands share a tick scale and are integer-backed. These concepts let the contract be
+// asserted directly: a case that must NOT compile is a `static_assert(!Can...<...>)`.
+template<class A, class B>
+concept can_modulo = requires(A a, B b) { a % b; };
+template<class A, class B>
+concept can_modulo_assign = requires(A a, B b) { a %= b; };
+
+// The full modulo contract, proven exhaustively rather than by inference: which operand pairs `%`/`%=` accept and
+// which it rejects at compile time. Integer-backed operands of the SAME tick scale (or a ratio unit modulo a plain
+// dimensionless / bare integer) are accepted; two DIFFERENT ratio-scaled dimensionless units share no tick, and any
+// floating-point operand is not a count, so both are rejected -- a floating remainder is `fmod`'s job.
+TEST_F(UnitType, moduloContract)
+{
+	// Accepted: same tick scale, integer-backed.
+	static_assert(can_modulo<percent<int>, percent<int>>);
+	static_assert(can_modulo<parts_per_million<int>, parts_per_million<int>>);
+	static_assert(can_modulo<meters<int>, meters<int>>);
+	static_assert(can_modulo<meters<int>, kilometers<int>>);
+	static_assert(can_modulo<dimensionless<int>, dimensionless<int>>);
+
+	// Accepted: a ratio-scaled unit modulo a plain dimensionless or a bare integer (a pure count).
+	static_assert(can_modulo<percent<int>, dimensionless<int>>);
+	static_assert(can_modulo<dimensionless<int>, percent<int>>);
+	static_assert(can_modulo<percent<int>, int>);
+	static_assert(can_modulo<dimensionless<int>, int>);
+	static_assert(can_modulo<meters<int>, int>);
+
+	// Rejected: two DIFFERENT ratio-scaled dimensionless units share no tick scale, so the remainder of their point
+	// counts has no meaning.
+	static_assert(!can_modulo<percent<int>, parts_per_million<int>>);
+	static_assert(!can_modulo<parts_per_million<int>, percent<int>>);
+	static_assert(!can_modulo<percent<int>, parts_per_billion<int>>);
+	static_assert(!can_modulo<parts_per_million<int>, parts_per_billion<int>>);
+
+	// Rejected: `%` is integer-only. A floating-point operand is not a count; use `fmod` for a floating remainder.
+	static_assert(!can_modulo<percent<double>, percent<double>>);
+	static_assert(!can_modulo<meters<double>, meters<double>>);
+	static_assert(!can_modulo<dimensionless<double>, dimensionless<double>>);
+	static_assert(!can_modulo<percent<double>, dimensionless<double>>);
+	static_assert(!can_modulo<meters<double>, int>);
+	static_assert(!can_modulo<percent<int>, double>);
+
+	// `%=` follows the same contract.
+	static_assert(can_modulo_assign<percent<int>, percent<int>>);
+	static_assert(can_modulo_assign<meters<int>, meters<int>>);
+	static_assert(can_modulo_assign<percent<int>, dimensionless<int>>);
+	static_assert(!can_modulo_assign<percent<int>, parts_per_million<int>>);
+	static_assert(!can_modulo_assign<percent<double>, percent<double>>);
+	static_assert(!can_modulo_assign<meters<double>, meters<double>>);
+
+	// The accepted integer cases compute the expected count remainder.
+	EXPECT_EQ(2_pct, percent<int>(12) % percent<int>(5));
+	EXPECT_EQ(2_pct, percent<int>(12) % dimensionless<int>(5));
+	EXPECT_EQ(meters<int>(1), meters<int>(10) % meters<int>(3));
+}
+
 TEST_F(UnitType, compoundAssignmentAddition)
 {
 	// units
@@ -5250,6 +5307,57 @@ TEST_F(UnitMath, max)
 	EXPECT_EQ(e_cm, max(d_m, e_cm));
 }
 
+// min/max return the LEFT operand's named unit when that is lossless (both operands floating point, or the right
+// converts into the left without integer truncation), matching operator+/-. They select an operand, so they do NOT
+// floating-point promote: an integral same-unit min stays integral, and the integer-lossy fallback is the exact
+// std::common_type_t of the two units (unlike hypot/fmax, which promote). The floating-point cases return a NAMED
+// unit -- never an anonymous common unit for otherwise-representable operands: min(5m, 3ft) is meters<double>(0.9144),
+// not an anonymous 1/381-foot unit holding 1143. clamp mirrors this in the value's own unit.
+TEST_F(UnitMath, minMaxClampReturnLeftOperandUnit)
+{
+	// Return type: floating-point operands -> the LEFT operand's named unit, in either order (the anonymous common
+	// unit never leaks for representable floating-point operands).
+	static_assert(std::is_same_v<decltype(min(meters<double>(5), feet<double>(3))), meters<double>>);
+	static_assert(std::is_same_v<decltype(min(feet<double>(3), meters<double>(5))), feet<double>>);
+	static_assert(std::is_same_v<decltype(max(meters<double>(5), feet<double>(3))), meters<double>>);
+	static_assert(std::is_same_v<decltype(max(feet<double>(3), meters<double>(5))), feet<double>>);
+
+	// General across dimensions: the same left-operand-unit rule holds for time.
+	static_assert(std::is_same_v<decltype(min(seconds<double>(90), minutes<double>(1))), seconds<double>>);
+	static_assert(std::is_same_v<decltype(min(minutes<double>(1), seconds<double>(90))), minutes<double>>);
+	static_assert(std::is_same_v<decltype(max(seconds<double>(90), minutes<double>(1))), seconds<double>>);
+	static_assert(std::is_same_v<decltype(max(minutes<double>(1), seconds<double>(90))), minutes<double>>);
+
+	// Integer-lossy fallback: feet<int> does not convert into meters<int> without truncation, so the result is NOT the
+	// left int unit but the exact common unit -- min/max select an operand and do not promote, so no float wrapping.
+	static_assert(!std::is_same_v<decltype(min(meters<int>(5), feet<int>(3))), meters<int>>);
+	static_assert(std::is_same_v<decltype(min(meters<int>(5), feet<int>(3))), std::common_type_t<meters<int>, feet<int>>>);
+	static_assert(!std::is_same_v<decltype(max(meters<int>(5), feet<int>(3))), meters<int>>);
+	static_assert(std::is_same_v<decltype(max(meters<int>(5), feet<int>(3))), std::common_type_t<meters<int>, feet<int>>>);
+
+	// Same-unit integral stays integral -- no float promotion when both operands share the unit.
+	static_assert(std::is_same_v<decltype(min(meters<int>(5), meters<int>(3))), meters<int>>);
+	static_assert(std::is_same_v<decltype(max(meters<int>(5), meters<int>(3))), meters<int>>);
+
+	// clamp returns the value's own unit when lossless, including the cross-unit case (lo/hi in another named unit).
+	static_assert(std::is_same_v<decltype(clamp(meters<double>(2), feet<double>(1), meters<double>(3))), meters<double>>);
+	static_assert(std::is_same_v<decltype(clamp(feet<double>(0.5), feet<double>(1), feet<double>(3))), feet<double>>);
+
+	// Values: min/max carry the correct physical quantity in the left operand's unit.
+	EXPECT_NEAR(0.9144, min(meters<double>(5), feet<double>(3)).value(), 5.0e-9);   // 3 ft expressed in meters
+	EXPECT_DOUBLE_EQ(5.0, max(meters<double>(5), feet<double>(3)).value());
+	EXPECT_EQ(3, min(meters<int>(5), meters<int>(3)).value());
+
+	// clamp: above hi -> hi, below lo -> lo, in range -> value, each in the value's unit.
+	EXPECT_DOUBLE_EQ(3.0, clamp(meters<double>(5), meters<double>(1), meters<double>(3)).value());
+	EXPECT_DOUBLE_EQ(1.0, clamp(meters<double>(0.0), meters<double>(1), meters<double>(3)).value());
+	EXPECT_DOUBLE_EQ(2.0, clamp(meters<double>(2), meters<double>(1), meters<double>(3)).value());
+	EXPECT_DOUBLE_EQ(1.0, clamp(feet<double>(0.5), feet<double>(1), feet<double>(3)).value());
+
+	// Cross-unit clamp: value 2 m is within [1 ft, 3 m], returned in the value's unit (meters).
+	EXPECT_DOUBLE_EQ(2.0, clamp(meters<double>(2), feet<double>(1), meters<double>(3)).value());
+}
+
 // Regression for issue #394: fmax/fmin select the larger/smaller quantity and keep the result in the common
 // unit's raw scale, including for ratio-scaled dimensionless units. fmax(50%, 25%) is 50% (raw 50), not 0.5%.
 // The functions have a single evaluation path built on .raw() (not the normalized .value()), so the C++23
@@ -6589,6 +6697,38 @@ TEST_F(Serialization, roundTripCurrentAndCharge)
 	expectRoundTrip(units::milliamperes<double>(500.0));
 	expectRoundTrip(units::coulombs<double>(1.0));
 	expectRoundTrip(units::ampere_hours<double>(3.0));
+}
+
+// Ratio-scaled dimensionless units (percent, parts-per-million, ...) carry a scale ratio between their point value
+// and their physical value: 50 percent is the physical value 0.5. Reconstructing from the physical value rather than
+// the point value would rescale by that ratio, so serialize(50 percent) must read back as the physical value 0.5.
+TEST_F(Serialization, roundTripConcentration)
+{
+	expectRoundTrip(units::concentration::percent<double>(50.0));
+	expectRoundTrip(units::concentration::percent<double>(0.0));
+	expectRoundTrip(units::concentration::percent<double>(100.0));
+	expectRoundTrip(units::concentration::parts_per_million<double>(300000.0));
+	expectRoundTrip(units::concentration::parts_per_billion<double>(1.0));
+	expectRoundTrip(units::concentration::parts_per_trillion<double>(42.0));
+	expectRoundTrip(units::dimensionless<double>(0.5));
+
+	// Integer-backed ratio-scaled dimensionless units travel the integer narrowing path on decode; a percent whose
+	// point value is a whole number reconstructs exactly, agreeing with the floating-point representation.
+	expectRoundTrip(units::concentration::percent<int>(50));
+	expectRoundTrip(units::concentration::parts_per_million<int>(300000));
+	expectRoundTrip(units::dimensionless<int>(7));
+}
+
+// Physical constants exercise compound dimensions and extreme magnitudes (Boltzmann's constant near 1.4e-23,
+// Avogadro's number near 6e23) through the canonical-base conversion; each must recover its physical value.
+TEST_F(Serialization, roundTripPhysicalConstants)
+{
+	expectRoundTrip(units::constants::k_B);   // Boltzmann constant, joules per kelvin, ~1.38e-23
+	expectRoundTrip(units::constants::N_A);    // Avogadro's number, per mole, ~6.02e23
+	expectRoundTrip(units::constants::R);      // gas constant, joules per kelvin per mole
+	expectRoundTrip(units::constants::h);      // Planck constant, joule-seconds, ~6.63e-34
+	expectRoundTrip(units::constants::c);      // speed of light, meters per second
+	expectRoundTrip(units::constants::sigma);  // Stefan-Boltzmann constant, watts per square meter per kelvin^4
 }
 
 TEST_F(Serialization, roundTripSubstanceAndLuminous)

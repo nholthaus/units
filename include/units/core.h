@@ -1542,6 +1542,9 @@ namespace units
 	template<typename U>
 	concept OrdinaryDimensionlessUnitType = DimensionlessUnitType<U> && !RatioDimensionlessUnitType<U>;
 
+	template<typename U>
+	concept IntegralUnitType = units::traits::is_unit_v<U> && std::integral<typename U::underlying_type>;
+
 	/**
 	 * @brief		Type representing an arbitrary conversion factor between units.
 	 * @ingroup		ConversionFactor
@@ -4221,7 +4224,7 @@ namespace units
 	}
 
 	template<DimensionedUnitType UnitTypeLhs>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs % rhs;
@@ -4229,7 +4232,7 @@ namespace units
 	}
 
 	template<DimensionlessUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(!(RatioDimensionlessUnitType<UnitTypeLhs> || RatioDimensionlessUnitType<UnitTypeRhs>))
+		requires(!(RatioDimensionlessUnitType<UnitTypeLhs> || RatioDimensionlessUnitType<UnitTypeRhs>) && IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
@@ -4238,7 +4241,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator%=(UnitTypeLhs& lhs, const typename UnitTypeLhs::underlying_type& rhs) noexcept
 	{
 		lhs = lhs % rhs;
@@ -4247,7 +4250,7 @@ namespace units
 
 	// ratio-dimensionless %= ratio-dimensionless  (percent points modulo percent points)
 	template<RatioDimensionlessUnitType U>
-		requires(traits::has_linear_scale_v<U>)
+		requires(traits::has_linear_scale_v<U> && IntegralUnitType<U>)
 	constexpr U& operator%=(U& lhs, const U& rhs) noexcept
 	{
 		lhs = lhs % rhs;
@@ -4256,7 +4259,7 @@ namespace units
 
 	// ratio-dimensionless %= scalar  (percent points modulo scalar)
 	template<RatioDimensionlessUnitType U>
-		requires(traits::has_linear_scale_v<U>)
+		requires(traits::has_linear_scale_v<U> && IntegralUnitType<U>)
 	constexpr U& operator%=(U& lhs, const typename U::underlying_type& rhs) noexcept
 	{
 		lhs = lhs % rhs;
@@ -4265,13 +4268,24 @@ namespace units
 
 	// ratio-dimensionless %= base dimensionless unit  (treat as scalar)
 	template<RatioDimensionlessUnitType U, DimensionlessUnitType D>
-		requires(traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D>)
+		requires(traits::has_linear_scale_v<U, D> && !RatioDimensionlessUnitType<D> && IntegralUnitType<U> && IntegralUnitType<D>)
 	constexpr U& operator%=(U& lhs, const D& rhs) noexcept
 	{
 		// D is ordinary dimensionless: safe scalar conversion
 		lhs = lhs % static_cast<typename U::underlying_type>(rhs);
 		return lhs;
 	}
+
+	// Two DIFFERENT ratio-scaled dimensionless units (percent and parts-per-million, say) count in different ticks, so
+	// the modulo of their point counts has no meaning. These deleted overloads catch that mix explicitly -- otherwise
+	// the right operand would implicitly convert into the left's unit and silently bind the same-unit overload -- and
+	// give a clean "use of deleted function" diagnostic instead. Use a common scale or `fmod` on the physical value.
+	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType V>
+		requires(!std::is_same_v<U, V>)
+	constexpr std::common_type_t<U, V> operator%(const U&, const V&) = delete;
+	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType V>
+		requires(!std::is_same_v<U, V>)
+	constexpr U& operator%=(U&, const V&) = delete;
 
 	//------------------------------
 	//	UNIT UNARY OPERATORS
@@ -4803,7 +4817,8 @@ namespace units
 	///			back to the coarser lhs is lossy for an integer underlying, disabling the constructor). The
 	///			common-unit result mirrors `fmod` and removes the asymmetry.
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs>)
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -4812,7 +4827,7 @@ namespace units
 
 	/// Modulo by a dimensionless for unit types with a linear scale
 	template<DimensionedUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator%(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -4823,8 +4838,18 @@ namespace units
 
 	/// Modulo for two dimensionless unit types with a linear scale.
 	/// @returns the lhs value modulo the rhs value, whose type is their common type
+	/// @note	`%` is an integer count operation, so it operates on the operands' point counts, which are only
+	///			comparable when the operands share a tick scale. Two DIFFERENT ratio-scaled dimensionless units
+	///			(percent and parts-per-million, say) count in different ticks, so a modulo of their raw counts has no
+	///			meaning; that mix is excluded here (`!(RatioDimensionlessUnitType<UnitTypeLhs> &&
+	///			RatioDimensionlessUnitType<UnitTypeRhs>)`, reinforced by a deleted overload for the convertible case)
+	///			and does not compile, exactly as the ratio-dimensionless compound assignment excludes it. The permitted forms are two
+	///			operands of the SAME unit (handled by the same-unit ratio overload) and a ratio-scaled unit modulo a
+	///			plain `dimensionless` (a bare count), which this overload serves.
 	template<DimensionlessUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
+			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> &&
+			!(RatioDimensionlessUnitType<UnitTypeLhs> && RatioDimensionlessUnitType<UnitTypeRhs>))
 	constexpr traits::replace_underlying_t<UnitTypeLhs, typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
@@ -4833,7 +4858,7 @@ namespace units
 
 	/// Modulo by an arithmetic type for unit types with a linear scale
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeLhs> && std::integral<T>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
@@ -4842,21 +4867,21 @@ namespace units
 
 	// Modulos for ratio-like dimensionless units
 	template<RatioDimensionlessUnitType U>
-		requires(traits::has_linear_scale_v<U>)
+		requires(traits::has_linear_scale_v<U> && IntegralUnitType<U>)
 	constexpr U operator%(const U& lhs, const U& rhs) noexcept
 	{
 		return U(lhs.raw() % rhs.raw());
 	}
 
 	template<RatioDimensionlessUnitType U, ArithmeticType T>
-		requires(traits::has_linear_scale_v<U>)
+		requires(traits::has_linear_scale_v<U> && IntegralUnitType<U> && std::integral<T>)
 	constexpr U operator%(const U& lhs, T rhs) noexcept
 	{
 		return U(lhs.raw() % rhs);
 	}
 
 	template<RatioDimensionlessUnitType U, ArithmeticType T>
-		requires(traits::has_linear_scale_v<U>)
+		requires(traits::has_linear_scale_v<U> && IntegralUnitType<U> && std::integral<T>)
 	constexpr U operator%(T lhs, const U& rhs) noexcept
 	{
 		using Under = detail::floating_point_promotion_t<std::common_type_t<T, typename U::underlying_type>>;
@@ -5206,18 +5231,34 @@ namespace units
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	constexpr auto min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = decltype(units::min(lhs, rhs));
-		return (lhs < rhs ? CommonUnit(lhs) : CommonUnit(rhs));
+		// The result unit is the left operand's when that is lossless (matching operator+/-), falling back to the
+		// common unit only when returning the left unit would truncate an integer -- never an anonymous common unit
+		// for otherwise-representable operands. Computed in the body so the trait is not instantiated for a non-unit
+		// the constraint already rejects. min/max select an operand, so the underlying is NOT floating-point promoted.
+		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
+		return (lhs < rhs ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
+	constexpr auto max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
-		using CommonUnit = decltype(units::max(lhs, rhs));
-		return (lhs > rhs ? CommonUnit(lhs) : CommonUnit(rhs));
+		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
+		return (lhs > rhs ? ResultUnit(lhs) : ResultUnit(rhs));
+	}
+
+	/// Clamps a value to the range [lo, hi], in the value's own unit when that is lossless (matching min/max), else
+	/// the common unit. lo and hi must be the same dimension as the value; hi must not be less than lo.
+	template<UnitType UnitTypeValue, UnitType UnitTypeLo, UnitType UnitTypeHi>
+		requires(same_dimension<UnitTypeValue, UnitTypeLo> && same_dimension<UnitTypeValue, UnitTypeHi>)
+	constexpr auto clamp(const UnitTypeValue& value, const UnitTypeLo& lo, const UnitTypeHi& hi)
+	{
+		// Reconcile to the common unit of all three operands for a correct comparison, then express the result in the
+		// value's unit when lossless (as min/max do), never an anonymous unit for representable operands.
+		using ResultUnit = detail::lhs_result_unit_t<UnitTypeValue, std::common_type_t<UnitTypeLo, UnitTypeHi>>;
+		return (value < lo ? ResultUnit(lo) : (hi < value ? ResultUnit(hi) : ResultUnit(value)));
 	}
 
 	//----------------------------------
