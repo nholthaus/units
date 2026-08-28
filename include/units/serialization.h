@@ -37,6 +37,7 @@
 #ifndef units_serialization_h_
 #define units_serialization_h_
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <compare>
@@ -107,7 +108,8 @@ namespace units
 		bad_version,            ///< the stream's format version is not understood
 		dimension_mismatch,     ///< the stream's dimension does not match the requested target
 		unknown_base_dimension, ///< the stream names a base-dimension code this build does not know
-		lossy_target            ///< the value cannot be represented in the requested underlying type without loss
+		lossy_target,           ///< the value cannot be represented in the requested underlying type without loss
+		malformed               ///< the bytes are complete but encode an invalid record (e.g. a zero exponent denominator)
 	};
 
 	/// @brief	a decoded quantity whose concrete type was not known at the call site
@@ -964,8 +966,15 @@ namespace units
 		if (!detail::get_uvarint(cursor, end, count))
 			return std::unexpected(deserialize_error::truncated);
 
+		// Reserve only up to what the remaining bytes could actually hold, never the raw wire count: every term needs
+		// at least nine bytes (eight hash bytes plus a one-byte exponent numerator), so no more than (end - cursor)
+		// terms can follow. This keeps a huge count off untrusted input from throwing out of reserve() while leaving
+		// the classification to the loop below -- a count that overruns the buffer is reported as `truncated` there,
+		// exactly as a short buffer with an honest count is. A zero count is the valid dimensionless case.
 		unit_identity id;
-		id.terms.reserve(count);
+		id.terms.reserve(std::min<std::uint64_t>(count, static_cast<std::uint64_t>(end - cursor)));
+		bool          havePrevHash = false;
+		std::uint64_t prevHash     = 0;
 		for (std::uint64_t i = 0; i < count; ++i)
 		{
 			if (end - cursor < 8)
@@ -979,6 +988,16 @@ namespace units
 				return std::unexpected(deserialize_error::truncated);
 			if (fracExp && !detail::get_svarint(cursor, end, den))
 				return std::unexpected(deserialize_error::truncated);
+			// Each term must uphold the invariants the serializer always writes: a nonzero rational exponent (a zero
+			// denominator is the undefined num/0; a zero numerator is a phantom base the reducer never emits), and a
+			// strictly ascending hash (terms are stored sorted and unique so equality is order-independent). A
+			// complete stream that violates any of these is malformed input, not a valid quantity.
+			if (den == 0 || num == 0)
+				return std::unexpected(deserialize_error::malformed);
+			if (havePrevHash && hash <= prevHash)
+				return std::unexpected(deserialize_error::malformed);
+			prevHash     = hash;
+			havePrevHash = true;
 			id.terms.push_back(dimension_term{hash, num, den});
 		}
 
