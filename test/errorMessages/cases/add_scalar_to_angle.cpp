@@ -4,9 +4,8 @@
 // To turn by a relative amount, add an angle: `r += 2.0_rad` (or wrap the amount in a `delta` of the unit).
 //
 // expect: fail
+// expect-match: cannot add a bare number to a quantity
 // expect-match: radians<
-// expect-match-gcc: operator+=
-// expect-match-msvc: operator +=
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/angle.h>

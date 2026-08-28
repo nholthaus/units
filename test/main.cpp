@@ -2137,41 +2137,222 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	EXPECT_NEAR(6.0, m.value(), 5.0e-12);
 }
 
-// Temperature is an AFFINE dimension, so EVERY temperature unit is a point on a scale -- including kelvin and
-// rankine, which carry no per-unit datum offset but are still readings on an absolute scale. A point behaves the
-// same regardless of unit: point + point is undefined, a point does not scale, the difference of two points is a
-// delta, and compound assignment moves the point by a relative delta. This asserts kelvin/rankine follow the same
-// point rules as celsius/fahrenheit (the affine-ness comes from the temperature DIMENSION, not a per-unit offset).
-TEST_F(UnitType, absoluteTemperatureUnitsAreAffinePoints)
+// A temperature READING carries a datum (celsius, fahrenheit), so its type says "point" and the point rules apply
+// to it. An offset-free temperature type -- kelvin, rankine, or the difference of two readings -- cannot say in the
+// bare type system whether it is a reading or a change, so it behaves as an ordinary magnitude: it adds and scales.
+// That is a representability limit, not a preference: making kelvin a point would also catch every temperature
+// CHANGE (a change is the same dimension with no offset), breaking the operations that must work. Code that needs
+// the reading-versus-change distinction on an offset-free scale opts into absolute<>/delta<> from <units/kind.h>.
+TEST_F(UnitType, offsetFreeTemperatureTypesBehaveAsMagnitudes)
 {
 	using namespace units::temperature;
 
-	// The ill-formed point operations -- point + point, and scaling or dividing a point -- are rejected by a
-	// `static_assert` inside a catch-all overload, so they carry a readable message naming units::delta<...> instead
-	// of an overload-resolution wall. That assertion fires at instantiation, so a concept cannot probe it from inside
-	// this suite; those cases live in the errorMessages harness (add_two_temperature_points, scale_affine_point,
-	// scale_kelvin_point, divide_affine_point_by_scalar), which requires the rejection AND grades the message text.
-	// What is asserted here is the behavior that must WORK, and the point-ness of the dimension itself.
-	static_assert(traits::is_affine_dimension_unit_v<kelvin<double>>, "kelvin is an affine-dimension point");
-	static_assert(traits::is_affine_dimension_unit_v<rankine<double>>, "rankine is an affine-dimension point");
+	// a reading carries a datum; an offset-free scale and a change do not
+	static_assert(traits::is_affine_unit_v<celsius<double>>, "celsius is a reading (it carries a datum)");
+	static_assert(traits::is_affine_unit_v<fahrenheit<double>>, "fahrenheit is a reading");
+	static_assert(!traits::is_affine_unit_v<kelvin<double>>, "kelvin carries no datum");
+	static_assert(!traits::is_affine_unit_v<decltype(celsius<double>(1) - celsius<double>(0))>, "a difference is offset-free");
 
-	// the difference of two absolute temperatures is a delta (a non-point), regardless of unit.
-	auto d = kelvin<double>(300.0) - kelvin<double>(100.0);
-	EXPECT_NEAR(200.0, d.value(), 5.0e-12);
-	static_assert(!traits::is_affine_unit_v<decltype(d)>, "a temperature difference is a delta, not a point");
+	// so an offset-free temperature adds and scales like any magnitude
+	EXPECT_NEAR(350.0, (kelvin<double>(300.0) + kelvin<double>(50.0)).value(), 5.0e-12);
+	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(200.0, (kelvin<double>(300.0) - kelvin<double>(100.0)).value(), 5.0e-12);
 
-	// compound assignment moves the kelvin point by a relative delta, in any affine scale (datum stripped).
+	// and a reading still moves by an amount written in ANY same-dimension scale, kelvin included
+	celsius<double> c(0.0);
+	c += kelvin<double>(5.0);
+	EXPECT_NEAR(5.0, c.value(), 5.0e-12);
+}
+
+//======================================================================================================================
+//	THE TEMPERATURE OPERATION MATRIX
+//	Every kind of temperature type against every operation, with values and result kinds pinned. The kinds are:
+//	  READING          celsius, fahrenheit -- carries a datum, so the type says "a point on a scale"
+//	  OFFSET-FREE      kelvin, rankine     -- no datum in the type, so it behaves as a magnitude
+//	  CHANGE           the difference of two readings -- offset-free, an amount
+//	Operations that must NOT compile live in the errorMessages harness (a gtest cannot assert them without failing
+//	the build); each is named in a comment where it belongs so the matrix reads complete.
+//======================================================================================================================
+
+// READING: construction, conversion, ordering. A reading converts by applying the datum.
+TEST_F(UnitType, matrixReadingConstructConvertCompare)
+{
+	using namespace units::temperature;
+	EXPECT_NEAR(20.0, celsius<double>(20.0).value(), 5.0e-12);
+	EXPECT_NEAR(68.0, fahrenheit<double>(celsius<double>(20.0)).value(), 5.0e-12);
+	EXPECT_NEAR(293.15, kelvin<double>(celsius<double>(20.0)).value(), 5.0e-12);
+	EXPECT_NEAR(-40.0, fahrenheit<double>(celsius<double>(-40.0)).value(), 5.0e-12);   // the crossover
+	EXPECT_NEAR(0.0, celsius<double>(kelvin<double>(273.15)).value(), 5.0e-12);
+	EXPECT_NEAR(491.67, rankine<double>(kelvin<double>(273.15)).value(), 5.0e-10);
+
+	EXPECT_TRUE(celsius<double>(30.0) > celsius<double>(10.0));
+	EXPECT_TRUE(celsius<double>(0.0) < fahrenheit<double>(33.0));      // 0 degC is 32 degF
+	EXPECT_TRUE(celsius<double>(0.0) == kelvin<double>(273.15));
+	EXPECT_TRUE(fahrenheit<double>(-40.0) == celsius<double>(-40.0));
+}
+
+// READING: moved in place by an amount written in ANY same-dimension scale. The amount's datum is never applied.
+TEST_F(UnitType, matrixReadingCompoundMove)
+{
+	using namespace units::temperature;
+	celsius<double> c(20.0);
+	c += celsius<double>(5.0);                       // 5 celsius-degrees
+	EXPECT_NEAR(25.0, c.value(), 5.0e-12);
+	c += fahrenheit<double>(9.0);                    // 9 fahrenheit-degrees == 5 celsius-degrees
+	EXPECT_NEAR(30.0, c.value(), 5.0e-12);
+	c += kelvin<double>(5.0);                        // 5 kelvin == 5 celsius-degrees
+	EXPECT_NEAR(35.0, c.value(), 5.0e-12);
+	c -= fahrenheit<double>(18.0);                   // 18 fahrenheit-degrees == 10 celsius-degrees
+	EXPECT_NEAR(25.0, c.value(), 5.0e-12);
+	c -= celsius<double>(5.0);
+	EXPECT_NEAR(20.0, c.value(), 5.0e-12);
+
+	fahrenheit<double> f(68.0);
+	f += celsius<double>(5.0);                       // 5 celsius-degrees == 9 fahrenheit-degrees
+	EXPECT_NEAR(77.0, f.value(), 5.0e-12);
+	f -= kelvin<double>(5.0);
+	EXPECT_NEAR(68.0, f.value(), 5.0e-12);
+
+	// the point keeps its own type and remains a reading
+	static_assert(std::is_same_v<celsius<double>, decltype(c)>);
+	static_assert(traits::is_affine_unit_v<decltype(c)>);
+	// NOT compilable (errorMessages): celsius += 5.0, celsius -= 5.0  -- a bare number states no unit
+}
+
+// READING: the difference of two readings is a CHANGE, expressed in the left operand's degrees, with no datum.
+TEST_F(UnitType, matrixReadingDifferenceIsAChange)
+{
+	using namespace units::temperature;
+	auto same = celsius<double>(30.0) - celsius<double>(10.0);
+	EXPECT_NEAR(20.0, same.value(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(same)>, "a difference is offset-free");
+
+	EXPECT_NEAR(100.0, (celsius<double>(100.0) - fahrenheit<double>(32.0)).value(), 5.0e-12);   // 100 degC above 0 degC
+	EXPECT_NEAR(180.0, (fahrenheit<double>(212.0) - celsius<double>(0.0)).value(), 5.0e-12);    // in fahrenheit-degrees
+	EXPECT_NEAR(273.15, (celsius<double>(0.0) - kelvin<double>(0.0)).value(), 5.0e-10);
+	EXPECT_NEAR(-20.0, (celsius<double>(10.0) - celsius<double>(30.0)).value(), 5.0e-12);       // signed
+}
+
+// READING: scaled or divided by a number yields a CHANGE in its own degrees (scaling a point has no meaning), and
+// scalar multiplication stays commutative.
+TEST_F(UnitType, matrixReadingScaledYieldsAChange)
+{
+	using namespace units::temperature;
+	auto twice = celsius<double>(20.0) * 2.0;
+	EXPECT_NEAR(40.0, twice.value(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(twice)>, "a scaled reading is a change");
+	static_assert(std::is_same_v<decltype(twice), decltype(celsius<double>(1) - celsius<double>(0))>,
+		"scaling yields the same change type a difference does");
+
+	EXPECT_NEAR(40.0, (2.0 * celsius<double>(20.0)).value(), 5.0e-12);                 // commutative
+	EXPECT_NEAR(10.0, (celsius<double>(20.0) / 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(-7.5, (celsius<double>(-2.5) * 3.0).value(), 5.0e-12);                 // signed, fractional
+	EXPECT_NEAR(34.2, (fahrenheit<double>(22.8) * 1.5).value(), 5.0e-12);
+	// NOT compilable (errorMessages): celsius *= 2.0, celsius /= 2.0 -- the in-place form cannot hold a change
+	// NOT compilable (errorMessages): celsius + celsius, celsius + fahrenheit -- the sum of two readings
+}
+
+// OFFSET-FREE temperature (kelvin, rankine): no datum in the type, so it behaves as a magnitude -- it adds,
+// subtracts, and scales, and the results stay in its own unit.
+TEST_F(UnitType, matrixOffsetFreeTemperatureIsAMagnitude)
+{
+	using namespace units::temperature;
+	EXPECT_NEAR(350.0, (kelvin<double>(300.0) + kelvin<double>(50.0)).value(), 5.0e-12);
+	EXPECT_NEAR(200.0, (kelvin<double>(300.0) - kelvin<double>(100.0)).value(), 5.0e-12);
+	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(150.0, (kelvin<double>(300.0) / 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(600.0, (2.0 * kelvin<double>(300.0)).value(), 5.0e-12);
+	static_assert(std::is_same_v<kelvin<double>, decltype(kelvin<double>(1) * 2.0)>, "scaling keeps the unit");
+
 	kelvin<double> k(300.0);
-	k += celsius<double>(5.0);
-	EXPECT_NEAR(305.0, k.value(), 5.0e-12);    // a 5 Celsius-degree change is a 5 K change
-	k += fahrenheit<double>(9.0);
-	EXPECT_NEAR(310.0, k.value(), 5.0e-12);    // a 9 Fahrenheit-degree change is a 5 K change
-	k -= kelvin<double>(10.0);
+	k += kelvin<double>(50.0);
+	EXPECT_NEAR(350.0, k.value(), 5.0e-12);
+	k -= kelvin<double>(50.0);
+	EXPECT_NEAR(300.0, k.value(), 5.0e-12);
+	k *= 2.0;
+	EXPECT_NEAR(600.0, k.value(), 5.0e-12);
+	k /= 2.0;
 	EXPECT_NEAR(300.0, k.value(), 5.0e-12);
 
-	// a temperature RATE or reciprocal is an ordinary magnitude, not a point -- it may be added and scaled.
-	auto rate = kelvin<double>(10.0) / units::time::seconds<double>(2.0);
-	static_assert(!traits::is_affine_dimension_unit_v<decltype(rate)>, "a temperature rate is a magnitude, not a point");
+	EXPECT_NEAR(900.0, (rankine<double>(500.0) + rankine<double>(400.0)).value(), 5.0e-12);
+	EXPECT_NEAR(1000.0, (rankine<double>(500.0) * 2.0).value(), 5.0e-12);
+}
+
+// A CHANGE (the difference of two readings, or a scaled reading) is an amount: it adds to another change, scales,
+// moves a reading, and converts between scales by DEGREE SIZE with no datum.
+TEST_F(UnitType, matrixChangeArithmeticAndConversion)
+{
+	using namespace units::temperature;
+	auto change = celsius<double>(30.0) - celsius<double>(10.0);       // 20 celsius-degrees
+	EXPECT_NEAR(20.0, change.value(), 5.0e-12);
+
+	// change +/- change
+	change += celsius<double>(5.0) - celsius<double>(0.0);
+	EXPECT_NEAR(25.0, change.value(), 5.0e-12);
+	change -= celsius<double>(5.0) - celsius<double>(0.0);
+	EXPECT_NEAR(20.0, change.value(), 5.0e-12);
+
+	// change scaled, in place and by value
+	change *= 2.0;
+	EXPECT_NEAR(40.0, change.value(), 5.0e-12);
+	change /= 4.0;
+	EXPECT_NEAR(10.0, change.value(), 5.0e-12);
+	EXPECT_NEAR(30.0, ((celsius<double>(30.0) - celsius<double>(10.0)) * 1.5).value(), 5.0e-12);
+
+	// a change moves a reading, by value and in place, and the reading stays a reading
+	auto moved = celsius<double>(20.0) + (celsius<double>(5.0) - celsius<double>(0.0));
+	EXPECT_NEAR(25.0, moved.value(), 5.0e-12);
+	static_assert(traits::is_affine_unit_v<decltype(moved)>, "a reading moved by a change is still a reading");
+	celsius<double> inPlace(20.0);
+	inPlace += celsius<double>(5.0) - celsius<double>(0.0);
+	EXPECT_NEAR(25.0, inPlace.value(), 5.0e-12);
+
+	// a change converts by degree size only: five celsius-degrees is nine fahrenheit-degrees, and five kelvin
+	const auto fiveCelsiusDegrees = celsius<double>(5.0) - celsius<double>(0.0);
+	EXPECT_NEAR(9.0, (fahrenheit<double>(9.0) - fahrenheit<double>(0.0)).value(), 5.0e-12);
+	EXPECT_NEAR(5.0, fiveCelsiusDegrees.value(), 5.0e-12);
+	celsius<double> byFahrenheitDegrees(0.0);
+	byFahrenheitDegrees += fahrenheit<double>(9.0);                    // the datum is not applied to an amount
+	EXPECT_NEAR(5.0, byFahrenheitDegrees.value(), 5.0e-12);
+}
+
+// REGRESSION: nothing above changes an ordinary dimensioned quantity, a named angle, a dimensionless value, or a
+// ratio-scaled dimensionless value. These are the rows most likely to break when affine rules are added.
+TEST_F(UnitType, matrixNonTemperatureUnaffected)
+{
+	// dimensioned: add/subtract same dimension, scale by a number, in place and by value
+	EXPECT_NEAR(10.9144, (meters<double>(10.0) + feet<double>(3.0)).value(), 5.0e-5);
+	EXPECT_NEAR(9.0856, (meters<double>(10.0) - feet<double>(3.0)).value(), 5.0e-5);
+	EXPECT_NEAR(20.0, (meters<double>(10.0) * 2.0).value(), 5.0e-12);
+	EXPECT_NEAR(5.0, (meters<double>(10.0) / 2.0).value(), 5.0e-12);
+	meters<double> m(10.0);
+	m += feet<double>(3.0);
+	EXPECT_NEAR(10.9144, m.value(), 5.0e-5);
+	m -= feet<double>(3.0);
+	EXPECT_NEAR(10.0, m.value(), 5.0e-5);
+	m *= 2.0;
+	EXPECT_NEAR(20.0, m.value(), 5.0e-12);
+	m /= 4.0;
+	EXPECT_NEAR(5.0, m.value(), 5.0e-12);
+	static_assert(std::is_same_v<meters<double>, decltype(meters<double>(1) * 2.0)>, "a length scaled is a length");
+
+	// a product/quotient of quantities changes dimension and is computed by value
+	EXPECT_NEAR(6.0, (meters<double>(3.0) * meters<double>(2.0)).value(), 5.0e-12);
+	EXPECT_NEAR(2.5, (meters<double>(10.0) / units::time::seconds<double>(4.0)).value(), 5.0e-12);
+
+	// named angle: same-dimension arithmetic and scaling
+	EXPECT_NEAR(1.5, (units::angle::radians<double>(1.0) + units::angle::radians<double>(0.5)).value(), 5.0e-12);
+	EXPECT_NEAR(2.0, (units::angle::radians<double>(1.0) * 2.0).value(), 5.0e-12);
+
+	// dimensionless and percent still take a bare number
+	dimensionless<double> d(1.0);
+	d += 2.5;
+	EXPECT_NEAR(3.5, d.value(), 5.0e-12);
+	d -= 0.5;
+	EXPECT_NEAR(3.0, d.value(), 5.0e-12);
+	concentration::percent<double> pct(50.0);
+	pct += 10.0;    // ten in fraction space
+	EXPECT_NEAR(10.5, pct.value(), 5.0e-12);
 }
 
 // Adding a bare number to a quantity is well-formed only for a genuinely dimensionless quantity (a plain scalar or a

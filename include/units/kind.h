@@ -77,14 +77,8 @@ namespace units
 
 	namespace detail
 	{
-		/// The offset-free counterpart of a unit: same dimension, scale, and pi factor, but translation
-		/// stripped. Converting a `delta` between units uses THIS (scale only, no datum), so a temperature
-		/// difference converts by degree size, not as an absolute point.
-		template<UnitType U>
-		using delta_unit_t = unit<traits::strong_t<conversion_factor<typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::conversion_ratio,
-											 typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::dimension_type,
-											 typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::pi_exponent_ratio, std::ratio<0>>>,
-			typename traits::unit_traits<U>::underlying_type, typename traits::unit_traits<U>::numerical_scale_type>;
+		// `delta_unit_t` (the offset-free counterpart of a unit) is defined in <units/core.h>, which the affine
+		// operators there already use for a point difference; the wrappers reuse that one definition.
 
 		/// The result unit of a wrapper operator that keeps the LHS UNIT (the "LHS-unit tie-break"): the value
 		/// stays expressed in `U`'s unit so `.value()` reads intuitively (`absolute<celsius> - absolute<fahrenheit>`

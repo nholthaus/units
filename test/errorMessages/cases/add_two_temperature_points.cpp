@@ -1,20 +1,18 @@
-// Case: summing two affine POINTS is undefined (what is "300 K + 50 K" as a point?), so `kelvin + kelvin` must be
-// ill-formed. Only point - point (-> delta), point +/- delta, and delta +/- delta are defined; to move a point by a
-// relative amount, add a `delta` to it. The diagnostic is the compiler's own no-matching-`operator+` wording, so it
-// is graded by tight readable tokens — the FRIENDLY `kelvin<` type AND the failing operator context — plus the
-// anti-soup guards.
+// Case: the sum of two temperature READINGS has no meaning -- a reading is a point on a scale with a datum, and
+// adding two points is undefined. The diagnostic must say so and name the remedy (subtract them for a change, or
+// move one with `+=`), not print a wall of declined candidates.
 //
 // expect: fail
 // expect-match: cannot add two affine points
 // expect-match: units::delta<
-// expect-match: kelvin<
+// expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/temperature.h>
 using namespace units;
-auto bad = units::temperature::kelvin<double>(300.0) + units::temperature::kelvin<double>(50.0); // ill-formed: point + point
 int main()
 {
-	(void)bad;
+	auto bad = units::temperature::celsius<double>(20.0) + units::temperature::fahrenheit<double>(68.0);
+	(void)bad; // ill-formed: the sum of two readings has no meaning
 	return 0;
 }

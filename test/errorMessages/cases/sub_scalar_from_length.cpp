@@ -4,9 +4,8 @@
 // To shorten by a relative amount, subtract a length: `m -= 3.0_m` (or wrap the amount in a `delta` of the unit).
 //
 // expect: fail
+// expect-match: cannot subtract a bare number from a quantity
 // expect-match: meters<
-// expect-match-gcc: operator-=
-// expect-match-msvc: operator -=
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/length.h>

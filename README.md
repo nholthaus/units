@@ -242,6 +242,33 @@ t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
 // Zero-offset scales (kelvin, rankine) have no datum to corrupt, so they add like any linear unit.
 ```
 
+At a glance — every temperature operation, what it yields, and what to write when one is disabled. A *reading*
+carries a datum (`celsius`, `fahrenheit`); an *amount* does not (a difference, a scaled reading, or an offset-free
+scale like `kelvin`). Nothing here requires a wrapper:
+
+| You write | Result | |
+|---|---|---|
+| `celsius(20)`, `fahrenheit(c)`, `c1 < c2` | reading, conversion, comparison | exact, always available |
+| `c += celsius(5)` / `+= fahrenheit(9)` / `+= kelvin(5)` | reading, moved by that amount | the rhs is a relative amount; its datum is never applied |
+| `c -= fahrenheit(18)` | reading, moved down | |
+| `t1 - t2` (any two readings) | **amount**, in the left operand's degrees | the datums cancel |
+| `c + amount`, `amount + c` | reading, moved | the by-value form of `+=`; commutative |
+| `c * 2.0`, `2.0 * c`, `c / 2.0` | **amount** in its own degrees | scaling a reading has no meaning; scaling the *amount* does |
+| `amount + amount`, `amount * 2.0`, `amount /= 4.0` | amount | an amount is an ordinary quantity |
+| `kelvin + kelvin`, `kelvin * 2.0` | kelvin | an offset-free scale behaves as a magnitude |
+| `c1 + c2` (two readings) | **disabled** | subtract them for an amount, or move one with `+=` |
+| `c *= 2.0`, `c /= 2.0` | **disabled** | the in-place form cannot hold an amount — use `c * 2.0` |
+| `c += 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
+| `c += meters(1)` | **disabled** | different dimensions |
+
+Every disabled row reports one line naming the remedy, not a wall of declined overloads:
+
+```
+units: cannot add two affine points; subtract them for a units::delta<...>, or move one with +=.
+units: cannot scale an affine point; scale a units::delta<...> instead.
+units: cannot add a bare number to an affine point; add a quantity or a units::delta<...>.
+```
+
 Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
 units (lengths, masses, everything without an offset) are unaffected — they add, subtract, and combine with
 no special cases.

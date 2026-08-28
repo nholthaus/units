@@ -1303,13 +1303,6 @@ namespace units
 		{
 			static constexpr auto name         = "temperature";
 			static constexpr auto abbreviation = "K";
-			// Temperature is an AFFINE dimension: a reading is a point on a scale with a datum (0 degC, 0 degF are
-			// arbitrary; even 0 K is the scale's origin, not "no temperature to scale"). A point is not scalable and
-			// point+point is undefined, regardless of whether the particular unit carries an offset -- so kelvin and
-			// rankine (no per-unit offset) are still affine-dimension points. A dimension opts into this by declaring
-			// `is_affine`; any future reference-scale dimension (pH, a date/epoch, a sound level) marks its tag the
-			// same way and the point/delta rules apply to it automatically.
-			static constexpr bool is_affine = true;
 		};
 
 		struct substance_tag
@@ -2078,28 +2071,6 @@ namespace units
 		template<ConversionFactorType Cf>
 		inline constexpr bool is_affine_conversion_factor_v = !std::ratio_equal_v<typename conversion_factor_traits<Cf>::translation_ratio, std::ratio<0>>;
 
-		/// Whether a dimension TAG opts into being affine by declaring `static constexpr bool is_affine = true`.
-		/// A tag that does not declare it is not affine (the default), so every existing dimension is unaffected.
-		template<class Tag>
-		concept AffineTag = requires { requires Tag::is_affine; };
-
-		/// Whether a DIMENSION is an affine (reference-scale) dimension: a single base dimension raised to the first
-		/// power whose base tag is affine. This is the property that makes a quantity a POINT (temperature is the
-		/// archetype) -- distinct from `is_affine_conversion_factor_v`, which only sees a per-unit datum offset and so
-		/// misses an affine-dimension unit that happens to carry no offset (kelvin, rankine). A compound or powered
-		/// dimension (a rate, a product, an inverse) is NOT affine: a temperature reading is a point, but a
-		/// temperature-per-time or a reciprocal temperature is an ordinary magnitude.
-		template<class Dim>
-		inline constexpr bool is_affine_dimension_v = false;
-		template<class Tag, class Exp>
-			requires(std::ratio_equal_v<Exp, std::ratio<1>> && AffineTag<Tag>)
-		inline constexpr bool is_affine_dimension_v<dimension_t<dim<Tag, Exp>>> = true;
-
-		/// Whether a UNIT is an affine-dimension point (temperature: kelvin/rankine/celsius/fahrenheit). Unlike
-		/// `traits::is_affine_unit_v` (a per-unit datum offset, which kelvin lacks), this is true for every unit of an
-		/// affine dimension, so the point rules (no scaling, no point+point) apply uniformly across the whole scale.
-		template<class U>
-		inline constexpr bool is_affine_dimension_unit_v = is_affine_dimension_v<traits::dimension_of_t<typename U::conversion_factor>>;
 	} // namespace traits
 
 	//------------------------------
@@ -3933,6 +3904,16 @@ namespace units
 		template<class...>
 		inline constexpr bool dependent_false = false;
 
+		/// The offset-free counterpart of a unit: same dimension, scale, and pi factor, with the datum translation
+		/// stripped. This is the type of a CHANGE on an affine scale -- the difference of two points, or a point
+		/// scaled -- so it never re-applies a datum, and converting between two of them is scale-only (a temperature
+		/// difference converts by degree size, not as an absolute reading).
+		template<class U>
+		using delta_unit_t = unit<traits::strong_t<conversion_factor<typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::conversion_ratio,
+										  typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::dimension_type,
+										  typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::pi_exponent_ratio, std::ratio<0>>>,
+			typename traits::unit_traits<U>::underlying_type, typename traits::unit_traits<U>::numerical_scale_type>;
+
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: affine_delta_in_lhs_scale [static]
 		//------------------------------------------------------------------------------------------------------------------
@@ -3959,7 +3940,7 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -3972,7 +3953,7 @@ namespace units
 	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. (Binary `a + b`
 	/// of two absolute affine points is disabled; use `+=` to move a point by a relative amount.)
 	template<UnitType UnitTypeLhs>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = UnitTypeLhs(lhs.raw() + rhs.raw());
@@ -3985,8 +3966,8 @@ namespace units
 	/// it does NOT reinterpret fahrenheit(9) as the absolute point −12.78 degC. A different-dimension rhs does not
 	/// match (the same_dimension constraint). For an explicit point/delta calculus, use `absolute<>`/`delta<>`.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs> && traits::is_affine_dimension_unit_v<UnitTypeRhs> &&
-			same_dimension<UnitTypeLhs, UnitTypeRhs> && !std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// Add only the rhs's magnitude as a delta: convert it into the lhs scale by the pure ratio of the two units'
@@ -4067,7 +4048,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4080,7 +4061,7 @@ namespace units
 	/// is intentionally not applied. (Binary `a - b` of two absolute affine points yields a non-affine delta;
 	/// use `-=` to move a point down by a relative amount.)
 	template<UnitType UnitTypeLhs>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = UnitTypeLhs(lhs.raw() - rhs.raw());
@@ -4091,8 +4072,8 @@ namespace units
 	/// RELATIVE delta (datum stripped). celsius(20) -= fahrenheit(9) cools by nine Fahrenheit-degrees (five
 	/// Celsius-degrees) to celsius(15). A different-dimension rhs does not match.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs> && traits::is_affine_dimension_unit_v<UnitTypeRhs> &&
-			same_dimension<UnitTypeLhs, UnitTypeRhs> && !std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		lhs = UnitTypeLhs(lhs.raw() - detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
@@ -4122,7 +4103,7 @@ namespace units
 	// -- scaling a CHANGE -- yields a delta, which cannot be stored back in the point type. So an affine point is
 	// excluded here; scale a temperature change via `delta<celsius>` (delta * scalar = delta, well-defined).
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// The rhs is taken as its own arithmetic type (not narrowed to the lhs underlying type at the call
@@ -4239,7 +4220,7 @@ namespace units
 	// coordinate-free reading produces a delta that cannot be stored back in the point type, so an affine point is
 	// excluded; scale a temperature change via `delta<celsius>`.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// see operator*= above: a floating-point divisor narrowing an integer-underlying quantity surfaces
@@ -4250,10 +4231,72 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs /= rhs.value());
+	}
+
+	//----------------------------------
+	//	COMPOUND-ASSIGNMENT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// Each of these is ill-formed for a reason worth stating. Without them the compiler prints only "no match for
+	// operator+=" and a list of declined candidates, which does not say what to write instead. Each returns a value
+	// so the body is instantiated and the message fires on every compiler.
+
+	/// A bare number added to (or subtracted from) a dimensioned quantity: a number carries no dimension.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add a bare number to a quantity; add a quantity of the same dimension (e.g. meters(5)).");
+		return lhs;
+	}
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot subtract a bare number from a quantity; subtract a quantity of the same dimension.");
+		return lhs;
+	}
+
+	/// Compound add/subtract across DIFFERENT dimensions: dimensional analysis forbids it.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot add quantities of different dimensions.");
+		return lhs;
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot subtract quantities of different dimensions.");
+		return lhs;
+	}
+
+	/// Compound multiply/divide by another QUANTITY: the product or quotient has a different dimension, which cannot
+	/// be stored back in the left operand's type. Compute it by value instead.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!DimensionlessUnitType<UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot multiply in place by a quantity; the product has a different dimension. Use `auto p = a * b;`.");
+		return lhs;
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!DimensionlessUnitType<UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide in place by a quantity; the quotient has a different dimension. Use `auto q = a / b;`.");
+		return lhs;
 	}
 
 	//----------------------------------
@@ -4269,7 +4312,7 @@ namespace units
 	/// Scaling an affine POINT: its value is relative to the scale's datum, so the result would depend on the
 	/// arbitrary zero; the only coordinate-free reading is scaling a CHANGE, which is a `delta<...>`.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4279,7 +4322,7 @@ namespace units
 
 	/// Dividing an affine POINT by a number — same reason as scaling.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4289,7 +4332,7 @@ namespace units
 
 	/// Moving an affine POINT by a bare number: a number carries no unit, so the amount of change is unstated.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4297,7 +4340,7 @@ namespace units
 		return lhs;
 	}
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4305,9 +4348,28 @@ namespace units
 		return lhs;
 	}
 
+	/// A reading moved by an AMOUNT, by value: the amount is any same-dimension quantity that is not itself a
+	/// reading (a difference of two readings, a scaled reading, or an offset-free scale), so its magnitude is added to
+	/// the reading in the reading's own degrees and the result is a reading. This is the by-value counterpart of
+	/// `+=`, and it is commutative -- an amount plus a reading is the same reading.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+	}
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeRhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeRhs(rhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeRhs, UnitTypeLhs>(lhs.raw()));
+	}
+
 	/// Summing two affine POINTS: the sum of two positions on a scale has no meaning.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs> && traits::is_affine_dimension_unit_v<UnitTypeRhs> &&
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
 			same_dimension<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&)
 	{
@@ -4521,7 +4583,7 @@ namespace units
 	///			lossless) unit — the same exact behavior integer comparisons rely on.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!traits::is_affine_dimension_unit_v<UnitTypeLhs> && !traits::is_affine_dimension_unit_v<UnitTypeRhs>)
+			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
 	constexpr auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// The result unit is computed in the body (not the signature) so the trait is never instantiated for a
@@ -4593,7 +4655,7 @@ namespace units
 	///			hold the right without truncation.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!traits::is_affine_dimension_unit_v<UnitTypeLhs> && !traits::is_affine_dimension_unit_v<UnitTypeRhs>)
+			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// Result unit computed in the body, not the signature — see operator+ above.
@@ -4610,7 +4672,7 @@ namespace units
 	///				offset-stripped counterpart of that common unit so it never re-applies a datum.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			(traits::is_affine_dimension_unit_v<UnitTypeLhs> || traits::is_affine_dimension_unit_v<UnitTypeRhs>))
+			(traits::is_affine_unit_v<UnitTypeLhs> || traits::is_affine_unit_v<UnitTypeRhs>))
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		// Reconcile to the LEFT operand's affine unit (its datum applied to the right operand as it converts),
@@ -4756,18 +4818,19 @@ namespace units
 		return Out(static_cast<U>(lhs.value()) * static_cast<U>(rhs.raw()));
 	}
 
-	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
+	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale. An affine quantity is
+	/// excluded: scaling a point yields a CHANGE, handled by the affine overload below.
 	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
 		return CommonUnit(CommonUnit(lhs).raw() * rhs);
 	}
 
-	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
+	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale (affine excluded; see below).
 	template<DimensionedUnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
@@ -4920,13 +4983,52 @@ namespace units
 		);
 	}
 
-	/// Division by a dimensionless for unit types with a linear scale
+	/// Division by a dimensionless for unit types with a linear scale (affine excluded; see below).
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs / rhs);
 		return CommonUnit(CommonUnit(lhs).raw() / rhs);
+	}
+
+	//----------------------------------
+	//	SCALING AN AFFINE QUANTITY -> A CHANGE
+	//----------------------------------
+	// Scaling a POINT has no meaning: its value is measured from an arbitrary datum, so "twice 20 degC" depends on
+	// where zero was put. Scaling a CHANGE does have meaning, and it is the only reading of `celsius(20) * 2` that
+	// means anything -- so that is what these produce: the result is the offset-free counterpart of the operand's
+	// unit (the same type `celsius - celsius` yields), holding twice the operand's magnitude in its own degrees.
+	// Because the result is a change, storing it back in a point (`celsius c = celsius(20) * 2;`) does not compile,
+	// which is the intended, loud outcome. The in-place forms cannot do this -- `*=` must yield the point type -- so
+	// they remain ill-formed with a message. No wrapper is required for any of it; `absolute<>`/`delta<>` are opt-in.
+
+	/// An affine quantity scaled by a number: a CHANGE in the operand's own degrees.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr auto operator*(const UnitTypeLhs& lhs, T rhs) noexcept
+	{
+		using Under = std::common_type_t<typename UnitTypeLhs::underlying_type, T>;
+		using Delta = traits::replace_underlying_t<detail::delta_unit_t<UnitTypeLhs>, Under>;
+		return Delta(static_cast<Under>(lhs.raw()) * static_cast<Under>(rhs));
+	}
+	template<UnitType UnitTypeRhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && traits::is_affine_unit_v<UnitTypeRhs>)
+	constexpr auto operator*(T lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		using Under = std::common_type_t<T, typename UnitTypeRhs::underlying_type>;
+		using Delta = traits::replace_underlying_t<detail::delta_unit_t<UnitTypeRhs>, Under>;
+		return Delta(static_cast<Under>(lhs) * static_cast<Under>(rhs.raw()));
+	}
+
+	/// An affine quantity divided by a number: a CHANGE in the operand's own degrees.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr auto operator/(const UnitTypeLhs& lhs, T rhs) noexcept
+	{
+		using Under = std::common_type_t<typename UnitTypeLhs::underlying_type, T>;
+		using Delta = traits::replace_underlying_t<detail::delta_unit_t<UnitTypeLhs>, Under>;
+		return Delta(static_cast<Under>(lhs.raw()) / static_cast<Under>(rhs));
 	}
 
 	/// Division of a dimensionless by a unit type with a linear scale
