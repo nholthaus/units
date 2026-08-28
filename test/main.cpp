@@ -7105,6 +7105,68 @@ TEST_F(Serialization, errorPaths)
 		EXPECT_FALSE(r);
 		EXPECT_EQ(units::deserialize_error::dimension_mismatch, r.error());
 	}
+	// Malformed records: complete bytes that violate an invariant the serializer always upholds. A decoder that
+	// trusts untrusted input would accept these as valid any_units (or, for a huge count, throw an allocation
+	// exception instead of returning an error). The decoder must reject each as deserialize_error::malformed.
+	//
+	// Each stream begins with the valid version byte, then a header (kind:2 | fracExp:1 | reserved:5), a uvarint
+	// term count, then per term 8 hash bytes + a zig-zag num (+ a zig-zag den when fracExp), then the value.
+	const auto header = [](bool fracExp) { return std::byte{static_cast<std::uint8_t>(fracExp ? 0x04 : 0x00)}; }; // kind=ivarint
+	const auto hashBytes = [](std::vector<std::byte>& b, std::uint8_t fill) { for (int i = 0; i < 8; ++i) b.push_back(std::byte{fill}); };
+
+	// #403: a fractional-exponent term with a ZERO denominator encodes the undefined rational exponent num/0.
+	{
+		std::vector<std::byte> m{good[0], header(true), std::byte{0x01}};
+		hashBytes(m, 0xAB);
+		m.push_back(std::byte{0x02}); // num: zig-zag(1)
+		m.push_back(std::byte{0x00}); // den: zig-zag(0) = 0  <-- malformed
+		m.push_back(std::byte{0x54}); // value
+		const auto r = units::deserialize(m);
+		EXPECT_FALSE(r);
+		if (!r)
+			EXPECT_EQ(units::deserialize_error::malformed, r.error());
+	}
+	// #398: a huge term count must be rejected before reserving, not throw std::length_error out of deserialize.
+	{
+		std::vector<std::byte> m{good[0], header(false)};
+		for (int i = 0; i < 9; ++i)
+			m.push_back(std::byte{0xFF}); // count: a ~2^63 uvarint, far beyond the remaining bytes
+		m.push_back(std::byte{0x7F});
+		std::expected<units::any_unit, units::deserialize_error> r;
+		EXPECT_NO_THROW(r = units::deserialize(m));
+		EXPECT_FALSE(r);
+	}
+	// A zero-exponent term (num == 0) is a phantom dimension the serializer never emits (it writes only nonzero terms).
+	{
+		std::vector<std::byte> m{good[0], header(false), std::byte{0x01}};
+		hashBytes(m, 0x22);
+		m.push_back(std::byte{0x00}); // num: zig-zag(0) = 0  <-- malformed
+		m.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(m);
+		EXPECT_FALSE(r);
+	}
+	// Duplicate terms (same hash twice) break the unique-terms invariant.
+	{
+		std::vector<std::byte> m{good[0], header(false), std::byte{0x02}};
+		hashBytes(m, 0xCD);
+		m.push_back(std::byte{0x02}); // term 1 num
+		hashBytes(m, 0xCD);
+		m.push_back(std::byte{0x02}); // term 2 num, same hash
+		m.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(m);
+		EXPECT_FALSE(r);
+	}
+	// Unsorted terms (hashes not ascending) break the sorted-by-hash invariant equality relies on.
+	{
+		std::vector<std::byte> m{good[0], header(false), std::byte{0x02}};
+		hashBytes(m, 0xFF);
+		m.push_back(std::byte{0x02}); // term 1: high hash first
+		hashBytes(m, 0x11);
+		m.push_back(std::byte{0x02}); // term 2: lower hash after -> out of order
+		m.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(m);
+		EXPECT_FALSE(r);
+	}
 }
 
 TEST_F(Serialization, userDefinedDimensionIsExtensible)
