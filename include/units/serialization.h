@@ -1078,12 +1078,34 @@ namespace units
 		if (start == std::istream::pos_type(-1))
 			return std::unexpected(deserialize_error::truncated); // not seekable: records can't be self-delimited here
 
-		const std::vector<char> buffer{std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>()};
-		is.clear(); // the drain set eofbit; clear it so a good decode leaves the stream usable
+		// Read one self-delimiting record incrementally instead of draining the whole remaining stream: grow a small
+		// buffer a chunk at a time and retry the span decoder until it either succeeds or fails for a reason other
+		// than running short of bytes. A record is small (tens of bytes) and has no ceiling, so grow-and-retry reads
+		// only about one record's worth per call -- reading N records is linear, not quadratic (which draining the
+		// remainder each call made it). On success the stream is left just past this record (the unused tail read
+		// while growing is seeked back), so the next read gets the following record.
+		std::vector<char>                        buffer;
+		std::size_t                              chunk = 64; // covers essentially every record in the first read
+		std::expected<any_unit, deserialize_error> decoded{std::unexpected(deserialize_error::truncated)};
+		while (true)
+		{
+			const std::size_t had = buffer.size();
+			buffer.resize(had + chunk);
+			is.read(buffer.data() + had, static_cast<std::streamsize>(chunk));
+			const std::streamsize got = is.gcount();
+			buffer.resize(had + static_cast<std::size_t>(got));
 
-		auto decoded = deserialize(std::span<const std::byte>(reinterpret_cast<const std::byte*>(buffer.data()), buffer.size()));
+			decoded = deserialize(std::span<const std::byte>(reinterpret_cast<const std::byte*>(buffer.data()), buffer.size()));
+			// A successful decode, or a genuine (non-truncation) error, is final. `truncated` with more bytes still
+			// available in the stream means the record spans past what has been read so far -- grow and retry.
+			if (decoded || decoded.error() != deserialize_error::truncated || got < static_cast<std::streamsize>(chunk))
+				break;
+			chunk *= 2; // the record is unusually large; widen the next read
+		}
+
+		is.clear(); // a short read set eofbit/failbit; clear so a good decode leaves the stream usable
 		if (decoded)
-			is.seekg(start + static_cast<std::istream::off_type>(decoded->size())); // rewind past exactly this record
+			is.seekg(start + static_cast<std::istream::off_type>(decoded->size())); // leave the stream just past this record
 		return decoded;
 	}
 
