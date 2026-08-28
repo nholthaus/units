@@ -753,10 +753,10 @@ TEST_F(STDSpecializations, hash)
 TEST_F(STDSpecializations, hashIsExactValueNotTolerant)
 {
 	const meters<double> a(1.0);
-	const meters<double> b(std::nextafter(1.0, 2.0)); // one ULP above a
+	const meters<double> oneUlpAbove(std::nextafter(1.0, 2.0)); // one ULP above a
 
-	// operator== is tolerant: a and b are "equal" quantities.
-	EXPECT_TRUE(a == b);
+	// operator== is tolerant: a and oneUlpAbove are "equal" quantities.
+	EXPECT_TRUE(a == oneUlpAbove);
 
 	// The guarantee that matters: exactly-equal values hash equal (deterministic, representation-independent).
 	EXPECT_EQ(std::hash<meters<double>>()(a), std::hash<meters<double>>()(meters<double>(1.0)));
@@ -764,7 +764,7 @@ TEST_F(STDSpecializations, hashIsExactValueNotTolerant)
 
 	// std::hash reflects the exact stored value; the one-ULP neighbour is a distinct hash input, just as it is for
 	// std::hash<double>. This mirror is the documented, intentional behavior.
-	EXPECT_EQ(std::hash<meters<double>>()(b), std::hash<double>()(std::nextafter(1.0, 2.0)));
+	EXPECT_EQ(std::hash<meters<double>>()(oneUlpAbove), std::hash<double>()(std::nextafter(1.0, 2.0)));
 }
 
 // General coverage (not tied to a specific change): units must work END-TO-END as STL associative-container
@@ -2034,8 +2034,8 @@ TEST_F(UnitType, arithmeticResultIsLeftOperandUnit)
 	// Integer, incommensurable (meters vs feet): no real named unit holds the result without truncation, so it
 	// falls to the finest common (anonymous) unit — the exact reconciliation. The VALUE stays correct.
 	{
-		const auto d = meters<int>(3) - feet<int>(1);   // 3 m - 1 ft, exact in the common sub-unit
-		EXPECT_NEAR(2.6952, meters<double>(d).value(), 1.0e-4);
+		const auto difference = meters<int>(3) - feet<int>(1);   // 3 m - 1 ft, exact in the common sub-unit
+		EXPECT_NEAR(2.6952, meters<double>(difference).value(), 1.0e-4);
 	}
 }
 
@@ -2073,15 +2073,15 @@ TEST_F(UnitType, commonTypeRecoversComposedName)
 // other unit -- a length, a named angle, an affine temperature -- a bare number has no dimension to add, so the
 // expression must not be well-formed (matching the binary `unit + number`, which is already rejected).
 template<class A, class T>
-concept can_add_scalar = requires(A a, T t) { a += t; };
+concept can_add_scalar = requires(A a, T scalar) { a += scalar; };
 
 // Companion concepts for the affine point rules: whether two quantities can be added, and whether a quantity can be
 // scaled by a bare number. A temperature is a POINT on an affine dimension (kelvin and rankine included, even though
 // they carry no per-unit offset), so point + point is undefined and a point does not scale.
 template<class A, class B>
-concept can_add = requires(A a, B b) { a + b; };
+concept can_add = requires(A a, B rhs) { a + rhs; };
 template<class A, class T>
-concept can_scale = requires(A a, T t) { a *= t; };
+concept can_scale = requires(A a, T scalar) { a *= scalar; };
 
 // Affine (offset-carrying) units: the difference of two absolute temperatures is a DELTA — the datum
 // offsets cancel and the result must not re-apply an offset. Previously celsius(0) - kelvin(0) read 546.30 K
@@ -2118,11 +2118,11 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 
 	// #402: the rhs is a relative delta even when written in a DIFFERENT affine scale -- only its scale-converted
 	// magnitude moves the point, its datum is not applied. A 9 Fahrenheit-degree change is a 5 Celsius-degree change.
-	celsius<double> b(20.0);
-	b += fahrenheit<double>(9.0);
-	EXPECT_NEAR(25.0, b.value(), 5.0e-12);    // warmed by 9 F-degrees = 5 C-degrees
-	b -= fahrenheit<double>(9.0);
-	EXPECT_NEAR(20.0, b.value(), 5.0e-12);    // cooled back
+	celsius<double> crossScale(20.0);
+	crossScale += fahrenheit<double>(9.0);
+	EXPECT_NEAR(25.0, crossScale.value(), 5.0e-12);    // warmed by 9 F-degrees = 5 C-degrees
+	crossScale -= fahrenheit<double>(9.0);
+	EXPECT_NEAR(20.0, crossScale.value(), 5.0e-12);    // cooled back
 	celsius<double> c(0.0);
 	c += kelvin<double>(5.0);
 	EXPECT_NEAR(5.0, c.value(), 5.0e-12);     // a 5 K change is a 5 C-degree change
@@ -2130,11 +2130,11 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	// A different-dimension rhs is still rejected (checked after the fix's constraint tightening).
 
 	// Non-affine compound assignment is unchanged.
-	meters<double> m(5.0);
-	m += meters<double>(3.0);
-	EXPECT_NEAR(8.0, m.value(), 5.0e-12);
-	m -= meters<double>(2.0);
-	EXPECT_NEAR(6.0, m.value(), 5.0e-12);
+	meters<double> distance(5.0);
+	distance += meters<double>(3.0);
+	EXPECT_NEAR(8.0, distance.value(), 5.0e-12);
+	distance -= meters<double>(2.0);
+	EXPECT_NEAR(6.0, distance.value(), 5.0e-12);
 }
 
 // A temperature READING carries a datum (celsius, fahrenheit), so its type says "point" and the point rules apply
@@ -2325,15 +2325,15 @@ TEST_F(UnitType, matrixNonTemperatureUnaffected)
 	EXPECT_NEAR(9.0856, (meters<double>(10.0) - feet<double>(3.0)).value(), 5.0e-5);
 	EXPECT_NEAR(20.0, (meters<double>(10.0) * 2.0).value(), 5.0e-12);
 	EXPECT_NEAR(5.0, (meters<double>(10.0) / 2.0).value(), 5.0e-12);
-	meters<double> m(10.0);
-	m += feet<double>(3.0);
-	EXPECT_NEAR(10.9144, m.value(), 5.0e-5);
-	m -= feet<double>(3.0);
-	EXPECT_NEAR(10.0, m.value(), 5.0e-5);
-	m *= 2.0;
-	EXPECT_NEAR(20.0, m.value(), 5.0e-12);
-	m /= 4.0;
-	EXPECT_NEAR(5.0, m.value(), 5.0e-12);
+	meters<double> distance(10.0);
+	distance += feet<double>(3.0);
+	EXPECT_NEAR(10.9144, distance.value(), 5.0e-5);
+	distance -= feet<double>(3.0);
+	EXPECT_NEAR(10.0, distance.value(), 5.0e-5);
+	distance *= 2.0;
+	EXPECT_NEAR(20.0, distance.value(), 5.0e-12);
+	distance /= 4.0;
+	EXPECT_NEAR(5.0, distance.value(), 5.0e-12);
 	static_assert(std::is_same_v<meters<double>, decltype(meters<double>(1) * 2.0)>, "a length scaled is a length");
 
 	// a product/quotient of quantities changes dimension and is computed by value
@@ -2345,14 +2345,14 @@ TEST_F(UnitType, matrixNonTemperatureUnaffected)
 	EXPECT_NEAR(2.0, (units::angle::radians<double>(1.0) * 2.0).value(), 5.0e-12);
 
 	// dimensionless and percent still take a bare number
-	dimensionless<double> d(1.0);
-	d += 2.5;
-	EXPECT_NEAR(3.5, d.value(), 5.0e-12);
-	d -= 0.5;
-	EXPECT_NEAR(3.0, d.value(), 5.0e-12);
-	concentration::percent<double> pct(50.0);
-	pct += 10.0;    // ten in fraction space
-	EXPECT_NEAR(10.5, pct.value(), 5.0e-12);
+	dimensionless<double> scalar(1.0);
+	scalar += 2.5;
+	EXPECT_NEAR(3.5, scalar.value(), 5.0e-12);
+	scalar -= 0.5;
+	EXPECT_NEAR(3.0, scalar.value(), 5.0e-12);
+	concentration::percent<double> percentage(50.0);
+	percentage += 10.0;    // ten in fraction space
+	EXPECT_NEAR(10.5, percentage.value(), 5.0e-12);
 }
 
 // Adding a bare number to a quantity is well-formed only for a genuinely dimensionless quantity (a plain scalar or a
@@ -2364,9 +2364,9 @@ TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
 	static_assert(can_add_scalar<dimensionless<double>, double>, "a plain scalar accepts += a number");
 	static_assert(can_add_scalar<concentration::percent<double>, double>, "a ratio-scaled dimensionless accepts += a number");
 
-	dimensionless<double> d(1.0);
-	d += 2.5;
-	EXPECT_NEAR(3.5, d.value(), 5.0e-12);
+	dimensionless<double> scalar(1.0);
+	scalar += 2.5;
+	EXPECT_NEAR(3.5, scalar.value(), 5.0e-12);
 }
 
 // A DIMENSIONED decibel value (dBW, dBm) is a point on a logarithmic reference scale and a DIMENSIONLESS decibel value
@@ -2409,6 +2409,25 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	decibels<double> gain(3.5);
 	gain += decibels<double>(2.25);
 	EXPECT_NEAR(5.75, gain.raw(), 5.0e-12);
+
+	// a LEVEL moves in place by a GAIN, the compound form of `level + gain`. The operands differ in dimension, which is
+	// ordinarily forbidden, but a gain is a ratio, so it moves the level exactly as a delta moves an affine point.
+	dBW<double> moved(12.5);
+	moved += decibels<double>(3.25);
+	EXPECT_NEAR(15.75, moved.raw(), 5.0e-12);
+	moved -= decibels<double>(3.25);
+	EXPECT_NEAR(12.5, moved.raw(), 5.0e-12);
+	static_assert(std::is_same_v<dBW<double>, decltype(moved)>, "a level moved in place stays a level");
+
+	static_assert(can_add_scalar<decibels<double>, decibels<double>>, "a gain moves by a gain");
+	static_assert(can_add_scalar<dBW<double>, decibels<double>>, "a level moves by a gain");
+
+	// Scaling a decibel value in place, and moving one by a bare number, are refused -- matching the by-value `dBW *
+	// 2.0` and `dBW + 2.0`, which have no overload either. `*=` formerly compiled and returned a value that was neither
+	// reading: the body read the value THROUGH the scale and wrote it back PAST the scale, so dBW(12.5) *= 2.0 yielded
+	// 13.98 dBW (12.5 doubled to 25, then stored as the LINEAR value). Those rejections are diagnostics that fire from
+	// an overload BODY, so the overload still resolves and no concept can observe them; the errorMessages harness cases
+	// scale_decibel_level / divide_decibel_level / add_scalar_to_decibel require each to fail and grade its message.
 
 	// ++ and -- step the dB NUMBER, round-tripping through the scale (they rebuild via the ordinary constructor)
 	dBW<double> level(12.5);
@@ -3027,9 +3046,9 @@ TEST_F(UnitType, unitTypeModulo)
 // well-formed only when the operands share a tick scale and are integer-backed. These concepts let the contract be
 // asserted directly: a case that must NOT compile is a `static_assert(!Can...<...>)`.
 template<class A, class B>
-concept can_modulo = requires(A a, B b) { a % b; };
+concept can_modulo = requires(A a, B rhs) { a % rhs; };
 template<class A, class B>
-concept can_modulo_assign = requires(A a, B b) { a %= b; };
+concept can_modulo_assign = requires(A a, B rhs) { a %= rhs; };
 
 // The full modulo contract, proven exhaustively rather than by inference: which operand pairs `%`/`%=` accept and
 // which it rejects at compile time. Integer-backed operands of the SAME tick scale (or a ratio unit modulo a plain
@@ -3678,8 +3697,8 @@ TEST_F(UnitType, hashOfLargeValueDoesNotOverflow)
 	// std::hash forwards through a unit conversion; a large value converted to a fine unit used to overflow the
 	// intermediate. With the widened conversion the hash of a big value is computed without undefined behavior
 	// (run under -fsanitize=undefined this must not trip). Equal values under one key type hash equally.
-	const auto h = std::hash<millimeters<std::int64_t>>()(kilometers<std::int64_t>(3000)); // 3e9 mm
-	EXPECT_EQ(h, std::hash<millimeters<std::int64_t>>()(millimeters<std::int64_t>(3'000'000'000LL)));
+	const auto hashValue = std::hash<millimeters<std::int64_t>>()(kilometers<std::int64_t>(3000)); // 3e9 mm
+	EXPECT_EQ(hashValue, std::hash<millimeters<std::int64_t>>()(millimeters<std::int64_t>(3'000'000'000LL)));
 	EXPECT_EQ(std::hash<meters<int>>()(meters<int>(7)), std::hash<meters<int>>()(meters<int>(7)));
 }
 
@@ -6850,12 +6869,12 @@ TEST_F(CaseStudies, idealGasLaw)
 	// in 22.414 L is one standard atmosphere.
 	const substance::mols<>       n = substance::mols<>(1.0);
 	const temperature::kelvin<>   T = temperature::kelvin<>(273.15);
-	const volume::liters<>        V = volume::liters<>(22.414);
-	const auto                    R = energy::joules<>(8.314462618) / (substance::mols<>(1.0) * temperature::kelvin<>(1.0));
+	const volume::liters<>        gasVolume = volume::liters<>(22.414);
+	const auto                    gasConstant = energy::joules<>(8.314462618) / (substance::mols<>(1.0) * temperature::kelvin<>(1.0));
 
-	const pressure::pascals<double> P = (n * R * T) / V;
+	const pressure::pascals<double> gasPressure = (n * gasConstant * T) / gasVolume;
 
-	EXPECT_NEAR(101325.0, P.value(), 1.0);
+	EXPECT_NEAR(101325.0, gasPressure.value(), 1.0);
 }
 
 //======================================================================================================================
@@ -7487,16 +7506,16 @@ TEST_F(Serialization, errorPaths)
 	// Each stream begins with the valid version byte, then a header (kind:2 | fracExp:1 | reserved:5), a uvarint
 	// term count, then per term 8 hash bytes + a zig-zag num (+ a zig-zag den when fracExp), then the value.
 	const auto header = [](bool fracExp) { return std::byte{static_cast<std::uint8_t>(fracExp ? 0x04 : 0x00)}; }; // kind=ivarint
-	const auto hashBytes = [](std::vector<std::byte>& b, std::uint8_t fill) { for (int i = 0; i < 8; ++i) b.push_back(std::byte{fill}); };
+	const auto hashBytes = [](std::vector<std::byte>& buffer, std::uint8_t fill) { for (int i = 0; i < 8; ++i) buffer.push_back(std::byte{fill}); };
 
 	// #403: a fractional-exponent term with a ZERO denominator encodes the undefined rational exponent num/0.
 	{
-		std::vector<std::byte> m{good[0], header(true), std::byte{0x01}};
-		hashBytes(m, 0xAB);
-		m.push_back(std::byte{0x02}); // num: zig-zag(1)
-		m.push_back(std::byte{0x00}); // den: zig-zag(0) = 0  <-- malformed
-		m.push_back(std::byte{0x54}); // value
-		const auto r = units::deserialize(m);
+		std::vector<std::byte> message{good[0], header(true), std::byte{0x01}};
+		hashBytes(message, 0xAB);
+		message.push_back(std::byte{0x02}); // num: zig-zag(1)
+		message.push_back(std::byte{0x00}); // den: zig-zag(0) = 0  <-- malformed
+		message.push_back(std::byte{0x54}); // value
+		const auto r = units::deserialize(message);
 		EXPECT_FALSE(r);
 		if (!r)
 		{
@@ -7505,43 +7524,43 @@ TEST_F(Serialization, errorPaths)
 	}
 	// #398: a huge term count must be rejected before reserving, not throw std::length_error out of deserialize.
 	{
-		std::vector<std::byte> m{good[0], header(false)};
+		std::vector<std::byte> message{good[0], header(false)};
 		for (int i = 0; i < 9; ++i)
-			m.push_back(std::byte{0xFF}); // count: a ~2^63 uvarint, far beyond the remaining bytes
-		m.push_back(std::byte{0x7F});
+			message.push_back(std::byte{0xFF}); // count: a ~2^63 uvarint, far beyond the remaining bytes
+		message.push_back(std::byte{0x7F});
 		std::expected<units::any_unit, units::deserialize_error> r;
-		EXPECT_NO_THROW(r = units::deserialize(m));
+		EXPECT_NO_THROW(r = units::deserialize(message));
 		EXPECT_FALSE(r);
 	}
 	// A zero-exponent term (num == 0) is a phantom dimension the serializer never emits (it writes only nonzero terms).
 	{
-		std::vector<std::byte> m{good[0], header(false), std::byte{0x01}};
-		hashBytes(m, 0x22);
-		m.push_back(std::byte{0x00}); // num: zig-zag(0) = 0  <-- malformed
-		m.push_back(std::byte{0x00}); // value
-		const auto r = units::deserialize(m);
+		std::vector<std::byte> message{good[0], header(false), std::byte{0x01}};
+		hashBytes(message, 0x22);
+		message.push_back(std::byte{0x00}); // num: zig-zag(0) = 0  <-- malformed
+		message.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(message);
 		EXPECT_FALSE(r);
 	}
 	// Duplicate terms (same hash twice) break the unique-terms invariant.
 	{
-		std::vector<std::byte> m{good[0], header(false), std::byte{0x02}};
-		hashBytes(m, 0xCD);
-		m.push_back(std::byte{0x02}); // term 1 num
-		hashBytes(m, 0xCD);
-		m.push_back(std::byte{0x02}); // term 2 num, same hash
-		m.push_back(std::byte{0x00}); // value
-		const auto r = units::deserialize(m);
+		std::vector<std::byte> message{good[0], header(false), std::byte{0x02}};
+		hashBytes(message, 0xCD);
+		message.push_back(std::byte{0x02}); // term 1 num
+		hashBytes(message, 0xCD);
+		message.push_back(std::byte{0x02}); // term 2 num, same hash
+		message.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(message);
 		EXPECT_FALSE(r);
 	}
 	// Unsorted terms (hashes not ascending) break the sorted-by-hash invariant equality relies on.
 	{
-		std::vector<std::byte> m{good[0], header(false), std::byte{0x02}};
-		hashBytes(m, 0xFF);
-		m.push_back(std::byte{0x02}); // term 1: high hash first
-		hashBytes(m, 0x11);
-		m.push_back(std::byte{0x02}); // term 2: lower hash after -> out of order
-		m.push_back(std::byte{0x00}); // value
-		const auto r = units::deserialize(m);
+		std::vector<std::byte> message{good[0], header(false), std::byte{0x02}};
+		hashBytes(message, 0xFF);
+		message.push_back(std::byte{0x02}); // term 1: high hash first
+		hashBytes(message, 0x11);
+		message.push_back(std::byte{0x02}); // term 2: lower hash after -> out of order
+		message.push_back(std::byte{0x00}); // value
+		const auto r = units::deserialize(message);
 		EXPECT_FALSE(r);
 	}
 }
@@ -7803,14 +7822,14 @@ TEST_F(Serialization, ratioScaledDimensionlessEraseToPhysicalValueOnly)
 
 	// 37.25 percent, 372500 ppm, and 372500000 ppb are all the physical value 0.3725; each erases identically to a
 	// plain dimensionless(0.3725). Equal renderings, no raw '#' hash.
-	const auto pct  = units::serialize(percent<double>(37.25));
-	const auto ppm  = units::serialize(parts_per_million<double>(372500.0));
-	const auto ppb  = units::serialize(parts_per_billion<double>(372500000.0));
+	const auto percentBytes  = units::serialize(percent<double>(37.25));
+	const auto ppmBytes  = units::serialize(parts_per_million<double>(372500.0));
+	const auto ppbBytes  = units::serialize(parts_per_billion<double>(372500000.0));
 	const auto bare = units::serialize(units::dimensionless<double>(0.3725));
-	EXPECT_EQ(bare.to_string(), pct.to_string());
-	EXPECT_EQ(bare.to_string(), ppm.to_string());
-	EXPECT_EQ(bare.to_string(), ppb.to_string());
-	EXPECT_EQ(std::string::npos, pct.to_string().find('#'));
+	EXPECT_EQ(bare.to_string(), percentBytes.to_string());
+	EXPECT_EQ(bare.to_string(), ppmBytes.to_string());
+	EXPECT_EQ(bare.to_string(), ppbBytes.to_string());
+	EXPECT_EQ(std::string::npos, percentBytes.to_string().find('#'));
 
 	// Reading each back by VALUE recovers the physical magnitude (0.3725) -- the scale is gone.
 	const auto asValue = units::serialize(percent<double>(37.25)).to<units::dimensionless<double>>();
@@ -7871,6 +7890,10 @@ namespace
 } // namespace
 TEST_F(Serialization, dimensionlessVisitDispatchesUnitNotScalar)
 {
+	// The arithmetic overload must be viable, or the unit overload winning below would prove nothing: there would be
+	// no competing candidate for it to be preferred over, and the test would pass vacuously.
+	static_assert(overloadTag(2.5) == 2, "the arithmetic overload is a real candidate");
+
 	bool checked = false;
 	const auto blob = units::serialize(units::meters<double>(3.0) / units::meters<double>(4.0));
 	blob.visit([&](const auto& q) {
@@ -8472,15 +8495,15 @@ namespace
 // unit — this three-way equality is the anchor invariant of the whole feature.
 TEST(Format, defaultMatchesToStringAndOstreamNamed)
 {
-	const auto m = 3.5_m;
-	EXPECT_EQ(std::format("{}", m), "3.5 m");
-	EXPECT_EQ(std::format("{}", m), units::to_string(m));
-	EXPECT_EQ(std::format("{}", m), ostreamString(m));
+	const auto distance = 3.5_m;
+	EXPECT_EQ(std::format("{}", distance), "3.5 m");
+	EXPECT_EQ(std::format("{}", distance), units::to_string(distance));
+	EXPECT_EQ(std::format("{}", distance), ostreamString(distance));
 
-	const auto ft = 6.0_ft;
-	EXPECT_EQ(std::format("{}", ft), "6 ft");
-	EXPECT_EQ(std::format("{}", ft), units::to_string(ft));
-	EXPECT_EQ(std::format("{}", ft), ostreamString(ft));
+	const auto distanceFeet = 6.0_ft;
+	EXPECT_EQ(std::format("{}", distanceFeet), "6 ft");
+	EXPECT_EQ(std::format("{}", distanceFeet), units::to_string(distanceFeet));
+	EXPECT_EQ(std::format("{}", distanceFeet), ostreamString(distanceFeet));
 }
 
 // The same three-way equality for a percent (named dimensionless) unit: it prints its abbreviation "pct", NOT "%".
@@ -8515,10 +8538,10 @@ TEST(Format, defaultMatchesToStringAndOstreamNamedCompound)
 // as-is; still byte-identical to to_string and operator<<.
 TEST(Format, defaultMatchesToStringAndOstreamIntUnderlying)
 {
-	const units::meters<int> mi(42);
-	EXPECT_EQ(std::format("{}", mi), "42 m");
-	EXPECT_EQ(std::format("{}", mi), units::to_string(mi));
-	EXPECT_EQ(std::format("{}", mi), ostreamString(mi));
+	const units::meters<int> metersInt(42);
+	EXPECT_EQ(std::format("{}", metersInt), "42 m");
+	EXPECT_EQ(std::format("{}", metersInt), units::to_string(metersInt));
+	EXPECT_EQ(std::format("{}", metersInt), ostreamString(metersInt));
 }
 
 // A unit needing floating-point promotion (float underlying) matches across all three sinks.
@@ -8575,14 +8598,14 @@ TEST(Format, zeroFillValue)
 // formatter delegate is the underlying int in that case, so the standard int grammar passes through.
 TEST(Format, integerPresentationTypesOnIntUnit)
 {
-	const units::meters<int> mi(255);
-	EXPECT_EQ(std::format("{:x}", mi), "ff m");
-	EXPECT_EQ(std::format("{:#06x}", mi), "0x00ff m");
-	EXPECT_EQ(std::format("{:b}", mi), "11111111 m");
-	EXPECT_EQ(std::format("{:d}", mi), "255 m");
+	const units::meters<int> metersInt(255);
+	EXPECT_EQ(std::format("{:x}", metersInt), "ff m");
+	EXPECT_EQ(std::format("{:#06x}", metersInt), "0x00ff m");
+	EXPECT_EQ(std::format("{:b}", metersInt), "11111111 m");
+	EXPECT_EQ(std::format("{:d}", metersInt), "255 m");
 	// combined with a show flag
-	EXPECT_EQ(std::format("{:x%v}", mi), "ff");
-	EXPECT_EQ(std::format("{:x%u}", mi), "m");
+	EXPECT_EQ(std::format("{:x%v}", metersInt), "ff");
+	EXPECT_EQ(std::format("{:x%u}", metersInt), "m");
 }
 
 //-----------------------------
@@ -8674,9 +8697,9 @@ TEST(Format, showUnitOnly)
 // %v / %u on an integer-underlying named unit.
 TEST(Format, showFlagsIntUnderlying)
 {
-	const units::meters<int> mi(42);
-	EXPECT_EQ(std::format("{:%v}", mi), "42");
-	EXPECT_EQ(std::format("{:%u}", mi), "m");
+	const units::meters<int> metersInt(42);
+	EXPECT_EQ(std::format("{:%v}", metersInt), "42");
+	EXPECT_EQ(std::format("{:%u}", metersInt), "m");
 }
 
 // %u never emits a separator regardless of a supplied separator literal.
@@ -8779,11 +8802,11 @@ TEST(Format, formatToBackInserter)
 // std::vformat with make_format_args honors a runtime spec.
 TEST(Format, vformatRuntimeSpec)
 {
-	const auto  m    = 3.5_m;
+	const auto  distance    = 3.5_m;
 	std::string spec = "{:%u}";
-	EXPECT_EQ(std::vformat(spec, std::make_format_args(m)), "m");
+	EXPECT_EQ(std::vformat(spec, std::make_format_args(distance)), "m");
 	spec = "{:.2f%n}";
-	EXPECT_EQ(std::vformat(spec, std::make_format_args(m)), "3.50 meters");
+	EXPECT_EQ(std::vformat(spec, std::make_format_args(distance)), "3.50 meters");
 }
 
 //-----------------------------
@@ -8818,55 +8841,55 @@ TEST(Format, manyUnitTypes)
 // An unknown unit-format flag throws.
 TEST(Format, throwsOnUnknownFlag)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:%z}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%z}", std::make_format_args(distance)), std::format_error);
 }
 
 // A duplicated label-form flag throws.
 TEST(Format, throwsOnDuplicateLabelForm)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:%aa}", std::make_format_args(m)), std::format_error);
-	EXPECT_THROW((void)std::vformat("{:%an}", std::make_format_args(m)), std::format_error);
-	EXPECT_THROW((void)std::vformat("{:%ba}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%aa}", std::make_format_args(distance)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%an}", std::make_format_args(distance)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%ba}", std::make_format_args(distance)), std::format_error);
 }
 
 // A duplicated show flag throws.
 TEST(Format, throwsOnDuplicateShowFlag)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:%vv}", std::make_format_args(m)), std::format_error);
-	EXPECT_THROW((void)std::vformat("{:%vu}", std::make_format_args(m)), std::format_error);
-	EXPECT_THROW((void)std::vformat("{:%uv}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%vv}", std::make_format_args(distance)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%vu}", std::make_format_args(distance)), std::format_error);
+	EXPECT_THROW((void)std::vformat("{:%uv}", std::make_format_args(distance)), std::format_error);
 }
 
 // An unterminated separator literal throws.
 TEST(Format, throwsOnUnterminatedSeparator)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:%a'foo}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%a'foo}", std::make_format_args(distance)), std::format_error);
 }
 
 // A dangling escape at the end of a separator throws.
 TEST(Format, throwsOnDanglingEscape)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:%a'\\}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:%a'\\}", std::make_format_args(distance)), std::format_error);
 }
 
 // A value-spec the underlying value formatter rejects throws.
 TEST(Format, throwsOnInvalidValueSpec)
 {
-	const auto m = 3.5_m;
-	EXPECT_THROW((void)std::vformat("{:Zf}", std::make_format_args(m)), std::format_error);
+	const auto distance = 3.5_m;
+	EXPECT_THROW((void)std::vformat("{:Zf}", std::make_format_args(distance)), std::format_error);
 }
 
 // A float presentation type on an integer-underlying unit's value formatter throws (the delegate is the int
 // formatter, which rejects '.2f'); an int presentation type on a floating-point delegate likewise throws.
 TEST(Format, throwsOnMismatchedValueTypeSpec)
 {
-	const units::meters<int> mi(3);
-	EXPECT_THROW((void)std::vformat("{:.2f}", std::make_format_args(mi)), std::format_error);
+	const units::meters<int> metersInt(3);
+	EXPECT_THROW((void)std::vformat("{:.2f}", std::make_format_args(metersInt)), std::format_error);
 
 	const units::meters<double> md(3.5);
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);

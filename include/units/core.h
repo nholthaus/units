@@ -3936,6 +3936,13 @@ namespace units
 			const Compute scaled = static_cast<Compute>(rawRhs) * static_cast<Compute>(Ratio::num) / static_cast<Compute>(Ratio::den);
 			return static_cast<typename UnitTypeLhs::underlying_type>(scaled);
 		}
+
+		/// True when the operand pair is a decibel LEVEL (dimensioned, a point on a logarithmic reference scale) and a
+		/// decibel GAIN (dimensionless, a relative ratio). This is the one cross-DIMENSION compound pairing that is
+		/// well-defined, because `level + gain -> level` and `level - gain -> level` are defined by value.
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		inline constexpr bool is_decibel_level_and_gain_v =
+			DimensionedUnitType<UnitTypeLhs> && DimensionlessUnitType<UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -3978,12 +3985,36 @@ namespace units
 		return lhs;
 	}
 
+	/// Compound move of a decibel LEVEL by a dimensionless decibel GAIN — the in-place form of `level + gain -> level`
+	/// (dBW(12.5) += decibels(3.25) -> dBW(15.75)). The operands differ in dimension, which is ordinarily forbidden, but
+	/// a gain is a ratio rather than a quantity of its own dimension, so it moves the level exactly as a delta moves an
+	/// affine point. Without this the in-place form was rejected while the by-value form succeeded.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = lhs + rhs;
+		return lhs;
+	}
+
+	/// Compound move of a decibel LEVEL down by a dimensionless decibel GAIN — the in-place form of `level - gain`.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = lhs - rhs;
+		return lhs;
+	}
+
 	// A bare number may be compound-added only to a genuinely dimensionless quantity (a plain scalar): a number has
 	// no dimension, so adding one to a length, a named angle, or an affine point is meaningless -- and the binary
 	// `unit + number` already rejects it. Constraining to a plain dimensionless unit keeps `+=`/`+` consistent and
 	// turns what was a body-level failure for any other unit into a clean overload-resolution rejection. (Ratio-
-	// scaled dimensionless units -- percent, parts-per-million -- have their own scalar overload below.)
+	// scaled dimensionless units -- percent, parts-per-million -- have their own scalar overload below.) A LOGARITHMIC
+	// dimensionless unit (a dB gain) is excluded too: a bare number states no ratio, and `unit + number` has no decibel
+	// overload, so without the scale constraint this body failed inside the library instead of at the call site.
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -4082,8 +4113,10 @@ namespace units
 
 	// Mirror of the scalar `+=`: a bare number may be compound-subtracted only from a plain dimensionless quantity.
 	// For any dimensioned unit, named angle, or affine point it is meaningless and the binary `unit - number`
-	// already rejects it, so this is a clean overload-resolution rejection rather than a body-level failure.
+	// already rejects it, so this is a clean overload-resolution rejection rather than a body-level failure. A
+	// logarithmic dimensionless unit is excluded for the same reason as in the `+=` above.
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4102,8 +4135,13 @@ namespace units
 	// 313 K, yet the same temperature in kelvin doubled is a different point), and the only coordinate-free reading
 	// -- scaling a CHANGE -- yields a delta, which cannot be stored back in the point type. So an affine point is
 	// excluded here; scale a temperature change via `delta<celsius>` (delta * scalar = delta, well-defined).
+	//
+	// A NON-LINEAR (decibel) scale is excluded as well, matching the by-value `operator*`. The body below reads the
+	// value THROUGH the scale (`raw()` returns the dB number) and writes it back PAST the scale (the
+	// `linearized_value` tag stores it unlinearized). Those two are the same operation only for a linear scale; for a
+	// decibel scale they are different domains, so scaling one silently produced a value that was neither reading.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// The rhs is taken as its own arithmetic type (not narrowed to the lhs underlying type at the call
@@ -4210,7 +4248,7 @@ namespace units
 	// scale a dimensioned quantity by a dimensionless quantity: use its numeric value and route through the
 	// arithmetic overload above (preserves the warn-on-lossy-integer-scale behavior)
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs *= rhs.value());
@@ -4220,7 +4258,7 @@ namespace units
 	// coordinate-free reading produces a delta that cannot be stored back in the point type, so an affine point is
 	// excluded; scale a temperature change via `delta<celsius>`.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// see operator*= above: a floating-point divisor narrowing an integer-underlying quantity surfaces
@@ -4231,7 +4269,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs /= rhs.value());
@@ -4246,7 +4284,7 @@ namespace units
 
 	/// A bare number added to (or subtracted from) a dimensioned quantity: a number carries no dimension.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4254,7 +4292,7 @@ namespace units
 		return lhs;
 	}
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4262,9 +4300,10 @@ namespace units
 		return lhs;
 	}
 
-	/// Compound add/subtract across DIFFERENT dimensions: dimensional analysis forbids it.
+	/// Compound add/subtract across DIFFERENT dimensions: dimensional analysis forbids it. A decibel level moved by a
+	/// dimensionless decibel gain is the one well-defined cross-dimension pairing and is handled above.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
@@ -4272,7 +4311,7 @@ namespace units
 		return lhs;
 	}
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
@@ -4345,6 +4384,52 @@ namespace units
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
 			"units: cannot subtract a bare number from an affine point; subtract a quantity or a units::delta<...>.");
+		return lhs;
+	}
+
+	//----------------------------------
+	//	LOGARITHMIC (DECIBEL) MISUSE DIAGNOSTICS
+	//----------------------------------
+	// A decibel value is a logarithmic reading, so a bare number is neither a ratio nor an amount of it, and scaling
+	// one has no single meaning (doubling the dB number squares the linear ratio). The by-value operators already
+	// decline these; without the catch-alls below the in-place forms reported a failure inside the library rather
+	// than at the call site. Each returns a value so the body is instantiated and the message fires on every compiler.
+
+	/// Scaling a decibel value in place: the dB number and the linear ratio it stands for do not scale alike.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale a decibel value; scale the linear quantity instead.");
+		return lhs;
+	}
+
+	/// Dividing a decibel value in place -- same reason as scaling.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide a decibel value; divide the linear quantity instead.");
+		return lhs;
+	}
+
+	/// Moving a decibel value by a bare number: a number states no reference and no ratio.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add a bare number to a decibel value; add a decibels(...) gain.");
+		return lhs;
+	}
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot subtract a bare number from a decibel value; subtract a decibels(...) gain.");
 		return lhs;
 	}
 

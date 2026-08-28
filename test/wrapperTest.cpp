@@ -958,10 +958,10 @@ TEST(WrapperParity, toArithmeticMatchesPlainUnit)
 // target still stays wrapped.
 TEST(WrapperParity, toDispatchStillDisjointWithArithmeticOverload)
 {
-	const D<meters<double>> d(5.0);
-	static_assert(std::is_same_v<decltype(d.to<double>()), double>);            // arithmetic -> number
-	static_assert(std::is_same_v<decltype(d.to<meters<double>>()), meters<double>>);   // plain unit -> unwrap
-	static_assert(std::is_same_v<decltype(d.to<D<feet<double>>>()), D<feet<double>>>); // wrapper -> stays
+	const D<meters<double>> change(5.0);
+	static_assert(std::is_same_v<decltype(change.to<double>()), double>);            // arithmetic -> number
+	static_assert(std::is_same_v<decltype(change.to<meters<double>>()), meters<double>>);   // plain unit -> unwrap
+	static_assert(std::is_same_v<decltype(change.to<D<feet<double>>>()), D<feet<double>>>); // wrapper -> stays
 	SUCCEED();
 }
 
@@ -1054,10 +1054,10 @@ TEST(WrapperCaseStudy, sameTagRatioIsDimensionless)
 TEST(WrapperCaseStudy, kindParityHashLimitsMathCompound)
 {
 	// Full parity with absolute/delta: hash (unordered container), numeric_limits, abs/min/max/clamp, *=//=.
-	std::unordered_set<kind<"radial", meters<int>>> s;
-	s.insert(kind<"radial", meters<int>>(3));
-	s.insert(kind<"radial", meters<int>>(3));
-	EXPECT_EQ(1u, s.size());
+	std::unordered_set<kind<"radial", meters<int>>> radialSet;
+	radialSet.insert(kind<"radial", meters<int>>(3));
+	radialSet.insert(kind<"radial", meters<int>>(3));
+	EXPECT_EQ(1u, radialSet.size());
 
 	static_assert(std::numeric_limits<kind<"radial", meters<double>>>::is_specialized);
 
@@ -1094,9 +1094,9 @@ TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
 	static_assert(!std::is_same_v<torque_k, freq_k>);
 	static_assert(!std::is_same_v<energy_k, freq_k>);
 	// Same-tag torque adds; the result is still a torque.
-	auto t = torque_k(3.0) + torque_k(4.0);
-	static_assert(decltype(t)::tag() == fixed_string("torque"));
-	EXPECT_UNIT_NEAR(t, 7.0);
+	auto torqueSum = torque_k(3.0) + torque_k(4.0);
+	static_assert(decltype(torqueSum)::tag() == fixed_string("torque"));
+	EXPECT_UNIT_NEAR(torqueSum, 7.0);
 }
 
 //======================================================================================================================

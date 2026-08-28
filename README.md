@@ -359,6 +359,40 @@ for the why.
 > Serialization of the wrappers is not yet supported (a follow-up); unwrap with `to<PlainUnit>()` and serialize
 > that.
 
+### Decibel levels and gains
+
+A decibel value splits the same way an affine temperature does, and for the same reason. A **dimensioned**
+decibel (`dBW`, `dBm`) is a *level* — a point on a logarithmic reference scale. A **dimensionless** decibel
+(`decibels`) is a *gain* — a relative ratio, carrying no reference. Which one you have is in the type, so the
+algebra follows from it:
+
+| You write | Result | |
+|---|---|---|
+| `gain + gain` | gain | the dB numbers add (the linear ratios multiply) |
+| `level + gain`, `gain + level`, `level += gain` | level | the level moves by the gain |
+| `level - level` | **gain** | the references cancel, as two datums do |
+| `level - gain`, `level -= gain` | level | |
+| `++level`, `--level` | level | steps the dB number |
+| `level + level` | disabled | two 10 dBW sources are not a 20 dBW source — sum them in the linear domain, where two equal powers make +3 dB |
+| `level * 2.0`, `level *= 2.0`, `gain *= 2.0` | disabled | a dB number and the ratio behind it do not scale alike — scale the linear quantity |
+| `level += 5.0`, `gain += 5.0` | disabled | a bare number states neither a reference nor a ratio — add a `decibels(...)` gain |
+
+```cpp
+using namespace units::power;
+
+dBW<double> level(12.5);
+level += units::decibels<double>(3.25);                      // 15.75 dBW — moved by a gain
+auto gain = dBW<double>(15.75) - dBW<double>(12.5);           // 3.25 dB  — a gain, not a level
+units::dBm<double>(dBW<double>(12.5));                        // 42.5 dBm — a milliwatt reference is 30 dB lower
+```
+
+Every disabled row names its remedy rather than printing a candidate list:
+
+```
+units: cannot scale a decibel value; scale the linear quantity instead.
+units: cannot add a bare number to a decibel value; add a decibels(...) gain.
+```
+
 ---
 
 ## Type errors

@@ -7,6 +7,10 @@
 #   scripts/ci_local.sh            fast gates: build + ctest + gen_reference --check + drift check + UBSan
 #   scripts/ci_local.sh --full     also run the errorMessages diagnostic harness (~130s; run when diagnostics,
 #                                   operators, or serialization change)
+#
+# This covers the gcc-13 and clang legs only. MSVC differs on overload resolution, concept evaluation, and template
+# instantiation order (and has no __int128), so anything touching operators, constraints, or traits must also pass
+# scripts/ci_local_msvc.cmd (and `ci_local_msvc.cmd harness` when diagnostics change).
 set -uo pipefail
 cd "$(dirname "$0")/.."
 CC=g++-13
