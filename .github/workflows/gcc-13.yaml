@@ -35,7 +35,7 @@ jobs:
         run: sudo apt install -y libeigen3-dev
 
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure CMake
         run: |
@@ -86,7 +86,7 @@ jobs:
         run: sudo apt install -y libeigen3-dev
 
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Build and run the suite under UBSan so any runtime undefined behavior (integer overflow in a conversion,
       # a bad cast, misaligned access) FAILS the build instead of silently returning a wrong value.

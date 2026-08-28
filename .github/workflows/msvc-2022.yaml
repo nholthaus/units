@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Set up the MSVC command-line environment FIRST (puts cl.exe on PATH). The "Visual Studio 17 2022"
       # generator's own VS discovery has been unreliable on recent windows-latest images ("could not find any
