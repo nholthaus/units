@@ -1123,3 +1123,271 @@ TEST(WrapperCorrectness, mixedSignednessComparesByValue)
 	EXPECT_TRUE(D<meters<int>>(3) < D<meters<int>>(5));
 	EXPECT_TRUE(A<meters<int>>(1000) == A<kilometers<int>>(1));
 }
+
+//======================================================================================================================
+//	POINT-ALGEBRA GUARDS — the operations the affine type system must REJECT
+//======================================================================================================================
+// Named concepts (SFINAE-friendly) probe whether an operation is even well-formed, so a `static_assert(!can_X<...>)`
+// asserts the operation is ill-formed WITHOUT hard-erroring the translation unit (an inline `requires` in an
+// evaluated context would compile the offending expression and fire its `static_assert(dependent_false)`). Each probe
+// requires the exact expression `absolute<>/delta<>` forbids: scaling a point, moving a point onto a point.
+
+namespace
+{
+	/// `a *= s` compiles (a delta scales in place; a point does not — there is no `absolute::operator*=`).
+	template<class W, class Scalar>
+	concept can_compound_scale = requires(W w, Scalar s) { w *= s; };
+	/// `a /= s` compiles.
+	template<class W, class Scalar>
+	concept can_compound_divide = requires(W w, Scalar s) { w /= s; };
+	/// `a * s` compiles WITHOUT firing a static_assert. The point `operator*` catch-all is a selected overload whose
+	/// body static_asserts, so `a * s` is well-FORMED at overload resolution but ill-formed on instantiation; a bare
+	/// `requires` therefore reports it as "valid". Deducing the result type forces instantiation of that body, so the
+	/// requirement fails for a point (its body cannot be instantiated) and holds for a delta.
+	template<class W, class Scalar>
+	concept can_scale = requires(W w, Scalar s) {
+		{ w* s } -> DeltaType;
+	};
+	/// `a + b` between two point wrappers compiles WITHOUT firing a static_assert (deduce the result to force the body).
+	template<class A2, class B2>
+	concept can_add_points = requires(A2 a, B2 b) {
+		{ a + b } -> AbsoluteType;
+	};
+	/// `a += b` compiles.
+	template<class A2, class B2>
+	concept can_compound_add = requires(A2 a, B2 b) { a += b; };
+	/// `a - b` between two point wrappers yields a delta WITHOUT firing a static_assert (the ALLOWED point-minus-point).
+	template<class A2, class B2>
+	concept can_subtract_points = requires(A2 a, B2 b) {
+		{ a - b } -> DeltaType;
+	};
+	/// `a + b` where the left is a delta and the right an absolute yields a point (the ALLOWED commutative move).
+	template<class D2, class A2>
+	concept can_add_delta_to_point = requires(D2 d, A2 a) {
+		{ d + a } -> AbsoluteType;
+	};
+} // namespace
+
+// The point algebra's PERMITTED operations. The forbidden ones (`absolute * scalar`, `absolute + absolute`,
+// `absolute += absolute`) are rejected by a `static_assert` inside the wrapper, which fires at instantiation and so
+// cannot be probed by a concept from inside this suite — a probe would trip the assertion and fail the build. Those
+// cases are covered by the errorMessages harness instead (cases wrapper_absolute_times_scalar,
+// wrapper_absolute_plus_absolute, wrapper_absolute_over_absolute, wrapper_delta_minus_absolute), which compiles each
+// standalone, requires the rejection, and grades the diagnostic text.
+TEST(WrapperGuards, deltaScalesAndTheAllowedPointAlgebraIsWellFormed)
+{
+	// A delta (an amount) scales, in place and by value, on an affine and a non-affine dimension alike.
+	static_assert(can_compound_scale<D<celsius<double>>, double>);
+	static_assert(can_compound_divide<D<celsius<double>>, double>);
+	static_assert(can_scale<D<celsius<double>>, double>);
+	static_assert(can_scale<D<meters<double>>, double>);
+
+	// point += delta moves the point (same scale and cross-scale); point - point yields a delta; delta + point
+	// yields a point.
+	static_assert(can_compound_add<A<celsius<double>>, D<celsius<double>>>);
+	static_assert(can_compound_add<A<celsius<double>>, D<fahrenheit<double>>>);
+	static_assert(can_subtract_points<A<celsius<double>>, A<celsius<double>>>);
+	static_assert(can_subtract_points<A<celsius<double>>, A<fahrenheit<double>>>);
+	static_assert(can_add_delta_to_point<D<celsius<double>>, A<celsius<double>>>);
+	static_assert(can_add_delta_to_point<D<fahrenheit<double>>, A<celsius<double>>>);
+	SUCCEED();
+}
+
+//======================================================================================================================
+//	DELTA SCALE-IN-PLACE VALUE — a change scales coordinate-free (spec cases, exact)
+//======================================================================================================================
+
+TEST(WrapperDelta, celsiusDeltaCompoundScaleAndDivideValue)
+{
+	// A change scales without any datum: 5 celsius-degrees doubled is 10; 10 halved is 5.
+	D<celsius<double>> grow(5.0);
+	grow *= 2.0;
+	EXPECT_DOUBLE_EQ(10.0, grow.value());
+
+	D<celsius<double>> shrink(10.0);
+	shrink /= 2.0;
+	EXPECT_DOUBLE_EQ(5.0, shrink.value());
+
+	// Non-compound forms of the same spec cases.
+	EXPECT_DOUBLE_EQ(10.0, (D<celsius<double>>(5.0) * 2.0).value());
+	EXPECT_DOUBLE_EQ(5.0, (D<celsius<double>>(10.0) / 2.0).value());
+}
+
+//======================================================================================================================
+//	CROSS-SCALE POINT + DELTA — a fahrenheit/celsius/kelvin delta moves a point by DEGREE SIZE only
+//======================================================================================================================
+
+TEST(WrapperAffine, celsiusPointPlusNineFahrenheitDeltaIsFiveDegreesWarmer)
+{
+	// 9 fahrenheit-degrees == 9 * 5/9 == 5 celsius-degrees, so 20 degC warmed by a 9 degF change is 25 degC — the
+	// fahrenheit DATUM (the +32 offset) is never applied to a delta.
+	const A<celsius<double>>    p(20.0);
+	const D<fahrenheit<double>> warm(9.0);
+	auto                        warmer = p + warm;
+	static_assert(traits::is_absolute_v<decltype(warmer)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(warmer)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(25.0, warmer.value());
+
+	// delta + point commutes and keeps the point's (celsius) unit.
+	auto commuted = warm + p;
+	static_assert(traits::is_absolute_v<decltype(commuted)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(commuted)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(25.0, commuted.value());
+}
+
+TEST(WrapperAffine, kelvinPointPlusCelsiusDelta)
+{
+	// celsius and kelvin share a degree size (ratio 1), so a 5 degC change is a 5 K change: 300 K + 5 = 305 K.
+	const A<kelvin<double>>  p(300.0);
+	const D<celsius<double>> warm(5.0);
+	auto                     warmer = p + warm;
+	static_assert(traits::is_absolute_v<decltype(warmer)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(warmer)>, kelvin<double>>);
+	EXPECT_DOUBLE_EQ(305.0, warmer.value());
+
+	// And cooling back down returns the point (datum preserved, kelvin kept).
+	auto back = warmer - warm;
+	static_assert(traits::is_absolute_v<decltype(back)>);
+	EXPECT_DOUBLE_EQ(300.0, back.value());
+}
+
+TEST(WrapperAffine, kelvinMinusCelsiusPointDifferenceIsDeltaInKelvin)
+{
+	// point - point across the kelvin/celsius datum: 305 K minus 20 degC (== 293.15 K) is 11.85 kelvin-degrees,
+	// expressed in the LHS (kelvin) unit. Computed by hand: 20 degC = 293.15 K; 305 - 293.15 = 11.85.
+	const A<kelvin<double>>  hot(305.0);
+	const A<celsius<double>> warm(20.0);
+	auto                     diff = hot - warm;
+	static_assert(traits::is_delta_v<decltype(diff)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, kelvin<double>>);
+	EXPECT_NEAR(11.85, diff.value(), 1e-9);
+}
+
+//======================================================================================================================
+//	DELTA CROSS-SCALE ARITHMETIC VALUE — delta +/- delta across scales, LHS unit kept
+//======================================================================================================================
+
+TEST(WrapperDelta, deltaPlusMinusDeltaCrossScaleValue)
+{
+	// same scale (already exercised elsewhere, re-pinned here for the value): 10 + 3 = 13 celsius-degrees.
+	EXPECT_DOUBLE_EQ(13.0, (D<celsius<double>>(10.0) + D<celsius<double>>(3.0)).value());
+
+	// cross scale: a fahrenheit-degree delta added to a celsius-degree delta converts by degree size (9 degF = 5 degC),
+	// keeping the LHS (celsius) unit: 10 + 5 = 15 celsius-degrees.
+	auto sum = D<celsius<double>>(10.0) + D<fahrenheit<double>>(9.0);
+	static_assert(traits::is_delta_v<decltype(sum)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(15.0, sum.value());
+
+	// cross-scale subtract, LHS fahrenheit: 18 degF minus a 5 degC change (== 9 degF) = 9 fahrenheit-degrees.
+	auto diff = D<fahrenheit<double>>(18.0) - D<celsius<double>>(5.0);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, fahrenheit<double>>);
+	EXPECT_DOUBLE_EQ(9.0, diff.value());
+}
+
+//======================================================================================================================
+//	CONVERSIONS — datum applied for a point, scale-only for a delta (fractional, hand-verified factors)
+//======================================================================================================================
+
+TEST(WrapperConvert, deltaConversionIsScaleOnlyPointConversionAppliesDatum)
+{
+	// A 5 celsius-degree change is a 9 fahrenheit-degree change (5 * 9/5 = 9), scale only — never an absolute point.
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().value());
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<fahrenheit<double>>().value()); // plain-unit unwrap, same scale
+
+	// A point conversion DOES apply the datum: 0 degC is 273.15 K, staying a point across the hop.
+	auto k = A<celsius<double>>(0.0).to<A<kelvin<double>>>();
+	static_assert(traits::is_absolute_v<decltype(k)>);
+	EXPECT_DOUBLE_EQ(273.15, k.value());
+
+	// A fractional point value survives the datum precisely: 37.5 degC = 310.65 K (37.5 + 273.15).
+	EXPECT_NEAR(310.65, A<celsius<double>>(37.5).to<A<kelvin<double>>>().value(), 1e-9);
+
+	// A fractional delta value scales precisely: a 2.375 celsius-degree change = 2.375 * 9/5 = 4.275 fahrenheit-degrees.
+	EXPECT_NEAR(4.275, D<celsius<double>>(2.375).to<D<fahrenheit<double>>>().value(), 1e-9);
+}
+
+TEST(WrapperConvert, toKeepsPointAPointAndDeltaADeltaAcrossAHop)
+{
+	// to<absolute<V>> keeps a point a point; to<delta<V>> keeps a delta a delta — the ROLE is preserved by `to<>`.
+	static_assert(traits::is_absolute_v<decltype(A<celsius<double>>(0.0).to<A<kelvin<double>>>())>);
+	static_assert(traits::is_delta_v<decltype(D<celsius<double>>(5.0).to<D<fahrenheit<double>>>())>);
+	SUCCEED();
+}
+
+//======================================================================================================================
+//	RANKINE AS A WRAPPED POINT — a pure-ratio absolute scale off kelvin, no per-unit offset
+//======================================================================================================================
+// rankine is `conversion_factor<ratio<5,9>, kelvin>`: 0 Ra == 0 K (absolute zero), and one rankine-degree is 5/9 of a
+// kelvin/celsius-degree, so 491.67 Ra == 273.15 K == 0 degC. The wrappers must treat it exactly like the celsius /
+// fahrenheit / kelvin wrappers — a full affine-dimension point even though it adds no per-unit datum of its own.
+
+TEST(WrapperRankine, pointConstructionAndAbsoluteZero)
+{
+	// 0 Ra is absolute zero, equal to 0 K and to -273.15 degC as POINTS (the datum is applied on each side).
+	EXPECT_TRUE(A<rankine<double>>(0.0) == A<kelvin<double>>(0.0));
+	EXPECT_TRUE(A<rankine<double>>(0.0) == A<celsius<double>>(-273.15));
+
+	// The freezing point of water: 273.15 K == 491.67 Ra (273.15 * 9/5). Verified by hand.
+	EXPECT_NEAR(491.67, A<kelvin<double>>(273.15).to<A<rankine<double>>>().value(), 1e-9);
+	EXPECT_TRUE(A<rankine<double>>(491.67) == A<celsius<double>>(0.0));
+}
+
+TEST(WrapperRankine, pointMoveByDeltaAndPointDifference)
+{
+	// A rankine point moved by a rankine-degree change stays a rankine point.
+	A<rankine<double>> p(491.67);
+	p += D<rankine<double>>(9.0); // +9 rankine-degrees == +5 kelvin/celsius-degrees
+	static_assert(traits::is_absolute_v<decltype(A<rankine<double>>(0.0) + D<rankine<double>>(0.0))>);
+	EXPECT_NEAR(500.67, p.value(), 1e-9);
+	p -= D<rankine<double>>(9.0);
+	EXPECT_NEAR(491.67, p.value(), 1e-9);
+
+	// point - point across scales into a rankine delta: 500.67 Ra minus 491.67 Ra is 9 rankine-degrees.
+	auto diff = A<rankine<double>>(500.67) - A<rankine<double>>(491.67);
+	static_assert(traits::is_delta_v<decltype(diff)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, rankine<double>>);
+	EXPECT_NEAR(9.0, diff.value(), 1e-9);
+
+	// A 9 rankine-degree delta is a 5 celsius-degree delta (9 * 5/9 = 5), scale-only.
+	EXPECT_NEAR(5.0, D<rankine<double>>(9.0).to<D<celsius<double>>>().value(), 1e-9);
+}
+
+TEST(WrapperRankine, deltaArithmeticAndScaleAndPointDifference)
+{
+	// delta + delta and scaling behave identically to the celsius/fahrenheit wrappers.
+	EXPECT_DOUBLE_EQ(15.0, (D<rankine<double>>(9.0) + D<rankine<double>>(6.0)).value());
+	EXPECT_DOUBLE_EQ(18.0, (D<rankine<double>>(9.0) * 2.0).value());
+	EXPECT_DOUBLE_EQ(4.5, (D<rankine<double>>(9.0) / 2.0).value());
+
+	// A rankine delta scales; a rankine POINT cannot (the guard is dimension-wide, not celsius-special) -- the
+	// rejection is graded by the errorMessages harness, which can require an ill-formed program.
+	static_assert(can_scale<D<rankine<double>>, double>);
+
+	// point - point across the kelvin/rankine pair is allowed and yields a delta.
+	static_assert(can_subtract_points<A<rankine<double>>, A<kelvin<double>>>);
+	SUCCEED();
+}
+
+//======================================================================================================================
+//	POINT MIN/MAX/CLAMP CROSS-SCALE — value correctness with a fahrenheit rhs reconciled affinely
+//======================================================================================================================
+
+TEST(WrapperConvert, pointMinMaxClampCrossScaleKeepsLhsUnitAndDatum)
+{
+	// min/max reconcile the rhs affinely (datum applied) but keep the LHS (celsius) unit and value.
+	const A<celsius<double>>    c(20.0);
+	const A<fahrenheit<double>> f(212.0); // == 100 degC
+	auto                        cooler = affine::min(c, f);
+	static_assert(std::is_same_v<wrapped_t<decltype(cooler)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(20.0, cooler.value()); // 20 degC is cooler than 100 degC
+	auto warmer = affine::max(c, f);
+	EXPECT_DOUBLE_EQ(100.0, warmer.value()); // the warmer, expressed in celsius
+
+	// clamp a celsius point into a range whose bounds are a mix of scales, all reconciled affinely to celsius.
+	const A<fahrenheit<double>> lo(32.0); // == 0 degC
+	const A<celsius<double>>    hi(50.0);
+	EXPECT_DOUBLE_EQ(50.0, affine::clamp(A<celsius<double>>(75.0), lo, hi).value());
+	EXPECT_DOUBLE_EQ(0.0, affine::clamp(A<celsius<double>>(-10.0), lo, hi).value());
+	EXPECT_DOUBLE_EQ(37.5, affine::clamp(A<celsius<double>>(37.5), lo, hi).value()); // in-range fractional passes through
+}

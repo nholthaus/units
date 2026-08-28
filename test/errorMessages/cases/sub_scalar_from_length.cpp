@@ -1,0 +1,19 @@
+// Case: a bare number subtracted from a length in place is meaningless (3.0 of what?), so `meters -= double` must
+// be ill-formed. The diagnostic is the compiler's own no-matching-`operator-=` wording, so it is graded by tight
+// readable tokens — the FRIENDLY `meters<` type AND the failing operator context — plus the anti-soup guards.
+// To shorten by a relative amount, subtract a length: `m -= 3.0_m` (or wrap the amount in a `delta` of the unit).
+//
+// expect: fail
+// expect-match: meters<
+// expect-match-gcc: operator-=
+// expect-match-msvc: operator -=
+// forbid-match: conversion_factor<std::ratio
+// forbid-match: dimension_t<
+#include <units/length.h>
+using namespace units;
+int main()
+{
+	units::length::meters<double> m(5.0);
+	m -= 3.0; // ill-formed: cannot subtract a bare number from a length
+	return 0;
+}

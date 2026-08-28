@@ -2068,6 +2068,21 @@ TEST_F(UnitType, commonTypeRecoversComposedName)
 	static_assert(!(units::length::meters<int>(1) == units::length::feet<int>(3)));
 }
 
+// True iff `a += t` with a bare arithmetic `t` is a valid expression. Adding a raw number to a quantity is only
+// meaningful when the quantity is genuinely dimensionless (a plain scalar or a ratio-scaled dimensionless); for any
+// other unit -- a length, a named angle, an affine temperature -- a bare number has no dimension to add, so the
+// expression must not be well-formed (matching the binary `unit + number`, which is already rejected).
+template<class A, class T>
+concept can_add_scalar = requires(A a, T t) { a += t; };
+
+// Companion concepts for the affine point rules: whether two quantities can be added, and whether a quantity can be
+// scaled by a bare number. A temperature is a POINT on an affine dimension (kelvin and rankine included, even though
+// they carry no per-unit offset), so point + point is undefined and a point does not scale.
+template<class A, class B>
+concept can_add = requires(A a, B b) { a + b; };
+template<class A, class T>
+concept can_scale = requires(A a, T t) { a *= t; };
+
 // Affine (offset-carrying) units: the difference of two absolute temperatures is a DELTA — the datum
 // offsets cancel and the result must not re-apply an offset. Previously celsius(0) - kelvin(0) read 546.30 K
 // (the +273.15 offset was re-applied); the delta is 273.15 K. Absolute affine ADDITION is disabled (no
@@ -2101,12 +2116,76 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	// The result stays an absolute affine point (not converted to a delta type).
 	static_assert(traits::is_affine_unit_v<decltype(a)>, "compound assignment keeps the affine point type");
 
+	// #402: the rhs is a relative delta even when written in a DIFFERENT affine scale -- only its scale-converted
+	// magnitude moves the point, its datum is not applied. A 9 Fahrenheit-degree change is a 5 Celsius-degree change.
+	celsius<double> b(20.0);
+	b += fahrenheit<double>(9.0);
+	EXPECT_NEAR(25.0, b.value(), 5.0e-12);    // warmed by 9 F-degrees = 5 C-degrees
+	b -= fahrenheit<double>(9.0);
+	EXPECT_NEAR(20.0, b.value(), 5.0e-12);    // cooled back
+	celsius<double> c(0.0);
+	c += kelvin<double>(5.0);
+	EXPECT_NEAR(5.0, c.value(), 5.0e-12);     // a 5 K change is a 5 C-degree change
+
+	// A different-dimension rhs is still rejected (checked after the fix's constraint tightening).
+
 	// Non-affine compound assignment is unchanged.
 	meters<double> m(5.0);
 	m += meters<double>(3.0);
 	EXPECT_NEAR(8.0, m.value(), 5.0e-12);
 	m -= meters<double>(2.0);
 	EXPECT_NEAR(6.0, m.value(), 5.0e-12);
+}
+
+// Temperature is an AFFINE dimension, so EVERY temperature unit is a point on a scale -- including kelvin and
+// rankine, which carry no per-unit datum offset but are still readings on an absolute scale. A point behaves the
+// same regardless of unit: point + point is undefined, a point does not scale, the difference of two points is a
+// delta, and compound assignment moves the point by a relative delta. This asserts kelvin/rankine follow the same
+// point rules as celsius/fahrenheit (the affine-ness comes from the temperature DIMENSION, not a per-unit offset).
+TEST_F(UnitType, absoluteTemperatureUnitsAreAffinePoints)
+{
+	using namespace units::temperature;
+
+	// point + point is undefined for kelvin exactly as for celsius; a temperature RATE (a compound) is a magnitude.
+	static_assert(!can_add<kelvin<double>, kelvin<double>>, "kelvin is a point: point + point is undefined");
+	static_assert(!can_add<rankine<double>, rankine<double>>, "rankine is a point");
+	static_assert(!can_add<kelvin<double>, celsius<double>>, "two temperature points do not add");
+
+	// a point does not scale (its value is relative to the scale's origin); scale a change via delta<kelvin>.
+	static_assert(!can_scale<kelvin<double>, double>, "a kelvin point does not scale");
+	static_assert(!can_scale<rankine<double>, double>, "a rankine point does not scale");
+
+	// the difference of two absolute temperatures is a delta (a non-point), regardless of unit.
+	auto d = kelvin<double>(300.0) - kelvin<double>(100.0);
+	EXPECT_NEAR(200.0, d.value(), 5.0e-12);
+	static_assert(!traits::is_affine_unit_v<decltype(d)>, "a temperature difference is a delta, not a point");
+
+	// compound assignment moves the kelvin point by a relative delta, in any affine scale (datum stripped).
+	kelvin<double> k(300.0);
+	k += celsius<double>(5.0);
+	EXPECT_NEAR(305.0, k.value(), 5.0e-12);    // a 5 Celsius-degree change is a 5 K change
+	k += fahrenheit<double>(9.0);
+	EXPECT_NEAR(310.0, k.value(), 5.0e-12);    // a 9 Fahrenheit-degree change is a 5 K change
+	k -= kelvin<double>(10.0);
+	EXPECT_NEAR(300.0, k.value(), 5.0e-12);
+
+	// a temperature RATE or reciprocal is an ordinary magnitude, not a point -- it may be added and scaled.
+	auto rate = kelvin<double>(10.0) / units::time::seconds<double>(2.0);
+	static_assert(!traits::is_affine_dimension_unit_v<decltype(rate)>, "a temperature rate is a magnitude, not a point");
+}
+
+// Adding a bare number to a quantity is well-formed only for a genuinely dimensionless quantity (a plain scalar or a
+// ratio-scaled dimensionless such as percent). The POSITIVE cases are asserted here; the rejection of a dimensioned
+// unit, a named angle, and an affine temperature (which must not compile) is covered by the errorMessages harness
+// cases add_scalar_to_length / add_scalar_to_angle / add_scalar_to_affine, so the diagnostic is checked too.
+TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
+{
+	static_assert(can_add_scalar<dimensionless<double>, double>, "a plain scalar accepts += a number");
+	static_assert(can_add_scalar<concentration::percent<double>, double>, "a ratio-scaled dimensionless accepts += a number");
+
+	dimensionless<double> d(1.0);
+	d += 2.5;
+	EXPECT_NEAR(3.5, d.value(), 5.0e-12);
 }
 
 TEST_F(UnitType, unitTypeUnarySubtraction)
