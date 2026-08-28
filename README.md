@@ -509,6 +509,15 @@ existing variable and returns whether it fit), `try_to<Unit>()` / `unit_cast<Uni
 (the canonical unit of the decoded dimension, no target named). `deserialize<Unit>(bytes)` is the typed fast
 path when the type is known.
 
+> **Prefer the strongly-typed `unit` types; reach for `any_unit` only where you genuinely need type erasure.**
+> `any_unit` trades compile-time dimension checking for a runtime-carried dimension, so it is the right tool at a
+> boundary that loses the static type — **serialization and deserialization**, wire transport, or a heterogeneous
+> stream whose dimension is not known until runtime. Everywhere the static type is available, the concrete `unit`
+> types are better: the dimension is checked at compile time and there is no runtime dispatch or throw. One
+> consequence to keep in mind: a dimensionless `any_unit` (a bare scalar, or a ratio such as `meters / meters`)
+> resolves under a default `visit()` to `dimensionless`, so a ratio-scale like `percent` cannot be recovered from
+> the erased form — name it explicitly (`to<percent<double>>()`) if you need that scale back.
+
 **It also drops into byte interfaces with no cast.** Away from a stream, an `any_unit` exposes a modern,
 type-safe byte view (`bytes()` → `std::span<const std::byte>`) and a C-interface pair (`data()` → `const char*`,
 `size()`) that feeds `std::fwrite`, a socket `send`, or `memcpy` directly:

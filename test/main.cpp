@@ -7419,6 +7419,35 @@ TEST_F(Serialization, dimensionlessResolvesUnderDefaultVisitWithoutThrowing)
 	EXPECT_THROW(units::serialize(units::meters<double>(5.0)).visit<units::dimension::mass>([](const auto&) {}), std::runtime_error);
 }
 
+// The default visit() hands the visitor a unit type (dimensionless), never a raw arithmetic value, so a visitor is
+// uniform across every dimension. This matters for a visitor body that calls an overload set with both a unit and a
+// plain-arithmetic overload: the dimensionless quantity is an exact match for the unit overload, which is preferred
+// over its implicit conversion to the underlying type, so the call resolves unambiguously rather than failing to
+// compile. Guards against a future change dispatching a bare scalar (which would silently change overload selection
+// or introduce ambiguity).
+namespace
+{
+	template<units::UnitType U> constexpr int overloadTag(const U&) { return 1; } // unit overload
+	constexpr int overloadTag(double) { return 2; }                               // arithmetic overload
+} // namespace
+TEST_F(Serialization, dimensionlessVisitDispatchesUnitNotScalar)
+{
+	bool checked = false;
+	const auto blob = units::serialize(units::meters<double>(3.0) / units::meters<double>(4.0));
+	blob.visit([&](const auto& q) {
+		using Q = std::decay_t<decltype(q)>;
+		// The lambda body is instantiated for every candidate dimension; only the dimensionless instantiation runs,
+		// so the type checks are guarded so they hold for that instantiation without constraining the others.
+		static_assert(units::traits::is_unit_v<Q>, "visit() must dispatch a unit type, not a raw scalar");
+		if constexpr (std::is_same_v<Q, units::dimensionless<double>>)
+		{
+			EXPECT_EQ(1, overloadTag(q)); // the unit overload wins over the implicit-to-double conversion, no ambiguity
+			checked = true;
+		}
+	});
+	EXPECT_TRUE(checked);
+}
+
 // #395 recurrence guard: every dimension in serialization.h's builtin_dimensions tuple must resolve to a named
 // rendering. A dimension missing from the tuple degrades to the raw '#<hash>' fallback, which this fails on. When a
 // new dimension is added to the library, add its flagship unit line here; if this test then fails, the dimension was
