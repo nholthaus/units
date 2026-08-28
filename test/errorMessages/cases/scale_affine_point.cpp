@@ -4,9 +4,9 @@
 // anti-soup guards. Only a `delta` (an amount) scales: `delta<celsius<double>>(20.0) * 2.0`.
 //
 // expect: fail
+// expect-match: cannot scale an affine point
+// expect-match: units::delta<
 // expect-match: celsius<
-// expect-match-gcc: operator*=
-// expect-match-msvc: operator *=
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/temperature.h>

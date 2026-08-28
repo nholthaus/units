@@ -2146,14 +2146,14 @@ TEST_F(UnitType, absoluteTemperatureUnitsAreAffinePoints)
 {
 	using namespace units::temperature;
 
-	// point + point is undefined for kelvin exactly as for celsius; a temperature RATE (a compound) is a magnitude.
-	static_assert(!can_add<kelvin<double>, kelvin<double>>, "kelvin is a point: point + point is undefined");
-	static_assert(!can_add<rankine<double>, rankine<double>>, "rankine is a point");
-	static_assert(!can_add<kelvin<double>, celsius<double>>, "two temperature points do not add");
-
-	// a point does not scale (its value is relative to the scale's origin); scale a change via delta<kelvin>.
-	static_assert(!can_scale<kelvin<double>, double>, "a kelvin point does not scale");
-	static_assert(!can_scale<rankine<double>, double>, "a rankine point does not scale");
+	// The ill-formed point operations -- point + point, and scaling or dividing a point -- are rejected by a
+	// `static_assert` inside a catch-all overload, so they carry a readable message naming units::delta<...> instead
+	// of an overload-resolution wall. That assertion fires at instantiation, so a concept cannot probe it from inside
+	// this suite; those cases live in the errorMessages harness (add_two_temperature_points, scale_affine_point,
+	// scale_kelvin_point, divide_affine_point_by_scalar), which requires the rejection AND grades the message text.
+	// What is asserted here is the behavior that must WORK, and the point-ness of the dimension itself.
+	static_assert(traits::is_affine_dimension_unit_v<kelvin<double>>, "kelvin is an affine-dimension point");
+	static_assert(traits::is_affine_dimension_unit_v<rankine<double>>, "rankine is an affine-dimension point");
 
 	// the difference of two absolute temperatures is a delta (a non-point), regardless of unit.
 	auto d = kelvin<double>(300.0) - kelvin<double>(100.0);

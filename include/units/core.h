@@ -3927,6 +3927,12 @@ namespace units
 		template<class T>
 		using type_identity_t = typename type_identity<T>::type;
 
+		/// A `false` that DEPENDS on a template parameter, so a `static_assert(dependent_false<T>, "...")` inside a
+		/// template body fires only when that body is actually instantiated -- the way a misuse diagnostic replaces an
+		/// overload-resolution candidate wall with one readable sentence.
+		template<class...>
+		inline constexpr bool dependent_false = false;
+
 		//------------------------------------------------------------------------------------------------------------------
 		//      FUNCTION: affine_delta_in_lhs_scale [static]
 		//------------------------------------------------------------------------------------------------------------------
@@ -4248,6 +4254,66 @@ namespace units
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs /= rhs.value());
+	}
+
+	//----------------------------------
+	//	AFFINE MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// An affine quantity is a POINT on a scale, so scaling it, adding two of them, or moving it by a bare number is
+	// ill-formed. Without these overloads the compiler reports only "no match for operator*=" followed by a wall of
+	// declined candidates, which does not tell the reader what to do instead. Each catch-all below is selected for the
+	// misuse and its body fires one sentence naming the problem and the remedy -- the `absolute<>`/`delta<>` wrappers
+	// of <units/kind.h>, which make the point-versus-amount distinction explicit. Each returns a value so the body is
+	// instantiated (and the message fires) on every compiler.
+
+	/// Scaling an affine POINT: its value is relative to the scale's datum, so the result would depend on the
+	/// arbitrary zero; the only coordinate-free reading is scaling a CHANGE, which is a `delta<...>`.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale an affine point; scale a units::delta<...> instead.");
+		return lhs;
+	}
+
+	/// Dividing an affine POINT by a number — same reason as scaling.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide an affine point; divide a units::delta<...> instead.");
+		return lhs;
+	}
+
+	/// Moving an affine POINT by a bare number: a number carries no unit, so the amount of change is unstated.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add a bare number to an affine point; add a quantity or a units::delta<...>.");
+		return lhs;
+	}
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot subtract a bare number from an affine point; subtract a quantity or a units::delta<...>.");
+		return lhs;
+	}
+
+	/// Summing two affine POINTS: the sum of two positions on a scale has no meaning.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_dimension_unit_v<UnitTypeLhs> && traits::is_affine_dimension_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add two affine points; subtract them for a units::delta<...>, or move one with +=.");
+		return lhs;
 	}
 
 	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>

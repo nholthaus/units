@@ -5,9 +5,9 @@
 // anti-soup guards.
 //
 // expect: fail
+// expect-match: cannot add two affine points
+// expect-match: units::delta<
 // expect-match: kelvin<
-// expect-match-gcc: operator+
-// expect-match-msvc: operator +
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/temperature.h>

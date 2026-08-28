@@ -5,9 +5,9 @@
 // `c += delta<celsius<double>>(5.0)`.
 //
 // expect: fail
+// expect-match: cannot add a bare number to an affine point
+// expect-match: units::delta<
 // expect-match: celsius<
-// expect-match-gcc: operator+=
-// expect-match-msvc: operator +=
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/temperature.h>

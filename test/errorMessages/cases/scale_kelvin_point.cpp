@@ -5,9 +5,9 @@
 // scales: `delta<kelvin<double>>(300.0) * 2.0`.
 //
 // expect: fail
+// expect-match: cannot scale an affine point
+// expect-match: units::delta<
 // expect-match: kelvin<
-// expect-match-gcc: operator*=
-// expect-match-msvc: operator *=
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/temperature.h>
