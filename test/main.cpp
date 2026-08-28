@@ -7307,24 +7307,116 @@ TEST_F(Serialization, everyBuiltinDimensionRoundTripsViaVisit)
 
 // #395: dimensionless and the angular acceleration/jerk dimensions were added to builtin_dimensions, so the default
 // zero-candidate visit resolves them and to_string() names them instead of rendering the raw '#<hash>' fallback.
-TEST_F(Serialization, dimensionlessAndAngularResolveByDefaultVisit)
+// The angular acceleration and jerk dimensions resolve through the default visit() candidate set and render with a
+// name, not the raw '#<hash>' fallback -- the substantive #395 additions.
+TEST_F(Serialization, angularAccelerationAndJerkResolveByDefaultVisit)
 {
 	bool visited = false;
 
 	visited = false;
-	units::serialize(units::dimensionless<double>(0.5)).visit([&](const auto&) { visited = true; });
+	units::serialize(units::radians_per_second_squared<double>(1.375)).visit([&](const auto&) { visited = true; });
 	EXPECT_TRUE(visited);
-	EXPECT_EQ(std::string::npos, units::serialize(units::dimensionless<double>(0.5)).to_string().find('#'));
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_squared<double>(1.375)).to_string().find('#'));
 
 	visited = false;
-	units::serialize(units::radians_per_second_squared<double>(1.0)).visit([&](const auto&) { visited = true; });
+	units::serialize(units::radians_per_second_cubed<double>(2.125)).visit([&](const auto&) { visited = true; });
 	EXPECT_TRUE(visited);
-	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_squared<double>(1.0)).to_string().find('#'));
+	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_cubed<double>(2.125)).to_string().find('#'));
+}
 
-	visited = false;
-	units::serialize(units::radians_per_second_cubed<double>(1.0)).visit([&](const auto&) { visited = true; });
+// A generic units-visitor -- the visit() contract's `[](auto q)` shape -- also accepts a plain arithmetic value,
+// because a dimensionless unit converts implicitly to its underlying type and `.to<double>()` reads any unit. This
+// establishes that dispatching the empty (dimensionless) signature as a raw scalar rather than a unit wrapper would
+// satisfy the same visitor. It also shows the limit: a serialized percent and a serialized plain scalar of equal
+// physical value are indistinguishable once erased, so a scalar dispatch recovers the value but never the "percent"
+// scale -- the same identity collapse every unit undergoes (a serialized kilometer visits as canonical meters).
+TEST_F(Serialization, genericVisitorAcceptsScalarAndPercentCollapsesToValue)
+{
+	using units::concentration::percent;
+
+	// A generic visitor written for units reads a raw double through the same `.to<double>()` / implicit-scalar path.
+	const auto readValue = [](const auto& q) -> double {
+		if constexpr (units::traits::is_unit_v<std::decay_t<decltype(q)>>)
+			return q.template to<double>();
+		else
+			return static_cast<double>(q); // a raw arithmetic value is read directly
+	};
+	EXPECT_DOUBLE_EQ(0.3725, readValue(units::dimensionless<double>(0.3725)));
+	EXPECT_DOUBLE_EQ(0.3725, readValue(0.3725)); // the same visitor handles a bare double
+
+	// percent(37.25) is the physical 0.3725; erased, it is identical to dimensionless(0.3725), so neither the value
+	// nor a scalar/canonical dispatch can recover the percent scale -- it must be named explicitly to read as percent.
+	EXPECT_DOUBLE_EQ(percent<double>(37.25).to<double>(), units::dimensionless<double>(0.3725).to<double>());
+}
+
+// Every ratio-scaled dimensionless unit (percent, parts-per-million/billion/trillion) and a plain dimensionless
+// quantity of the SAME physical value share ONE erased dimension identity: the empty base signature. So the wire
+// form carries only the physical (SI-base) value, never the "percent"/"ppm" scale label. This documents the limit
+// and the safe recovery path -- the crux of why dimensionless is not a default visit() candidate: dispatching the
+// empty signature (as a unit OR as a scalar) can only ever yield the physical value, and would silently flatten
+// every ratio-scaled dimensionless quantity to that value. Naming the exact unit (to<percent>() / visit<percent>)
+// is the only way to read it back on its own scale.
+TEST_F(Serialization, ratioScaledDimensionlessEraseToPhysicalValueOnly)
+{
+	using units::concentration::percent;
+	using units::concentration::parts_per_million;
+	using units::concentration::parts_per_billion;
+
+	// 37.25 percent, 372500 ppm, and 372500000 ppb are all the physical value 0.3725; each erases identically to a
+	// plain dimensionless(0.3725). Equal renderings, no raw '#' hash.
+	const auto pct  = units::serialize(percent<double>(37.25));
+	const auto ppm  = units::serialize(parts_per_million<double>(372500.0));
+	const auto ppb  = units::serialize(parts_per_billion<double>(372500000.0));
+	const auto bare = units::serialize(units::dimensionless<double>(0.3725));
+	EXPECT_EQ(bare.to_string(), pct.to_string());
+	EXPECT_EQ(bare.to_string(), ppm.to_string());
+	EXPECT_EQ(bare.to_string(), ppb.to_string());
+	EXPECT_EQ(std::string::npos, pct.to_string().find('#'));
+
+	// Reading each back by VALUE recovers the physical magnitude (0.3725) -- the scale is gone.
+	const auto asValue = units::serialize(percent<double>(37.25)).to<units::dimensionless<double>>();
+	ASSERT_TRUE(asValue.has_value());
+	EXPECT_DOUBLE_EQ(0.3725, asValue->to<double>());
+
+	// Reading it back NAMED as percent recovers the percent scale (raw 37.25) -- the caller must supply the unit.
+	const auto asPercent = units::serialize(percent<double>(37.25)).to<percent<double>>();
+	ASSERT_TRUE(asPercent.has_value());
+	EXPECT_DOUBLE_EQ(37.25, asPercent->raw());
+	EXPECT_DOUBLE_EQ(0.3725, asPercent->to<double>());
+
+	// A default visit() resolves the empty signature to dimensionless and hands the visitor the physical value, the
+	// same for percent, ppm, ppb, and a bare scalar -- proving a canonical dispatch cannot preserve the scale.
+	double vPct = 0.0, vPpm = 0.0;
+	units::serialize(percent<double>(37.25)).visit([&](const auto& q) { vPct = q.template to<double>(); });
+	units::serialize(parts_per_million<double>(372500.0)).visit([&](const auto& q) { vPpm = q.template to<double>(); });
+	EXPECT_DOUBLE_EQ(0.3725, vPct);
+	EXPECT_DOUBLE_EQ(vPct, vPpm);
+}
+
+// A dimensionless stream resolves under the default candidate set instead of hard-throwing: the empty signature is
+// dispatched to dimensionless directly. This covers the common case of a same-dimension ratio (meters / meters),
+// which is dimensionless, being serialized and visited -- it must not throw. A dimensionless renders as a bare
+// number with no dimension tag. An explicit candidate set that does not include the stream's dimension still throws.
+TEST_F(Serialization, dimensionlessResolvesUnderDefaultVisitWithoutThrowing)
+{
+	const auto ratio = units::meters<double>(3.0) / units::meters<double>(4.0); // 0.75, dimensionless
+	const auto blob  = units::serialize(ratio);
+
+	bool   visited = false;
+	double value   = 0.0;
+	EXPECT_NO_THROW(blob.visit([&](const auto& q) { visited = true; value = q.template to<double>(); }));
 	EXPECT_TRUE(visited);
-	EXPECT_EQ(std::string::npos, units::serialize(units::radians_per_second_cubed<double>(1.0)).to_string().find('#'));
+	EXPECT_DOUBLE_EQ(0.75, value);
+
+	// Bare number, no "[dimensionless]" tag, no raw '#' hash.
+	EXPECT_EQ("0.75", blob.to_string());
+	EXPECT_EQ(std::string::npos, blob.to_string().find('['));
+
+	// A plain scalar likewise resolves rather than throwing.
+	EXPECT_NO_THROW(units::serialize(units::dimensionless<double>(0.53125)).visit([](const auto&) {}));
+
+	// But an explicit, mismatched candidate set is still strict: naming the wrong dimension throws.
+	EXPECT_THROW(units::serialize(units::meters<double>(5.0)).visit<units::dimension::mass>([](const auto&) {}), std::runtime_error);
 }
 
 // #395 recurrence guard: every dimension in serialization.h's builtin_dimensions tuple must resolve to a named
