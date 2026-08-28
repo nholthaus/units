@@ -6134,13 +6134,29 @@ struct std::formatter<U, char>
 		// stored-type formatter. Determine which is in play by scanning the unit-opts for 'b' before
 		// delegating the value-spec, so the value-spec is parsed into exactly the formatter that will emit
 		// it (parsing an integer spec such as `d` into a floating-point formatter would wrongly reject it).
+		// The scan skips over quoted separator literals (`'…'`, with `\` escapes) exactly as the unit-opts
+		// parser below does, so a 'b' inside a separator (e.g. `%'_b_'`) is separator text, not the base flag.
 		m_usesBaseFormatter = false;
-		for (auto scan = valueSpecEnd; scan != end && *scan != '}'; ++scan)
+		for (auto scan = valueSpecEnd; scan != end && *scan != '}';)
 		{
-			if (*scan == 'b')
+			if (*scan == '\'')
+			{
+				for (++scan; scan != end && *scan != '}' && *scan != '\''; ++scan)
+				{
+					if (*scan == '\\' && scan + 1 != end && *(scan + 1) != '}')
+						++scan;    // skip the escaped character so an escaped quote does not end the literal
+				}
+				if (scan != end && *scan == '\'')
+					++scan;        // consume the closing quote
+			}
+			else if (*scan == 'b')
 			{
 				m_usesBaseFormatter = true;
 				break;
+			}
+			else
+			{
+				++scan;
 			}
 		}
 
