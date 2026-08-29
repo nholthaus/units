@@ -96,6 +96,7 @@ namespace Eigen
 	 * @tparam		X the plain arithmetic scalar type.
 	 */
 	template<units::UnitType U, class X>
+		requires(!units::traits::has_arbitrary_origin_v<U>)
 	struct ScalarBinaryOpTraits<U, X, internal::scalar_product_op<U, X>>
 	{
 		using ReturnType = U; ///< scaling preserves the unit's dimension
@@ -107,6 +108,7 @@ namespace Eigen
 	 * @tparam		U a units type (`units::UnitType`).
 	 */
 	template<class X, units::UnitType U>
+		requires(!units::traits::has_arbitrary_origin_v<U>)
 	struct ScalarBinaryOpTraits<X, U, internal::scalar_product_op<X, U>>
 	{
 		using ReturnType = U; ///< scaling preserves the unit's dimension
@@ -122,10 +124,27 @@ namespace Eigen
 	 * @tparam		X the plain arithmetic scalar type.
 	 */
 	template<units::UnitType U, class X>
+		requires(!units::traits::has_arbitrary_origin_v<U>)
 	struct ScalarBinaryOpTraits<U, X, internal::scalar_quotient_op<U, X>>
 	{
 		using ReturnType = U; ///< dividing by a dimensionless factor preserves the unit's dimension
 	};
+	/**
+	 * @brief		Result-type trait for the difference of two readings measured from an arbitrary origin.
+	 * @details		Eigen otherwise assumes `op(T,T) -> T` for a coefficient-wise binary operation, which is exactly
+	 *				what a point/amount model denies: the scalar difference of two readings is an offset-free AMOUNT,
+	 *				and assigning it back into the reading type re-applies the datum. `(v - w).eval()` on a matrix of
+	 *				equal celsius readings read -273.15 rather than 0 for that reason. Naming the amount type here
+	 *				makes the matrix difference agree with the scalar one.
+	 * @tparam		U a units type measured from an arbitrary origin.
+	 */
+	template<units::UnitType U>
+		requires(units::traits::has_arbitrary_origin_v<U>)
+	struct ScalarBinaryOpTraits<U, U, internal::scalar_difference_op<U, U>>
+	{
+		using ReturnType = decltype(std::declval<U>() - std::declval<U>()); ///< a difference of readings is an amount
+	};
+
 } // namespace Eigen
 
 namespace units
@@ -142,6 +161,7 @@ namespace units
 	 * @returns		the dot product, in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<DerivedA>&>().derived().data())>>)
 	auto unit_dot(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -162,6 +182,7 @@ namespace units
 	 * @returns		the squared magnitude, in the squared unit of the vector's scalar.
 	 */
 	template<class Derived>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
 	auto unit_squared_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return unit_dot(v, v);
@@ -180,6 +201,7 @@ namespace units
 	 * @returns		the magnitude, in the vector's scalar unit (floating-point promoted for an integral scalar).
 	 */
 	template<class Derived>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
 	auto unit_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return units::sqrt(unit_squared_norm(v));
@@ -198,6 +220,7 @@ namespace units
 	 *				same size as the input.
 	 */
 	template<class Derived>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
 	auto unit_normalized(const Eigen::MatrixBase<Derived>& v)
 	{
 		using Unit       = typename Derived::Scalar;
@@ -223,6 +246,7 @@ namespace units
 	 * @returns		the cross product, a 3-vector in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<DerivedA>&>().derived().data())>>)
 	auto unit_cross(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -250,6 +274,7 @@ namespace units
 	 * @returns		the transformed vector, in the input vector's scalar unit.
 	 */
 	template<class MatrixDerived, class VectorDerived>
+		requires(!units::traits::has_arbitrary_origin_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<VectorDerived>&>().derived().data())>>)
 	auto unit_transform(const Eigen::MatrixBase<MatrixDerived>& matrix, const Eigen::MatrixBase<VectorDerived>& vector)
 	{
 		using Unit       = typename VectorDerived::Scalar;

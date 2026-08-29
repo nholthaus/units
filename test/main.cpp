@@ -725,21 +725,32 @@ TEST_F(STDTypeTraits, std_common_type)
 
 TEST_F(STDSpecializations, hash)
 {
-	EXPECT_EQ(std::hash<meters<double>>()(3.14_m), std::hash<double>()(3.14));
-	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_m), std::hash<double>()(3.14e3));
-	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_mm), std::hash<double>()(3.14));
-	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_m), std::hash<double>()(3.14e-3));
-	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_km), std::hash<double>()(3.14));
+	// The hash keys on the value in the dimension's SI BASE unit, not on the stored value. Two quantities that compare
+	// equal must hash equally, and equality is judged across scales -- so hashing the stored value gave
+	// `meters(1000)` and `kilometers(1)` different hashes and made an unordered_map keyed on a quantity unusable
+	// across spellings.
+	EXPECT_EQ(std::hash<meters<double>>()(3.14_m), std::hash<double>()(3.14));    // meters IS the base
+	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_m), std::hash<meters<double>>()(3.14_m));
+	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_m), std::hash<meters<double>>()(3.14_m));
+	EXPECT_EQ(std::hash<millimeters<double>>()(millimeters<double>(3140.0)), std::hash<meters<double>>()(3.14_m));
+	EXPECT_EQ(std::hash<kilometers<double>>()(kilometers<double>(1.0)), std::hash<meters<double>>()(meters<double>(1000.0)));
+	EXPECT_EQ(std::hash<feet<double>>()(feet<double>(3.0)), std::hash<inches<double>>()(inches<double>(36.0)));
 
-	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), 42);
-	EXPECT_EQ((std::hash<millimeters<int>>()(meters<int>(42))), 42000);
-	EXPECT_EQ((std::hash<millimeters<int>>()(millimeters<int>(42))), 42);
-	EXPECT_EQ((std::hash<kilometers<int>>()(kilometers<int>(42))), 42);
+	// an integer-backed quantity hashes on the same base value, so the spellings agree there too
+	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), (std::hash<millimeters<int>>()(millimeters<int>(42000))));
+	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), (std::hash<meters<double>>()(meters<double>(42.0))));
 
+	// dimensionless, including a ratio scale where the stored number and the fraction differ
 	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
-	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
+	EXPECT_EQ((std::hash<concentration::percent<double>>()(concentration::percent<double>(12.5))),
+		(std::hash<concentration::parts_per_million<double>>()(concentration::parts_per_million<double>(125000.0))));
 
+	// a decibel LEVEL hashes on the linear quantity it denotes, which for dBW is its own base
 	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW<>(2.0).to_linearized()));
+
+	// distinct quantities are not forced to collide
+	EXPECT_NE(std::hash<meters<double>>()(3.14_m), std::hash<meters<double>>()(2.71_m));
+	EXPECT_NE(std::hash<celsius<double>>()(celsius<double>(12.5)), std::hash<kelvin<double>>()(kelvin<double>(12.5)));
 }
 
 // Documents the intended relationship between std::hash and operator== for floating units (issue #397).
@@ -2775,6 +2786,41 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 // `if constexpr (requires{ a * 2.0; })` hard-errors instead of taking its fallback. `traits::has_arbitrary_origin_v`
 // is the supported way to ask instead, so it is public and is pinned here -- it is the migration path for any
 // downstream `if constexpr` these refusals break.
+// A transcendental reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather than the ratio
+// it denotes -- so `log10(decibels(3.25))` returned log10(3.25) = 0.512 where the ratio is 2.113 and its base-ten
+// logarithm is 0.325. `modf` was worse: it split the decibel figure but wrote the integral part back through a LINEAR
+// dimensionless, landing it in the linearized domain, so the parts did not sum to the input. Both now require a linear
+// scale (graded by log_of_decibel_gain), and the remedy is to take the linear ratio first.
+TEST_F(UnitMath, dimensionlessMathRequiresALinearScale)
+{
+	// the legitimate cases are untouched, including a RATIO scale where the stored number and the fraction differ
+	EXPECT_NEAR(3.0, units::log10(dimensionless<double>(1000.0)).value(), 5.0e-12);
+	EXPECT_NEAR(0.17753649999, units::log10(concentration::percent<double>(150.5)).value(), 5.0e-9);
+	EXPECT_NEAR(2.718281828459045, units::exp(dimensionless<double>(1.0)).value(), 5.0e-12);
+	EXPECT_NEAR(1.1538052633312292, units::log(dimensionless<double>(decibels<double>(3.25).to_linearized() * 1.5)).value(), 5.0e-9);
+	dimensionless<double> integral{};
+	EXPECT_NEAR(0.25, units::modf(dimensionless<double>(3.25), &integral).value(), 5.0e-12);
+	EXPECT_NEAR(3.0, integral.value(), 5.0e-12);
+
+	// the documented remedy for a gain: convert to the linear ratio, then take the logarithm. 3.25 dB is a ratio of
+	// 2.113, whose base-ten logarithm is 0.325 -- a tenth of the decibel figure, as the definition requires.
+	EXPECT_NEAR(0.325, units::log10(dimensionless<double>(decibels<double>(3.25))).value(), 5.0e-9);
+}
+
+// The sign of a value measured from an arbitrary origin is origin-dependent -- the same property `copysign` is refused
+// for -- so `std::signbit` is refused for it too. A dimensionless decibel GAIN keeps it: a negative decibel figure
+// means attenuation, which is a real property of the ratio.
+TEST_F(UnitMath, signbitFollowsTheOriginRule)
+{
+	EXPECT_TRUE(std::signbit(units::meters<double>(-2.5)));
+	EXPECT_FALSE(std::signbit(units::meters<double>(2.5)));
+	EXPECT_TRUE(std::signbit(decibels<double>(-3.25)));
+	EXPECT_TRUE(std::signbit(units::temperature::kelvin<double>(-2.5)));
+	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(2.5) - units::temperature::celsius<double>(7.5)));
+	// NOT compilable: std::signbit of a celsius READING or a dBW LEVEL -- signbit(celsius(-5.25)) is true while the
+	// identical temperature as kelvin(267.9) is false.
+}
+
 TEST_F(UnitType, publicTraitsLetGenericCodeGuardTheOriginRule)
 {
 	using namespace units::temperature;

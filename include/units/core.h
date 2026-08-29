@@ -5773,6 +5773,22 @@ namespace units
 	}
 
 	//----------------------------------
+	//	LOGARITHMIC-SCALE MATH DIAGNOSTIC
+	//----------------------------------
+	// A transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
+	// than the ratio it denotes: `log10(decibels(3.25))` returned log10(3.25) = 0.512 where the ratio is 2.113 and its
+	// base-ten logarithm is 0.325. Rather than pick one reading, the family is refused and names the conversion.
+
+	template<DimensionlessUnitType UnitType>
+		requires(!traits::has_linear_scale_v<UnitType>)
+	constexpr UnitType log10(const UnitType x) noexcept
+	{
+		static_assert(detail::dependent_false<UnitType>,
+			"units: cannot take a logarithm or exponential of a decibel value; convert to its linear ratio first (e.g. dimensionless(gain)).");
+		return x;
+	}
+
+	//----------------------------------
 	//	ORIGIN-DEPENDENT OPERATOR DIAGNOSTICS
 	//----------------------------------
 	// The same rule as the math diagnostics below, for operators: negating, taking a remainder of, or taking the ratio
@@ -5952,6 +5968,7 @@ namespace units
 	 *				error occurs
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> exp(const UnitType x) noexcept
 	{
 		return std::exp(x.value());
@@ -5967,6 +5984,7 @@ namespace units
 	 * @returns		Natural logarithm of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log(const UnitType x) noexcept
 	{
 		return std::log(x.value());
@@ -5981,6 +5999,7 @@ namespace units
 	 * @returns		Common logarithm of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log10(const UnitType x) noexcept
 	{
 		return std::log10(x.value());
@@ -5998,6 +6017,7 @@ namespace units
 	 * @returns		The fractional part of x, with the same sign.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> modf(const UnitType x, UnitType* intpart) noexcept
 	{
 		using promoted = detail::floating_point_promotion_t<typename UnitType::underlying_type>;
@@ -6020,6 +6040,7 @@ namespace units
 	 * @returns		2 raised to the power of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> exp2(const UnitType x) noexcept
 	{
 		return std::exp2(x.value());
@@ -6034,6 +6055,7 @@ namespace units
 	 * @returns		e raised to the power of x, minus one.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> expm1(const UnitType x) noexcept
 	{
 		return std::expm1(x.value());
@@ -6049,6 +6071,7 @@ namespace units
 	 * @returns		The natural logarithm of (1+x).
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log1p(const UnitType x) noexcept
 	{
 		return std::log1p(x.value());
@@ -6063,6 +6086,7 @@ namespace units
 	 * @returns		The binary logarithm of x: log2x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log2(const UnitType x) noexcept
 	{
 		return std::log2(x.value());
@@ -6568,17 +6592,22 @@ namespace units
 template<class ConversionFactor, typename T, class NumericalScale>
 struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 {
+	/// Hashes the quantity's value in its dimension's SI BASE unit, not its stored value. Two quantities that compare
+	/// equal must hash equally, and equality is judged across scales: `meters(1000) == kilometers(1)`,
+	/// `celsius(0) == fahrenheit(32)` and `dBW(12.5) == dBm(42.5)` are all true, yet hashing the stored value gave each
+	/// pair a different hash -- so an `unordered_map` keyed on a quantity was unusable across spellings. Converting to
+	/// the base first makes the hash spelling-invariant, which is also what `std::hash<units::any_unit>` does.
+	///
+	/// The remaining, documented divergence is tolerance: `operator==` is relatively tolerant and non-transitive, so two
+	/// values within tolerance compare equal while hashing differently. A hash consistent with a non-transitive equality
+	/// cannot exist without being constant, so exact hashing of the base value is the coherent choice.
 	template<typename U = T>
 	constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
 	{
-		if constexpr (std::is_integral_v<U>)
-		{
-			return static_cast<std::size_t>(x.to_linearized());
-		}
-		else
-		{
-			return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
-		}
+		using Base = units::unit<units::conversion_factor<std::ratio<1>, typename units::traits::conversion_factor_traits<ConversionFactor>::dimension_type>,
+			units::detail::floating_point_promotion_t<T>, units::linear_scale>;
+		const auto inBase = Base(x).to_linearized();
+		return static_cast<std::size_t>(hash<units::detail::floating_point_promotion_t<T>>()(inBase));
 	}
 };
 
@@ -6738,7 +6767,11 @@ namespace std
 		return std::isfinite(x.raw());
 	}
 
+	/// A quantity measured from an arbitrary origin has no origin-free sign -- `signbit(celsius(-5.25))` is true while
+	/// the identical temperature as `kelvin(267.9)` is false -- which is the same property `units::copysign` refuses
+	/// for. A decibel GAIN keeps it: a negative decibel figure means attenuation, which is a real property of the ratio.
 	template<units::UnitType U>
+		requires(!units::traits::has_arbitrary_origin_v<U>)
 	constexpr bool signbit(U x)
 	{
 		return std::signbit(x.raw());

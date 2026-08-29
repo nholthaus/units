@@ -415,4 +415,62 @@ namespace
 	}
 }
 
+
+// A quantity measured from an arbitrary origin -- an affine reading, or a decibel level -- breaks Eigen's assumption
+// that a coefficient-wise binary operation is `op(T,T) -> T`. This file had NO affine or decibel coverage at all, which
+// is how a silent datum re-application shipped: the scalar difference of two readings is an offset-free AMOUNT, and
+// Eigen assigned it back into the reading coefficient, so `(v - w).eval()` on two EQUAL readings read -273.15 instead
+// of 0. Naming the amount type in `ScalarBinaryOpTraits` fixes that; the operations with no origin-free meaning are
+// refused at the user's expression rather than from inside Eigen.
+TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
+{
+	using units::temperature::celsius;
+
+	Eigen::Matrix<celsius<double>, 3, 1> reading;
+	reading << celsius<double>(12.5), celsius<double>(20.5), celsius<double>(37.25);
+	Eigen::Matrix<celsius<double>, 3, 1> baseline;
+	baseline << celsius<double>(12.5), celsius<double>(10.5), celsius<double>(2.25);
+
+	const auto difference = (reading - baseline).eval();
+	EXPECT_NEAR(0.0, difference(0).value(), 5.0e-12);      // equal readings differ by nothing, not by -273.15
+	EXPECT_NEAR(10.0, difference(1).value(), 5.0e-12);
+	EXPECT_NEAR(35.0, difference(2).value(), 5.0e-12);
+	static_assert(!units::traits::is_affine_unit_v<std::decay_t<decltype(difference(0))>>,
+		"the difference of two readings is an amount, so its coefficient type carries no datum");
+
+	// and the amount matrix supports the arithmetic a magnitude should
+	EXPECT_NEAR(20.0, (difference * 2.0).eval()(1).value(), 5.0e-12);
+	EXPECT_NEAR(45.0, difference.sum().value(), 5.0e-12);
+
+	// storing readings is still allowed -- it is only the origin-free arithmetic that is refused
+	EXPECT_NEAR(20.5, reading(1).value(), 5.0e-12);
+	EXPECT_NEAR(54.5, units::temperature::fahrenheit<double>(reading(0)).value(), 5.0e-12);    // 12.5 degC
+}
+
+// The operations with no origin-free meaning are refused for a matrix of readings exactly as they are for a scalar
+// reading, so the Eigen seam cannot be used to launder them. (Compile-time refusals, so they are asserted through the
+// trait the library publishes for the purpose rather than by attempting the expression.)
+TEST_F(EigenInterop, originRuleReachesTheEigenSeam)
+{
+	using units::temperature::celsius;
+	using units::power::dBW;
+
+	static_assert(units::traits::has_arbitrary_origin_v<celsius<double>>);
+	static_assert(units::traits::has_arbitrary_origin_v<dBW<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<units::meters<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<std::decay_t<decltype(celsius<double>(1) - celsius<double>(0))>>);
+
+	// NOT compilable for a matrix of readings or levels: * 2.0, / 2.0, .sum(), unit_dot, unit_norm,
+	// unit_squared_norm, unit_normalized. Each is refused at the expression, naming the same remedy the scalar
+	// operation names -- express the values as differences.
+
+	// an ordinary matrix keeps the entire surface
+	Eigen::Matrix<units::meters<double>, 3, 1> length;
+	length << units::meters<double>(3.0), units::meters<double>(4.0), units::meters<double>(0.0);
+	EXPECT_NEAR(5.0, unit_norm(length).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_squared_norm(length).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_dot(length, length).value(), 5.0e-12);
+	EXPECT_NEAR(14.0, (length * 2.0).eval().sum().value(), 5.0e-12);
+}
+
 #endif // UNITS_HAVE_EIGEN
