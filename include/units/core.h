@@ -4000,11 +4000,33 @@ namespace units
 		/// The detail spelling of `traits::has_arbitrary_origin_v`, which is the public name.
 		template<class U>
 		inline constexpr bool has_arbitrary_origin_v = traits::has_arbitrary_origin_v<U>;
+
+		//------------------------------
+		//	THE TWO PERMISSIVENESS RULES
+		//------------------------------
+		// These gate the operations this library REFUSES on a quantity measured from an arbitrary origin even though a
+		// number could be produced for them. They are named, and used at every site that enforces them, so that what
+		// is a RULE is separable by inspection from what is a FIX. Setting either to `false` restores the previous
+		// behavior for its whole family without leaving a gap: every rule site is constrained on the predicate and its
+		// diagnostic on the negation, so the two remain complementary whatever the predicate's value.
+		//
+		// Rule 1 -- a reading does not SCALE. `celsius(20.5) * 2.0` previously gave 41. That answer is
+		// datum-DEPENDENT: the same temperature doubled in kelvin is 313.15 degC, not 41. The datum-independent
+		// weighting is an affine combination (weights totalling one), which `units::lerp` and `units::midpoint`
+		// provide, so the meaningful operation is available either way.
+		template<class U>
+		inline constexpr bool refuses_scaling_v = traits::is_affine_unit_v<U>;
+
+		// Rule 2 -- a reading has no origin-free MAGNITUDE, SIGN, REMAINDER, ROOT, POWER, RATIO or PRODUCT.
+		// `abs(celsius(-5.25))` previously gave 5.25 degC; the identical temperature as kelvin(267.9) gives 267.9 K.
+		// Every such answer is a real number that depends on where zero was put.
+		template<class U>
+		inline constexpr bool refuses_origin_free_math_v = has_arbitrary_origin_v<U>;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	template<UnitType UnitTypeLhs>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -4136,7 +4158,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4470,7 +4492,7 @@ namespace units
 	/// Scaling an affine POINT: its value is relative to the scale's datum, so the result would depend on the
 	/// arbitrary zero; the only coordinate-free reading is scaling a CHANGE, which is a `delta<...>`.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4480,7 +4502,7 @@ namespace units
 
 	/// Dividing an affine POINT by a number — same reason as scaling.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4490,7 +4512,7 @@ namespace units
 
 	/// Moving an affine POINT by a bare number: a number carries no unit, so the amount of change is unstated.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4499,7 +4521,7 @@ namespace units
 	}
 	/// Mirror of the `+=` above: a bare number subtracted from an affine point.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4779,7 +4801,7 @@ namespace units
 
 	// unary addition: -T
 	template<UnitType UnitTypeLhs>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
 		return UnitTypeLhs(-u.raw());
@@ -4991,7 +5013,7 @@ namespace units
 	/// type as left-hand side unit.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<squared<typename traits::unit_traits<std::common_type_t<UnitTypeLhs, UnitTypeRhs>>::conversion_factor>>,
 			typename std::common_type_t<UnitTypeLhs, UnitTypeRhs>::underlying_type>>
@@ -5005,7 +5027,7 @@ namespace units
 	/// type is a compound unit of the left and right hand side values.
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator*(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
@@ -5066,7 +5088,7 @@ namespace units
 	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale. An affine quantity is
 	/// excluded: scaling a point yields a CHANGE, handled by the affine overload below.
 	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator*(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
@@ -5075,7 +5097,7 @@ namespace units
 
 	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale (affine excluded; see below).
 	template<DimensionedUnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator*(T lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs * rhs);
@@ -5128,7 +5150,7 @@ namespace units
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(
 			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr dimensionless<std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -5139,7 +5161,7 @@ namespace units
 	/// compound unit type of lhs/rhs
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>>,
 			std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
@@ -5196,7 +5218,7 @@ namespace units
 	/// Division of a dimensionless unit by a unit type with a linear scale
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && traits::is_dimensionless_unit_v<UnitTypeLhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>,
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>>>
 	{
@@ -5208,7 +5230,7 @@ namespace units
 	/// Division of a ratio-dimensionless unit (pct/ppm/ppb/...) by a dimensioned unit.
 	/// This MUST preserve the numerator ratio semantics (do NOT collapse to 1/unit).
 	template<RatioDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator/(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 		-> unit<
 			traits::strong_t<
@@ -5255,7 +5277,7 @@ namespace units
 
 	/// Scaling an affine POINT by a number.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, T) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5264,7 +5286,7 @@ namespace units
 	}
 	/// Scaling an affine POINT by a dimensionless QUANTITY, with the quantity on the left.
 	template<UnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs> && traits::is_affine_unit_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && detail::refuses_scaling_v<UnitTypeRhs>)
 	constexpr UnitTypeRhs operator*(T, const UnitTypeRhs& rhs) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeRhs>,
@@ -5274,7 +5296,7 @@ namespace units
 
 	/// Dividing an affine POINT by a number -- same reason as scaling.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, T) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5286,7 +5308,7 @@ namespace units
 	/// meant identically, so it is refused identically -- otherwise `celsius * dimensionless(2)` would quietly scale
 	/// the point while `celsius * 2.0` was refused, and the rule would be decorative.
 	template<DimensionedUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5295,7 +5317,7 @@ namespace units
 	}
 	/// Dividing an affine POINT by a dimensionless quantity -- same reason as scaling one.
 	template<DimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(traits::is_affine_unit_v<UnitTypeRhs>)
+		requires(detail::refuses_scaling_v<UnitTypeRhs>)
 	constexpr UnitTypeRhs operator*(const UnitTypeLhs&, const UnitTypeRhs& rhs) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeRhs>,
@@ -5304,7 +5326,7 @@ namespace units
 	}
 	/// Dividing an affine POINT by a dimensionless quantity -- the same operation as dividing by a bare number.
 	template<DimensionedUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5314,7 +5336,7 @@ namespace units
 
 	/// Division of a dimensionless by a unit type with a linear scale
 	template<UnitType UnitTypeRhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeRhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto operator/(T lhs, const UnitTypeRhs& rhs) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<inverse<typename traits::unit_traits<UnitTypeRhs>::conversion_factor>>, std::common_type_t<T, typename UnitTypeRhs::underlying_type>>>
 	{
@@ -5366,8 +5388,8 @@ namespace units
 	///			common-unit result mirrors `fmod` and removes the asymmetry.
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeLhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> && !detail::refuses_origin_free_math_v<UnitTypeLhs> &&
+			!detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator%(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
 		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
@@ -5408,7 +5430,7 @@ namespace units
 	/// Modulo by an arithmetic type for unit types with a linear scale
 	template<UnitType UnitTypeLhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeLhs> && std::integral<T> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator%(const UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs % rhs);
@@ -5594,7 +5616,7 @@ namespace units
 	 * @returns		new unit, raised to the given exponent
 	 */
 	template<int power, UnitType UnitType>
-		requires(traits::has_linear_scale_v<UnitType> && !detail::has_arbitrary_origin_v<UnitType>)
+		requires(traits::has_linear_scale_v<UnitType> && !detail::refuses_origin_free_math_v<UnitType>)
 	constexpr auto pow(const UnitType& value) noexcept -> detail::rewrap_to_named_t<unit<traits::strong_t<typename units::detail::power_of_unit<power, typename units::traits::unit_traits<UnitType>::conversion_factor>::type>,
 		detail::floating_point_promotion_t<typename units::traits::unit_traits<UnitType>::underlying_type>, linear_scale>>
 	{
@@ -5797,7 +5819,7 @@ namespace units
 
 	/// Negating a reading measured from a datum or reference.
 	template<UnitType UnitTypeLhs>
-		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs operator-(const UnitTypeLhs& u) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5808,7 +5830,7 @@ namespace units
 	/// The remainder of two readings measured from a datum or reference.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && IntegralUnitType<UnitTypeLhs> && IntegralUnitType<UnitTypeRhs> &&
-			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+			(detail::refuses_origin_free_math_v<UnitTypeLhs> || detail::refuses_origin_free_math_v<UnitTypeRhs>))
 	constexpr UnitTypeLhs operator%(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
@@ -5819,7 +5841,7 @@ namespace units
 	/// The PRODUCT of two quantities where either is measured from a datum or reference: celsius(20)*celsius(30) is
 	/// 600 from the celsius readings and 89'610 from the same two temperatures in kelvin.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires((detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>) &&
+		requires((detail::refuses_origin_free_math_v<UnitTypeLhs> || detail::refuses_origin_free_math_v<UnitTypeRhs>) &&
 			!DimensionlessUnitType<UnitTypeLhs> && !DimensionlessUnitType<UnitTypeRhs>)
 	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
 	{
@@ -5832,7 +5854,7 @@ namespace units
 	/// temperatures in kelvin give 1.035.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeRhs> &&
-			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+			(detail::refuses_origin_free_math_v<UnitTypeLhs> || detail::refuses_origin_free_math_v<UnitTypeRhs>))
 	// Returns the LHS type rather than the real `dimensionless<...>` result: the body never returns, and naming
 	// `dimensionless` here would print its conversion factor in the diagnostic's signature, burying the message in
 	// exactly the soup the harness forbids.
@@ -5852,7 +5874,7 @@ namespace units
 	// origin. Each returns a value so the body is instantiated and the message fires on every compiler.
 
 	template<UnitType UnitType>
-		requires(detail::has_arbitrary_origin_v<UnitType>)
+		requires(detail::refuses_origin_free_math_v<UnitType>)
 	constexpr UnitType abs(const UnitType x) noexcept
 	{
 		static_assert(detail::dependent_false<UnitType>,
@@ -5860,7 +5882,7 @@ namespace units
 		return x;
 	}
 	template<UnitType UnitType>
-		requires(detail::has_arbitrary_origin_v<UnitType>)
+		requires(detail::refuses_origin_free_math_v<UnitType>)
 	constexpr UnitType fabs(const UnitType x) noexcept
 	{
 		static_assert(detail::dependent_false<UnitType>,
@@ -5869,7 +5891,7 @@ namespace units
 	}
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
-			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+			(detail::refuses_origin_free_math_v<UnitTypeLhs> || detail::refuses_origin_free_math_v<UnitTypeRhs>))
 	constexpr UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
@@ -5877,7 +5899,7 @@ namespace units
 		return numer;
 	}
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs copysign(const UnitTypeLhs x, const UnitTypeRhs) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5885,7 +5907,7 @@ namespace units
 		return x;
 	}
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs copysign(const UnitTypeLhs x, const T&) noexcept
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -5893,7 +5915,7 @@ namespace units
 		return x;
 	}
 	template<UnitType UnitType>
-		requires(detail::has_arbitrary_origin_v<UnitType>)
+		requires(detail::refuses_origin_free_math_v<UnitType>)
 	constexpr UnitType sqrt(const UnitType& value) noexcept
 	{
 		static_assert(detail::dependent_false<UnitType>,
@@ -5902,12 +5924,62 @@ namespace units
 	}
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
-			(detail::has_arbitrary_origin_v<UnitTypeLhs> || detail::has_arbitrary_origin_v<UnitTypeRhs>))
+			(detail::refuses_origin_free_math_v<UnitTypeLhs> || detail::refuses_origin_free_math_v<UnitTypeRhs>))
 	constexpr UnitTypeLhs hypot(const UnitTypeLhs& x, const UnitTypeRhs&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
 			"units: no origin-free magnitude for a reading measured from a datum or reference; take hypot of differences.");
 		return x;
+	}
+
+	//----------------------------------
+	//	AFFINE COMBINATIONS
+	//----------------------------------
+	// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is well defined on a scale with an arbitrary
+	// zero, even though a bare sum and a bare scaling are not. It is the one weighting that is datum-INDEPENDENT, and
+	// that is a fact, not a convention: the midpoint of 20 degC and 30 degC is 25 degC, and the midpoint of the same two
+	// temperatures written as 293.15 K and 303.15 K is 298.15 K, which IS 25 degC. Doubling is not: 20 degC doubled is
+	// 40 degC, while the same temperature doubled in kelvin is 313.15 degC.
+	//
+	// So the mean of two readings is meaningful and common -- a mean daily temperature is exactly this -- and it is
+	// expressible entirely through a DIFFERENCE, which is why it is datum-safe: `a + (b - a) * t`. These name that
+	// operation so a user does not have to rediscover the formulation, and so the meaningful case is available even
+	// though `a + b` and `a / 2` are individually refused for readings.
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Linear interpolation between two quantities: the affine combination `(1 - t) * a + t * b`.
+	 * @details		Computed as `a + (b - a) * t`, which is datum-safe: the difference carries no origin, so this is
+	 *				meaningful for an affine reading (a temperature) as well as for an ordinary quantity. `t` is
+	 *				dimensionless and is not restricted to [0, 1]; the weights `1 - t` and `t` always total one, which
+	 *				is what makes the result independent of where the scale's zero was put.
+	 * @param[in]	a	the quantity at `t == 0`.
+	 * @param[in]	b	the quantity at `t == 1`.
+	 * @param[in]	t	the interpolation parameter.
+	 * @return		the interpolated quantity, in `a`'s unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs, ArithmeticType T>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto lerp(const UnitTypeLhs& a, const UnitTypeRhs& b, T t) noexcept
+	{
+		return a + (b - a) * t;
+	}
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		The midpoint of two quantities: the affine combination with equal weights.
+	 * @details		Computed as `a + (b - a) / 2`, so it is datum-safe for an affine reading -- the arithmetic mean of
+	 *				two temperatures, which is what a mean daily temperature is. See `lerp` for why the weights
+	 *				totalling one is what makes this well defined where scaling a single reading is not.
+	 * @param[in]	a	the first quantity.
+	 * @param[in]	b	the second quantity.
+	 * @return		the midpoint, in `a`'s unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto midpoint(const UnitTypeLhs& a, const UnitTypeRhs& b) noexcept
+	{
+		return a + (b - a) / 2;
 	}
 
 	//----------------------------------
@@ -6111,7 +6183,7 @@ namespace units
 	 *				unit type may have errors no larger than `1e-10`.
 	 */
 	template<UnitType UnitType>
-		requires(traits::has_linear_scale_v<UnitType> && !detail::has_arbitrary_origin_v<UnitType>)
+		requires(traits::has_linear_scale_v<UnitType> && !detail::refuses_origin_free_math_v<UnitType>)
 	constexpr auto sqrt(const UnitType& value) noexcept
 		-> detail::rewrap_to_named_t<unit<traits::strong_t<square_root<typename traits::unit_traits<UnitType>::conversion_factor>>, detail::floating_point_promotion_t<typename traits::unit_traits<UnitType>::underlying_type>>>
 	{
@@ -6130,7 +6202,7 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitTypeRhs>)
+			!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto hypot(const UnitTypeLhs& x, const UnitTypeRhs& y)
 	{
 		// The result unit is computed in the body (not the signature) so lhs_result_unit_t is never instantiated for
@@ -6180,8 +6252,8 @@ namespace units
 	 *				common unit of the arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::has_arbitrary_origin_v<UnitTypeLhs> &&
-			!detail::has_arbitrary_origin_v<UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_origin_free_math_v<UnitTypeLhs> &&
+			!detail::refuses_origin_free_math_v<UnitTypeRhs>)
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
@@ -6403,7 +6475,7 @@ namespace units
 	 * @returns		value with the magnitude and dimension of x, and the sign of y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y.raw())); // no need for conversion to get the correct sign.
@@ -6411,7 +6483,7 @@ namespace units
 
 	/// Overload to copy the sign from a raw double
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs>)
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
 	constexpr detail::floating_point_promotion_t<UnitTypeLhs> copysign(const UnitTypeLhs x, const T& y) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitTypeLhs>(std::copysign(x.raw(), y));
@@ -6492,7 +6564,7 @@ namespace units
 	 * @returns		The absolute value of x.
 	 */
 	template<UnitType UnitType>
-		requires(!detail::has_arbitrary_origin_v<UnitType>)
+		requires(!detail::refuses_origin_free_math_v<UnitType>)
 	constexpr detail::floating_point_promotion_t<UnitType> fabs(const UnitType x) noexcept
 	{
 		return detail::floating_point_promotion_t<UnitType>(std::fabs(x.raw()));
@@ -6506,7 +6578,7 @@ namespace units
 	 * @returns		The absolute value of x.
 	 */
 	template<UnitType UnitType>
-		requires(!detail::has_arbitrary_origin_v<UnitType>)
+		requires(!detail::refuses_origin_free_math_v<UnitType>)
 	constexpr UnitType abs(const UnitType x) noexcept
 	{
 		return UnitType(std::abs(x.raw()));
@@ -6527,7 +6599,7 @@ namespace units
 	 * @returns		The result of x*y+z.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitMultiply, UnitType UnitAdd>
-		requires(!detail::has_arbitrary_origin_v<UnitTypeLhs> && !detail::has_arbitrary_origin_v<UnitMultiply> &&
+		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs> && !detail::refuses_origin_free_math_v<UnitMultiply> &&
 			traits::is_same_dimension_conversion_factor_v<
 			compound_conversion_factor<typename traits::unit_traits<UnitTypeLhs>::conversion_factor, typename traits::unit_traits<UnitMultiply>::conversion_factor>,
 			typename traits::unit_traits<UnitAdd>::conversion_factor>)

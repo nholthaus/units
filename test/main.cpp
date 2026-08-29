@@ -2791,6 +2791,45 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 // logarithm is 0.325. `modf` was worse: it split the decibel figure but wrote the integral part back through a LINEAR
 // dimensionless, landing it in the linearized domain, so the parts did not sum to the input. Both now require a linear
 // scale (graded by log_of_decibel_gain), and the remedy is to take the linear ratio first.
+// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the one weighting that is datum-INDEPENDENT,
+// and that is a measurable fact rather than a convention. It is why the mean of two temperatures is meaningful even
+// though doubling one is not, and a mean daily temperature is exactly this operation. `lerp`/`midpoint` name it so the
+// meaningful case is available without relaxing anything: both are computed through a DIFFERENCE, which carries no
+// origin, so they need no permission that a reading does not already have.
+TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
+{
+	using namespace units::temperature;
+
+	// the midpoint of two readings, computed in celsius and in kelvin, is the SAME temperature
+	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, celsius<double>(units::midpoint(kelvin<double>(293.15), kelvin<double>(303.15))).value(), 5.0e-10);
+	// whereas DOUBLING is not datum-independent, which is why it is refused: 20 degC doubled is 40 degC, but the same
+	// temperature doubled in kelvin is 586.3 K = 313.15 degC.
+	EXPECT_NEAR(313.15, celsius<double>(kelvin<double>(293.15) * 2.0).value(), 5.0e-10);
+
+	// the result is still a READING, in the left operand's unit, and it works across scales
+	static_assert(traits::is_affine_unit_v<decltype(units::midpoint(celsius<double>(1), celsius<double>(2)))>,
+		"the midpoint of two readings is a reading");
+	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), fahrenheit<double>(86.0)).value(), 5.0e-12);
+	EXPECT_NEAR(77.0, units::midpoint(fahrenheit<double>(68.0), celsius<double>(30.0)).value(), 5.0e-12);
+
+	// lerp with any weight pair totalling one, including outside [0, 1]
+	EXPECT_NEAR(22.5, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 0.25).value(), 5.0e-12);
+	EXPECT_NEAR(22.5, celsius<double>(units::lerp(kelvin<double>(293.15), kelvin<double>(303.15), 0.25)).value(), 5.0e-10);
+	EXPECT_NEAR(20.0, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 0.0).value(), 5.0e-12);
+	EXPECT_NEAR(30.0, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 1.0).value(), 5.0e-12);
+	EXPECT_NEAR(35.0, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 1.5).value(), 5.0e-12);    // extrapolates
+
+	// ordinary quantities and offset-free scales get the same operations
+	EXPECT_NEAR(8.0, units::midpoint(units::meters<double>(3.5), units::meters<double>(12.5)).value(), 5.0e-12);
+	EXPECT_NEAR(15.0, units::lerp(units::meters<double>(0.0), units::meters<double>(10.0), 1.5).value(), 5.0e-12);
+	EXPECT_NEAR(298.15, units::midpoint(kelvin<double>(293.15), kelvin<double>(303.15)).value(), 5.0e-10);
+	// and an amount, which is what the interpolation is built from
+	const auto low = celsius<double>(20.0) - celsius<double>(0.0);
+	const auto high = celsius<double>(30.0) - celsius<double>(0.0);
+	EXPECT_NEAR(25.0, units::midpoint(low, high).value(), 5.0e-12);
+}
+
 TEST_F(UnitMath, dimensionlessMathRequiresALinearScale)
 {
 	// the legitimate cases are untouched, including a RATIO scale where the stored number and the fraction differ
