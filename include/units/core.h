@@ -4512,7 +4512,7 @@ namespace units
 
 	/// Moving an affine POINT by a bare number: a number carries no unit, so the amount of change is unstated.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,
@@ -4521,7 +4521,7 @@ namespace units
 	}
 	/// Mirror of the `+=` above: a bare number subtracted from an affine point.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
 	{
 		static_assert(detail::dependent_false<UnitTypeLhs>,

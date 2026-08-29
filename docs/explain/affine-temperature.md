@@ -124,6 +124,38 @@ int main()
 }
 ```
 
+## Scaling a temperature reading
+
+Multiplying a reading on an affine scale is not datum-independent. One temperature, written four ways and multiplied by
+two, yields three different physical results:
+
+| written as | × 2 | the same result in kelvin |
+|---|---|---|
+| `celsius(20)` | 40 °C | 313.15 K |
+| `fahrenheit(68)` | 136 °F | 330.93 K |
+| `reaumur(16)` | 32 °Ré | 313.15 K |
+| `kelvin(293.15)` | 586.3 K | 586.30 K |
+
+The general rule is exact. A weighted sum of readings is datum-independent **if and only if its weights total one**;
+such a sum is an *affine combination*, and [`midpoint` and `lerp`](../how-to/math-functions.md) compute it. Every
+other weighting — scaling among them — depends on where the scale's zero was placed.
+
+The library permits the other weightings. Published formulae use them: NWS wind chill and the Rothfusz heat index
+are regressions on Fahrenheit readings; the Magnus, Buck and NWS vapour-pressure correlations are regressions on
+Celsius readings. Their coefficients were fitted to the numbers a thermometer reads on one named scale, so each formula
+is scale-bound by construction. Magnus admits no absolute-scale form: its offset varies between fits (243.5, 243.04,
+237.3, 257.14) where 273.15 is fixed.
+
+Refusing the operation does not make such code correct; it moves it outside the type system, onto `raw()` values,
+which forfeits dimensional checking on every other operand the formula takes — the pressures, wind speeds and
+humidities. The arithmetic is therefore available, and supplying the scale the coefficients expect is the caller's
+responsibility.
+
+Two consequences follow. A scale-bound expression must be given the scale its coefficients were fitted to; supplying
+Rothfusz a Celsius reading produces a number with no meaning, which no type system can detect. And generic code that
+scales a temperature behaves differently for `celsius` than for `fahrenheit`; where the intent is a mean or an
+interpolation, `midpoint` and `lerp` are datum-independent.
+
 ## Why "not a reversible linear transform"
 
 A linear transform `x ↦ a·x` composes and inverts by multiplying and dividing ratios — the machinery the
