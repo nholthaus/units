@@ -48,7 +48,7 @@ ADL on a units argument.
 
 | Category | Functions | Dimensional behavior |
 |---|---|---|
-| Powers and roots | `pow<N>`, `sqrt`, `cbrt` | `pow<N>` raises the dimension to N; `sqrt`/`cbrt` take the root of the dimension |
+| Powers and roots | `pow<N>`, `sqrt` | `pow<N>` raises the dimension to N; `sqrt` takes the root of the dimension |
 | Distance / mixing | `hypot` | operands share a dimension; result is that dimension |
 | Rounding | `floor`, `ceil`, `round`, `trunc` | dimension preserved |
 | Sign and difference | `abs`, `fabs`, `copysign`, `fdim`, `fmod` | dimension preserved (`copysign`/`fdim`/`fmod` on same-dimension operands) |
@@ -57,9 +57,35 @@ ADL on a units argument.
 | Exponential / logarithmic | `exp`, `exp2`, `expm1`, `log`, `log2`, `log10`, `log1p` | argument and result are **dimensionless** |
 | Trigonometric | `sin`, `cos`, `tan` | take an **angle**, return dimensionless |
 | Inverse trigonometric | `asin`, `acos`, `atan`, `atan2` | take dimensionless, return **radians** |
-| Hyperbolic | `sinh`, `cosh`, `tanh` | take an **angle**, return dimensionless |
-| Inverse hyperbolic | `asinh`, `acosh`, `atanh` | take dimensionless, return **radians** |
+| Hyperbolic | `sinh`, `cosh`, `tanh` | take a **dimensionless** value, return dimensionless |
+| Inverse hyperbolic | `asinh`, `acosh`, `atanh` | take dimensionless, return **dimensionless** (unlike the inverse trigonometric functions, which return radians) |
 | Decomposition | `modf` | returns the fractional part; integer part written through the pointer |
+
+### Quantities measured from an arbitrary origin
+
+An **affine reading** (`celsius`, `fahrenheit`, `reaumur` — they carry a datum) and a **decibel level** (`dBW`,
+`dBm` — they carry a logarithmic reference) have no origin-free magnitude, sign, remainder, root or power. The
+answer would depend on where zero was put: `abs(celsius(-5.25))` is 5.25 °C = 278.4 K, while the *identical*
+temperature written as 267.9 K gives 267.9 K. So these functions are **ill-formed** for such an operand:
+
+`abs` · `fabs` · `copysign` · `fmod` · `hypot` · `sqrt` · `pow<N>`
+
+Each says so and names the remedy: apply the function to a **difference**, which carries no origin.
+
+```cpp
+using namespace units::temperature;
+// units::abs(celsius<double>(-5.25));                       // ill-formed
+const auto below = celsius<double>(-5.25) - celsius<double>(0.0);   // an amount
+units::abs(below);                                                  // 5.25 degrees
+```
+
+`floor`, `ceil`, `round` and `trunc` **are** available on a reading: they quantize the value in the unit's own
+scale, so "the nearest whole degree Celsius" is a stated quantity. `min`, `max`, `fmin`, `fmax` and `clamp` are
+available too — they select an operand rather than computing a new value. `fdim` returns whatever `operator-`
+returns, so the positive difference of two readings is an amount.
+
+An offset-free scale (`kelvin`, `rankine`), a difference, and a dimensionless dB **gain** are ordinary magnitudes
+and keep the whole surface. See [affine temperature](../explain/affine-temperature.md).
 | Classification | `isnan`, `isinf`, `isfinite`, `isnormal`, `signbit`, `isunordered` | return `bool` |
 
 ## Powers and roots carry dimensions

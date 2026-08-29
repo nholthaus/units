@@ -83,6 +83,44 @@ static_assert(traits::has_linear_scale_v<T>);
 static_assert(traits::has_decibel_scale_v<units::power::dBW<double>>);
 ```
 
+## Datum traits
+
+Whether a unit carries a **datum** — an arbitrary origin — which makes it a *reading* rather than a magnitude. This
+decides which operations are available on it: see [affine temperature](../explain/affine-temperature.md).
+
+| Trait (`_v` form) | Meaning |
+|---|---|
+| `is_affine_conversion_factor<Cf>` / `is_affine_conversion_factor_v<Cf>` | the conversion factor has a non-zero datum translation. (`is_affine_conversion_factor` in `include/units/core.h`) |
+| `is_affine_unit<U>` / `is_affine_unit_v<U>` | `U`'s conversion factor is affine, i.e. `U` is a reading measured from a datum. (`is_affine_unit` in `include/units/core.h`) |
+| `is_decibel_level_v<U>` | `U` is a decibel **level**: a *dimensioned* quantity on a logarithmic reference scale (`dBW`, `dBm`). A *dimensionless* decibel value is a **gain** — a relative ratio — and the two obey different rules. |
+| `has_arbitrary_origin_v<U>` | `U` is measured from an arbitrary origin — an affine reading **or** a decibel level. Such a value has no origin-free magnitude, sign, remainder, root, power or ratio, so the library refuses those operations on it. |
+
+`has_arbitrary_origin_v` is how generic code should ask. Each refusal is a diagnostic that fires from an overload
+*body*, so the overload still resolves and a `requires`-expression reports the operation as available — which means a
+`requires`-guarded `if constexpr` hard-errors rather than taking its fallback. Guard on the trait:
+
+```cpp
+template<class T>
+T scaleIfMeaningful(T value)
+{
+    if constexpr (!units::traits::has_arbitrary_origin_v<T>)
+        return value * 2.0;      // an ordinary quantity, an offset-free scale, a difference, a dB gain
+    else
+        return value;            // a reading or a level: scaling it has no origin-free meaning
+}
+```
+
+Three shipped units are affine — `celsius`, `fahrenheit` and `reaumur`. `kelvin` and `rankine` are **not**: they are
+absolute scales with no offset, so they behave as ordinary magnitudes. A *difference* of two readings is offset-free,
+so it is not affine either.
+
+```cpp
+static_assert(traits::is_affine_unit_v<units::temperature::celsius<double>>);
+static_assert(traits::is_affine_unit_v<units::temperature::reaumur<double>>);
+static_assert(!traits::is_affine_unit_v<units::temperature::kelvin<double>>);
+static_assert(!traits::is_affine_unit_v<decltype(units::temperature::celsius<double>(20.0) - units::temperature::celsius<double>(0.0))>);
+```
+
 ## Accessor traits
 
 Extract member types from a unit or conversion factor, or produce a related type.

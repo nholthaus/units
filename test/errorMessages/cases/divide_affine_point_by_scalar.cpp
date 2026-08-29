@@ -1,6 +1,5 @@
 // Case: dividing an affine POINT by a bare number is meaningless (its value is datum-relative — "20 degC / 2"
-// depends on the datum), so `celsius /= double` must be ill-formed. The diagnostic is the compiler's own
-// no-matching-`operator/=` wording, graded by tight readable tokens — the FRIENDLY `celsius<` type AND the failing
+// depends on the datum), so `celsius /= double` must be ill-formed. The diagnostic is the library's own message, graded on a phrase only it can emit — the FRIENDLY `celsius<` type AND the failing
 // operator context — plus the anti-soup guards. Only a `delta` (an amount) divides: `delta<celsius<double>>(20.0) / 2.0`.
 //
 // expect: fail
@@ -9,6 +8,7 @@
 // expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/temperature.h>
 using namespace units;
 int main()

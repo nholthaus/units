@@ -11,6 +11,7 @@
 // expect-match: radial
 // expect-match: straight
 // forbid-match: conversion_factor<std::ratio
+// forbid-match-gcc: candidate
 #include <units/kind.h>
 #include <units/length.h>
 using namespace units;

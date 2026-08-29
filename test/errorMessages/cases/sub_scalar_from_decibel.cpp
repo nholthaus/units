@@ -6,6 +6,7 @@
 // expect-match: decibels(
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/power.h>
 using namespace units;
 int main()

@@ -1,6 +1,5 @@
 // Case: a bare number added to an affine POINT in place is meaningless (a Celsius reading is datum-relative, so
-// "+ 5.0" of what?), so `celsius += double` must be ill-formed. The diagnostic is the compiler's own
-// no-matching-`operator+=` wording, graded by tight readable tokens — the FRIENDLY `celsius<` type AND the failing
+// "+ 5.0" of what?), so `celsius += double` must be ill-formed. The diagnostic is the library's own message, graded on a phrase only it can emit — the FRIENDLY `celsius<` type AND the failing
 // operator context — plus the anti-soup guards. To move the point by a relative amount, add a `delta`:
 // `c += delta<celsius<double>>(5.0)`.
 //
@@ -11,6 +10,7 @@
 // expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/temperature.h>
 using namespace units;
 int main()

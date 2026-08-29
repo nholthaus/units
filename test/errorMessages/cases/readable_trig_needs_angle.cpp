@@ -7,8 +7,8 @@
 // clang-19), plus anti-soup guards confirming no conversion_factor / dimension_t template internals.
 //
 // expect: fail
+// NOTE: do not grade on `sin` -- it appears in the echoed source line, so the case would grade itself.
 // expect-match: meters<
-// expect-match: sin
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
 #include <units/length.h>

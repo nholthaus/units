@@ -75,8 +75,9 @@ This is the one caveat the datum offset forces.
 > quantities that happen to share a unit name. `20 °C` is an absolute point on the Celsius scale; a `1 °C`
 > *rise* is an interval. Converting an absolute point applies the datum offset (`20 °C → 293.15 K`);
 > converting an interval does **not** (`a 1 °C step is a 1 K step`, but a `1 °F` step is a `5/9 K` step).
-> The unit types in this library model **absolute temperatures** — every stored value is a point on the
-> scale — so their conversions always carry the offset.
+> An affine unit type in this library models an absolute temperature — a point on the scale — so *its* conversions
+> always carry the offset. A **difference** of two such points is a distinct, offset-free type whose conversions do
+> not, which is how the two operations stay separate without a wrapper.
 
 A concrete illustration of why absolute and difference cannot be the same operation: the Celsius and
 Fahrenheit scales cross at `−40`, where a single number reads the same on both scales even though the
@@ -95,11 +96,21 @@ int main()
 }
 ```
 
-Because the type stores an absolute point, the practical rule is: **do not reach for an affine
-temperature type to represent a difference.** If you need to add or scale temperature *intervals* freely,
-work in the absolute (offset-free) scales — kelvin or rankine — where a value and an interval coincide
-numerically, or keep intervals as plain dimensionless factors and apply them explicitly. Rankine's
-purely multiplicative definition (no offset) is why `1 K` maps cleanly to `1.8 Ra`:
+Because an affine type stores an absolute point, the practical rule is: **let a difference be a difference.**
+Subtracting two readings gives an offset-free amount, and that amount is what adds and scales freely:
+
+```cpp
+using namespace units::temperature;
+celsius<double> reading(18.5);
+const auto rise = celsius<double>(20.0) - celsius<double>(0.0);   // an amount, not a reading
+reading += rise * 2.0;                                            // 58.5 degC
+```
+
+The operations that have no meaning for a point are refused rather than answered with a datum-dependent number:
+scaling a reading, adding two readings, adding a bare number to one, and taking its magnitude, sign, remainder or
+ratio. Each says so and names the amount-based form instead. Working in kelvin or rankine also remains available —
+they carry no offset, so a value and an interval coincide numerically there. Rankine's purely multiplicative
+definition is why `1 K` maps cleanly to `1.8 Ra`:
 
 ```cpp
 #include <units/temperature.h>

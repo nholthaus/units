@@ -243,8 +243,8 @@ t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
 ```
 
 At a glance — every temperature operation, what it yields, and what to write when one is disabled. A *reading*
-carries a datum (`celsius`, `fahrenheit`); an *amount* does not (a difference, a scaled reading, or an offset-free
-scale like `kelvin`). Nothing here requires a wrapper:
+carries a datum (`celsius`, `fahrenheit`, `reaumur`); an *amount* does not (a difference of two readings, or an
+offset-free scale like `kelvin`/`rankine`). Nothing here requires a wrapper:
 
 | You write | Result | |
 |---|---|---|
@@ -260,6 +260,17 @@ scale like `kelvin`). Nothing here requires a wrapper:
 | `c * dimensionless(2)`, `c * percent(50)` | **disabled** | the same operation written differently, refused the same way |
 | `c += 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
 | `c += meters(1)` | **disabled** | different dimensions |
+| `abs(c)`, `fabs(c)`, `copysign(c, …)` | **disabled** | a reading's magnitude and sign depend on where zero is — apply them to `t1 - t2` |
+| `-c` | **disabled** | negating a reading is datum-dependent — negate an amount |
+| `c1 / c2`, `c1 * c2`, `c * meters(2)`, `2.0 / c` | **disabled** | a ratio or product of readings is datum-dependent — use amounts |
+| `fmod(c1, c2)`, `c1 % c2`, `c % 7` | **disabled** | a remainder measured from an arbitrary origin — use amounts |
+| `sqrt(c)`, `pow<2>(c)`, `hypot(c1, c2)` | **disabled** | a root or power of a reading is datum-dependent — use amounts |
+| `++c`, `--c`, `floor(c)`, `ceil(c)`, `round(c)`, `min`/`max`/`clamp` | **allowed** | these step or quantize in the reading's OWN scale, or select an operand — no origin-free value is computed |
+
+Every disabled row above is refused because the answer would depend on where the scale's zero was put:
+`abs(celsius(-5.25))` is 5.25 °C = 278.4 K, while the *identical* temperature written as `kelvin(267.9)` gives
+267.9 K. The rule is one predicate, and it is public — `units::traits::has_arbitrary_origin_v<T>` is how generic code
+should ask, since these refusals are not visible to a `requires`-expression.
 
 Scaling a reading is **refused rather than reinterpreted**, and that is a deliberate limit worth understanding.
 The tempting behavior is to return "the change" — but a change cannot be represented as a bare unit, because the
@@ -288,9 +299,9 @@ prints `delta 180 degF`.
 Every disabled row reports one line naming the remedy, not a wall of declined overloads:
 
 ```
-units: cannot add two affine points; subtract them for a units::delta<...>, or move one with +=.
-units: cannot scale an affine point; scale a units::delta<...> instead.
-units: cannot add a bare number to an affine point; add a quantity or a units::delta<...>.
+units: cannot add two affine points; subtract them for an amount, or move one with +=.
+units: cannot scale an affine point; scale a difference of two readings, or a units::delta<...> (#include <units/kind.h>).
+units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
 ```
 
 Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
@@ -415,7 +426,7 @@ The by-value `level * 2.0`, `2.0 * level` and `level / 2.0` are the exception: t
 compiler prints its own candidate list. Sample output:
 
 ```
-units: cannot scale a decibel value; scale the linear quantity instead.
+units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.
 units: cannot add a bare number to a decibel value; add a decibels(...) gain.
 ```
 
@@ -446,7 +457,10 @@ readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::r
       |                                   ~~~~~~^~~~~~~
 ```
 
-The full set of rejected operations, with the diagnostic each produces on GCC, Clang, and MSVC, is in
+The rejected operations for a quantity measured from an arbitrary origin are tabulated above, and the affine and
+decibel rules are explained in [affine temperature](docs/explain/affine-temperature.md) and
+[scales](docs/explain/scales.md). The broader set of rejected operations, with the diagnostic each produces on GCC,
+Clang, and MSVC, is in
 [Type safety](docs/explain/type-safety.md). The diagnostics there are captured from the compilers by the
 test harness.
 

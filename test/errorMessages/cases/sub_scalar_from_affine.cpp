@@ -7,6 +7,7 @@
 // expect-match: celsius<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/temperature.h>
 using namespace units;
 int main()

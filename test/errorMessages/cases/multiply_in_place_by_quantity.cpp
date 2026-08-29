@@ -5,6 +5,7 @@
 // expect-match: cannot multiply in place by a quantity
 // expect-match: auto p = a * b
 // forbid-match: conversion_factor<std::ratio
+// forbid-match-gcc: candidate
 #include <units/length.h>
 using namespace units;
 int main()

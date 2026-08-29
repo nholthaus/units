@@ -15,7 +15,7 @@ using namespace units::literals;
 void scale()
 {
 	units::length::meters<int> m(3);
-	m *= 1.5; // ill-formed
+	m *= 1.5; // compiles; the diagnostic under test is a WARNING, not an error
 }
 int main()
 {

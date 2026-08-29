@@ -224,7 +224,10 @@ def trim_diagnostic(out, abs_path, case_name, max_lines=8):
     # absolute temp path of the case file with its bare name, so a snippet is portable across checkouts.
     out = out.replace(str(abs_path), case_name)
     lines = out.splitlines()
-    start = next((i for i, l in enumerate(lines) if re.search(r'\berror:\b|error C\d', l)), 0)
+    # NOTE the pattern: `\berror:\b` never matches, because `\b` after a colon sits between two non-word
+    # characters -- so `start` always fell back to 0 and every generated page was the compiler's PREAMBLE rather
+    # than its diagnostic, which is the opposite of what this function is for.
+    start = next((i for i, l in enumerate(lines) if re.search(r'\berror:|error C\d', l)), 0)
     kept = lines[start:start + max_lines]
     return "\n".join(kept).rstrip()
 

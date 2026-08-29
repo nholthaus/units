@@ -5,6 +5,7 @@
 // expect-match: cannot divide in place by a quantity
 // expect-match: auto q = a / b
 // forbid-match: conversion_factor<std::ratio
+// forbid-match-gcc: candidate
 #include <units/length.h>
 #include <units/time.h>
 using namespace units;

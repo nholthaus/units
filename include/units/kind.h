@@ -77,8 +77,10 @@ namespace units
 
 	namespace detail
 	{
-		// `delta_unit_t` (the offset-free counterpart of a unit) is defined in <units/core.h>, which the affine
-		// operators there already use for a point difference; the wrappers reuse that one definition.
+		// `delta_unit_t` (the offset-free counterpart of a unit) is defined once, in <units/core.h>; the wrappers reuse
+		// that definition rather than carrying a second copy. Note that core's point-difference `operator-` builds its
+		// result conversion factor inline rather than through this alias -- the two agree, but they are not one
+		// expression, which is worth collapsing if that operator is ever touched.
 
 		/// The result unit of a wrapper operator that keeps the LHS UNIT (the "LHS-unit tie-break"): the value
 		/// stays expressed in `U`'s unit so `.value()` reads intuitively (`absolute<celsius> - absolute<fahrenheit>`
@@ -296,6 +298,15 @@ namespace units
 		template<UnitType U>
 		class absolute
 		{
+			// These wrappers add a point-versus-amount distinction that a bare type lacks. A DECIBEL scale already
+			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- so
+			// wrapping one adds nothing and gets it wrong: the wrapper's arithmetic works on the value it stores,
+			// which for a decibel scale is the dB NUMBER, so `delta<dBW>(10) * 2.0` computed 20 dBW (100 W) where
+			// twice ten watts is 20 W. Use the plain `dBW`/`dBm`/`decibels` types, which implement the level/gain
+			// algebra directly.
+			static_assert(traits::has_linear_scale_v<U>,
+				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
+
 		public:
 			using unit_type       = U;                                               ///< the wrapped unit type
 			using underlying_type = typename traits::unit_traits<U>::underlying_type; ///< the wrapped unit's numeric type
@@ -357,6 +368,15 @@ namespace units
 		template<UnitType U>
 		class delta
 		{
+			// These wrappers add a point-versus-amount distinction that a bare type lacks. A DECIBEL scale already
+			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- so
+			// wrapping one adds nothing and gets it wrong: the wrapper's arithmetic works on the value it stores,
+			// which for a decibel scale is the dB NUMBER, so `delta<dBW>(10) * 2.0` computed 20 dBW (100 W) where
+			// twice ten watts is 20 W. Use the plain `dBW`/`dBm`/`decibels` types, which implement the level/gain
+			// algebra directly.
+			static_assert(traits::has_linear_scale_v<U>,
+				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
+
 		public:
 			using unit_type       = U;                                               ///< the wrapped unit type
 			using underlying_type = typename traits::unit_traits<U>::underlying_type; ///< the wrapped unit's numeric type
@@ -954,39 +974,43 @@ namespace units
 		// mixing them is ill-formed. The result keeps the LHS unit (the same tie-break as the other wrappers),
 		// promoting the underlying only when the RHS would narrow it; the tag is preserved.
 
-		/// kind + kind (same tag) -> kind, kept in the LHS unit.
+		/// kind + kind (same tag) -> kind. Delegates to the wrapped units' `operator+`, so both the result unit and the
+		/// rules are the plain unit's: two tagged affine READINGS do not add, exactly as two readings do not.
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto operator+(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			using R = units::detail::delta_result_unit_t<U, V>;
-			return basic_kind<Tag, R>(R(R(wrap_detail::unwrap(lhs)).raw() + R(wrap_detail::unwrap(rhs)).raw()));
+			using R = decltype(wrap_detail::unwrap(lhs) + wrap_detail::unwrap(rhs));
+			return basic_kind<Tag, R>(wrap_detail::unwrap(lhs) + wrap_detail::unwrap(rhs));
 		}
 
-		/// kind - kind (same tag) -> kind, kept in the LHS unit.
+		/// kind - kind (same tag) -> kind. Delegates to the wrapped units' `operator-`, so a difference of two tagged
+		/// readings is a tagged AMOUNT, as it is for the plain units.
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto operator-(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			using R = units::detail::delta_result_unit_t<U, V>;
-			return basic_kind<Tag, R>(R(R(wrap_detail::unwrap(lhs)).raw() - R(wrap_detail::unwrap(rhs)).raw()));
+			using R = decltype(wrap_detail::unwrap(lhs) - wrap_detail::unwrap(rhs));
+			return basic_kind<Tag, R>(wrap_detail::unwrap(lhs) - wrap_detail::unwrap(rhs));
 		}
 
-		/// Unary negation of a kind (keeps the tag).
+		/// Unary negation of a kind (keeps the tag), delegating to the wrapped unit -- so negating a tagged reading is
+		/// refused, as negating a reading is.
 		template<fixed_string Tag, UnitType U>
-		constexpr basic_kind<Tag, U> operator-(const basic_kind<Tag, U>& k) noexcept
+		constexpr auto operator-(const basic_kind<Tag, U>& k) noexcept
 		{
-			return basic_kind<Tag, U>(U(-wrap_detail::unwrap(k).raw()));
+			return basic_kind<Tag, U>(-wrap_detail::unwrap(k));
 		}
 
-		/// kind scaled by a bare number -> kind (same tag), scaling its own magnitude (as `delta` does, so a kind over
-		/// an affine unit still scales) and promoting exactly as the plain unit's `operator*` does.
+		/// kind scaled by a bare number -> kind (same tag). A kind is the SAME quantity as the unit it wraps, only
+		/// tagged, so its arithmetic DELEGATES to that unit's operator -- which means the unit's refusals propagate. A
+		/// kind over an affine reading therefore does not scale, exactly as the reading does not. (`delta` differs: it
+		/// is an amount whatever it wraps, so it scales its own magnitude.)
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator*(const basic_kind<Tag, U>& lhs, T rhs) noexcept
 		{
-			using Under      = std::common_type_t<typename U::underlying_type, T>;
-			using ScaledUnit = traits::replace_underlying_t<U, Under>;
-			return basic_kind<Tag, ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) * static_cast<Under>(rhs)));
+			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) * rhs);
+			return basic_kind<Tag, ScaledUnit>(wrap_detail::unwrap(lhs) * rhs);
 		}
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator*(T lhs, const basic_kind<Tag, U>& rhs) noexcept
@@ -994,13 +1018,12 @@ namespace units
 			return rhs * lhs;
 		}
 
-		/// kind divided by a bare number -> kind (same tag), dividing its own magnitude.
+		/// kind divided by a bare number -> kind (same tag), delegating to the wrapped unit as `operator*` does.
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator/(const basic_kind<Tag, U>& lhs, T rhs) noexcept
 		{
-			using Under      = std::common_type_t<typename U::underlying_type, T>;
-			using ScaledUnit = traits::replace_underlying_t<U, Under>;
-			return basic_kind<Tag, ScaledUnit>(ScaledUnit(static_cast<Under>(wrap_detail::unwrap(lhs).raw()) / static_cast<Under>(rhs)));
+			using ScaledUnit = decltype(wrap_detail::unwrap(lhs) / rhs);
+			return basic_kind<Tag, ScaledUnit>(wrap_detail::unwrap(lhs) / rhs);
 		}
 
 		/// The ratio of two SAME-tag kinds is a plain dimensionless quantity — the tag cancels, exactly as the
@@ -1031,14 +1054,22 @@ namespace units
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr basic_kind<Tag, U>& operator+=(basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			lhs = basic_kind<Tag, U>(U(wrap_detail::unwrap(lhs).raw() + U(wrap_detail::unwrap(rhs)).raw()));
+			// Delegates to the wrapped units, as the rest of a kind's arithmetic does. Reconciling the rhs into `U`
+			// first and then adding the raw values applied the rhs's DATUM: a tagged reading moved by a tagged amount
+			// read 20.5 + (2.5 - 273.15) instead of 23.
+			U value = wrap_detail::unwrap(lhs);
+			value += wrap_detail::unwrap(rhs);
+			lhs = basic_kind<Tag, U>(value);
 			return lhs;
 		}
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr basic_kind<Tag, U>& operator-=(basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			lhs = basic_kind<Tag, U>(U(wrap_detail::unwrap(lhs).raw() - U(wrap_detail::unwrap(rhs)).raw()));
+			// See `operator+=` above: delegated so the wrapped unit's rules, not raw arithmetic, decide the result.
+			U value = wrap_detail::unwrap(lhs);
+			value -= wrap_detail::unwrap(rhs);
+			lhs = basic_kind<Tag, U>(value);
 			return lhs;
 		}
 

@@ -11,6 +11,7 @@
 // expect-match: percent<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/concentration.h>
 #include <units/temperature.h>
 using namespace units;

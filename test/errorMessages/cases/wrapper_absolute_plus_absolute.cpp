@@ -8,6 +8,7 @@
 // expect: fail
 // expect-match: cannot add two points
 // forbid-match: conversion_factor<std::ratio
+// forbid-match-gcc: candidate
 #include <units/kind.h>
 #include <units/temperature.h>
 using namespace units;

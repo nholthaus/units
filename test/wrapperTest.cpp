@@ -1078,10 +1078,14 @@ TEST(WrapperCaseStudy, kindMixedUnitSameTagTieBreak)
 {
 	const kind<"radial", kilometers<int>> a(1);
 	const kind<"radial", meters<int>>     b(500);
-	auto                                  sum = a + b; // 1.5 km — underlying promotes, unit stays km, tag kept
+	// A kind's arithmetic DELEGATES to the wrapped units', so that the wrapped unit's rules -- including its
+	// refusals -- apply to the tagged quantity too. The result unit is therefore the plain operator's: a coarse
+	// integer LHS reconciles to the common (finest) unit rather than promoting the underlying, so this is 1500 m
+	// exactly rather than 1.5 km. The tag is kept either way.
+	auto sum = a + b;
 	static_assert(decltype(sum)::tag() == fixed_string("radial"));
-	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, kilometers<double>>);
-	EXPECT_UNIT_NEAR(sum, 1.5);
+	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, meters<int>>);
+	EXPECT_UNIT_NEAR(sum, 1500.0);
 }
 
 TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
@@ -1430,16 +1434,28 @@ TEST(WrapperDelta, affineDeltaScalesEvenThoughTheReadingItWrapsDoesNot)
 }
 
 // A kind wrapping an affine unit scales for the same reason a delta does; it also holds a magnitude with a tag.
-TEST(WrapperDelta, affineKindScalesAndKeepsItsTag)
+TEST(WrapperDelta, aTaggedAmountScalesButATaggedReadingDoesNot)
 {
 	using units::temperature::celsius;
 	using units::kind;
 
-	kind<"cabin", celsius<double>> tagged(20.5);
+	// A `kind` is the same quantity as the unit it wraps, only tagged, so its arithmetic delegates to that unit's --
+	// which means the unit's refusals reach the tagged form. A tagged AMOUNT scales, because an amount does.
+	using degrees = std::remove_cv_t<decltype(celsius<double>(1.0) - celsius<double>(0.0))>;
+	kind<"cabin", degrees> tagged(20.5);
 	EXPECT_DOUBLE_EQ(41.0, (tagged * 2.0).value());
 	EXPECT_DOUBLE_EQ(8.2, (tagged / 2.5).value());
-	static_assert(std::is_same_v<kind<"cabin", celsius<double>>, std::remove_cv_t<decltype(tagged * 2.0)>>,
-		"scaling a kind keeps its tag and its unit");
+	static_assert(std::is_same_v<kind<"cabin", degrees>, std::remove_cv_t<decltype(tagged * 2.0)>>,
+		"scaling a tagged amount keeps its tag and its unit");
 	tagged *= 2.0;
 	EXPECT_DOUBLE_EQ(41.0, tagged.value());
+
+	// A tagged READING does not scale, and two tagged readings do not add -- the refusals are the wrapped unit's and
+	// are graded in the errorMessages harness (kind_scale_affine_reading / kind_add_affine_readings). Before the
+	// delegation change, `kind` computed on the raw value and quietly permitted both.
+	kind<"cabin", celsius<double>> reading(20.5);
+	EXPECT_DOUBLE_EQ(20.5, reading.value());
+	// a tagged reading still moves by a tagged amount, which is the operation that makes sense
+	reading += kind<"cabin", degrees>(2.5);
+	EXPECT_DOUBLE_EQ(23.0, reading.value());
 }

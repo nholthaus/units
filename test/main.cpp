@@ -2716,6 +2716,133 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 // two, or taking their ratio all give origin-dependent answers and are refused (graded in errorMessages as
 // origin_negate_reading / origin_modulo_of_readings / origin_ratio_of_readings). Increment and decrement are NOT
 // refused -- they step by one unit of the operand's own scale, which is a stated amount, not a bare number.
+// The origin rule has to cover the PRODUCT and POWER surface too, not just sums and ratios -- otherwise a reading can
+// be laundered into an origin-free type by multiplying it, which is what let an Eigen dot product over a matrix of
+// readings compile and return a datum-dependent number labelled as kelvin squared. Refusals graded in errorMessages
+// (origin_product_of_readings); asserted here is that every one of them works on a DIFFERENCE and on an offset-free
+// scale, so the rule stays targeted.
+// `a - b` and `a -= b` deliberately differ when the right operand is offset-free, and that is FORCED by the
+// representation, not a choice: an offset-free temperature is simultaneously a valid READING on an absolute scale
+// (kelvin) and the exact shape an AMOUNT has, so they are one type and a binary operator must pick a meaning. `-`
+// picks reading-minus-reading, the operation with a datum-independent answer; `+` cannot (reading plus reading is
+// meaningless) so it reads the rhs as an amount. Pinned here so the asymmetry is not "fixed" into a wrong answer --
+// making `-` treat the rhs as an amount would silently change `celsius(0) - kelvin(0)` from 273.15 degrees of
+// difference to the reading 0 degC.
+TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
+{
+	using namespace units::temperature;
+
+	// by value: reading MINUS reading, so the datums cancel and the result is an amount
+	const auto difference = celsius<double>(20.5) - kelvin<double>(2.5);
+	EXPECT_NEAR(291.15, kelvin<double>(difference).value(), 5.0e-10);    // 293.65 K - 2.5 K
+	static_assert(!traits::is_affine_unit_v<decltype(difference)>, "a difference of two readings is an amount");
+
+	// in place: the rhs is an AMOUNT and the point moves by it, which is what #402 is about
+	celsius<double> moved(20.5);
+	moved -= kelvin<double>(2.5);
+	EXPECT_NEAR(18.0, moved.value(), 5.0e-12);
+	static_assert(traits::is_affine_unit_v<decltype(moved)>, "the moved point is still a reading");
+
+	// `+` has only one meaningful reading, so it agrees with `+=`
+	EXPECT_NEAR(23.0, (celsius<double>(20.5) + kelvin<double>(2.5)).value(), 5.0e-12);
+	celsius<double> up(20.5);
+	up += kelvin<double>(2.5);
+	EXPECT_NEAR(23.0, up.value(), 5.0e-12);
+
+	// two readings on the SAME affine scale are unambiguous either way
+	EXPECT_NEAR(13.0, (celsius<double>(20.5) - celsius<double>(7.5)).raw(), 5.0e-12);
+	celsius<double> sameScale(20.5);
+	sameScale -= celsius<double>(7.5);
+	EXPECT_NEAR(13.0, sameScale.value(), 5.0e-12);
+}
+
+// std::fdim propagates NaN: "if either argument is NaN, NaN is returned". Computing it as `x > y ? x - y : 0` loses
+// that, because `NaN > y` is false and the zero branch is taken -- which would silently turn a poisoned value into a
+// clean zero for ORDINARY units, not just affine ones.
+TEST_F(UnitMath, fdimPropagatesNaN)
+{
+	const auto notANumber = std::numeric_limits<double>::quiet_NaN();
+	EXPECT_TRUE(std::isnan(units::fdim(units::meters<double>(notANumber), units::meters<double>(3.25)).raw()));
+	EXPECT_TRUE(std::isnan(units::fdim(units::meters<double>(3.25), units::meters<double>(notANumber)).raw()));
+	EXPECT_TRUE(std::isnan(units::fdim(units::temperature::celsius<double>(notANumber), units::temperature::celsius<double>(3.25)).raw()));
+	// and the ordinary branches are unaffected
+	EXPECT_NEAR(9.25, units::fdim(units::meters<double>(12.5), units::meters<double>(3.25)).raw(), 5.0e-12);
+	EXPECT_NEAR(0.0, units::fdim(units::meters<double>(3.25), units::meters<double>(12.5)).raw(), 5.0e-12);
+}
+
+// The refusals are diagnostics that fire from an overload BODY, so the overload still RESOLVES: a
+// `requires`-expression reports the operation as available, and generic code guarding with
+// `if constexpr (requires{ a * 2.0; })` hard-errors instead of taking its fallback. `traits::has_arbitrary_origin_v`
+// is the supported way to ask instead, so it is public and is pinned here -- it is the migration path for any
+// downstream `if constexpr` these refusals break.
+TEST_F(UnitType, publicTraitsLetGenericCodeGuardTheOriginRule)
+{
+	using namespace units::temperature;
+
+	static_assert(traits::has_arbitrary_origin_v<celsius<double>>, "a reading carries a datum");
+	static_assert(traits::has_arbitrary_origin_v<fahrenheit<double>>);
+	static_assert(traits::has_arbitrary_origin_v<reaumur<double>>);
+	static_assert(traits::has_arbitrary_origin_v<units::power::dBW<double>>, "a level carries a logarithmic reference");
+	static_assert(traits::has_arbitrary_origin_v<units::power::dBm<double>>);
+
+	static_assert(!traits::has_arbitrary_origin_v<kelvin<double>>, "an offset-free scale carries no origin");
+	static_assert(!traits::has_arbitrary_origin_v<rankine<double>>);
+	static_assert(!traits::has_arbitrary_origin_v<decibels<double>>, "a gain is a ratio, not a level");
+	static_assert(!traits::has_arbitrary_origin_v<units::meters<double>>);
+	static_assert(!traits::has_arbitrary_origin_v<concentration::percent<double>>);
+	static_assert(!traits::has_arbitrary_origin_v<decltype(celsius<double>(1) - celsius<double>(0))>,
+		"a difference of two readings carries no origin");
+
+	static_assert(traits::is_decibel_level_v<units::power::dBW<double>>, "a dimensioned decibel is a level");
+	static_assert(!traits::is_decibel_level_v<decibels<double>>, "a dimensionless decibel is a gain");
+	static_assert(!traits::is_decibel_level_v<units::power::watts<double>>);
+
+	// the documented guard actually selects the right branch for both kinds of operand
+	const auto scaleIfMeaningful = [](auto value) {
+		using T = std::remove_cv_t<decltype(value)>;
+		if constexpr (!traits::has_arbitrary_origin_v<T>)
+			return value * 2.0;
+		else
+			return value;
+	};
+	EXPECT_NEAR(25.0, scaleIfMeaningful(units::meters<double>(12.5)).value(), 5.0e-12);
+	EXPECT_NEAR(41.0, scaleIfMeaningful(kelvin<double>(20.5)).value(), 5.0e-12);
+	EXPECT_NEAR(20.5, scaleIfMeaningful(celsius<double>(20.5)).value(), 5.0e-12);    // fallback taken, not an error
+}
+
+TEST_F(UnitType, originRuleCoversProductsPowersAndReciprocals)
+{
+	using namespace units::temperature;
+
+	const auto amount = celsius<double>(20.5) - celsius<double>(0.0);
+	const auto other  = celsius<double>(2.0) - celsius<double>(0.0);
+
+	// products, powers, reciprocals and remainders of AMOUNTS are all fine
+	EXPECT_NEAR(41.0, (amount * other).value(), 5.0e-12);
+	EXPECT_NEAR(420.25, units::pow<2>(amount).value(), 5.0e-12);
+	EXPECT_NEAR(10.25, (amount / other).value(), 5.0e-12);
+	EXPECT_NEAR(0.048780487804878, (1.0 / amount).value(), 5.0e-12);
+	EXPECT_EQ(6, ((celsius<int>(20) - celsius<int>(0)) % 7).raw());
+
+	// and on an offset-free scale, which is an ordinary magnitude
+	EXPECT_NEAR(41.0, (kelvin<double>(20.5) * kelvin<double>(2.0)).value(), 5.0e-12);
+	EXPECT_NEAR(420.25, units::pow<2>(kelvin<double>(20.5)).value(), 5.0e-12);
+	EXPECT_NEAR(0.048780487804878, (1.0 / kelvin<double>(20.5)).value(), 5.0e-12);
+	EXPECT_EQ(6, (kelvin<int>(20) % 7).raw());
+
+	// ordinary dimensioned quantities are untouched, including across dimensions
+	EXPECT_NEAR(7.0, (units::meters<double>(3.5) * units::meters<double>(2.0)).value(), 5.0e-12);
+	EXPECT_NEAR(5.0, (units::meters<double>(12.5) / units::time::seconds<double>(2.5)).value(), 5.0e-12);
+	EXPECT_NEAR(8.5, units::fma(units::meters<double>(3.5), dimensionless<double>(2.0), units::meters<double>(1.5)).value(), 5.0e-12);
+
+	// Rounding a reading IS kept, for the same reason ++ is: it operates on the value in the unit's OWN scale, so
+	// "the nearest whole degree Celsius" is a stated quantity rather than a guess.
+	EXPECT_NEAR(20.0, units::floor(celsius<double>(20.7)).value(), 5.0e-12);
+	EXPECT_NEAR(21.0, units::ceil(celsius<double>(20.2)).value(), 5.0e-12);
+	EXPECT_NEAR(21.0, units::round(celsius<double>(20.7)).value(), 5.0e-12);
+	EXPECT_NEAR(13.0, units::round(units::power::dBW<double>(12.7)).raw(), 5.0e-12);
+}
+
 TEST_F(UnitType, originRuleAppliesToOperatorsToo)
 {
 	using namespace units::temperature;

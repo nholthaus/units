@@ -5,6 +5,7 @@
 // expect-match: cannot add quantities of different dimensions
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/length.h>
 #include <units/temperature.h>
 using namespace units;
