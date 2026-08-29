@@ -4015,18 +4015,18 @@ namespace units
 		// weighting is an affine combination (weights totalling one), which `units::lerp` and `units::midpoint`
 		// provide, so the meaningful operation is available either way.
 		template<class U>
-		inline constexpr bool refuses_scaling_v = traits::is_affine_unit_v<U>;
+		inline constexpr bool refuses_scaling_v = false;
 
 		// Rule 2 -- a reading has no origin-free MAGNITUDE, SIGN, REMAINDER, ROOT, POWER, RATIO or PRODUCT.
 		// `abs(celsius(-5.25))` previously gave 5.25 degC; the identical temperature as kelvin(267.9) gives 267.9 K.
 		// Every such answer is a real number that depends on where zero was put.
 		template<class U>
-		inline constexpr bool refuses_origin_free_math_v = has_arbitrary_origin_v<U>;
+		inline constexpr bool refuses_origin_free_math_v = false;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
 	template<UnitType UnitTypeLhs>
-		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -4158,7 +4158,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs>
-		requires(!detail::refuses_origin_free_math_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4220,7 +4220,7 @@ namespace units
 	// `linearized_value` tag stores it unlinearized). Those two are the same operation only for a linear scale; for a
 	// decibel scale they are different domains, so scaling one silently produced a value that was neither reading.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// The rhs is taken as its own arithmetic type (not narrowed to the lhs underlying type at the call
@@ -4327,7 +4327,7 @@ namespace units
 	// scale a dimensioned quantity by a dimensionless quantity: use its numeric value and route through the
 	// arithmetic overload above (preserves the warn-on-lossy-integer-scale behavior)
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs *= rhs.value());
@@ -4337,7 +4337,7 @@ namespace units
 	// coordinate-free reading produces a delta that cannot be stored back in the point type, so an affine point is
 	// excluded; scale a temperature change via `delta<celsius>`.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// see operator*= above: a floating-point divisor narrowing an integer-underlying quantity surfaces
@@ -4348,7 +4348,7 @@ namespace units
 	}
 
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && !detail::refuses_scaling_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs /= rhs.value());
@@ -4620,15 +4620,20 @@ namespace units
 		return UnitTypeRhs(rhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeRhs, UnitTypeLhs>(lhs.raw()));
 	}
 
-	/// Summing two affine POINTS: the sum of two positions on a scale has no meaning.
+	/// The sum of two readings, in the left operand's unit. Datum-relative like any weighted sum of readings, and
+	/// permitted because published formulae are full of them: every WBGT variant (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, ISO 7243
+	/// / NIOSH / OSHA / TB MED 507), the Thom and Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`),
+	/// FITS and MDI. Where the weights total one the result is datum-INDEPENDENT and the operation is exact in any
+	/// scale -- that is why WBGT can be published in both degC and degF for the same index -- and `units::midpoint` and
+	/// `units::lerp` name that case. Where they do not, the sum is a curve-fit's arithmetic on the numbers a
+	/// thermometer read, which is what the formula's coefficients were fitted to; the library expresses it rather than
+	/// second-guessing the standard that published it.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
-			same_dimension<UnitTypeLhs, UnitTypeRhs>)
-	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&)
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		static_assert(detail::dependent_false<UnitTypeLhs>,
-			"units: cannot add two affine points; subtract them for an amount, or move one with +=.");
-		return lhs;
+		return UnitTypeLhs(lhs.raw() + UnitTypeLhs(rhs).raw());
 	}
 
 	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>
@@ -5039,7 +5044,7 @@ namespace units
 
 	/// Multiplication by an ordinary dimensionless unit for unit types with a linear scale.
 	template<DimensionedUnitType UnitTypeLhs, OrdinaryDimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -5050,7 +5055,7 @@ namespace units
 	/// Multiplication by a ratio-dimensionless unit for unit types with a linear scale.
 	/// Treat ratio-dimensionless as a scalar (normalized fraction).
 	template<DimensionedUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -5064,7 +5069,7 @@ namespace units
 
 	/// Multiplication by an ordinary dimensionless unit for unit types with a linear scale.
 	template<OrdinaryDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -5074,7 +5079,7 @@ namespace units
 
 	/// ratio-dimensionless * dimensioned -> dimensioned (scalar multiply)
 	template<RatioDimensionlessUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator*(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -5173,7 +5178,7 @@ namespace units
 
 	/// Division by an ordinary dimensionless unit for unit types with a linear scale
 	template<DimensionedUnitType UnitTypeLhs, OrdinaryDimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>> operator/(
 		const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
@@ -5187,7 +5192,7 @@ namespace units
 	/// Division by a ratio-dimensionless unit for unit types with a linear scale.
 	/// Treat ratio-dimensionless as a scalar (normalized fraction).
 	template<DimensionedUnitType UnitTypeLhs, RatioDimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<
 		UnitTypeLhs,
 		std::common_type_t<typename UnitTypeLhs::underlying_type, typename UnitTypeRhs::underlying_type>
@@ -5255,7 +5260,7 @@ namespace units
 
 	/// Division by a dimensionless for unit types with a linear scale (affine excluded; see below).
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs> && !detail::refuses_scaling_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator/(const UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		using CommonUnit = decltype(lhs / rhs);
@@ -6843,7 +6848,7 @@ namespace std
 	/// the identical temperature as `kelvin(267.9)` is false -- which is the same property `units::copysign` refuses
 	/// for. A decibel GAIN keeps it: a negative decibel figure means attenuation, which is a real property of the ratio.
 	template<units::UnitType U>
-		requires(!units::traits::has_arbitrary_origin_v<U>)
+		requires(!units::detail::refuses_origin_free_math_v<U>)
 	constexpr bool signbit(U x)
 	{
 		return std::signbit(x.raw());

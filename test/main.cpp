@@ -2796,6 +2796,197 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 // though doubling one is not, and a mean daily temperature is exactly this operation. `lerp`/`midpoint` name it so the
 // meaningful case is available without relaxing anything: both are computed through a DIFFERENCE, which carries no
 // origin, so they need no permission that a reading does not already have.
+//======================================================================================================================
+//	CASE STUDY: PUBLISHED TEMPERATURE FORMULAE
+//======================================================================================================================
+// The north star: ordinary physics has to work for ordinary people. These are twenty-six formulae taken from primary
+// sources -- NWS, NOAA/WPC, Environment Canada, the Bureau of Meteorology, ISO 7243, NIOSH, TB MED 507, AMS journals,
+// NIST -- and every one of them is expressed here with unit types and checked twice: against the value the source
+// publishes, and against the same arithmetic in plain `double`, so the library provably adds no distortion.
+//
+// Most of them SCALE A READING on an affine scale, and they do it in a way that depends on the datum. That is not an
+// accident or an abuse to be prevented: they are regressions, fitted numerically against numbers read off a Celsius or
+// Fahrenheit thermometer, so their coefficients are only meaningful on that scale. Magnus's 243.5 is not a disguised
+// 273.15 -- the offsets differ across fits (243.5, 243.04, 243.12, 237.3, 257.14) while 273.15 is fixed -- so there is
+// no absolute-scale form to fall back on. A library that cannot write these cannot be used for weather, HVAC,
+// psychrometrics, agriculture, or occupational heat safety.
+//
+// Two encodings are worth knowing, and both are visible below:
+//   * A regression is a weighted SUM. Carry a negative coefficient in the coefficient, not as a subtraction: writing
+//     `- k*T` turns reading-minus-reading into a DIFFERENCE mid-expression, which is a different (and correct) meaning.
+//   * A correction term is an AMOUNT, not a reading. One Celsius degree is one kelvin, so `kelvin(x)` is exactly the
+//     amount type for it, and amounts are ADDED with their sign.
+//
+// Where a formula's weights happen to total one (every WBGT variant, the Oxford and Sohar indices, operative
+// temperature) the result is datum-INDEPENDENT and identical in any scale -- which is why ISO can publish WBGT in
+// degrees Celsius and TB MED 507 the same index in Fahrenheit. `units::midpoint` names the equal-weight case, and the
+// Sohar index below is asserted to agree with it.
+TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
+{
+	using namespace units::temperature;
+	const auto inF = [](double v) { return fahrenheit<double>(v); };
+	const auto inC = [](double v) { return celsius<double>(v); };
+	const auto amount = [](double v) { return kelvin<double>(v); };    // an AMOUNT of amount
+
+	// -- 1. NWS wind chill, inF. weather.gov/media/epz/wxcalc/windChill.pdf. Published example: 0 inF, 15 mph -> -19
+	{
+		const double windPow = std::pow(15.0, 0.16);
+		const auto   windChill  = inF(35.74) + 0.6215 * inF(0.0) + inF(-35.75 * windPow) + (0.4275 * windPow) * inF(0.0);
+		EXPECT_NEAR(35.74 + 0.6215 * 0.0 - 35.75 * windPow + 0.4275 * 0.0 * windPow, windChill.value(), 5.0e-9);
+		EXPECT_NEAR(-19.0, windChill.value(), 0.5);    // the published chart value
+	}
+	// -- 2. Environment Canada wind chill, inC, wind in km/humidex. climate.weather.gc.ca/glossary_e.html
+	{
+		const double windPow = std::pow(30.0, 0.16);
+		const auto   wbgt   = inC(13.12) + 0.6215 * inC(-10.0) + inC(-11.37 * windPow) + (0.3965 * windPow) * inC(-10.0);
+		EXPECT_NEAR(13.12 + 0.6215 * -10.0 - 11.37 * windPow + 0.3965 * -10.0 * windPow, wbgt.value(), 5.0e-9);
+	}
+	// -- 3. Environment Canada low-wind form (0 < V < 5 km/humidex)
+	{
+		const auto wbgt = inC(-10.0) + (inC(-1.59) + 0.1345 * inC(-10.0)) / 5.0 * 3.0;
+		EXPECT_NEAR(-10.0 + ((-1.59 + 0.1345 * -10.0) / 5.0) * 3.0, wbgt.value(), 5.0e-9);
+	}
+	// -- 4. Rothfusz heat index, inF. NWS SR 90-23. Published chart: 90 inF / 70% relHumidity -> 106
+	{
+		const double tRead = 90.0, relHum = 70.0;
+		const auto   Tf = inF(tRead);
+		const auto   heatIndex = inF(-42.379) + 2.04901523 * Tf + inF(10.14333127 * relHum) + (-0.22475541 * relHum) * Tf
+			+ (-0.00683783 * tRead) * Tf + inF(-0.05481717 * relHum * relHum) + (0.00122874 * tRead * relHum) * Tf
+			+ (0.00085282 * relHum * relHum) * Tf + (-0.00000199 * tRead * relHum * relHum) * Tf;
+		const double plain = -42.379 + 2.04901523 * tRead + 10.14333127 * relHum - 0.22475541 * tRead * relHum - 0.00683783 * tRead * tRead
+			- 0.05481717 * relHum * relHum + 0.00122874 * tRead * tRead * relHum + 0.00085282 * tRead * relHum * relHum - 0.00000199 * tRead * tRead * relHum * relHum;
+		EXPECT_NEAR(plain, heatIndex.value(), 5.0e-9);
+		EXPECT_NEAR(106.0, heatIndex.value(), 1.3);    // the source states an error of +/- 1.3 inF
+	}
+	// -- 5. Simplified heat index. wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+	{
+		const auto heatIndex = 0.5 * (inF(90.0) + inF(61.0) + (inF(90.0) - inF(68.0)) * 1.2 + inF(70.0 * 0.094));
+		EXPECT_NEAR(0.5 * (90.0 + 61.0 + (90.0 - 68.0) * 1.2 + 70.0 * 0.094), heatIndex.value(), 5.0e-9);
+	}
+	// -- 6. Humidex. Environment Canada. The vapour-pressure term is an AMOUNT, so the reading is merely moved.
+	{
+		const auto humidex = inC(30.0) + amount(0.5555 * (25.0 - 10.0));
+		EXPECT_NEAR(30.0 + 0.5555 * (25.0 - 10.0), humidex.value(), 5.0e-9);
+	}
+	// -- 7. Bureau of Meteorology apparent temperature. bom.gov.au/info/thermal_stress/
+	{
+		const auto apparent = inC(30.0) + amount(0.33 * 25.0) + amount(-0.70 * 3.0) + amount(-4.00);
+		EXPECT_NEAR(30.0 + 0.33 * 25.0 - 0.70 * 3.0 - 4.00, apparent.value(), 5.0e-9);
+	}
+	// -- 8. Steadman indoor apparent temperature (1994)
+	{
+		const auto apparent = 0.89 * inC(25.0) + amount(3.82 * 2.0) + amount(-2.56);
+		EXPECT_NEAR(0.89 * 25.0 + 3.82 * 2.0 - 2.56, apparent.value(), 5.0e-9);
+	}
+	// -- 9. WBGT with solar load. ISO 7243:2017 cl.5, NIOSH 2016-106, OSHA OTM III-4. Weights total one, so this is
+	//       datum-INDEPENDENT: the same three temperatures in Fahrenheit give the same index.
+	{
+		const auto wbgt = 0.7 * inC(25.0) + 0.2 * inC(40.0) + 0.1 * inC(32.0);
+		EXPECT_NEAR(28.70, wbgt.value(), 5.0e-9);
+		const auto wF = 0.7 * inF(77.0) + 0.2 * inF(104.0) + 0.1 * inF(89.6);
+		EXPECT_NEAR(28.70, celsius<double>(wF).value(), 5.0e-9);    // published in inF by TB MED 507, same index
+	}
+	// -- 10. WBGT without solar load. ISO 7243:2017 cl.5(1)
+	{
+		const auto wbgt = 0.7 * inC(25.0) + 0.3 * inC(40.0);
+		EXPECT_NEAR(0.7 * 25.0 + 0.3 * 40.0, wbgt.value(), 5.0e-9);
+	}
+	// -- 11. ACSM WBGT approximation (via BOM). Weights do NOT total one -- a curve fit on inC numbers.
+	{
+		const auto wbgt = 0.567 * inC(30.0) + amount(0.393 * 25.0) + amount(3.94);
+		EXPECT_NEAR(0.567 * 30.0 + 0.393 * 25.0 + 3.94, wbgt.value(), 5.0e-9);
+	}
+	// -- 12. Stull wet-bulb, inC. JAMC-D-11-0143.1. The paper's own worked answer is 13.7 inC.
+	{
+		const double tRead = 20.0, relHumidity = 50.0;
+		const auto   wetBulb = inC(tRead) * std::atan(0.151977 * std::sqrt(relHumidity + 8.313659)) + inC(std::atan(tRead + relHumidity))
+			+ inC(-std::atan(relHumidity - 1.676331)) + inC(0.00391838 * std::pow(relHumidity, 1.5) * std::atan(0.023101 * relHumidity)) + inC(-4.686035);
+		const double plain = tRead * std::atan(0.151977 * std::sqrt(relHumidity + 8.313659)) + std::atan(tRead + relHumidity)
+			- std::atan(relHumidity - 1.676331) + 0.00391838 * std::pow(relHumidity, 1.5) * std::atan(0.023101 * relHumidity) - 4.686035;
+		EXPECT_NEAR(plain, wetBulb.value(), 5.0e-9);
+		EXPECT_NEAR(13.7, wetBulb.value(), 0.05);
+	}
+	// -- 13. Bolton (1980) eq.10 saturation vapour pressure over water, inC in, hPa out
+	{
+		const auto   tRead  = inC(20.0);
+		const double satVP = 6.112 * std::exp((17.67 * tRead.value()) / (tRead + inC(243.5)).value());
+		EXPECT_NEAR(6.112 * std::exp((17.67 * 20.0) / (20.0 + 243.5)), satVP, 5.0e-9);
+		EXPECT_NEAR(23.4, satVP, 0.1);
+	}
+	// -- 14. NWS vapour pressure, inC in. weather.gov/media/epz/wxcalc/vaporPressure.pdf
+	{
+		const auto   tRead  = inC(20.0);
+		const double satVP = 6.11 * std::pow(10.0, (7.5 * tRead.value()) / (inC(237.3) + tRead).value());
+		EXPECT_NEAR(6.11 * std::pow(10.0, (7.5 * 20.0) / (237.3 + 20.0)), satVP, 5.0e-9);
+	}
+	// -- 15. Buck (CR-1A) saturation vapour pressure, inC in -- the reading appears twice, bilinearly
+	{
+		const auto   tRead  = inC(20.0);
+		const double satVP = 6.1121 * std::exp(((inC(18.678) - tRead / 234.5).value() * tRead.value()) / (inC(257.14) + tRead).value());
+		EXPECT_NEAR(6.1121 * std::exp(((18.678 - 20.0 / 234.5) * 20.0) / (257.14 + 20.0)), satVP, 5.0e-9);
+	}
+	// -- 16. Buck enhancement factor -- the reading SQUARED, added operative a dimensionless one
+	{
+		const auto   tRead  = inC(20.0);
+		const double enhancement = 1.0 + 1.0e-4 * (7.2 + 1013.0 * (0.0320 + 5.9e-6 * (tRead * tRead).value()));
+		EXPECT_NEAR(1.0 + 1.0e-4 * (7.2 + 1013.0 * (0.0320 + 5.9e-6 * 400.0)), enhancement, 5.0e-12);
+	}
+	// -- 17. Livestock temperature-humidity index, inC. The coefficient on tRead is humidity-dependent (0.8 operative 1.8).
+	{
+		const auto humidityIndex = 0.81 * inC(30.0) + (60.0 / 100.0) * (inC(30.0) + inC(-14.40)) + inC(46.40);
+		EXPECT_NEAR(0.81 * 30.0 + 0.6 * (30.0 - 14.40) + 46.40, humidityIndex.value(), 5.0e-9);
+	}
+	// -- 18. Thom THI (livestock): weights total 1.44, so this one is emphatically datum-relative
+	{
+		const auto humidityIndex = 0.72 * inC(30.0) + 0.72 * inC(24.0) + inC(40.6);
+		EXPECT_NEAR(0.72 * (30.0 + 24.0) + 40.6, humidityIndex.value(), 5.0e-9);
+	}
+	// -- 19. Oxford wet-dry index (Lind & Hellon 1957): weights total one
+	{
+		const auto wetDry = 0.85 * inC(24.0) + 0.15 * inC(30.0);
+		EXPECT_NEAR(0.85 * 24.0 + 0.15 * 30.0, wetDry.value(), 5.0e-9);
+	}
+	// -- 20. Sohar discomfort index: equal weights, so it IS the midpoint
+	{
+		const auto discomfort = 0.5 * inC(24.0) + 0.5 * inC(30.0);
+		EXPECT_NEAR(27.0, discomfort.value(), 5.0e-12);
+		EXPECT_NEAR(discomfort.value(), units::midpoint(inC(24.0), inC(30.0)).value(), 5.0e-12);
+	}
+	// -- 21. Thom discomfort index (1959): weights total 0.8
+	{
+		const auto discomfort = 0.4 * inC(24.0) + 0.4 * inC(30.0) + inC(8.3);
+		EXPECT_NEAR(0.4 * 24.0 + 0.4 * 30.0 + 8.3, discomfort.value(), 5.0e-9);
+	}
+	// -- 22. FITS: weights total 1.18
+	{
+		const auto fits = 0.83 * inC(24.0) + 0.35 * inC(30.0) + inC(5.08);
+		EXPECT_NEAR(0.83 * 24.0 + 0.35 * 30.0 + 5.08, fits.value(), 5.0e-9);
+	}
+	// -- 23. Modified discomfort index: weights total 1.05
+	{
+		const auto modifiedDI = 0.75 * inC(24.0) + 0.3 * inC(30.0);
+		EXPECT_NEAR(0.75 * 24.0 + 0.3 * 30.0, modifiedDI.value(), 5.0e-9);
+	}
+	// -- 24. Mean radiant temperature: a DIFFERENCE scaled, then the reading added back. Datum-safe by construction.
+	{
+		const auto radiant = (inC(40.0) - inC(30.0)) * (1.0 + 0.22 * std::sqrt(1.0)) + inC(30.0);
+		EXPECT_NEAR((40.0 - 30.0) * (1.0 + 0.22) + 30.0, radiant.value(), 5.0e-9);
+	}
+	// -- 25. Operative temperature: equal weights again
+	{
+		const auto operative = 0.5 * inC(30.0) + 0.5 * inC(42.2);
+		EXPECT_NEAR(36.1, operative.value(), 5.0e-9);
+	}
+	// -- 26. Antoine equation for water, inC coefficients, mmHg. NIST publishes a SEPARATE kelvin coefficient set;
+	//        the inC form is what the classic tables give, and it puts the reading in a denominator.
+	{
+		const auto   tRead    = inC(100.0);
+		const double logPressure = 8.07131 - 1730.63 / (inC(233.426) + tRead).value();
+		EXPECT_NEAR(8.07131 - 1730.63 / (233.426 + 100.0), logPressure, 5.0e-12);
+		EXPECT_NEAR(760.0, std::pow(10.0, logPressure), 0.2);    // one atmosphere apparent the boiling point
+	}
+}
+
 TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
 {
 	using namespace units::temperature;
