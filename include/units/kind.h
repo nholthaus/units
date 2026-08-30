@@ -79,8 +79,7 @@ namespace units
 	{
 		// `delta_unit_t` (the offset-free counterpart of a unit) is defined once, in <units/core.h>; the wrappers reuse
 		// that definition rather than carrying a second copy. Core's point-difference `operator-` builds its
-		// result conversion factor inline rather than through this alias -- the two agree, but they are not one
-		// expression, which is worth collapsing if that operator is ever touched.
+		// result conversion factor inline rather than through this alias; the two agree but are not one expression.
 
 		/// The result unit of a wrapper operator that keeps the LHS UNIT (the "LHS-unit tie-break"): the value
 		/// stays expressed in `U`'s unit so `.value()` reads intuitively (`absolute<celsius> - absolute<fahrenheit>`
@@ -641,10 +640,10 @@ namespace units
 		}
 
 		/// delta scaled by a bare number -> delta. A delta holds a MAGNITUDE, so its own number is scaled and the
-		/// wrapped unit is rebuilt from it -- the wrapped unit's `operator*` is deliberately not used, because for an
-		/// affine unit scaling a point is refused (and would be meaningless here anyway). The underlying type promotes
-		/// exactly as the plain unit's `operator*` does, so scaling an integer delta by a floating factor yields a
-		/// floating delta and the wrapper is never less precise than the unit it wraps.
+		/// wrapped unit is rebuilt from it, rather than routed through the wrapped unit's `operator*`, whose result is
+		/// the wrapped unit's own scale-bound reading. The underlying type promotes as the plain unit's `operator*`
+		/// does, so scaling an integer delta by a floating factor yields a floating delta and the wrapper is never
+		/// less precise than the unit it wraps.
 		template<UnitType U, ArithmeticType T>
 		constexpr auto operator*(const delta<U>& lhs, T rhs) noexcept
 		{

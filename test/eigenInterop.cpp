@@ -445,9 +445,9 @@ TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
 	EXPECT_NEAR(54.5, units::temperature::fahrenheit<double>(reading(0)).value(), 5.0e-12);    // 12.5 degC
 }
 
-// A matrix operation must be available exactly where the same operation on one of its coefficients is: a matrix of
-// affine readings scales and reduces in its coefficients' own scale, and a matrix of decibel values does neither,
-// because the scalar `dBW * 2.0` does not exist. The Eigen seam is therefore gated on the coefficient's numerical
+// A matrix operation is available exactly where the same operation on one of its coefficients is: a matrix of affine
+// readings scales and reduces in its coefficients' own scale, and a matrix of decibel values does neither, because the
+// scalar `dBW * 2.0` does not exist. The Eigen seam is gated on the coefficient's numerical
 // scale -- what the scalar operators are gated on -- and cannot be used to launder an operation past them.
 TEST_F(EigenInterop, theEigenSeamMatchesTheScalarRule)
 {

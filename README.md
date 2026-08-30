@@ -271,10 +271,9 @@ written as `kelvin(267.9)` gives 267.9 K. Which of those a formula needs is the 
 temperature formulae need both — 16 of the 26 collected in
 `test/main.cpp::caseStudyPublishedTemperatureFormulae` scale a °C or °F reading directly, and some (Magnus,
 Antoine) have no absolute-scale form at all. The rule for a weighted sum is exact: it is datum-independent when its
-weights total one, which is why `lerp` and `midpoint` give the same temperature in every scale while doubling does
-not.
+weights total one, so `lerp` and `midpoint` give the same temperature in every scale where doubling does not.
 
-Two consequences are worth knowing:
+Two consequences follow:
 
 - **A scaled reading is meaningful only in the scale it was written in.** `celsius(20) * 2.0` is 40 °C; the same
   temperature as `kelvin(293.15) * 2.0` is 586.3 K = 313.15 °C. Both are what the arithmetic says.

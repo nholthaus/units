@@ -2222,9 +2222,8 @@ TEST_F(UnitType, matrixReadingCompoundMove)
 	f -= kelvin<double>(5.0);
 	EXPECT_NEAR(68.0, f.value(), 5.0e-12);
 
-	// Reaumur is the library's THIRD affine unit, and the rules key on the datum rather than on a named list of
-	// units, so it takes the identical paths. Its degree is 5/4 of a celsius degree (80 degRe spans 100 degC), so a
-	// 8.4 degRe change is a 10.5 degC change.
+	// Reaumur is the library's third affine unit. Its degree is 5/4 of a celsius degree (80 degRe spans 100 degC),
+	// so an 8.4 degRe change is a 10.5 degC change.
 	static_assert(traits::is_affine_unit_v<reaumur<double>>, "reaumur carries a datum");
 	celsius<double> viaReaumur(20.5);
 	viaReaumur += reaumur<double>(8.4);
@@ -2266,18 +2265,16 @@ TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 {
 	using namespace units::temperature;
 
-	// A reading scales, and the result is expressed in the reading's own scale -- which makes the operation
-	// scale-bound: 20 degC doubled is 40 degC, while the same temperature as 293.15 K doubled is 313.15 degC. Published
-	// regressions rely on exactly that, their coefficients having been fitted to one named scale. The datum-independent
-	// weighting is the affine combination, for which `units::midpoint` and `units::lerp` exist.
+	// The result is expressed in the reading's own scale, so the operation is scale-bound: 20 degC doubled is
+	// 40 degC, while the same temperature as 293.15 K doubled is 313.15 degC. The datum-independent weighting is the
+	// affine combination -- `units::midpoint` and `units::lerp`.
 
 	// An offset-free scale carries no datum, so scaling it is scale-independent.
 	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
 	EXPECT_NEAR(150.0, (rankine<double>(300.0) / 2.0).value(), 5.0e-12);
 	static_assert(std::is_same_v<kelvin<double>, decltype(kelvin<double>(1) * 2.0)>, "an offset-free scale keeps its unit");
 
-	// A DIFFERENCE of two readings is an amount, and that amount scales -- so the magnitude arithmetic a user
-	// wants is reachable without a wrapper as soon as the value is expressed as a difference rather than a reading.
+	// A DIFFERENCE of two readings is an amount, and that amount scales scale-independently.
 	const auto amount = celsius<double>(20.0) - celsius<double>(0.0);
 	static_assert(!traits::is_affine_unit_v<decltype(amount)>, "a difference is offset-free");
 	EXPECT_NEAR(40.0, (amount * 2.0).value(), 5.0e-12);
@@ -2287,10 +2284,8 @@ TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 	EXPECT_NEAR(34.2, ((fahrenheit<double>(22.8) - fahrenheit<double>(0.0)) * 1.5).raw(), 5.0e-12);
 }
 
-// READING: the four ways to write a scaling -- a bare number, a dimensionless quantity, a ratio-dimensionless
-// quantity, and each of those as a compound assignment -- are one operation and must give one answer. A spelling that
-// compiled while its twin did not would be an arbitrary restriction, and a spelling that disagreed on the value would
-// be worse.
+// READING: the ways to write a scaling -- a bare number, a dimensionless quantity, a ratio-dimensionless quantity,
+// and each of those as a compound assignment -- are one operation, so each is well-formed and all give one answer.
 TEST_F(UnitType, matrixEverySpellingOfScalingAReadingAgrees)
 {
 	using namespace units::temperature;
@@ -2543,21 +2538,20 @@ TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
 //======================================================================================================================
 //	CASE STUDIES
 //======================================================================================================================
-// Whole calculations of the kind a user actually writes, rather than one operator at a time. Each mixes several units
-// and several steps, so a rule that is individually correct but does not COMPOSE shows up here. Every expected value is
-// computed independently in exact rational arithmetic and uses fractional inputs, so a wrong conversion factor cannot
-// coincide with the right answer.
+// Whole calculations rather than one operator at a time. Each mixes several units and several steps, so a rule that
+// is individually correct but does not COMPOSE fails here. Every expected value is computed independently in exact
+// rational arithmetic from fractional inputs, so a wrong conversion factor cannot land on the expected value.
 
 // A building thermostat. The setpoint is in Fahrenheit, the sensor reports Celsius, and the deadband is quoted in
-// kelvin -- three scales in one control decision, which is exactly where a datum applied by mistake would show up. The
-// error is a DIFFERENCE of two readings, so it is an amount, and comparing it against the deadband is amount-to-amount.
+// kelvin: three scales in one control decision. The error is a DIFFERENCE of two readings, so it is an amount, and
+// comparing it against the deadband is amount-to-amount.
 TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
 {
 	using namespace units::temperature;
 
 	// The night setback is quoted in kelvin: 2.5 K is 4.5 Fahrenheit-degrees, so the AMOUNT's scale factor applies
-	// while its (absent) datum does not. Quoting it in a DIFFERENT scale from the setpoint is deliberate -- a setback
-	// written in Fahrenheit would convert by a ratio of 1 and so could not detect a wrong conversion factor.
+	// while its (absent) datum does not. The setback is in a DIFFERENT scale from the setpoint because one written in
+	// Fahrenheit would convert by a ratio of 1 and so could not detect a wrong conversion factor.
 	fahrenheit<double> setpoint(68.5);
 	setpoint -= kelvin<double>(2.5);
 	EXPECT_NEAR(64.0, setpoint.value(), 5.0e-12);
@@ -2695,9 +2689,9 @@ TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
 	EXPECT_NEAR(3.0102999566398, (dBW<double>(combined) - dBW<double>(12.5)).raw(), 5.0e-9);
 }
 
-// Mixing two solutions. Concentrations are ratio-dimensionless, where the number a user writes (12.5 percent) and the
-// physical fraction it denotes (0.125) are deliberately different -- `raw()` is the former, `value()` the latter. A
-// weighted blend has to use the fraction, and the result must re-express correctly in both percent and ppm.
+// Mixing two solutions. Concentrations are ratio-dimensionless: the number written (12.5 percent) and the physical
+// fraction it denotes (0.125) differ, `raw()` being the former and `value()` the latter. A weighted blend uses the
+// fraction, and the result re-expresses in both percent and ppm.
 TEST_F(UnitType, caseStudySolutionMixingConcentration)
 {
 	using units::concentration::parts_per_million;
@@ -2762,10 +2756,9 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 // they step by one unit of the operand's own scale, which is a stated amount rather than a bare number.
 // Products, powers and reciprocals of a reading are scale-bound like the rest; published psychrometry uses them
 // anyway (Buck's enhancement factor squares a Celsius reading, Kalkstein's index squares a dewpoint, IEC 60751 takes
-// t, t^2 and t^3). Asserted here is that all of them are scale-INDEPENDENT on a difference and on an offset-free
-// scale, which is the form to prefer where the choice exists.
-// `a - b` and `a -= b` deliberately differ when the right operand is offset-free, and that is FORCED by the
-// representation, not a choice: an offset-free temperature is simultaneously a valid READING on an absolute scale
+// t, t^2 and t^3). All of them are scale-INDEPENDENT on a difference and on an offset-free scale.
+// `a - b` and `a -= b` differ when the right operand is offset-free, which the representation FORCES: an
+// offset-free temperature is simultaneously a valid READING on an absolute scale
 // (kelvin) and the exact shape an AMOUNT has, so they are one type and a binary operator must pick a meaning. `-`
 // picks reading-minus-reading, the operation with a datum-independent answer; `+` cannot (reading plus reading is
 // meaningless) so it reads the rhs as an amount. Pinned here so the asymmetry is not "fixed" into a wrong answer --
@@ -2780,7 +2773,7 @@ TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 	EXPECT_NEAR(291.15, kelvin<double>(difference).value(), 5.0e-10);    // 293.65 K - 2.5 K
 	static_assert(!traits::is_affine_unit_v<decltype(difference)>, "a difference of two readings is an amount");
 
-	// in place: the rhs is an AMOUNT and the point moves by it, which is what #402 is about
+	// in place: the rhs is an AMOUNT and the point moves by it (#402)
 	celsius<double> moved(20.5);
 	moved -= kelvin<double>(2.5);
 	EXPECT_NEAR(18.0, moved.value(), 5.0e-12);
@@ -2841,16 +2834,16 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 // no absolute-scale form to fall back on. A library that cannot write these cannot be used for weather, HVAC,
 // psychrometrics, agriculture, or occupational heat safety.
 //
-// Two encodings are worth knowing, and both are visible below:
+// Two encodings recur below:
 //   * A regression is a weighted SUM. Carry a negative coefficient in the coefficient, not as a subtraction: writing
 //     `- k*T` turns reading-minus-reading into a DIFFERENCE mid-expression, which is a different (and correct) meaning.
 //   * A correction term is an AMOUNT, not a reading. One Celsius degree is one kelvin, so `kelvin(x)` is exactly the
 //     amount type for it, and amounts are ADDED with their sign.
 //
 // Where a formula's weights happen to total one (every WBGT variant, the Oxford and Sohar indices, operative
-// temperature) the result is datum-INDEPENDENT and identical in any scale -- which is why ISO can publish WBGT in
-// degrees Celsius and TB MED 507 the same index in Fahrenheit. `units::midpoint` names the equal-weight case, and the
-// Sohar index below is asserted to agree with it.
+// temperature) the result is datum-INDEPENDENT and identical in any scale, so ISO publishes WBGT in degrees Celsius
+// and TB MED 507 the same index in Fahrenheit. `units::midpoint` names the equal-weight case, and the Sohar index
+// below is asserted to agree with it.
 TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 {
 	using namespace units::temperature;
@@ -3045,7 +3038,7 @@ TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
 	EXPECT_NEAR(8.0, units::midpoint(units::meters<double>(3.5), units::meters<double>(12.5)).value(), 5.0e-12);
 	EXPECT_NEAR(15.0, units::lerp(units::meters<double>(0.0), units::meters<double>(10.0), 1.5).value(), 5.0e-12);
 	EXPECT_NEAR(298.15, units::midpoint(kelvin<double>(293.15), kelvin<double>(303.15)).value(), 5.0e-10);
-	// and an amount, which is what the interpolation is built from
+	// and an amount, the form the interpolation is built from
 	const auto low = celsius<double>(20.0) - celsius<double>(0.0);
 	const auto high = celsius<double>(30.0) - celsius<double>(0.0);
 	EXPECT_NEAR(25.0, units::midpoint(low, high).value(), 5.0e-12);
@@ -3067,11 +3060,11 @@ TEST_F(UnitMath, dimensionlessMathRequiresALinearScale)
 	EXPECT_NEAR(0.325, units::log10(dimensionless<double>(decibels<double>(3.25))).value(), 5.0e-9);
 }
 
-// The whole transcendental family, not just the exponential and logarithmic half, reads a quantity's value in its own
-// scale -- so a decibel argument must be refused throughout. `atan(decibels(3.25))` reading 3.25 gives 1.2723 rad
-// where the ratio the gain denotes, 2.113, gives 1.1288: a wrong answer rather than a diagnostic. The refusals fire
-// from an overload body and so are graded by the errorMessages cases (log_of_decibel_gain, atan_of_decibel_gain);
-// what is asserted here is that the linear paths are exact and that the documented remedy reaches the right value.
+// Every function in the transcendental family, not only the exponential and logarithmic half, reads a quantity's
+// value in its own scale, so each requires a linear scale. `atan(decibels(3.25))` reading 3.25 would give 1.2723 rad
+// where the ratio the gain denotes, 2.113, gives 1.1288. The refusals fire
+// from an overload body and so are graded by the errorMessages cases (log_of_decibel_gain, atan_of_decibel_gain).
+// This test covers the linear paths and the documented remedy.
 TEST_F(UnitMath, theTranscendentalFamilyReadsALinearScaleOnly)
 {
 	const dimensionless<double> one(1.0);

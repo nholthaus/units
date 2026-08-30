@@ -4338,9 +4338,9 @@ namespace units
 	//----------------------------------
 	//	COMPOUND-ASSIGNMENT MISUSE DIAGNOSTICS (readable, not a candidate wall)
 	//----------------------------------
-	// Each of these is ill-formed for a reason worth stating. Without them the compiler prints only "no match for
-	// operator+=" and a list of declined candidates, which does not say what to write instead. Each returns a value
-	// so the body is instantiated and the message fires on every compiler.
+	// Each of these is ill-formed. Without them the compiler prints only "no match for operator+=" and a list of
+	// declined candidates, which does not name what to write instead. Each returns a value so the body is
+	// instantiated and the message fires on every compiler.
 
 	/// A bare number added to (or subtracted from) a dimensioned quantity: a number carries no dimension.
 	template<UnitType UnitTypeLhs, ArithmeticType T>
@@ -4448,9 +4448,9 @@ namespace units
 	//----------------------------------
 	// An affine quantity is a POINT on a scale, so scaling it, adding two of them, or moving it by a bare number is
 	// ill-formed. Without these overloads the compiler reports only "no match for operator*=" followed by a wall of
-	// declined candidates, which does not tell the reader what to do instead. Each catch-all below is selected for the
-	// misuse and its body fires one sentence naming the problem and the remedy -- the `absolute<>`/`delta<>` wrappers
-	// of <units/kind.h>, which make the point-versus-amount distinction explicit. Each returns a value so the body is
+	// declined candidates, which does not name what to write instead. Each catch-all below is selected for the misuse
+	// and its body fires one sentence naming the problem and the remedy -- the `absolute<>`/`delta<>` wrappers of
+	// <units/kind.h>, which state the point-versus-amount distinction in the type. Each returns a value so the body is
 	// instantiated (and the message fires) on every compiler.
 
 
@@ -4565,14 +4565,13 @@ namespace units
 		return UnitTypeRhs(rhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeRhs, UnitTypeLhs>(lhs.raw()));
 	}
 
-	/// The sum of two readings, in the left operand's unit. Datum-relative like any weighted sum of readings, and
-	/// permitted because published formulae are full of them: every WBGT variant (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, ISO 7243
-	/// / NIOSH / OSHA / TB MED 507), the Thom and Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`),
-	/// FITS and MDI. Where the weights total one the result is datum-INDEPENDENT and the operation is exact in any
-	/// scale -- that is why WBGT can be published in both degC and degF for the same index -- and `units::midpoint` and
-	/// `units::lerp` name that case. Where they do not, the sum is a curve-fit's arithmetic on the numbers a
-	/// thermometer read, which is what the formula's coefficients were fitted to; the library expresses it rather than
-	/// second-guessing the standard that published it.
+	/// The sum of two readings, in the left operand's unit. The result is datum-relative, as any weighted sum of
+	/// readings is. Published formulae use the form: every WBGT variant (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, ISO 7243 /
+	/// NIOSH / OSHA / TB MED 507), the Thom, Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`), FITS
+	/// and MDI. Where the weights total one the result is datum-INDEPENDENT and exact in any scale, so WBGT reads the
+	/// same published in degC and in degF; `units::midpoint` and `units::lerp` name that case. Where the weights do
+	/// not total one, the sum is a curve fit's arithmetic on the numbers a thermometer read, in the scale its
+	/// coefficients were fitted to.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
 			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
@@ -4877,10 +4876,10 @@ namespace units
 	///				the true 273.15 K delta). Both operands are reconciled to their common affine unit, their
 	///				raw values subtracted (the offsets cancel exactly), and the result returned in the
 	///				offset-stripped counterpart of that common unit so it never re-applies a datum.
-	/// NOTE the deliberate asymmetry with `-=`, which is forced by the representation rather than chosen. An
-	/// offset-free temperature is simultaneously a valid READING on an absolute scale (kelvin) and the exact shape an
-	/// AMOUNT has, so the two are the same type and a binary operator must pick one meaning. `-` picks reading minus
-	/// reading, because that is the operation with a datum-independent answer and the one this overload exists for
+	/// NOTE the asymmetry with `-=`, which the representation forces. An offset-free temperature is simultaneously a
+	/// valid READING on an absolute scale (kelvin) and the exact shape an AMOUNT has, so the two are one type and a
+	/// binary operator must pick one meaning. `-` picks reading minus reading, the operation with a
+	/// datum-independent answer
 	/// (`celsius(0) - kelvin(0)` is 273.15 degrees of difference). `+` cannot pick that -- reading plus reading is
 	/// meaningless -- so it reads the rhs as an amount. Hence `c - kelvin(2.5)` differs from `c -= kelvin(2.5)`. Where
 	/// the distinction matters, `absolute<>`/`delta<>` from <units/kind.h> put it in the type.
@@ -5733,23 +5732,21 @@ namespace units
 	//----------------------------------
 	//	AFFINE COMBINATIONS
 	//----------------------------------
-	// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the one weighting on a scale with an
-	// arbitrary zero that is datum-INDEPENDENT, and that is a fact, not a convention: the midpoint of 20 degC and
-	// 30 degC is 25 degC, and the midpoint of the same two temperatures written as 293.15 K and 303.15 K is 298.15 K,
-	// which IS 25 degC. Doubling is not: 20 degC doubled is 40 degC, while the same temperature doubled in kelvin is
-	// 313.15 degC.
+	// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the only weighting on a scale with an
+	// arbitrary zero that is datum-INDEPENDENT: the midpoint of 20 degC and 30 degC is 25 degC, and the midpoint of
+	// the same two temperatures written as 293.15 K and 303.15 K is 298.15 K, which IS 25 degC. Doubling is not:
+	// 20 degC doubled is 40 degC, while the same temperature doubled in kelvin is 313.15 degC.
 	//
-	// The mean of two readings is meaningful and common -- a mean daily temperature is exactly this -- and it is
-	// expressible entirely through a DIFFERENCE, which carries no datum: `a + (b - a) * t`. These name that
-	// formulation so a user gets the scale-independent answer without rediscovering it.
+	// The mean of two readings -- a mean daily temperature -- is expressible entirely through a DIFFERENCE, which
+	// carries no datum: `a + (b - a) * t`. These two functions name that formulation.
 
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Linear interpolation between two quantities: the affine combination `(1 - t) * a + t * b`.
 	 * @details		Computed as `a + (b - a) * t`, which is datum-safe: the difference carries no origin, so this is
 	 *				meaningful for an affine reading (a temperature) as well as for an ordinary quantity. `t` is
-	 *				dimensionless and is not restricted to [0, 1]; the weights `1 - t` and `t` always total one, which
-	 *				is what makes the result independent of where the scale's zero was put.
+	 *				dimensionless and is not restricted to [0, 1]; the weights `1 - t` and `t` total one, so the result
+	 *				is independent of where the scale's zero was put.
 	 * @param[in]	a	the quantity at `t == 0`.
 	 * @param[in]	b	the quantity at `t == 1`.
 	 * @param[in]	t	the interpolation parameter.
@@ -5766,8 +5763,8 @@ namespace units
 	 * @ingroup		UnitMath
 	 * @brief		The midpoint of two quantities: the affine combination with equal weights.
 	 * @details		Computed as `a + (b - a) / 2`, so it is datum-safe for an affine reading -- the arithmetic mean of
-	 *				two temperatures, which is what a mean daily temperature is. See `lerp` for why weights totalling
-	 *				one give the same physical answer in every scale, where scaling a single reading does not.
+	 *				two temperatures, as a mean daily temperature is. See `lerp`: weights totalling one give the same
+	 *				physical answer in every scale, where scaling a single reading does not.
 	 * @param[in]	a	the first quantity.
 	 * @param[in]	b	the second quantity.
 	 * @return		the midpoint, in `a`'s unit.

@@ -1427,7 +1427,7 @@ TEST(WrapperDelta, affineDeltaScalesEvenThoughTheReadingItWrapsDoesNot)
 	static_assert(std::is_same_v<double, typename std::remove_cv_t<decltype(integral * 2.5)>::underlying_type>,
 		"an integer delta scaled by a floating factor promotes");
 
-	// and a scaled delta moves a point, which is the whole reason to have it
+	// and a scaled delta moves a point
 	A<celsius<double>> reading(20.0);
 	reading += D<celsius<double>>(2.5) * 2.0;
 	EXPECT_DOUBLE_EQ(25.0, reading.value());
