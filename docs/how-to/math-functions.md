@@ -64,28 +64,43 @@ ADL on a units argument.
 ### Quantities measured from an arbitrary origin
 
 An **affine reading** (`celsius`, `fahrenheit`, `reaumur` — they carry a datum) and a **decibel level** (`dBW`,
-`dBm` — they carry a logarithmic reference) have no origin-free magnitude, sign, remainder, root or power. The
-answer would depend on where zero was put: `abs(celsius(-5.25))` is 5.25 °C = 278.4 K, while the *identical*
-temperature written as 267.9 K gives 267.9 K. So these functions are **ill-formed** for such an operand:
+`dBm` — they carry a logarithmic reference) have no *scale-independent* magnitude, sign, remainder, root or power.
+A function that reads the value reads it in the scale it was written in: `abs(celsius(-5.25))` is 5.25 °C, while
+the identical temperature written as `kelvin(267.9)` gives 267.9 K. Both are what the arithmetic says, and which
+one a formula needs is the formula's business — published temperature regressions are fitted to a named scale and
+depend on exactly this reading. `units::traits::has_arbitrary_origin_v<T>` reports which quantities are affected,
+so generic code can ask.
 
-`abs` · `fabs` · `copysign` · `fmod` · `hypot` · `sqrt` · `pow<N>`
-
-Each says so and names the remedy: apply the function to a **difference**, which carries no origin.
+When the intent is a scale-independent magnitude, take it from a **difference**, which carries no origin:
 
 ```cpp
 using namespace units::temperature;
-// units::abs(celsius<double>(-5.25));                       // ill-formed
+units::abs(celsius<double>(-5.25));                                 // 5.25 degC -- in celsius's scale
 const auto below = celsius<double>(-5.25) - celsius<double>(0.0);   // an amount
-units::abs(below);                                                  // 5.25 degrees
+units::abs(below);                                                  // 5.25 degrees, in any scale
 ```
 
-`floor`, `ceil`, `round` and `trunc` **are** available on a reading: they quantize the value in the unit's own
-scale, so "the nearest whole degree Celsius" is a stated quantity. `min`, `max`, `fmin`, `fmax` and `clamp` are
-available too — they select an operand rather than computing a new value. `fdim` returns whatever `operator-`
-returns, so the positive difference of two readings is an amount.
+`floor`, `ceil`, `round`, `trunc`, `min`, `max`, `fmin`, `fmax` and `clamp` read a reading the same way: they
+quantize in the unit's own scale, or select an operand. `fdim` returns whatever `operator-` returns, so the
+positive difference of two readings is an amount and of two decibel levels a gain.
 
-An offset-free scale (`kelvin`, `rankine`), a difference, and a dimensionless dB **gain** are ordinary magnitudes
-and keep the whole surface. See [affine temperature](../explain/affine-temperature.md).
+### A logarithmic scale and the transcendental functions
+
+A transcendental function reads the number a quantity stores, which on a decibel scale is the decibel figure and
+not the ratio it denotes — `log10(decibels(3.25))` reading 3.25 gives 0.512 where the ratio 2.113 gives 0.325.
+Rather than pick one reading, the whole family requires a **linear** scale and names the conversion:
+
+`exp` · `log` · `log10` · `log2` · `exp2` · `expm1` · `log1p` · `asin` · `acos` · `atan` · `atan2` ·
+`sinh` · `cosh` · `tanh` · `asinh` · `acosh` · `atanh`
+
+```cpp
+// units::log10(units::decibels<double>(3.25));                     // ill-formed: "cannot apply log10 to a decibel value"
+units::log10(units::dimensionless<double>(units::decibels<double>(3.25)));   // 0.325 -- the ratio's logarithm
+```
+
+An offset-free scale (`kelvin`, `rankine`), a difference, and a dimensionless dB **gain** converted to its linear
+ratio are ordinary magnitudes and keep the whole surface. See
+[affine temperature](../explain/affine-temperature.md) and [scales](../explain/scales.md).
 | Classification | `isnan`, `isinf`, `isfinite`, `isnormal`, `signbit`, `isunordered` | return `bool` |
 
 ## Powers and roots carry dimensions

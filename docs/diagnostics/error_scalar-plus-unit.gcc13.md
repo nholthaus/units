@@ -7,6 +7,6 @@ readable_scalar_plus_unit.cpp:18:18: error: no match for ‘operator+’ (operan
       |            |       |
       |            |       double
       |            units::length::meters<double>
-In file included from include/units/length.h:49,
-                 from readable_scalar_plus_unit.cpp:15:
+readable_scalar_plus_unit.cpp:18:18: note: there are 13 candidates
+   18 | auto bad = 1.0_m + 5.0; // ill-formed: cannot add a raw scalar to a length
 ```

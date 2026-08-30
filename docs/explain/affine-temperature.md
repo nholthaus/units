@@ -106,9 +106,10 @@ const auto rise = celsius<double>(20.0) - celsius<double>(0.0);   // an amount, 
 reading += rise * 2.0;                                            // 58.5 degC
 ```
 
-The operations that have no meaning for a point are refused rather than answered with a datum-dependent number:
-scaling a reading, adding two readings, adding a bare number to one, and taking its magnitude, sign, remainder or
-ratio. Each says so and names the amount-based form instead. Working in kelvin or rankine also remains available —
+Reading the number of a point reads it in that point's own scale, which is scale-bound rather than wrong; the
+section [Scaling a temperature reading](#scaling-a-temperature-reading) below sets out when that is what a formula
+wants. The one operation refused outright is moving a reading by a bare number, which states no amount of change.
+Working in kelvin or rankine also remains available —
 they carry no offset, so a value and an interval coincide numerically there. Rankine's purely multiplicative
 definition is why `1 K` maps cleanly to `1.8 Ra`:
 

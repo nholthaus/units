@@ -87,7 +87,7 @@ namespace units
 	 * @param[in]	angle		angle to compute the cosine of
 	 * @returns		Returns the cosine of <i>angle</i>
 	 */
-	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit>, int> = 0>
+	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit> && traits::has_linear_scale_v<AngleUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>> cos(const AngleUnit angle) noexcept
 	{
 		return std::cos(convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
@@ -101,7 +101,7 @@ namespace units
 	 * @param[in]	angle		angle to compute the since of
 	 * @returns		Returns the sine of <i>angle</i>
 	 */
-	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit>, int> = 0>
+	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit> && traits::has_linear_scale_v<AngleUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>> sin(const AngleUnit angle) noexcept
 	{
 		return std::sin(convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
@@ -114,7 +114,7 @@ namespace units
 	 * @param[in]	angle		angle to compute the tangent of
 	 * @returns		Returns the tangent of <i>angle</i>
 	 */
-	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit>, int> = 0>
+	template<class AngleUnit, std::enable_if_t<traits::is_angle_unit_v<AngleUnit> && traits::has_linear_scale_v<AngleUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>> tan(const AngleUnit angle) noexcept
 	{
 		return std::tan(convert<radians<detail::floating_point_promotion_t<typename AngleUnit::underlying_type>>>(angle).value());
@@ -127,7 +127,8 @@ namespace units
 	 * @param[in]	x		Value whose arc cosine is computed, in the interval [-1,+1].
 	 * @returns		Principal arc cosine of x, in the interval [0,pi] radians.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acos(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
@@ -141,7 +142,8 @@ namespace units
 	 * @param[in]	x		Value whose arc sine is computed, in the interval [-1,+1].
 	 * @returns		Principal arc sine of x, in the interval [-pi/2,+pi/2] radians.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asin(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
@@ -159,7 +161,8 @@ namespace units
 	 * @param[in]	x		Value whose arc tangent is computed, in the interval [-1,+1].
 	 * @returns		Principal arc tangent of x, in the interval [-pi/2,+pi/2] radians.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atan(const dimensionlessUnit x) noexcept
 	{
 		return radians<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
@@ -175,7 +178,10 @@ namespace units
 	 * @param[in]	x		x-component of the triangle expressed.
 	 * @returns		Returns the principal value of the arc tangent of <i>y/x</i>, expressed in radians.
 	 */
-	template<class Y, class X, std::enable_if_t<traits::is_dimensionless_unit_v<decltype(std::declval<Y>() / std::declval<X>())>, int> = 0>
+	template<class Y, class X,
+		std::enable_if_t<traits::is_dimensionless_unit_v<decltype(std::declval<Y>() / std::declval<X>())> &&
+				traits::has_linear_scale_v<Y, X>,
+			int> = 0>
 	radians<detail::floating_point_promotion_t<std::common_type_t<typename X::underlying_type, typename Y::underlying_type>>> atan2(
 		const Y y, const X x) noexcept
 	{
@@ -198,7 +204,8 @@ namespace units
 	 * @param[in]	x	value to compute the hyperbolic cosine of
 	 * @returns		the hyperbolic cosine of <i>x</i>
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> cosh(const dimensionlessUnit x) noexcept
 	{
 		return std::cosh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>());
@@ -214,7 +221,8 @@ namespace units
 	 * @param[in]	x	value to compute the hyperbolic sine of
 	 * @returns		the hyperbolic sine of <i>x</i>
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> sinh(const dimensionlessUnit x) noexcept
 	{
 		return std::sinh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>());
@@ -230,7 +238,8 @@ namespace units
 	 * @param[in]	x	value to compute the hyperbolic tangent of
 	 * @returns		the hyperbolic tangent of <i>x</i>
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> tanh(const dimensionlessUnit x) noexcept
 	{
 		return std::tanh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>());
@@ -245,7 +254,8 @@ namespace units
 	 *					error occurs.
 	 * @returns		the nonnegative arc hyperbolic cosine of <i>x</i>, as a dimensionless quantity.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> acosh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
@@ -260,7 +270,8 @@ namespace units
 	 * @param[in]	x	value whose arc hyperbolic sine is computed.
 	 * @returns		the arc hyperbolic sine of <i>x</i>, as a dimensionless quantity.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> asinh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
@@ -276,12 +287,29 @@ namespace units
 	 *					is out of this interval, a domain error occurs; for -1 and +1 a pole error may occur.
 	 * @returns		the arc hyperbolic tangent of <i>x</i>, as a dimensionless quantity.
 	 */
-	template<class dimensionlessUnit, std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit>, int> = 0>
+	template<class dimensionlessUnit,
+		std::enable_if_t<traits::is_dimensionless_unit_v<dimensionlessUnit> && traits::has_linear_scale_v<dimensionlessUnit>, int> = 0>
 	dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>> atanh(const dimensionlessUnit x) noexcept
 	{
 		return dimensionless<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>(
 			std::atanh(x.template to<detail::floating_point_promotion_t<typename dimensionlessUnit::underlying_type>>()));
 	}
+	//----------------------------------
+	//	LOGARITHMIC-SCALE MATH DIAGNOSTICS
+	//----------------------------------
+	// The rest of the transcendental family, on the same terms as the exponential and logarithmic functions in
+	// `units/core.h`: each reads a quantity's VALUE, which on a logarithmic scale is the decibel figure and not the
+	// ratio it denotes, so `atan(decibels(3.25))` reading 3.25 gives 1.2723 rad where the ratio 2.113 gives 1.1288.
+
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(acos)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(asin)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(atan)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(cosh)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(sinh)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(tanh)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(acosh)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(asinh)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(atanh)
 } // namespace units
 
 #endif // units_angle_h_

@@ -93,20 +93,21 @@ decides which operations are available on it: see [affine temperature](../explai
 | `is_affine_conversion_factor<Cf>` / `is_affine_conversion_factor_v<Cf>` | the conversion factor has a non-zero datum translation. (`is_affine_conversion_factor` in `include/units/core.h`) |
 | `is_affine_unit<U>` / `is_affine_unit_v<U>` | `U`'s conversion factor is affine, i.e. `U` is a reading measured from a datum. (`is_affine_unit` in `include/units/core.h`) |
 | `is_decibel_level_v<U>` | `U` is a decibel **level**: a *dimensioned* quantity on a logarithmic reference scale (`dBW`, `dBm`). A *dimensionless* decibel value is a **gain** — a relative ratio — and the two obey different rules. |
-| `has_arbitrary_origin_v<U>` | `U` is measured from an arbitrary origin — an affine reading **or** a decibel level. Such a value has no origin-free magnitude, sign, remainder, root, power or ratio, so the library refuses those operations on it. |
+| `has_arbitrary_origin_v<U>` | `U` is measured from an arbitrary origin — an affine reading **or** a decibel level. Such a value has no *scale-independent* magnitude, sign, remainder, root, power or ratio: an operation that reads its number reads it in the scale it was written in. Ask this trait where generic code must treat those differently from an ordinary magnitude. |
 
-`has_arbitrary_origin_v` is how generic code should ask. Each refusal is a diagnostic that fires from an overload
-*body*, so the overload still resolves and a `requires`-expression reports the operation as available — which means a
-`requires`-guarded `if constexpr` hard-errors rather than taking its fallback. Guard on the trait:
+`has_arbitrary_origin_v` is how generic code should ask, and it is the only way to ask: the operations the library
+*does* refuse are diagnostics that fire from an overload **body**, so the overload still resolves and a
+`requires`-expression reports the operation as available — which means a `requires`-guarded `if constexpr`
+hard-errors rather than taking its fallback. Guard on the trait:
 
 ```cpp
 template<class T>
-T scaleIfMeaningful(T value)
+auto magnitudeOf(T value)
 {
-    if constexpr (!units::traits::has_arbitrary_origin_v<T>)
-        return value * 2.0;      // an ordinary quantity, an offset-free scale, a difference, a dB gain
+    if constexpr (units::traits::has_arbitrary_origin_v<T>)
+        return units::abs(value - T(0));   // a reading or a level: take the magnitude of a difference
     else
-        return value;            // a reading or a level: scaling it has no origin-free meaning
+        return units::abs(value);          // an ordinary quantity, an offset-free scale, a difference, a dB gain
 }
 ```
 

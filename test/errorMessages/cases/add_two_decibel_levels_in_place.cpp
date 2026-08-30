@@ -1,6 +1,6 @@
 // Case: `level += level` cannot work -- adding two logarithmic levels has no meaning (two 10 dBW sources are not a
-// 20 dBW source), so the by-value `operator+` is deleted. The compound form formerly reported the deleted function
-// from inside the library rather than naming what to do: combine the powers in the linear domain.
+// 20 dBW source), so the by-value `operator+` is deleted. Without this diagnostic the compound form reports the
+// deleted function from inside the library rather than naming what to do: combine the powers in the linear domain.
 //
 // expect: fail
 // expect-match: cannot add two decibel levels

@@ -1,7 +1,7 @@
 // Case: a decibel value is a LOGARITHMIC reading, and the dB number does not scale like the linear ratio it stands
-// for (doubling the dB number squares the ratio), so `dBW *= double` must be ill-formed. It formerly COMPILED and
-// produced a value that was neither reading: the body read the value through the scale (`raw()` is the dB number) and
-// wrote it back past the scale, so dBW(12.5) *= 2.0 yielded 13.98 dBW. Scale the linear quantity instead.
+// for (doubling the dB number squares the ratio), so `dBW *= double` must be ill-formed. Computing it would read the
+// value THROUGH the scale (`raw()` is the dB number) and write it back PAST the scale, giving 13.98 dBW for
+// dBW(12.5) *= 2.0 -- neither reading. Scale the linear quantity instead.
 //
 // expect: fail
 // expect-match: cannot scale a decibel value

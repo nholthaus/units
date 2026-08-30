@@ -1427,7 +1427,7 @@ TEST(WrapperDelta, affineDeltaScalesEvenThoughTheReadingItWrapsDoesNot)
 	static_assert(std::is_same_v<double, typename std::remove_cv_t<decltype(integral * 2.5)>::underlying_type>,
 		"an integer delta scaled by a floating factor promotes");
 
-	// and a scaled delta still moves a point, which is the whole reason to have it
+	// and a scaled delta moves a point, which is the whole reason to have it
 	A<celsius<double>> reading(20.0);
 	reading += D<celsius<double>>(2.5) * 2.0;
 	EXPECT_DOUBLE_EQ(25.0, reading.value());
@@ -1455,7 +1455,7 @@ TEST(WrapperDelta, aTaggedAmountScalesButATaggedReadingDoesNot)
 	// delegation change, `kind` computed on the raw value and quietly permitted both.
 	kind<"cabin", celsius<double>> reading(20.5);
 	EXPECT_DOUBLE_EQ(20.5, reading.value());
-	// a tagged reading still moves by a tagged amount, which is the operation that makes sense
+	// a tagged reading moves by a tagged amount, which is the operation that makes sense
 	reading += kind<"cabin", degrees>(2.5);
 	EXPECT_DOUBLE_EQ(23.0, reading.value());
 }

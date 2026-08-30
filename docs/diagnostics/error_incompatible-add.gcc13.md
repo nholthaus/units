@@ -7,6 +7,6 @@ readable_add_incompatible.cpp:21:18: error: no match for ‘operator+’ (operan
       |            |       |
       |            |       units::time::seconds<double>
       |            units::length::meters<double>
-In file included from include/units/length.h:49,
-                 from readable_add_incompatible.cpp:18:
+readable_add_incompatible.cpp:21:18: note: there are 13 candidates
+   21 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
 ```

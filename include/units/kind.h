@@ -78,7 +78,7 @@ namespace units
 	namespace detail
 	{
 		// `delta_unit_t` (the offset-free counterpart of a unit) is defined once, in <units/core.h>; the wrappers reuse
-		// that definition rather than carrying a second copy. Note that core's point-difference `operator-` builds its
+		// that definition rather than carrying a second copy. Core's point-difference `operator-` builds its
 		// result conversion factor inline rather than through this alias -- the two agree, but they are not one
 		// expression, which is worth collapsing if that operator is ever touched.
 

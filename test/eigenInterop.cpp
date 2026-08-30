@@ -417,11 +417,9 @@ namespace
 
 
 // A quantity measured from an arbitrary origin -- an affine reading, or a decibel level -- breaks Eigen's assumption
-// that a coefficient-wise binary operation is `op(T,T) -> T`. This file had NO affine or decibel coverage at all, which
-// is how a silent datum re-application shipped: the scalar difference of two readings is an offset-free AMOUNT, and
-// Eigen assigned it back into the reading coefficient, so `(v - w).eval()` on two EQUAL readings read -273.15 instead
-// of 0. Naming the amount type in `ScalarBinaryOpTraits` fixes that; the operations with no origin-free meaning are
-// refused at the user's expression rather than from inside Eigen.
+// that a coefficient-wise binary operation is `op(T,T) -> T`. The scalar difference of two readings is an offset-free
+// AMOUNT, so without naming that amount type in `ScalarBinaryOpTraits` Eigen assigns the difference back into the
+// reading coefficient and `(v - w).eval()` on two EQUAL readings reads -273.15 rather than 0.
 TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
 {
 	using units::temperature::celsius;
@@ -442,15 +440,16 @@ TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
 	EXPECT_NEAR(20.0, (difference * 2.0).eval()(1).value(), 5.0e-12);
 	EXPECT_NEAR(45.0, difference.sum().value(), 5.0e-12);
 
-	// storing readings is still allowed -- it is only the origin-free arithmetic that is refused
+	// storing and converting readings is unaffected
 	EXPECT_NEAR(20.5, reading(1).value(), 5.0e-12);
 	EXPECT_NEAR(54.5, units::temperature::fahrenheit<double>(reading(0)).value(), 5.0e-12);    // 12.5 degC
 }
 
-// The operations with no origin-free meaning are refused for a matrix of readings exactly as they are for a scalar
-// reading, so the Eigen seam cannot be used to launder them. (Compile-time refusals, so they are asserted through the
-// trait the library publishes for the purpose rather than by attempting the expression.)
-TEST_F(EigenInterop, originRuleReachesTheEigenSeam)
+// A matrix operation must be available exactly where the same operation on one of its coefficients is: a matrix of
+// affine readings scales and reduces in its coefficients' own scale, and a matrix of decibel values does neither,
+// because the scalar `dBW * 2.0` does not exist. The Eigen seam is therefore gated on the coefficient's numerical
+// scale -- what the scalar operators are gated on -- and cannot be used to launder an operation past them.
+TEST_F(EigenInterop, theEigenSeamMatchesTheScalarRule)
 {
 	using units::temperature::celsius;
 	using units::power::dBW;
@@ -460,9 +459,28 @@ TEST_F(EigenInterop, originRuleReachesTheEigenSeam)
 	static_assert(!units::traits::has_arbitrary_origin_v<units::meters<double>>);
 	static_assert(!units::traits::has_arbitrary_origin_v<std::decay_t<decltype(celsius<double>(1) - celsius<double>(0))>>);
 
-	// NOT compilable for a matrix of readings or levels: * 2.0, / 2.0, .sum(), unit_dot, unit_norm,
-	// unit_squared_norm, unit_normalized. Each is refused at the expression, naming the same remedy the scalar
-	// operation names -- express the values as differences.
+	// a matrix of readings scales in the readings' own scale, as `celsius(20.0) * 2.0` does
+	Eigen::Matrix<celsius<double>, 3, 1> reading;
+	reading << celsius<double>(12.5), celsius<double>(20.5), celsius<double>(37.25);
+	EXPECT_NEAR(25.0, (reading * 2.0).eval()(0).value(), 5.0e-12);
+	EXPECT_NEAR(10.25, (reading / 2.0).eval()(1).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (2.0 * reading).eval()(0).value(), 5.0e-12);
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype((reading * 2.0).eval()(0))>>,
+		"scaling a matrix of readings keeps the reading's unit, as the scalar operation does");
+	EXPECT_NEAR(70.25, reading.sum().value(), 5.0e-12);
+	EXPECT_NEAR(1964.0625, unit_squared_norm(reading).value(), 5.0e-9);        // 12.5^2 + 20.5^2 + 37.25^2
+	EXPECT_NEAR(44.31774475, unit_norm(reading).value(), 5.0e-8);
+
+	// NOT compilable for a matrix of decibel values: * 2.0, / 2.0, unit_dot, unit_norm, unit_squared_norm,
+	// unit_normalized -- the scalar operations do not exist either. A matrix of LEVELS does difference into gains.
+	Eigen::Matrix<dBW<double>, 2, 1> level, referenceLevel;
+	level << dBW<double>(20.0), dBW<double>(12.5);
+	referenceLevel << dBW<double>(10.0), dBW<double>(12.5);
+	const auto gain = (level - referenceLevel).eval();
+	EXPECT_NEAR(10.0, gain(0).value(), 5.0e-9);
+	EXPECT_NEAR(0.0, gain(1).value(), 5.0e-9);
+	static_assert(units::traits::is_dimensionless_unit_v<std::decay_t<decltype(gain(0))>>,
+		"the difference of two levels is a dimensionless gain");
 
 	// an ordinary matrix keeps the entire surface
 	Eigen::Matrix<units::meters<double>, 3, 1> length;

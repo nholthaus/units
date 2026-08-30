@@ -1646,7 +1646,7 @@ TEST_F(UnitType, namedUnitReportedTypeIsPreserved)
 	EXPECT_STREQ("mps", meters_per_second<double>(1).abbreviation());
 
 	// (6a) minutes is defined via UNIT_ADD_WITH_PLURAL_TAG; that macro must still register the named class
-	// so name()/abbreviation() resolve (a regression guard: they previously returned null, and a minutes
+	// so name()/abbreviation() resolve (a regression guard: a null there, and a minutes
 	// value streamed as its base unit "90 s" and could null-deref on name()).
 	EXPECT_STREQ("min", minutes<double>(1).abbreviation());
 	EXPECT_STREQ("minutes", minutes<double>(1).name());
@@ -2085,7 +2085,7 @@ TEST_F(UnitType, commonTypeRecoversComposedName)
 // expression must not be well-formed (matching the binary `unit + number`, which is already rejected).
 
 // Whether two quantities can be added. NOTE the limit of this probe: a refusal implemented as a body-level
-// `static_assert` still RESOLVES an overload, so the requires-expression is satisfied and this reports TRUE even for a
+// `static_assert` RESOLVES an overload anyway, so the requires-expression is satisfied and this reports TRUE even for a
 // refused operation. It is evidence ONLY in the negative, and only where the refusal is expressed by overload
 // resolution -- `= delete`, as `dBW + dBW` is. Every other refusal is graded in test/errorMessages against the
 // compiler's real output, so no positive assertion is made here.
@@ -2136,7 +2136,7 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	c += kelvin<double>(5.0);
 	EXPECT_NEAR(5.0, c.value(), 5.0e-12);     // a 5 K change is a 5 C-degree change
 
-	// A different-dimension rhs is still rejected (checked after the fix's constraint tightening).
+	// A different-dimension rhs is rejected.
 
 	// Non-affine compound assignment is unchanged.
 	meters<double> distance(5.0);
@@ -2167,7 +2167,7 @@ TEST_F(UnitType, offsetFreeTemperatureTypesBehaveAsMagnitudes)
 	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
 	EXPECT_NEAR(200.0, (kelvin<double>(300.0) - kelvin<double>(100.0)).value(), 5.0e-12);
 
-	// and a reading still moves by an amount written in ANY same-dimension scale, kelvin included
+	// and a reading moves by an amount written in ANY same-dimension scale, kelvin included
 	celsius<double> c(0.0);
 	c += kelvin<double>(5.0);
 	EXPECT_NEAR(5.0, c.value(), 5.0e-12);
@@ -2260,29 +2260,23 @@ TEST_F(UnitType, matrixReadingDifferenceIsAChange)
 	EXPECT_NEAR(-20.0, (celsius<double>(10.0) - celsius<double>(30.0)).value(), 5.0e-12);       // signed
 }
 
-// READING: scaled or divided by a number yields a CHANGE in its own degrees (scaling a point has no meaning), and
-// scaling one is refused in every spelling, and only a reading is refused.
-TEST_F(UnitType, matrixReadingDoesNotScale)
+// READING: scaling or dividing one reads the number in the reading's own scale, so the operation is SCALE-BOUND --
+// the answer depends on which scale the value is written in.
+TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 {
 	using namespace units::temperature;
 
-	// Scaling a reading is refused rather than reinterpreted. Returning "the change" is not open to us: the
-	// offset-free counterpart of an affine unit is itself a valid ABSOLUTE unit (celsius's counterpart is
-	// kelvin-shaped), so a returned change converts straight back into the point type and re-applies the datum --
-	// `celsius c = celsius(20) * 2.0;` then compiles and reads -233.15 degC. The refusal names `units::delta<...>`,
-	// which IS a distinct type and does scale; the message and the remedy are graded by the errorMessages cases
-	// scale_affine_point / divide_affine_point_by_scalar / scale_affine_point_by_dimensionless, and the wrapper's
-	// scaling is exercised in wrapperTest.cpp.
-	//
-	// NOT compilable (errorMessages): celsius * 2.0, 2.0 * celsius, celsius / 2.0, and the same three written with a
-	// dimensionless QUANTITY instead of a bare number; celsius *= 2.0, celsius /= 2.0; celsius + celsius.
+	// A reading scales, and the result is expressed in the reading's own scale -- which makes the operation
+	// scale-bound: 20 degC doubled is 40 degC, while the same temperature as 293.15 K doubled is 313.15 degC. Published
+	// regressions rely on exactly that, their coefficients having been fitted to one named scale. The datum-independent
+	// weighting is the affine combination, for which `units::midpoint` and `units::lerp` exist.
 
-	// The refusal is targeted: an offset-free scale carries no datum, so it is a magnitude and still scales.
+	// An offset-free scale carries no datum, so scaling it is scale-independent.
 	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
 	EXPECT_NEAR(150.0, (rankine<double>(300.0) / 2.0).value(), 5.0e-12);
 	static_assert(std::is_same_v<kelvin<double>, decltype(kelvin<double>(1) * 2.0)>, "an offset-free scale keeps its unit");
 
-	// A DIFFERENCE of two readings is still an amount, and that amount scales -- so the magnitude arithmetic a user
+	// A DIFFERENCE of two readings is an amount, and that amount scales -- so the magnitude arithmetic a user
 	// wants is reachable without a wrapper as soon as the value is expressed as a difference rather than a reading.
 	const auto amount = celsius<double>(20.0) - celsius<double>(0.0);
 	static_assert(!traits::is_affine_unit_v<decltype(amount)>, "a difference is offset-free");
@@ -2291,6 +2285,50 @@ TEST_F(UnitType, matrixReadingDoesNotScale)
 	EXPECT_NEAR(40.0, (2.0 * amount).value(), 5.0e-12);
 	EXPECT_NEAR(-7.5, ((celsius<double>(-2.5) - celsius<double>(0.0)) * 3.0).value(), 5.0e-12);
 	EXPECT_NEAR(34.2, ((fahrenheit<double>(22.8) - fahrenheit<double>(0.0)) * 1.5).raw(), 5.0e-12);
+}
+
+// READING: the four ways to write a scaling -- a bare number, a dimensionless quantity, a ratio-dimensionless
+// quantity, and each of those as a compound assignment -- are one operation and must give one answer. A spelling that
+// compiled while its twin did not would be an arbitrary restriction, and a spelling that disagreed on the value would
+// be worse.
+TEST_F(UnitType, matrixEverySpellingOfScalingAReadingAgrees)
+{
+	using namespace units::temperature;
+	using units::concentration::percent;
+
+	// by value
+	EXPECT_NEAR(40.0, (celsius<double>(20.0) * 2.0).raw(), 5.0e-12);
+	EXPECT_NEAR(40.0, (2.0 * celsius<double>(20.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(40.0, (celsius<double>(20.0) * dimensionless<double>(2.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(10.0, (celsius<double>(20.0) * percent<double>(50.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(10.0, (celsius<double>(20.0) / 2.0).raw(), 5.0e-12);
+	EXPECT_NEAR(10.0, (celsius<double>(20.0) / dimensionless<double>(2.0)).raw(), 5.0e-12);
+
+	// compound, which must land on the same value as its by-value twin
+	celsius<double> byNumber(20.0), byQuantity(20.0), byPercent(20.0);
+	byNumber *= 2.0;
+	byQuantity *= dimensionless<double>(2.0);
+	byPercent *= percent<double>(50.0);
+	EXPECT_NEAR(40.0, byNumber.raw(), 5.0e-12);
+	EXPECT_NEAR(40.0, byQuantity.raw(), 5.0e-12);
+	EXPECT_NEAR(10.0, byPercent.raw(), 5.0e-12);
+
+	celsius<double> divNumber(20.0), divQuantity(20.0);
+	divNumber /= 2.0;
+	divQuantity /= dimensionless<double>(2.0);
+	EXPECT_NEAR(10.0, divNumber.raw(), 5.0e-12);
+	EXPECT_NEAR(10.0, divQuantity.raw(), 5.0e-12);
+
+	// the result keeps the reading's unit in every spelling
+	static_assert(std::is_same_v<celsius<double>, decltype(celsius<double>(1) * 2.0)>);
+	static_assert(std::is_same_v<celsius<double>, decltype(celsius<double>(1) * dimensionless<double>(2))>);
+	static_assert(std::is_same_v<celsius<double>, decltype(celsius<double>(1) * percent<double>(50))>);
+
+	// fahrenheit and reaumur read their own scale the same way
+	EXPECT_NEAR(136.0, (fahrenheit<double>(68.0) * dimensionless<double>(2.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(8.0, (reaumur<double>(16.0) * percent<double>(50.0)).raw(), 5.0e-12);
+	// NOT compilable (errorMessages: compound_scale_by_decibel_gain): a decibel GAIN is not a plain factor, on an
+	// affine lhs any more than on an ordinary one.
 }
 
 // OFFSET-FREE temperature (kelvin, rankine): no datum in the type, so it behaves as a magnitude -- it adds,
@@ -2343,7 +2381,7 @@ TEST_F(UnitType, matrixChangeArithmeticAndConversion)
 	// a change moves a reading, by value and in place, and the reading stays a reading
 	auto moved = celsius<double>(20.0) + (celsius<double>(5.0) - celsius<double>(0.0));
 	EXPECT_NEAR(25.0, moved.value(), 5.0e-12);
-	static_assert(traits::is_affine_unit_v<decltype(moved)>, "a reading moved by a change is still a reading");
+	static_assert(traits::is_affine_unit_v<decltype(moved)>, "a reading moved by a change is a reading");
 	celsius<double> inPlace(20.0);
 	inPlace += celsius<double>(5.0) - celsius<double>(0.0);
 	EXPECT_NEAR(25.0, inPlace.value(), 5.0e-12);
@@ -2385,7 +2423,7 @@ TEST_F(UnitType, matrixNonTemperatureUnaffected)
 	EXPECT_NEAR(1.5, (units::angle::radians<double>(1.0) + units::angle::radians<double>(0.5)).value(), 5.0e-12);
 	EXPECT_NEAR(2.0, (units::angle::radians<double>(1.0) * 2.0).value(), 5.0e-12);
 
-	// dimensionless and percent still take a bare number
+	// dimensionless and percent take a bare number
 	dimensionless<double> scalar(1.0);
 	scalar += 2.5;
 	EXPECT_NEAR(3.5, scalar.value(), 5.0e-12);
@@ -2457,11 +2495,9 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	static_assert(std::is_same_v<dBW<double>, decltype(moved)>, "a level moved in place stays a level");
 
 
-	// Scaling a decibel value in place, and moving one by a bare number, are refused -- matching the by-value `dBW *
-	// 2.0` and `dBW + 2.0`, which have no overload either. `*=` formerly compiled and returned a value that was neither
-	// reading: the body read the value THROUGH the scale and wrote it back PAST the scale, so dBW(12.5) *= 2.0 yielded
-	// 13.98 dBW (12.5 doubled to 25, then stored as the LINEAR value). Those rejections are diagnostics that fire from
-	// an overload BODY, so the overload still resolves and no concept can observe them; the errorMessages harness cases
+	// Scaling a decibel value in place, and moving one by a bare number, are ill-formed. `raw()` reads a value THROUGH
+	// the numerical scale and the `linearized_value` tag writes PAST it; for a decibel scale those are different
+	// domains, so a value read one way and written the other is neither reading. The errorMessages cases
 	// scale_decibel_level / divide_decibel_level / add_scalar_to_decibel require each to fail and grade its message.
 
 	// ++ and -- step the dB NUMBER, round-tripping through the scale (they rebuild via the ordinary constructor)
@@ -2533,7 +2569,7 @@ TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
 	EXPECT_TRUE(sensor < setpoint);
 
 	// the error is reading - reading, so an AMOUNT in the left operand's degrees; it must NOT be a reading, or a
-	// later conversion would apply Fahrenheit's datum to a difference
+	// a subsequent conversion would apply Fahrenheit's datum to a difference
 	const auto error = setpoint - sensor;
 	EXPECT_NEAR(0.95, error.raw(), 5.0e-12);
 	static_assert(!traits::is_affine_unit_v<decltype(error)>, "an error is an amount, not a reading");
@@ -2577,10 +2613,10 @@ TEST_F(UnitType, caseStudyCoolantWarmupAgainstAnOverheatLimit)
 	EXPECT_NEAR(110.0, celsius<double>(limit).value(), 5.0e-12);
 	const auto headroom = limit - coolant;
 	EXPECT_NEAR(93.825, headroom.raw(), 5.0e-12);
-	EXPECT_TRUE(headroom > decltype(headroom)(0.0));    // still below the limit
+	EXPECT_TRUE(headroom > decltype(headroom)(0.0));    // below the limit
 
-	// Halving the READING is meaningless as a temperature and is refused (errorMessages: scale_affine_point). What a
-	// user actually means -- half the RISE -- is a magnitude and scales without a wrapper.
+	// Halving the READING is scale-bound. Half the RISE is a magnitude, so it is scale-independent, and that is what a
+	// cooling calculation means.
 	EXPECT_NEAR(17.1875, (rise * 0.5).value(), 5.0e-12);
 	EXPECT_NEAR(19.6875, (coolant - celsius<double>(38.1875)).raw(), 5.0e-12);    // half the rise above the halfway point
 }
@@ -2633,7 +2669,7 @@ TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
 		+ units::decibels<double>(42.5)                     // receive antenna gain
 		- units::decibels<double>(1.25);                    // receiver feed loss
 	EXPECT_NEAR(-117.75, received.raw(), 5.0e-9);
-	static_assert(std::is_same_v<dBW<double>, std::remove_cv_t<decltype(received)>>, "a level walked through gains is still a level");
+	static_assert(std::is_same_v<dBW<double>, std::remove_cv_t<decltype(received)>>, "a level walked through gains is a level");
 
 	// the receiver quotes dBm; a milliwatt reference sits 30 dB below a watt reference
 	const auto atReceiver = dBm<double>(received);
@@ -2712,26 +2748,22 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 	budget += kinetic;
 	budget += kinetic * 0.5;
 	EXPECT_NEAR(24404.296875, budget.value(), 5.0e-9);
-	static_assert(std::is_same_v<units::energy::joules<double>, decltype(budget)>, "a scaled energy is still an energy");
+	static_assert(std::is_same_v<units::energy::joules<double>, decltype(budget)>, "a scaled energy is an energy");
 }
 
 // A quantity measured from an arbitrary origin -- an affine reading (a datum) or a decibel LEVEL (a logarithmic
-// reference) -- has no origin-free magnitude, sign, remainder or root, so those are refused rather than answered with
-// an origin-dependent number. The refusals are body-level diagnostics, graded in errorMessages (origin_abs_of_reading,
-// origin_fmod_of_readings, origin_copysign_of_reading, origin_hypot_of_readings, origin_sqrt_of_reading); asserted here
-// is that a DIFFERENCE -- which carries no origin -- does support all of them, so the rule is targeted rather than a
-// blanket ban, and that an offset-free scale is unaffected.
+// reference) -- has no origin-free magnitude, sign, remainder or root: each answer depends on the scale the value is
+// stored in. Applied to a DIFFERENCE, which carries no origin, every one of them is scale-independent, and that is the
+// form to reach for. Asserted here for a difference, for an offset-free scale, and for a dimensionless decibel gain.
 // A quantity stores its value in the numerical scale's LINEARIZED domain, so anything that writes the stored value
 // directly has to linearize first. Two places did not, giving a value that was neither reading.
-// The origin rule applies to operators as well as to the cmath functions: negating a reading, taking the remainder of
-// two, or taking their ratio all give origin-dependent answers and are refused (graded in errorMessages as
-// origin_negate_reading / origin_modulo_of_readings / origin_ratio_of_readings). Increment and decrement are NOT
-// refused -- they step by one unit of the operand's own scale, which is a stated amount, not a bare number.
-// The origin rule has to cover the PRODUCT and POWER surface too, not just sums and ratios -- otherwise a reading can
-// be laundered into an origin-free type by multiplying it, which is what let an Eigen dot product over a matrix of
-// readings compile and return a datum-dependent number labelled as kelvin squared. Refusals graded in errorMessages
-// (origin_product_of_readings); asserted here is that every one of them works on a DIFFERENCE and on an offset-free
-// scale, so the rule stays targeted.
+// Negating a reading, taking the remainder of two, and taking their ratio are all scale-bound in the same way the
+// cmath functions are. Applied to differences they are scale-independent. Increment and decrement are a separate case:
+// they step by one unit of the operand's own scale, which is a stated amount rather than a bare number.
+// Products, powers and reciprocals of a reading are scale-bound like the rest; published psychrometry uses them
+// anyway (Buck's enhancement factor squares a Celsius reading, Kalkstein's index squares a dewpoint, IEC 60751 takes
+// t, t^2 and t^3). Asserted here is that all of them are scale-INDEPENDENT on a difference and on an offset-free
+// scale, which is the form to prefer where the choice exists.
 // `a - b` and `a -= b` deliberately differ when the right operand is offset-free, and that is FORCED by the
 // representation, not a choice: an offset-free temperature is simultaneously a valid READING on an absolute scale
 // (kelvin) and the exact shape an AMOUNT has, so they are one type and a binary operator must pick a meaning. `-`
@@ -2752,7 +2784,7 @@ TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 	celsius<double> moved(20.5);
 	moved -= kelvin<double>(2.5);
 	EXPECT_NEAR(18.0, moved.value(), 5.0e-12);
-	static_assert(traits::is_affine_unit_v<decltype(moved)>, "the moved point is still a reading");
+	static_assert(traits::is_affine_unit_v<decltype(moved)>, "the moved point is a reading");
 
 	// `+` has only one meaningful reading, so it agrees with `+=`
 	EXPECT_NEAR(23.0, (celsius<double>(20.5) + kelvin<double>(2.5)).value(), 5.0e-12);
@@ -2781,15 +2813,13 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 	EXPECT_NEAR(0.0, units::fdim(units::meters<double>(3.25), units::meters<double>(12.5)).raw(), 5.0e-12);
 }
 
-// The refusals are diagnostics that fire from an overload BODY, so the overload still RESOLVES: a
-// `requires`-expression reports the operation as available, and generic code guarding with
-// `if constexpr (requires{ a * 2.0; })` hard-errors instead of taking its fallback. `traits::has_arbitrary_origin_v`
-// is the supported way to ask instead, so it is public and is pinned here -- it is the migration path for any
-// downstream `if constexpr` these refusals break.
+// `traits::has_arbitrary_origin_v` is how generic code asks whether a quantity is measured from an arbitrary origin,
+// and therefore whether scaling or taking the magnitude of it is scale-bound. A `requires`-expression cannot answer
+// that question -- the operations are all available -- so the trait is public and is pinned here.
 // A transcendental reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather than the ratio
 // it denotes -- so `log10(decibels(3.25))` returned log10(3.25) = 0.512 where the ratio is 2.113 and its base-ten
 // logarithm is 0.325. `modf` was worse: it split the decibel figure but wrote the integral part back through a LINEAR
-// dimensionless, landing it in the linearized domain, so the parts did not sum to the input. Both now require a linear
+// dimensionless, landing it in the linearized domain, so the parts did not sum to the input. Both require a linear
 // scale (graded by log_of_decibel_gain), and the remedy is to take the linear ratio first.
 // An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the one weighting that is datum-INDEPENDENT,
 // and that is a measurable fact rather than a convention. It is why the mean of two temperatures is meaningful even
@@ -2994,11 +3024,11 @@ TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
 	// the midpoint of two readings, computed in celsius and in kelvin, is the SAME temperature
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).value(), 5.0e-12);
 	EXPECT_NEAR(25.0, celsius<double>(units::midpoint(kelvin<double>(293.15), kelvin<double>(303.15))).value(), 5.0e-10);
-	// whereas DOUBLING is not datum-independent, which is why it is refused: 20 degC doubled is 40 degC, but the same
-	// temperature doubled in kelvin is 586.3 K = 313.15 degC.
+	// whereas DOUBLING is not datum-independent: 20 degC doubled is 40 degC, but the same temperature doubled in kelvin
+	// is 586.3 K = 313.15 degC.
 	EXPECT_NEAR(313.15, celsius<double>(kelvin<double>(293.15) * 2.0).value(), 5.0e-10);
 
-	// the result is still a READING, in the left operand's unit, and it works across scales
+	// the result is a READING, in the left operand's unit, and it works across scales
 	static_assert(traits::is_affine_unit_v<decltype(units::midpoint(celsius<double>(1), celsius<double>(2)))>,
 		"the midpoint of two readings is a reading");
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), fahrenheit<double>(86.0)).value(), 5.0e-12);
@@ -3037,21 +3067,51 @@ TEST_F(UnitMath, dimensionlessMathRequiresALinearScale)
 	EXPECT_NEAR(0.325, units::log10(dimensionless<double>(decibels<double>(3.25))).value(), 5.0e-9);
 }
 
-// The sign of a value measured from an arbitrary origin is origin-dependent -- the same property `copysign` is refused
-// for -- so `std::signbit` is refused for it too. A dimensionless decibel GAIN keeps it: a negative decibel figure
-// means attenuation, which is a real property of the ratio.
-TEST_F(UnitMath, signbitFollowsTheOriginRule)
+// The whole transcendental family, not just the exponential and logarithmic half, reads a quantity's value in its own
+// scale -- so a decibel argument must be refused throughout. `atan(decibels(3.25))` reading 3.25 gives 1.2723 rad
+// where the ratio the gain denotes, 2.113, gives 1.1288: a wrong answer rather than a diagnostic. The refusals fire
+// from an overload body and so are graded by the errorMessages cases (log_of_decibel_gain, atan_of_decibel_gain);
+// what is asserted here is that the linear paths are exact and that the documented remedy reaches the right value.
+TEST_F(UnitMath, theTranscendentalFamilyReadsALinearScaleOnly)
+{
+	const dimensionless<double> one(1.0);
+	const dimensionless<double> half(0.5);
+
+	EXPECT_NEAR(std::atan(1.0), units::atan(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::asin(0.5), units::asin(half).value(), 5.0e-12);
+	EXPECT_NEAR(std::acos(0.5), units::acos(half).value(), 5.0e-12);
+	EXPECT_NEAR(std::sinh(1.0), units::sinh(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::cosh(1.0), units::cosh(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::tanh(1.0), units::tanh(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::asinh(1.0), units::asinh(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::acosh(1.0), units::acosh(one).value(), 5.0e-12);
+	EXPECT_NEAR(std::atanh(0.5), units::atanh(half).value(), 5.0e-12);
+
+	// a RATIO-dimensionless scale, where the stored number and the fraction differ, reads its fraction
+	EXPECT_NEAR(std::atan(0.5), units::atan(units::concentration::percent<double>(50.0)).value(), 5.0e-12);
+
+	// an angle argument, and the two-argument form, are likewise untouched
+	EXPECT_NEAR(std::sin(1.0), units::sin(units::angle::radians<double>(1.0)).value(), 5.0e-12);
+	EXPECT_NEAR(std::atan2(1.0, 2.0), units::atan2(units::meters<double>(1.0), units::meters<double>(2.0)).value(), 5.0e-12);
+
+	// the documented remedy for a gain, on the arc tangent as on the logarithm: 3.25 dB is a ratio of 2.113
+	EXPECT_NEAR(std::atan(2.1134890398366455), units::atan(dimensionless<double>(decibels<double>(3.25))).value(), 5.0e-9);
+}
+
+// `std::signbit` reads the value in the quantity's own scale, so for a reading it reports the sign of that scale's
+// number: `signbit(celsius(-5.25))` is true while the identical temperature as `kelvin(267.9)` is false. For a
+// difference, an offset-free scale and a decibel gain the sign is scale-independent.
+TEST_F(UnitMath, signbitReadsTheValueInItsOwnScale)
 {
 	EXPECT_TRUE(std::signbit(units::meters<double>(-2.5)));
 	EXPECT_FALSE(std::signbit(units::meters<double>(2.5)));
 	EXPECT_TRUE(std::signbit(decibels<double>(-3.25)));
 	EXPECT_TRUE(std::signbit(units::temperature::kelvin<double>(-2.5)));
 	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(2.5) - units::temperature::celsius<double>(7.5)));
-	// NOT compilable: std::signbit of a celsius READING or a dBW LEVEL -- signbit(celsius(-5.25)) is true while the
-	// identical temperature as kelvin(267.9) is false.
+	// A reading's sign is the sign of its own scale's number, which differs between scales for one temperature.
 }
 
-TEST_F(UnitType, publicTraitsLetGenericCodeGuardTheOriginRule)
+TEST_F(UnitType, publicTraitsIdentifyAnArbitraryOrigin)
 {
 	using namespace units::temperature;
 
@@ -3073,20 +3133,23 @@ TEST_F(UnitType, publicTraitsLetGenericCodeGuardTheOriginRule)
 	static_assert(!traits::is_decibel_level_v<decibels<double>>, "a dimensionless decibel is a gain");
 	static_assert(!traits::is_decibel_level_v<units::power::watts<double>>);
 
-	// the documented guard actually selects the right branch for both kinds of operand
-	const auto scaleIfMeaningful = [](auto value) {
+	// the guard the documentation shows selects the right branch for both kinds of operand: a quantity with an
+	// arbitrary origin gets its magnitude from a DIFFERENCE, which is the same number in every scale, while an
+	// ordinary quantity takes its own.
+	const auto magnitudeOf = [](auto value) {
 		using T = std::remove_cv_t<decltype(value)>;
-		if constexpr (!traits::has_arbitrary_origin_v<T>)
-			return value * 2.0;
+		if constexpr (traits::has_arbitrary_origin_v<T>)
+			return units::abs(value - T(0));
 		else
-			return value;
+			return units::abs(value);
 	};
-	EXPECT_NEAR(25.0, scaleIfMeaningful(units::meters<double>(12.5)).value(), 5.0e-12);
-	EXPECT_NEAR(41.0, scaleIfMeaningful(kelvin<double>(20.5)).value(), 5.0e-12);
-	EXPECT_NEAR(20.5, scaleIfMeaningful(celsius<double>(20.5)).value(), 5.0e-12);    // fallback taken, not an error
+	EXPECT_NEAR(12.5, magnitudeOf(units::meters<double>(-12.5)).value(), 5.0e-12);
+	EXPECT_NEAR(20.5, magnitudeOf(kelvin<double>(20.5)).value(), 5.0e-12);
+	EXPECT_NEAR(5.25, magnitudeOf(celsius<double>(-5.25)).raw(), 5.0e-12);           // the amount, not the reading
+	EXPECT_NEAR(5.25, magnitudeOf(fahrenheit<double>(-5.25)).raw(), 5.0e-12);        // and the same in fahrenheit
 }
 
-TEST_F(UnitType, originRuleCoversProductsPowersAndReciprocals)
+TEST_F(UnitType, productsPowersAndReciprocalsOfAmounts)
 {
 	using namespace units::temperature;
 
@@ -3119,7 +3182,7 @@ TEST_F(UnitType, originRuleCoversProductsPowersAndReciprocals)
 	EXPECT_NEAR(13.0, units::round(units::power::dBW<double>(12.7)).raw(), 5.0e-12);
 }
 
-TEST_F(UnitType, originRuleAppliesToOperatorsToo)
+TEST_F(UnitType, operatorsOnReadingsAmountsAndOffsetFreeScales)
 {
 	using namespace units::temperature;
 
@@ -3211,7 +3274,7 @@ TEST_F(UnitType, numericLimitsAreFiniteOnADecibelScale)
 	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::epsilon(), Linear::epsilon().raw());
 }
 
-TEST_F(UnitMath, originFreeMathOnDifferencesNotReadings)
+TEST_F(UnitMath, originFreeMathOnDifferencesAndOffsetFreeScales)
 {
 	using namespace units::temperature;
 
@@ -3233,9 +3296,9 @@ TEST_F(UnitMath, originFreeMathOnDifferencesNotReadings)
 }
 
 // `fdim` is the positive difference, so its result must be the same KIND the library's own `operator-` produces: an
-// amount for two affine readings, a gain for two decibel levels. It formerly returned the left operand's unit, so
-// fdim(celsius(30), celsius(10)) was a celsius READING of 20 -- i.e. 293.15 K -- while celsius(30) - celsius(10) was
-// correctly a 20-degree amount. The two disagreed by the whole datum.
+// amount for two affine readings, a gain for two decibel levels. Returning the left operand's unit instead would make
+// fdim(celsius(30), celsius(10)) a celsius READING of 20 -- i.e. 293.15 K -- while celsius(30) - celsius(10) is a
+// 20-degree amount, so the two would disagree by the whole datum.
 TEST_F(UnitMath, fdimAgreesWithSubtraction)
 {
 	using namespace units::temperature;
@@ -3256,7 +3319,7 @@ TEST_F(UnitMath, fdimAgreesWithSubtraction)
 	EXPECT_NEAR(8.25, gain.raw(), 5.0e-9);
 	static_assert(traits::is_dimensionless_unit_v<decltype(gain)>, "the positive difference of two levels is a gain");
 
-	// an ordinary dimensioned quantity is unchanged: still the left operand's unit
+	// an ordinary dimensioned quantity keeps the left operand's unit
 	EXPECT_NEAR(7.5, units::fdim(units::meters<double>(12.5), units::meters<double>(5.0)).value(), 5.0e-12);
 	static_assert(std::is_same_v<units::meters<double>, std::remove_cv_t<decltype(units::fdim(units::meters<double>(1), units::meters<double>(0)))>>,
 		"fdim of ordinary quantities keeps the left operand's unit");
@@ -3264,7 +3327,7 @@ TEST_F(UnitMath, fdimAgreesWithSubtraction)
 
 // Rounding to an integer target must apply the DATUM, not just the conversion ratio. The exact-integer path did the
 // latter, so round<celsius<int>>(fahrenheit<int>(54)) read 30 degC instead of 12 -- the datum was dropped entirely.
-// An affine pair now takes the datum-aware floating-point path (exactness is unreachable there anyway, the datum
+// An affine pair takes the datum-aware floating-point path (exactness is unreachable there anyway, the datum
 // being fractional).
 TEST_F(UnitMath, roundingAnAffineConversionAppliesTheDatum)
 {
@@ -3282,7 +3345,7 @@ TEST_F(UnitMath, roundingAnAffineConversionAppliesTheDatum)
 	EXPECT_EQ(285, (units::round<kelvin<int>>(fahrenheit<int>(54))).raw());     // 54 degF == 285.37 K
 	EXPECT_EQ(5, (units::round<celsius<int>>(rankine<int>(500))).raw());        // 500 degR == 4.63 degC
 
-	// a non-affine conversion still takes the exact-integer path and is unchanged
+	// a non-affine conversion takes the exact-integer path, unaffected
 	EXPECT_EQ(16, (units::round<units::feet<int>>(units::meters<int>(5))).raw());
 	// and a floating-point source was always correct
 	EXPECT_EQ(12, (units::round<celsius<int>>(fahrenheit<double>(54.0))).raw());
@@ -3791,7 +3854,7 @@ TEST_F(UnitType, unitTypeModulo)
 	static_assert(has_equivalent_conversion_factor(d_m, a_m));
 
 	// Coarser lhs: the result is the common (finer) unit, so the operator is not order-dependent. This
-	// direction previously failed to compile (the result was declared as the lhs unit, and converting the
+	// direction is the one that fails when the result is declared as the lhs unit, because converting the
 	// finer common result back to the coarser integer kilometers is lossy → the constructor was disabled).
 	constexpr kilometers f_km(3);
 	constexpr auto       g_m = f_km % b_m;    // 3000 m % 1800 m = 1200 m, in meters (the finer common unit)

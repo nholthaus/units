@@ -30,7 +30,7 @@ matrices with no special syntax:
 | Construction / storage | `Eigen::Matrix<meters<double>, 3, 1> v;` | a vector of `meters` |
 | Element access | `v(0)`, `v.x()` | a `meters<double>` |
 | Addition / subtraction | `a + b`, `a - b` | a vector of `meters` |
-| Scale by a plain scalar | `v * 2.0`, `2.0 * v`, `v / 2.0` | a vector of `meters`. Not available for a unit measured from a datum or a logarithmic reference (`celsius`, `dBW`) — scaling such a reading is refused, as it is for a scalar quantity |
+| Scale by a plain scalar | `v * 2.0`, `2.0 * v`, `v / 2.0` | a vector of `meters`. Available wherever the same operation on one coefficient is, so a vector of `celsius` scales in its coefficients' own scale, while a vector of `dBW` does not scale at all — the scalar `dBW * 2.0` does not exist either |
 | Reductions that keep the dimension | `v.sum()` | a `meters<double>` |
 | Block / segment views | `v.head<2>()` | a vector of `meters` |
 | `Map` over unit storage | `Eigen::Map<Vector3m>(ptr)` | a view of `meters` |

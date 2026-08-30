@@ -206,13 +206,14 @@ DOC_CASES = {
     "scalar-plus-unit":    "readable_scalar_plus_unit.cpp",
     "trig-needs-angle":    "readable_trig_needs_angle.cpp",
     "compare-dimensions":  "readable_compare_across_dimensions.cpp",
-    # The affine and decibel refusals, whose messages the README quotes verbatim. Registered here so the quoted
+    # The affine and decibel diagnostics, whose messages the README quotes verbatim. Registered here so the quoted
     # text is regenerated from the compiler rather than hand-typed, and cannot drift as the diagnostics change.
-    "add-two-affine-points":   "add_two_temperature_points.cpp",
-    "scale-affine-point":      "scale_affine_point.cpp",
     "add-scalar-to-affine":    "add_scalar_to_affine.cpp",
+    "sub-scalar-from-affine":  "sub_scalar_from_affine.cpp",
     "scale-decibel-level":     "scale_decibel_level.cpp",
     "add-scalar-to-decibel":   "add_scalar_to_decibel.cpp",
+    "add-two-decibel-levels":  "decibel_level_plus_level.cpp",
+    "transcendental-of-decibel": "log_of_decibel_gain.cpp",
     "add-different-dimensions": "add_different_dimensions.cpp",
     "multiply-in-place":       "multiply_in_place_by_quantity.cpp",
 }
@@ -224,9 +225,9 @@ def trim_diagnostic(out, abs_path, case_name, max_lines=8):
     # absolute temp path of the case file with its bare name, so a snippet is portable across checkouts.
     out = out.replace(str(abs_path), case_name)
     lines = out.splitlines()
-    # NOTE the pattern: `\berror:\b` never matches, because `\b` after a colon sits between two non-word
-    # characters -- so `start` always fell back to 0 and every generated page was the compiler's PREAMBLE rather
-    # than its diagnostic, which is the opposite of what this function is for.
+    # NOTE the pattern: there is no `\b` after the colon. A word boundary there would sit between two non-word
+    # characters and never match, so `start` would fall back to 0 and every generated page would carry the
+    # compiler's preamble instead of its diagnostic.
     start = next((i for i, l in enumerate(lines) if re.search(r'\berror:|error C\d', l)), 0)
     kept = lines[start:start + max_lines]
     return "\n".join(kept).rstrip()

@@ -236,13 +236,15 @@ celsius<double> t(20.0);
 t += celsius<double>(5.0);   // warm by 5 degrees → 25 °C   (still an absolute temperature)
 t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
 
-// point + point is disabled for OFFSET scales — summing two degrees-Celsius values adds their datums,
-// which is arithmetically corrupt (20 °C + 5 °C is not 25 °C in any absolute sense):
-// auto bad = celsius<double>(20.0) + celsius<double>(5.0);   // does not compile (by design)
-// Zero-offset scales (kelvin, rankine) have no datum to corrupt, so they add like any linear unit.
+// point + point reads the rhs as an amount — the by-value form of the += above:
+auto warmer = celsius<double>(20.0) + celsius<double>(5.0);   // 25 °C
+
+// A weighted sum is datum-independent exactly when its weights total one, which is what these two do:
+auto mid = midpoint(celsius<double>(20.0), celsius<double>(30.0));   // 25 °C, in every scale
+auto q   = lerp(celsius<double>(20.0), fahrenheit<double>(86.0), 0.25);
 ```
 
-At a glance — every temperature operation, what it yields, and what to write when one is disabled. A *reading*
+At a glance — every temperature operation and what it yields. A *reading*
 carries a datum (`celsius`, `fahrenheit`, `reaumur`); an *amount* does not (a difference of two readings, or an
 offset-free scale like `kelvin`/`rankine`). Nothing here requires a wrapper:
 
@@ -255,40 +257,40 @@ offset-free scale like `kelvin`/`rankine`). Nothing here requires a wrapper:
 | `c + amount`, `amount + c` | reading, moved | the by-value form of `+=`; commutative |
 | `amount + amount`, `amount * 2.0`, `amount /= 4.0` | amount | an amount is an ordinary quantity, so it scales |
 | `kelvin + kelvin`, `kelvin * 2.0` | kelvin | an offset-free scale behaves as a magnitude |
-| `c1 + c2` (two readings) | **disabled** | subtract them for an amount, or move one with `+=` |
-| `c * 2.0`, `2.0 * c`, `c / 2.0`, `c *= 2.0`, `c /= 2.0` | **disabled** | scaling a reading has no meaning — scale the *amount* (`t1 - t2`), or a `delta<celsius<double>>` |
-| `c * dimensionless(2)`, `c * percent(50)` | **disabled** | the same operation written differently, refused the same way |
-| `c += 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
+| `c1 + c2` (two readings) | reading, moved by the rhs | the by-value form of `+=`: the rhs is read as an amount |
+| `lerp(c1, c2, t)`, `midpoint(c1, c2)` | reading | a weighted sum whose weights total one, so the answer is the same in every scale |
+| `c * 2.0`, `2.0 * c`, `c / 2.0`, `c *= 2.0`, `c *= percent(50)` | reading, in its own scale | scaling reads the reading's own number — see below |
+| `abs(c)`, `-c`, `fmod(c1, c2)`, `sqrt(c)`, `hypot(c1, c2)`, `c1 / c2` | in the reading's own scale | likewise: the number as written, not a scale-independent magnitude |
+| `++c`, `--c`, `floor(c)`, `ceil(c)`, `round(c)`, `min`/`max`/`clamp` | reading | these step, quantize, or select in the reading's own scale |
+| `c += 5.0`, `c -= 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
 | `c += meters(1)` | **disabled** | different dimensions |
-| `abs(c)`, `fabs(c)`, `copysign(c, …)` | **disabled** | a reading's magnitude and sign depend on where zero is — apply them to `t1 - t2` |
-| `-c` | **disabled** | negating a reading is datum-dependent — negate an amount |
-| `c1 / c2`, `c1 * c2`, `c * meters(2)`, `2.0 / c` | **disabled** | a ratio or product of readings is datum-dependent — use amounts |
-| `fmod(c1, c2)`, `c1 % c2`, `c % 7` | **disabled** | a remainder measured from an arbitrary origin — use amounts |
-| `sqrt(c)`, `pow<2>(c)`, `hypot(c1, c2)` | **disabled** | a root or power of a reading is datum-dependent — use amounts |
-| `++c`, `--c`, `floor(c)`, `ceil(c)`, `round(c)`, `min`/`max`/`clamp` | **allowed** | these step or quantize in the reading's OWN scale, or select an operand — no origin-free value is computed |
 
-Every disabled row above is refused because the answer would depend on where the scale's zero was put:
-`abs(celsius(-5.25))` is 5.25 °C = 278.4 K, while the *identical* temperature written as `kelvin(267.9)` gives
-267.9 K. The rule is one predicate, and it is public — `units::traits::has_arbitrary_origin_v<T>` is how generic code
-should ask, since these refusals are not visible to a `requires`-expression.
+A reading and an amount are one type, so an operation that reads the number reads it **in the scale it was written
+in**. That is scale-bound rather than wrong: `abs(celsius(-5.25))` is 5.25 °C, while the identical temperature
+written as `kelvin(267.9)` gives 267.9 K. Which of those a formula needs is the formula's business, and published
+temperature formulae need both — 16 of the 26 collected in
+`test/main.cpp::caseStudyPublishedTemperatureFormulae` scale a °C or °F reading directly, and some (Magnus,
+Antoine) have no absolute-scale form at all. The rule for a weighted sum is exact: it is datum-independent when its
+weights total one, which is why `lerp` and `midpoint` give the same temperature in every scale while doubling does
+not.
 
-Scaling a reading is **refused rather than reinterpreted**, and that is a deliberate limit worth understanding.
-The tempting behavior is to return "the change" — but a change cannot be represented as a bare unit, because the
-offset-free counterpart of an affine unit is itself a valid *absolute* unit (celsius's counterpart is
-kelvin-shaped). A returned change therefore converts straight back into the point type and re-applies the datum,
-so `celsius c = celsius(20) * 2.0;` would compile and read **−233.15 °C**. Rather than ship that, the operation
-is refused. What a user usually means is available without a wrapper — express the value as an amount and scale
-that:
+Two consequences are worth knowing:
+
+- **A scaled reading is meaningful only in the scale it was written in.** `celsius(20) * 2.0` is 40 °C; the same
+  temperature as `kelvin(293.15) * 2.0` is 586.3 K = 313.15 °C. Both are what the arithmetic says.
+- **An amount cannot be returned as a bare unit.** The offset-free counterpart of an affine unit is itself a valid
+  *absolute* unit (celsius's counterpart is kelvin-shaped), so a "change" returned as a plain unit converts straight
+  back and re-applies the datum. When the intent is a change, name it — a difference of two readings is offset-free,
+  and `delta<celsius<double>>` from `<units/kind.h>` states it in the type:
 
 ```cpp
-const auto rise = celsius<double>(20.0) - celsius<double>(0.0);   // an amount
-const auto twice = rise * 2.0;                                    // 40 K of change
-c += twice;                                                       // move the reading by it
+const auto rise  = celsius<double>(20.0) - celsius<double>(0.0);   // an amount
+const auto twice = rise * 2.0;                                     // 40 K of change
+c += twice;                                                        // move the reading by it
 ```
 
-`delta<celsius<double>>` from `<units/kind.h>` is the same thing with the intent stated in the type; it is a
-*distinct* type that does not convert back into a reading, so it scales freely and the assignment above cannot
-be written by mistake.
+Which quantities carry a datum is public: `units::traits::has_arbitrary_origin_v<T>` is true for an affine reading
+and for a decibel level, so generic code can ask instead of carrying a unit list.
 
 One caveat on the *printed* form of an amount: the offset-free counterpart of celsius is kelvin-shaped and so
 prints as kelvin, and the counterparts of fahrenheit and reaumur have no strong name at all, so they also print
@@ -296,12 +298,11 @@ in kelvin — `fahrenheit(212) - fahrenheit(32)` holds 180 Fahrenheit-degrees (`
 `100 K`. The value is right in either reading; only the label is the base unit. `delta<fahrenheit<double>>`
 prints `delta 180 degF`.
 
-Every disabled row reports one line naming the remedy, not a wall of declined overloads:
+Each disabled row reports one line naming the remedy, not a wall of declined overloads:
 
 ```
-units: cannot add two affine points; subtract them for an amount, or move one with +=.
-units: cannot scale an affine point; scale a difference of two readings, or a units::delta<...> (#include <units/kind.h>).
 units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
+units: cannot subtract a bare number from an affine point; subtract a quantity of the same dimension.
 ```
 
 Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
