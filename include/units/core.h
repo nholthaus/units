@@ -5266,6 +5266,142 @@ namespace units
 		return dimensionless<Under>(static_cast<Under>(lhs.value()) / static_cast<Under>(rhs.value()));
 	}
 
+	//----------------------------------
+	//	LOGARITHMIC-SCALE MULTIPLY/DIVIDE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// Every valid `*` and `/` above requires a linear scale on both operands, so an operand on a decibel scale has no
+	// candidate at all and the compiler prints a wall -- 149 lines and 12 declined candidates for `dBW * 2.0`, where
+	// the compound `dBW *= 2.0` reports one sentence. These overloads give the by-value forms the same sentence their
+	// compound twins already carry, split by which operand is logarithmic. Each returns a value so its body is
+	// instantiated and the message fires on every compiler.
+	//
+	// A decibel value's number is a LOGARITHM: multiplying or dividing it operates on the exponent, not on the
+	// quantity, so there is no reading of the result to return. The remedy is always to name the linear value first --
+	// `watts(level)` for a dimensioned level, `dimensionless(gain)` for a dimensionless one.
+
+	/// A decibel value scaled by a bare number.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/// Mirror of the above with the operands written the other way round.
+	template<ArithmeticType T, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeRhs operator*(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return rhs;
+	}
+	/// A decibel value scaled by an ordinary quantity.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/// An ordinary quantity scaled by a decibel GAIN: a gain is a logarithmic figure, not a plain factor.
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const D&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot scale by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+	/// An ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a ratio.
+	template<UnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot multiply by a decibel level; use its linear quantity (e.g. watts(level)).");
+		return lhs;
+	}
+	/// Two decibel values multiplied: their numbers are logarithms, so the product is of the exponents.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot multiply two decibel values; multiply their linear values (e.g. watts(level), dimensionless(gain)).");
+		return lhs;
+	}
+
+	/// A decibel value divided by a bare number.
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/// A bare number divided by a decibel value.
+	template<ArithmeticType T, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeRhs operator/(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs>,
+			"units: cannot divide by a decibel value; use its linear value (e.g. watts(level), dimensionless(gain)).");
+		return rhs;
+	}
+	/// A decibel value divided by an ordinary quantity.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/// An ordinary quantity divided by a decibel GAIN.
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const D&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot divide by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+	/// An ordinary quantity divided by a decibel LEVEL.
+	template<UnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide by a decibel level; use its linear quantity (e.g. watts(level)).");
+		return lhs;
+	}
+	/// Two decibel values of DIFFERENT dimensions divided. The same-dimension shape has its own remedy below, and the
+	/// two are made disjoint on `same_dimension` rather than left to constraint subsumption, which does not order them.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs> &&
+			!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide two decibel values; divide their linear values (e.g. watts(level), dimensionless(gain)).");
+		return lhs;
+	}
+	/// Two decibel values of the SAME dimension divided -- the one shape with a direct remedy, since the ratio of two
+	/// levels (or of two gains) IS their difference in dB.
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide two decibel values of one dimension; their ratio is their difference. Use `auto gain = a - b;`.");
+		return lhs;
+	}
+
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, in
 	/// their common (finer) unit.
 	/// @note	The result is the `std::common_type` of the operands — the finer of the two units — not the

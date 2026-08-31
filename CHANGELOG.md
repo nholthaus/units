@@ -93,10 +93,13 @@ cannot see the refusals, since they fire from an overload body — guard on
   the same physical answer, whereas doubling does not.
 - `units::traits::has_arbitrary_origin_v<U>` and `units::traits::is_decibel_level_v<U>` (see above).
 - Diagnostics naming a concrete remedy in place of a wall of declined overloads, for a bare number moved into a
-  quantity, an in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse
-  (scaling a level or a gain, adding two levels, scaling by a gain, applying a transcendental function to one). Each
-  is graded by a case in `test/errorMessages/`, whose expected text is regenerated from the compiler rather than
-  hand-typed.
+  quantity, an in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse.
+  The decibel set now covers the **by-value** `*` and `/` as well as the compound forms: `dBW * 2.0` reported 149
+  lines and 12 declined candidates where `dBW *= 2.0` reported one sentence, and the two are equally ill-formed. All
+  29 shapes — level or gain against a number, an ordinary quantity, or another decibel value, in either operand
+  order — report one 10-line message. The ratio of two same-dimension decibel values has its own remedy, since it
+  **is** their difference: `auto gain = a - b;`. Each message is graded by a case in `test/errorMessages/`, whose
+  expected text is regenerated from the compiler rather than hand-typed.
 - `scripts/ci_local_msvc.cmd`, a local mirror of the MSVC CI leg (build + ctest, and `harness` for the
   diagnostic-message suite). `scripts/ci_local.sh` covers the GCC leg, UndefinedBehaviorSanitizer, the generated
   reference, and the Doxygen build; a change to operators, constraints, or traits should be run through both.

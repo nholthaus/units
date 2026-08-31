@@ -2490,10 +2490,16 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	static_assert(std::is_same_v<dBW<double>, decltype(moved)>, "a level moved in place stays a level");
 
 
-	// Scaling a decibel value in place, and moving one by a bare number, are ill-formed. `raw()` reads a value THROUGH
+	// Multiplying or dividing a decibel value is ill-formed by value and in place alike. `raw()` reads a value THROUGH
 	// the numerical scale and the `linearized_value` tag writes PAST it; for a decibel scale those are different
-	// domains, so a value read one way and written the other is neither reading. The errorMessages cases
-	// scale_decibel_level / divide_decibel_level / add_scalar_to_decibel require each to fail and grade its message.
+	// domains, so a value read one way and written the other is neither reading. Each shape reports one sentence naming
+	// its remedy rather than a wall of declined candidates -- the errorMessages cases scale_decibel_level,
+	// divide_decibel_level, add_scalar_to_decibel, scale_decibel_level_by_value, scale_by_decibel_gain_by_value and
+	// divide_two_decibel_levels_by_value require each to fail and grade its message. The remedies are reachable and
+	// exact:
+	EXPECT_NEAR(35.5655882, (units::watts<double>(units::dBW<double>(12.5)) * 2.0).raw(), 5.0e-7);   // scale the power
+	EXPECT_NEAR(2.1134890398, dimensionless<double>(decibels<double>(3.25)).raw(), 5.0e-10);          // the gain's ratio
+	EXPECT_NEAR(10.0, (dBW<double>(20.0) - dBW<double>(10.0)).raw(), 5.0e-12);                        // levels' ratio in dB
 
 	// ++ and -- step the dB NUMBER, round-tripping through the scale (they rebuild via the ordinary constructor)
 	dBW<double> level(12.5);

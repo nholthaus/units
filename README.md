@@ -409,7 +409,10 @@ algebra follows from it:
 | `level - gain`, `level -= gain` | level | |
 | `++level`, `--level` | level | steps the dB *number* by one. Note the tension with the row below: these predate the level/gain model and are not held to it |
 | `level + level` | disabled | two 10 dBW sources are not a 20 dBW source — sum them in the linear domain, where two equal powers make +3 dB |
-| `level * 2.0`, `level *= 2.0`, `gain *= 2.0` | disabled | a dB number and the ratio behind it do not scale alike — scale the linear quantity |
+| `level * 2.0`, `level *= 2.0`, `gain *= 2.0`, `level / 2.0` | disabled | a dB number and the ratio behind it do not scale alike — scale the linear quantity |
+| `quantity * gain`, `quantity *= gain`, `quantity / gain` | disabled | a gain is a logarithmic figure, not a plain factor — use `dimensionless(gain)` |
+| `level / level`, `gain / gain` (same dimension) | disabled | the ratio of two dB values **is** their difference — write `a - b` |
+| `level * level`, `level / gain`, `quantity * level` | disabled | a product or quotient of logarithms — use the linear values |
 | `level += 5.0`, `gain += 5.0` | disabled | a bare number states neither a reference nor a ratio — add a `decibels(...)` gain |
 
 ```cpp
@@ -421,12 +424,13 @@ auto gain = dBW<double>(15.75) - dBW<double>(12.5);           // 3.25 dB  — a 
 units::dBm<double>(dBW<double>(12.5));                        // 42.5 dBm — a milliwatt reference is 30 dB lower
 ```
 
-Each row above that names a remedy does so through a library diagnostic rather than a list of declined overloads.
-The by-value `level * 2.0`, `2.0 * level` and `level / 2.0` are the exception: they have no overload at all, so the
-compiler prints its own candidate list. Sample output:
+Every row above reports one sentence naming its remedy, by value and in place alike, rather than a list of declined
+overloads — 10 lines of output instead of the 149 lines and 12 candidates a bare overload miss produces. Sample:
 
 ```
 units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.
+units: cannot scale by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).
+units: cannot divide two decibel values of one dimension; their ratio is their difference. Use `auto gain = a - b;`.
 units: cannot add a bare number to a decibel value; add a decibels(...) gain.
 ```
 
