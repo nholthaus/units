@@ -22,13 +22,22 @@ Two public traits are added so generic code can ask rather than carry a unit lis
 `units::traits::is_decibel_level_v<U>`. They are public because these diagnostics fire from an overload *body*, so a
 `requires`-expression reports the operation as available and cannot be used to detect them.
 
-**Migration.** Code that compiles today can stop compiling in four places, all of them decibel: `dBW += dBW` /
-`dBW -= dBW`, `dBW *= 2.0` / `decibels *= 2.0` (and the dimensionless-quantity spellings), a transcendental function
-applied to a decibel value, and `absolute<dBW<double>>` / `delta<dBW<double>>`. Each reports one line naming the
-remedy. Two results change value rather than compiling differently: `std::hash` of a quantity (it hashes the SI base
-value, so two spellings of one quantity now agree), and `std::numeric_limits` of a decibel-scale unit. A guard
-written as `if constexpr (requires(T a){ a * 2.0; })` cannot see these, since they fire from an overload body — guard
-on `units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scale_v<T>` instead.
+**Migration.** Code that compiles against 3.6.1 can stop compiling in four places, all of them decibel:
+
+| stops compiling | 3.6.1 computed | why |
+|---|---|---|
+| `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | `dBW(12.5) *= 2.0` → 13.98 dBW | read through the scale, written past it |
+| `quantity *= decibels(3.0)` | `meters(3) *= decibels(3.0)` → 9 m | multiplied by the dB *figure* |
+| a transcendental function of a decibel value | `log10(decibels(3.25))` → 0.512; `atan(...)` → 1.2723 rad | read the dB figure as the ratio |
+| `absolute<dBW<double>>`, `delta<dBW<double>>` | wrapped, with scaling that had no single reading | `dBW`/`decibels` already separate level from gain |
+
+Each reports one line naming the remedy. Three results change without a compile error: `std::hash` of a quantity (it
+hashes the SI base value, so two spellings of one quantity agree — `hash(celsius(0))` now equals
+`hash(kelvin(273.15))`), `std::numeric_limits` of a decibel-scale unit (`max()` was `INFINITY` and `epsilon()` was
+`0`), and the *type* `fdim` returns for two readings (an amount, not a reading — the raw number is the same, but
+converting the result no longer applies the datum). A guard written as `if constexpr (requires(T a){ a * 2.0; })`
+cannot see the refusals, since they fire from an overload body — guard on
+`units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scale_v<T>` instead.
 
 ### Fixed
 - **Compound assignment of a cross-scale affine quantity applied the rhs's datum** (#402). `celsius(20) +=
@@ -61,9 +70,10 @@ on `units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scal
   affine unit carried celsius's 273.15, which made it compare as affine and re-apply the datum on the way back out.
   A `sqrt` of a squared temperature is consequently a scale-bound magnitude, not a reading.
 - **`std::numeric_limits` for a decibel-scale unit returns usable values.** They are built from the stored
-  representation instead of being pushed through the value constructor, so `max()` is finite (it was `INFINITY`,
-  violating the contract), `epsilon()` is non-zero (it was `0`, silently zeroing any tolerance written against it),
-  and `lowest() <= denorm_min()` holds as the standard requires. A linear scale is unchanged.
+  representation instead of being pushed through the value constructor, which linearizes: `max()` was `INFINITY`
+  (violating the contract that it is finite), `epsilon()` was `0` (silently zeroing any tolerance written against
+  it), and `min()` and `denorm_min()` were both `0`. They read as finite decibel figures, and the standard's
+  `lowest() <= denorm_min()` ordering is preserved. A linear scale is unchanged.
 - **Assignment of a bare number to a decibel-scale quantity now means decibels, matching the value constructor.**
   `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB, so an
   assign-then-read round trip did not hold. Only a decibel scale is affected.
@@ -92,10 +102,10 @@ on `units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scal
   reference, and the Doxygen build; a change to operators, constraints, or traits should be run through both.
 
 ### Changed
-- **Adding or subtracting two decibel LEVELS in place is ill-formed** (`dBW += dBW`, `dBW -= dBW`), matching the
-  already-deleted `dBW + dBW`: two 10 dBW sources are not a 20 dBW source, and the difference of two levels is a
-  gain that cannot be stored back in the level's type. These failed from inside the library rather than at the call
-  site.
+- **Adding or subtracting two decibel LEVELS in place reports its own diagnostic.** `dBW += dBW` and `dBW -= dBW`
+  were ill-formed already, but failed from inside the library — at the assignment that could not hold the resulting
+  gain — rather than at the call site. Each now names the remedy: two 10 dBW sources are not a 20 dBW source, so
+  combine the powers in the linear domain, and take a difference by value because it is a gain.
 - **Scaling or dividing a decibel value by a number is ill-formed** (`dBW *= 2.0`, `decibels *= 2.0`, and the
   dimensionless-quantity spellings). These computed a value that was neither reading: the number was read *through*
   the numerical scale and written back *past* it, so `dBW(12.5) *= 2.0` yielded 13.98 dBW — neither the naive
