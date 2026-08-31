@@ -106,11 +106,16 @@ stays small and the code stays legible.
 
 `units` requires a **C++23** compiler. It is continuously tested on:
 
-| Compiler            | Version | Platform        |
-|---------------------|---------|-----------------|
-| GCC (`g++`)         | 13      | Ubuntu (latest) |
-| Clang (`clang++`)   | 19      | Ubuntu (latest) |
-| MSVC (Visual Studio)| 2022    | Windows (latest)|
+| Compiler            | Version   | Platform                    |
+|---------------------|-----------|-----------------------------|
+| GCC (`g++`)         | 13        | Ubuntu (latest)             |
+| Clang (`clang++`)   | 19        | Ubuntu (latest)             |
+| MSVC (Visual Studio)| 2022      | Windows Server 2022         |
+| MSVC (Visual Studio)| 2026      | Windows Server 2025         |
+
+The two MSVC rows are separate CI jobs on pinned images, and both gate a merge: 2022 is the declared floor, 2026 is
+the current toolchain. A `-latest` runner label is deliberately not used — it migrates between OS and Visual Studio
+versions, so a job on `windows-latest` silently stops testing the version it claims.
 
 Older toolchains are not supported by the 3.x line. The last release for the C++14 era is the 2.x
 series (see [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)).
