@@ -6,7 +6,7 @@ decibel_level_plus_level.cpp:22:48: error: use of deleted function ‘auto units
       |                                                ^
 In file included from include/units/power.h:49,
                  from decibel_level_plus_level.cpp:19:
-include/units/core.h:5617:14: note: declared here
- 5617 |         auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept = delete;
+include/units/core.h:5728:14: note: declared here
+ 5728 |         auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept = delete;
       |              ^~~~~~~~
 ```

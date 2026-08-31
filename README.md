@@ -443,18 +443,28 @@ units: cannot add a bare number to a decibel value; add a decibels(...) gain.
 
 ## Type errors
 
-A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic
-names the unit type. The messages below are captured verbatim from GCC 13.
+A dimensional mistake that a bare `double` would accept is rejected at compile time, with one sentence naming the
+problem and the unit types involved — not a list of every declined overload. The messages below are captured verbatim
+from GCC 13 by the test suite (`test/errorMessages/`), so they cannot drift from what the compiler actually prints.
 
 Adding incompatible dimensions:
 
 ```text
-readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘units::time::seconds<double>’)
-    9 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
-      |            ~~~~~ ^ ~~~~~
-      |            |       |
-      |            |       units::time::seconds<double>
-      |            units::length::meters<double>
+readable_add_incompatible.cpp:23:20:   required from here
+   23 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
+      |                    ^~~~~
+include/units/core.h:5812:39: error: static assertion failed: units: cannot add quantities of different dimensions.
+include/units/core.h:5812:39: note: ‘units::detail::dependent_false<units::length::meters<double>, units::time::seconds<double> >’ evaluates to false
+```
+
+Adding a bare number to a quantity, where the message names the remedy:
+
+```text
+readable_scalar_plus_unit.cpp:20:20:   required from here
+   20 | auto bad = 1.0_m + 5.0; // ill-formed: cannot add a raw scalar to a length
+      |                    ^~~
+include/units/core.h:5846:39: error: static assertion failed: units: cannot add a bare number to a quantity; add a quantity of the same dimension.
+include/units/core.h:5846:39: note: ‘units::detail::dependent_false<units::length::meters<double>, double>’ evaluates to false
 ```
 
 Assigning a product to the wrong dimension — `m * m` is an area, not a length. GCC reports the result

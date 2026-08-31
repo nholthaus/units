@@ -229,6 +229,13 @@ def trim_diagnostic(out, abs_path, case_name, max_lines=8):
     # characters and never match, so `start` would fall back to 0 and every generated page would carry the
     # compiler's preamble instead of its diagnostic.
     start = next((i for i, l in enumerate(lines) if re.search(r'\berror:|error C\d', l)), 0)
+    # A library sentence fires from a template BODY, so the compiler reports the user's own location ABOVE the
+    # error line ("required from here" / "the template being instantiated"). Keep that line: a page showing only
+    # the library's line does not tell a reader where in their code the mistake is.
+    for i in range(max(0, start - 4), start):
+        if case_name in lines[i] and re.search(r'required from here|being instantiated|In instantiation', lines[i]):
+            start = i
+            break
     kept = lines[start:start + max_lines]
     return "\n".join(kept).rstrip()
 

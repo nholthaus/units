@@ -8,5 +8,5 @@ In file included from include/units/length.h:49,
                  from readable_narrowing_to_int.cpp:23:
 readable_narrowing_to_int.cpp:26:32:   in ‘constexpr’ expansion of ‘units::length::meters<int>(units::literals::operator""_ft(1.0e+0l).units::length::feet<double>::units::unit<units::length::feet_, double, units::linear_scale>)’
 include/units/length.h:61:2:   in ‘constexpr’ expansion of ‘((units::length::meters<int>*)this)->units::length::meters<int>::units::unit<units::length::meters_, int, units::linear_scale>.units::unit<units::length::meters_, int, units::linear_scale>::unit<units::length::feet_, double, units::linear_scale>((* & rhs))’
-include/units/core.h:2802:55:   in ‘constexpr’ expansion of ‘units::detail::exact_integral_cast<int, double>(units::unit<units::length::meters_, double, units::linear_scale>((* & rhs)).units::unit<units::length::meters_, double, units::linear_scale>::raw())’
+include/units/core.h:2799:55:   in ‘constexpr’ expansion of ‘units::detail::exact_integral_cast<int, double>(units::unit<units::length::meters_, double, units::linear_scale>((* & rhs)).units::unit<units::length::meters_, double, units::linear_scale>::raw())’
 ```

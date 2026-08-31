@@ -1659,16 +1659,14 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `squared`
-		 * @details		Squares the conversion ratio, `dimension_t` exponents, pi exponents, and removes
-		 *				datum translation ratios.
+		 * @details		Squares the conversion ratio, `dimension_t` exponents and pi exponents, and sets the datum
+		 *				translation to zero. A squared unit has no origin, and a translation carried into one makes
+		 *				the result compare as affine and re-apply that translation on the way back out.
 		 */
 		template<ConversionFactorType Cf>
 		struct squared_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
-			// The datum is dropped, as this manipulator's documentation states: there is no origin for degC^2, and
-			// carrying celsius's 273.15 into a squared type made it compare "affine" and re-apply the datum on the
-			// way back out.
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>, dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<2>>,
 					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
@@ -1696,7 +1694,6 @@ namespace units
 		struct cubed_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
-			// The datum is dropped, for the reason given in `squared_impl`.
 			using type       = conversion_factor<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
 					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, std::ratio<0>>;
 		};
@@ -4038,10 +4035,6 @@ namespace units
 			!std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		// Add only the rhs's magnitude as a delta: convert it into the lhs scale by the pure ratio of the two units'
-		// scale factors, with NO datum applied and NO linearization through the base (which would re-introduce the
-		// offset). rhs.raw() is the rhs value in its own scale; multiplying by rhs_ratio/lhs_ratio expresses that
-		// change in the lhs scale (a 9-Fahrenheit-degree change is 9 * (5/9) = 5 Celsius-degrees).
 		lhs = UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
 		return lhs;
 	}
@@ -4888,10 +4881,6 @@ namespace units
 			(traits::is_affine_unit_v<UnitTypeLhs> || traits::is_affine_unit_v<UnitTypeRhs>))
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		// Reconcile to the LEFT operand's affine unit (its datum applied to the right operand as it converts),
-		// so the delta is expressed in the left operand's scale — celsius(100) - fahrenheit(32) is 100 celsius
-		// degrees, not a value in an anonymous sub-unit of the two scales' common measure. The result is the
-		// offset-STRIPPED counterpart of the left unit so no datum is ever re-applied to the delta.
 		using LhsCf     = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
 		using DeltaCf   = conversion_factor<typename traits::conversion_factor_traits<LhsCf>::conversion_ratio,
 			typename traits::conversion_factor_traits<LhsCf>::dimension_type,
@@ -5204,22 +5193,6 @@ namespace units
 		using CommonUnit = decltype(lhs / rhs);
 		return CommonUnit(CommonUnit(lhs).raw() / rhs);
 	}
-
-	//----------------------------------
-	//	SCALING AN AFFINE QUANTITY
-	//----------------------------------
-	// Scaling a POINT has no meaning: its value is measured from an arbitrary datum, so "twice 20 degC" depends on
-	// where zero was put. Only scaling a CHANGE means anything -- but a change CANNOT be returned as a bare unit,
-	// because the offset-free counterpart of an affine unit is itself a valid ABSOLUTE unit (the offset-free
-	// counterpart of celsius is kelvin-shaped), so it converts straight back into the point type and re-applies the
-	// datum. An earlier iteration of this library DID return one, and `celsius c = celsius(20) * 2.0;` then compiled
-	// and read -233.15 degC (an Eigen `Matrix<celsius<double>> * 2.0` the same, because eigen.h declares the scalar
-	// product's ReturnType as the operand type). So scaling an affine quantity is refused here and names the remedy:
-	// `delta<celsius<double>>` from <units/kind.h> is a DISTINCT type that does not convert back, and it scales.
-	// Each of these returns a value so the body is instantiated and the message fires on every compiler.
-
-
-
 
 	/// Division of a dimensionless by a unit type with a linear scale
 	template<UnitType UnitTypeRhs, ArithmeticType T>
@@ -5816,6 +5789,114 @@ namespace units
 	}
 
 	//----------------------------------
+	//	BY-VALUE ADD/SUBTRACT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// The by-value counterparts of the compound diagnostics above. Without them a dimensional mistake reports the
+	// compiler's own candidate list, which grows with every overload the library declares -- 116 lines on 3.6.1 and
+	// more once the affine by-value forms exist. A selected overload replaces the whole list with one sentence, and
+	// the `dependent_false<L, R>` note still names both operand types.
+
+	/**
+	 * @brief		Diagnostic for adding quantities of different dimensions by value.
+	 * @details		Selected only when no valid `operator+` applies, i.e. the operands' dimensions differ. Returns a
+	 *				value so the body is instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		`lhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot add quantities of different dimensions.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for subtracting quantities of different dimensions by value.
+	 * @details		The mirror of the `operator+` above, on the same terms.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		`lhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot subtract quantities of different dimensions.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for adding a bare number to a dimensioned quantity by value.
+	 * @details		A number carries no dimension. Only a DIMENSIONED left operand is matched, so the dimensionless
+	 *				types, which do add a bare number, are untouched.
+	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
+	 * @tparam		T	the arithmetic right operand's type.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		`lhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, T>,
+			"units: cannot add a bare number to a quantity; add a quantity of the same dimension.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for adding a dimensioned quantity to a bare number by value.
+	 * @details		The operand-reversed form of the `operator+` above.
+	 * @tparam		T	the arithmetic left operand's type.
+	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
+	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @returns		`rhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
+	constexpr UnitTypeRhs operator+(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs, T>,
+			"units: cannot add a bare number to a quantity; add a quantity of the same dimension.");
+		return rhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for subtracting a bare number from a dimensioned quantity by value.
+	 * @details		The `operator-` mirror of the bare-number `operator+` above.
+	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
+	 * @tparam		T	the arithmetic right operand's type.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		`lhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, T>,
+			"units: cannot subtract a bare number from a quantity; subtract a quantity of the same dimension.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for subtracting a dimensioned quantity from a bare number by value.
+	 * @details		The operand-reversed form of the `operator-` above.
+	 * @tparam		T	the arithmetic left operand's type.
+	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
+	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @returns		`rhs`, never reached: the body's `static_assert` always fires.
+	 */
+	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
+	constexpr UnitTypeRhs operator-(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs, T>,
+			"units: cannot subtract a bare number from a quantity; subtract a quantity of the same dimension.");
+		return rhs;
+	}
+
+	//----------------------------------
 	//	LOGARITHMIC-SCALE MATH DIAGNOSTICS
 	//----------------------------------
 	// A transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
@@ -6267,17 +6348,16 @@ namespace units
 		/// the target unit and the matching `std::` rounding is applied. The result is constructed from the
 		/// already-linearized whole value, bypassing the lossless-conversion constructor that correctly rejects the
 		/// implicit form. `To` and `From` are same-dimension units, `To` integral; `From` need not be.
+		/// @details	An affine source or target takes the floating-point path even when both are integral. The
+		///				exact-integer path applies only the conversion RATIO, and a datum lives in the conversion
+		///				factor's translation, so an affine conversion through it drops the datum entirely. Exactness
+		///				is unreachable for such a conversion in any case, the translation being fractional.
 		template<class To, class From>
 		constexpr To rounded_unit_cast(const From& x, rounding_mode mode) noexcept
 		{
 			using ToRep   = typename To::underlying_type;
 			using FromRep = typename From::underlying_type;
 
-			// An AFFINE source or target is excluded from the exact-integer path below. That path applies only the
-			// conversion RATIO, and a datum lives in the conversion factor's translation, so it was dropped entirely:
-			// `round<celsius<int>>(fahrenheit<int>(54))` gave 30 degC instead of 12. Exactness is unreachable for such a
-			// conversion anyway (the datum is fractional -- 273.15), so an affine pair takes the floating-point path,
-			// whose `Promoted(x)` is a real datum-aware conversion.
 			if constexpr (std::is_integral_v<FromRep> && !traits::is_affine_unit_v<From> && !traits::is_affine_unit_v<To>)
 			{
 				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder. The

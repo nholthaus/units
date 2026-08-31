@@ -1,20 +1,22 @@
 // Case: adding incompatible units (length + time) must FAIL readably, naming the strong types.
 //
-// COMPILER-CONTROLLED text: the diagnostic is the compiler's own no-matching-`operator+` / invalid-operands wording
-// (g++ writes "no match for 'operator+'", clang "invalid operands to binary expression", MSVC "binary '+': ... does
-// not define this operator" and names the candidate as `operator +` with a space), so its exact sentence is not
-// asserted verbatim across compilers. Instead the tight readable tokens are asserted: the two FRIENDLY strong types
-// AND that the failing operator context is named — g++/clang spell it tight (`operator+`), MSVC inserts a space
-// (`operator +`), so the operator token is per-compiler. Anti-soup guards confirm the message does not descend into
-// conversion_factor / dimension_t template internals (both markers confirmed absent on GCC-15, clang-19, and MSVC).
+// A selected diagnostic overload replaces the compiler's candidate list with one library sentence, and the
+// `dependent_false<Lhs, Rhs>` note still names both FRIENDLY strong types. Without it the compiler reports its own
+// no-matching-`operator+` wording followed by every declined overload the library declares -- 116 lines and 11
+// candidates on 3.6.1, and the list grows with each overload added. Graded on: the sentence, both type names, and the
+// failing operator context (g++/clang spell it tight, `operator+`; MSVC inserts a space, `operator +`). Anti-soup
+// guards confirm the message does not descend into conversion_factor / dimension_t template internals, and the
+// candidate guard confirms the wall is gone.
 //
 // expect: fail
+// expect-match: cannot add quantities of different dimensions
 // expect-match: meters<
 // expect-match: seconds<
 // expect-match-gcc: operator+
 // expect-match-msvc: operator +
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// forbid-match-gcc: candidate
 #include <units/length.h>
 #include <units/time.h>
 using namespace units::literals;
