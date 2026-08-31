@@ -31,16 +31,20 @@ jobs:
         shell: bash
         run: vcpkg install eigen3:x64-windows
 
+      # VCPKG_APPLOCAL_DEPS=OFF is required, not a preference. The vcpkg toolchain otherwise appends a
+      # `vcpkg z-applocal` post-link step to EVERY executable, copying vcpkg's DLLs next to each one. Several
+      # executables in one directory link within milliseconds of each other, so those steps contend for the same
+      # destination files and one fails with "Access is denied" or "being used by another process" -- after link.exe
+      # has already succeeded. The only vcpkg dependency here is Eigen, which is header-only and has no DLL to copy,
+      # so the step has nothing to do and is pure risk.
       - name: Configure CMake
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_APPLOCAL_DEPS=OFF -DX_VCPKG_APPLOCAL_DEPS_INSTALL=OFF
 
       - name: Build
-        # Build the main test binary first, then the rest. The vcpkg toolchain runs a `z-applocal` post-link step
-        # on every executable, copying the same vcpkg DLLs into build/test/; under a single fully-parallel build
-        # those applocal steps race on the shared DLL files ("cannot access the file because it is being used by
-        # another process"). Staggering the heavy target (unitLibTest) into its own pass keeps the compile parallel
-        # while the applocal steps no longer collide.
+        # Two passes: the heavy test binary alone, then everything else. ctest covers the examples and the lean
+        # (iostream/format/string-disabled) configurations, so all targets must exist or those cases report
+        # "Not Run" -- a red that says nothing about the code.
         run: |
           cmake --build build --parallel --target unitLibTest
           cmake --build build --parallel
