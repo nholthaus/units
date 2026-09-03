@@ -1743,3 +1743,29 @@ TEST(WrapperDeltaMagnitude, aSignedZeroAndANegativeNanAreNormalisedAsUnitsAbsDoe
 	EXPECT_FALSE(std::signbit(units::abs(meters<double>(-0.0)).value()));
 	EXPECT_DOUBLE_EQ(units::abs(meters<double>(-5.25)).value(), units::abs(delta<meters<double>>(meters<double>(-5.25))).value());
 }
+
+// A kind is a TAG on an existing unit, so its arithmetic must be the wrapped unit's arithmetic -- same result unit,
+// same representation, same value. It is delegated rather than reimplemented, which means it also inherits the plain
+// unit's limits: a mixed pair of integral units lands in the finer of the two, and a wide enough ratio overflows
+// there exactly as it does without the tag. Pinned in both directions, because the pull to "improve" one side of
+// this by promoting only the tagged form is what made the two disagree before.
+TEST(WrapperKindDelegation, taggedArithmeticMatchesTheWrappedUnitExactly)
+{
+	// 1 km + 500 m is 1500 m: the result lands in metres, the finer unit, because converting metres into kilometres
+	// would truncate an integral representation
+	const auto plain  = kilometers<int>(1) + meters<int>(500);
+	const auto tagged = units::kind<"t", kilometers<int>>(1) + units::kind<"t", meters<int>>(500);
+	EXPECT_EQ(1500, plain.raw());
+	EXPECT_EQ(1500, static_cast<int>(tagged.raw()));
+	static_assert(std::is_same_v<meters<int>, std::decay_t<decltype(plain)>>);
+	static_assert(std::is_same_v<units::kind<"t", meters<int>>, std::decay_t<decltype(tagged)>>);
+
+	// the same for a difference, and for a floating pair where the left unit simply wins
+	EXPECT_EQ(500, static_cast<int>((units::kind<"t", kilometers<int>>(1) - units::kind<"t", meters<int>>(500)).raw()));
+	EXPECT_DOUBLE_EQ(1.5, static_cast<double>((units::kind<"t", kilometers<double>>(1.0) + units::kind<"t", meters<double>>(500.0)).raw()));
+
+	// a tagged reading negates in its own scale, as the plain reading does -- it is not refused
+	EXPECT_DOUBLE_EQ(-5.0, (-celsius<double>(5.0)).value());
+	EXPECT_DOUBLE_EQ(-5.0, static_cast<double>((-units::kind<"t", celsius<double>>(5.0)).raw()));
+	static_assert(std::is_same_v<units::kind<"t", celsius<double>>, std::decay_t<decltype(-units::kind<"t", celsius<double>>(5.0))>>);
+}

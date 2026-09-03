@@ -10779,6 +10779,57 @@ TEST(SecondAuditAffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
 	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(radiant)>>);
 }
 
+// Every spelling of one operation must agree about whether it is available. `fdim` computes a difference, so it is
+// callable exactly where `operator-` is; `fmod` computes a remainder, so it is callable exactly where `operator%` is.
+// Neither held before: `fdim(decibels(3), dimensionless(2))` answered 0 while `decibels(3) - dimensionless(2)` was
+// ill-formed, and `fmod(dBW, dBW)` computed on the dB figures while `dBW % dBW` was refused. Stating it as an
+// equivalence rather than a list is what keeps a future overload from drifting out of line on one side only.
+template<class A, class B> concept SecondAuditCanSubtract = requires(A a, B b) { a - b; };
+template<class A, class B> concept SecondAuditCanFdim     = requires(A a, B b) { units::fdim(a, b); };
+template<class A, class B> concept SecondAuditCanModulo   = requires(A a, B b) { a % b; };
+template<class A, class B> concept SecondAuditCanFmod     = requires(A a, B b) { units::fmod(a, b); };
+
+TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
+{
+	using Gain  = units::decibels<double>;
+	using Watt  = units::power::dBW<double>;
+	using Milli = units::power::dBm<double>;
+	using Plain = units::dimensionless<double>;
+	using Pct   = units::percent<double>;
+	using Len   = meters<double>;
+
+	static_assert(SecondAuditCanFdim<Gain, Plain> == SecondAuditCanSubtract<Gain, Plain>);
+	static_assert(SecondAuditCanFdim<Plain, Gain> == SecondAuditCanSubtract<Plain, Gain>);
+	static_assert(SecondAuditCanFdim<Gain, Pct> == SecondAuditCanSubtract<Gain, Pct>);
+	static_assert(SecondAuditCanFdim<Gain, Gain> == SecondAuditCanSubtract<Gain, Gain>);
+	static_assert(SecondAuditCanFdim<Watt, Watt> == SecondAuditCanSubtract<Watt, Watt>);
+	static_assert(SecondAuditCanFdim<Watt, Milli> == SecondAuditCanSubtract<Watt, Milli>);
+	static_assert(SecondAuditCanFdim<Len, Len> == SecondAuditCanSubtract<Len, Len>);
+	static_assert(SecondAuditCanFmod<Watt, Watt> == SecondAuditCanModulo<Watt, Watt>);
+	static_assert(SecondAuditCanFmod<Gain, Plain> == SecondAuditCanModulo<Gain, Plain>);
+	static_assert(SecondAuditCanFmod<Gain, Gain> == SecondAuditCanModulo<Gain, Gain>);
+	// `%` and `fmod` agree about the SCALE -- neither takes a logarithmic operand -- but not about the representation:
+	// `%` is the integral remainder and takes only integral units, while `fmod` is the floating one. So the
+	// equivalence holds for an integral pair, and `fmod` alone survives a floating one.
+	static_assert(SecondAuditCanFmod<meters<int>, meters<int>> == SecondAuditCanModulo<meters<int>, meters<int>>);
+	static_assert(SecondAuditCanFmod<Len, Len> && !SecondAuditCanModulo<Len, Len>);
+
+	// and the concrete availability those equivalences settle on: a difference of two gains is a gain, so it stays;
+	// a gain against a PLAIN dimensionless mixes a logarithm with a ratio, which the subtraction already refused
+	static_assert(SecondAuditCanFdim<Gain, Gain>);
+	static_assert(!SecondAuditCanFdim<Gain, Plain>);
+	static_assert(!SecondAuditCanFdim<Plain, Gain>);
+	static_assert(!SecondAuditCanFmod<Watt, Watt>);
+	static_assert(!SecondAuditCanFmod<Gain, Gain>);
+	static_assert(SecondAuditCanFdim<Len, Len>);
+	static_assert(SecondAuditCanFmod<Len, Len>);
+	static_assert(SecondAuditCanModulo<meters<int>, meters<int>>);
+
+	// the surviving decibel difference: 12.5 dBW - 4.25 dBW is an 8.25 dB gain
+	EXPECT_NEAR(8.25, units::fdim(Watt(12.5), Watt(4.25)).raw(), 5.0e-9);
+	static_assert(traits::is_dimensionless_unit_v<decltype(units::fdim(Watt(12.5), Watt(4.25)))>);
+}
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

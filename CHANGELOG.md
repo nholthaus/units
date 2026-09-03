@@ -35,7 +35,8 @@ on `main`, not this branch.)
 | `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | 13.9794 dBW, 7.9588 dBW, 7.7815 dB from `12.5`/`12.5`/`3.0` |
 | `quantity *= decibels(3.0)`, `quantity /= decibels(3.0)` | `meters(3) *= decibels(3.0)` → 9 m; `meters(9) /= decibels(3.0)` → 3 m |
 | a transcendental function of a decibel value | `log10(decibels(3.25))` → 0.5119; `atan(…)` → 1.2723 rad; `atan2(decibels(3), decibels(2))` → 0.9828 rad |
-| `fmod(dBW, dBW)` | 1.0, computed on the dB figures, while `dBW % dBW` was already refused |
+| `fmod` with ANY decibel operand | `fmod(dBW(12.5), dBW(4.25))` → 4, on the dB figures, while `dBW % dBW` was already refused |
+| `fdim` of a decibel value against a plain dimensionless | `fdim(decibels(3), dimensionless(2))` → 0 — a difference that `decibels(3) - dimensionless(2)` itself refuses |
 | `absolute<dBW<double>>`, `delta<dBW<double>>` | both were valid types |
 
 Each reports one sentence naming the remedy.
@@ -135,6 +136,13 @@ overload body — guard on `units::traits::has_arbitrary_origin_v<T>` or `units:
   READING of 0 — 273.15 K — where the difference of two readings is an amount, and of two decibel levels a gain. For an
   ordinary pair the unit and value are unchanged, including for a narrow integral representation. (The unit these two
   select for an ordinary mixed pair changed in #393, already on `main`, not here.)
+
+  Both are now available exactly where the operator they stand for is. `fdim` computes a difference, so it is callable
+  where `operator-` is -- which removed the four mixed decibel/dimensionless pairs it used to answer even though
+  `decibels(3) - dimensionless(2)` was already ill-formed. `fmod` computes a remainder, so it requires the linear scale
+  `operator%` requires; `%` additionally takes only integral units, being the integral remainder, and that difference
+  is deliberate. The equivalence is asserted rather than enumerated, so a future overload cannot drift out of line on
+  one side only.
 - **`atan2` answered with the decibel figures.** `atan2(decibels(3), decibels(2))` returned `atan2(3.0, 2.0)` = 0.9828
   where the ratios give 0.8995: it is the one member of the transcendental family taking two arguments, so the unary
   diagnostic macro could not declare it and the C library's `::atan2` claimed the call.
@@ -161,10 +169,19 @@ overload body — guard on `units::traits::has_arbitrary_origin_v<T>` or `units:
   `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB, so an
   assign-then-read round trip did not hold. Only a decibel scale is affected.
 - **`std::hash` hashed the stored number, so two spellings of one quantity hashed differently.** It hashes the value in
-  SI base units, making the hash agree with `operator==` across units of the same dimension, and is usable in a constant
-  expression for a floating-point representation, which it was not. A value outside the range of `double` — reachable
-  only with a `long double` representation — collides with infinity; the hash contract that equal values hash equally
-  still holds.
+  SI base units, which makes the hash agree with `operator==` across units of the same dimension — eight measured pairs
+  that disagreed now agree, among them `meters(1000)`/`kilometers(1)`, `feet(1)`/`inches(12)`, `hours(1)`/`seconds(3600)`
+  and `dimensionless(0.5)`/`percent(50)` — and it is usable in a constant expression for a floating-point
+  representation, which it was not. Every hash VALUE changes; nothing in the library persists one.
+
+  The base value is mixed as a `double`, and that costs distinctness at extreme magnitudes: adjacent quantities whose
+  base exceeds 2^53 in an integral representation collide (32 of 64 adjacent `meters<long long>` pairs above 2^53), and
+  a base value past the range of `double` collides with infinity (`meters<long double>(LDBL_MAX)`,
+  `kilometers<float>(FLT_MAX)`). Computing the base in `long double` instead removes all of those — 0 of 64 — but
+  breaks `hash(celsius(0)) == hash(kelvin(273.15))`, because the extra precision exposes an ULP difference between
+  celsius's datum arithmetic and kelvin's literal. Hashing equal values equally is the requirement an unordered
+  container relies on; distinctness at 2^53 is quality. So the narrower computation stands, and the collisions above
+  are a known limit rather than an oversight.
 - **Moving a decibel level by a dimensionless dB gain in place** (`dBW += decibels(3.25)`, and `-=`) now works. The
   by-value `dBW + decibels(3.25)` already did; the compound form was rejected as a dimension mismatch, though a gain is
   a ratio and moves a level exactly as an amount moves an affine reading.

@@ -996,8 +996,8 @@ namespace units
 			return basic_kind<Tag, R>(wrap_detail::unwrap(lhs) - wrap_detail::unwrap(rhs));
 		}
 
-		/// Unary negation of a kind (keeps the tag), delegating to the wrapped unit -- so negating a tagged reading is
-		/// refused, as negating a reading is.
+		/// Unary negation of a kind (keeps the tag), delegating to the wrapped unit -- so a tagged reading negates in its
+		/// own scale, as the plain reading does: negating a tagged 5 degC gives a tagged -5 degC.
 		template<fixed_string Tag, UnitType U>
 		constexpr auto operator-(const basic_kind<Tag, U>& k) noexcept
 		{
