@@ -10791,10 +10791,10 @@ TEST(SecondAuditAffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
 // Neither held before: `fdim(decibels(3), dimensionless(2))` answered 0 while `decibels(3) - dimensionless(2)` was
 // ill-formed, and `fmod(dBW, dBW)` computed on the dB figures while `dBW % dBW` was refused. Stating it as an
 // equivalence rather than a list is what keeps a future overload from drifting out of line on one side only.
-template<class A, class B> concept SecondAuditCanSubtract = requires(A a, B b) { a - b; };
-template<class A, class B> concept SecondAuditCanFdim     = requires(A a, B b) { units::fdim(a, b); };
-template<class A, class B> concept SecondAuditCanModulo   = requires(A a, B b) { a % b; };
-template<class A, class B> concept SecondAuditCanFmod     = requires(A a, B b) { units::fmod(a, b); };
+template<class A, class B> concept SecondAuditCanSubtract = requires(A lhs, B rhs) { lhs - rhs; };
+template<class A, class B> concept SecondAuditCanFdim     = requires(A lhs, B rhs) { units::fdim(lhs, rhs); };
+template<class A, class B> concept SecondAuditCanModulo   = requires(A lhs, B rhs) { lhs % rhs; };
+template<class A, class B> concept SecondAuditCanFmod     = requires(A lhs, B rhs) { units::fmod(lhs, rhs); };
 
 TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 {
