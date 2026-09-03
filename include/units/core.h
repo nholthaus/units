@@ -3847,10 +3847,21 @@ namespace units
 		 *				@code
 		 *				if constexpr (units::traits::has_arbitrary_origin_v<T>) { useADifference(v); }
 		 *				@endcode
-		 * @tparam		U	the unit type to test.
+		 *
+		 *				Generic code reaches this trait with whatever type it happens to hold, so ANY type answers it:
+		 *				a type that is not a unit at all reads `false` rather than failing to compile. Writing it as a
+		 *				plain disjunction over `is_affine_unit_v` does not do that, because that trait names
+		 *				`U::conversion_factor` and both operands of a `&&` or `||` in a variable template's initializer
+		 *				are instantiated -- so `has_arbitrary_origin_v<double>` was a hard error inside the library,
+		 *				which is precisely the failure the `if constexpr` above exists to avoid.
+		 * @tparam		U	the type to test; need not be a unit.
 		 */
 		template<class U>
-		inline constexpr bool has_arbitrary_origin_v = is_affine_unit_v<U> || is_decibel_level_v<U>;
+		inline constexpr bool has_arbitrary_origin_v = false;
+		/** @cond */ // DOXYGEN IGNORE: the constrained specialization of the trait documented above.
+		template<UnitType U>
+		inline constexpr bool has_arbitrary_origin_v<U> = is_affine_unit_v<U> || is_decibel_level_v<U>;
+		/** @endcond */
 	} // namespace traits
 
 	//----------------------------------
@@ -4045,8 +4056,8 @@ namespace units
 	/// Compound addition for AFFINE units (e.g. temperatures). The lhs is an absolute point; the rhs is
 	/// interpreted as a RELATIVE delta and the point is moved in place by that magnitude, staying in the lhs
 	/// unit (celsius(20) += celsius(5) -> celsius(25), i.e. "warm by 5 degrees"). The rhs's datum offset is
-	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. (Binary `a + b`
-	/// of two absolute affine points is disabled; use `+=` to move a point by a relative amount.)
+	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. Binary `a + b` reads
+	/// its rhs the same way and answers in the lhs unit.
 	template<UnitType UnitTypeLhs>
 		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
@@ -4771,6 +4782,7 @@ namespace units
 			"units: cannot subtract a bare number from a decibel value; subtract a decibels(...) gain.");
 		return lhs;
 	}
+	/** @endcond */ // END DOXYGEN IGNORE
 
 	/// A reading moved by an AMOUNT, by value: the amount is any same-dimension quantity that is not itself a
 	/// reading (a difference of two readings, a scaled reading, or an offset-free scale), so its magnitude is added to
@@ -4789,12 +4801,14 @@ namespace units
 	{
 		return UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
 	}
-	/// Scaling an affine POINT with the number on the left -- the same operation, refused the same way.
+	/// A reading moved by an AMOUNT written on the LEFT: the same move, so it answers in the READING's unit rather
+	/// than the amount's. Published formulae reach it through a scaled DIFFERENCE added back to a reading -- mean
+	/// radiant temperature is `(Tg - Ta) * (1 + 0.22 * sqrt(v)) + Ta`, whose left operand is offset-free.
 	/**
-	 * @brief		Moves an affine reading by an amount, with the amount written on the left.
+	 * @brief		Moves an affine reading by an amount written on the left.
 	 * @param[in]	lhs	the left operand.
 	 * @param[in]	rhs	the right operand.
-	 * @returns		the computed result, in the left operand's unit.
+	 * @returns		the computed result, in the right operand's unit.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(!traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
@@ -4950,6 +4964,7 @@ namespace units
 		return lhs;
 	}
 
+	/** @cond */ // DOXYGEN IGNORE: deleted, so not callable API.
 	// Two DIFFERENT ratio-scaled dimensionless units (percent and parts-per-million, say) count in different ticks, so
 	// the modulo of their point counts has no meaning. These deleted overloads catch that mix explicitly -- otherwise
 	// the right operand would implicitly convert into the left's unit and silently bind the same-unit overload -- and
@@ -5753,6 +5768,7 @@ namespace units
 			"units: cannot divide two decibel values of one dimension; their ratio is their difference. Use `auto gain = a - b;`.");
 		return lhs;
 	}
+	/** @endcond */ // END DOXYGEN IGNORE
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, in
 	/// their common (finer) unit.
@@ -5837,7 +5853,6 @@ namespace units
 			return U(static_cast<Under>(std::fmod(static_cast<Under>(lhs), static_cast<Under>(rhs.raw()))));
 	}
 
-	/** @endcond */ // END DOXYGEN IGNORE
 	//----------------------------------
 	//	DIMENSIONLESS COMPARISONS
 	//----------------------------------
@@ -6303,25 +6318,6 @@ namespace units
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log1p)
 
 	/** @endcond */ // END DOXYGEN IGNORE
-	//----------------------------------
-	//	ORIGIN-DEPENDENT OPERATOR DIAGNOSTICS
-	//----------------------------------
-	// The same rule as the math diagnostics below, for operators: negating, taking a remainder of, or taking the ratio
-	// of quantities measured from an arbitrary origin gives an origin-dependent answer. (Increment and decrement are
-	// NOT here -- they step by one unit of the operand's own scale, which is a stated amount.)
-
-
-
-
-
-	//----------------------------------
-	//	ORIGIN-DEPENDENT MATH DIAGNOSTICS
-	//----------------------------------
-	// A quantity measured from an arbitrary origin -- an affine reading or a decibel LEVEL -- has no origin-free
-	// magnitude, sign, remainder, or power, so these are refused rather than answered with an origin-dependent number.
-	// Each names the operation that IS defined: the same function on a DIFFERENCE of two such values, which carries no
-	// origin. Each returns a value so the body is instantiated and the message fires on every compiler.
-
 
 	//----------------------------------
 	//	AFFINE COMBINATIONS
@@ -6332,15 +6328,16 @@ namespace units
 	// 20 degC doubled is 40 degC, while the same temperature doubled in kelvin is 313.15 degC.
 	//
 	// The mean of two readings -- a mean daily temperature -- is expressible entirely through a DIFFERENCE, which
-	// carries no datum: `a + (b - a) * t`. These two functions name that formulation.
+	// carries no datum. These two functions name that weighting, and delegate the arithmetic to their `std`
+	// counterparts so they inherit the guarantees those names carry.
 
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		Linear interpolation between two quantities: the affine combination `(1 - t) * a + t * b`.
-	 * @details		Computed as `a + (b - a) * t`, which is datum-safe: the difference carries no origin, so this is
-	 *				meaningful for an affine reading (a temperature) as well as for an ordinary quantity. `t` is
-	 *				dimensionless and is not restricted to [0, 1]; the weights `1 - t` and `t` total one, so the result
-	 *				is independent of where the scale's zero was put.
+	 * @details		Datum-safe, because the weights `1 - t` and `t` total one: the result does not depend on where the
+	 *				scale's zero was put, so this is meaningful for an affine reading (a temperature) as well as for an
+	 *				ordinary quantity. `t` is dimensionless and is not restricted to [0, 1]. Both operands are expressed
+	 *				in the result unit and interpolated by `std::lerp`, so the endpoints are exact.
 	 * @param[in]	a	the quantity at `t == 0`.
 	 * @param[in]	b	the quantity at `t == 1`.
 	 * @param[in]	t	the interpolation parameter.
@@ -6350,22 +6347,25 @@ namespace units
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto lerp(const UnitTypeLhs& a, const UnitTypeRhs& b, T t) noexcept
 	{
+		// Both operands are expressed in the result unit and handed to `std::lerp`, which owns every guarantee the
+		// name carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
+		// `a + (b - a) * t` -- has none of them: at t == 1 it loses `b` entirely once the operands differ by more
+		// than the representation's precision, so lerp(1e16 m, 1 m, 1.0) read 0 rather than 1.
 		using Result = std::decay_t<decltype(a + (b - a) * t)>;
-		// Exact at the endpoints, as `std::lerp` guarantees: `a + (b - a) * t` at t == 1 loses `b` entirely when the
-		// operands differ by more than the representation's precision, so lerp(1e16 m, 1 m, 1.0) reads 0 rather than 1.
-		if (t == T(0))
-			return Result(a);
-		if (t == T(1))
-			return Result(b);
-		return Result(a + (b - a) * t);
+		using Under  = typename Result::underlying_type;
+		using Weight = detail::floating_point_promotion_t<std::common_type_t<Under, T>>;
+		return Result(static_cast<Under>(
+			std::lerp(static_cast<Weight>(Result(a).raw()), static_cast<Weight>(Result(b).raw()), static_cast<Weight>(t))));
 	}
 
 	/**
 	 * @ingroup		UnitMath
 	 * @brief		The midpoint of two quantities: the affine combination with equal weights.
-	 * @details		Computed as `a + (b - a) / 2`, so it is datum-safe for an affine reading -- the arithmetic mean of
-	 *				two temperatures, as a mean daily temperature is. See `lerp`: weights totalling one give the same
-	 *				physical answer in every scale, where scaling a single reading does not.
+	 * @details		Datum-safe for an affine reading -- the arithmetic mean of two temperatures, as a mean daily
+	 *				temperature is. See `lerp`: weights totalling one give the same physical answer in every scale,
+	 *				where scaling a single reading does not. A floating-point pair goes through `std::midpoint`, so the
+	 *				result stays within the operands; an integral pair is halved in a double-width intermediate, so it
+	 *				cannot overflow.
 	 * @param[in]	a	the first quantity.
 	 * @param[in]	b	the second quantity.
 	 * @return		the midpoint, in `a`'s unit.
@@ -6380,9 +6380,28 @@ namespace units
 		// of two READINGS requires.
 		if constexpr (std::is_integral_v<typename UnitTypeLhs::underlying_type> &&
 			std::is_integral_v<typename UnitTypeRhs::underlying_type>)
-			return UnitTypeLhs(std::midpoint(a.raw(), UnitTypeLhs(b).raw()));
+		{
+			// The rhs is expressed in the lhs unit through a double-width intermediate, because converting it into the
+			// lhs's own representation first can overflow before the halfway point is taken: 3000000 km is 3000000000
+			// m, which no int holds, while the midpoint 1500000000 does.
+			using Wide       = detail::widest_signed_int;
+			const Wide inLhs = static_cast<Wide>(
+				static_cast<long double>(b.raw()) *
+				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::num) *
+					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::den)) /
+				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::den) *
+					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::num)));
+			const Wide from = static_cast<Wide>(a.raw());
+			return UnitTypeLhs(static_cast<typename UnitTypeLhs::underlying_type>(from + (inLhs - from) / 2));
+		}
 		else
-			return a + (b - a) / 2;
+		{
+			// A floating-point pair is handed to `std::midpoint`, which is specified to stay within its operands and
+			// to survive an infinite one. Halving a difference does not: midpoint(inf m, 1 m) evaluates
+			// inf + (1 - inf) / 2, i.e. inf + -inf, and reads NaN.
+			using Result = std::decay_t<decltype(a + (b - a) / 2)>;
+			return Result(std::midpoint(Result(a).raw(), Result(b).raw()));
+		}
 	}
 
 	//----------------------------------
@@ -6657,11 +6676,18 @@ namespace units
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		// The RESULT KIND follows `operator-`, as `fdim`'s does: a remainder of two affine readings is an AMOUNT, not
-		// another reading. For an ordinary pair the difference type and the left operand's unit are the same type, so
-		// nothing changes there. A logarithmic scale is excluded, matching `operator%`.
-		using Result = detail::floating_point_promotion_t<decltype(numer - denom)>;
+		// The working unit is decided from `lhs_result_unit_t` on the UNPROMOTED pair, which is where a lossy
+		// rhs-to-lhs conversion selects the finer of the two units, and only then promoted. Deciding it after
+		// promotion hands the choice to the floating types, where the left operand's unit simply wins, and silently
+		// re-homes the answer: fmod(feet<int>(10), inches<int>(1)) reported feet rather than inches.
+		// The RESULT KIND follows `operator-`: a remainder of two affine readings is an AMOUNT, not another reading,
+		// so the datum is stripped. It is NOT taken from `decltype(numer - denom)`, because for an affine pair that
+		// instantiates the affine `operator-`'s body on unpromoted operands and reaches a `consteval` narrowing
+		// constructor a run-time value cannot satisfy -- and because that operator returns `auto`, the failure escapes
+		// its body as a hard error rather than a substitution failure, defeating even a `requires` probe.
+		// A logarithmic scale is excluded, matching `operator%`.
 		using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+		using Result = std::conditional_t<traits::is_affine_unit_v<Common>, detail::delta_unit_t<Common>, Common>;
 		return Result(std::fmod(Common(numer).raw(), Common(denom).raw()));
 	}
 
@@ -6927,26 +6953,58 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && requires(UnitTypeLhs a, UnitTypeRhs b) { a - b; })
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			requires(detail::floating_point_promotion_t<UnitTypeLhs> a, detail::floating_point_promotion_t<UnitTypeRhs> b) { a - b; })
 	constexpr auto fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		// Computed from the library's own difference, so the RESULT KIND follows the same rules: the positive
 		// difference of two affine readings is an AMOUNT and of two decibel levels a GAIN, never another reading or
 		// level. Returning `lhs_result_unit_t` made `fdim(celsius(30), celsius(10))` a celsius READING of 20, i.e.
 		// 293.15 K, while `celsius(30) - celsius(10)` correctly gave a 20 K amount -- the two disagreed by the datum.
-		// Both operands are promoted to a floating-point representation BEFORE the subtraction, so an integer
-		// representation cannot overflow: fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648, not a wrapped
-		// negative. The NaN test reads the operands' UNDERLYING values directly -- `unit::operator==` compares with a
-		// tolerance, under which `-inf == -inf` is false, so testing the difference against itself misclassifies
-		// every non-finite difference as NaN and returns it raw, past the `x > y` guard and negative.
+		// The comparison and the subtraction read THE SAME TWO NUMBERS: both operands are converted into one promoted
+		// common unit, and the guard compares those. Comparing the operands themselves instead routes through
+		// `unit::operator>`, which reconciles the two sides in each operand's OWN representation -- so a narrow
+		// integral operand wraps there while the promoted subtraction does not, and the two disagree:
+		// fdim(meters<int>(5), kilometers<signed char>(3)) answered -2995 m, negative in violation of the function's
+		// own postcondition, and fdim(meters<signed char>(5), centimeters<int>(3)) discarded a real 4.97 m difference
+		// as zero. Reading the numbers directly also keeps the function available for a `char` or `bool`
+		// representation, which `unit::operator>` refuses outright.
+		// Promoting before subtracting is what keeps an integer representation from overflowing:
+		// fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648, not a wrapped negative. The NaN test reads the
+		// underlying values rather than comparing the difference with itself, because `unit::operator==` compares with
+		// a tolerance under which `-inf == -inf` is false.
+		// The result UNIT is decided from `lhs_result_unit_t` on the UNPROMOTED pair, then promoted: deciding it after
+		// promotion moves the choice from the integral types, where a lossy rhs-to-lhs conversion selects the finer
+		// common unit, to the floating ones, where the lhs unit wins -- which silently re-homed the answer, so
+		// fdim(feet<int>(10), inches<int>(1)) read 9.9166.. ft rather than 119 in exactly. It is NOT taken from
+		// `decltype(x - y)`, because for an affine pair that instantiates the affine `operator-`'s body on unpromoted
+		// operands and reaches a `consteval` narrowing constructor a run-time value cannot satisfy. The datum is
+		// stripped here instead, which is what that operator would have done: a positive difference is an amount.
 		using PromotedLhs = detail::floating_point_promotion_t<UnitTypeLhs>;
 		using PromotedRhs = detail::floating_point_promotion_t<UnitTypeRhs>;
-		using Result      = std::decay_t<decltype(PromotedLhs(x) - PromotedRhs(y))>;
+		using CommonUnit  = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+		using Under       = typename CommonUnit::underlying_type;
 
-		const bool anyNaN = (x.raw() != x.raw()) || (y.raw() != y.raw());
-		if (anyNaN)
-			return Result(std::numeric_limits<typename Result::underlying_type>::quiet_NaN());
-		return (x > y) ? Result(PromotedLhs(x) - PromotedRhs(y)) : Result(0);
+		const Under lhs = CommonUnit(PromotedLhs(x)).raw();
+		const Under rhs = CommonUnit(PromotedRhs(y)).raw();
+
+		// A quantity measured from an arbitrary origin does not answer with another one of its own kind: the positive
+		// difference of two affine readings is an AMOUNT and of two decibel LEVELS a GAIN. There the library's own
+		// `operator-` both names the type and computes the value, because a decibel's stored number is a logarithm
+		// whose difference is not the difference of the two stored numbers.
+		if constexpr (traits::has_arbitrary_origin_v<CommonUnit>)
+		{
+			using Result = std::decay_t<decltype(PromotedLhs(x) - PromotedRhs(y))>;
+			if (lhs != lhs || rhs != rhs)
+				return Result(std::numeric_limits<typename Result::underlying_type>::quiet_NaN());
+			return (lhs > rhs) ? Result(PromotedLhs(x) - PromotedRhs(y)) : Result(0);
+		}
+		else
+		{
+			if (lhs != lhs || rhs != rhs)
+				return CommonUnit(std::numeric_limits<Under>::quiet_NaN());
+			return CommonUnit(lhs > rhs ? lhs - rhs : Under(0));
+		}
 	}
 
 	/**

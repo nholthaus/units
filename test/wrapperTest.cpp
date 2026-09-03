@@ -7,6 +7,7 @@
 // not a common sub-unit), promoting only the underlying when a coarse integer LHS cannot hold the RHS losslessly.
 
 #include <gtest/gtest.h>
+#include <cmath>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -1314,10 +1315,15 @@ TEST(WrapperConvert, deltaConversionIsScaleOnlyPointConversionAppliesDatum)
 
 TEST(WrapperConvert, toKeepsPointAPointAndDeltaADeltaAcrossAHop)
 {
-	// to<absolute<V>> keeps a point a point; to<delta<V>> keeps a delta a delta — the ROLE is preserved by `to<>`.
+	// to<absolute<V>> keeps a point a point and to<delta<V>> keeps a delta a delta, but asserting that through
+	// `decltype` only restates the template argument written at the call site -- `to<WrapperTarget>` returns
+	// `WrapperTarget`. The VALUE is what the hop must get right: a point applies the datum, a delta scales only.
 	static_assert(traits::is_absolute_v<decltype(A<celsius<double>>(0.0).to<A<kelvin<double>>>())>);
 	static_assert(traits::is_delta_v<decltype(D<celsius<double>>(5.0).to<D<fahrenheit<double>>>())>);
-	SUCCEED();
+	EXPECT_DOUBLE_EQ(273.15, A<celsius<double>>(0.0).to<A<kelvin<double>>>().value());
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().value());
+	EXPECT_DOUBLE_EQ(0.0, A<celsius<double>>(0.0).to<A<kelvin<double>>>().to<A<celsius<double>>>().value());
+	EXPECT_DOUBLE_EQ(5.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().to<D<celsius<double>>>().value());
 }
 
 //======================================================================================================================
@@ -1704,4 +1710,36 @@ TEST(WrapperDatumFreeShape, aDeltaOfASquaredAffineUnitCarriesNoDatum)
 
 	EXPECT_DOUBLE_EQ(4.0, delta<squaredCelsius>(4.0).value());
 	EXPECT_DOUBLE_EQ(4.0, delta<squaredKelvin>(delta<squaredCelsius>(4.0)).value());
+}
+
+//======================================================================================================================
+//	SECOND-AUDIT REGRESSION GUARD
+//======================================================================================================================
+
+// A delta takes its magnitude from its OWN value, but it must clear a sign the same way `units::abs` does. Choosing
+// the branch with an ORDERING test cannot: `-0.0 < 0.0` is false, so a negatively-signed zero passed straight
+// through, and every comparison against a NaN is false, so a negative NaN did too. `abs(delta)` then disagreed with
+// `abs` of the plain unit and with `abs` of a `kind`, neither of which changed.
+TEST(WrapperDeltaMagnitude, aSignedZeroAndANegativeNanAreNormalisedAsUnitsAbsDoes)
+{
+	// |-0.0| is +0.0: the value compares equal either way, so the SIGN BIT is what the assertion has to read
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<double>>(meters<double>(-0.0))).value()));
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<float>>(meters<float>(-0.0f))).value()));
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<long double>>(meters<long double>(-0.0L))).value()));
+	// an affine unit's delta, the case the own-value magnitude exists for
+	EXPECT_FALSE(std::signbit(units::abs(delta<celsius<double>>(celsius<double>(-0.0))).value()));
+
+	// |-NaN| is a NaN with the sign cleared
+	const auto negativeNan = units::abs(delta<meters<double>>(meters<double>(-std::numeric_limits<double>::quiet_NaN())));
+	EXPECT_TRUE(std::isnan(negativeNan.value()));
+	EXPECT_FALSE(std::signbit(negativeNan.value()));
+
+	// and the ordinary magnitudes are unchanged: |-5.25| is 5.25
+	EXPECT_DOUBLE_EQ(5.25, units::abs(delta<meters<double>>(meters<double>(-5.25))).value());
+	EXPECT_DOUBLE_EQ(5.25, units::abs(delta<celsius<double>>(celsius<double>(-5.25))).value());
+	EXPECT_DOUBLE_EQ(0.0, units::abs(delta<meters<double>>(meters<double>(0.0))).value());
+
+	// it agrees with the plain unit's own magnitude, which is the point
+	EXPECT_FALSE(std::signbit(units::abs(meters<double>(-0.0)).value()));
+	EXPECT_DOUBLE_EQ(units::abs(meters<double>(-5.25)).value(), units::abs(delta<meters<double>>(meters<double>(-5.25))).value());
 }

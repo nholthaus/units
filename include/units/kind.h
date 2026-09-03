@@ -815,14 +815,16 @@ namespace units
 		/// Absolute magnitude of a delta (|amount|), promoting as the plain unit's `units::abs` does. The magnitude is
 		/// taken from the delta's OWN value rather than by calling `units::abs` on the wrapped unit: for a wrapped
 		/// affine unit that call reads the magnitude of the READING in its own scale, while the delta around it is an
-		/// amount whose magnitude is scale-independent.
+		/// amount whose magnitude is scale-independent. It goes through `std::abs`, the same mechanism `units::abs`
+		/// uses, so the two agree on a signed zero and on a negative NaN -- an ordering test cannot clear either
+		/// sign, since `-0.0 < 0.0` is false and every comparison against a NaN is.
 		template<UnitType U>
 		constexpr auto abs(const delta<U>& d) noexcept
 		{
 			using R = detail::floating_point_promotion_t<U>;
 			using Under = typename R::underlying_type;
 			const Under raw = static_cast<Under>(wrap_detail::unwrap(d).raw());
-			return delta<R>(R(raw < Under{} ? static_cast<Under>(-raw) : raw));
+			return delta<R>(R(std::abs(raw)));
 		}
 
 		/// The smaller of two deltas, kept in the LHS unit (scale-only reconciliation of the rhs).

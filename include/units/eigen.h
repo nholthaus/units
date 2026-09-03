@@ -151,6 +151,16 @@ namespace Eigen
 
 namespace units
 {
+	namespace detail
+	{
+		/// A matrix coefficient the unit-aware helpers accept: a plain arithmetic scalar, which carries no numerical
+		/// scale that could disagree with the operation, or a unit written on a linear one. Gating on
+		/// `has_linear_scale_v` alone also excluded an ordinary `Eigen::Matrix<double, 3, 1>`, because that trait is
+		/// false for a type that is not a unit at all.
+		template<class T>
+		inline constexpr bool coefficient_has_linear_scale_v = !units::UnitType<T> || units::traits::has_linear_scale_v<T>;
+	} // namespace detail
+
 	/**
 	 * @brief		Dimensionally-correct dot product of two Eigen vectors of units.
 	 * @details		Sums the elementwise products, so the result carries the product dimension of the operands —
@@ -163,7 +173,8 @@ namespace units
 	 * @returns		the dot product, in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
-		requires(units::traits::has_linear_scale_v<typename DerivedA::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename DerivedA::Scalar> &&
+			detail::coefficient_has_linear_scale_v<typename DerivedB::Scalar>)
 	auto unit_dot(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -184,7 +195,7 @@ namespace units
 	 * @returns		the squared magnitude, in the squared unit of the vector's scalar.
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_squared_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return unit_dot(v, v);
@@ -203,7 +214,7 @@ namespace units
 	 * @returns		the magnitude, in the vector's scalar unit (floating-point promoted for an integral scalar).
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return units::sqrt(unit_squared_norm(v));
@@ -222,7 +233,7 @@ namespace units
 	 *				same size as the input.
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_normalized(const Eigen::MatrixBase<Derived>& v)
 	{
 		using Unit       = typename Derived::Scalar;
@@ -248,7 +259,8 @@ namespace units
 	 * @returns		the cross product, a 3-vector in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
-		requires(units::traits::has_linear_scale_v<typename DerivedA::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename DerivedA::Scalar> &&
+			detail::coefficient_has_linear_scale_v<typename DerivedB::Scalar>)
 	auto unit_cross(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -276,7 +288,8 @@ namespace units
 	 * @returns		the transformed vector, in the input vector's scalar unit.
 	 */
 	template<class MatrixDerived, class VectorDerived>
-		requires(units::traits::has_linear_scale_v<typename VectorDerived::Scalar>)
+		requires(detail::coefficient_has_linear_scale_v<typename MatrixDerived::Scalar> &&
+			detail::coefficient_has_linear_scale_v<typename VectorDerived::Scalar>)
 	auto unit_transform(const Eigen::MatrixBase<MatrixDerived>& matrix, const Eigen::MatrixBase<VectorDerived>& vector)
 	{
 		using Unit       = typename VectorDerived::Scalar;

@@ -632,4 +632,50 @@ TEST(EigenLazyExpression, anIntegralScalarIsPromotedByTheMagnitude)
 	EXPECT_NEAR(1.7320508075688772, unit_norm(unitary - origin).value(), 5.0e-12);
 	EXPECT_NEAR(std::sqrt(3.0), unit_norm(unitary - origin).value(), 5.0e-12);
 }
+
+//======================================================================================================================
+//	SECOND-AUDIT REGRESSION GUARDS
+//======================================================================================================================
+
+// Requiring a LINEAR SCALE of the coefficient excluded a matrix of plain arithmetic scalars, because that trait is
+// false for a type that is not a unit at all -- so an ordinary `Eigen::Matrix<double, 3, 1>` stopped being accepted by
+// helpers that had always taken it. A plain scalar carries no numerical scale that could disagree with the operation.
+TEST(EigenSecondAudit, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
+{
+	Eigen::Matrix<double, 3, 1> plainDouble;
+	plainDouble << 1.0, 2.0, 3.0;
+	Eigen::Matrix<int, 3, 1> plainInt;
+	plainInt << 1, 2, 3;
+
+	// 1*1 + 2*2 + 3*3 == 14
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainDouble, plainDouble)));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainInt, plainInt)));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_squared_norm(plainDouble)));
+	// sqrt(14) == 3.7416573867739413
+	EXPECT_NEAR(3.7416573867739413, static_cast<double>(unit_norm(plainDouble)), 5.0e-12);
+	// a lazy expression of plain scalars: (2,4,6) dotted with itself is 4 + 16 + 36 == 56
+	EXPECT_DOUBLE_EQ(56.0, static_cast<double>(unit_dot(plainDouble + plainDouble, plainDouble + plainDouble)));
+	// the cross product of a vector with itself is the zero vector
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(unit_cross(plainDouble, plainDouble)(0)));
+}
+
+// Constraining only the FIRST operand's coefficient made callability depend on operand order, so one spelling of a
+// two-matrix helper compiled and the other did not.
+TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
+{
+	Eigen::Matrix<double, 3, 1> plainDouble;
+	plainDouble << 1.0, 2.0, 3.0;
+	Vector3m quantity;
+	quantity << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+
+	// 1*1 + 2*2 + 3*3 == 14 whichever operand carries the unit
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainDouble, quantity).value()));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(quantity, plainDouble).value()));
+
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_dot(p, q); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_dot(q, p); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(p, q); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(q, p); });
+}
+
 #endif // UNITS_HAVE_EIGEN

@@ -9957,11 +9957,16 @@ TEST(AffinePointModel, aCompoundMoveAppliesOnlyTheRightOperandsScaleFactor)
 	rankineDownByReaumur -= reaumur<double>(4.0);
 	EXPECT_NEAR(531.0, rankineDownByReaumur.value(), 5.0e-12);
 
-	// the left operand keeps its own unit, so a compound move never launders a reading into another scale
-	static_assert(std::is_same_v<kelvin<double>&, decltype(kelvinByCelsius += celsius<double>(1.0))>,
-		"a compound move keeps the left operand's unit");
-	static_assert(std::is_same_v<rankine<double>&, decltype(rankineByCelsius -= fahrenheit<double>(1.0))>,
-		"a compound move keeps the left operand's unit");
+	// The left operand keeps its own unit, so a compound move never launders a reading into another scale. Asserting
+	// that through `decltype` cannot distinguish the overloads -- every `+=`/`-=` in the library returns
+	// `UnitTypeLhs&` -- so the reading is checked in the lhs's own unit, which only the datum-free path produces:
+	// one Celsius-degree is one kelvin, and one Fahrenheit-degree is one Rankine-degree.
+	kelvin<double> keepsKelvin(300.0);
+	keepsKelvin += celsius<double>(1.0);
+	EXPECT_NEAR(301.0, keepsKelvin.value(), 5.0e-12);
+	rankine<double> keepsRankine(540.0);
+	keepsRankine -= fahrenheit<double>(1.0);
+	EXPECT_NEAR(539.0, keepsRankine.value(), 5.0e-12);
 }
 
 // The positive difference is never negative and agrees with `std::fdim` on every non-finite combination. A difference
@@ -10104,9 +10109,12 @@ TEST(OperationAvailability, anInvalidOrdinaryOperationIsNotReportedAsAvailable)
 	static_assert(!SumIsAvailable<celsius<double>, double>);
 	static_assert(!DifferenceIsAvailable<celsius<double>, double>);
 
-	// `meters -= double` is refused by a `static_assert` in the overload's BODY rather than by deleting the overload,
-	// so a concept reports it as available; it is graded as a compile failure by
-	// `test/errorMessages/cases/sub_scalar_from_length.cpp`. Its `+=` twin IS deleted, and is asserted above.
+	// `meters -= double` and its `+=` twin are BOTH deleted overloads, so a concept observes each. An affine or
+	// decibel left operand keeps a body-fired `static_assert` to preserve its remedy sentence, and that IS invisible
+	// to a concept -- graded instead by test/errorMessages/cases/add_scalar_to_affine.cpp and add_scalar_to_decibel.cpp.
+	static_assert(!CompoundDifferenceIsAvailable<meters<double>, double>, "meters -= double is a deleted overload");
+	static_assert(!CompoundDifferenceIsAvailable<seconds<int>, int>);
+	static_assert(!CompoundSumIsAvailable<joules<double>, float>);
 
 	// two decibel LEVELS do not add -- two 10 dBW sources are not a 20 dBW source. The by-value form is deleted, so
 	// it is observable; the compound form is body-fired and is graded by
@@ -10177,7 +10185,7 @@ TEST(HashInvariants, signedZeroHashesAlikeAndOneUlpNeighboursDoNot)
 	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(0.0)), std::hash<meters<double>>{}(meters<double>(-0.0)));
 	EXPECT_EQ(std::hash<kilometers<double>>{}(kilometers<double>(-0.0)), std::hash<meters<double>>{}(meters<double>(0.0)));
 
-	EXPECT_EQ(1.0000000000000002, std::nextafter(1.0, 2.0));
+	// 1.0000000000000002 is the next double above 1.0 (1 + 2^-52), used below as a one-ULP neighbour.
 	EXPECT_NE(std::hash<meters<double>>{}(meters<double>(1.0)), std::hash<meters<double>>{}(meters<double>(1.0000000000000002)));
 	EXPECT_NE(std::hash<meters<double>>{}(meters<double>(1.0)), std::hash<meters<double>>{}(meters<double>(std::nextafter(1.0, 0.0))));
 }
@@ -10370,8 +10378,9 @@ TEST(RoundingIntoAnAffineTarget, roundingIntoAnIntegerAffineTargetAppliesTheDatu
 // `atan2` refuses a decibel argument: it reads a quantity's VALUE, which on a logarithmic scale is the decibel figure
 // rather than the ratio it denotes. The refusal is a `static_assert` in the overload's BODY (see `units/angle.h`),
 // which a concept cannot observe -- the overload resolves and forcing its instantiation hard-errors -- so it is
-// graded as a compile failure by `test/errorMessages/cases/atan_of_decibel_gain.cpp` alongside the rest of the
-// family. What is asserted here is that the valid paths answer exactly what the C library does for the same numbers.
+// graded as a compile failure by `test/errorMessages/cases/atan2_of_decibel_gain.cpp` -- its own case, because the
+// unary diagnostic macro cannot declare a two-argument function and `atan_of_decibel_gain.cpp` exercises `atan`.
+// What is asserted here is that the valid paths answer exactly what the C library does for the same numbers.
 TEST(Transcendental, theTwoArgumentArcTangentMatchesTheCLibrary)
 {
 	EXPECT_DOUBLE_EQ(std::atan2(1.0, 2.0), units::atan2(meters<double>(1.0), meters<double>(2.0)).raw());
@@ -10636,6 +10645,138 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 	EXPECT_EQ(-1, units::ceil<meters<int>>(millimeters<int>(-1500)).raw());
 	EXPECT_EQ(-2, units::round<meters<int>>(millimeters<int>(-1500)).raw());
 	EXPECT_EQ(-1, units::trunc<meters<int>>(millimeters<int>(-1500)).raw());
+}
+
+//======================================================================================================================
+//	SECOND-AUDIT REGRESSION GUARDS
+//
+//	Each of these pins a defect a second adversarial pass measured on this branch, in ORDINARY (non-affine)
+//	behaviour, against the value the released library answers. Every expected number below is derived by hand in
+//	the comment above it and written out at the assertion, never copied from the library's own output.
+//======================================================================================================================
+
+// `fdim` is specified to return `x - y` when `x > y` and zero otherwise, so it is NEVER negative. Comparing the
+// OPERANDS rather than the two numbers it goes on to subtract routed the guard through `unit::operator>`, which
+// reconciles each side in that side's own representation -- a narrow integral operand wrapped there while the promoted
+// subtraction did not, so the guard fired on a disagreement and the function answered negative, or discarded a real
+// difference as zero.
+TEST(SecondAuditFdim, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDifference)
+{
+	// 3 km is 3000 m, which exceeds 5 m, so the positive difference is zero. (It read -2995 m.)
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(meters<int>(5), kilometers<signed char>(3)).raw()));
+	// 3 min is 180 s, which exceeds 5 s, so the positive difference is zero. (It read -175 s.)
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(units::seconds<int>(5), units::minutes<signed char>(3)).raw()));
+	// 5 m is 500 cm and 500 - 3 == 497 cm. The result is in CENTIMETRES: converting the right operand into metres
+	// would truncate for an integral representation, so the finer common unit is selected. (It read 0.)
+	EXPECT_DOUBLE_EQ(497.0, static_cast<double>(units::fdim(meters<signed char>(5), centimeters<int>(3)).raw()));
+	// 5 km is 500000 cm and 500000 - 3 == 499997 cm. (It read 0.)
+	EXPECT_DOUBLE_EQ(499997.0, static_cast<double>(units::fdim(kilometers<short>(5), centimeters<int>(3)).raw()));
+
+	// the postcondition itself, over every ordering of a narrow pair
+	EXPECT_GE(static_cast<double>(units::fdim(meters<int>(5), kilometers<signed char>(3)).raw()), 0.0);
+	EXPECT_GE(static_cast<double>(units::fdim(kilometers<signed char>(3), meters<int>(5)).raw()), 0.0);
+	EXPECT_GE(static_cast<double>(units::fdim(centimeters<int>(3), meters<signed char>(5)).raw()), 0.0);
+}
+
+// The same comparison also refused a `char` or `bool` representation outright, because `unit::operator>` asserts a
+// standard integer type. Reading the two numbers directly keeps the function available for them.
+TEST(SecondAuditFdim, aCharOrBoolRepresentationIsStillAccepted)
+{
+	// 5 - 3 == 2, in metres
+	EXPECT_DOUBLE_EQ(2.0, static_cast<double>(units::fdim(meters<char>(5), meters<char>(3)).raw()));
+	// 1 - 0 == 1, in metres
+	EXPECT_DOUBLE_EQ(1.0, static_cast<double>(units::fdim(meters<bool>(1), meters<bool>(0)).raw()));
+}
+
+// The non-finite edges, which the guard must not clamp or misclassify. `std::fdim` answers zero when x <= y whatever
+// the magnitudes, and propagates a NaN operand.
+TEST(SecondAuditFdim, theNonFiniteEdgesFollowStdFdim)
+{
+	EXPECT_DOUBLE_EQ(0.0, units::fdim(meters<double>(1.0), meters<double>(std::numeric_limits<double>::infinity())).raw());
+	EXPECT_TRUE(std::isinf(units::fdim(meters<double>(std::numeric_limits<double>::infinity()), meters<double>(1.0)).raw()));
+	EXPECT_DOUBLE_EQ(0.0, units::fdim(meters<double>(-std::numeric_limits<double>::max()), meters<double>(std::numeric_limits<double>::max())).raw());
+	EXPECT_TRUE(std::isnan(units::fdim(meters<double>(std::numeric_limits<double>::quiet_NaN()), meters<double>(1.0)).raw()));
+	EXPECT_TRUE(std::isnan(units::fdim(meters<double>(1.0), meters<double>(std::numeric_limits<double>::quiet_NaN())).raw()));
+
+	// promoting before subtracting is what keeps an integer representation from overflowing: INT_MAX - (-1) is
+	// 2147483648, one past what an int holds
+	EXPECT_DOUBLE_EQ(2147483648.0, static_cast<double>(units::fdim(meters<int>(std::numeric_limits<int>::max()), meters<int>(-1)).raw()));
+}
+
+// `midpoint` and `lerp` take their names from `<numeric>` and `<cmath>`, so they must keep those contracts: the
+// midpoint stays within its operands and survives an infinite one, and interpolation is exact at both endpoints.
+// Halving a difference has neither property.
+TEST(SecondAuditMidpointLerp, theStdContractsAreHonoured)
+{
+	// std::midpoint(INT_MIN, INT_MAX) is INT_MIN + (INT_MAX - INT_MIN) / 2 == -2147483648 + 2147483647 == -1
+	EXPECT_EQ(-1, units::midpoint(meters<int>(std::numeric_limits<int>::min()), meters<int>(std::numeric_limits<int>::max())).raw());
+	// 3000000 km is 3000000000 m, which no int holds; the halfway point 1500000000 does
+	EXPECT_EQ(1500000000, units::midpoint(meters<int>(0), kilometers<int>(3000000)).raw());
+	// an infinite operand: the midpoint of infinity and 1 is infinity, not a NaN (a + (b - a) / 2 is inf + -inf)
+	EXPECT_TRUE(std::isinf(units::midpoint(meters<double>(std::numeric_limits<double>::infinity()), meters<double>(1.0)).raw()));
+	EXPECT_TRUE(std::isinf(units::midpoint(meters<double>(1.0), meters<double>(std::numeric_limits<double>::infinity())).raw()));
+	// a bool representation is still accepted: the halfway point of 1 and 0 truncates to 1, as std::midpoint rounds
+	// toward the first operand
+	EXPECT_DOUBLE_EQ(1.0, static_cast<double>(units::midpoint(meters<bool>(1), meters<bool>(0)).raw()));
+
+	// exact at t == 1 and t == 0 however far apart the operands are: 1e16 + (1 - 1e16) * 1.0 loses the 1 entirely
+	EXPECT_DOUBLE_EQ(1.0, units::lerp(meters<double>(1.0e16), meters<double>(1.0), 1.0).raw());
+	EXPECT_DOUBLE_EQ(1.0e16, units::lerp(meters<double>(1.0e16), meters<double>(1.0), 0.0).raw());
+	// and the interior is the plain weighting: 0 + (10 - 0) * 0.25 == 2.5
+	EXPECT_DOUBLE_EQ(2.5, units::lerp(meters<double>(0.0), meters<double>(10.0), 0.25).raw());
+	// weights totalling one are datum-independent, so a mean temperature reads the same in either scale:
+	// (20 + 30) / 2 == 25 degC, and 86 degF IS 30 degC
+	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), fahrenheit<double>(86.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 0.5).raw(), 5.0e-12);
+}
+
+// `has_arbitrary_origin_v` is documented as the way generic code asks the question, so it must answer for whatever
+// type that code happens to hold. Written as a plain disjunction over `is_affine_unit_v` it named
+// `U::conversion_factor` and both operands of a `||` in a variable template's initializer are instantiated, so a
+// non-unit was a hard error inside the library -- the exact failure the trait exists to let callers avoid.
+TEST(SecondAuditTraits, hasArbitraryOriginAnswersForATypeThatIsNotAUnit)
+{
+	struct NotAUnit
+	{
+		int x;
+	};
+
+	static_assert(!units::traits::has_arbitrary_origin_v<double>);
+	static_assert(!units::traits::has_arbitrary_origin_v<int>);
+	static_assert(!units::traits::has_arbitrary_origin_v<void>);
+	static_assert(!units::traits::has_arbitrary_origin_v<NotAUnit>);
+	static_assert(!units::traits::has_arbitrary_origin_v<std::ratio<1, 2>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<const char*>);
+
+	// and it still answers the question it was added for
+	static_assert(units::traits::has_arbitrary_origin_v<celsius<double>>);
+	static_assert(units::traits::has_arbitrary_origin_v<units::power::dBW<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<meters<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<kelvin<double>>);
+
+	// the guarded `if constexpr` from the trait's own documentation compiles for a plain scalar
+	const auto ask = []<class T>(T) { if constexpr (units::traits::has_arbitrary_origin_v<T>) return 1; else return 0; };
+	EXPECT_EQ(0, ask(2.0));
+	EXPECT_EQ(0, ask(meters<double>(1.0)));
+	EXPECT_EQ(1, ask(celsius<double>(1.0)));
+}
+
+// An offset-free quantity on the LEFT of a reading is the same move as one on the right, so it answers in the
+// READING's unit. Removing that overload also removed the shape the published scaled-difference formulae use.
+TEST(SecondAuditAffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
+{
+	// 5 kelvin-degrees of change added to 20 degC is 25 degC, in the reading's unit
+	EXPECT_NEAR(25.0, (kelvin<double>(5.0) + celsius<double>(20.0)).raw(), 5.0e-12);
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(kelvin<double>(5.0) + celsius<double>(20.0))>>);
+	// and it agrees with the same move written the other way round
+	EXPECT_NEAR(25.0, (celsius<double>(20.0) + kelvin<double>(5.0)).raw(), 5.0e-12);
+
+	// mean radiant temperature: (Tg - Ta) * (1 + 0.22 * sqrt(v)) + Ta, whose left operand is an offset-free
+	// difference. With Tg = 40 degC, Ta = 30 degC and v = 1 m/s: 10 * 1.22 + 30 == 42.2 degC
+	const auto radiant = (celsius<double>(40.0) - celsius<double>(30.0)) * (1.0 + 0.22 * 1.0) + celsius<double>(30.0);
+	EXPECT_NEAR(42.2, radiant.raw(), 5.0e-12);
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(radiant)>>);
 }
 
 int main(int argc, char* argv[])
