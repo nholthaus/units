@@ -446,9 +446,10 @@ units: cannot add a bare number to a decibel value; add a decibels(...) gain.
 
 A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic names the
 unit types involved rather than the `conversion_factor<...>` template behind them. The messages below are captured
-verbatim from GCC 13 by the test suite and committed under
-[`docs/diagnostics/`](docs/diagnostics), which `test/errorMessages/run.py --check-doc` re-emits and diffs, so they
-cannot drift from what the compiler actually prints.
+verbatim from GCC 13 by the test suite and committed under `docs/diagnostics/` (for example
+[the incompatible-addition page](docs/diagnostics/error_add-different-dimensions.gcc13.md)), which
+`test/errorMessages/run.py --check-doc` re-emits and diffs, so they cannot drift from what the compiler actually
+prints.
 
 An operation that ordinary generic code can reach is refused by **deleting** the overload, so a
 `requires`-expression can see the refusal and a SFINAE fallback still works. Adding incompatible dimensions:

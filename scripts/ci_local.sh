@@ -42,6 +42,30 @@ step "6. Doxygen docs (warnings are errors, as on a PR)"
 # (the value is substituted into the generated Doxyfile), so it must be set on the cmake call, not the build. A
 # markdown edit under docs/ can fail this leg while every compiler leg stays green -- that is how a mangled
 # docs/explain page reached CI once.
+# Every repo-relative markdown link must name a FILE that exists. Doxygen turns such a link into a `\ref`, and a
+# link to a DIRECTORY has nothing to resolve to -- doxygen 1.18 makes that an error where 1.17 is silent, so the docs
+# leg can go red on CI while a dev box one version behind reports clean. This check needs no doxygen and no version.
+python3 - <<'PYLINT' || fail=1
+import pathlib, re, sys
+bad = []
+for f in [pathlib.Path("README.md"), pathlib.Path("CHANGELOG.md")] + sorted(pathlib.Path("docs").glob("**/*.md")):
+    if not f.exists():
+        continue
+    for match in re.finditer(r"\]\(([^)\s]+)\)", f.read_text(encoding="utf-8")):
+        target = match.group(1)
+        if target.startswith(("http://", "https://", "mailto:", "#")):
+            continue
+        resolved = (f.parent / target.split("#")[0]).resolve()
+        if not resolved.exists():
+            bad.append(f"{f}: link target does not exist: {target}")
+        elif resolved.is_dir():
+            bad.append(f"{f}: link target is a directory, which doxygen cannot reference: {target}")
+for line in bad:
+    print(f"  MARKDOWN LINK: {line}")
+sys.exit(1 if bad else 0)
+PYLINT
+[ "$fail" = 1 ] || echo "markdown links all name a file that exists"
+
 if command -v doxygen > /dev/null; then
 	# Doxygen NEVER deletes stale output, and this dir is reused warm -- so a run that emits almost nothing still
 	# leaves the previous run's pages behind and the completeness check below passes over a total loss. Clear it.
