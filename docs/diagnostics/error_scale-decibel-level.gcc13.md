@@ -2,10 +2,8 @@
 <!-- case: scale_decibel_level.cpp   compiler: GCC 13 -->
 ```text
 scale_decibel_level.cpp:17:11:   required from here
-   17 |         level *= 2.0; // ill-formed
-      |                  ^~~
-include/units/core.h:4483:39: error: static assertion failed: units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.
- 4483 |                 static_assert(detail::dependent_false<UnitTypeLhs>,
+include/units/core.h:LINE: error: static assertion failed: units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.
+ LINE |                 static_assert(detail::dependent_false<UnitTypeLhs>,
       |                               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:4483:39: note: ‘units::detail::dependent_false<units::power::dBW<double> >’ evaluates to false
+include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::power::dBW<double> >’ evaluates to false
 ```

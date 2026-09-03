@@ -9,6 +9,7 @@
 // `conversion_factor<std::ratio<1,1>, dimension_t<>>` even though the friendly argument type is also named — so the
 // guards are scoped to the compilers where that soup would be a genuine regression.
 //
+// grades: compiler
 // expect: fail
 // expect-match: meters<
 // expect-match: dimensionless

@@ -310,6 +310,28 @@ namespace units
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(acosh)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(asinh)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(atanh)
+
+	/**
+	 * @brief		Diagnostic for the two-argument arc tangent of a decibel value.
+	 * @details		`atan2` is the one member of the family that takes two arguments, so the unary macro above cannot
+	 *				declare it. Without this overload the constrained `atan2` withdraws itself and the C library's
+	 *				`::atan2` claims the call through a dimensionless quantity's conversion to `double`, answering with
+	 *				the decibel FIGURES: `atan2(decibels(3), decibels(2))` gives 0.9828 rad where the ratios 1.995 and
+	 *				1.585 give 0.8995.
+	 * @tparam		Y	the numerator's unit type.
+	 * @tparam		X	the denominator's unit type.
+	 * @param[in]	y	the numerator.
+	 * @returns		`y`, never reached: the body's `static_assert` always fires.
+	 */
+	template<class Y, class X>
+		requires(::units::DimensionlessUnitType<Y> && ::units::DimensionlessUnitType<X> &&
+			!::units::traits::has_linear_scale_v<Y, X>)
+	constexpr Y atan2(const Y y, const X) noexcept
+	{
+		static_assert(::units::detail::dependent_false<Y, X>,
+			"units: cannot apply atan2 to a decibel value; convert to its linear ratio first (e.g. dimensionless(gain)).");
+		return y;
+	}
 } // namespace units
 
 #endif // units_angle_h_

@@ -2,10 +2,8 @@
 <!-- case: add_scalar_to_affine.cpp   compiler: GCC 13 -->
 ```text
 add_scalar_to_affine.cpp:19:7:   required from here
-   19 |         c += 5.0; // ill-formed
-      |              ^~~
-include/units/core.h:4456:39: error: static assertion failed: units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
- 4456 |                 static_assert(detail::dependent_false<UnitTypeLhs>,
+include/units/core.h:LINE: error: static assertion failed: units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
+ LINE |                 static_assert(detail::dependent_false<UnitTypeLhs>,
       |                               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:4456:39: note: ‘units::detail::dependent_false<units::temperature::celsius<double> >’ evaluates to false
+include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::temperature::celsius<double> >’ evaluates to false
 ```

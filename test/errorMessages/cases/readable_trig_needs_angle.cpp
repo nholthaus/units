@@ -6,6 +6,7 @@
 // the FRIENDLY `meters<` type AND the `sin` call context (both named in stable diagnostic text on GCC-15 and
 // clang-19), plus anti-soup guards confirming no conversion_factor / dimension_t template internals.
 //
+// grades: compiler
 // expect: fail
 // NOTE: do not grade on `sin` -- it appears in the echoed source line, so the case would grade itself.
 // expect-match: meters<

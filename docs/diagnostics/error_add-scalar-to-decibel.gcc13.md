@@ -2,10 +2,8 @@
 <!-- case: add_scalar_to_decibel.cpp   compiler: GCC 13 -->
 ```text
 add_scalar_to_decibel.cpp:17:10:   required from here
-   17 |         gain += 2.25; // ill-formed
-      |                 ^~~~
-include/units/core.h:4527:39: error: static assertion failed: units: cannot add a bare number to a decibel value; add a decibels(...) gain.
- 4527 |                 static_assert(detail::dependent_false<UnitTypeLhs>,
+include/units/core.h:LINE: error: static assertion failed: units: cannot add a bare number to a decibel value; add a decibels(...) gain.
+ LINE |                 static_assert(detail::dependent_false<UnitTypeLhs>,
       |                               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:4527:39: note: ‘units::detail::dependent_false<units::decibels<double> >’ evaluates to false
+include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::decibels<double> >’ evaluates to false
 ```

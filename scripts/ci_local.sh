@@ -46,6 +46,24 @@ if command -v doxygen > /dev/null; then
 	[ -f build-docs/CMakeCache.txt ] || DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
 		-DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF > /tmp/ci_docs_cfg.log 2>&1 || { echo "DOCS CONFIGURE FAILED"; cat /tmp/ci_docs_cfg.log; fail=1; }
 	cmake --build build-docs --target doc > /tmp/ci_docs.log 2>&1 && echo "doxygen clean" || { echo "DOXYGEN FAILED:"; grep -E ": (error|warning):" /tmp/ci_docs.log | head -20; fail=1; }
+
+	# A warning-free doxygen run does NOT mean the reference was generated. An unbalanced `@cond`/`@endcond` pair
+	# silently swallows every declaration after it -- one such mistake removed `units::unit` and 12 of the 13 public
+	# concepts from the output while this leg still reported clean. Doxygen mangles page names, so the assertion is on
+	# the COUNT of generated reference pages plus the presence of the central class by name.
+	classes=$(ls build-docs/docs/html/class*.html 2>/dev/null | wc -l)
+	concepts=$(ls build-docs/docs/html/concept*.html 2>/dev/null | wc -l)
+	structs=$(ls build-docs/docs/html/struct*.html 2>/dev/null | wc -l)
+	if [ "$classes" -lt 1 ] || [ "$concepts" -lt 15 ] || [ "$structs" -lt 60 ]; then
+		echo "DOXYGEN OUTPUT INCOMPLETE: classes=$classes (>=1) concepts=$concepts (>=15) structs=$structs (>=60)"
+		echo "  an unbalanced @cond/@endcond swallows everything after it -- check the pairing in include/units/*.h"
+		fail=1
+	elif ! grep -qrl "units::unit" build-docs/docs/html/class*.html 2>/dev/null; then
+		echo "DOXYGEN OUTPUT INCOMPLETE: no page documents units::unit"
+		fail=1
+	else
+		echo "doxygen output carries the public surface (classes=$classes concepts=$concepts structs=$structs)"
+	fi
 else
 	echo "(doxygen not installed; the docs CI leg cannot be mirrored here)"
 fi
@@ -53,6 +71,18 @@ fi
 if [ $FULL -eq 1 ]; then
 	step "7. errorMessages diagnostic harness (g++-13, c++23) [--full]"
 	python3 test/errorMessages/run.py --cc $CC --std c++23 --include include --jobs 4 2>&1 | tail -2 || fail=1
+
+	step "8. errorMessages: captured diagnostics match the committed pages [--full]"
+	# --emit-doc writes docs/diagnostics/ and claims the text "cannot drift". Nothing verified that, and the pages
+	# drifted 400+ lines while the harness reported green. This re-emits and diffs.
+	python3 test/errorMessages/run.py --check-doc --cc $CC --compiler-slug gcc13 --compiler-label "GCC 13" \
+		--include include 2>&1 | tail -3 || fail=1
+
+	step "9. errorMessages: the suite is not self-grading [--full]"
+	# Wrecks every library diagnostic string in a COPY of the headers and requires that every case grading one of
+	# those sentences FAILS. A compiler echoes the offending source line, comments included, so a phrase parked in a
+	# case's prose can otherwise satisfy its own expect-match with the library's message destroyed.
+	python3 test/errorMessages/run.py --mutate --cc $CC --include include 2>&1 | tail -2 || fail=1
 else
 	echo; echo "(skipped the ~130s errorMessages harness; pass --full when diagnostics/operators/serialization changed)"
 fi

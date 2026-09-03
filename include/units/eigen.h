@@ -163,7 +163,7 @@ namespace units
 	 * @returns		the dot product, in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<DerivedA>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename DerivedA::Scalar>)
 	auto unit_dot(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -184,7 +184,7 @@ namespace units
 	 * @returns		the squared magnitude, in the squared unit of the vector's scalar.
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_squared_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return unit_dot(v, v);
@@ -203,7 +203,7 @@ namespace units
 	 * @returns		the magnitude, in the vector's scalar unit (floating-point promoted for an integral scalar).
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_norm(const Eigen::MatrixBase<Derived>& v)
 	{
 		return units::sqrt(unit_squared_norm(v));
@@ -222,7 +222,7 @@ namespace units
 	 *				same size as the input.
 	 */
 	template<class Derived>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<Derived>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename Derived::Scalar>)
 	auto unit_normalized(const Eigen::MatrixBase<Derived>& v)
 	{
 		using Unit       = typename Derived::Scalar;
@@ -248,7 +248,7 @@ namespace units
 	 * @returns		the cross product, a 3-vector in the product unit of the two operands' scalars.
 	 */
 	template<class DerivedA, class DerivedB>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<DerivedA>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename DerivedA::Scalar>)
 	auto unit_cross(const Eigen::MatrixBase<DerivedA>& lhs, const Eigen::MatrixBase<DerivedB>& rhs)
 	{
 		using UnitA   = typename DerivedA::Scalar;
@@ -276,7 +276,7 @@ namespace units
 	 * @returns		the transformed vector, in the input vector's scalar unit.
 	 */
 	template<class MatrixDerived, class VectorDerived>
-		requires(units::traits::has_linear_scale_v<typename std::decay_t<decltype(*std::declval<const Eigen::MatrixBase<VectorDerived>&>().derived().data())>>)
+		requires(units::traits::has_linear_scale_v<typename VectorDerived::Scalar>)
 	auto unit_transform(const Eigen::MatrixBase<MatrixDerived>& matrix, const Eigen::MatrixBase<VectorDerived>& vector)
 	{
 		using Unit       = typename VectorDerived::Scalar;

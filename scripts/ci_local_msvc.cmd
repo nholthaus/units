@@ -38,11 +38,16 @@ REM "Not Run" -- a red that says nothing about the code.
 if "%~1"=="" (
 	cmake --build build-msvc --parallel --target unitLibTest || exit /b 1
 	cmake --build build-msvc --parallel || exit /b 1
-	pushd build-msvc
-	ctest --output-on-failure --parallel 4
-	set RC=%ERRORLEVEL%
-	popd
-	exit /b %RC%
+	goto :runctest
 )
 
 cmake --build build-msvc --parallel --target %~1
+exit /b %ERRORLEVEL%
+
+REM Outside the parenthesised block above: a %VAR% written inside one is substituted at PARSE time, so `set RC=` there
+REM followed by `exit /b %RC%` exits with whatever RC held BEFORE the block ran -- a failing ctest reported success and
+REM this gate could not fail. Here ERRORLEVEL is read after the command, so the exit code is ctest's own.
+:runctest
+cd /d %~dp0..\build-msvc
+ctest --output-on-failure --parallel 4
+exit /b %ERRORLEVEL%

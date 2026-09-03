@@ -2,10 +2,8 @@
 <!-- case: sub_scalar_from_affine.cpp   compiler: GCC 13 -->
 ```text
 sub_scalar_from_affine.cpp:16:7:   required from here
-   16 |         c -= 5.0; // ill-formed: a bare number states no amount of change
-      |              ^~~
-include/units/core.h:4465:39: error: static assertion failed: units: cannot subtract a bare number from an affine point; subtract a quantity of the same dimension.
- 4465 |                 static_assert(detail::dependent_false<UnitTypeLhs>,
+include/units/core.h:LINE: error: static assertion failed: units: cannot subtract a bare number from an affine point; subtract a quantity of the same dimension.
+ LINE |                 static_assert(detail::dependent_false<UnitTypeLhs>,
       |                               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:4465:39: note: ‘units::detail::dependent_false<units::temperature::celsius<double> >’ evaluates to false
+include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::temperature::celsius<double> >’ evaluates to false
 ```

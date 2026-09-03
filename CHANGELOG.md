@@ -12,10 +12,12 @@ and reported a wall of declined candidates instead of a sentence.
 The guiding rule is that an operation reads a quantity's number **in the scale that number is written in**, and is
 available wherever that reading is well defined. Scaling an affine reading is therefore kept: it is scale-bound, not
 wrong, and published temperature formulae depend on it — 16 of the 26 collected in
-`test/main.cpp::caseStudyPublishedTemperatureFormulae` scale a °C or °F reading directly, and some (Magnus, Antoine)
-have no absolute-scale form at all. What is ill-formed is an operation with no single reading: a bare number moved
-into a quantity (it states no unit), and a transcendental function or a product of a **decibel** value, where the
-stored number is a logarithm and the ratio it denotes is a different number.
+`test/main.cpp::caseStudyPublishedTemperatureFormulae` have a scalar literal directly multiplying a °C or °F reading,
+and more do so once a scaled sum or quotient is counted. Magnus's formula has no absolute-scale form at all.
+
+What is ill-formed is an operation with no single reading: a bare number moved into a quantity (it states no unit),
+and a transcendental function or a product of a **decibel** value, where the stored number is a logarithm and the
+ratio it denotes is a different number.
 
 Two public traits are added so generic code can ask rather than carry a unit list —
 `units::traits::has_arbitrary_origin_v<U>` (an affine reading or a decibel level) and
@@ -40,6 +42,41 @@ cannot see the refusals, since they fire from an overload body — guard on
 `units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scale_v<T>` instead.
 
 ### Fixed
+- **A compound move applied the rhs's datum whenever the LEFT operand carried none.** `kelvin(300) += celsius(5)`
+  read 578.15 K instead of 305: the non-affine `operator+=` takes a non-deduced parameter, so an affine rhs converted
+  into the lhs unit as an absolute READING and brought its datum with it. Twelve combinations of `kelvin`/`rankine`
+  against the three affine units were wrong by a whole datum, in `+=` and `-=` alike.
+- **The by-value `reading + reading` applied the rhs's datum**, so it disagreed with the `+=` it documents itself as
+  the by-value form of: `celsius(20) + fahrenheit(9)` gave 7.22 °C where `+=` gives 25 °C. Three spellings of one
+  amount — 2.5 K, 4.5 Rankine-degrees, 4.5 Fahrenheit-degrees — added to `celsius(20.5)` now all give 23.
+- **`fdim` could return a NEGATIVE value, breaking its own postcondition.** The NaN test compared the difference with
+  itself through `unit::operator==`, which is tolerance-based and reports `-inf == -inf` as false, so any non-finite
+  difference was misclassified as NaN and returned raw, past the `x > y` guard: `fdim(meters(1), meters(inf))` read
+  `-inf` where `std::fdim` gives 0, and so did `fdim(-DBL_MAX, DBL_MAX)` on finite operands. It also overflowed an
+  integer representation by subtracting before promoting — `fdim(meters<int>(INT_MAX), meters<int>(-1))` wrapped to
+  −2147483648. Both operands are promoted first and the NaN test reads the operands' own values.
+- **The `Eigen` helpers stopped accepting an Eigen expression.** The constraints spelled the coefficient type through
+  `.derived().data()`, which exists only on direct-access storage, so `unit_norm(v - w)` — the distance between two
+  points, the most idiomatic call in the interop — was rejected for an ordinary `meters` vector while a concrete
+  matrix still worked. They read `Derived::Scalar`, which is what the bodies always used.
+- **`round`/`ceil`/`floor` into an integer affine target dropped the datum when the two scales share a conversion
+  ratio.** `round<celsius<int>>(kelvin<int>(300))` answered 26 for 26.85 °C, because the target-unit overloads were
+  gated on a losslessness trait that judges only the RATIO — and kelvin and celsius both have ratio 1, so the
+  fractional 273.15 between them was invisible. An affine pair whose datums differ now always reaches the
+  datum-aware path.
+- **`fmod` accepted a logarithmic scale and returned a reading.** Every `operator%` overload requires a linear scale;
+  `fmod` did not, so `fmod(dBW, dBW)` computed on the dB figures while `dBW % dBW` was refused. It also returned the
+  left operand's unit, making `fmod(celsius(30), celsius(10))` a celsius READING of 0 — 273.15 K — where the
+  difference of two readings is an amount. It follows `operator-`, as `fdim` does; for an ordinary pair the two name
+  the same unit, so nothing changes there.
+- **`atan2` answered with the decibel figures.** `atan2(decibels(3), decibels(2))` returned `std::atan2(3.0, 2.0)` =
+  0.9828 where the ratios give 0.8995: it is the one member of the transcendental family taking two arguments, so the
+  unary diagnostic macro could not declare it and the C library's `::atan2` claimed the call.
+- **`std::hash` was not usable in a constant expression** for an integer representation. The value is mixed from its
+  bit pattern rather than handed to `std::hash`, which is not `constexpr`.
+- **`units::midpoint` overflowed an integer representation** — `midpoint(meters<int>(INT_MIN), meters<int>(INT_MAX))`
+  returned INT_MIN where `std::midpoint` gives −1 — and **`units::lerp` was not exact at its endpoints**, so
+  `lerp(meters(1e16), meters(1.0), 1.0)` read 0 rather than 1. Both now honour the contract of the name they took.
 - **Compound assignment of a cross-scale affine quantity applied the rhs's datum** (#402). `celsius(20) +=
   fahrenheit(9)` reinterpreted the rhs as the absolute point −12.78 °C, giving 7.22 °C. The rhs of a compound move
   is a relative *amount*, so only its scale factor applies: nine Fahrenheit-degrees of change is five
@@ -65,7 +102,8 @@ cannot see the refusals, since they fire from an overload body — guard on
 - **`fdim` returned the left operand's unit, disagreeing with `operator-`.** `fdim(celsius(30), celsius(10))` was a
   celsius *reading* of 20 — 293.15 K — while `celsius(30) - celsius(10)` correctly gave a 20 K amount. It is
   computed from the library's own difference, so the positive difference of two readings is an amount and of two
-  decibel levels a gain. NaN propagates, which the comparison alone did not do.
+  decibel levels a gain. Both operands are promoted to floating point before the subtraction, so an integer
+  representation cannot overflow, and a NaN operand propagates rather than being clamped by the `x > y` guard.
 - **`squared`, `cubed` and `square_root` now drop the datum**, as their documentation already stated. A squared
   affine unit carried celsius's 273.15, which made it compare as affine and re-apply the datum on the way back out.
   A `sqrt` of a squared temperature is consequently a scale-bound magnitude, not a reading.
@@ -82,9 +120,9 @@ cannot see the refusals, since they fire from an overload body — guard on
 - **Moving a decibel level by a dimensionless dB gain in place** (`dBW += decibels(3.25)`, and `-=`) now works. The
   by-value `dBW + decibels(3.25)` already did; the compound form was rejected as a dimension mismatch, though a gain
   is a ratio and moves a level exactly as an amount moves an affine reading.
-- **`delta<>` and `kind<>` wrapping an affine unit now scale.** Their by-value `*` and `/` delegated to the wrapped
-  unit's operator, which returns the wrapped unit's own type; a wrapper holds a magnitude, so it scales its own
-  value. `abs(delta<celsius<double>>)` likewise takes its own magnitude.
+- **`delta<>` scales its own magnitude rather than delegating**, so a delta is an amount whatever it wraps and
+  `abs(delta<celsius<double>>)` takes its own magnitude. `kind<>` continues to delegate to the wrapped unit, which
+  means a tagged reading follows the same scale-bound rule the plain reading does.
 
 ### Added
 - `units::lerp(a, b, t)` and `units::midpoint(a, b)` for any two same-dimension quantities. For an affine reading
@@ -96,8 +134,8 @@ cannot see the refusals, since they fire from an overload body — guard on
   quantity, an in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse.
   The decibel set now covers the **by-value** `*` and `/` as well as the compound forms: `dBW * 2.0` reported 149
   lines and 12 declined candidates where `dBW *= 2.0` reported one sentence, and the two are equally ill-formed. All
-  29 shapes — level or gain against a number, an ordinary quantity, or another decibel value, in either operand
-  order — report one 10-line message. The ratio of two same-dimension decibel values has its own remedy, since it
+  by-value shape — level or gain against a number, an ordinary quantity, or another decibel value, in either operand
+  order — reports one 10-line message. The ratio of two same-dimension decibel values has its own remedy, since it
   **is** their difference: `auto gain = a - b;`. Each message is graded by a case in `test/errorMessages/`, whose
   expected text is regenerated from the compiler rather than hand-typed.
 - `scripts/ci_local_msvc.cmd`, a local mirror of the MSVC CI leg (build + ctest, and `harness` for the
@@ -105,6 +143,13 @@ cannot see the refusals, since they fire from an overload body — guard on
   reference, and the Doxygen build; a change to operators, constraints, or traits should be run through both.
 
 ### Changed
+- **A refusal that ordinary generic code can encounter is expressed by DELETING the overload, not by a
+  `static_assert` in its body.** A body-fired assertion resolves the overload, so `requires { a + b; }` and
+  `std::is_invocable_v<std::plus<>, meters<double>, seconds<double>>` reported an invalid operation as AVAILABLE, and
+  generic code with a SFINAE fallback hard-errored from inside the library instead of taking its fallback. The
+  different-dimension and bare-number arithmetic diagnostics are therefore deleted overloads: `requires` observes
+  them correctly, at the cost of the remedy sentence (the diagnostic names both operand types in about six lines).
+  The affine- and decibel-specific diagnostics keep their sentences, since only those types reach them.
 - **Adding or subtracting two decibel LEVELS in place reports its own diagnostic.** `dBW += dBW` and `dBW -= dBW`
   were ill-formed already, but failed from inside the library — at the assignment that could not hold the resulting
   gain — rather than at the call site. Each now names the remedy: two 10 dBW sources are not a 20 dBW source, so

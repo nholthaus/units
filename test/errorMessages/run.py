@@ -27,7 +27,8 @@ HERE = Path(__file__).resolve().parent
 
 def parse_directives(text):
     d = {"expect_fail": False, "expect_match": [], "expect_match_gcc": [], "expect_match_msvc": [],
-         "forbid_match": [], "forbid_match_gcc": [], "forbid_match_msvc": [], "flags": [], "flags_msvc": []}
+         "forbid_match": [], "forbid_match_gcc": [], "forbid_match_msvc": [], "flags": [], "flags_msvc": [],
+         "max_lines": None, "grades_compiler": False}
     for line in text.splitlines():
         m = re.search(r'//\s*expect:\s*(\w+)', line)
         if m:
@@ -42,6 +43,13 @@ def parse_directives(text):
         m = re.search(r'//\s*expect-match-msvc:\s*(.+?)\s*$', line)
         if m:
             d["expect_match_msvc"].append(m.group(1))
+        if re.search(r'//\s*grades:\s*compiler\s*$', line):
+            d["grades_compiler"] = True
+            continue
+        m = re.search(r'//\s*expect-max-lines:\s*(\d+)\s*$', line)
+        if m:
+            d["max_lines"] = int(m.group(1))
+            continue
         m = re.search(r'//\s*expect-match:\s*(.+?)\s*$', line)
         if m:
             d["expect_match"].append(m.group(1))
@@ -102,7 +110,15 @@ def run_case(path, cc, std, include):
     dt = time.perf_counter() - t0
     out = (proc.stderr or "") + (proc.stdout or "")
     compiled = (proc.returncode == 0)
-    norm = normalize(out)
+
+    # SELF-GRADING GUARD. A compiler echoes the offending source line, comments included. When that line is the
+    # CASE's own, a phrase parked in its prose satisfies its own expect-match and the case passes with the library's
+    # message destroyed. The echo of a LIBRARY line is different -- for a constexpr `throw` the echoed expression IS
+    # the message the user reads -- so only the case's own echoed lines are removed from the graded text.
+    own_lines = {ln.strip() for ln in text.splitlines() if ln.strip()}
+    graded = "\n".join(l for l in out.splitlines()
+                       if not (re.match(r'\s*\d+\s*\|', l) and l.split('|', 1)[1].strip() in own_lines))
+    norm = normalize(graded)
 
     problems = []
     if d["expect_fail"] and compiled:
@@ -123,6 +139,11 @@ def run_case(path, cc, std, include):
     for sub in forbidden:
         if normalize(sub) in norm:
             problems.append(f"contains forbidden soup: {sub!r}")
+    if d["max_lines"] is not None:
+        n = len([l for l in out.splitlines() if l.strip()])
+        if n > d["max_lines"]:
+            problems.append(f"diagnostic is {n} lines, over the {d['max_lines']}-line bound: a readable rejection "
+                            f"names the problem without a wall of declined overloads")
 
     # first error line, for the report
     err_excerpt = ""
@@ -140,6 +161,46 @@ def run_case(path, cc, std, include):
         "problems": problems,
         "error_excerpt": err_excerpt[:300],
     }
+
+def do_check_doc(args):
+    """Re-emit the captured diagnostics and diff them against the committed pages."""
+    import tempfile, filecmp
+    out_dir = Path(args.out_dir)
+    tmp = Path(tempfile.mkdtemp(prefix="units_docdiff_"))
+    emit_args = argparse.Namespace(**{**vars(args), "out_dir": str(tmp), "emit_doc": True})
+    do_emit_doc(emit_args)
+    drift, missing = [], []
+    for doc_id, case_name in DOC_CASES.items():
+        slug = args.compiler_slug or "gcc13"
+        name = f"error_{doc_id}.{slug}.md"
+        fresh, committed = tmp / name, out_dir / name
+        if not committed.exists():
+            missing.append(name); continue
+        if not fresh.exists():
+            continue
+        if fresh.read_text(encoding="utf-8") != committed.read_text(encoding="utf-8"):
+            drift.append(name)
+    if missing:
+        print("MISSING committed pages:", ", ".join(missing))
+    if drift:
+        print(f"{len(drift)} committed page(s) no longer match what the compiler emits:")
+        for n in drift:
+            print(f"  [DRIFT] {n}")
+        print(f"  regenerate with: python3 test/errorMessages/run.py --emit-doc --compiler-slug {args.compiler_slug or 'gcc13'} "
+              f"--compiler-label \"$({args.cc} --version | head -1)\" --include include")
+        return 1
+    if missing:
+        return 1
+    print(f"all {len(DOC_CASES)} captured diagnostics match the committed pages")
+    return 0
+
+def compiler_banner(cc):
+    """The compiler's own version line, so a report never claims a compiler it did not run."""
+    try:
+        out = subprocess.run([cc, "--version"], capture_output=True, text=True, timeout=30).stdout
+        return out.splitlines()[0].strip() if out else cc
+    except Exception:
+        return cc
 
 def do_run(args):
     cases = sorted((HERE / "cases").glob("*.cpp"))
@@ -159,7 +220,7 @@ def do_run(args):
     report = {"label": args.label, "cc": args.cc, "std": args.std,
               "total_seconds": total_time, "passed": passed, "count": len(results),
               "results": results}
-    print(f"\n=== error-message harness [{args.label}] :: {args.cc} {args.std} ===")
+    print(f"\n=== error-message harness [{args.label}] :: {compiler_banner(args.cc)} {args.std} ===")
     for r in results:
         mark = "PASS" if r["ok"] else "FAIL"
         print(f"  [{mark}] {r['case']:<32} {r['seconds']:>6.3f}s  "
@@ -224,6 +285,17 @@ def trim_diagnostic(out, abs_path, case_name, max_lines=8):
     # otherwise -- this is the compiler's real text, never paraphrased. The only rewrite is replacing the
     # absolute temp path of the case file with its bare name, so a snippet is portable across checkouts.
     out = out.replace(str(abs_path), case_name)
+    out = re.sub(r'(include/units/\w+\.h):\d+(:\d+)?', r'\1:LINE', out)
+    normalized, in_library = [], False
+    for line in out.splitlines():
+        if re.search(r'include/units/\w+\.h:LINE', line):
+            in_library = True
+        elif case_name in line:
+            in_library = False
+        if in_library:
+            line = re.sub(r'^\s*\d+\s*\|', ' LINE |', line)
+        normalized.append(line)
+    out = "\n".join(normalized)
     lines = out.splitlines()
     # NOTE the pattern: there is no `\b` after the colon. A word boundary there would sit between two non-word
     # characters and never match, so `start` would fall back to 0 and every generated page would carry the
@@ -256,6 +328,47 @@ def do_emit_doc(args):
         print(f"  wrote {dest}  ({len(diag.splitlines())} lines from {label})")
     return 0
 
+def do_mutate(args):
+    """Wreck the library's diagnostic prose in a copy of the headers; every case that grades a library sentence must fail."""
+    import shutil, tempfile
+    src = Path(args.include)
+    tmp = Path(tempfile.mkdtemp(prefix="units_mutate_"))
+    shutil.copytree(src, tmp / "include")
+    wrecked = 0
+    for header in (tmp / "include").rglob("*.h"):
+        text = header.read_text(encoding="utf-8", errors="replace")
+        new, n = re.subn(r'"units(::\w+)?: [^"]*"', '"WRECKED_DIAGNOSTIC"', text)
+        if n:
+            header.write_text(new, encoding="utf-8")
+            wrecked += n
+    print(f"wrecked {wrecked} diagnostic strings in {tmp}/include")
+
+    # A case grades a LIBRARY sentence only if one of its phrases sits inside a diagnostic STRING LITERAL. Matching
+    # the headers' whole text would count `meters<` or `operator+` -- which any diagnostic names -- and classify
+    # almost every case as a grader.
+    library_prose = "\n".join(
+        "\n".join(re.findall(r'"units(?:::\w+)?: [^"]*"', h.read_text(encoding="utf-8", errors="replace")))
+        for h in src.rglob("*.h"))
+    graders, survivors = [], []
+    for path in sorted((HERE / "cases").glob("*.cpp")):
+        d = parse_directives(path.read_text(encoding="utf-8", errors="replace"))
+        phrases = d["expect_match"] + d["expect_match_gcc"] + d["expect_match_msvc"]
+        if d["grades_compiler"]:
+            continue
+        if not any(len(p) >= 12 and p in library_prose for p in phrases):
+            continue
+        graders.append(path.name)
+        r = run_case(path, args.cc, args.std, str(tmp / "include"))
+        if r["ok"]:
+            survivors.append(path.name)
+    print(f"{len(graders)} cases grade a library sentence; {len(survivors)} survived the wreck")
+    if survivors:
+        for name in survivors:
+            print(f"  [SURVIVED] {name} -- passes with the library's message destroyed, so it grades nothing of ours")
+        return 1
+    print("every case that grades a library sentence fails when that sentence is destroyed")
+    return 0
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cc", default="g++")
@@ -271,9 +384,18 @@ def main():
     ap.add_argument("--out-dir", default=str(HERE.parent.parent / "docs" / "diagnostics"))
     ap.add_argument("--compiler-label", help="human label shown in the captured snippet, e.g. 'GCC 13'")
     ap.add_argument("--compiler-slug", help="filename slug for the compiler, e.g. 'gcc13'")
+    ap.add_argument("--check-doc", action="store_true",
+                    help="re-emit the DOC_CASES diagnostics and diff them against the committed pages; fails on drift")
+    ap.add_argument("--mutate", action="store_true",
+                    help="wreck every library diagnostic string in a COPY of the headers and require that every case "
+                         "grading a library sentence FAILS; proves the suite is not self-grading")
     args = ap.parse_args()
     if args.compare:
         sys.exit(do_compare(*args.compare))
+    if args.check_doc:
+        sys.exit(do_check_doc(args))
+    if args.mutate:
+        sys.exit(do_mutate(args))
     if args.emit_doc:
         sys.exit(do_emit_doc(args))
     sys.exit(do_run(args))

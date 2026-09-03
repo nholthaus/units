@@ -274,8 +274,9 @@ A reading and an amount are one type, so an operation that reads the number read
 in**. That is scale-bound rather than wrong: `abs(celsius(-5.25))` is 5.25 °C, while the identical temperature
 written as `kelvin(267.9)` gives 267.9 K. Which of those a formula needs is the formula's business, and published
 temperature formulae need both — 16 of the 26 collected in
-`test/main.cpp::caseStudyPublishedTemperatureFormulae` scale a °C or °F reading directly, and some (Magnus,
-Antoine) have no absolute-scale form at all. The rule for a weighted sum is exact: it is datum-independent when its
+`test/main.cpp::caseStudyPublishedTemperatureFormulae` have a scalar literal directly multiplying a °C or °F
+reading, and more do so once a scaled sum or quotient is counted. Magnus's formula has no absolute-scale form at
+all. The rule for a weighted sum is exact: it is datum-independent when its
 weights total one, so `lerp` and `midpoint` give the same temperature in every scale where doubling does not.
 
 Two consequences follow:

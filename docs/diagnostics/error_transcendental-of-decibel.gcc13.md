@@ -2,11 +2,11 @@
 <!-- case: log_of_decibel_gain.cpp   compiler: GCC 13 -->
 ```text
 log_of_decibel_gain.cpp:14:25:   required from here
-   14 |         auto bad = units::log10(units::decibels<double>(3.25)); // ill-formed
-      |                    ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:5916:48: error: static assertion failed: units: cannot apply log10 to a decibel value; convert to its linear ratio first (e.g. dimensionless(gain)).
- 5916 |                 static_assert(::units::detail::dependent_false<UnitType>,                                                                                                                                       \
+include/units/core.h:LINE: error: static assertion failed: units: cannot apply log10 to a decibel value; convert to its linear ratio first (e.g. dimensionless(gain)).
+ LINE |                 static_assert(::units::detail::dependent_false<UnitType>,                                                                                                                                       \
       |                               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
-include/units/core.h:5923:9: note: in expansion of macro ‘UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC’
- 5923 |         UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log10)
+include/units/core.h:LINE: note: in expansion of macro ‘UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC’
+ LINE |         UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log10)
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::decibels<double> >’ evaluates to false
 ```

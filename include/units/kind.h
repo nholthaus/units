@@ -813,9 +813,9 @@ namespace units
 		// the wrapped unit's own cmath analog, so the result underlying promotes exactly as the plain unit does.
 
 		/// Absolute magnitude of a delta (|amount|), promoting as the plain unit's `units::abs` does. The magnitude is
-		/// taken from the delta's OWN value rather than by calling `units::abs` on the wrapped unit: a wrapped affine
-		/// unit is a reading measured from a datum, for which `units::abs` is (correctly) refused, while the delta
-		/// around it is an amount and does have a magnitude.
+		/// taken from the delta's OWN value rather than by calling `units::abs` on the wrapped unit: for a wrapped
+		/// affine unit that call reads the magnitude of the READING in its own scale, while the delta around it is an
+		/// amount whose magnitude is scale-independent.
 		template<UnitType U>
 		constexpr auto abs(const delta<U>& d) noexcept
 		{
@@ -974,7 +974,8 @@ namespace units
 		// promoting the underlying only when the RHS would narrow it; the tag is preserved.
 
 		/// kind + kind (same tag) -> kind. Delegates to the wrapped units' `operator+`, so both the result unit and the
-		/// rules are the plain unit's: two tagged affine READINGS do not add, exactly as two readings do not.
+		/// rules are the plain unit's -- for two tagged affine readings that means the right operand is read as an
+		/// amount and the left is moved by it, exactly as for the plain readings.
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto operator+(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
@@ -1002,9 +1003,9 @@ namespace units
 		}
 
 		/// kind scaled by a bare number -> kind (same tag). A kind is the SAME quantity as the unit it wraps, only
-		/// tagged, so its arithmetic DELEGATES to that unit's operator -- which means the unit's refusals propagate. A
-		/// kind over an affine reading therefore does not scale, exactly as the reading does not. (`delta` differs: it
-		/// is an amount whatever it wraps, so it scales its own magnitude.)
+		/// tagged, so its arithmetic DELEGATES to that unit's operator and inherits that unit's rules. A kind over an
+		/// affine reading therefore scales in the reading's own scale, exactly as the reading does. (`delta` differs:
+		/// it is an amount whatever it wraps, so it scales its own magnitude rather than delegating.)
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
 		constexpr auto operator*(const basic_kind<Tag, U>& lhs, T rhs) noexcept
 		{

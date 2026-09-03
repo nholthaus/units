@@ -8,7 +8,7 @@
 // flags: -Wconversion -Wfloat-conversion
 // flags-msvc: /W4
 // expect-match: meters<
-// expect-match: int
+// expect-match: meters<int>
 // forbid-match: conversion_factor<std::ratio
 #include <units/length.h>
 using namespace units::literals;
