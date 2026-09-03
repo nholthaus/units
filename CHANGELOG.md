@@ -148,8 +148,12 @@ cannot see the refusals, since they fire from an overload body — guard on
   `std::is_invocable_v<std::plus<>, meters<double>, seconds<double>>` reported an invalid operation as AVAILABLE, and
   generic code with a SFINAE fallback hard-errored from inside the library instead of taking its fallback. The
   different-dimension and bare-number arithmetic diagnostics are therefore deleted overloads: `requires` observes
-  them correctly, at the cost of the remedy sentence (the diagnostic names both operand types in about six lines).
-  The affine- and decibel-specific diagnostics keep their sentences, since only those types reach them.
+  them correctly, at the cost of the remedy sentence. What that costs differs by compiler: GCC prints the deleted
+  declaration and stops, about six lines naming both operand types, against 116 for the candidate wall it replaces;
+  Clang lists every declined candidate, so there the diagnostic is around 100 lines either way. MSVC names the
+  deleted function. The affine- and decibel-specific diagnostics keep their sentences, since only those operand types
+  reach them — so `requires { celsius += 5.0; }` is still reported as available, which is a residual of the trade,
+  not an oversight.
 - **Adding or subtracting two decibel LEVELS in place reports its own diagnostic.** `dBW += dBW` and `dBW -= dBW`
   were ill-formed already, but failed from inside the library — at the assignment that could not hold the resulting
   gain — rather than at the call site. Each now names the remedy: two 10 dBW sources are not a 20 dBW source, so

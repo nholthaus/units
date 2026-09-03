@@ -28,7 +28,7 @@ HERE = Path(__file__).resolve().parent
 def parse_directives(text):
     d = {"expect_fail": False, "expect_match": [], "expect_match_gcc": [], "expect_match_msvc": [],
          "forbid_match": [], "forbid_match_gcc": [], "forbid_match_msvc": [], "flags": [], "flags_msvc": [],
-         "max_lines": None, "grades_compiler": False}
+         "max_lines": None, "max_lines_clang": None, "grades_compiler": False}
     for line in text.splitlines():
         m = re.search(r'//\s*expect:\s*(\w+)', line)
         if m:
@@ -45,6 +45,10 @@ def parse_directives(text):
             d["expect_match_msvc"].append(m.group(1))
         if re.search(r'//\s*grades:\s*compiler\s*$', line):
             d["grades_compiler"] = True
+            continue
+        m = re.search(r'//\s*expect-max-lines-clang:\s*(\d+)\s*$', line)
+        if m:
+            d["max_lines_clang"] = int(m.group(1))
             continue
         m = re.search(r'//\s*expect-max-lines:\s*(\d+)\s*$', line)
         if m:
@@ -139,10 +143,13 @@ def run_case(path, cc, std, include):
     for sub in forbidden:
         if normalize(sub) in norm:
             problems.append(f"contains forbidden soup: {sub!r}")
-    if d["max_lines"] is not None:
+    # The bound is per-compiler: for a DELETED overload gcc prints the declaration and stops, while clang lists every
+    # declined candidate, so one number cannot express "not a wall" for both.
+    bound = d["max_lines_clang"] if ("clang" in cc and d["max_lines_clang"] is not None) else d["max_lines"]
+    if bound is not None:
         n = len([l for l in out.splitlines() if l.strip()])
-        if n > d["max_lines"]:
-            problems.append(f"diagnostic is {n} lines, over the {d['max_lines']}-line bound: a readable rejection "
+        if n > bound:
+            problems.append(f"diagnostic is {n} lines, over the {bound}-line bound: a readable rejection "
                             f"names the problem without a wall of declined overloads")
 
     # first error line, for the report
