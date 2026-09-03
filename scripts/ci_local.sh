@@ -43,29 +43,44 @@ step "6. Doxygen docs (warnings are errors, as on a PR)"
 # markdown edit under docs/ can fail this leg while every compiler leg stays green -- that is how a mangled
 # docs/explain page reached CI once.
 if command -v doxygen > /dev/null; then
-	[ -f build-docs/CMakeCache.txt ] || DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
+	# Doxygen NEVER deletes stale output, and this dir is reused warm -- so a run that emits almost nothing still
+	# leaves the previous run's pages behind and the completeness check below passes over a total loss. Clear it.
+	rm -rf build-docs/docs/html
+	# FAIL_ON_WARNINGS is substituted into the generated Doxyfile, so it takes effect only on the configure. A warm
+	# build-docs configured without it silently has WARN_AS_ERROR=NO, which is how a real loss can pass -- so the
+	# variable is exported for the build too, and the cache is refreshed when it is absent.
+	export DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS
+	[ -f build-docs/CMakeCache.txt ] || cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
 		-DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF > /tmp/ci_docs_cfg.log 2>&1 || { echo "DOCS CONFIGURE FAILED"; cat /tmp/ci_docs_cfg.log; fail=1; }
 	cmake --build build-docs --target doc > /tmp/ci_docs.log 2>&1 && echo "doxygen clean" || { echo "DOXYGEN FAILED:"; grep -E ": (error|warning):" /tmp/ci_docs.log | head -20; fail=1; }
 
-	# A warning-free doxygen run does NOT mean the reference was generated. An unbalanced `@cond`/`@endcond` pair
-	# silently swallows every declaration after it -- one such mistake removed `units::unit` and 12 of the 13 public
-	# concepts from the output while this leg still reported clean. Doxygen mangles page names, so the assertion is on
-	# the COUNT of generated reference pages plus the presence of the central class by name.
+	# A warning-free run does NOT mean the reference was generated: an unbalanced `@cond`/`@endcond` swallows every
+	# declaration after it. One such mistake removed `units::unit` and 12 of the 13 public concepts while this leg
+	# reported clean. The floors sit just under the real counts -- a generous floor tolerated losing the three classes
+	# this branch exists to add -- and the sentinels name a class from EACH header, since a core.h sentinel survives a
+	# total kind.h loss.
 	classes=$(ls build-docs/docs/html/class*.html 2>/dev/null | wc -l)
 	concepts=$(ls build-docs/docs/html/concept*.html 2>/dev/null | wc -l)
 	structs=$(ls build-docs/docs/html/struct*.html 2>/dev/null | wc -l)
-	if [ "$classes" -lt 1 ] || [ "$concepts" -lt 15 ] || [ "$structs" -lt 60 ]; then
-		echo "DOXYGEN OUTPUT INCOMPLETE: classes=$classes (>=1) concepts=$concepts (>=15) structs=$structs (>=60)"
+	if [ "$classes" -lt 10 ] || [ "$concepts" -lt 17 ] || [ "$structs" -lt 150 ]; then
+		echo "DOXYGEN OUTPUT INCOMPLETE: classes=$classes (>=10) concepts=$concepts (>=17) structs=$structs (>=150)"
 		echo "  an unbalanced @cond/@endcond swallows everything after it -- check the pairing in include/units/*.h"
 		fail=1
-	elif ! grep -qrl "units::unit" build-docs/docs/html/class*.html 2>/dev/null; then
-		echo "DOXYGEN OUTPUT INCOMPLETE: no page documents units::unit"
-		fail=1
 	else
-		echo "doxygen output carries the public surface (classes=$classes concepts=$concepts structs=$structs)"
+		missing=""
+		for sentinel in classunits_1_1unit classunits_1_1affine_1_1absolute classunits_1_1affine_1_1delta; do
+			ls build-docs/docs/html/${sentinel}*.html > /dev/null 2>&1 || missing="$missing $sentinel"
+		done
+		if [ -n "$missing" ]; then
+			echo "DOXYGEN OUTPUT INCOMPLETE -- no page for:$missing"
+			fail=1
+		else
+			echo "doxygen output carries the public surface (classes=$classes concepts=$concepts structs=$structs)"
+		fi
 	fi
 else
-	echo "(doxygen not installed; the docs CI leg cannot be mirrored here)"
+	echo "DOXYGEN NOT INSTALLED -- the docs leg cannot be mirrored, so this run does NOT clear it"
+	fail=1
 fi
 
 if [ $FULL -eq 1 ]; then

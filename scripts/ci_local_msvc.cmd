@@ -23,30 +23,37 @@ cd /d %~dp0..
 
 REM The MSVC CI leg grades the diagnostic messages too, and its wording differs from gcc/clang (expect-match-msvc), so
 REM the harness needs its own MSVC run.
-if /i "%~1"=="harness" (
-	python test/errorMessages/run.py --cc cl --std c++23 --include include --jobs 4
-	exit /b %ERRORLEVEL%
-)
+if /i "%~1"=="harness" goto :runharness
 
 if not exist build-msvc\build.ninja (
-	cmake -B build-msvc -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl || exit /b 1
+	cmake -B build-msvc -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl || goto :fail
 )
 
 REM Two-stage build, as CI does: the heavy test target alone first, then everything else. ctest covers the examples and
 REM the lean (iostream/format/string-disabled) configurations too, so all targets must exist or those cases report
 REM "Not Run" -- a red that says nothing about the code.
-if "%~1"=="" (
-	cmake --build build-msvc --parallel --target unitLibTest || exit /b 1
-	cmake --build build-msvc --parallel || exit /b 1
-	goto :runctest
-)
+if "%~1"=="" goto :buildall
 
 cmake --build build-msvc --parallel --target %~1
 exit /b %ERRORLEVEL%
 
-REM Outside the parenthesised block above: a %VAR% written inside one is substituted at PARSE time, so `set RC=` there
-REM followed by `exit /b %RC%` exits with whatever RC held BEFORE the block ran -- a failing ctest reported success and
-REM this gate could not fail. Here ERRORLEVEL is read after the command, so the exit code is ctest's own.
+REM Every exit below is OUTSIDE a parenthesised block. A %VAR% written inside one is substituted when the block is
+REM PARSED, so `set RC=` then `exit /b %RC%` exits with RC's pre-block value, and `|| exit /b 1` loses the code when
+REM any statement follows it in the block. Both forms made this gate unable to fail. `goto` is what survives cmd.exe.
+:buildall
+cmake --build build-msvc --parallel --target unitLibTest || goto :fail
+cmake --build build-msvc --parallel || goto :fail
+goto :runctest
+
+:runharness
+python test/errorMessages/run.py --cc cl --std c++23 --include include --jobs 4
+if errorlevel 1 goto :fail
+exit /b 0
+
+:fail
+echo *** ci_local_msvc FAILED ***
+exit /b 1
+
 :runctest
 cd /d %~dp0..\build-msvc
 ctest --output-on-failure --parallel 4

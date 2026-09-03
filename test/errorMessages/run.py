@@ -335,6 +335,33 @@ def do_emit_doc(args):
         print(f"  wrote {dest}  ({len(diag.splitlines())} lines from {label})")
     return 0
 
+# A diagnostic PROSE literal: three or more words, at least one of them a run of lowercase letters, and no format or
+# escape punctuation. The test is applied to ONE string literal at a time, extracted linearly. Running the same
+# pattern across a whole header instead makes it backtrack catastrophically -- with `\s` able to match a newline, the
+# unbounded `[^"\\%{}]*` runs can straddle the gap between two literals, and core.h did not finish in an hour.
+PROSE_SHAPE   = re.compile(r'[^"\\%{}]*[a-z]{3,}[^"\\%{}]*\s[^"\\%{}]*\s[^"\\%{}]{8,}')
+STRING_LITERAL = re.compile(r'"([^"\\\n]*)"')
+
+
+def prose_literals(text):
+    """Every diagnostic prose string literal in a translation unit's text, in source order."""
+    return [m.group(1) for m in STRING_LITERAL.finditer(text) if PROSE_SHAPE.fullmatch(m.group(1))]
+
+
+def wreck_prose(text):
+    """Replace every diagnostic prose literal with a placeholder; returns the new text and the number replaced."""
+    count = 0
+
+    def replace(match):
+        nonlocal count
+        if not PROSE_SHAPE.fullmatch(match.group(1)):
+            return match.group(0)
+        count += 1
+        return '"WRECKED_DIAGNOSTIC"'
+
+    return STRING_LITERAL.sub(replace, text), count
+
+
 def do_mutate(args):
     """Wreck the library's diagnostic prose in a copy of the headers; every case that grades a library sentence must fail."""
     import shutil, tempfile
@@ -344,7 +371,15 @@ def do_mutate(args):
     wrecked = 0
     for header in (tmp / "include").rglob("*.h"):
         text = header.read_text(encoding="utf-8", errors="replace")
-        new, n = re.subn(r'"units(::\w+)?: [^"]*"', '"WRECKED_DIAGNOSTIC"', text)
+        # Any PROSE literal -- three or more words -- not just one opening `units: `. A prefix-anchored pattern misses
+        # a sentence beginning with an article ("a floating-point unit converts..."), one naming an API with a space or
+        # `<` where a colon was expected, and above all a message built from ADJACENT literals around a stringized
+        # macro parameter, where neither half carries the prefix. Those exemptions were silent.
+        # Eight real sentences begin with an article
+        # ("a floating-point unit converts...") or name an API with a space or `<` where a colon-only pattern wanted
+        # a colon ("units::serialize requires..."), so they were never wrecked and the twelve cases grading them
+        # were silently exempted from this check.
+        new, n = wreck_prose(text)
         if n:
             header.write_text(new, encoding="utf-8")
             wrecked += n
@@ -354,7 +389,7 @@ def do_mutate(args):
     # the headers' whole text would count `meters<` or `operator+` -- which any diagnostic names -- and classify
     # almost every case as a grader.
     library_prose = "\n".join(
-        "\n".join(re.findall(r'"units(?:::\w+)?: [^"]*"', h.read_text(encoding="utf-8", errors="replace")))
+        "\n".join(prose_literals(h.read_text(encoding="utf-8", errors="replace")))
         for h in src.rglob("*.h"))
     graders, survivors = [], []
     for path in sorted((HERE / "cases").glob("*.cpp")):
