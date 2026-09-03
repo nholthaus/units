@@ -5,167 +5,179 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-A correctness pass over quantities that are measured from an arbitrary origin — an affine temperature reading
-(`celsius`, `fahrenheit`, `reaumur`) and a decibel LEVEL (`dBW`, `dBm`) — plus the operations that had no overload
-and reported a wall of declined candidates instead of a sentence.
+A correctness pass over quantities measured from an arbitrary origin — an affine temperature reading (`celsius`,
+`fahrenheit`, `reaumur`) and a decibel LEVEL (`dBW`, `dBm`) — plus the operations that had no overload and reported a
+wall of declined candidates instead of a sentence.
 
 The guiding rule is that an operation reads a quantity's number **in the scale that number is written in**, and is
 available wherever that reading is well defined. Scaling an affine reading is therefore kept: it is scale-bound, not
 wrong, and published temperature formulae depend on it — 16 of the 26 collected in
-`test/main.cpp::caseStudyPublishedTemperatureFormulae` have a scalar literal directly multiplying a °C or °F reading,
-and more do so once a scaled sum or quotient is counted. Magnus's formula has no absolute-scale form at all.
+`test/main.cpp::caseStudyPublishedTemperatureFormulae` have a scalar literal directly multiplying a °C or °F reading.
+Magnus's formula has no absolute-scale form at all.
 
-What is ill-formed is an operation with no single reading: a bare number moved into a quantity (it states no unit),
-and a transcendental function or a product of a **decibel** value, where the stored number is a logarithm and the
-ratio it denotes is a different number.
+What is ill-formed is an operation with no single reading: a bare number moved into a quantity (it states no unit), and
+a transcendental function or a product of a **decibel** value, where the stored number is a logarithm and the ratio it
+denotes is a different number.
 
-Two public traits are added so generic code can ask rather than carry a unit list —
-`units::traits::has_arbitrary_origin_v<U>` (an affine reading or a decibel level) and
-`units::traits::is_decibel_level_v<U>`. They are public because these diagnostics fire from an overload *body*, so a
-`requires`-expression reports the operation as available and cannot be used to detect them.
+Every figure below was measured by compiling the expression against 3.6.1 and against this branch. Where an unreleased
+change already on `main` is the origin of a difference, it is named rather than claimed here.
 
-**Migration.** Code that compiles against 3.6.1 can stop compiling in four places, all of them decibel:
+### Migration — what stops compiling
 
-| stops compiling | 3.6.1 computed | why |
+All five are decibel. A 5,400-probe availability sweep — 30 unit types x 5 representations x 36 operations — reports
+exactly two changes against `main`: `quantity += <bare number>` stops being *reported* as available (it never compiled;
+see Changed), and `reading + reading` starts being available. Nothing ordinary or affine that compiled stops compiling.
+(That sweep also shows `%` and `%=` losing their floating-point overloads between 3.6.1 and today, which is #404/#408
+on `main`, not this branch.)
+
+| stops compiling | 3.6.1 computed |
+|---|---|
+| `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | 13.9794 dBW, 7.9588 dBW, 7.7815 dB from `12.5`/`12.5`/`3.0` |
+| `quantity *= decibels(3.0)`, `quantity /= decibels(3.0)` | `meters(3) *= decibels(3.0)` → 9 m; `meters(9) /= decibels(3.0)` → 3 m |
+| a transcendental function of a decibel value | `log10(decibels(3.25))` → 0.5119; `atan(…)` → 1.2723 rad; `atan2(decibels(3), decibels(2))` → 0.9828 rad |
+| `fmod(dBW, dBW)` | 1.0, computed on the dB figures, while `dBW % dBW` was already refused |
+| `absolute<dBW<double>>`, `delta<dBW<double>>` | both were valid types |
+
+Each reports one sentence naming the remedy.
+
+### Migration — what silently computes a different answer
+
+These need no code change and raise no diagnostic, so they are the ones to read.
+
+| expression | 3.6.1 | now |
 |---|---|---|
-| `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | `dBW(12.5) *= 2.0` → 13.98 dBW | read through the scale, written past it |
-| `quantity *= decibels(3.0)` | `meters(3) *= decibels(3.0)` → 9 m | multiplied by the dB *figure* |
-| a transcendental function of a decibel value | `log10(decibels(3.25))` → 0.512; `atan(...)` → 1.2723 rad | read the dB figure as the ratio |
-| `absolute<dBW<double>>`, `delta<dBW<double>>` | wrapped, with scaling that had no single reading | `dBW`/`decibels` already separate level from gain |
+| `kelvin(300) += celsius(5)` | 578.15 K | 305 K |
+| `celsius(20) += fahrenheit(9)` | 7.2222 °C | 25 °C |
+| `round<celsius<int>>(kelvin<int>(300))` | 26 | 27 |
+| `round<celsius<int>>(fahrenheit<int>(54))` | 30 | 12 |
+| `decibels g; g = 3.25;` then read | 5.1188 dB | 3.25 dB |
+| `numeric_limits<dBW<double>>::max()` / `epsilon()` / `min()` / `denorm_min()` | `inf` / `0` / `0` / `0` | 3.08e3 / 9.64e-16 / −3.08e3 / −3.23e3 |
+| `hash(celsius(0))` vs `hash(kelvin(273.15))` | differ | equal |
+| `std::hash<U>` of any quantity | `hash<T>` of the stored number | a mix of the SI base value's bits — every hash value changes |
+| `fdim(celsius(30), celsius(10))` | a celsius READING of 20, i.e. 293.15 K | a 20 K amount |
+| `fmod(celsius(30), celsius(10))` | a celsius READING of 0, i.e. 273.15 K | a 0 K amount |
+| `(v - w).eval()` on an Eigen matrix of equal `celsius` | −273.15 | 0 |
+| `is_affine_unit_v<decltype(celsius(2) * celsius(2))>` | `true` | `false` |
+| `kind<"r", kilometers<int>>(3000) + kind<"r", millimeters<int>>(1)` | 3000.000001 km | −1294967295 mm, which is what the plain unit already answered |
+| `delta<percent<int>>(50) * 3.0` | an anonymous dimensionless, `.raw()` 1.5 | `percent<double>`, `.raw()` 150 — `.value()` is 1.5 either way |
 
-Each reports one line naming the remedy. Three results change without a compile error: `std::hash` of a quantity (it
-hashes the SI base value, so two spellings of one quantity agree — `hash(celsius(0))` now equals
-`hash(kelvin(273.15))`), `std::numeric_limits` of a decibel-scale unit (`max()` was `INFINITY` and `epsilon()` was
-`0`), and the *type* `fdim` returns for two readings (an amount, not a reading — the raw number is the same, but
-converting the result no longer applies the datum). A guard written as `if constexpr (requires(T a){ a * 2.0; })`
-cannot see the refusals, since they fire from an overload body — guard on
-`units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scale_v<T>` instead.
-
-### Fixed
-- **A compound move applied the rhs's datum whenever the LEFT operand carried none.** `kelvin(300) += celsius(5)`
-  read 578.15 K instead of 305: the non-affine `operator+=` takes a non-deduced parameter, so an affine rhs converted
-  into the lhs unit as an absolute READING and brought its datum with it. Twelve combinations of `kelvin`/`rankine`
-  against the three affine units were wrong by a whole datum, in `+=` and `-=` alike.
-- **The by-value `reading + reading` applied the rhs's datum**, so it disagreed with the `+=` it documents itself as
-  the by-value form of: `celsius(20) + fahrenheit(9)` gave 7.22 °C where `+=` gives 25 °C. Three spellings of one
-  amount — 2.5 K, 4.5 Rankine-degrees, 4.5 Fahrenheit-degrees — added to `celsius(20.5)` now all give 23.
-- **`fdim` could return a NEGATIVE value, breaking its own postcondition.** The NaN test compared the difference with
-  itself through `unit::operator==`, which is tolerance-based and reports `-inf == -inf` as false, so any non-finite
-  difference was misclassified as NaN and returned raw, past the `x > y` guard: `fdim(meters(1), meters(inf))` read
-  `-inf` where `std::fdim` gives 0, and so did `fdim(-DBL_MAX, DBL_MAX)` on finite operands. It also overflowed an
-  integer representation by subtracting before promoting — `fdim(meters<int>(INT_MAX), meters<int>(-1))` wrapped to
-  −2147483648. Both operands are promoted first and the NaN test reads the operands' own values.
-- **The `Eigen` helpers stopped accepting an Eigen expression.** The constraints spelled the coefficient type through
-  `.derived().data()`, which exists only on direct-access storage, so `unit_norm(v - w)` — the distance between two
-  points, the most idiomatic call in the interop — was rejected for an ordinary `meters` vector while a concrete
-  matrix still worked. They read `Derived::Scalar`, which is what the bodies always used.
-- **`round`/`ceil`/`floor` into an integer affine target dropped the datum when the two scales share a conversion
-  ratio.** `round<celsius<int>>(kelvin<int>(300))` answered 26 for 26.85 °C, because the target-unit overloads were
-  gated on a losslessness trait that judges only the RATIO — and kelvin and celsius both have ratio 1, so the
-  fractional 273.15 between them was invisible. An affine pair whose datums differ now always reaches the
-  datum-aware path.
-- **`fmod` accepted a logarithmic scale and returned a reading.** Every `operator%` overload requires a linear scale;
-  `fmod` did not, so `fmod(dBW, dBW)` computed on the dB figures while `dBW % dBW` was refused. It also returned the
-  left operand's unit, making `fmod(celsius(30), celsius(10))` a celsius READING of 0 — 273.15 K — where the
-  difference of two readings is an amount. It follows `operator-`, as `fdim` does; for an ordinary pair the two name
-  the same unit, so nothing changes there.
-- **`atan2` answered with the decibel figures.** `atan2(decibels(3), decibels(2))` returned `std::atan2(3.0, 2.0)` =
-  0.9828 where the ratios give 0.8995: it is the one member of the transcendental family taking two arguments, so the
-  unary diagnostic macro could not declare it and the C library's `::atan2` claimed the call.
-- **`std::hash` was not usable in a constant expression** for an integer representation. The value is mixed from its
-  bit pattern rather than handed to `std::hash`, which is not `constexpr`.
-- **`units::midpoint` overflowed an integer representation** — `midpoint(meters<int>(INT_MIN), meters<int>(INT_MAX))`
-  returned INT_MIN where `std::midpoint` gives −1 — and **`units::lerp` was not exact at its endpoints**, so
-  `lerp(meters(1e16), meters(1.0), 1.0)` read 0 rather than 1. Both now honour the contract of the name they took.
-- **Compound assignment of a cross-scale affine quantity applied the rhs's datum** (#402). `celsius(20) +=
-  fahrenheit(9)` reinterpreted the rhs as the absolute point −12.78 °C, giving 7.22 °C. The rhs of a compound move
-  is a relative *amount*, so only its scale factor applies: nine Fahrenheit-degrees of change is five
-  Celsius-degrees, and the result is 25 °C. The same holds for `-=` and for an offset-free rhs (`+= kelvin(5)`).
-- **A reading moved by an amount had no by-value form.** `celsius(20) + amount` and `amount + celsius(20)` now
-  compile and yield the moved reading, as the compound `+=` always did. `reading + reading` reads its rhs as an
-  amount on the same terms.
-- **`Eigen` gave the wrong answer for the difference of two readings.** Eigen assumes a coefficient-wise binary
-  operation is `op(T,T) -> T`, but the difference of two readings is an offset-free *amount*; assigning it back into
-  the reading coefficient re-applied the datum, so `(v - w).eval()` on a matrix of EQUAL `celsius` readings read
-  −273.15 instead of 0. A `ScalarBinaryOpTraits` specialization names the amount type. The Eigen seam is otherwise
-  gated on the coefficient's numerical scale, so a matrix operation is available exactly where the same scalar
-  operation is.
-- **The transcendental functions read a decibel figure as if it were the ratio.** `log10(decibels(3.25))` computed
-  log10(3.25) = 0.512 where the ratio is 2.113 and its base-ten logarithm is 0.325; `atan(decibels(3.25))` gave
-  1.2723 rad where the ratio gives 1.1288. The whole family — `exp`, `log`, `log10`, `log2`, `exp2`, `expm1`,
-  `log1p`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh` — now requires a
-  linear scale and names the conversion (`dimensionless(gain)`).
-- **Rounding to an integer target applied only the conversion ratio, dropping the datum.**
-  `round<celsius<int>>(fahrenheit<int>(54))` read 30 °C instead of 12, and every affine pair with differing datums
-  was wrong the same way. An affine conversion now takes the datum-aware path; a non-affine conversion keeps the
-  exact-integer path unchanged.
-- **`fdim` returned the left operand's unit, disagreeing with `operator-`.** `fdim(celsius(30), celsius(10))` was a
-  celsius *reading* of 20 — 293.15 K — while `celsius(30) - celsius(10)` correctly gave a 20 K amount. It is
-  computed from the library's own difference, so the positive difference of two readings is an amount and of two
-  decibel levels a gain. Both operands are promoted to floating point before the subtraction, so an integer
-  representation cannot overflow, and a NaN operand propagates rather than being clamped by the `x > y` guard.
-- **`squared`, `cubed` and `square_root` now drop the datum**, as their documentation already stated. A squared
-  affine unit carried celsius's 273.15, which made it compare as affine and re-apply the datum on the way back out.
-  A `sqrt` of a squared temperature is consequently a scale-bound magnitude, not a reading.
-- **`std::numeric_limits` for a decibel-scale unit returns usable values.** They are built from the stored
-  representation instead of being pushed through the value constructor, which linearizes: `max()` was `INFINITY`
-  (violating the contract that it is finite), `epsilon()` was `0` (silently zeroing any tolerance written against
-  it), and `min()` and `denorm_min()` were both `0`. They read as finite decibel figures, and the standard's
-  `lowest() <= denorm_min()` ordering is preserved. A linear scale is unchanged.
-- **Assignment of a bare number to a decibel-scale quantity now means decibels, matching the value constructor.**
-  `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB, so an
-  assign-then-read round trip did not hold. Only a decibel scale is affected.
-- **`std::hash` hashed the stored number, so two spellings of one quantity hashed differently.** It hashes the value
-  in SI base units, making the hash agree with `operator==` across units of the same dimension.
-- **Moving a decibel level by a dimensionless dB gain in place** (`dBW += decibels(3.25)`, and `-=`) now works. The
-  by-value `dBW + decibels(3.25)` already did; the compound form was rejected as a dimension mismatch, though a gain
-  is a ratio and moves a level exactly as an amount moves an affine reading.
-- **`delta<>` scales its own magnitude rather than delegating**, so a delta is an amount whatever it wraps and
-  `abs(delta<celsius<double>>)` takes its own magnitude. `kind<>` continues to delegate to the wrapped unit, which
-  means a tagged reading follows the same scale-bound rule the plain reading does.
+A guard written as `if constexpr (requires(T a){ a * 2.0; })` cannot see the decibel refusals, since those fire from an
+overload body — guard on `units::traits::has_arbitrary_origin_v<T>` or `units::traits::has_linear_scale_v<T>` instead.
 
 ### Added
-- `units::lerp(a, b, t)` and `units::midpoint(a, b)` for any two same-dimension quantities. For an affine reading
-  these are the datum-independent weighting: a weighted sum of readings is scale-independent exactly when its
-  weights total one, so `midpoint(celsius(20), celsius(30))` is 25 °C and the same two temperatures in kelvin give
-  the same physical answer, whereas doubling does not.
-- `units::traits::has_arbitrary_origin_v<U>` and `units::traits::is_decibel_level_v<U>` (see above).
+
+- `units::lerp(a, b, t)` and `units::midpoint(a, b)` for any two same-dimension quantities. For an affine reading these
+  are the datum-independent weighting: a weighted sum of readings is scale-independent exactly when its weights total
+  one, so `midpoint(celsius(20), celsius(30))` is 25 °C and the same two temperatures in kelvin give the same physical
+  answer, whereas doubling does not. Both delegate to their `std` counterparts, so they inherit exactness at the
+  endpoints, monotonicity, and the absence of overflow: `midpoint(meters<int>(INT_MIN), meters<int>(INT_MAX))` is −1 and
+  `midpoint(meters<double>(inf), meters<double>(1))` is `inf`.
+- `units::traits::has_arbitrary_origin_v<U>` (an affine reading or a decibel level) and
+  `units::traits::is_decibel_level_v<U>`, so generic code can ask rather than carry a unit list. Both are total: a type
+  that is not a unit at all reads `false` rather than failing to compile.
+- **A reading moved by an AMOUNT, by value.** `celsius(20) + kelvin(5)` and `kelvin(5) + celsius(20)` are both 25 °C —
+  the move is commutative and answers in the reading's unit — and `reading + reading` reads its right operand as an
+  amount on the same terms, which is what the published sum-of-scaled-readings formulae need
+  (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, and mean radiant temperature's `(Tg - Ta) * (1 + 0.22*sqrt(v)) + Ta`). None of these
+  compiled against 3.6.1.
 - Diagnostics naming a concrete remedy in place of a wall of declined overloads, for a bare number moved into a
-  quantity, an in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse.
-  The decibel set now covers the **by-value** `*` and `/` as well as the compound forms: `dBW * 2.0` reported 149
-  lines and 12 declined candidates where `dBW *= 2.0` reported one sentence, and the two are equally ill-formed. All
-  by-value shape — level or gain against a number, an ordinary quantity, or another decibel value, in either operand
-  order — reports one 10-line message. The ratio of two same-dimension decibel values has its own remedy, since it
-  **is** their difference: `auto gain = a - b;`. Each message is graded by a case in `test/errorMessages/`, whose
+  quantity, an in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse —
+  including the **by-value** `*` and `/`, which 3.6.1 reported as 148 GCC lines with 12 declined candidates where the
+  compound form already reported one sentence. Each message is graded by a case in `test/errorMessages/`, whose
   expected text is regenerated from the compiler rather than hand-typed.
 - `scripts/ci_local_msvc.cmd`, a local mirror of the MSVC CI leg (build + ctest, and `harness` for the
   diagnostic-message suite). `scripts/ci_local.sh` covers the GCC leg, UndefinedBehaviorSanitizer, the generated
   reference, and the Doxygen build; a change to operators, constraints, or traits should be run through both.
 
 ### Changed
-- **A refusal that ordinary generic code can encounter is expressed by DELETING the overload, not by a
-  `static_assert` in its body.** A body-fired assertion resolves the overload, so `requires { a + b; }` and
-  `std::is_invocable_v<std::plus<>, meters<double>, seconds<double>>` reported an invalid operation as AVAILABLE, and
-  generic code with a SFINAE fallback hard-errored from inside the library instead of taking its fallback. The
-  different-dimension and bare-number arithmetic diagnostics are therefore deleted overloads: `requires` observes
-  them correctly, at the cost of the remedy sentence. What that costs differs by compiler: GCC prints the deleted
-  declaration and stops, about six lines naming both operand types, against 116 for the candidate wall it replaces;
-  Clang lists every declined candidate, so there the diagnostic is around 100 lines either way. MSVC names the
-  deleted function. The affine- and decibel-specific diagnostics keep their sentences, since only those operand types
-  reach them — so `requires { celsius += 5.0; }` is still reported as available, which is a residual of the trade,
-  not an oversight.
-- **Adding or subtracting two decibel LEVELS in place reports its own diagnostic.** `dBW += dBW` and `dBW -= dBW`
-  were ill-formed already, but failed from inside the library — at the assignment that could not hold the resulting
-  gain — rather than at the call site. Each now names the remedy: two 10 dBW sources are not a 20 dBW source, so
-  combine the powers in the linear domain, and take a difference by value because it is a gain.
-- **Scaling or dividing a decibel value by a number is ill-formed** (`dBW *= 2.0`, `decibels *= 2.0`, and the
-  dimensionless-quantity spellings). These computed a value that was neither reading: the number was read *through*
-  the numerical scale and written back *past* it, so `dBW(12.5) *= 2.0` yielded 13.98 dBW — neither the naive
-  25 dBW nor a linear doubling's +3.01 dB. The by-value `dBW * 2.0` has no overload, so the compound forms now
-  agree with it.
-- **Wrapping a decibel quantity in `absolute<>` or `delta<>` is ill-formed.** The plain `dBW`/`dBm`/`decibels` types
-  already distinguish a level from a gain by dimension, so the wrapper added no information and its scaling and
-  magnitude operations had no single reading.
+
+- **A refusal that ordinary generic code can encounter is expressed by DELETING the overload, not by a `static_assert`
+  in its body.** A body-fired assertion resolves the overload, so the operation is reported as AVAILABLE and generic
+  code with a SFINAE fallback hard-errors from inside the library instead of taking its fallback. Measured on 3.6.1,
+  `requires(meters<double> m){ m += 5.0; }` was satisfied while the statement itself did not compile; it now correctly
+  reports unavailable. What the change costs differs by compiler: for `meters + seconds` GCC goes from 118 lines and 11
+  declined candidates to 10 lines and none, while Clang goes from 57 lines to 90, because it lists every declined
+  candidate including the deleted one. The cross-dimension case was already SFINAE-correct in 3.6.1 (`requires{ a + b; }`
+  and `is_invocable_v<std::plus<>, meters<double>, seconds<double>>` both reported unavailable) and stays that way.
+- **The decibel diagnostics keep their remedy sentences, and that has a cost worth naming.** They fire from an overload
+  body, so `requires(dBW<double> p){ p * 2.0; }` is now satisfied where in 3.6.1 it was not — an invalid operation looks
+  available to a `requires`-probe. The trade buys a one-sentence message (148 GCC lines → 9, 60 Clang lines → 10) for
+  the operand types that reach these overloads, which are decibel-specific. `requires{ celsius += 5.0; }` was already
+  reported as available in 3.6.1 and still is.
+- **Adding or subtracting two decibel LEVELS in place reports its own diagnostic.** `dBW += dBW` and `dBW -= dBW` were
+  ill-formed in 3.6.1 already, but failed from inside the library rather than at the call site. Each now names the
+  remedy: two 10 dBW sources are not a 20 dBW source, so combine the powers in the linear domain, and take a difference
+  by value because it is a gain.
+- **`kind<>` delegates its arithmetic to the wrapped unit**, so a tagged quantity answers with the same unit, the same
+  representation and the same value the plain quantity does — including the plain unit's pre-existing integer overflow
+  for a wide unit ratio, which `kind<>` previously masked by promoting to `double`.
+- **`delta<>` scales its own magnitude** rather than delegating to the wrapped unit's scaling, so `delta * scalar` and
+  `delta / scalar` agree and a ratio-scaled `delta` keeps its own unit.
+
+### Fixed
+
+- **A compound move applied the right operand's datum whenever the LEFT operand carried none.** `kelvin(300) +=
+  celsius(5)` read 578.15 K instead of 305: the non-affine `operator+=` takes a non-deduced parameter, so an affine
+  right operand converted into the left unit as an absolute READING and brought its datum with it. Twelve combinations
+  of `kelvin`/`rankine` against the three affine units were wrong by a whole datum, in `+=` and `-=` alike.
+- **Compound assignment of a cross-scale affine quantity applied the right operand's datum** (#402). `celsius(20) +=
+  fahrenheit(9)` reinterpreted the right operand as the absolute point −12.78 °C, giving 7.22 °C. The right operand of a
+  compound move is a relative *amount*, so only its scale factor applies: nine Fahrenheit-degrees of change is five
+  Celsius-degrees, and the result is 25 °C. The same holds for `-=` and for an offset-free right operand.
+- **Rounding into an integer affine target applied only the conversion ratio, dropping the datum.**
+  `round<celsius<int>>(fahrenheit<int>(54))` read 30 °C instead of 12, and `round<celsius<int>>(kelvin<int>(300))`
+  answered 26 for 26.85 °C — the target-unit overloads were gated on a losslessness trait that judges only the RATIO,
+  and kelvin and celsius both have ratio 1, so the fractional 273.15 between them was invisible. An affine pair whose
+  datums differ now always takes the datum-aware path; a non-affine conversion keeps the exact-integer path unchanged.
+- **`fmod` accepted a logarithmic scale, and both `fmod` and `fdim` answered two readings with another reading.** Every
+  `operator%` overload requires a linear scale; `fmod` did not, so `fmod(dBW, dBW)` computed on the dB figures while
+  `dBW % dBW` was refused. Both also returned the reading type, making `fmod(celsius(30), celsius(10))` a celsius
+  READING of 0 — 273.15 K — where the difference of two readings is an amount, and of two decibel levels a gain. For an
+  ordinary pair the unit and value are unchanged, including for a narrow integral representation. (The unit these two
+  select for an ordinary mixed pair changed in #393, already on `main`, not here.)
+- **`atan2` answered with the decibel figures.** `atan2(decibels(3), decibels(2))` returned `atan2(3.0, 2.0)` = 0.9828
+  where the ratios give 0.8995: it is the one member of the transcendental family taking two arguments, so the unary
+  diagnostic macro could not declare it and the C library's `::atan2` claimed the call.
+- **The transcendental functions read a decibel figure as if it were the ratio.** `log10(decibels(3.25))` computed
+  log10(3.25) = 0.512 where the ratio is 2.113 and its base-ten logarithm is 0.325; `atan(decibels(3.25))` gave 1.2723
+  rad where the ratio gives 1.1288. The whole family — `exp`, `log`, `log10`, `log2`, `exp2`, `expm1`, `log1p`, `asin`,
+  `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh` — now requires a linear scale and names the
+  conversion (`dimensionless(gain)`).
+- **`Eigen` gave the wrong answer for the difference of two readings.** Eigen assumes a coefficient-wise binary
+  operation is `op(T,T) -> T`, but the difference of two readings is an offset-free *amount*; assigning it back into the
+  reading coefficient re-applied the datum, so `(v - w).eval()` on a matrix of EQUAL `celsius` readings read −273.15
+  instead of 0. A `ScalarBinaryOpTraits` specialization names the amount type. The seam is otherwise gated on the
+  coefficient's numerical scale, so a matrix operation is available exactly where the same scalar operation is — and a
+  matrix of plain arithmetic scalars, which has no scale to disagree with, keeps working.
+- **`squared`, `cubed` and `square_root` now drop the datum**, as their documentation already stated. A squared affine
+  unit carried celsius's 273.15, which made it compare as affine and re-apply the datum on the way back out. A `sqrt` of
+  a squared temperature is consequently a scale-bound magnitude, not a reading.
+- **`std::numeric_limits` for a decibel-scale unit returns usable values.** They are built from the stored
+  representation instead of being pushed through the value constructor, which linearizes: `max()` was `inf` (violating
+  the contract that it is finite), `epsilon()` was `0` (silently zeroing any tolerance written against it), and `min()`
+  and `denorm_min()` were both `0`. They read as finite decibel figures, and the standard's `lowest() <= denorm_min()`
+  ordering is preserved. A linear scale is unchanged.
+- **Assignment of a bare number to a decibel-scale quantity now means decibels, matching the value constructor.**
+  `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB, so an
+  assign-then-read round trip did not hold. Only a decibel scale is affected.
+- **`std::hash` hashed the stored number, so two spellings of one quantity hashed differently.** It hashes the value in
+  SI base units, making the hash agree with `operator==` across units of the same dimension, and is usable in a constant
+  expression for a floating-point representation, which it was not. A value outside the range of `double` — reachable
+  only with a `long double` representation — collides with infinity; the hash contract that equal values hash equally
+  still holds.
+- **Moving a decibel level by a dimensionless dB gain in place** (`dBW += decibels(3.25)`, and `-=`) now works. The
+  by-value `dBW + decibels(3.25)` already did; the compound form was rejected as a dimension mismatch, though a gain is
+  a ratio and moves a level exactly as an amount moves an affine reading.
+
+### Removed
+
+- **`absolute<>` and `delta<>` around a decibel quantity.** Both were valid types in 3.6.1; the plain
+  `dBW`/`dBm`/`decibels` types already distinguish a level from a gain by dimension, so the wrapper added no information
+  and its scaling and magnitude operations had no single reading.
+- **Scaling or dividing a decibel value by a number**, and the transcendental family and `fmod` of one. These computed a
+  value that was neither reading: the number was read *through* the numerical scale and written back *past* it, so
+  `dBW(12.5) *= 2.0` yielded 13.98 dBW — neither the naive 25 dBW nor a linear doubling's +3.01 dB. The by-value
+  `dBW * 2.0` never had an overload, so the compound forms now agree with it.
 
 ## [3.6.1] - 2026-08-18
 

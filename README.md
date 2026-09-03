@@ -444,29 +444,33 @@ units: cannot add a bare number to a decibel value; add a decibels(...) gain.
 
 ## Type errors
 
-A dimensional mistake that a bare `double` would accept is rejected at compile time, with one sentence naming the
-problem and the unit types involved — not a list of every declined overload. The messages below are captured verbatim
-from GCC 13 by the test suite (`test/errorMessages/`), so they cannot drift from what the compiler actually prints.
+A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic names the
+unit types involved rather than the `conversion_factor<...>` template behind them. The messages below are captured
+verbatim from GCC 13 by the test suite and committed under
+[`docs/diagnostics/`](docs/diagnostics), which `test/errorMessages/run.py --check-doc` re-emits and diffs, so they
+cannot drift from what the compiler actually prints.
 
-Adding incompatible dimensions:
+An operation that ordinary generic code can reach is refused by **deleting** the overload, so a
+`requires`-expression can see the refusal and a SFINAE fallback still works. Adding incompatible dimensions:
 
 ```text
-readable_add_incompatible.cpp:23:20:   required from here
-   23 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
+readable_add_incompatible.cpp:36:20: error: use of deleted function ‘constexpr UnitTypeLhs units::operator+(const UnitTypeLhs&, const UnitTypeRhs&) [with UnitTypeLhs = length::meters<double>; UnitTypeRhs = time::seconds<double>]’
+   36 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
       |                    ^~~~~
-include/units/core.h:5812:39: error: static assertion failed: units: cannot add quantities of different dimensions.
-include/units/core.h:5812:39: note: ‘units::detail::dependent_false<units::length::meters<double>, units::time::seconds<double> >’ evaluates to false
+include/units/core.h: note: declared here
+      |         constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept = delete;
 ```
 
-Adding a bare number to a quantity, where the message names the remedy:
+An operation only an affine or decibel operand can reach keeps a one-sentence diagnostic naming the remedy. That
+message fires from the overload's *body*, so a `requires`-expression reports such an operation as available — ask
+`units::traits::has_arbitrary_origin_v` or `units::traits::has_linear_scale_v` rather than probing it:
 
 ```text
-readable_scalar_plus_unit.cpp:20:20:   required from here
-   20 | auto bad = 1.0_m + 5.0; // ill-formed: cannot add a raw scalar to a length
-      |                    ^~~
-include/units/core.h:5846:39: error: static assertion failed: units: cannot add a bare number to a quantity; add a quantity of the same dimension.
-include/units/core.h:5846:39: note: ‘units::detail::dependent_false<units::length::meters<double>, double>’ evaluates to false
+include/units/core.h: error: static assertion failed: units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
 ```
+
+GCC prints the deleted declaration and stops; Clang lists its declined candidates, so the same rejection is longer
+there. Either way the operand types are named.
 
 Assigning a product to the wrong dimension — `m * m` is an area, not a length. GCC reports the result
 through an internal alias with the named type beside it in `{aka …}`:
