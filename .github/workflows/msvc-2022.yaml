@@ -1,4 +1,6 @@
-name: msvc-2022
+# The file name is load-bearing: README.md's Windows badge points at this path. The workflow name and the job names
+# below are free to describe what actually runs.
+name: msvc
 
 on:
   push:
@@ -9,38 +11,65 @@ on:
 
 jobs:
   build-windows:
-    name: Build on Windows with Visual Studio 2022
-    runs-on: windows-latest
+    # PIN THE IMAGE, never `windows-latest`. That label migrated to Windows Server 2025 with Visual Studio 2026
+    # (VS 18, toolset 14.51), so a job asserting VS 2022 support was compiling with a toolchain three years newer
+    # than the one it claimed. MSVC changes overload resolution, concept evaluation and template instantiation order
+    # between toolsets, so the declared support floor has to be built by the compiler that defines it.
+    #
+    # Both legs gate. VS 2026 is what a user on a current toolchain gets, and it passes today, so a forward
+    # compatibility break should be a red build rather than a surprise at the next release.
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: windows-2022
+            label: Visual Studio 2022 (the declared support floor)
+          - image: windows-2025
+            label: Visual Studio 2026 (forward compatibility)
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
       # Set up the MSVC command-line environment FIRST (puts cl.exe on PATH). The "Visual Studio 17 2022"
-      # generator's own VS discovery has been unreliable on recent windows-latest images ("could not find any
-      # instance of Visual Studio"); configuring with Ninja against the dev-cmd-provided cl is robust and also
-      # provides cl for the error-message harness below.
+      # generator's own VS discovery has been unreliable on recent images ("could not find any instance of Visual
+      # Studio"); configuring with Ninja against the dev-cmd-provided cl is robust and also provides cl for the
+      # error-message harness below.
       - name: Set up MSVC command-line environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
+      # Record the toolset in every log. The image rolling forward under a `-latest` label is exactly how this job
+      # came to build VS 2026 while claiming VS 2022, and the only reason it was caught was an unrelated link
+      # failure that happened to print the compiler path.
+      - name: Report the compiler under test
+        run: |
+          cl 2>&1 | Select-Object -First 1
+          Write-Host "image: ${{ matrix.image }}"
+
       # Eigen enables the units/eigen.h interoperability tests (which self-guard on __has_include, so this is
-      # additive). windows-latest ships vcpkg at VCPKG_INSTALLATION_ROOT.
+      # additive). The Windows images ship vcpkg at VCPKG_INSTALLATION_ROOT.
       - name: Install Eigen (vcpkg)
         shell: bash
         run: vcpkg install eigen3:x64-windows
 
+      # VCPKG_APPLOCAL_DEPS=OFF is required, not a preference. The vcpkg toolchain otherwise appends a
+      # `vcpkg z-applocal` post-link step to EVERY executable, copying vcpkg's DLLs next to each one. Several
+      # executables in one directory link within milliseconds of each other, so those steps contend for the same
+      # destination files and one fails with "Access is denied" or "being used by another process" -- after link.exe
+      # has already succeeded. The only vcpkg dependency here is Eigen, which is header-only and has no DLL to copy,
+      # so the step has nothing to do and is pure risk.
       - name: Configure CMake
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_APPLOCAL_DEPS=OFF -DX_VCPKG_APPLOCAL_DEPS_INSTALL=OFF
 
       - name: Build
-        # Build the main test binary first, then the rest. The vcpkg toolchain runs a `z-applocal` post-link step
-        # on every executable, copying the same vcpkg DLLs into build/test/; under a single fully-parallel build
-        # those applocal steps race on the shared DLL files ("cannot access the file because it is being used by
-        # another process"). Staggering the heavy target (unitLibTest) into its own pass keeps the compile parallel
-        # while the applocal steps no longer collide.
+        # Two passes: the heavy test binary alone, then everything else. ctest covers the examples and the lean
+        # (iostream/format/string-disabled) configurations, so all targets must exist or those cases report
+        # "Not Run" -- a red that says nothing about the code.
         run: |
           cmake --build build --parallel --target unitLibTest
           cmake --build build --parallel

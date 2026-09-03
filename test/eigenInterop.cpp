@@ -415,4 +415,267 @@ namespace
 	}
 }
 
+
+// A quantity measured from an arbitrary origin -- an affine reading, or a decibel level -- breaks Eigen's assumption
+// that a coefficient-wise binary operation is `op(T,T) -> T`. The scalar difference of two readings is an offset-free
+// AMOUNT, so without naming that amount type in `ScalarBinaryOpTraits` Eigen assigns the difference back into the
+// reading coefficient and `(v - w).eval()` on two EQUAL readings reads -273.15 rather than 0.
+TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
+{
+	using units::temperature::celsius;
+
+	Eigen::Matrix<celsius<double>, 3, 1> reading;
+	reading << celsius<double>(12.5), celsius<double>(20.5), celsius<double>(37.25);
+	Eigen::Matrix<celsius<double>, 3, 1> baseline;
+	baseline << celsius<double>(12.5), celsius<double>(10.5), celsius<double>(2.25);
+
+	const auto difference = (reading - baseline).eval();
+	EXPECT_NEAR(0.0, difference(0).value(), 5.0e-12);      // equal readings differ by nothing, not by -273.15
+	EXPECT_NEAR(10.0, difference(1).value(), 5.0e-12);
+	EXPECT_NEAR(35.0, difference(2).value(), 5.0e-12);
+	static_assert(!units::traits::is_affine_unit_v<std::decay_t<decltype(difference(0))>>,
+		"the difference of two readings is an amount, so its coefficient type carries no datum");
+
+	// and the amount matrix supports the arithmetic a magnitude should
+	EXPECT_NEAR(20.0, (difference * 2.0).eval()(1).value(), 5.0e-12);
+	EXPECT_NEAR(45.0, difference.sum().value(), 5.0e-12);
+
+	// storing and converting readings is unaffected
+	EXPECT_NEAR(20.5, reading(1).value(), 5.0e-12);
+	EXPECT_NEAR(54.5, units::temperature::fahrenheit<double>(reading(0)).value(), 5.0e-12);    // 12.5 degC
+}
+
+// A matrix operation is available exactly where the same operation on one of its coefficients is: a matrix of affine
+// readings scales and reduces in its coefficients' own scale, and a matrix of decibel values does neither, because the
+// scalar `dBW * 2.0` does not exist. The Eigen seam is gated on the coefficient's numerical
+// scale -- what the scalar operators are gated on -- and cannot be used to launder an operation past them.
+TEST_F(EigenInterop, theEigenSeamMatchesTheScalarRule)
+{
+	using units::temperature::celsius;
+	using units::power::dBW;
+
+	static_assert(units::traits::has_arbitrary_origin_v<celsius<double>>);
+	static_assert(units::traits::has_arbitrary_origin_v<dBW<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<units::meters<double>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<std::decay_t<decltype(celsius<double>(1) - celsius<double>(0))>>);
+
+	// a matrix of readings scales in the readings' own scale, as `celsius(20.0) * 2.0` does
+	Eigen::Matrix<celsius<double>, 3, 1> reading;
+	reading << celsius<double>(12.5), celsius<double>(20.5), celsius<double>(37.25);
+	EXPECT_NEAR(25.0, (reading * 2.0).eval()(0).value(), 5.0e-12);
+	EXPECT_NEAR(10.25, (reading / 2.0).eval()(1).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (2.0 * reading).eval()(0).value(), 5.0e-12);
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype((reading * 2.0).eval()(0))>>,
+		"scaling a matrix of readings keeps the reading's unit, as the scalar operation does");
+	EXPECT_NEAR(70.25, reading.sum().value(), 5.0e-12);
+	EXPECT_NEAR(1964.0625, unit_squared_norm(reading).value(), 5.0e-9);        // 12.5^2 + 20.5^2 + 37.25^2
+	EXPECT_NEAR(44.31774475, unit_norm(reading).value(), 5.0e-8);
+
+	// NOT compilable for a matrix of decibel values: * 2.0, / 2.0, unit_dot, unit_norm, unit_squared_norm,
+	// unit_normalized -- the scalar operations do not exist either. A matrix of LEVELS does difference into gains.
+	Eigen::Matrix<dBW<double>, 2, 1> level, referenceLevel;
+	level << dBW<double>(20.0), dBW<double>(12.5);
+	referenceLevel << dBW<double>(10.0), dBW<double>(12.5);
+	const auto gain = (level - referenceLevel).eval();
+	EXPECT_NEAR(10.0, gain(0).value(), 5.0e-9);
+	EXPECT_NEAR(0.0, gain(1).value(), 5.0e-9);
+	static_assert(units::traits::is_dimensionless_unit_v<std::decay_t<decltype(gain(0))>>,
+		"the difference of two levels is a dimensionless gain");
+
+	// an ordinary matrix keeps the entire surface
+	Eigen::Matrix<units::meters<double>, 3, 1> length;
+	length << units::meters<double>(3.0), units::meters<double>(4.0), units::meters<double>(0.0);
+	EXPECT_NEAR(5.0, unit_norm(length).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_squared_norm(length).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_dot(length, length).value(), 5.0e-12);
+	EXPECT_NEAR(14.0, (length * 2.0).eval().sum().value(), 5.0e-12);
+}
+
+//======================================================================================================================
+//	THE HELPERS TAKE ANY EIGEN EXPRESSION, NOT ONLY A CONCRETE MATRIX
+//
+//	Each helper's parameter is an `Eigen::MatrixBase<Derived>`, so a LAZY expression -- a sum, a difference, a scaled
+//	vector -- binds directly and no caller has to `.eval()` first. Every expected number is computed by hand at its
+//	own assertion from the two operands, which each test spells out for itself.
+//======================================================================================================================
+
+// v - w is (1, 2, 3) - (4, 6, 3) == (-3, -4, 0) metres, whose magnitude is sqrt(9 + 16 + 0) == sqrt(25) == 5 metres;
+// the magnitude of a length vector is a length.
+TEST(EigenLazyExpression, theMagnitudeOfALazyDifference)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v, w;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+	w << meters<double>(4.0), meters<double>(6.0), meters<double>(3.0);
+
+	EXPECT_NEAR(5.0, unit_norm(v - w).value(), 5.0e-12);
+	static_assert(std::is_same_v<meters<double>, std::decay_t<decltype(unit_norm(v - w))>>,
+		"the magnitude of a length vector is a length");
+}
+
+// v + w is (1, 2, 3) + (4, 6, 3) == (5, 8, 6) metres, so (v + w) . w is 5*4 + 8*6 + 6*3 == 20 + 48 + 18 == 86 square
+// metres; a dot of two length vectors is an area.
+TEST(EigenLazyExpression, theDotProductOfALazySum)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v, w;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+	w << meters<double>(4.0), meters<double>(6.0), meters<double>(3.0);
+
+	EXPECT_NEAR(86.0, unit_dot(v + w, w).value(), 5.0e-12);
+	EXPECT_NEAR(86.0, unit_dot(w, v + w).value(), 5.0e-12);
+	static_assert(std::is_same_v<units::area::square_meters<double>, std::decay_t<decltype(unit_dot(v + w, w))>>,
+		"a dot of two length vectors is an area");
+}
+
+// 2 v is 2 * (1, 2, 3) == (2, 4, 6) metres, so its squared magnitude is 4 + 16 + 36 == 56 square metres.
+TEST(EigenLazyExpression, theSquaredMagnitudeOfALazyScaling)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+
+	EXPECT_NEAR(56.0, unit_squared_norm(2.0 * v).value(), 5.0e-12);
+	EXPECT_NEAR(56.0, unit_squared_norm(v * 2.0).value(), 5.0e-12);
+	static_assert(std::is_same_v<units::area::square_meters<double>, std::decay_t<decltype(unit_squared_norm(2.0 * v))>>,
+		"a squared magnitude is an area");
+}
+
+// v + w is (5, 8, 6) metres, whose magnitude is sqrt(25 + 64 + 36) == sqrt(125) == 11.180339887498949, so its
+// direction is (5, 8, 6) / sqrt(125) == (0.44721359549995793, 0.71554175279993271, 0.53665631459994945) -- a plain
+// dimensionless vector of unit length.
+TEST(EigenLazyExpression, theDirectionOfALazySum)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v, w;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+	w << meters<double>(4.0), meters<double>(6.0), meters<double>(3.0);
+
+	const auto direction = unit_normalized(v + w);
+	EXPECT_EQ(3, direction.rows());
+	EXPECT_NEAR(0.44721359549995793, direction(0), 5.0e-12);
+	EXPECT_NEAR(0.71554175279993271, direction(1), 5.0e-12);
+	EXPECT_NEAR(0.53665631459994945, direction(2), 5.0e-12);
+	EXPECT_NEAR(5.0 / std::sqrt(125.0), direction(0), 5.0e-12);
+	EXPECT_NEAR(8.0 / std::sqrt(125.0), direction(1), 5.0e-12);
+	EXPECT_NEAR(6.0 / std::sqrt(125.0), direction(2), 5.0e-12);
+	EXPECT_NEAR(1.0, direction.norm(), 5.0e-12);
+	static_assert(std::is_same_v<double, std::decay_t<decltype(direction(0))>>, "a direction has no dimension");
+}
+
+// v + w is (5, 8, 6) metres, so (v + w) x w with w == (4, 6, 3) is
+//     8*3 - 6*6 == 24 - 36 == -12,   6*4 - 5*3 == 24 - 15 == 9,   5*6 - 8*4 == 30 - 32 == -2   (square metres)
+TEST(EigenLazyExpression, theCrossProductOfALazySum)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v, w;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+	w << meters<double>(4.0), meters<double>(6.0), meters<double>(3.0);
+
+	const auto product = unit_cross(v + w, w);
+	EXPECT_NEAR(-12.0, product(0).value(), 5.0e-12);
+	EXPECT_NEAR(9.0, product(1).value(), 5.0e-12);
+	EXPECT_NEAR(-2.0, product(2).value(), 5.0e-12);
+	static_assert(std::is_same_v<units::area::square_meters<double>, std::decay_t<decltype(product(0))>>,
+		"a cross of two length vectors is an area vector");
+}
+
+// A quarter turn about the third axis sends (x, y, z) to (-y, x, z), so it carries v + w == (5, 8, 6) to
+// (-8, 5, 6). The transform is dimensionless, so the result keeps the vector's unit.
+TEST(EigenLazyExpression, aDimensionlessTransformOfALazySum)
+{
+	Eigen::Matrix<meters<double>, 3, 1> v, w;
+	v << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+	w << meters<double>(4.0), meters<double>(6.0), meters<double>(3.0);
+
+	Eigen::Matrix<double, 3, 3> quarterTurn;
+	quarterTurn << 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
+
+	const auto turned = unit_transform(quarterTurn, v + w);
+	EXPECT_NEAR(-8.0, turned(0).value(), 5.0e-12);
+	EXPECT_NEAR(5.0, turned(1).value(), 5.0e-12);
+	EXPECT_NEAR(6.0, turned(2).value(), 5.0e-12);
+	static_assert(std::is_same_v<meters<double>, std::decay_t<decltype(turned(0))>>,
+		"a dimensionless transform keeps the vector's unit");
+}
+
+// The lazy form reaches a matrix of AFFINE READINGS too, where the scalar trait names the difference's AMOUNT type:
+// (30, 20, 10) degC less (26, 17, 10) degC is (4, 3, 0) celsius-degrees, whose squared magnitude is 16 + 9 == 25,
+// whose magnitude is 5, and whose direction is (4, 3, 0) / 5 == (0.8, 0.6, 0). The amount carries no datum, so
+// nothing re-applies the 273.15 translation on the way out.
+TEST(EigenLazyExpression, aLazyDifferenceOfReadingsIsAnAmountVector)
+{
+	Eigen::Matrix<units::temperature::celsius<double>, 3, 1> reading, reference;
+	reading << units::temperature::celsius<double>(30.0), units::temperature::celsius<double>(20.0),
+		units::temperature::celsius<double>(10.0);
+	reference << units::temperature::celsius<double>(26.0), units::temperature::celsius<double>(17.0),
+		units::temperature::celsius<double>(10.0);
+
+	static_assert(!units::traits::is_affine_unit_v<std::decay_t<decltype(unit_norm(reading - reference))>>,
+		"the magnitude of a difference of readings carries no datum");
+	EXPECT_NEAR(5.0, unit_norm(reading - reference).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_squared_norm(reading - reference).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, unit_dot(reading - reference, reading - reference).value(), 5.0e-12);
+
+	const auto direction = unit_normalized(reading - reference);
+	EXPECT_NEAR(0.8, direction(0), 5.0e-12);
+	EXPECT_NEAR(0.6, direction(1), 5.0e-12);
+	EXPECT_NEAR(0.0, direction(2), 5.0e-12);
+}
+
+// An integral scalar is promoted by `sqrt`, so a magnitude that is a whole number is exact and one that is not is not
+// truncated: |(1, 2, 2)| is sqrt(1 + 4 + 4) == sqrt(9) == 3 exactly, and |(1, 1, 1)| is sqrt(3) ==
+// 1.7320508075688772.
+TEST(EigenLazyExpression, anIntegralScalarIsPromotedByTheMagnitude)
+{
+	Eigen::Matrix<meters<int>, 3, 1> whole, unitary, origin;
+	whole << meters<int>(1), meters<int>(2), meters<int>(2);
+	unitary << meters<int>(1), meters<int>(1), meters<int>(1);
+	origin << meters<int>(0), meters<int>(0), meters<int>(0);
+
+	EXPECT_NEAR(3.0, unit_norm(whole - origin).value(), 5.0e-12);
+	EXPECT_NEAR(1.7320508075688772, unit_norm(unitary - origin).value(), 5.0e-12);
+	EXPECT_NEAR(std::sqrt(3.0), unit_norm(unitary - origin).value(), 5.0e-12);
+}
+
+//======================================================================================================================
+//	SECOND-AUDIT REGRESSION GUARDS
+//======================================================================================================================
+
+// Requiring a LINEAR SCALE of the coefficient excluded a matrix of plain arithmetic scalars, because that trait is
+// false for a type that is not a unit at all -- so an ordinary `Eigen::Matrix<double, 3, 1>` stopped being accepted by
+// helpers that had always taken it. A plain scalar carries no numerical scale that could disagree with the operation.
+TEST(EigenSecondAudit, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
+{
+	Eigen::Matrix<double, 3, 1> plainDouble;
+	plainDouble << 1.0, 2.0, 3.0;
+	Eigen::Matrix<int, 3, 1> plainInt;
+	plainInt << 1, 2, 3;
+
+	// 1*1 + 2*2 + 3*3 == 14
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainDouble, plainDouble)));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainInt, plainInt)));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_squared_norm(plainDouble)));
+	// sqrt(14) == 3.7416573867739413
+	EXPECT_NEAR(3.7416573867739413, static_cast<double>(unit_norm(plainDouble)), 5.0e-12);
+	// a lazy expression of plain scalars: (2,4,6) dotted with itself is 4 + 16 + 36 == 56
+	EXPECT_DOUBLE_EQ(56.0, static_cast<double>(unit_dot(plainDouble + plainDouble, plainDouble + plainDouble)));
+	// the cross product of a vector with itself is the zero vector
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(unit_cross(plainDouble, plainDouble)(0)));
+}
+
+// Constraining only the FIRST operand's coefficient made callability depend on operand order, so one spelling of a
+// two-matrix helper compiled and the other did not.
+TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
+{
+	Eigen::Matrix<double, 3, 1> plainDouble;
+	plainDouble << 1.0, 2.0, 3.0;
+	Vector3m quantity;
+	quantity << meters<double>(1.0), meters<double>(2.0), meters<double>(3.0);
+
+	// 1*1 + 2*2 + 3*3 == 14 whichever operand carries the unit
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(plainDouble, quantity).value()));
+	EXPECT_DOUBLE_EQ(14.0, static_cast<double>(unit_dot(quantity, plainDouble).value()));
+
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_dot(p, q); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_dot(q, p); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(p, q); });
+	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(q, p); });
+}
+
 #endif // UNITS_HAVE_EIGEN

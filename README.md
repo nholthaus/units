@@ -85,7 +85,7 @@ stays small and the code stays legible.
   error. The dimensional analysis is performed by the type system.
 - **Decibel and logarithmic scales.** A unit's scale is part of its type. Alongside the default linear
   scale, `decibel_scale` provides `dBW`, `dBm`, and the dimensionless `dB`, with scale-correct
-  arithmetic — adding decibels multiplies the underlying linear quantities. A decibel-scale unit requires
+  arithmetic — adding a dB gain multiplies the underlying linear quantity. A decibel-scale unit requires
   a floating-point underlying type.
 - **Diagnostics.** A dimensional error names the unit type (`meters<double>`) rather than the
   `conversion_factor<...>` template. See [Type errors](#type-errors).
@@ -106,11 +106,16 @@ stays small and the code stays legible.
 
 `units` requires a **C++23** compiler. It is continuously tested on:
 
-| Compiler            | Version | Platform        |
-|---------------------|---------|-----------------|
-| GCC (`g++`)         | 13      | Ubuntu (latest) |
-| Clang (`clang++`)   | 19      | Ubuntu (latest) |
-| MSVC (Visual Studio)| 2022    | Windows (latest)|
+| Compiler            | Version   | Platform                    |
+|---------------------|-----------|-----------------------------|
+| GCC (`g++`)         | 13        | Ubuntu (latest)             |
+| Clang (`clang++`)   | 19        | Ubuntu (latest)             |
+| MSVC (Visual Studio)| 2022      | Windows Server 2022         |
+| MSVC (Visual Studio)| 2026      | Windows Server 2025         |
+
+The two MSVC rows are separate CI jobs on pinned images, and both gate a merge: 2022 is the declared floor, 2026 is
+the current toolchain. A `-latest` runner label is deliberately not used — it migrates between OS and Visual Studio
+versions, so a job on `windows-latest` silently stops testing the version it claims.
 
 Older toolchains are not supported by the 3.x line. The last release for the C++14 era is the 2.x
 series (see [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)).
@@ -236,10 +241,73 @@ celsius<double> t(20.0);
 t += celsius<double>(5.0);   // warm by 5 degrees → 25 °C   (still an absolute temperature)
 t -= celsius<double>(10.0);  // cool by 10 degrees → 15 °C
 
-// point + point is disabled for OFFSET scales — summing two degrees-Celsius values adds their datums,
-// which is arithmetically corrupt (20 °C + 5 °C is not 25 °C in any absolute sense):
-// auto bad = celsius<double>(20.0) + celsius<double>(5.0);   // does not compile (by design)
-// Zero-offset scales (kelvin, rankine) have no datum to corrupt, so they add like any linear unit.
+// point + point reads the rhs as an amount — the by-value form of the += above:
+auto warmer = celsius<double>(20.0) + celsius<double>(5.0);   // 25 °C
+
+// A weighted sum is datum-independent exactly when its weights total one, which is what these two do:
+auto mid = midpoint(celsius<double>(20.0), celsius<double>(30.0));   // 25 °C, in every scale
+auto q   = lerp(celsius<double>(20.0), fahrenheit<double>(86.0), 0.25);
+```
+
+At a glance — every temperature operation and what it yields. A *reading*
+carries a datum (`celsius`, `fahrenheit`, `reaumur`); an *amount* does not (a difference of two readings, or an
+offset-free scale like `kelvin`/`rankine`). Nothing here requires a wrapper:
+
+| You write | Result | |
+|---|---|---|
+| `celsius(20)`, `fahrenheit(c)`, `c1 < c2` | reading, conversion, comparison | exact, always available |
+| `c += celsius(5)` / `+= fahrenheit(9)` / `+= kelvin(5)` | reading, moved by that amount | the rhs is a relative amount; its datum is never applied |
+| `c -= fahrenheit(18)` | reading, moved down | |
+| `t1 - t2` (two readings of the same underlying type) | **amount**, in the left operand's degrees | the datums cancel |
+| `c + amount`, `amount + c` | reading, moved | the by-value form of `+=`; commutative |
+| `amount + amount`, `amount * 2.0`, `amount /= 4.0` | amount | an amount is an ordinary quantity, so it scales |
+| `kelvin + kelvin`, `kelvin * 2.0` | kelvin | an offset-free scale behaves as a magnitude |
+| `c1 + c2` (two readings) | reading, moved by the rhs | the by-value form of `+=`: the rhs is read as an amount |
+| `lerp(c1, c2, t)`, `midpoint(c1, c2)` | reading | a weighted sum whose weights total one, so the answer is the same in every scale |
+| `c * 2.0`, `2.0 * c`, `c / 2.0`, `c *= 2.0`, `c *= percent(50)` | reading, in its own scale | scaling reads the reading's own number — see below |
+| `abs(c)`, `-c`, `fmod(c1, c2)`, `sqrt(c)`, `hypot(c1, c2)`, `c1 / c2` | in the reading's own scale | likewise: the number as written, not a scale-independent magnitude |
+| `++c`, `--c`, `floor(c)`, `ceil(c)`, `round(c)`, `min`/`max`/`clamp` | reading | these step, quantize, or select in the reading's own scale |
+| `c += 5.0`, `c -= 5.0` (bare number) | **disabled** | a number states no unit — write `c += celsius(5)` |
+| `c += meters(1)` | **disabled** | different dimensions |
+
+A reading and an amount are one type, so an operation that reads the number reads it **in the scale it was written
+in**. That is scale-bound rather than wrong: `abs(celsius(-5.25))` is 5.25 °C, while the identical temperature
+written as `kelvin(267.9)` gives 267.9 K. Which of those a formula needs is the formula's business, and published
+temperature formulae need both — 16 of the 26 collected in
+`test/main.cpp::caseStudyPublishedTemperatureFormulae` have a scalar literal directly multiplying a °C or °F
+reading, and more do so once a scaled sum or quotient is counted. Magnus's formula has no absolute-scale form at
+all. The rule for a weighted sum is exact: it is datum-independent when its
+weights total one, so `lerp` and `midpoint` give the same temperature in every scale where doubling does not.
+
+Two consequences follow:
+
+- **A scaled reading is meaningful only in the scale it was written in.** `celsius(20) * 2.0` is 40 °C; the same
+  temperature as `kelvin(293.15) * 2.0` is 586.3 K = 313.15 °C. Both are what the arithmetic says.
+- **An amount cannot be returned as a bare unit.** The offset-free counterpart of an affine unit is itself a valid
+  *absolute* unit (celsius's counterpart is kelvin-shaped), so a "change" returned as a plain unit converts straight
+  back and re-applies the datum. When the intent is a change, name it — a difference of two readings is offset-free,
+  and `delta<celsius<double>>` from `<units/kind.h>` states it in the type:
+
+```cpp
+const auto rise  = celsius<double>(20.0) - celsius<double>(0.0);   // an amount
+const auto twice = rise * 2.0;                                     // 40 K of change
+c += twice;                                                        // move the reading by it
+```
+
+Which quantities carry a datum is public: `units::traits::has_arbitrary_origin_v<T>` is true for an affine reading
+and for a decibel level, so generic code can ask instead of carrying a unit list.
+
+One caveat on the *printed* form of an amount: the offset-free counterpart of celsius is kelvin-shaped and so
+prints as kelvin, and the counterparts of fahrenheit and reaumur have no strong name at all, so they also print
+in kelvin — `fahrenheit(212) - fahrenheit(32)` holds 180 Fahrenheit-degrees (`.raw()` is 180) but streams as
+`100 K`. The value is right in either reading; only the label is the base unit. `delta<fahrenheit<double>>`
+prints `delta 180 degF`.
+
+Each disabled row reports one line naming the remedy, not a wall of declined overloads:
+
+```
+units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
+units: cannot subtract a bare number from an affine point; subtract a quantity of the same dimension.
 ```
 
 Comparisons (`==`, `<`, …) and conversions between affine units are exact and always available. Non-affine
@@ -332,34 +400,92 @@ for the why.
 > Serialization of the wrappers is not yet supported (a follow-up); unwrap with `to<PlainUnit>()` and serialize
 > that.
 
+### Decibel levels and gains
+
+A decibel value splits the same way an affine temperature does, and for the same reason. A **dimensioned**
+decibel (`dBW`, `dBm`) is a *level* — a point on a logarithmic reference scale. A **dimensionless** decibel
+(`decibels`) is a *gain* — a relative ratio, carrying no reference. Which one you have is in the type, so the
+algebra follows from it:
+
+| You write | Result | |
+|---|---|---|
+| `gain + gain` | gain | the dB numbers add (the linear ratios multiply) |
+| `level + gain`, `gain + level`, `level += gain` | level | the level moves by the gain |
+| `level - level` | **gain** | the references cancel, as two datums do |
+| `level - gain`, `level -= gain` | level | |
+| `++level`, `--level` | level | steps the dB *number* by one. Note the tension with the row below: these predate the level/gain model and are not held to it |
+| `level + level` | disabled | two 10 dBW sources are not a 20 dBW source — sum them in the linear domain, where two equal powers make +3 dB |
+| `level * 2.0`, `level *= 2.0`, `gain *= 2.0`, `level / 2.0` | disabled | a dB number and the ratio behind it do not scale alike — scale the linear quantity |
+| `quantity * gain`, `quantity *= gain`, `quantity / gain` | disabled | a gain is a logarithmic figure, not a plain factor — use `dimensionless(gain)` |
+| `level / level`, `gain / gain` (same dimension) | disabled | the ratio of two dB values **is** their difference — write `a - b` |
+| `level * level`, `level / gain`, `quantity * level` | disabled | a product or quotient of logarithms — use the linear values |
+| `level += 5.0`, `gain += 5.0` | disabled | a bare number states neither a reference nor a ratio — add a `decibels(...)` gain |
+
+```cpp
+using namespace units::power;
+
+dBW<double> level(12.5);
+level += units::decibels<double>(3.25);                      // 15.75 dBW — moved by a gain
+auto gain = dBW<double>(15.75) - dBW<double>(12.5);           // 3.25 dB  — a gain, not a level
+units::dBm<double>(dBW<double>(12.5));                        // 42.5 dBm — a milliwatt reference is 30 dB lower
+```
+
+Every row above reports one sentence naming its remedy, by value and in place alike, rather than a list of declined
+overloads — 10 lines of output instead of the 149 lines and 12 candidates a bare overload miss produces. Sample:
+
+```
+units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.
+units: cannot scale by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).
+units: cannot divide two decibel values of one dimension; their ratio is their difference. Use `auto gain = a - b;`.
+units: cannot add a bare number to a decibel value; add a decibels(...) gain.
+```
+
 ---
 
 ## Type errors
 
-A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic
-names the unit type. The messages below are captured verbatim from GCC 13.
+A dimensional mistake that a bare `double` would accept is rejected at compile time, and the diagnostic names the
+unit types involved rather than the `conversion_factor<...>` template behind them. The messages below are captured
+verbatim from GCC 13 by the test suite and committed under `docs/diagnostics/` (for example
+[the incompatible-addition page](docs/diagnostics/error_add-different-dimensions.gcc13.md)), which
+`test/errorMessages/run.py --check-doc` re-emits and diffs, so they cannot drift from what the compiler actually
+prints.
 
-Adding incompatible dimensions:
+An operation that ordinary generic code can reach is refused by **deleting** the overload, so a
+`requires`-expression can see the refusal and a SFINAE fallback still works. Adding incompatible dimensions:
 
 ```text
-readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘units::time::seconds<double>’)
-    9 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
-      |            ~~~~~ ^ ~~~~~
-      |            |       |
-      |            |       units::time::seconds<double>
-      |            units::length::meters<double>
+readable_add_incompatible.cpp:36:20: error: use of deleted function ‘constexpr UnitTypeLhs units::operator+(const UnitTypeLhs&, const UnitTypeRhs&) [with UnitTypeLhs = length::meters<double>; UnitTypeRhs = time::seconds<double>]’
+   36 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
+      |                    ^~~~~
+include/units/core.h: note: declared here
+      |         constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept = delete;
 ```
+
+An operation only an affine or decibel operand can reach keeps a one-sentence diagnostic naming the remedy. That
+message fires from the overload's *body*, so a `requires`-expression reports such an operation as available — ask
+`units::traits::has_arbitrary_origin_v` or `units::traits::has_linear_scale_v` rather than probing it:
+
+```text
+include/units/core.h: error: static assertion failed: units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).
+```
+
+GCC prints the deleted declaration and stops; Clang lists its declined candidates, so the same rejection is longer
+there. Either way the operand types are named.
 
 Assigning a product to the wrong dimension — `m * m` is an area, not a length. GCC reports the result
 through an internal alias with the named type beside it in `{aka …}`:
 
 ```text
-readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
-   10 | units::length::meters<double> a = 1.0_m * 1.0_m; // ill-formed: m*m is an area, not a length
+readable_wrong_result_type.cpp:21:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
+   21 | units::length::meters<double> a = 1.0_m * 1.0_m; // ill-formed: m*m is an area, not a length
       |                                   ~~~~~~^~~~~~~
 ```
 
-The full set of rejected operations, with the diagnostic each produces on GCC, Clang, and MSVC, is in
+The rejected operations for a quantity measured from an arbitrary origin are tabulated above, and the affine and
+decibel rules are explained in [affine temperature](docs/explain/affine-temperature.md) and
+[scales](docs/explain/scales.md). The broader set of rejected operations, with the diagnostic each produces on GCC,
+Clang, and MSVC, is in
 [Type safety](docs/explain/type-safety.md). The diagnostics there are captured from the compilers by the
 test harness.
 

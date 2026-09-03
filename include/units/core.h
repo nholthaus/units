@@ -57,6 +57,7 @@
 
 #include "core.h"
 #include <chrono>
+#include <bit>
 #include <cmath>
 #include <concepts>
 #include <cstddef>
@@ -242,7 +243,7 @@ namespace units
  * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
- */
+		 */
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                   \
 	inline namespace namespaceName                                                                                                                                                                     \
 	{                                                                                                                                                                                                  \
@@ -263,7 +264,7 @@ namespace units
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
- */
+		 */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...)                                                                                                                      \
 	/** A named unit is a CLASS deriving from its `unit<...>` (not an alias) so a diagnostic prints the friendly */    \
 	/** name (`meters<double>`) instead of `unit<strong, Underlying, scale>` cruft, keeping the `unitName<>` spelling. */\
@@ -344,7 +345,7 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
- */
+	 */
 #define UNIT_ADD_NAME(namespaceName, namePlural, abbrev)                                                                                                                                               \
 	template<class Underlying>                                                                                                                                                                         \
 	struct unit_name<namespaceName::namePlural<Underlying>>                                                                                                                                            \
@@ -492,7 +493,7 @@ namespace units
  *				argument rather than derived from `unitdimension`.
  * @param		unitdimension	The name of the dimension of unit, e.g. length or mass.
  * @param		ConceptName		The PascalCase name of the emitted concept, e.g. Length or Mass.
- */
+		 */
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension, ConceptName)                                                                                                                                           \
 	/** @ingroup	TypeTraits*/                                                                                                                                                                   \
@@ -534,7 +535,7 @@ namespace units
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
- */
+	 */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                                     \
 	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>)                                                                                                                   \
@@ -683,7 +684,7 @@ namespace units
 		 * @details		Simplifies the implementation of traits and other metaprogramming use-cases.
 		 *				The result is shorter and more expressive code.
 		 * @sa			https://wg21.link/N4502, http://wg21.link/N4758#meta.detect
-		 */
+	 */
 		template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
 		struct detector
 		{
@@ -734,7 +735,6 @@ namespace units
 		inline constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
-
 	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
@@ -760,8 +760,7 @@ namespace units
 			};
 		} // namespace detail
 		/** @endcond */ // END DOXYGEN IGNORE
-
-		/**
+			/**
 		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a specialization of `std::ratio`.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
 		 *				Use `is_ratio_v<T>` to test whether `T` is a specialization of `std::ratio`.
@@ -848,7 +847,6 @@ namespace units
 	} // namespace detail
 
 	/** @endcond */ // END DOXYGEN IGNORE
-
 	namespace traits
 	{
 		/**
@@ -856,7 +854,7 @@ namespace units
 		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a conversion factor.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
 +		 *				Use `is_conversion_factor_v<T>` to test whether `T` represents a conversion factor.
-		 */
+	 */
 		template<class T>
 		using is_conversion_factor = typename std::is_base_of<units::detail::_conversion_factor, T>::type;
 
@@ -875,7 +873,7 @@ namespace units
 		/**
 		 * @brief		helper type to identify units.
 		 * @details		A non-templated base class for `unit` which enables compile-time testing.
-		 */
+	 */
 		struct _unit
 		{
 		};
@@ -965,8 +963,7 @@ namespace units
 			};
 		} // namespace detail
 		/** @endcond */ // END DOXYGEN IGNORE
-
-		/**
+			/**
 		 * @ingroup		TypeTraits
 		 * @brief		Trait which tests whether `T` meets the requirements for a numerical scale
 		 * @details		A numerical scale must have static member functions named `linearize` and `scale`
@@ -1412,7 +1409,6 @@ namespace units
 	};
 
 	/** @endcond */ // END DOXYGEN IGNORE
-
 	/** @cond */    // DOXYGEN IGNORE
 	namespace detail
 	{
@@ -1430,7 +1426,7 @@ namespace units
 		 * @details		recursively seeks dimension type of conversion factor.
 		 *				Since their `dimension_type` typedef may be another conversion factor,
 		 *				it may not represent a dimension type.
-		 */
+	 */
 		template<class ConversionFactor>
 		struct dimension_of_impl : dimension_of_impl<conversion_factor_base_t<ConversionFactor>>
 		{
@@ -1454,14 +1450,13 @@ namespace units
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
-
 	namespace traits
 	{
 		/**
 		 * @brief		Names the `dimension_t` of a `conversion_factor`.
 		 * @details		Since `conversion_factor`s nest,
 		 *				their `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
-		 */
+	 */
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
 	} // namespace traits
@@ -1506,7 +1501,7 @@ namespace units
 		 *				`Underlying`. Otherwise, there is no `type` member.
 		 * @param		Unit The unit type whose underlying type is to be replaced.
 		 * @param		Underlying The underlying type to replace that of `Unit`.
-		 */
+	 */
 		template<class, class>
 		struct replace_underlying
 		{
@@ -1593,7 +1588,7 @@ namespace units
 		 * @details		multiplies two units. The dimension becomes the dimensions of each with their exponents
 		 *				added. The conversion factors of each are multiplied. Pi exponent ratios
 		 *				are added, and datum translations are removed.
-		 */
+	 */
 		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		struct unit_multiply_impl
 		{
@@ -1659,15 +1654,16 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `squared`
-		 * @details		Squares the conversion ratio, `dimension_t` exponents, pi exponents, and removes
-		 *				datum translation ratios.
-		 */
+		 * @details		Squares the conversion ratio, `dimension_t` exponents and pi exponents, and sets the datum
+		 *				translation to zero. A squared unit has no origin, and a translation carried into one makes
+		 *				the result compare as affine and re-apply that translation on the way back out.
+	 */
 		template<ConversionFactorType Cf>
 		struct squared_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>, dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<2>>,
-					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, typename Cf::translation_ratio>;
+					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1688,13 +1684,13 @@ namespace units
 		 * @brief		implementation of `cubed`
 		 * @details		Cubes the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
-		 */
+	 */
 		template<ConversionFactorType Cf>
 		struct cubed_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, typename Cf::translation_ratio>;
+					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1889,13 +1885,13 @@ namespace units
 		 * @brief		implementation of `sqrt`
 		 * @details		square roots the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
-		 */
+	 */
 		template<ConversionFactorType Unit, std::intmax_t Eps>
 		struct sqrt_impl
 		{
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<ratio_sqrt<Conversion, Eps>, dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1935,7 +1931,7 @@ namespace units
 		 * @brief		implementation of compound_unit
 		 * @details		multiplies a variadic list of units together, and is inherited from the resulting
 		 *				type.
-		 */
+	 */
 		template<ConversionFactorType Cf, ConversionFactorType... Cfs>
 		struct compound_impl;
 
@@ -1976,7 +1972,7 @@ namespace units
 		/**
 		 * @brief		prefix applicator.
 		 * @details		creates a conversion factor from a prefix and a conversion factor
-		 */
+	 */
 		template<RatioType Ratio, ConversionFactorType ConversionFactor>
 		struct prefix
 		{
@@ -2070,6 +2066,7 @@ namespace units
 		 */
 		template<ConversionFactorType Cf>
 		inline constexpr bool is_affine_conversion_factor_v = !std::ratio_equal_v<typename conversion_factor_traits<Cf>::translation_ratio, std::ratio<0>>;
+
 	} // namespace traits
 
 	//------------------------------
@@ -2084,7 +2081,7 @@ namespace units
 		 * @details		Simulates the promotion undergone by integers when calling the standard cmath functions
 		 *				overloaded on `float`, `double` and `long double`. Works for both arithmetic types and
 		 *				unit types.
-		 */
+	 */
 		template<typename T>
 		struct floating_point_promotion : std::conditional<std::is_floating_point_v<T>, T, double>
 		{
@@ -2471,7 +2468,7 @@ namespace units
 		 * @brief		SFINAE helper to prevent warnings in Clang 6 when `From` or `To` is a `conversion_factor`.
 		 * @details		`typename T::conversion_factor` is interpreted as a constructor when `T` is a
 		 *				`conversion_factor` (-Winjected-class-name).
-		 */
+	 */
 		template<UnitType UnitFrom, UnitType UnitTo>
 		struct delayed_is_same_dimension_conversion_factor : std::false_type
 		{
@@ -2609,7 +2606,7 @@ namespace units
 
 		/**
 		 * @brief		SFINAE helper to test if an arithmetic conversion is lossless.
-		 */
+	 */
 		template<class From, class To>
 		inline constexpr bool is_losslessly_convertible = std::is_arithmetic_v<From> && (std::is_floating_point_v<To> || !std::is_floating_point_v<From>);
 
@@ -2736,7 +2733,7 @@ namespace units
 					 *				- \ref densityContainers "density units"
 					 *				- \ref concentrationContainers "concentration units"
 					 *				- \ref constantContainers "constant units"
-					 */
+	 */
 #ifdef _WIN32
 	// Microsoft compiler requires explicit activation of empty base class optimization
 	// so that sizeof(unit<..., double, ...>) == sizeof(double)
@@ -2888,8 +2885,21 @@ namespace units
 			requires traits::is_dimensionless_unit<Cf>::value
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
-			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
-			_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			// Tested POSITIVELY against `linear_scale` so that any other scale takes the linearizing branch rather
+			// than silently inheriting the linear one. (`has_linear_scale_v` is not declared this early in the header,
+			// hence the direct comparison; `linear_scale` is declared above.)
+			if constexpr (std::is_same_v<NumericalScale, linear_scale>)
+			{
+				unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
+				_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			}
+			else
+			{
+				// A logarithmic scale: the number means what it means to the value constructor -- decibels, not the
+				// linear ratio -- or `g = 3.25` would store 3.25 as the ratio and read back 5.12 dB while
+				// `decibels(3.25)` is 3.25 dB, so an assign-then-read round trip would not hold.
+				_linearized_value = unit(rhs)._linearized_value;
+			}
 			return *this;
 		}
 
@@ -3604,7 +3614,7 @@ namespace units
 	{
 		/**
 		 * @brief		greatest common divisor of two ratios.
-		 */
+	 */
 		template<RatioType Ratio1, RatioType Ratio2>
 		using ratio_gcd = std::ratio<std::gcd(Ratio1::num, Ratio2::num), std::lcm(Ratio1::den, Ratio2::den)>;
 
@@ -3806,6 +3816,65 @@ namespace units
 
 		template<typename... T>
 		inline constexpr bool has_decibel_scale_v = has_decibel_scale<T...>::value;
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Whether a unit is a decibel LEVEL: a DIMENSIONED quantity on a logarithmic reference scale
+		 *				(`dBW`, `dBm`). A DIMENSIONLESS decibel value is a GAIN -- a relative ratio -- and the two obey
+		 *				different rules, so every decibel rule in the library keys on this rather than on decibel-ness
+		 *				alone.
+		 * @tparam		U	the unit type to test.
+		 */
+		template<class U>
+		inline constexpr bool is_decibel_level_v = units::DimensionedUnitType<U> && has_decibel_scale_v<U>;
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		Whether a quantity is measured from an ARBITRARY ORIGIN: an affine reading (it carries a datum,
+		 *				like `celsius`) or a decibel LEVEL (it carries a logarithmic reference, like `dBW`).
+		 * @details		Such a value has no SCALE-INDEPENDENT magnitude, sign, remainder, root, power or ratio: an
+		 *				operation that reads its number reads it in the scale that number was written in, so
+		 *				`abs(celsius(-5.25))` is 5.25 degC while the identical temperature as `kelvin(267.9)` is
+		 *				267.9 K. A DIFFERENCE of two such values, a decibel GAIN, an offset-free scale (`kelvin`,
+		 *				`rankine`) and every ordinary quantity carry no origin, so those operations are
+		 *				scale-independent for them.
+		 *
+		 *				This trait is the supported way for generic code to ask the question, because it cannot be
+		 *				asked with a `requires`-expression: the operations the library does refuse are diagnostics
+		 *				that fire from an overload BODY, so the overload resolves anyway and the `requires` reports
+		 *				the operation as available -- meaning a `requires`-guarded `if constexpr` hard-errors instead
+		 *				of taking its fallback.
+		 *				@code
+		 *				if constexpr (units::traits::has_arbitrary_origin_v<T>) { useADifference(v); }
+		 *				@endcode
+		 *
+		 *				Generic code reaches this trait with whatever type it happens to hold, so ANY type answers it:
+		 *				a type that is not a unit at all reads `false` rather than failing to compile. Writing it as a
+		 *				plain disjunction over `is_affine_unit_v` does not do that, because that trait names
+		 *				`U::conversion_factor` and both operands of a `&&` or `||` in a variable template's initializer
+		 *				are instantiated -- so `has_arbitrary_origin_v<double>` was a hard error inside the library,
+		 *				which is precisely the failure the `if constexpr` above exists to avoid.
+		 * @tparam		U	the type to test; need not be a unit.
+		 */
+		/**
+		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
+		 * @details		The guards on the transcendental functions ask this rather than `has_linear_scale_v`, because
+		 *				that trait is false for anything it cannot classify -- including every `kind`, `delta` and
+		 *				`absolute` WRAPPER, whose scale it does not see through. Requiring provable linearity therefore
+		 *				withdrew `atan2` from 37 wrapper types that had always accepted it, while refusing what is
+		 *				provably logarithmic leaves them alone and still refuses the decibel operands it is there for.
+		 *				Any type answers, a non-unit included.
+		 * @tparam		U	the type(s) to test.
+		 */
+		template<class... U>
+		inline constexpr bool no_logarithmic_scale_v = !(has_decibel_scale_v<U> || ...);
+
+		template<class U>
+		inline constexpr bool has_arbitrary_origin_v = false;
+		/** @cond */ // DOXYGEN IGNORE: the constrained specialization of the trait documented above.
+		template<UnitType U>
+		inline constexpr bool has_arbitrary_origin_v<U> = is_affine_unit_v<U> || is_decibel_level_v<U>;
+		/** @endcond */
 	} // namespace traits
 
 	//----------------------------------
@@ -3887,7 +3956,7 @@ namespace units
 	{
 		/**
 		 * @brief		Helper to make the use of a template parameter a non-deduced context.
-		 */
+	 */
 		template<class T>
 		struct type_identity
 		{
@@ -3896,22 +3965,112 @@ namespace units
 
 		template<class T>
 		using type_identity_t = typename type_identity<T>::type;
+
+		/// A `false` that DEPENDS on a template parameter, so a `static_assert(dependent_false<T>, "...")` inside a
+		/// template body fires only when that body is actually instantiated -- the way a misuse diagnostic replaces an
+		/// overload-resolution candidate wall with one readable sentence.
+		template<class...>
+		inline constexpr bool dependent_false = false;
+
+		/// The offset-free counterpart of a unit: same dimension, scale, and pi factor, with the datum translation
+		/// stripped. This is the type of a CHANGE on an affine scale -- the difference of two points, or a point
+		/// scaled -- so it never re-applies a datum, and converting between two of them is scale-only (a temperature
+		/// difference converts by degree size, not as an absolute reading).
+		template<class U>
+		using delta_unit_t = unit<traits::strong_t<conversion_factor<typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::conversion_ratio,
+										  typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::dimension_type,
+										  typename traits::conversion_factor_traits<typename traits::unit_traits<U>::conversion_factor>::pi_exponent_ratio, std::ratio<0>>>,
+			typename traits::unit_traits<U>::underlying_type, typename traits::unit_traits<U>::numerical_scale_type>;
+
+		//------------------------------------------------------------------------------------------------------------------
+		//      FUNCTION: affine_delta_in_lhs_scale [static]
+		//------------------------------------------------------------------------------------------------------------------
+		/// @brief      re-expresses the RHS's magnitude as a change in the LHS unit's scale, applying NO datum
+		/// @details	A relative change is scale-only: a value in the rhs scale becomes the same change in the lhs
+		///				scale by the pure ratio of their scale factors (rhs_ratio / lhs_ratio), never through the
+		///				base linearization (which would re-introduce the affine offset). A nine-Fahrenheit-degree
+		///				change is nine times 5/9 = five Celsius-degrees; a five-kelvin change is five Celsius-degrees.
+		/// @tparam     UnitTypeLhs  the point unit being moved (supplies the target scale and underlying type)
+		/// @tparam     UnitTypeRhs  the unit the change was written in -- affine or not; only its scale factor is
+		///                          read, so an offset-free rhs (kelvin, or a difference) takes the same path
+		/// @param[in]  rawRhs  the rhs value in its own scale (`rhs.raw()`)
+		/// @return     the change expressed in the lhs unit's scale
+		//------------------------------------------------------------------------------------------------------------------
+		/**
+		 * @brief		Re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying NO datum.
+		 * @tparam		UnitTypeLhs	the left operand's unit type.
+		 * @tparam		UnitTypeRhs	the right operand's unit type.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		constexpr typename UnitTypeLhs::underlying_type affine_delta_in_lhs_scale(typename UnitTypeRhs::underlying_type rawRhs) noexcept
+		{
+			using Ratio    = std::ratio_divide<typename traits::conversion_factor_traits<typename UnitTypeRhs::conversion_factor>::conversion_ratio,
+				typename traits::conversion_factor_traits<typename UnitTypeLhs::conversion_factor>::conversion_ratio>;
+			using Compute  = floating_point_promotion_t<typename UnitTypeLhs::underlying_type>;
+			const Compute scaled = static_cast<Compute>(rawRhs) * static_cast<Compute>(Ratio::num) / static_cast<Compute>(Ratio::den);
+			return static_cast<typename UnitTypeLhs::underlying_type>(scaled);
+		}
+
+		/// The detail spelling of `traits::is_decibel_level_v`, which is the public name.
+		template<class U>
+		inline constexpr bool is_decibel_level_v = traits::is_decibel_level_v<U>;
+
+		/// True when the operand pair is a decibel LEVEL and a decibel GAIN. This is the one cross-DIMENSION compound
+		/// pairing that is well-defined, because `level + gain -> level` and `level - gain -> level` are defined by value.
+		template<class UnitTypeLhs, class UnitTypeRhs>
+		inline constexpr bool is_decibel_level_and_gain_v =
+			is_decibel_level_v<UnitTypeLhs> && DimensionlessUnitType<UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeRhs>;
+
+		/// The detail spelling of `traits::has_arbitrary_origin_v`, which is the public name.
+		template<class U>
+		inline constexpr bool has_arbitrary_origin_v = traits::has_arbitrary_origin_v<U>;
+
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
+	/**
+	 * @brief		Compound addition for a quantity that carries no datum and no logarithmic reference.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
 		return lhs;
 	}
 
+	/**
+	 * @brief		Compound move of an OFFSET-FREE quantity by an amount written on an affine scale.
+	 * @details		The mirror of the affine-lhs overload below. The rhs of a compound move is a relative AMOUNT, so
+	 *				only its scale factor applies and its datum never does: `kelvin(300) += celsius(5)` warms by five
+	 *				Celsius-degrees, which is five kelvin, giving 305 K. Without this overload the rhs converts into
+	 *				the lhs unit as an absolute READING and carries its datum in, so the answer would depend on which
+	 *				side of the move happens to be the affine one.
+	 * @tparam		UnitTypeLhs	the offset-free unit being moved.
+	 * @tparam		UnitTypeRhs	the affine unit the amount is written in; only its scale factor is read.
+	 * @param[in]	lhs	the quantity being moved.
+	 * @param[in]	rhs	the amount of the move, in its own scale.
+	 * @returns		a reference to `lhs`, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+		return lhs;
+	}
+
 	/// Compound addition for AFFINE units (e.g. temperatures). The lhs is an absolute point; the rhs is
 	/// interpreted as a RELATIVE delta and the point is moved in place by that magnitude, staying in the lhs
 	/// unit (celsius(20) += celsius(5) -> celsius(25), i.e. "warm by 5 degrees"). The rhs's datum offset is
-	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. (Binary `a + b`
-	/// of two absolute affine points is disabled; use `+=` to move a point by a relative amount.)
+	/// intentionally not applied — only its magnitude in the lhs unit matters for a delta. Binary `a + b` reads
+	/// its rhs the same way and answers in the lhs unit.
 	template<UnitType UnitTypeLhs>
 		requires(traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
@@ -3920,8 +4079,80 @@ namespace units
 		return lhs;
 	}
 
-	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+	/// Compound addition of an affine point and a same-dimension affine value written in a DIFFERENT scale. The rhs
+	/// is a RELATIVE delta, so only its scale-converted magnitude moves the point — its datum is stripped, never
+	/// applied. celsius(20) += fahrenheit(9) warms by nine Fahrenheit-degrees (five Celsius-degrees) to celsius(25);
+	/// it does NOT reinterpret fahrenheit(9) as the absolute point −12.78 degC. A different-dimension rhs does not
+	/// match (the same_dimension constraint). For an explicit point/delta calculus, use `absolute<>`/`delta<>`.
+	/**
+	 * @brief		Compound move of an affine point by a same-dimension value written in a DIFFERENT scale.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+		return lhs;
+	}
+
+	/**
+	 * @brief		Compound move of a decibel LEVEL by a dimensionless decibel GAIN.
+	 * @details		The in-place form of `level + gain -> level` (dBW(12.5) += decibels(3.25) -> dBW(15.75)). The
+	 *				operands differ in dimension, which is ordinarily forbidden, but a gain is a ratio rather than a
+	 *				quantity of its own dimension, so it moves the level exactly as a delta moves an affine point.
+	 *
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = lhs + rhs;
+		return lhs;
+	}
+
+	/**
+	 * @brief		Compound move of a decibel LEVEL down by a dimensionless decibel GAIN.
+	 * @details		The in-place form of `level - gain`.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = lhs - rhs;
+		return lhs;
+	}
+
+	// A bare number may be compound-added only to a genuinely dimensionless quantity (a plain scalar): a number has
+	// no dimension, so adding one to a length, a named angle, or an affine point is meaningless -- and the binary
+	// `unit + number` already rejects it. Constraining to a plain dimensionless unit keeps `+=`/`+` consistent and
+	// turns what was a body-level failure for any other unit into a clean overload-resolution rejection. (Ratio-
+	// scaled dimensionless units -- percent, parts-per-million -- have their own scalar overload below.) A LOGARITHMIC
+	// dimensionless unit (a dB gain) is excluded too: a bare number states no ratio, and `unit + number` has no decibel
+	// overload, so without the scale constraint this body failed inside the library instead of at the call site.
+	/**
+	 * @brief		Compound addition of a bare number to a dimensionless quantity.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<OrdinaryDimensionlessUnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, T rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -3985,8 +4216,15 @@ namespace units
 		return lhs;
 	}
 
+	/**
+	 * @brief		Compound subtraction for a quantity that carries no datum and no logarithmic reference.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_unit_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4006,8 +4244,57 @@ namespace units
 		return lhs;
 	}
 
-	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+	/**
+	 * @brief		Compound move of an OFFSET-FREE quantity DOWN by an amount written on an affine scale.
+	 * @details		The `operator-=` mirror of the overload above, on the same terms: only the rhs's scale factor
+	 *				applies, so `kelvin(300) -= celsius(5)` cools by five kelvin to 295 K.
+	 * @tparam		UnitTypeLhs	the offset-free unit being moved.
+	 * @tparam		UnitTypeRhs	the affine unit the amount is written in; only its scale factor is read.
+	 * @param[in]	lhs	the quantity being moved.
+	 * @param[in]	rhs	the amount of the move, in its own scale.
+	 * @returns		a reference to `lhs`, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() - detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+		return lhs;
+	}
+
+	/// Mirror of the cross-scale affine `+=`: subtract a same-dimension affine value in a DIFFERENT scale as a
+	/// RELATIVE delta (datum stripped). celsius(20) -= fahrenheit(9) cools by nine Fahrenheit-degrees (five
+	/// Celsius-degrees) to celsius(15). A different-dimension rhs does not match.
+	/**
+	 * @brief		Compound move of an affine point by a same-dimension value written in a DIFFERENT scale.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!std::is_same_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		lhs = UnitTypeLhs(lhs.raw() - detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+		return lhs;
+	}
+
+	// Mirror of the scalar `+=`: a bare number may be compound-subtracted only from a plain dimensionless quantity.
+	// For any dimensioned unit, named angle, or affine point it is meaningless and the binary `unit - number`
+	// already rejects it, so this is a clean overload-resolution rejection rather than a body-level failure. A
+	// logarithmic dimensionless unit is excluded for the same reason as in the `+=` above.
+	/**
+	 * @brief		Compound subtraction of a bare number from a dimensionless quantity.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
+	template<OrdinaryDimensionlessUnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4021,8 +4308,26 @@ namespace units
 		return (lhs -= rhs.value());
 	}
 
+	// Scaling by a scalar is meaningful for a magnitude (a length, a duration) but NOT for an affine point: a
+	// point's value is relative to an arbitrary datum, so `celsius(20) *= 2` would depend on the zero (40 degC is
+	// 313 K, yet the same temperature in kelvin doubled is a different point), and the only coordinate-free reading
+	// -- scaling a CHANGE -- yields a delta, which cannot be stored back in the point type. So an affine point is
+	// excluded here; scale a temperature change via `delta<celsius>` (delta * scalar = delta, well-defined).
+	//
+	// A NON-LINEAR (decibel) scale is excluded as well, matching the by-value `operator*`. The body below reads the
+	// value THROUGH the scale (`raw()` returns the dB number) and writes it back PAST the scale (the
+	// `linearized_value` tag stores it unlinearized). Those two are the same operation only for a linear scale; for a
+	// decibel scale they are different domains, so scaling one silently produced a value that was neither reading.
+	/**
+	 * @brief		Scaling a quantity in place by a bare number.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// The rhs is taken as its own arithmetic type (not narrowed to the lhs underlying type at the call
@@ -4128,15 +4433,33 @@ namespace units
 
 	// scale a dimensioned quantity by a dimensionless quantity: use its numeric value and route through the
 	// arithmetic overload above (preserves the warn-on-lossy-integer-scale behavior)
+	/**
+	 * @brief		Scaling a quantity in place by a dimensionless quantity.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D>)
 	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs *= rhs.value());
 	}
 
+	// Dividing by a bare number, the mirror of the operator*= above. The value is read and written in the lhs's own
+	// scale, so for an affine lhs the quotient is the reading's number divided -- scale-bound, as the by-value form is.
+	/**
+	 * @brief		Dividing a quantity in place by a bare number.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs, ArithmeticType T>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T& rhs)
 	{
 		// see operator*= above: a floating-point divisor narrowing an integer-underlying quantity surfaces
@@ -4146,11 +4469,387 @@ namespace units
 		return lhs;
 	}
 
+	/**
+	 * @brief		Dividing a quantity in place by a dimensionless quantity.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		a reference to the left operand, so the expression can be chained.
+	 */
 	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
-		requires(!RatioDimensionlessUnitType<UnitTypeLhs>)
+		requires(!RatioDimensionlessUnitType<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs, D>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D& rhs)
 	{
 		return (lhs /= rhs.value());
+	}
+
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	COMPOUND-ASSIGNMENT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// Each of these is ill-formed. Without them the compiler prints only "no match for operator+=" and a list of
+	// declined candidates, which does not name what to write instead. Each returns a value so the body is
+	// instantiated and the message fires on every compiler.
+
+	/**
+	 * @brief		A bare number added to a dimensioned quantity.
+	 * @details		A number carries no dimension. Deleted rather than diagnosed from a body: a body-fired assertion
+	 *				resolves the overload, so generic code probing `requires { a += b; }` would see the operation as
+	 *				available and hard-error inside the library instead of taking its fallback.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&) = delete;
+
+	/**
+	 * @brief		A bare number subtracted from a dimensioned quantity.
+	 * @details		The `operator-=` mirror of the overload above, deleted on the same terms.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!DimensionlessUnitType<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&) = delete;
+
+	/**
+	 * @brief		Compound add across DIFFERENT dimensions, which dimensional analysis forbids.
+	 * @details		A decibel level moved by a dimensionless decibel gain is the one well-defined cross-dimension
+	 *				pairing and is handled above. Deleted rather than diagnosed from a body, so generic code probing
+	 *				`requires { a += b; }` observes the refusal.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
+
+	/**
+	 * @brief		Compound subtract across DIFFERENT dimensions.
+	 * @details		The `operator-=` mirror of the overload above, deleted on the same terms.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs> && !detail::is_decibel_level_and_gain_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
+
+	/**
+	 * @brief		Compound multiply or divide by another QUANTITY.
+	 * @details		The product or quotient has a different dimension, which cannot be stored back in the left
+	 *				operand's type; compute it by value (`auto p = a * b;`). Deleted rather than diagnosed from a
+	 *				body, so generic code probing `requires { a *= b; }` observes the refusal.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!DimensionlessUnitType<UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!DimensionlessUnitType<UnitTypeRhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
+
+	// Scaling in place by a dimensionless QUANTITY where no valid overload applies. The two diagnostics above are
+	// keyed on a NON-dimensionless rhs (that is the different-dimension case), and the valid dimensionless-rhs
+	// overloads require a linear scale on BOTH operands -- so a decibel scale on either side has no candidate at all
+	// and prints a wall. These cover it, split by which side is logarithmic: a decibel value does not scale, and a
+	// decibel GAIN is not a plain factor to scale by.
+	/**
+	 * @brief		Scaling a decibel value by a dimensionless quantity.
+	 * @details		The dB number and the ratio behind it do not scale alike. Returns a value so the body is
+	 *				instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		Dividing a decibel value by a dimensionless quantity.
+	 * @details		Same reason as scaling. Returns a value so the body is instantiated and the message fires on every
+	 *				compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		Scaling by a decibel GAIN.
+	 * @details		A gain is a logarithmic figure, not a plain factor to multiply by. Returns a value so the body is
+	 *				instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const D&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot scale by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+	/**
+	 * @brief		Dividing by a decibel GAIN.
+	 * @details		Same reason as scaling by one. Returns a value so the body is instantiated and the message fires
+	 *				on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const D&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot divide by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+
+	/** @endcond */ // END DOXYGEN IGNORE
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	AFFINE MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// An affine quantity is a POINT on a scale, so scaling it, adding two of them, or moving it by a bare number is
+	// ill-formed. Without these overloads the compiler reports only "no match for operator*=" followed by a wall of
+	// declined candidates, which does not name what to write instead. Each catch-all below is selected for the misuse
+	// and its body fires one sentence naming the problem and the remedy -- the `absolute<>`/`delta<>` wrappers of
+	// <units/kind.h>, which state the point-versus-amount distinction in the type. Each returns a value so the body is
+	// instantiated (and the message fires) on every compiler.
+
+
+
+	/**
+	 * @brief		Moving an affine POINT by a bare number.
+	 * @details		A number carries no unit, so the amount of change is unstated. Returns a value so the body is
+	 *				instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add a bare number to an affine point; add a quantity of the same dimension (e.g. celsius(5)).");
+		return lhs;
+	}
+	/**
+	 * @brief		Mirror of the `+=` above.
+	 * @details		A bare number subtracted from an affine point. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot subtract a bare number from an affine point; subtract a quantity of the same dimension.");
+		return lhs;
+	}
+
+	/** @endcond */ // END DOXYGEN IGNORE
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	LOGARITHMIC (DECIBEL) MISUSE DIAGNOSTICS
+	//----------------------------------
+	// A decibel value is a logarithmic reading, so a bare number is neither a ratio nor an amount of it, and scaling
+	// one has no single meaning (doubling the dB number squares the linear ratio). The by-value operators already
+	// decline these; without the catch-alls below the in-place forms reported a failure inside the library rather
+	// than at the call site. Each returns a value so the body is instantiated and the message fires on every compiler.
+
+	/**
+	 * @brief		Scaling a decibel value in place.
+	 * @details		The dB number and the linear ratio it stands for do not scale alike. Returns a value so the body
+	 *				is instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator*=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Dividing a decibel value in place.
+	 * @details		Same reason as scaling. Returns a value so the body is instantiated and the message fires on every
+	 *				compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+
+	/// Adding or subtracting two decibel LEVELS in place. `level + level` is deleted (two 10 dBW sources are not a
+	/// 20 dBW source) and `level - level` yields a GAIN, which cannot be stored back in the level's own type -- so
+	/// both compound forms are ill-formed. Without these the failure was reported from inside the library, at the
+	/// assignment that could not hold the gain.
+	/**
+	 * @brief		Diagnostic for an ill-formed use of `operator+=`.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_v<UnitTypeLhs> && detail::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot add two decibel levels; combine them in the linear domain.");
+		return lhs;
+	}
+	/// Subtracting two decibel LEVELS in place: their difference is a GAIN, which the level's type cannot hold.
+	/**
+	 * @brief		Diagnostic for an ill-formed use of `operator-=`.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(detail::is_decibel_level_v<UnitTypeLhs> && detail::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			!traits::is_affine_unit_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot subtract two decibel levels in place; their difference is a gain. Use `auto g = a - b;`.");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Moving a decibel value by a bare number.
+	 * @details		A number states no reference and no ratio. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot add a bare number to a decibel value; add a decibels(...) gain.");
+		return lhs;
+	}
+	/**
+	 * @brief		Mirror of the `+=` above.
+	 * @details		A bare number subtracted from a decibel value. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&)
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot subtract a bare number from a decibel value; subtract a decibels(...) gain.");
+		return lhs;
+	}
+	/** @endcond */ // END DOXYGEN IGNORE
+
+	/// A reading moved by an AMOUNT, by value: the amount is any same-dimension quantity that is not itself a
+	/// reading (a difference of two readings, a scaled reading, or an offset-free scale), so its magnitude is added to
+	/// the reading in the reading's own degrees and the result is a reading. This is the by-value counterpart of
+	/// `+=`, and it is commutative -- an amount plus a reading is the same reading.
+	/**
+	 * @brief		Moves an affine reading by an amount written on an offset-free scale.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
+	}
+	/// A reading moved by an AMOUNT written on the LEFT: the same move, so it answers in the READING's unit rather
+	/// than the amount's. Published formulae reach it through a scaled DIFFERENCE added back to a reading -- mean
+	/// radiant temperature is `(Tg - Ta) * (1 + 0.22 * sqrt(v)) + Ta`, whose left operand is offset-free.
+	/**
+	 * @brief		Moves an affine reading by an amount written on the left.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the right operand's unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeRhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeRhs(rhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeRhs, UnitTypeLhs>(lhs.raw()));
+	}
+
+	/// The sum of two readings, in the left operand's unit. The result is datum-relative, as any weighted sum of
+	/// readings is. Published formulae use the form: every WBGT variant (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, ISO 7243 /
+	/// NIOSH / OSHA / TB MED 507), the Thom, Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`), FITS
+	/// and MDI. Where the weights total one the result is datum-INDEPENDENT and exact in any scale, so WBGT reads the
+	/// same published in degC and in degF; `units::midpoint` and `units::lerp` name that case. Where the weights do
+	/// not total one, the sum is a curve fit's arithmetic on the numbers a thermometer read, in the scale its
+	/// coefficients were fitted to.
+	/**
+	 * @brief		The sum of two affine readings, in the left operand's unit.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(traits::is_affine_unit_v<UnitTypeLhs> && traits::is_affine_unit_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	{
+		return UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
 	}
 
 	template<RatioDimensionlessUnitType U, RatioDimensionlessUnitType URhs>
@@ -4278,6 +4977,7 @@ namespace units
 		return lhs;
 	}
 
+	/** @cond */ // DOXYGEN IGNORE: deleted, so not callable API.
 	// Two DIFFERENT ratio-scaled dimensionless units (percent and parts-per-million, say) count in different ticks, so
 	// the modulo of their point counts has no meaning. These deleted overloads catch that mix explicitly -- otherwise
 	// the right operand would implicitly convert into the left's unit and silently bind the same-unit overload -- and
@@ -4289,6 +4989,7 @@ namespace units
 		requires(!std::is_same_v<U, V>)
 	constexpr U& operator%=(U&, const V&) = delete;
 
+	/** @endcond */ // END DOXYGEN IGNORE
 	//------------------------------
 	//	UNIT UNARY OPERATORS
 	//------------------------------
@@ -4300,6 +5001,10 @@ namespace units
 		return u;
 	}
 
+	// Increment and decrement ARE defined on a quantity measured from an arbitrary origin, unlike `+= 1.0`. A bare
+	// number is refused because it states no unit, whereas `++` unambiguously steps by ONE unit of the operand's own
+	// scale -- `++celsius(20)` is `celsius(20) += celsius(1)`, a move by a stated amount, and `++dBW(12.5)` is a
+	// one-decibel gain. The amount is implied by the type, so nothing is guessed.
 	// prefix increment: ++T
 	template<UnitType UnitTypeLhs>
 	constexpr UnitTypeLhs& operator++(UnitTypeLhs& u) noexcept
@@ -4445,15 +5150,18 @@ namespace units
 	///				the true 273.15 K delta). Both operands are reconciled to their common affine unit, their
 	///				raw values subtracted (the offsets cancel exactly), and the result returned in the
 	///				offset-stripped counterpart of that common unit so it never re-applies a datum.
+	/// NOTE the asymmetry with `-=`, which the representation forces. An offset-free temperature is simultaneously a
+	/// valid READING on an absolute scale (kelvin) and the exact shape an AMOUNT has, so the two are one type and a
+	/// binary operator must pick one meaning. `-` picks reading minus reading, the operation with a
+	/// datum-independent answer
+	/// (`celsius(0) - kelvin(0)` is 273.15 degrees of difference). `+` cannot pick that -- reading plus reading is
+	/// meaningless -- so it reads the rhs as an amount. Hence `c - kelvin(2.5)` differs from `c -= kelvin(2.5)`. Where
+	/// the distinction matters, `absolute<>`/`delta<>` from <units/kind.h> put it in the type.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			(traits::is_affine_unit_v<UnitTypeLhs> || traits::is_affine_unit_v<UnitTypeRhs>))
 	constexpr auto operator-(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
 	{
-		// Reconcile to the LEFT operand's affine unit (its datum applied to the right operand as it converts),
-		// so the delta is expressed in the left operand's scale — celsius(100) - fahrenheit(32) is 100 celsius
-		// degrees, not a value in an anonymous sub-unit of the two scales' common measure. The result is the
-		// offset-STRIPPED counterpart of the left unit so no datum is ever re-applied to the delta.
 		using LhsCf     = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
 		using DeltaCf   = conversion_factor<typename traits::conversion_factor_traits<LhsCf>::conversion_ratio,
 			typename traits::conversion_factor_traits<LhsCf>::dimension_type,
@@ -4593,7 +5301,16 @@ namespace units
 		return Out(static_cast<U>(lhs.value()) * static_cast<U>(rhs.raw()));
 	}
 
-	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
+	/**
+	 * @brief		Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
+	 * @details		An affine quantity is excluded: scaling a point yields a CHANGE, handled by the affine overload
+	 *				below.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator*(const UnitTypeLhs& lhs, T rhs) noexcept
@@ -4602,7 +5319,16 @@ namespace units
 		return CommonUnit(CommonUnit(lhs).raw() * rhs);
 	}
 
-	/// Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
+	/**
+	 * @brief		Multiplication by an arithmetic type for dimensioned unit types with a linear scale (affine
+	 *				excluded.
+	 * @details		See below).
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 	template<DimensionedUnitType UnitTypeRhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeRhs>)
 	constexpr traits::replace_underlying_t<UnitTypeRhs, std::common_type_t<T, typename UnitTypeRhs::underlying_type>> operator*(T lhs, const UnitTypeRhs& rhs) noexcept
@@ -4757,7 +5483,15 @@ namespace units
 		);
 	}
 
-	/// Division by a dimensionless for unit types with a linear scale
+	/**
+	 * @brief		Division by a dimensionless for unit types with a linear scale (affine excluded.
+	 * @details		See below).
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 	template<UnitType UnitTypeLhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeLhs> && !RatioDimensionlessUnitType<UnitTypeLhs>)
 	constexpr traits::replace_underlying_t<UnitTypeLhs, std::common_type_t<typename UnitTypeLhs::underlying_type, T>> operator/(const UnitTypeLhs& lhs, T rhs) noexcept
@@ -4810,6 +5544,244 @@ namespace units
 		using Under  = detail::floating_point_promotion_t<Under0>;
 		return dimensionless<Under>(static_cast<Under>(lhs.value()) / static_cast<Under>(rhs.value()));
 	}
+
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	LOGARITHMIC-SCALE MULTIPLY/DIVIDE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// Every valid `*` and `/` above requires a linear scale on both operands, so an operand on a decibel scale has no
+	// candidate at all and the compiler prints a wall -- 149 lines and 12 declined candidates for `dBW * 2.0`, where
+	// the compound `dBW *= 2.0` reports one sentence. These overloads give the by-value forms the same sentence their
+	// compound twins already carry, split by which operand is logarithmic. Each returns a value so its body is
+	// instantiated and the message fires on every compiler.
+	//
+	// A decibel value's number is a LOGARITHM: multiplying or dividing it operates on the exponent, not on the
+	// quantity, so there is no reading of the result to return. The remedy is always to name the linear value first --
+	// `watts(level)` for a dimensioned level, `dimensionless(gain)` for a dimensionless one.
+
+	/**
+	 * @brief		Diagnostic for scaling a decibel value by a bare number.
+	 * @details		Decibel value scaled by a bare number. Returns a value so the body is instantiated and the message
+	 *				fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		Mirror.
+	 * @details		Of the above with the operands written the other way round. Returns a value so the body is
+	 *				instantiated and the message fires on every compiler.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<ArithmeticType T, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeRhs operator*(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return rhs;
+	}
+	/**
+	 * @brief		Implementation detail.
+	 * @details		Decibel value scaled by an ordinary quantity. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot scale a decibel value; scale the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		An ordinary quantity scaled by a decibel GAIN.
+	 * @details		A gain is a logarithmic figure, not a plain factor. Returns a value so the body is instantiated
+	 *				and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const D&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot scale by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+	/**
+	 * @brief		An.
+	 * @details		Ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a
+	 *				ratio. Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot multiply by a decibel level; use its linear quantity (e.g. watts(level)).");
+		return lhs;
+	}
+	/**
+	 * @brief		Two decibel values multiplied.
+	 * @details		Their numbers are logarithms, so the product is of the exponents. Returns a value so the body is
+	 *				instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator*(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot multiply two decibel values; multiply their linear values (e.g. watts(level), dimensionless(gain)).");
+		return lhs;
+	}
+
+	/**
+	 * @brief		Diagnostic for dividing a decibel value by a bare number.
+	 * @details		Decibel value divided by a bare number. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, ArithmeticType T>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const T&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		Diagnostic for dividing a bare number by a decibel value.
+	 * @details		Bare number divided by a decibel value. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		T	the arithmetic operand's type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	rhs	the right operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<ArithmeticType T, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeRhs operator/(const T&, const UnitTypeRhs& rhs) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeRhs>,
+			"units: cannot divide by a decibel value; use its linear value (e.g. watts(level), dimensionless(gain)).");
+		return rhs;
+	}
+	/**
+	 * @brief		Implementation detail.
+	 * @details		Decibel value divided by an ordinary quantity. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide a decibel value; divide the linear quantity (e.g. watts(level)) instead.");
+		return lhs;
+	}
+	/**
+	 * @brief		An.
+	 * @details		Ordinary quantity divided by a decibel GAIN. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		D	the dimensionless operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionlessUnitType D>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<D>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const D&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, D>,
+			"units: cannot divide by a decibel gain; use its linear ratio (e.g. dimensionless(gain)).");
+		return lhs;
+	}
+	/**
+	 * @brief		An.
+	 * @details		Ordinary quantity divided by a decibel LEVEL. Returns a value so the body is instantiated and the
+	 *				message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide by a decibel level; use its linear quantity (e.g. watts(level)).");
+		return lhs;
+	}
+	/// Two decibel values of DIFFERENT dimensions divided. The same-dimension shape has its own remedy below, and the
+	/// two are made disjoint on `same_dimension` rather than left to constraint subsumption, which does not order them.
+	/**
+	 * @brief		Diagnostic for an ill-formed use of `operator/`.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs> &&
+			!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide two decibel values; divide their linear values (e.g. watts(level), dimensionless(gain)).");
+		return lhs;
+	}
+	/// Two decibel values of the SAME dimension divided -- the one shape with a direct remedy, since the ratio of two
+	/// levels (or of two gains) IS their difference in dB.
+	/**
+	 * @brief		Diagnostic for an ill-formed use of `operator/`.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @param[in]	lhs	the left operand.
+	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(!traits::has_linear_scale_v<UnitTypeLhs> && !traits::has_linear_scale_v<UnitTypeRhs> &&
+			same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator/(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept
+	{
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot divide two decibel values of one dimension; their ratio is their difference. Use `auto gain = a - b;`.");
+		return lhs;
+	}
+	/** @endcond */ // END DOXYGEN IGNORE
 
 	/// Modulo for convertible unit types with a linear scale. @returns the lhs value modulo the rhs value, in
 	/// their common (finer) unit.
@@ -5152,23 +6124,40 @@ namespace units
 	//	DECIBEL ARITHMETIC
 	//------------------------------
 
-	/// Addition of two absolute decibel LEVELS (both dimensioned, same dimension — e.g. `dBW + dBW`) is ill-formed.
-	/// A dimensioned decibel value is an absolute point on a logarithmic reference scale, exactly like an affine
-	/// temperature: `dBW + dBW` is a point + point, which has no meaning (two 10 dBW sources are not a 20 dBW
-	/// source). The defined operations are `level + gain -> level` (add a dimensionless dB gain), `gain + gain ->
-	/// gain`, and `level - level -> gain`. To combine two independent power levels, add them in the linear domain
-	/// (two equal powers sum to +3 dB), not by adding their dB numbers.
-	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	auto operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept = delete;
+	/**
+	 * @brief		Addition of two absolute decibel LEVELS is ill-formed.
+	 * @details		A dimensioned decibel value is an absolute point on a logarithmic reference scale, exactly like an
+	 *				affine temperature, so `dBW + dBW` is a point plus a point: two 10 dBW sources are not a 20 dBW
+	 *				source. The defined operations are `level + gain -> level` (adding a dimensionless dB gain),
+	 *				`gain + gain -> gain`, and `level - level -> gain`. To combine two independent power levels, add
+	 *				them in the linear domain, where two equal powers sum to +3 dB, rather than adding their dB
+	 *				numbers. Deleted rather than diagnosed from a body, so `requires` can observe it.
+	 * @tparam		LevelLhs	the left level's unit type.
+	 * @tparam		LevelRhs	the right level's unit type, of the same dimension.
+	 * @param[in]	lhs	the left level.
+	 * @param[in]	rhs	the right level.
+	 * @returns		nothing: the overload is deleted.
+	 */
+	template<DimensionedUnitType LevelLhs, DimensionedUnitType LevelRhs>
+		requires(same_dimension<LevelLhs, LevelRhs> && traits::has_decibel_scale_v<LevelLhs, LevelRhs> &&
+			!traits::is_affine_unit_v<LevelLhs> && !traits::is_affine_unit_v<LevelRhs>)
+	auto operator+(const LevelLhs& lhs, const LevelRhs& rhs) noexcept = delete;
 
-	/// Addition of two dimensionless decibel GAINS (`dB + dB`). Both are relative ratios, so their dB numbers add
-	/// (a linear multiplication of the ratios): 3 dB + 3 dB is 6 dB. The result is a dimensionless dB gain.
-	template<DimensionlessUnitType UnitTypeLhs, DimensionlessUnitType UnitTypeRhs>
-		requires(traits::has_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
-	constexpr std::common_type_t<UnitTypeLhs, UnitTypeRhs> operator+(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs) noexcept
+	/**
+	 * @brief		Addition of two dimensionless decibel GAINS (`dB + dB`).
+	 * @details		Both operands are relative ratios, so their dB numbers add, which is a multiplication of the
+	 *				linear ratios: 3 dB + 3 dB is 6 dB.
+	 * @tparam		GainLhs	the left gain's unit type.
+	 * @tparam		GainRhs	the right gain's unit type.
+	 * @param[in]	lhs	the left gain.
+	 * @param[in]	rhs	the right gain.
+	 * @returns		the combined gain, in the common unit of the two operands.
+	 */
+	template<DimensionlessUnitType GainLhs, DimensionlessUnitType GainRhs>
+		requires(traits::has_decibel_scale_v<GainLhs, GainRhs>)
+	constexpr std::common_type_t<GainLhs, GainRhs> operator+(const GainLhs& lhs, const GainRhs& rhs) noexcept
 	{
-		using CommonUnit = std::common_type_t<UnitTypeLhs, UnitTypeRhs>;
+		using CommonUnit = std::common_type_t<GainLhs, GainRhs>;
 		return CommonUnit(CommonUnit(lhs).to_linearized() * CommonUnit(rhs).to_linearized(), linearized_value);
 	}
 
@@ -5223,6 +6212,257 @@ namespace units
 		return InverseUnit(lhs.to_linearized() / rhs.to_linearized(), linearized_value);
 	}
 
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	BY-VALUE ADD/SUBTRACT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//----------------------------------
+	// The by-value counterparts of the compound diagnostics above. Without them a dimensional mistake reports the
+	// compiler's own candidate list, which grows with every overload the library declares -- 116 lines on 3.6.1 and
+	// more once the affine by-value forms exist. A selected overload replaces the whole list with one sentence, and
+	// the `dependent_false<L, R>` note still names both operand types.
+
+	/**
+	 * @brief		Diagnostic for adding quantities of different dimensions by value.
+	 * @details		Selected only when no valid `operator+` applies, i.e. the operands' dimensions differ. Returns a
+	 *				value so the body is instantiated and the message fires on every compiler.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept = delete;
+
+	/**
+	 * @brief		Diagnostic for subtracting quantities of different dimensions by value.
+	 * @details		The mirror of the `operator+` above, on the same terms.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
+		requires(!same_dimension<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept = delete;
+
+	/**
+	 * @brief		Diagnostic for adding a bare number to a dimensioned quantity by value.
+	 * @details		A number carries no dimension. Only a DIMENSIONED left operand is matched, so the dimensionless
+	 *				types, which do add a bare number, are untouched.
+	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
+	 * @tparam		T	the arithmetic right operand's type.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
+	constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const T&) noexcept = delete;
+
+	/**
+	 * @brief		Diagnostic for adding a dimensioned quantity to a bare number by value.
+	 * @details		The operand-reversed form of the `operator+` above.
+	 * @tparam		T	the arithmetic left operand's type.
+	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
+	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
+	constexpr UnitTypeRhs operator+(const T&, const UnitTypeRhs& rhs) noexcept = delete;
+
+	/**
+	 * @brief		Diagnostic for subtracting a bare number from a dimensioned quantity by value.
+	 * @details		The `operator-` mirror of the bare-number `operator+` above.
+	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
+	 * @tparam		T	the arithmetic right operand's type.
+	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
+	constexpr UnitTypeLhs operator-(const UnitTypeLhs& lhs, const T&) noexcept = delete;
+
+	/**
+	 * @brief		Diagnostic for subtracting a dimensioned quantity from a bare number by value.
+	 * @details		The operand-reversed form of the `operator-` above.
+	 * @tparam		T	the arithmetic left operand's type.
+	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
+	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
+	 */
+	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
+	constexpr UnitTypeRhs operator-(const T&, const UnitTypeRhs& rhs) noexcept = delete;
+
+	/** @endcond */ // END DOXYGEN IGNORE
+	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
+	//----------------------------------
+	//	LOGARITHMIC-SCALE MATH DIAGNOSTICS
+	//----------------------------------
+	// A transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
+	// than the ratio it denotes: `log10(decibels(3.25))` reading 3.25 gives 0.512 where the ratio is 2.113 and its
+	// base-ten logarithm is 0.325. Rather than pick one reading, the family refuses a logarithmic operand, and one of
+	// these overloads names the conversion in place of a wall of declined candidates. Each returns a value so its body
+	// is instantiated and the message fires on every compiler.
+	//
+	// The macro is used again in `units/angle.h`, which defines the rest of the family.
+
+/**
+ * @def			UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC
+ * @brief		Declares the decibel-scale diagnostic for one transcendental function.
+ * @details		Emits an overload of `funcName` selected only for a decibel-scaled argument, whose body reports that
+ *				the function cannot read a logarithmic value and names the conversion. The function name is stringized
+ *				into the message, so each member of the family names itself -- which is why this is a macro and not a
+ *				template: a `static_assert` message must be a literal.
+ *
+ *				INTERNAL. It exists for the library's own headers -- the exponential and logarithmic functions here,
+ *				the inverse trigonometric and hyperbolic ones in `units/angle.h` -- and is not part of the public
+ *				interface. Like every other `UNIT_ADD_*` macro it remains defined after inclusion, because `angle.h`
+ *				consumes it after `core.h` has been read.
+ * @param		funcName	the transcendental function to declare the diagnostic for.
+ */
+#define UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(funcName)                                                                                                                                                 \
+	template<::units::DimensionlessUnitType UnitType>                                                                                                                                                   \
+		requires(!::units::traits::has_linear_scale_v<UnitType>)                                                                                                                                        \
+	constexpr UnitType funcName(const UnitType x) noexcept                                                                                                                                              \
+	{                                                                                                                                                                                                   \
+		static_assert(::units::detail::dependent_false<UnitType>,                                                                                                                                       \
+			"units: cannot apply " #funcName " to a decibel value; convert to its linear ratio first (e.g. dimensionless(gain)).");                                                                      \
+		return x;                                                                                                                                                                                       \
+	}
+
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(exp)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log10)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log2)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(exp2)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(expm1)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log1p)
+
+	/// `modf` and `fmod` take an argument the family macro cannot describe -- a pointer and a second operand -- so each
+	/// declares its own diagnostic. Both were the only refusals in the decibel set reported as a bare
+	/// overload-resolution failure with no remedy named.
+	/**
+	 * @brief		Diagnostic for an ill-formed `modf` of a decibel value.
+	 * @tparam		UnitType	the operand's unit type.
+	 * @param[in]	x			the operand.
+	 * @param[in]	intpart		where the integral part would be stored.
+	 * @returns		`x`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionlessUnitType UnitType>
+		requires(!traits::no_logarithmic_scale_v<UnitType>)
+	constexpr UnitType modf(const UnitType x, UnitType* intpart) noexcept
+	{
+		static_cast<void>(intpart);
+		static_assert(detail::dependent_false<UnitType>,
+			"units: cannot split a decibel value into integral and fractional parts; its number is a logarithm. Split "
+			"the ratio it denotes: `modf(dimensionless(gain), &part)`.");
+		return x;
+	}
+
+	/**
+	 * @brief		Diagnostic for an ill-formed `fmod` of a decibel value.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	numer		the left operand.
+	 * @param[in]	denom		the right operand.
+	 * @returns		`numer`, never reached: the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !traits::no_logarithmic_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
+	{
+		static_cast<void>(denom);
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot take the remainder of a decibel value; its number is a logarithm, so the remainder of two "
+			"dB figures is not the remainder of the powers. Work in the linear domain, as `operator%` already requires.");
+		return numer;
+	}
+
+	/** @endcond */ // END DOXYGEN IGNORE
+
+	//----------------------------------
+	//	AFFINE COMBINATIONS
+	//----------------------------------
+	// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the only weighting on a scale with an
+	// arbitrary zero that is datum-INDEPENDENT: the midpoint of 20 degC and 30 degC is 25 degC, and the midpoint of
+	// the same two temperatures written as 293.15 K and 303.15 K is 298.15 K, which IS 25 degC. Doubling is not:
+	// 20 degC doubled is 40 degC, while the same temperature doubled in kelvin is 313.15 degC.
+	//
+	// The mean of two readings -- a mean daily temperature -- is expressible entirely through a DIFFERENCE, which
+	// carries no datum. These two functions name that weighting, and delegate the arithmetic to their `std`
+	// counterparts so they inherit the guarantees those names carry.
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		Linear interpolation between two quantities: the affine combination `(1 - t) * a + t * b`.
+	 * @details		Datum-safe, because the weights `1 - t` and `t` total one: the result does not depend on where the
+	 *				scale's zero was put, so this is meaningful for an affine reading (a temperature) as well as for an
+	 *				ordinary quantity. `t` is dimensionless and is not restricted to [0, 1]. Both operands are expressed
+	 *				in the result unit and interpolated by `std::lerp`, so the endpoints are exact.
+	 * @param[in]	a	the quantity at `t == 0`.
+	 * @param[in]	b	the quantity at `t == 1`.
+	 * @param[in]	t	the interpolation parameter.
+	 * @return		the interpolated quantity, in `a`'s unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs, ArithmeticType T>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto lerp(const UnitTypeLhs& a, const UnitTypeRhs& b, T t) noexcept
+	{
+		// Both operands are expressed in the result unit and handed to `std::lerp`, which owns every guarantee the
+		// name carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
+		// `a + (b - a) * t` -- has none of them: at t == 1 it loses `b` entirely once the operands differ by more
+		// than the representation's precision, so lerp(1e16 m, 1 m, 1.0) read 0 rather than 1.
+		using Result = std::decay_t<decltype(a + (b - a) * t)>;
+		using Under  = typename Result::underlying_type;
+		using Weight = detail::floating_point_promotion_t<std::common_type_t<Under, T>>;
+		return Result(static_cast<Under>(
+			std::lerp(static_cast<Weight>(Result(a).raw()), static_cast<Weight>(Result(b).raw()), static_cast<Weight>(t))));
+	}
+
+	/**
+	 * @ingroup		UnitMath
+	 * @brief		The midpoint of two quantities: the affine combination with equal weights.
+	 * @details		Datum-safe for an affine reading -- the arithmetic mean of two temperatures, as a mean daily
+	 *				temperature is. See `lerp`: weights totalling one give the same physical answer in every scale,
+	 *				where scaling a single reading does not. A floating-point pair goes through `std::midpoint`, so the
+	 *				result stays within the operands; an integral pair is halved in a double-width intermediate, so it
+	 *				cannot overflow.
+	 * @param[in]	a	the first quantity.
+	 * @param[in]	b	the second quantity.
+	 * @return		the midpoint, in `a`'s unit.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr auto midpoint(const UnitTypeLhs& a, const UnitTypeRhs& b) noexcept
+	{
+		// An integer representation goes through `std::midpoint` on the two numbers expressed in the left operand's
+		// unit, so the halfway point cannot overflow: `a + (b - a) / 2` evaluates `b - a`, which for INT_MIN and
+		// INT_MAX is not representable. Converting `b` into the lhs unit applies its datum, which is what a midpoint
+		// of two READINGS requires.
+		if constexpr (std::is_integral_v<typename UnitTypeLhs::underlying_type> &&
+			std::is_integral_v<typename UnitTypeRhs::underlying_type>)
+		{
+			// The rhs is expressed in the lhs unit through a double-width intermediate, because converting it into the
+			// lhs's own representation first can overflow before the halfway point is taken: 3000000 km is 3000000000
+			// m, which no int holds, while the midpoint 1500000000 does.
+			using Wide       = detail::widest_signed_int;
+			const Wide inLhs = static_cast<Wide>(
+				static_cast<long double>(b.raw()) *
+				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::num) *
+					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::den)) /
+				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::den) *
+					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::num)));
+			const Wide from = static_cast<Wide>(a.raw());
+			return UnitTypeLhs(static_cast<typename UnitTypeLhs::underlying_type>(from + (inLhs - from) / 2));
+		}
+		else
+		{
+			// A floating-point pair is handed to `std::midpoint`, which is specified to stay within its operands and
+			// to survive an infinite one. Halving a difference does not: midpoint(inf m, 1 m) evaluates
+			// inf + (1 - inf) / 2, i.e. inf + -inf, and reads NaN.
+			using Result = std::decay_t<decltype(a + (b - a) / 2)>;
+			return Result(std::midpoint(Result(a).raw(), Result(b).raw()));
+		}
+	}
+
 	//----------------------------------
 	//	UNIT-ENABLED CMATH FUNCTIONS
 	//----------------------------------
@@ -5230,6 +6470,23 @@ namespace units
 	//----------------------------------
 	//	MIN/MAX FUNCTIONS
 	//----------------------------------
+
+	namespace detail
+	{
+		/// Orders two same-dimension quantities by their magnitudes, reconciled in ONE promoted common unit. Comparing
+		/// the quantities themselves routes through `unit::operator<`, which reconciles each side in that side's own
+		/// representation: a narrow integral operand wraps there, so the ordering comes back wrong rather than
+		/// approximate -- `min(grams<signed char>(5), kilograms<signed char>(3))` answered -72 g, a negative minimum of
+		/// two positive masses, and `min`/`max` of 5 m against 3 km were swapped. It also refuses a `char` or `bool`
+		/// representation outright, which this does not.
+		template<UnitType Lhs, UnitType Rhs>
+			requires(same_dimension<Lhs, Rhs>)
+		constexpr bool less_in_common_unit(const Lhs& lhs, const Rhs& rhs) noexcept
+		{
+			using Common = floating_point_promotion_t<lhs_result_unit_t<Lhs, Rhs>>;
+			return Common(floating_point_promotion_t<Lhs>(lhs)).raw() < Common(floating_point_promotion_t<Rhs>(rhs)).raw();
+		}
+	} // namespace detail
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
@@ -5240,7 +6497,7 @@ namespace units
 		// for otherwise-representable operands. Computed in the body so the trait is not instantiated for a non-unit
 		// the constraint already rejects. min/max select an operand, so the underlying is NOT floating-point promoted.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (lhs < rhs ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (detail::less_in_common_unit(lhs, rhs) ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
@@ -5248,7 +6505,7 @@ namespace units
 	constexpr auto max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (lhs > rhs ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (detail::less_in_common_unit(rhs, lhs) ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	/// Clamps a value to the range [lo, hi], in the value's own unit when that is lossless (matching min/max), else
@@ -5260,7 +6517,8 @@ namespace units
 		// Reconcile to the common unit of all three operands for a correct comparison, then express the result in the
 		// value's unit when lossless (as min/max do), never an anonymous unit for representable operands.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeValue, std::common_type_t<UnitTypeLo, UnitTypeHi>>;
-		return (value < lo ? ResultUnit(lo) : (hi < value ? ResultUnit(hi) : ResultUnit(value)));
+		return (detail::less_in_common_unit(value, lo) ? ResultUnit(lo)
+													  : (detail::less_in_common_unit(hi, value) ? ResultUnit(hi) : ResultUnit(value)));
 	}
 
 	//----------------------------------
@@ -5281,6 +6539,7 @@ namespace units
 	 *				error occurs
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> exp(const UnitType x) noexcept
 	{
 		return std::exp(x.value());
@@ -5296,6 +6555,7 @@ namespace units
 	 * @returns		Natural logarithm of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log(const UnitType x) noexcept
 	{
 		return std::log(x.value());
@@ -5310,6 +6570,7 @@ namespace units
 	 * @returns		Common logarithm of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log10(const UnitType x) noexcept
 	{
 		return std::log10(x.value());
@@ -5327,6 +6588,7 @@ namespace units
 	 * @returns		The fractional part of x, with the same sign.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> modf(const UnitType x, UnitType* intpart) noexcept
 	{
 		using promoted = detail::floating_point_promotion_t<typename UnitType::underlying_type>;
@@ -5349,6 +6611,7 @@ namespace units
 	 * @returns		2 raised to the power of x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> exp2(const UnitType x) noexcept
 	{
 		return std::exp2(x.value());
@@ -5363,6 +6626,7 @@ namespace units
 	 * @returns		e raised to the power of x, minus one.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> expm1(const UnitType x) noexcept
 	{
 		return std::expm1(x.value());
@@ -5378,6 +6642,7 @@ namespace units
 	 * @returns		The natural logarithm of (1+x).
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log1p(const UnitType x) noexcept
 	{
 		return std::log1p(x.value());
@@ -5392,6 +6657,7 @@ namespace units
 	 * @returns		The binary logarithm of x: log2x.
 	 */
 	template<DimensionlessUnitType UnitType>
+		requires(traits::has_linear_scale_v<UnitType>)
 	constexpr dimensionless<detail::floating_point_promotion_t<typename UnitType::underlying_type>> log2(const UnitType x) noexcept
 	{
 		return std::log2(x.value());
@@ -5484,11 +6750,22 @@ namespace units
 	 *				common unit of the arguments.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
-		return Result(std::fmod(Result(numer).raw(), Result(denom).raw()));
+		// The working unit is decided from `lhs_result_unit_t` on the UNPROMOTED pair, which is where a lossy
+		// rhs-to-lhs conversion selects the finer of the two units, and only then promoted. Deciding it after
+		// promotion hands the choice to the floating types, where the left operand's unit simply wins, and silently
+		// re-homes the answer: fmod(feet<int>(10), inches<int>(1)) reported feet rather than inches.
+		// The RESULT KIND follows `operator-`: a remainder of two affine readings is an AMOUNT, not another reading,
+		// so the datum is stripped. It is NOT taken from `decltype(numer - denom)`, because for an affine pair that
+		// instantiates the affine `operator-`'s body on unpromoted operands and reaches a `consteval` narrowing
+		// constructor a run-time value cannot satisfy -- and because that operator returns `auto`, the failure escapes
+		// its body as a hard error rather than a substitution failure, defeating even a `requires` probe.
+		// A logarithmic scale is excluded, matching `operator%`.
+		using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+		using Result = std::conditional_t<traits::is_affine_unit_v<Common>, detail::delta_unit_t<Common>, Common>;
+		return Result(std::fmod(Common(numer).raw(), Common(denom).raw()));
 	}
 
 	/**
@@ -5562,21 +6839,36 @@ namespace units
 			return q;
 		}
 
-		/// A run-time conversion to a coarser same-dimension unit that need not divide evenly, with the caller's
-		/// rounding intent applied in the target unit. When both source and target are integral the divide and the
-		/// rounding are done in exact integer arithmetic carried in a double-width intermediate (so the result is
-		/// exact at every magnitude and the final store is an ordinary — implementation-defined — integer narrowing,
-		/// matching `std::chrono::floor<To>`); when a floating-point underlying is involved the value is expressed in
-		/// the target unit and the matching `std::` rounding is applied. The result is constructed from the
-		/// already-linearized whole value, bypassing the lossless-conversion constructor that correctly rejects the
-		/// implicit form. `To` and `From` are same-dimension units, `To` integral; `From` need not be.
+		/**
+	 * @brief		Converts to a coarser same-dimension unit with the caller's rounding intent applied.
+		 * @details		Run-time conversion to a coarser same-dimension unit that need not divide evenly, with the
+		 *				caller's rounding intent applied in the target unit. When both source and target are integral
+		 *				the divide and the rounding are done in exact integer arithmetic carried in a double-width
+		 *				intermediate (so the result is exact at every magnitude and the final store is an ordinary —
+		 *				implementation-defined — integer narrowing, matching `std::chrono::floor<To>`); when a
+		 *				floating-point underlying is involved the value is expressed in the target unit and the
+		 *				matching `std::` rounding is applied. The result is constructed from the already-linearized
+		 *				whole value, bypassing the lossless-conversion constructor that correctly rejects the implicit
+		 *				form. `To` and `From` are same-dimension units, `To` integral; `From` need not be.
+		 *
+		 *				An
+		 *				affine source or target takes the floating-point path even when both are integral. The
+		 *				exact-integer path applies only the conversion RATIO, and a datum lives in the conversion
+		 *				factor's translation, so an affine conversion through it drops the datum entirely. Exactness
+		 *				is unreachable for such a conversion in any case, the translation being fractional.
+		 * @tparam		To	the target unit type.
+		 * @tparam		From	the source unit type.
+		 * @param[in]	x	the operand.
+		 * @param[in]	mode	the caller's rounding intent.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 		template<class To, class From>
 		constexpr To rounded_unit_cast(const From& x, rounding_mode mode) noexcept
 		{
 			using ToRep   = typename To::underlying_type;
 			using FromRep = typename From::underlying_type;
 
-			if constexpr (std::is_integral_v<FromRep>)
+			if constexpr (std::is_integral_v<FromRep> && !traits::is_affine_unit_v<From> && !traits::is_affine_unit_v<To>)
 			{
 				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder. The
 				// intermediate is the widest UNSIGNED integer when both source and target are unsigned, so an unsigned
@@ -5597,7 +6889,8 @@ namespace units
 			}
 			else
 			{
-				// A floating-point source: express in the target unit and apply the matching std:: rounding.
+				// A floating-point source, or any affine conversion: express in the target unit -- a full conversion, so
+				// the datum is applied -- and apply the matching std:: rounding.
 				using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<ToRep>, typename To::numerical_scale_type>;
 				const auto inTarget = Promoted(x).to_linearized();
 				const auto rounded  = mode == rounding_mode::toward_neg_infinity ? std::floor(inTarget)
@@ -5612,10 +6905,21 @@ namespace units
 		/// target, and a source not already losslessly convertible into the target (a lossless conversion needs no
 		/// rounding and the ordinary converting constructor serves it). Gating the target-unit rounding overloads on
 		/// this keeps them from shadowing the deduced-argument `round`/`floor`/`ceil`/`trunc` math functions.
+		/// An affine pair whose DATUMS DIFFER always qualifies, whatever `is_losslessly_convertible_unit` says. That
+		/// trait judges losslessness on the conversion RATIO alone, so it calls kelvin -> celsius lossless because
+		/// both ratios are 1 -- and the fractional 273.15 between them is exactly what needs rounding. Without this
+		/// term `round<celsius<int>>(kelvin<int>(300))` fell through to the deduced-argument `round`, which acts on an
+		/// already-truncated integer and answered 26 for 26.85 degC.
+		template<class To, class From>
+		inline constexpr bool differing_datum_v =
+			!std::ratio_equal_v<typename traits::unit_traits<From>::conversion_factor::translation_ratio,
+				typename traits::unit_traits<To>::conversion_factor::translation_ratio>;
+
 		template<class To, class From>
 		inline constexpr bool is_roundable_unit_conversion =
 			traits::is_unit_v<To> && traits::is_unit_v<From> && same_dimension<From, To> &&
-			std::is_integral_v<typename To::underlying_type> && !is_losslessly_convertible_unit<From, To>;
+			std::is_integral_v<typename To::underlying_type> &&
+			(!is_losslessly_convertible_unit<From, To> || differing_datum_v<To, From>);
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -5726,11 +7030,58 @@ namespace units
 	 * @returns		The positive difference between x and y.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			requires(detail::floating_point_promotion_t<UnitTypeLhs> a, detail::floating_point_promotion_t<UnitTypeRhs> b) { a - b; })
 	constexpr auto fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		using Result = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
-		return Result(std::fdim(Result(x).raw(), Result(y).raw()));
+		// Computed from the library's own difference, so the RESULT KIND follows the same rules: the positive
+		// difference of two affine readings is an AMOUNT and of two decibel levels a GAIN, never another reading or
+		// level. Returning `lhs_result_unit_t` made `fdim(celsius(30), celsius(10))` a celsius READING of 20, i.e.
+		// 293.15 K, while `celsius(30) - celsius(10)` correctly gave a 20 K amount -- the two disagreed by the datum.
+		// The comparison and the subtraction read THE SAME TWO NUMBERS: both operands are converted into one promoted
+		// common unit, and the guard compares those. Comparing the operands themselves instead routes through
+		// `unit::operator>`, which reconciles the two sides in each operand's OWN representation -- so a narrow
+		// integral operand wraps there while the promoted subtraction does not, and the two disagree:
+		// fdim(meters<int>(5), kilometers<signed char>(3)) answered -2995 m, negative in violation of the function's
+		// own postcondition, and fdim(meters<signed char>(5), centimeters<int>(3)) discarded a real 4.97 m difference
+		// as zero. Reading the numbers directly also keeps the function available for a `char` or `bool`
+		// representation, which `unit::operator>` refuses outright.
+		// Promoting before subtracting is what keeps an integer representation from overflowing:
+		// fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648, not a wrapped negative. The NaN test reads the
+		// underlying values rather than comparing the difference with itself, because `unit::operator==` compares with
+		// a tolerance under which `-inf == -inf` is false.
+		// The result UNIT is decided from `lhs_result_unit_t` on the UNPROMOTED pair, then promoted: deciding it after
+		// promotion moves the choice from the integral types, where a lossy rhs-to-lhs conversion selects the finer
+		// common unit, to the floating ones, where the lhs unit wins -- which silently re-homed the answer, so
+		// fdim(feet<int>(10), inches<int>(1)) read 9.9166.. ft rather than 119 in exactly. It is NOT taken from
+		// `decltype(x - y)`, because for an affine pair that instantiates the affine `operator-`'s body on unpromoted
+		// operands and reaches a `consteval` narrowing constructor a run-time value cannot satisfy. The datum is
+		// stripped here instead, which is what that operator would have done: a positive difference is an amount.
+		using PromotedLhs = detail::floating_point_promotion_t<UnitTypeLhs>;
+		using PromotedRhs = detail::floating_point_promotion_t<UnitTypeRhs>;
+		using CommonUnit  = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+		using Under       = typename CommonUnit::underlying_type;
+
+		const Under lhs = CommonUnit(PromotedLhs(x)).raw();
+		const Under rhs = CommonUnit(PromotedRhs(y)).raw();
+
+		// A quantity measured from an arbitrary origin does not answer with another one of its own kind: the positive
+		// difference of two affine readings is an AMOUNT and of two decibel LEVELS a GAIN. There the library's own
+		// `operator-` both names the type and computes the value, because a decibel's stored number is a logarithm
+		// whose difference is not the difference of the two stored numbers.
+		if constexpr (traits::has_arbitrary_origin_v<CommonUnit>)
+		{
+			using Result = std::decay_t<decltype(PromotedLhs(x) - PromotedRhs(y))>;
+			if (lhs != lhs || rhs != rhs)
+				return Result(std::numeric_limits<typename Result::underlying_type>::quiet_NaN());
+			return (lhs > rhs) ? Result(PromotedLhs(x) - PromotedRhs(y)) : Result(0);
+		}
+		else
+		{
+			if (lhs != lhs || rhs != rhs)
+				return CommonUnit(std::numeric_limits<Under>::quiet_NaN());
+			return CommonUnit(lhs > rhs ? lhs - rhs : Under(0));
+		}
 	}
 
 	/**
@@ -5873,20 +7224,55 @@ namespace units
 //	std::hash
 //------------------------------
 
+	/**
+	 * @brief		Hashes the quantity's value in its dimension's SI BASE unit, not its stored value.
+	 * @details		Two quantities that compare equal should hash equally, and equality is judged across scales:
+	 *				`meters(1000) == kilometers(1)` is true while the stored values differ, so hashing the stored value
+	 *				gives them different hashes and an `unordered_map` keyed on a quantity cannot be used across
+	 *				spellings of one value. Converting to the base first removes that, as `std::hash<units::any_unit>`
+	 *				also does. The value is mixed from its bit pattern rather than handed to `std::hash`, which is not
+	 *				`constexpr`, so an integer-backed quantity is hashable in a constant expression.
+	 *
+	 *				Two divergences from `operator==` remain, and neither is fixable here. `operator==` is relatively
+	 *				tolerant and non-transitive, so two values within tolerance compare equal while hashing
+	 *				differently -- a hash consistent with a non-transitive equality cannot exist without being
+	 *				constant. And a pair whose base conversions land one ULP apart hashes differently even though the
+	 *				two compare equal: `celsius(0)` reaches 273.14999999999998 K while `fahrenheit(32)` reaches
+	 *				273.15000000000003, and `dBW(12.5)`/`dBm(42.5)` differ likewise. Equal-comparing quantities of the
+	 *				SAME spelling always hash alike; across spellings, only an exactly-representable conversion does.
+	 * @tparam		U	the unit type operated on.
+	 * @param[in]	x	the operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 template<class ConversionFactor, typename T, class NumericalScale>
 struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 {
 	template<typename U = T>
 	constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
 	{
-		if constexpr (std::is_integral_v<U>)
-		{
-			return static_cast<std::size_t>(x.to_linearized());
-		}
-		else
-		{
-			return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
-		}
+		using Base = units::unit<units::conversion_factor<std::ratio<1>, typename units::traits::conversion_factor_traits<ConversionFactor>::dimension_type>,
+			units::detail::floating_point_promotion_t<T>, units::linear_scale>;
+		using Promoted = units::detail::floating_point_promotion_t<T>;
+
+		const Promoted inBase = Base(x).to_linearized();
+
+		// Mixed from the bit pattern rather than handed to `std::hash`, which is not `constexpr`: an integer-backed
+		// quantity is hashable in a constant expression, as it is for the underlying type. Zero is normalised so
+		// +0.0 and -0.0 hash alike (they compare equal), and every NaN is mapped to one value.
+		// A NaN is given its own bits rather than a stand-in VALUE: substituting 1.0e308 made every NaN hash equal to
+		// the hash of 1.0e308 itself.
+		using Bits          = std::uint64_t;
+		const bool isNaN    = (inBase != inBase);
+		const double asBits = (isNaN || inBase == Promoted(0)) ? 0.0 : static_cast<double>(inBase);
+		Bits mixed          = std::bit_cast<Bits>(asBits);
+		if (isNaN)
+			mixed ^= 0x9e3779b97f4a7c15ULL;
+		mixed ^= mixed >> 33;
+		mixed *= 0xff51afd7ed558ccdULL;
+		mixed ^= mixed >> 33;
+		mixed *= 0xc4ceb9fe1a85ec53ULL;
+		mixed ^= mixed >> 33;
+		return static_cast<std::size_t>(mixed);
 	}
 };
 
@@ -5908,34 +7294,99 @@ namespace std
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	struct numeric_limits<units::unit<ConversionFactor, T, NonLinearScale>>
 	{
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> min()
+	private:
+		using Q = units::unit<ConversionFactor, T, NonLinearScale>;
+
+		// A limit is a property of the STORED representation, so on a non-linear scale it must be built from the
+		// stored value rather than pushed through the value constructor, which linearizes. `Q(max())` on a decibel
+		// scale evaluated pow(10, DBL_MAX/10) and returned INFINITY -- violating the contract that max() is finite --
+		// and epsilon() collapsed to 0, silently zeroing any generic tolerance. Built from the stored value, the
+		// limits read as finite decibel figures. For a linear scale the two forms are identical.
+		/**
+		 * @brief		Builds a limit from a value already in the unit's STORED representation.
+		 * @param[in]	stored	the value in the unit's stored representation.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q fromStored(T stored) noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::min());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(stored);
+			else
+				return Q(stored, units::linearized_value);
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> denorm_min() noexcept
+	public:
+		/**
+		 * @brief		Implementation detail.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q min()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::denorm_min());
+			return fromStored(std::numeric_limits<T>::min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> max()
+		/**
+		 * @brief		On.
+		 * @details		A non-linear scale the stored value is a ratio and is strictly positive, so the smallest
+		 *				denormal ratio is the LOWEST representable quantity; `lowest()` must therefore agree with it
+		 *				rather than using `min()`.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q denorm_min() noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::max());
+			return fromStored(std::numeric_limits<T>::denorm_min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> lowest()
+		/**
+		 * @brief		Implementation detail.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q max()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+			return fromStored(std::numeric_limits<T>::max());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> epsilon()
+		/**
+		 * @brief		On.
+		 * @details		A non-linear scale the stored value is a ratio and is strictly positive, so the lowest
+		 *				representable quantity is the smallest positive stored value (a very negative number of
+		 *				decibels), not `T`'s lowest.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q lowest()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::lowest());
+			else
+				// The smallest DENORMAL stored ratio, not the smallest normal one: `lowest()` must be no greater than
+				// `denorm_min()`, and on a logarithmic scale the denormal maps to a more negative figure.
+				return fromStored(std::numeric_limits<T>::denorm_min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> round_error()
+		/**
+		 * @brief		The smallest distinguishable step.
+		 * @details		On a non-linear scale that is the quantity whose stored ratio differs from unity by one
+		 *				epsilon, which is a small non-zero number of decibels.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q epsilon()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::epsilon());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::epsilon()));
+		}
+
+		/**
+		 * @brief		Implementation detail.
+		 * @returns		the computed result, in the left operand's unit.
+		 */
+		static constexpr Q round_error()
+		{
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::round_error());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::round_error()));
 		}
 
 		static constexpr units::unit<ConversionFactor, T, NonLinearScale> infinity()
@@ -6012,6 +7463,15 @@ namespace std
 		return std::isfinite(x.raw());
 	}
 
+	/**
+	 * @brief		A quantity measured from an arbitrary origin has no origin-free sign.
+	 * @details		`signbit(celsius(-5.25))` is true while the identical temperature as `kelvin(267.9)` is false --
+	 *				which is the same property `units::copysign` refuses for. A decibel GAIN keeps it: a negative
+	 *				decibel figure means attenuation, which is a real property of the ratio.
+	 * @tparam		U	the unit type operated on.
+	 * @param[in]	x	the operand.
+	 * @returns		the computed result, in the left operand's unit.
+	 */
 	template<units::UnitType U>
 	constexpr bool signbit(U x)
 	{

@@ -10,6 +10,7 @@
 // space, `operator +`), so it is asserted per-compiler. Readability is verified two-sided: the friendly name and
 // operator ARE present AND the message is not buried in soup (both forbid tokens confirmed absent on all four).
 //
+// grades: compiler
 // expect: fail
 // expect-match: dBW
 // expect-match-gcc: operator+

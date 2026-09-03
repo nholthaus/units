@@ -7,6 +7,7 @@
 // not a common sub-unit), promoting only the underlying when a coarse integer LHS cannot hold the RHS losslessly.
 
 #include <gtest/gtest.h>
+#include <cmath>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -958,10 +959,10 @@ TEST(WrapperParity, toArithmeticMatchesPlainUnit)
 // target still stays wrapped.
 TEST(WrapperParity, toDispatchStillDisjointWithArithmeticOverload)
 {
-	const D<meters<double>> d(5.0);
-	static_assert(std::is_same_v<decltype(d.to<double>()), double>);            // arithmetic -> number
-	static_assert(std::is_same_v<decltype(d.to<meters<double>>()), meters<double>>);   // plain unit -> unwrap
-	static_assert(std::is_same_v<decltype(d.to<D<feet<double>>>()), D<feet<double>>>); // wrapper -> stays
+	const D<meters<double>> change(5.0);
+	static_assert(std::is_same_v<decltype(change.to<double>()), double>);            // arithmetic -> number
+	static_assert(std::is_same_v<decltype(change.to<meters<double>>()), meters<double>>);   // plain unit -> unwrap
+	static_assert(std::is_same_v<decltype(change.to<D<feet<double>>>()), D<feet<double>>>); // wrapper -> stays
 	SUCCEED();
 }
 
@@ -1054,10 +1055,10 @@ TEST(WrapperCaseStudy, sameTagRatioIsDimensionless)
 TEST(WrapperCaseStudy, kindParityHashLimitsMathCompound)
 {
 	// Full parity with absolute/delta: hash (unordered container), numeric_limits, abs/min/max/clamp, *=//=.
-	std::unordered_set<kind<"radial", meters<int>>> s;
-	s.insert(kind<"radial", meters<int>>(3));
-	s.insert(kind<"radial", meters<int>>(3));
-	EXPECT_EQ(1u, s.size());
+	std::unordered_set<kind<"radial", meters<int>>> radialSet;
+	radialSet.insert(kind<"radial", meters<int>>(3));
+	radialSet.insert(kind<"radial", meters<int>>(3));
+	EXPECT_EQ(1u, radialSet.size());
 
 	static_assert(std::numeric_limits<kind<"radial", meters<double>>>::is_specialized);
 
@@ -1078,10 +1079,14 @@ TEST(WrapperCaseStudy, kindMixedUnitSameTagTieBreak)
 {
 	const kind<"radial", kilometers<int>> a(1);
 	const kind<"radial", meters<int>>     b(500);
-	auto                                  sum = a + b; // 1.5 km — underlying promotes, unit stays km, tag kept
+	// A kind's arithmetic DELEGATES to the wrapped units', so that the wrapped unit's rules -- including its
+	// refusals -- apply to the tagged quantity too. The result unit is therefore the plain operator's: a coarse
+	// integer LHS reconciles to the common (finest) unit rather than promoting the underlying, so this is 1500 m
+	// exactly rather than 1.5 km. The tag is kept either way.
+	auto sum = a + b;
 	static_assert(decltype(sum)::tag() == fixed_string("radial"));
-	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, kilometers<double>>);
-	EXPECT_UNIT_NEAR(sum, 1.5);
+	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, meters<int>>);
+	EXPECT_UNIT_NEAR(sum, 1500.0);
 }
 
 TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
@@ -1094,9 +1099,9 @@ TEST(WrapperCaseStudy, sameDimensionDifferentKindsAreDistinct)
 	static_assert(!std::is_same_v<torque_k, freq_k>);
 	static_assert(!std::is_same_v<energy_k, freq_k>);
 	// Same-tag torque adds; the result is still a torque.
-	auto t = torque_k(3.0) + torque_k(4.0);
-	static_assert(decltype(t)::tag() == fixed_string("torque"));
-	EXPECT_UNIT_NEAR(t, 7.0);
+	auto torqueSum = torque_k(3.0) + torque_k(4.0);
+	static_assert(decltype(torqueSum)::tag() == fixed_string("torque"));
+	EXPECT_UNIT_NEAR(torqueSum, 7.0);
 }
 
 //======================================================================================================================
@@ -1122,4 +1127,645 @@ TEST(WrapperCorrectness, mixedSignednessComparesByValue)
 	// Same-signedness and cross-unit wrapper comparisons remain correct.
 	EXPECT_TRUE(D<meters<int>>(3) < D<meters<int>>(5));
 	EXPECT_TRUE(A<meters<int>>(1000) == A<kilometers<int>>(1));
+}
+
+//======================================================================================================================
+//	POINT-ALGEBRA GUARDS — the operations the affine type system must REJECT
+//======================================================================================================================
+// Named concepts (SFINAE-friendly) probe whether an operation is even well-formed, so a `static_assert(!can_X<...>)`
+// asserts the operation is ill-formed WITHOUT hard-erroring the translation unit (an inline `requires` in an
+// evaluated context would compile the offending expression and fire its `static_assert(dependent_false)`). Each probe
+// requires the exact expression `absolute<>/delta<>` forbids: scaling a point, moving a point onto a point.
+
+namespace
+{
+	/// `a *= s` compiles (a delta scales in place; a point does not — there is no `absolute::operator*=`).
+	template<class W, class Scalar>
+	concept can_compound_scale = requires(W w, Scalar s) { w *= s; };
+	/// `a /= s` compiles.
+	template<class W, class Scalar>
+	concept can_compound_divide = requires(W w, Scalar s) { w /= s; };
+	/// `a += b` compiles.
+	template<class A2, class B2>
+	concept can_compound_add = requires(A2 a, B2 b) { a += b; };
+	/// `a - b` between two point wrappers yields a delta WITHOUT firing a static_assert (the ALLOWED point-minus-point).
+	template<class A2, class B2>
+	concept can_subtract_points = requires(A2 a, B2 b) {
+		{ a - b } -> DeltaType;
+	};
+	/// `a + b` where the left is a delta and the right an absolute yields a point (the ALLOWED commutative move).
+	template<class D2, class A2>
+	concept can_add_delta_to_point = requires(D2 d, A2 a) {
+		{ d + a } -> AbsoluteType;
+	};
+} // namespace
+
+// The point algebra's PERMITTED operations, and the forbidden ones that a concept CAN observe.
+//
+// A refusal expressed as a `static_assert` in a selected overload's body cannot be probed: the overload resolves, so a
+// bare `requires` reports the operation as valid, and deducing the result type to force the body instantiates OUTSIDE
+// the immediate context and hard-errors instead of reporting false. `absolute * scalar` and `absolute + absolute` are
+// of that kind and are graded by the errorMessages harness (wrapper_absolute_times_scalar,
+// wrapper_absolute_plus_absolute, wrapper_absolute_over_absolute, wrapper_delta_minus_absolute), which compiles each
+// standalone and checks its diagnostic text.
+//
+// Where the wrapper declares NO overload at all the failure IS a clean substitution failure, so those cases are
+// asserted here directly.
+TEST(WrapperGuards, deltaScalesAndTheAllowedPointAlgebraIsWellFormed)
+{
+	// A delta (an amount) scales, in place and by value, on an affine and a non-affine dimension alike.
+	static_assert(can_compound_scale<D<celsius<double>>, double>);
+	static_assert(can_compound_divide<D<celsius<double>>, double>);
+
+	// A point declares no compound scaling, no compound divide, no `+=` from another point, and a delta declares no
+	// subtraction of a point -- four refusals with no overload behind them, so a concept observes each.
+	static_assert(!can_compound_scale<A<celsius<double>>, double>, "a point declares no *=");
+	static_assert(!can_compound_divide<A<celsius<double>>, double>, "a point declares no /=");
+	static_assert(!can_compound_add<A<celsius<double>>, A<celsius<double>>>, "a point declares no += from a point");
+	static_assert(!can_subtract_points<D<celsius<double>>, A<celsius<double>>>, "a delta declares no point subtraction");
+	static_assert(traits::is_delta_v<decltype(D<celsius<double>>(2.5) * 2.0)>, "scaling a delta yields a delta");
+	static_assert(traits::is_delta_v<decltype(D<meters<double>>(2.5) * 2.0)>);
+	EXPECT_DOUBLE_EQ(5.0, (D<celsius<double>>(2.5) * 2.0).value());
+	EXPECT_DOUBLE_EQ(5.0, (D<meters<double>>(2.5) * 2.0).value());
+
+	// point += delta moves the point (same scale and cross-scale); point - point yields a delta; delta + point
+	// yields a point.
+	static_assert(can_compound_add<A<celsius<double>>, D<celsius<double>>>);
+	static_assert(can_compound_add<A<celsius<double>>, D<fahrenheit<double>>>);
+	static_assert(can_subtract_points<A<celsius<double>>, A<celsius<double>>>);
+	static_assert(can_subtract_points<A<celsius<double>>, A<fahrenheit<double>>>);
+	static_assert(can_add_delta_to_point<D<celsius<double>>, A<celsius<double>>>);
+	static_assert(can_add_delta_to_point<D<fahrenheit<double>>, A<celsius<double>>>);
+	SUCCEED();
+}
+
+//======================================================================================================================
+//	DELTA SCALE-IN-PLACE VALUE — a change scales coordinate-free (spec cases, exact)
+//======================================================================================================================
+
+TEST(WrapperDelta, celsiusDeltaCompoundScaleAndDivideValue)
+{
+	// A change scales without any datum: 5 celsius-degrees doubled is 10; 10 halved is 5.
+	D<celsius<double>> grow(5.0);
+	grow *= 2.0;
+	EXPECT_DOUBLE_EQ(10.0, grow.value());
+
+	D<celsius<double>> shrink(10.0);
+	shrink /= 2.0;
+	EXPECT_DOUBLE_EQ(5.0, shrink.value());
+
+	// Non-compound forms of the same spec cases.
+	EXPECT_DOUBLE_EQ(10.0, (D<celsius<double>>(5.0) * 2.0).value());
+	EXPECT_DOUBLE_EQ(5.0, (D<celsius<double>>(10.0) / 2.0).value());
+}
+
+//======================================================================================================================
+//	CROSS-SCALE POINT + DELTA — a fahrenheit/celsius/kelvin delta moves a point by DEGREE SIZE only
+//======================================================================================================================
+
+TEST(WrapperAffine, celsiusPointPlusNineFahrenheitDeltaIsFiveDegreesWarmer)
+{
+	// 9 fahrenheit-degrees == 9 * 5/9 == 5 celsius-degrees, so 20 degC warmed by a 9 degF change is 25 degC — the
+	// fahrenheit DATUM (the +32 offset) is never applied to a delta.
+	const A<celsius<double>>    p(20.0);
+	const D<fahrenheit<double>> warm(9.0);
+	auto                        warmer = p + warm;
+	static_assert(traits::is_absolute_v<decltype(warmer)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(warmer)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(25.0, warmer.value());
+
+	// delta + point commutes and keeps the point's (celsius) unit.
+	auto commuted = warm + p;
+	static_assert(traits::is_absolute_v<decltype(commuted)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(commuted)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(25.0, commuted.value());
+}
+
+TEST(WrapperAffine, kelvinPointPlusCelsiusDelta)
+{
+	// celsius and kelvin share a degree size (ratio 1), so a 5 degC change is a 5 K change: 300 K + 5 = 305 K.
+	const A<kelvin<double>>  p(300.0);
+	const D<celsius<double>> warm(5.0);
+	auto                     warmer = p + warm;
+	static_assert(traits::is_absolute_v<decltype(warmer)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(warmer)>, kelvin<double>>);
+	EXPECT_DOUBLE_EQ(305.0, warmer.value());
+
+	// And cooling back down returns the point (datum preserved, kelvin kept).
+	auto back = warmer - warm;
+	static_assert(traits::is_absolute_v<decltype(back)>);
+	EXPECT_DOUBLE_EQ(300.0, back.value());
+}
+
+TEST(WrapperAffine, kelvinMinusCelsiusPointDifferenceIsDeltaInKelvin)
+{
+	// point - point across the kelvin/celsius datum: 305 K minus 20 degC (== 293.15 K) is 11.85 kelvin-degrees,
+	// expressed in the LHS (kelvin) unit. Computed by hand: 20 degC = 293.15 K; 305 - 293.15 = 11.85.
+	const A<kelvin<double>>  hot(305.0);
+	const A<celsius<double>> warm(20.0);
+	auto                     diff = hot - warm;
+	static_assert(traits::is_delta_v<decltype(diff)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, kelvin<double>>);
+	EXPECT_NEAR(11.85, diff.value(), 1e-9);
+}
+
+//======================================================================================================================
+//	DELTA CROSS-SCALE ARITHMETIC VALUE — delta +/- delta across scales, LHS unit kept
+//======================================================================================================================
+
+TEST(WrapperDelta, deltaPlusMinusDeltaCrossScaleValue)
+{
+	// same scale (already exercised elsewhere, re-pinned here for the value): 10 + 3 = 13 celsius-degrees.
+	EXPECT_DOUBLE_EQ(13.0, (D<celsius<double>>(10.0) + D<celsius<double>>(3.0)).value());
+
+	// cross scale: a fahrenheit-degree delta added to a celsius-degree delta converts by degree size (9 degF = 5 degC),
+	// keeping the LHS (celsius) unit: 10 + 5 = 15 celsius-degrees.
+	auto sum = D<celsius<double>>(10.0) + D<fahrenheit<double>>(9.0);
+	static_assert(traits::is_delta_v<decltype(sum)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(sum)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(15.0, sum.value());
+
+	// cross-scale subtract, LHS fahrenheit: 18 degF minus a 5 degC change (== 9 degF) = 9 fahrenheit-degrees.
+	auto diff = D<fahrenheit<double>>(18.0) - D<celsius<double>>(5.0);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, fahrenheit<double>>);
+	EXPECT_DOUBLE_EQ(9.0, diff.value());
+}
+
+//======================================================================================================================
+//	CONVERSIONS — datum applied for a point, scale-only for a delta (fractional, hand-verified factors)
+//======================================================================================================================
+
+TEST(WrapperConvert, deltaConversionIsScaleOnlyPointConversionAppliesDatum)
+{
+	// A 5 celsius-degree change is a 9 fahrenheit-degree change (5 * 9/5 = 9), scale only — never an absolute point.
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().value());
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<fahrenheit<double>>().value()); // plain-unit unwrap, same scale
+
+	// A point conversion DOES apply the datum: 0 degC is 273.15 K, staying a point across the hop.
+	auto k = A<celsius<double>>(0.0).to<A<kelvin<double>>>();
+	static_assert(traits::is_absolute_v<decltype(k)>);
+	EXPECT_DOUBLE_EQ(273.15, k.value());
+
+	// A fractional point value survives the datum precisely: 37.5 degC = 310.65 K (37.5 + 273.15).
+	EXPECT_NEAR(310.65, A<celsius<double>>(37.5).to<A<kelvin<double>>>().value(), 1e-9);
+
+	// A fractional delta value scales precisely: a 2.375 celsius-degree change = 2.375 * 9/5 = 4.275 fahrenheit-degrees.
+	EXPECT_NEAR(4.275, D<celsius<double>>(2.375).to<D<fahrenheit<double>>>().value(), 1e-9);
+}
+
+TEST(WrapperConvert, toKeepsPointAPointAndDeltaADeltaAcrossAHop)
+{
+	// to<absolute<V>> keeps a point a point and to<delta<V>> keeps a delta a delta, but asserting that through
+	// `decltype` only restates the template argument written at the call site -- `to<WrapperTarget>` returns
+	// `WrapperTarget`. The VALUE is what the hop must get right: a point applies the datum, a delta scales only.
+	static_assert(traits::is_absolute_v<decltype(A<celsius<double>>(0.0).to<A<kelvin<double>>>())>);
+	static_assert(traits::is_delta_v<decltype(D<celsius<double>>(5.0).to<D<fahrenheit<double>>>())>);
+	EXPECT_DOUBLE_EQ(273.15, A<celsius<double>>(0.0).to<A<kelvin<double>>>().value());
+	EXPECT_DOUBLE_EQ(9.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().value());
+	EXPECT_DOUBLE_EQ(0.0, A<celsius<double>>(0.0).to<A<kelvin<double>>>().to<A<celsius<double>>>().value());
+	EXPECT_DOUBLE_EQ(5.0, D<celsius<double>>(5.0).to<D<fahrenheit<double>>>().to<D<celsius<double>>>().value());
+}
+
+//======================================================================================================================
+//	RANKINE AS A WRAPPED POINT — a pure-ratio absolute scale off kelvin, no per-unit offset
+//======================================================================================================================
+// rankine is `conversion_factor<ratio<5,9>, kelvin>`: 0 Ra == 0 K (absolute zero), and one rankine-degree is 5/9 of a
+// kelvin/celsius-degree, so 491.67 Ra == 273.15 K == 0 degC. The wrappers must treat it exactly like the celsius /
+// fahrenheit / kelvin wrappers — a full affine-dimension point even though it adds no per-unit datum of its own.
+
+TEST(WrapperRankine, pointConstructionAndAbsoluteZero)
+{
+	// 0 Ra is absolute zero, equal to 0 K and to -273.15 degC as POINTS (the datum is applied on each side).
+	EXPECT_TRUE(A<rankine<double>>(0.0) == A<kelvin<double>>(0.0));
+	EXPECT_TRUE(A<rankine<double>>(0.0) == A<celsius<double>>(-273.15));
+
+	// The freezing point of water: 273.15 K == 491.67 Ra (273.15 * 9/5). Verified by hand.
+	EXPECT_NEAR(491.67, A<kelvin<double>>(273.15).to<A<rankine<double>>>().value(), 1e-9);
+	EXPECT_TRUE(A<rankine<double>>(491.67) == A<celsius<double>>(0.0));
+}
+
+TEST(WrapperRankine, pointMoveByDeltaAndPointDifference)
+{
+	// A rankine point moved by a rankine-degree change stays a rankine point.
+	A<rankine<double>> p(491.67);
+	p += D<rankine<double>>(9.0); // +9 rankine-degrees == +5 kelvin/celsius-degrees
+	static_assert(traits::is_absolute_v<decltype(A<rankine<double>>(0.0) + D<rankine<double>>(0.0))>);
+	EXPECT_NEAR(500.67, p.value(), 1e-9);
+	p -= D<rankine<double>>(9.0);
+	EXPECT_NEAR(491.67, p.value(), 1e-9);
+
+	// point - point across scales into a rankine delta: 500.67 Ra minus 491.67 Ra is 9 rankine-degrees.
+	auto diff = A<rankine<double>>(500.67) - A<rankine<double>>(491.67);
+	static_assert(traits::is_delta_v<decltype(diff)>);
+	static_assert(std::is_same_v<wrapped_t<decltype(diff)>, rankine<double>>);
+	EXPECT_NEAR(9.0, diff.value(), 1e-9);
+
+	// A 9 rankine-degree delta is a 5 celsius-degree delta (9 * 5/9 = 5), scale-only.
+	EXPECT_NEAR(5.0, D<rankine<double>>(9.0).to<D<celsius<double>>>().value(), 1e-9);
+}
+
+TEST(WrapperRankine, deltaArithmeticAndScaleAndPointDifference)
+{
+	// delta + delta and scaling behave identically to the celsius/fahrenheit wrappers.
+	EXPECT_DOUBLE_EQ(15.0, (D<rankine<double>>(9.0) + D<rankine<double>>(6.0)).value());
+	EXPECT_DOUBLE_EQ(18.0, (D<rankine<double>>(9.0) * 2.0).value());
+	EXPECT_DOUBLE_EQ(4.5, (D<rankine<double>>(9.0) / 2.0).value());
+
+	// A rankine delta scales, on the same terms as a celsius one: a delta holds a magnitude whatever it wraps.
+	static_assert(traits::is_delta_v<decltype(D<rankine<double>>(2.5) * 2.0)>, "scaling a delta yields a delta");
+	EXPECT_DOUBLE_EQ(5.0, (D<rankine<double>>(2.5) * 2.0).value());
+
+	// point - point across the kelvin/rankine pair is allowed and yields a delta.
+	static_assert(can_subtract_points<A<rankine<double>>, A<kelvin<double>>>);
+	SUCCEED();
+}
+
+//======================================================================================================================
+//	POINT MIN/MAX/CLAMP CROSS-SCALE — value correctness with a fahrenheit rhs reconciled affinely
+//======================================================================================================================
+
+TEST(WrapperConvert, pointMinMaxClampCrossScaleKeepsLhsUnitAndDatum)
+{
+	// min/max reconcile the rhs affinely (datum applied) but keep the LHS (celsius) unit and value.
+	const A<celsius<double>>    c(20.0);
+	const A<fahrenheit<double>> f(212.0); // == 100 degC
+	auto                        cooler = affine::min(c, f);
+	static_assert(std::is_same_v<wrapped_t<decltype(cooler)>, celsius<double>>);
+	EXPECT_DOUBLE_EQ(20.0, cooler.value()); // 20 degC is cooler than 100 degC
+	auto warmer = affine::max(c, f);
+	EXPECT_DOUBLE_EQ(100.0, warmer.value()); // the warmer, expressed in celsius
+
+	// clamp a celsius point into a range whose bounds are a mix of scales, all reconciled affinely to celsius.
+	const A<fahrenheit<double>> lo(32.0); // == 0 degC
+	const A<celsius<double>>    hi(50.0);
+	EXPECT_DOUBLE_EQ(50.0, affine::clamp(A<celsius<double>>(75.0), lo, hi).value());
+	EXPECT_DOUBLE_EQ(0.0, affine::clamp(A<celsius<double>>(-10.0), lo, hi).value());
+	EXPECT_DOUBLE_EQ(37.5, affine::clamp(A<celsius<double>>(37.5), lo, hi).value()); // in-range fractional passes through
+}
+
+// The wrapper is the REMEDY the bare-unit diagnostics name, so it has to actually work for an affine unit. A plain
+// affine reading refuses to scale (a datum-relative value has no meaningful multiple), which means a wrapper cannot
+// implement its own scaling by delegating to the wrapped unit's `operator*` -- it holds a MAGNITUDE, so it scales its
+// own value and rebuilds the unit. These pin that, since a regression here silently turns the documented remedy into
+// a library-internal compile error.
+TEST(WrapperDelta, anAffineDeltaScalesItsOwnMagnitude)
+{
+	using units::temperature::celsius;
+	using units::temperature::fahrenheit;
+
+	D<celsius<double>> change(20.5);
+	EXPECT_DOUBLE_EQ(41.0, (change * 2.0).value());
+	EXPECT_DOUBLE_EQ(41.0, (2.0 * change).value());
+	EXPECT_DOUBLE_EQ(8.2, (change / 2.5).value());
+	change *= 2.0;
+	EXPECT_DOUBLE_EQ(41.0, change.value());
+	change /= 4.0;
+	EXPECT_DOUBLE_EQ(10.25, change.value());
+
+	// the wrapped unit is preserved, so the magnitude stays in its own degrees rather than sliding to the base scale
+	D<fahrenheit<double>> inFahrenheit(18.0);
+	EXPECT_DOUBLE_EQ(27.0, (inFahrenheit * 1.5).value());
+	static_assert(std::is_same_v<D<fahrenheit<double>>, std::remove_cv_t<decltype(inFahrenheit * 1.5)>>,
+		"scaling a delta keeps both the wrapper and the unit it wraps");
+
+	// scaling an integer-backed delta by a floating factor promotes, exactly as the plain unit's operator* does
+	D<celsius<int>> integral(21);
+	EXPECT_DOUBLE_EQ(52.5, (integral * 2.5).value());
+	static_assert(std::is_same_v<double, typename std::remove_cv_t<decltype(integral * 2.5)>::underlying_type>,
+		"an integer delta scaled by a floating factor promotes");
+
+	// and a scaled delta moves a point
+	A<celsius<double>> reading(20.0);
+	reading += D<celsius<double>>(2.5) * 2.0;
+	EXPECT_DOUBLE_EQ(25.0, reading.value());
+}
+
+// A kind wrapping an affine unit scales for the same reason a delta does; it also holds a magnitude with a tag.
+TEST(WrapperDelta, aTaggedAmountAndATaggedReadingBothScaleInTheirOwnScale)
+{
+	using units::temperature::celsius;
+	using units::kind;
+
+	// A `kind` is the same quantity as the unit it wraps, only tagged, so its arithmetic delegates to that unit's --
+	// which means the unit's refusals reach the tagged form. A tagged AMOUNT scales, because an amount does.
+	using degrees = std::remove_cv_t<decltype(celsius<double>(1.0) - celsius<double>(0.0))>;
+	kind<"cabin", degrees> tagged(20.5);
+	EXPECT_DOUBLE_EQ(41.0, (tagged * 2.0).value());
+	EXPECT_DOUBLE_EQ(8.2, (tagged / 2.5).value());
+	static_assert(std::is_same_v<kind<"cabin", degrees>, std::remove_cv_t<decltype(tagged * 2.0)>>,
+		"scaling a tagged amount keeps its tag and its unit");
+	tagged *= 2.0;
+	EXPECT_DOUBLE_EQ(41.0, tagged.value());
+
+	// A tagged READING delegates to the wrapped unit too, so it follows the same scale-bound rule the plain reading
+	// does: the number is read in the reading's own scale. Both operations are well-formed, and the tagged result
+	// agrees with the untagged one.
+	kind<"cabin", celsius<double>> reading(20.5);
+	EXPECT_DOUBLE_EQ(20.5, reading.value());
+	EXPECT_DOUBLE_EQ(41.0, (reading * 2.0).value());
+	EXPECT_DOUBLE_EQ((celsius<double>(20.5) * 2.0).raw(), (reading * 2.0).value());
+	EXPECT_DOUBLE_EQ(25.0, (reading + kind<"cabin", celsius<double>>(4.5)).value());
+	EXPECT_DOUBLE_EQ((celsius<double>(20.5) + celsius<double>(4.5)).raw(),
+		(reading + kind<"cabin", celsius<double>>(4.5)).value());
+	// a tagged reading moves by a tagged amount, which is the operation that makes sense
+	reading += kind<"cabin", degrees>(2.5);
+	EXPECT_DOUBLE_EQ(23.0, reading.value());
+}
+
+//======================================================================================================================
+//	THE POINT/AMOUNT CALCULUS AGREES WITH THE PLAIN AFFINE MODEL
+//
+//	`absolute<>`/`delta<>` (and the tagged `kind<>`) state in the type what the plain units state by rule: a point
+//	moves by an AMOUNT, and only the amount's SCALE FACTOR crosses into the point's unit -- never its datum. Every
+//	expected number is derived at its own assertion from the definitions in `units/temperature.h`: celsius is kelvin
+//	shifted by 27315/100; fahrenheit is 5/9 of a celsius degree, shifted; reaumur is 5/4 of a celsius degree on
+//	celsius's datum; rankine is 5/9 of a kelvin with no datum.
+//======================================================================================================================
+
+// A point moves by an amount written on any commensurable scale, and only that amount's scale factor crosses over.
+// Derivations: 9 fahrenheit-degrees is 9 * 5/9 == 5 celsius-degrees; 4 reaumur-degrees is 4 * 5/4 == 5
+// celsius-degrees; 5 kelvin is 5 celsius-degrees; 9 rankine-degrees is 9 * 5/9 == 5 kelvin. Each carries 20 degC to
+// 20 + 5 == 25 degC, and down to 20 - 5 == 15 degC.
+TEST(WrapperAmountSpelling, everySpellingOfOneAmountMovesAPointAlike)
+{
+	EXPECT_NEAR(25.0, (absolute<celsius<double>>(20.0) + delta<fahrenheit<double>>(9.0)).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (absolute<celsius<double>>(20.0) + delta<reaumur<double>>(4.0)).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (absolute<celsius<double>>(20.0) + delta<kelvin<double>>(5.0)).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (absolute<celsius<double>>(20.0) + delta<rankine<double>>(9.0)).value(), 5.0e-12);
+
+	EXPECT_NEAR(15.0, (absolute<celsius<double>>(20.0) - delta<fahrenheit<double>>(9.0)).value(), 5.0e-12);
+	EXPECT_NEAR(15.0, (absolute<celsius<double>>(20.0) - delta<kelvin<double>>(5.0)).value(), 5.0e-12);
+
+	// the amount may be written on the left; the result keeps the POINT's unit either way
+	EXPECT_NEAR(25.0, (delta<fahrenheit<double>>(9.0) + absolute<celsius<double>>(20.0)).value(), 5.0e-12);
+	static_assert(std::is_same_v<absolute<celsius<double>>,
+					  std::remove_cv_t<decltype(delta<fahrenheit<double>>(9.0) + absolute<celsius<double>>(20.0))>>,
+		"an amount plus a point is a point in the point's own unit");
+
+	// 5 celsius-degrees is 5 / (5/9) == 9 fahrenheit-degrees, so 68 degF moves to 68 + 9 == 77 degF
+	EXPECT_NEAR(77.0, (absolute<fahrenheit<double>>(68.0) + delta<celsius<double>>(5.0)).value(), 5.0e-12);
+	// 5 celsius-degrees is 5 / (5/4) == 4 reaumur-degrees, so 16 degRe (== 20 degC) moves to 16 + 4 == 20 degRe
+	EXPECT_NEAR(20.0, (absolute<reaumur<double>>(16.0) + delta<celsius<double>>(5.0)).value(), 5.0e-12);
+
+	// the three spellings of ONE amount: 2.5 kelvin, 4.5 rankine-degrees (4.5 * 5/9 == 2.5 kelvin) and 4.5
+	// fahrenheit-degrees (4.5 * 5/9 == 2.5 celsius-degrees) each carry 20.5 degC to 20.5 + 2.5 == 23 degC
+	EXPECT_NEAR(23.0, (absolute<celsius<double>>(20.5) + delta<kelvin<double>>(2.5)).value(), 5.0e-12);
+	EXPECT_NEAR(23.0, (absolute<celsius<double>>(20.5) + delta<rankine<double>>(4.5)).value(), 5.0e-12);
+	EXPECT_NEAR(23.0, (absolute<celsius<double>>(20.5) + delta<fahrenheit<double>>(4.5)).value(), 5.0e-12);
+	// 4.5 * 5/9 is exactly 2.5 in binary floating point, so those two agree to the last bit
+	EXPECT_DOUBLE_EQ((absolute<celsius<double>>(20.5) + delta<kelvin<double>>(2.5)).value(),
+		(absolute<celsius<double>>(20.5) + delta<rankine<double>>(4.5)).value());
+	// and downward: 20.5 - 2.5 == 18 degC
+	EXPECT_NEAR(18.0, (absolute<celsius<double>>(20.5) - delta<rankine<double>>(4.5)).value(), 5.0e-12);
+
+	// the by-value form agrees with the compound one, operand for operand
+	absolute<celsius<double>> byFahrenheit(20.0);
+	byFahrenheit += delta<fahrenheit<double>>(9.0);
+	EXPECT_NEAR(25.0, byFahrenheit.value(), 5.0e-12);
+	EXPECT_DOUBLE_EQ(byFahrenheit.value(), (absolute<celsius<double>>(20.0) + delta<fahrenheit<double>>(9.0)).value());
+
+	absolute<celsius<double>> byReaumur(20.0);
+	byReaumur += delta<reaumur<double>>(4.0);
+	EXPECT_NEAR(25.0, byReaumur.value(), 5.0e-12);
+	EXPECT_DOUBLE_EQ(byReaumur.value(), (absolute<celsius<double>>(20.0) + delta<reaumur<double>>(4.0)).value());
+
+	absolute<fahrenheit<double>> fahrenheitByCelsius(68.0);
+	fahrenheitByCelsius += delta<celsius<double>>(5.0);
+	EXPECT_NEAR(77.0, fahrenheitByCelsius.value(), 5.0e-12);
+
+	absolute<reaumur<double>> reaumurByCelsius(16.0);
+	reaumurByCelsius += delta<celsius<double>>(5.0);
+	EXPECT_NEAR(20.0, reaumurByCelsius.value(), 5.0e-12);
+
+	// an amount converted between scales carries no datum: 9 fahrenheit-degrees IS 9 * 5/9 == 5 celsius-degrees, and
+	// 2.5 kelvin IS 2.5 / (5/9) == 4.5 rankine-degrees
+	EXPECT_NEAR(5.0, delta<fahrenheit<double>>(9.0).to<celsius<double>>().value(), 5.0e-12);
+	EXPECT_TRUE(delta<kelvin<double>>(2.5) == delta<rankine<double>>(4.5));
+}
+
+// An OFFSET-FREE point moves by an amount written on an affine scale on exactly the same terms: only the amount's
+// scale factor applies. Derivations: 5 celsius-degrees is 5 kelvin, so 300 K warms to 300 + 5 == 305 K -- reading
+// delta<celsius>(5) as the absolute temperature 5 + 273.15 == 278.15 K would instead give 578.15 K. 9
+// fahrenheit-degrees is 9 * 5/9 == 5 kelvin and 4 reaumur-degrees is 4 * 5/4 == 5 celsius-degrees == 5 kelvin.
+// Rankine counts in 5/9 of a kelvin, so 540 degRa is 540 * 5/9 == 300 K and 540 + 9 == 549 degRa is 305 K.
+TEST(WrapperOffsetFreePoint, anOffsetFreePointMovesByTheAmountsScaleFactorOnly)
+{
+	EXPECT_NEAR(305.0, (absolute<kelvin<double>>(300.0) + delta<celsius<double>>(5.0)).value(), 5.0e-12);
+	EXPECT_NEAR(305.0, (absolute<kelvin<double>>(300.0) + delta<fahrenheit<double>>(9.0)).value(), 5.0e-12);
+	EXPECT_NEAR(305.0, (absolute<kelvin<double>>(300.0) + delta<reaumur<double>>(4.0)).value(), 5.0e-12);
+	EXPECT_NEAR(549.0, (absolute<rankine<double>>(540.0) + delta<celsius<double>>(5.0)).value(), 5.0e-12);
+
+	// the point keeps its own unit, so a move never launders a reading into the amount's scale
+	static_assert(std::is_same_v<absolute<kelvin<double>>,
+					  std::remove_cv_t<decltype(absolute<kelvin<double>>(300.0) + delta<celsius<double>>(5.0))>>,
+		"a moved point stays in its own unit");
+	static_assert(std::is_same_v<absolute<rankine<double>>,
+					  std::remove_cv_t<decltype(absolute<rankine<double>>(540.0) + delta<celsius<double>>(5.0))>>,
+		"a moved point stays in its own unit");
+
+	absolute<kelvin<double>> kelvinByCelsius(300.0);
+	kelvinByCelsius += delta<celsius<double>>(5.0);
+	EXPECT_NEAR(305.0, kelvinByCelsius.value(), 5.0e-12);
+
+	absolute<kelvin<double>> kelvinByFahrenheit(300.0);
+	kelvinByFahrenheit += delta<fahrenheit<double>>(9.0);
+	EXPECT_NEAR(305.0, kelvinByFahrenheit.value(), 5.0e-12);
+
+	absolute<kelvin<double>> kelvinByReaumur(300.0);
+	kelvinByReaumur += delta<reaumur<double>>(4.0);
+	EXPECT_NEAR(305.0, kelvinByReaumur.value(), 5.0e-12);
+
+	// and downward: 300 - 5 == 295 K for every spelling of the same amount
+	absolute<kelvin<double>> kelvinDownByCelsius(300.0);
+	kelvinDownByCelsius -= delta<celsius<double>>(5.0);
+	EXPECT_NEAR(295.0, kelvinDownByCelsius.value(), 5.0e-12);
+
+	absolute<kelvin<double>> kelvinDownByFahrenheit(300.0);
+	kelvinDownByFahrenheit -= delta<fahrenheit<double>>(9.0);
+	EXPECT_NEAR(295.0, kelvinDownByFahrenheit.value(), 5.0e-12);
+
+	absolute<kelvin<double>> kelvinDownByReaumur(300.0);
+	kelvinDownByReaumur -= delta<reaumur<double>>(4.0);
+	EXPECT_NEAR(295.0, kelvinDownByReaumur.value(), 5.0e-12);
+
+	absolute<rankine<double>> rankineByCelsius(540.0);
+	rankineByCelsius += delta<celsius<double>>(5.0);
+	EXPECT_NEAR(549.0, rankineByCelsius.value(), 5.0e-12);
+
+	absolute<rankine<double>> rankineByFahrenheit(540.0);
+	rankineByFahrenheit += delta<fahrenheit<double>>(9.0);
+	EXPECT_NEAR(549.0, rankineByFahrenheit.value(), 5.0e-12);
+
+	absolute<rankine<double>> rankineByReaumur(540.0);
+	rankineByReaumur += delta<reaumur<double>>(4.0);
+	EXPECT_NEAR(549.0, rankineByReaumur.value(), 5.0e-12);
+
+	// and downward: 540 - 9 == 531 degRa, which is 531 * 5/9 == 295 K
+	absolute<rankine<double>> rankineDownByCelsius(540.0);
+	rankineDownByCelsius -= delta<celsius<double>>(5.0);
+	EXPECT_NEAR(531.0, rankineDownByCelsius.value(), 5.0e-12);
+
+	absolute<rankine<double>> rankineDownByFahrenheit(540.0);
+	rankineDownByFahrenheit -= delta<fahrenheit<double>>(9.0);
+	EXPECT_NEAR(531.0, rankineDownByFahrenheit.value(), 5.0e-12);
+
+	absolute<rankine<double>> rankineDownByReaumur(540.0);
+	rankineDownByReaumur -= delta<reaumur<double>>(4.0);
+	EXPECT_NEAR(531.0, rankineDownByReaumur.value(), 5.0e-12);
+
+	// the difference of two points is an amount in the LEFT point's unit, and the two datums cancel: 50 degF is
+	// (50 - 32) * 5/9 == 10 degC, so 30 degC less 50 degF is a 30 - 10 == 20 celsius-degree step; 10 degC is
+	// 10 * 9/5 + 32 == 50 degF, so 86 degF less 10 degC is an 86 - 50 == 36 fahrenheit-degree step
+	EXPECT_NEAR(20.0, (absolute<celsius<double>>(30.0) - absolute<celsius<double>>(10.0)).value(), 5.0e-12);
+	EXPECT_NEAR(20.0, (absolute<celsius<double>>(30.0) - absolute<fahrenheit<double>>(50.0)).value(), 5.0e-12);
+	EXPECT_NEAR(36.0, (absolute<fahrenheit<double>>(86.0) - absolute<celsius<double>>(10.0)).value(), 5.0e-12);
+}
+
+// A tagged quantity delegates to the unit it wraps, so the unit's amount rule reaches the tagged form: a tagged
+// reading moved by a tagged amount reads only the amount's scale factor. Derivations: 9 fahrenheit-degrees is
+// 9 * 5/9 == 5 celsius-degrees and 4 reaumur-degrees is 4 * 5/4 == 5 celsius-degrees, so each carries 20 degC to
+// 25 degC; 5 celsius-degrees is 5 kelvin, so 300 K warms to 305 K; 540 degRa is 540 * 5/9 == 300 K, and 5 kelvin is
+// 9 rankine-degrees, so it warms to 549 degRa.
+TEST(WrapperKindAmountModel, aTaggedReadingMovesByTheTaggedAmountsScaleFactorOnly)
+{
+	using units::kind;
+
+	// the amount types, spelled here: a difference of two readings on one scale, which carries no datum
+	using celsiusDegrees    = std::remove_cv_t<decltype(celsius<double>(1.0) - celsius<double>(0.0))>;
+	using fahrenheitDegrees = std::remove_cv_t<decltype(fahrenheit<double>(1.0) - fahrenheit<double>(0.0))>;
+	using reaumurDegrees    = std::remove_cv_t<decltype(reaumur<double>(1.0) - reaumur<double>(0.0))>;
+
+	static_assert(!units::traits::is_affine_unit_v<celsiusDegrees>);
+	static_assert(!units::traits::is_affine_unit_v<fahrenheitDegrees>);
+	static_assert(!units::traits::is_affine_unit_v<reaumurDegrees>);
+
+	EXPECT_NEAR(25.0, (kind<"cabin", celsius<double>>(20.0) + kind<"cabin", fahrenheitDegrees>(9.0)).value(), 5.0e-12);
+	EXPECT_NEAR(25.0, (kind<"cabin", celsius<double>>(20.0) + kind<"cabin", reaumurDegrees>(4.0)).value(), 5.0e-12);
+	EXPECT_NEAR(305.0, (kind<"cabin", kelvin<double>>(300.0) + kind<"cabin", celsiusDegrees>(5.0)).value(), 5.0e-12);
+	EXPECT_NEAR(305.0, (kind<"cabin", kelvin<double>>(300.0) + kind<"cabin", fahrenheitDegrees>(9.0)).value(), 5.0e-12);
+	EXPECT_NEAR(549.0, (kind<"cabin", rankine<double>>(540.0) + kind<"cabin", celsiusDegrees>(5.0)).value(), 5.0e-12);
+
+	kind<"cabin", celsius<double>> cabin(20.0);
+	cabin += kind<"cabin", fahrenheitDegrees>(9.0);
+	EXPECT_NEAR(25.0, cabin.value(), 5.0e-12);
+
+	kind<"cabin", kelvin<double>> absoluteCabin(300.0);
+	absoluteCabin += kind<"cabin", celsiusDegrees>(5.0);
+	EXPECT_NEAR(305.0, absoluteCabin.value(), 5.0e-12);
+	absoluteCabin -= kind<"cabin", celsiusDegrees>(5.0);
+	EXPECT_NEAR(300.0, absoluteCabin.value(), 5.0e-12);
+
+	// a tagged reading written on an affine scale is read as an amount by an offset-free tagged reading, exactly as
+	// the plain units are: 5 celsius-degrees, not the absolute 278.15 K
+	kind<"cabin", kelvin<double>> byPlainCelsius(300.0);
+	byPlainCelsius += kind<"cabin", celsius<double>>(5.0);
+	EXPECT_NEAR(305.0, byPlainCelsius.value(), 5.0e-12);
+
+	kind<"cabin", kelvin<double>> byPlainFahrenheit(300.0);
+	byPlainFahrenheit += kind<"cabin", fahrenheit<double>>(9.0);
+	EXPECT_NEAR(305.0, byPlainFahrenheit.value(), 5.0e-12);
+
+	kind<"cabin", kelvin<double>> byPlainReaumur(300.0);
+	byPlainReaumur += kind<"cabin", reaumur<double>>(4.0);
+	EXPECT_NEAR(305.0, byPlainReaumur.value(), 5.0e-12);
+}
+
+// A wrapper hashes on the value in the dimension's SI base unit, exactly as the unit it wraps does, so two spellings
+// of one quantity hash alike. Derivations: 0 degC is 0 + 273.15 K and 26.85 degC is 26.85 + 273.15 == 300 K; 1 km is
+// 1000 m; 4.5 rankine-degrees is 4.5 * 5/9 == 2.5 kelvin.
+TEST(WrapperDatumFreeHash, aWrapperHashesOnTheQuantityNotTheSpelling)
+{
+	EXPECT_EQ(std::hash<absolute<celsius<double>>>{}(absolute<celsius<double>>(0.0)),
+		std::hash<absolute<kelvin<double>>>{}(absolute<kelvin<double>>(273.15)));
+	EXPECT_EQ(std::hash<absolute<celsius<double>>>{}(absolute<celsius<double>>(26.85)),
+		std::hash<absolute<kelvin<double>>>{}(absolute<kelvin<double>>(300.0)));
+	EXPECT_EQ(std::hash<delta<units::length::meters<double>>>{}(delta<units::length::meters<double>>(1000.0)),
+		std::hash<delta<units::length::kilometers<double>>>{}(delta<units::length::kilometers<double>>(1.0)));
+	EXPECT_EQ(std::hash<delta<kelvin<double>>>{}(delta<kelvin<double>>(2.5)),
+		std::hash<delta<rankine<double>>>{}(delta<rankine<double>>(4.5)));
+
+	// +0.0 and -0.0 are one quantity
+	EXPECT_EQ(std::hash<delta<units::length::meters<double>>>{}(delta<units::length::meters<double>>(0.0)),
+		std::hash<delta<units::length::meters<double>>>{}(delta<units::length::meters<double>>(-0.0)));
+
+	// distinct quantities are not forced to collide
+	EXPECT_NE(std::hash<absolute<celsius<double>>>{}(absolute<celsius<double>>(20.0)),
+		std::hash<absolute<celsius<double>>>{}(absolute<celsius<double>>(21.0)));
+}
+
+// The datum-free shapes an affine scale can take reach the wrappers unchanged: `squared` drops the translation, so a
+// squared celsius and a squared kelvin are one type and a delta of either is one delta. Were the translation kept,
+// converting between them would apply it and 4 would read as 4 + 273.15 == 277.15.
+TEST(WrapperDatumFreeShape, aDeltaOfASquaredAffineUnitCarriesNoDatum)
+{
+	// spelled here, in the one test that uses them
+	using squaredCelsius = units::unit<units::squared<units::temperature::celsius_>, double>;
+	using squaredKelvin  = units::unit<units::squared<units::temperature::kelvin_>, double>;
+
+	static_assert(std::ratio_equal_v<std::ratio<0>, units::squared<units::temperature::celsius_>::translation_ratio>,
+		"a squared unit has no origin");
+	static_assert(std::is_same_v<squaredCelsius, squaredKelvin>, "the two spellings of one squared temperature are one type");
+	static_assert(std::is_same_v<delta<squaredCelsius>, delta<squaredKelvin>>);
+	static_assert(!units::traits::is_affine_unit_v<squaredCelsius>);
+
+	EXPECT_DOUBLE_EQ(4.0, delta<squaredCelsius>(4.0).value());
+	EXPECT_DOUBLE_EQ(4.0, delta<squaredKelvin>(delta<squaredCelsius>(4.0)).value());
+}
+
+//======================================================================================================================
+//	SECOND-AUDIT REGRESSION GUARD
+//======================================================================================================================
+
+// A delta takes its magnitude from its OWN value, but it must clear a sign the same way `units::abs` does. Choosing
+// the branch with an ORDERING test cannot: `-0.0 < 0.0` is false, so a negatively-signed zero passed straight
+// through, and every comparison against a NaN is false, so a negative NaN did too. `abs(delta)` then disagreed with
+// `abs` of the plain unit and with `abs` of a `kind`, neither of which changed.
+TEST(WrapperDeltaMagnitude, aSignedZeroAndANegativeNanAreNormalisedAsUnitsAbsDoes)
+{
+	// |-0.0| is +0.0: the value compares equal either way, so the SIGN BIT is what the assertion has to read
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<double>>(meters<double>(-0.0))).value()));
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<float>>(meters<float>(-0.0f))).value()));
+	EXPECT_FALSE(std::signbit(units::abs(delta<meters<long double>>(meters<long double>(-0.0L))).value()));
+	// an affine unit's delta, the case the own-value magnitude exists for
+	EXPECT_FALSE(std::signbit(units::abs(delta<celsius<double>>(celsius<double>(-0.0))).value()));
+
+	// |-NaN| is a NaN with the sign cleared
+	const auto negativeNan = units::abs(delta<meters<double>>(meters<double>(-std::numeric_limits<double>::quiet_NaN())));
+	EXPECT_TRUE(std::isnan(negativeNan.value()));
+	EXPECT_FALSE(std::signbit(negativeNan.value()));
+
+	// and the ordinary magnitudes are unchanged: |-5.25| is 5.25
+	EXPECT_DOUBLE_EQ(5.25, units::abs(delta<meters<double>>(meters<double>(-5.25))).value());
+	EXPECT_DOUBLE_EQ(5.25, units::abs(delta<celsius<double>>(celsius<double>(-5.25))).value());
+	EXPECT_DOUBLE_EQ(0.0, units::abs(delta<meters<double>>(meters<double>(0.0))).value());
+
+	// it agrees with the plain unit's own magnitude, which is the point
+	EXPECT_FALSE(std::signbit(units::abs(meters<double>(-0.0)).value()));
+	EXPECT_DOUBLE_EQ(units::abs(meters<double>(-5.25)).value(), units::abs(delta<meters<double>>(meters<double>(-5.25))).value());
+}
+
+// A kind is a TAG on an existing unit, so its arithmetic must be the wrapped unit's arithmetic -- same result unit,
+// same representation, same value. It is delegated rather than reimplemented, which means it also inherits the plain
+// unit's limits: a mixed pair of integral units lands in the finer of the two, and a wide enough ratio overflows
+// there exactly as it does without the tag. Pinned in both directions, because the pull to "improve" one side of
+// this by promoting only the tagged form is what made the two disagree before.
+TEST(WrapperKindDelegation, taggedArithmeticMatchesTheWrappedUnitExactly)
+{
+	// 1 km + 500 m is 1500 m: the result lands in metres, the finer unit, because converting metres into kilometres
+	// would truncate an integral representation
+	const auto plain  = kilometers<int>(1) + meters<int>(500);
+	const auto tagged = units::kind<"t", kilometers<int>>(1) + units::kind<"t", meters<int>>(500);
+	EXPECT_EQ(1500, plain.raw());
+	EXPECT_EQ(1500, static_cast<int>(tagged.raw()));
+	static_assert(std::is_same_v<meters<int>, std::decay_t<decltype(plain)>>);
+	static_assert(std::is_same_v<units::kind<"t", meters<int>>, std::decay_t<decltype(tagged)>>);
+
+	// the same for a difference, and for a floating pair where the left unit simply wins
+	EXPECT_EQ(500, static_cast<int>((units::kind<"t", kilometers<int>>(1) - units::kind<"t", meters<int>>(500)).raw()));
+	EXPECT_DOUBLE_EQ(1.5, static_cast<double>((units::kind<"t", kilometers<double>>(1.0) + units::kind<"t", meters<double>>(500.0)).raw()));
+
+	// a tagged reading negates in its own scale, as the plain reading does -- it is not refused
+	EXPECT_DOUBLE_EQ(-5.0, (-celsius<double>(5.0)).value());
+	EXPECT_DOUBLE_EQ(-5.0, static_cast<double>((-units::kind<"t", celsius<double>>(5.0)).raw()));
+	static_assert(std::is_same_v<units::kind<"t", celsius<double>>, std::decay_t<decltype(-units::kind<"t", celsius<double>>(5.0))>>);
 }

@@ -1,0 +1,21 @@
+// Case: a bare number added to an affine POINT in place is meaningless (a Celsius reading is datum-relative, so
+// "+ 5.0" of what?), so `celsius += double` must be ill-formed. The diagnostic is the library's own message, graded on a phrase only it can emit — the FRIENDLY `celsius<` type AND the failing
+// operator context — plus the anti-soup guards. To move the point by a relative amount, add a `delta`:
+// `c += delta<celsius<double>>(5.0)`.
+//
+// expect: fail
+// expect-match: cannot add a bare number to an affine point
+// expect-match: add a quantity of the same dimension
+// expect-match: celsius(5)
+// expect-match: celsius<
+// forbid-match: conversion_factor<std::ratio
+// forbid-match: dimension_t<
+// forbid-match-gcc: candidate
+#include <units/temperature.h>
+using namespace units;
+int main()
+{
+	units::temperature::celsius<double> c(20.0);
+	c += 5.0; // ill-formed
+	return 0;
+}

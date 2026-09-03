@@ -9,6 +9,7 @@
 // expect-match: cannot add a plain unit to a kind
 // expect-match: carries no kind
 // forbid-match: conversion_factor<std::ratio
+// forbid-match-gcc: candidate
 #include <units/kind.h>
 #include <units/length.h>
 using namespace units;

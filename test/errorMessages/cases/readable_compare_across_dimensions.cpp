@@ -7,6 +7,7 @@
 // the operator IS named AND the message is not buried in conversion-factor / dimension soup (both forbid tokens
 // confirmed absent on GCC-13/15, clang, and MSVC).
 //
+// grades: compiler
 // expect: fail
 // expect-match-gcc: operator<
 // expect-match-msvc: operator <
