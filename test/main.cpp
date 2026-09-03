@@ -10037,6 +10037,8 @@ TEST(OriginFreeMath, thePositiveDifferenceOfTwoReadingsIsAnAmount)
 // test that follows it.
 template<class Lhs, class Rhs>
 concept RemainderIsAvailable = requires(Lhs lhs, Rhs rhs) { units::fmod(lhs, rhs); };
+template<class Lhs, class Rhs>
+concept ModuloIsAvailable = requires(Lhs lhs, Rhs rhs) { lhs % rhs; };
 
 // A remainder needs a linear scale and yields an AMOUNT, following `operator-`, so it carries no datum. Derivations:
 // 30 degC modulo 10 degC is a zero step, and reading zero as kelvin gives 0, not 273.15. 100 degF modulo 30 degF is
@@ -10057,11 +10059,16 @@ TEST(OriginFreeMath, aRemainderRequiresALinearScaleAndYieldsAnAmount)
 	static_assert(std::is_same_v<meters<double>, std::decay_t<decltype(units::fmod(meters<double>(1500.0), kilometers<double>(1.0)))>>,
 		"a remainder of an ordinary pair is in the left operand's unit");
 
-	// A decibel operand has no overload: a logarithmic reading has no origin-free remainder, matching `operator%`.
+	// A decibel operand is refused -- a logarithmic number has no remainder, matching `operator%` -- but by a diagnostic
+	// overload that names the remedy, so the refusal fires from that overload's BODY and a `requires`-probe reports the
+	// operation as available. That is the standing trade for every decibel diagnostic: a sentence the user can act on,
+	// at the cost of SFINAE-observability. What is pinned here is the availability of `operator%`, which carries no
+	// diagnostic and so remains observable; the `fmod` refusal itself is graded by
+	// `test/errorMessages/cases/fmod_of_decibel_level.cpp`, which is where a message belongs.
+	static_assert(!ModuloIsAvailable<units::power::dBW<double>, units::power::dBW<double>>, "a decibel level has no modulo");
+	static_assert(!ModuloIsAvailable<decibels<double>, decibels<double>>, "a decibel gain has no modulo");
 	// A dimension mismatch is refused too, and is graded as a compile failure by
 	// `test/errorMessages/cases/generated_fmod_length_time.cpp`.
-	static_assert(!RemainderIsAvailable<units::power::dBW<double>, units::power::dBW<double>>, "a decibel level has no remainder");
-	static_assert(!RemainderIsAvailable<decibels<double>, decibels<double>>, "a decibel gain has no remainder");
 	static_assert(!RemainderIsAvailable<meters<double>, seconds<double>>, "a remainder across dimensions is refused");
 	static_assert(RemainderIsAvailable<meters<double>, kilometers<double>>, "an ordinary same-dimension pair has a remainder");
 	static_assert(RemainderIsAvailable<celsius<double>, fahrenheit<double>>, "two readings on a linear scale have a remainder");
@@ -10805,22 +10812,22 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	static_assert(SecondAuditCanFdim<Watt, Watt> == SecondAuditCanSubtract<Watt, Watt>);
 	static_assert(SecondAuditCanFdim<Watt, Milli> == SecondAuditCanSubtract<Watt, Milli>);
 	static_assert(SecondAuditCanFdim<Len, Len> == SecondAuditCanSubtract<Len, Len>);
-	static_assert(SecondAuditCanFmod<Watt, Watt> == SecondAuditCanModulo<Watt, Watt>);
-	static_assert(SecondAuditCanFmod<Gain, Plain> == SecondAuditCanModulo<Gain, Plain>);
-	static_assert(SecondAuditCanFmod<Gain, Gain> == SecondAuditCanModulo<Gain, Gain>);
-	// `%` and `fmod` agree about the SCALE -- neither takes a logarithmic operand -- but not about the representation:
-	// `%` is the integral remainder and takes only integral units, while `fmod` is the floating one. So the
-	// equivalence holds for an integral pair, and `fmod` alone survives a floating one.
+	// `%` and `fmod` agree about the SCALE -- neither computes a remainder of a logarithm -- but not about what a
+	// `requires`-probe SEES, and not about the representation. `fmod`'s decibel refusal is a diagnostic overload naming
+	// a remedy, so it fires from a body and reports as available; `%` carries no diagnostic and reports correctly. And
+	// `%` is the integral remainder, taking only integral units, while `fmod` is the floating one. So the equivalence
+	// holds for an integral ordinary pair, `fmod` alone survives a floating one, and for a decibel pair both are
+	// ill-formed while only `%` says so.
 	static_assert(SecondAuditCanFmod<meters<int>, meters<int>> == SecondAuditCanModulo<meters<int>, meters<int>>);
 	static_assert(SecondAuditCanFmod<Len, Len> && !SecondAuditCanModulo<Len, Len>);
+	static_assert(!SecondAuditCanModulo<Watt, Watt>);
+	static_assert(!SecondAuditCanModulo<Gain, Gain>);
 
 	// and the concrete availability those equivalences settle on: a difference of two gains is a gain, so it stays;
 	// a gain against a PLAIN dimensionless mixes a logarithm with a ratio, which the subtraction already refused
 	static_assert(SecondAuditCanFdim<Gain, Gain>);
 	static_assert(!SecondAuditCanFdim<Gain, Plain>);
 	static_assert(!SecondAuditCanFdim<Plain, Gain>);
-	static_assert(!SecondAuditCanFmod<Watt, Watt>);
-	static_assert(!SecondAuditCanFmod<Gain, Gain>);
 	static_assert(SecondAuditCanFdim<Len, Len>);
 	static_assert(SecondAuditCanFmod<Len, Len>);
 	static_assert(SecondAuditCanModulo<meters<int>, meters<int>>);
@@ -10828,6 +10835,41 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	// the surviving decibel difference: 12.5 dBW - 4.25 dBW is an 8.25 dB gain
 	EXPECT_NEAR(8.25, units::fdim(Watt(12.5), Watt(4.25)).raw(), 5.0e-9);
 	static_assert(traits::is_dimensionless_unit_v<decltype(units::fdim(Watt(12.5), Watt(4.25)))>);
+}
+
+// `min`, `max` and `clamp` decided which operand to return by comparing the OPERANDS, which routes through
+// `unit::operator<`. That reconciles each side in that side's own representation, so a narrow integral operand wraps
+// there and the ordering comes back wrong rather than approximate: `min` and `max` of 5 m against 3 km were SWAPPED,
+// and the minimum of two positive masses could be negative. Scored against the same call on `double` representations,
+// where nothing can wrap, ordering in one promoted common unit moves 244 of 3,528 grid cells from wrong to right and
+// none the other way.
+TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
+{
+	// 3 kg is 3000 g, so the smaller of 5 g and 3 kg is 5 g. (It read -72 g -- a negative minimum of two positive
+	// masses -- because 3000 does not fit the signed char the comparison reconciled into.)
+	EXPECT_DOUBLE_EQ(5.0, static_cast<double>(units::min(units::grams<signed char>(5), units::kilograms<signed char>(3)).raw()));
+	// 3 km is 3000 m: the smaller of 5 m and 3 km is 5 m and the larger is 3000 m. (They were the other way round.)
+	EXPECT_EQ(5, units::min(meters<int>(5), kilometers<signed char>(3)).raw());
+	EXPECT_EQ(3000, units::max(meters<int>(5), kilometers<signed char>(3)).raw());
+	// 5 m is 500 cm, so the smaller of 5 m and 3 cm is 3 cm. (It read 500 cm.)
+	EXPECT_EQ(3, units::min(meters<signed char>(5), centimeters<short>(3)).raw());
+	// 5 m is below the 1 km lower bound, so it clamps UP to 1 km == 1000 m. (It clamped to the upper bound, 3000 m.)
+	EXPECT_EQ(1000, units::clamp(meters<int>(5), kilometers<signed char>(1), kilometers<signed char>(3)).raw());
+
+	// ordinary operands are untouched: the smaller of 5 m and 3 m is 3 m; of 2 m and 1500 mm is 1500 mm, in the finer
+	// unit; and a floating pair never wrapped in the first place
+	EXPECT_EQ(3, units::min(meters<int>(5), meters<int>(3)).raw());
+	EXPECT_EQ(1500, units::min(meters<int>(2), millimeters<int>(1500)).raw());
+	EXPECT_DOUBLE_EQ(5.0, units::min(meters<double>(5.0), kilometers<double>(3.0)).raw());
+	EXPECT_DOUBLE_EQ(3000.0, units::max(meters<double>(5.0), kilometers<double>(3.0)).raw());
+
+	// A `char` or `bool` representation is ordered without reaching `unit::operator<`, which refuses one outright
+	EXPECT_DOUBLE_EQ(3.0, static_cast<double>(units::min(meters<char>(5), meters<char>(3)).raw()));
+
+	// What this does NOT fix: the operand is now chosen correctly, but the unit that choice is returned in is still
+	// picked from the conversion RATIO alone, never from whether the value fits. So
+	// max(meters<signed char>(5), kilometers<signed char>(3)) selects 3 km and then cannot express 3000 in a signed
+	// char. That is a separate rule, shared with `operator+`, `operator-`, `fdim` and `fmod`, and is left alone here.
 }
 
 int main(int argc, char* argv[])

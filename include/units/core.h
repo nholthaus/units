@@ -3856,6 +3856,19 @@ namespace units
 		 *				which is precisely the failure the `if constexpr` above exists to avoid.
 		 * @tparam		U	the type to test; need not be a unit.
 		 */
+		/**
+		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
+		 * @details		The guards on the transcendental functions ask this rather than `has_linear_scale_v`, because
+		 *				that trait is false for anything it cannot classify -- including every `kind`, `delta` and
+		 *				`absolute` WRAPPER, whose scale it does not see through. Requiring provable linearity therefore
+		 *				withdrew `atan2` from 37 wrapper types that had always accepted it, while refusing what is
+		 *				provably logarithmic leaves them alone and still refuses the decibel operands it is there for.
+		 *				Any type answers, a non-unit included.
+		 * @tparam		U	the type(s) to test.
+		 */
+		template<class... U>
+		inline constexpr bool no_logarithmic_scale_v = !(has_decibel_scale_v<U> || ...);
+
 		template<class U>
 		inline constexpr bool has_arbitrary_origin_v = false;
 		/** @cond */ // DOXYGEN IGNORE: the constrained specialization of the trait documented above.
@@ -6285,20 +6298,26 @@ namespace units
 	//----------------------------------
 	// A transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
 	// than the ratio it denotes: `log10(decibels(3.25))` reading 3.25 gives 0.512 where the ratio is 2.113 and its
-	// base-ten logarithm is 0.325. Rather than pick one reading, the whole family requires a linear scale, and one of
+	// base-ten logarithm is 0.325. Rather than pick one reading, the family refuses a logarithmic operand, and one of
 	// these overloads names the conversion in place of a wall of declined candidates. Each returns a value so its body
 	// is instantiated and the message fires on every compiler.
 	//
 	// The macro is used again in `units/angle.h`, which defines the rest of the family.
 
 /**
+ * @def			UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC
  * @brief		Declares the decibel-scale diagnostic for one transcendental function.
  * @details		Emits an overload of `funcName` selected only for a decibel-scaled argument, whose body reports that
  *				the function cannot read a logarithmic value and names the conversion. The function name is stringized
- *				into the message, so each member of the family names itself. Used for the exponential and logarithmic
- *				functions here and for the inverse trigonometric and hyperbolic functions in `units/angle.h`.
+ *				into the message, so each member of the family names itself -- which is why this is a macro and not a
+ *				template: a `static_assert` message must be a literal.
+ *
+ *				INTERNAL. It exists for the library's own headers -- the exponential and logarithmic functions here,
+ *				the inverse trigonometric and hyperbolic ones in `units/angle.h` -- and is not part of the public
+ *				interface. Like every other `UNIT_ADD_*` macro it remains defined after inclusion, because `angle.h`
+ *				consumes it after `core.h` has been read.
  * @param		funcName	the transcendental function to declare the diagnostic for.
-	 */
+ */
 #define UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(funcName)                                                                                                                                                 \
 	template<::units::DimensionlessUnitType UnitType>                                                                                                                                                   \
 		requires(!::units::traits::has_linear_scale_v<UnitType>)                                                                                                                                        \
@@ -6316,6 +6335,46 @@ namespace units
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(exp2)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(expm1)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log1p)
+
+	/// `modf` and `fmod` take an argument the family macro cannot describe -- a pointer and a second operand -- so each
+	/// declares its own diagnostic. Both were the only refusals in the decibel set reported as a bare
+	/// overload-resolution failure with no remedy named.
+	/**
+	 * @brief		Diagnostic for an ill-formed `modf` of a decibel value.
+	 * @tparam		UnitType	the operand's unit type.
+	 * @param[in]	x			the operand.
+	 * @param[in]	intpart		where the integral part would be stored.
+	 * @returns		`x`, never reached: the body's `static_assert` always fires.
+	 */
+	template<DimensionlessUnitType UnitType>
+		requires(!traits::no_logarithmic_scale_v<UnitType>)
+	constexpr UnitType modf(const UnitType x, UnitType* intpart) noexcept
+	{
+		static_cast<void>(intpart);
+		static_assert(detail::dependent_false<UnitType>,
+			"units: cannot split a decibel value into integral and fractional parts; its number is a logarithm. Split "
+			"the ratio it denotes: `modf(dimensionless(gain), &part)`.");
+		return x;
+	}
+
+	/**
+	 * @brief		Diagnostic for an ill-formed `fmod` of a decibel value.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	numer		the left operand.
+	 * @param[in]	denom		the right operand.
+	 * @returns		`numer`, never reached: the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !traits::no_logarithmic_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
+	{
+		static_cast<void>(denom);
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot take the remainder of a decibel value; its number is a logarithm, so the remainder of two "
+			"dB figures is not the remainder of the powers. Work in the linear domain, as `operator%` already requires.");
+		return numer;
+	}
 
 	/** @endcond */ // END DOXYGEN IGNORE
 
@@ -6412,6 +6471,23 @@ namespace units
 	//	MIN/MAX FUNCTIONS
 	//----------------------------------
 
+	namespace detail
+	{
+		/// Orders two same-dimension quantities by their magnitudes, reconciled in ONE promoted common unit. Comparing
+		/// the quantities themselves routes through `unit::operator<`, which reconciles each side in that side's own
+		/// representation: a narrow integral operand wraps there, so the ordering comes back wrong rather than
+		/// approximate -- `min(grams<signed char>(5), kilograms<signed char>(3))` answered -72 g, a negative minimum of
+		/// two positive masses, and `min`/`max` of 5 m against 3 km were swapped. It also refuses a `char` or `bool`
+		/// representation outright, which this does not.
+		template<UnitType Lhs, UnitType Rhs>
+			requires(same_dimension<Lhs, Rhs>)
+		constexpr bool less_in_common_unit(const Lhs& lhs, const Rhs& rhs) noexcept
+		{
+			using Common = floating_point_promotion_t<lhs_result_unit_t<Lhs, Rhs>>;
+			return Common(floating_point_promotion_t<Lhs>(lhs)).raw() < Common(floating_point_promotion_t<Rhs>(rhs)).raw();
+		}
+	} // namespace detail
+
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto min(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
@@ -6421,7 +6497,7 @@ namespace units
 		// for otherwise-representable operands. Computed in the body so the trait is not instantiated for a non-unit
 		// the constraint already rejects. min/max select an operand, so the underlying is NOT floating-point promoted.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (lhs < rhs ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (detail::less_in_common_unit(lhs, rhs) ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
@@ -6429,7 +6505,7 @@ namespace units
 	constexpr auto max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (lhs > rhs ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (detail::less_in_common_unit(rhs, lhs) ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	/// Clamps a value to the range [lo, hi], in the value's own unit when that is lossless (matching min/max), else
@@ -6441,7 +6517,8 @@ namespace units
 		// Reconcile to the common unit of all three operands for a correct comparison, then express the result in the
 		// value's unit when lossless (as min/max do), never an anonymous unit for representable operands.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeValue, std::common_type_t<UnitTypeLo, UnitTypeHi>>;
-		return (value < lo ? ResultUnit(lo) : (hi < value ? ResultUnit(hi) : ResultUnit(value)));
+		return (detail::less_in_common_unit(value, lo) ? ResultUnit(lo)
+													  : (detail::less_in_common_unit(hi, value) ? ResultUnit(hi) : ResultUnit(value)));
 	}
 
 	//----------------------------------
@@ -7182,9 +7259,14 @@ struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 		// Mixed from the bit pattern rather than handed to `std::hash`, which is not `constexpr`: an integer-backed
 		// quantity is hashable in a constant expression, as it is for the underlying type. Zero is normalised so
 		// +0.0 and -0.0 hash alike (they compare equal), and every NaN is mapped to one value.
+		// A NaN is given its own bits rather than a stand-in VALUE: substituting 1.0e308 made every NaN hash equal to
+		// the hash of 1.0e308 itself.
 		using Bits          = std::uint64_t;
-		const double asBits = (inBase == Promoted(0)) ? 0.0 : ((inBase != inBase) ? 1.0e308 : static_cast<double>(inBase));
+		const bool isNaN    = (inBase != inBase);
+		const double asBits = (isNaN || inBase == Promoted(0)) ? 0.0 : static_cast<double>(inBase);
 		Bits mixed          = std::bit_cast<Bits>(asBits);
+		if (isNaN)
+			mixed ^= 0x9e3779b97f4a7c15ULL;
 		mixed ^= mixed >> 33;
 		mixed *= 0xff51afd7ed558ccdULL;
 		mixed ^= mixed >> 33;

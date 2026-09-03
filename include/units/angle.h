@@ -180,7 +180,7 @@ namespace units
 	 */
 	template<class Y, class X,
 		std::enable_if_t<traits::is_dimensionless_unit_v<decltype(std::declval<Y>() / std::declval<X>())> &&
-				traits::has_linear_scale_v<Y, X>,
+				traits::no_logarithmic_scale_v<Y, X>,
 			int> = 0>
 	radians<detail::floating_point_promotion_t<std::common_type_t<typename X::underlying_type, typename Y::underlying_type>>> atan2(
 		const Y y, const X x) noexcept
@@ -325,7 +325,7 @@ namespace units
 	 */
 	template<class Y, class X>
 		requires(::units::DimensionlessUnitType<Y> && ::units::DimensionlessUnitType<X> &&
-			!::units::traits::has_linear_scale_v<Y, X>)
+			!::units::traits::no_logarithmic_scale_v<Y, X>)
 	constexpr Y atan2(const Y y, const X) noexcept
 	{
 		static_assert(::units::detail::dependent_false<Y, X>,
