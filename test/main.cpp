@@ -10866,6 +10866,20 @@ TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// A `char` or `bool` representation is ordered without reaching `unit::operator<`, which refuses one outright
 	EXPECT_DOUBLE_EQ(3.0, static_cast<double>(units::min(meters<char>(5), meters<char>(3)).raw()));
 
+	// Two operands already on the same scale need no reconciliation, so they are compared EXACTLY. Sending them
+	// through a promoted floating type instead collapses adjacent integers above 2^53 onto one double, and the
+	// ordering then picks the wrong operand: 2^53 and 2^53 + 1 are 9007199254740992 and 9007199254740993.
+	EXPECT_EQ(9007199254740992LL, units::min(meters<long long>(9007199254740992LL), meters<long long>(9007199254740993LL)).raw());
+	EXPECT_EQ(9007199254740993LL, units::max(meters<long long>(9007199254740992LL), meters<long long>(9007199254740993LL)).raw());
+	EXPECT_EQ(9007199254740992LL, units::min(meters<long long>(9007199254740993LL), meters<long long>(9007199254740992LL)).raw());
+	EXPECT_EQ(9007199254740993LL, units::max(meters<long long>(9007199254740993LL), meters<long long>(9007199254740992LL)).raw());
+	EXPECT_EQ(9007199254740992LL, units::clamp(meters<long long>(9007199254740993LL), meters<long long>(9007199254740992LL), meters<long long>(9007199254740992LL)).raw());
+	// and at the top of the unsigned range, where no double holds either value
+	EXPECT_EQ(18446744073709551614ULL, units::min(meters<unsigned long long>(18446744073709551614ULL), meters<unsigned long long>(18446744073709551615ULL)).raw());
+	// the exact path must not lose the signedness safety the comparison already had: -1 m is less than 1 m however
+	// the two are represented
+	EXPECT_EQ(-1, units::min(meters<int>(-1), meters<unsigned>(1u)).raw());
+
 	// What this does NOT fix: the operand is now chosen correctly, but the unit that choice is returned in is still
 	// picked from the conversion RATIO alone, never from whether the value fits. So
 	// max(meters<signed char>(5), kilometers<signed char>(3)) selects 3 km and then cannot express 3000 in a signed

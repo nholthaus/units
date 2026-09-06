@@ -6473,7 +6473,8 @@ namespace units
 
 	namespace detail
 	{
-		/// Orders two same-dimension quantities by their magnitudes, reconciled in ONE promoted common unit. Comparing
+		/// Orders two same-dimension quantities by their magnitudes: directly when they share a scale, otherwise
+		/// reconciled in ONE promoted common unit. Comparing
 		/// the quantities themselves routes through `unit::operator<`, which reconciles each side in that side's own
 		/// representation: a narrow integral operand wraps there, so the ordering comes back wrong rather than
 		/// approximate -- `min(grams<signed char>(5), kilograms<signed char>(3))` answered -72 g, a negative minimum of
@@ -6483,8 +6484,36 @@ namespace units
 			requires(same_dimension<Lhs, Rhs>)
 		constexpr bool less_in_common_unit(const Lhs& lhs, const Rhs& rhs) noexcept
 		{
-			using Common = floating_point_promotion_t<lhs_result_unit_t<Lhs, Rhs>>;
-			return Common(floating_point_promotion_t<Lhs>(lhs)).raw() < Common(floating_point_promotion_t<Rhs>(rhs)).raw();
+			using LhsFactor = typename traits::unit_traits<Lhs>::conversion_factor;
+			using RhsFactor = typename traits::unit_traits<Rhs>::conversion_factor;
+
+			// Operands already on the same scale need no reconciliation at all, so their stored numbers are compared
+			// directly and EXACTLY. Sending them through a promoted floating type instead loses an integral value
+			// above 2^53, where two adjacent numbers share one double: min(meters<long long>(2^53), (2^53 + 1))
+			// answered the LARGER of the two, and the top of the unsigned range collapsed entirely.
+			//
+			// A mixed-signedness integral pair is ordered by VALUE rather than by unsigned wraparound. `std::cmp_less`
+			// is what that is for, but it asserts a STANDARD integer type, so it refuses a `char` or `bool`
+			// representation outright -- the same refusal that once withdrew `fdim` from them. Spelling the three
+			// cases out keeps every integral representation.
+			if constexpr (std::is_same_v<LhsFactor, RhsFactor>)
+			{
+				using L = typename Lhs::underlying_type;
+				using R = typename Rhs::underlying_type;
+				if constexpr (!std::is_integral_v<L> || !std::is_integral_v<R>)
+					return lhs.raw() < rhs.raw();
+				else if constexpr (std::is_signed_v<L> == std::is_signed_v<R>)
+					return lhs.raw() < rhs.raw();
+				else if constexpr (std::is_signed_v<L>)
+					return lhs.raw() < L{} ? true : static_cast<std::make_unsigned_t<L>>(lhs.raw()) < rhs.raw();
+				else
+					return rhs.raw() < R{} ? false : lhs.raw() < static_cast<std::make_unsigned_t<R>>(rhs.raw());
+			}
+			else
+			{
+				using Common = floating_point_promotion_t<lhs_result_unit_t<Lhs, Rhs>>;
+				return Common(floating_point_promotion_t<Lhs>(lhs)).raw() < Common(floating_point_promotion_t<Rhs>(rhs)).raw();
+			}
 		}
 	} // namespace detail
 
