@@ -263,6 +263,30 @@ namespace units
 
 		template<class T>
 		inline constexpr bool is_kind_v = is_kind<T>::value;
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		`has_arbitrary_origin_v` seen through the wrappers.
+		 * @details		The primary trait in `core.h` is constrained on `UnitType`, and none of these wrappers is one,
+		 *				so all three answered `false` -- including `absolute<celsius<double>>`, which is a reading
+		 *				measured from a datum if anything is. Generic code following the trait's own documented
+		 *				`if constexpr` then took the wrong branch for exactly the types the wrappers exist to mark.
+		 *				`core.h` cannot state these, since the wrappers are declared here.
+		 *
+		 *				A POINT carries whatever origin the unit it wraps carries. A DELTA is an amount, so it carries
+		 *				none whatever it wraps -- that is the distinction the two wrappers exist to draw. A tag changes
+		 *				nothing about the quantity, so a `kind` answers as the wrapped unit does.
+		 */
+		template<units::UnitType U>
+		inline constexpr bool has_arbitrary_origin_v<units::affine::absolute<U>> = has_arbitrary_origin_v<U>;
+
+		/** @cond */ // DOXYGEN IGNORE: the two siblings of the specialization documented above.
+		template<units::UnitType U>
+		inline constexpr bool has_arbitrary_origin_v<units::affine::delta<U>> = false;
+
+		template<units::affine::fixed_string Tag, units::UnitType U>
+		inline constexpr bool has_arbitrary_origin_v<units::affine::basic_kind<Tag, U>> = has_arbitrary_origin_v<U>;
+		/** @endcond */
 	} // namespace traits
 
 	/**
@@ -827,15 +851,18 @@ namespace units
 			return delta<R>(R(std::abs(raw)));
 		}
 
+		/// The operands are ordered by `units::detail::less_in_common_unit` on the quantities they wrap, which reconciles
+		/// them in one intermediate wide enough to hold the result. Converting each into the result unit FIRST and then
+		/// comparing lets a narrow representation wrap during that conversion, and the ordering comes back inverted:
+		/// min of a 5 g delta and a 3 kg delta answered -72 g, a negative minimum of two positive amounts.
 		/// The smaller of two deltas, kept in the LHS unit (scale-only reconciliation of the rhs).
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto min(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
-			using R          = units::detail::delta_result_unit_t<U, V>;
-			const delta<R> a = lhs.template to<delta<R>>();
-			const delta<R> b = rhs.template to<delta<R>>();
-			return a < b ? a : b;
+			using R = units::detail::delta_result_unit_t<U, V>;
+			return units::detail::less_in_common_unit(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs)) ? lhs.template to<delta<R>>()
+																			: rhs.template to<delta<R>>();
 		}
 
 		/// The larger of two deltas, kept in the LHS unit (scale-only reconciliation of the rhs).
@@ -843,10 +870,9 @@ namespace units
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto max(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
-			using R          = units::detail::delta_result_unit_t<U, V>;
-			const delta<R> a = lhs.template to<delta<R>>();
-			const delta<R> b = rhs.template to<delta<R>>();
-			return a > b ? a : b;
+			using R = units::detail::delta_result_unit_t<U, V>;
+			return units::detail::less_in_common_unit(wrap_detail::unwrap(rhs), wrap_detail::unwrap(lhs)) ? lhs.template to<delta<R>>()
+																			: rhs.template to<delta<R>>();
 		}
 
 		/// Clamp a delta into `[lo, hi]`, kept in the value's LHS unit.
@@ -862,10 +888,9 @@ namespace units
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto min(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
-			using R             = units::detail::absolute_result_unit_t<U, V>;
-			const absolute<R> a = lhs.template to<absolute<R>>();
-			const absolute<R> b = rhs.template to<absolute<R>>();
-			return a < b ? a : b;
+			using R = units::detail::absolute_result_unit_t<U, V>;
+			return units::detail::less_in_common_unit(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs)) ? lhs.template to<absolute<R>>()
+																			: rhs.template to<absolute<R>>();
 		}
 
 		/// The larger of two points, kept in the LHS unit (affine reconciliation of the rhs).
@@ -873,10 +898,9 @@ namespace units
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto max(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
-			using R             = units::detail::absolute_result_unit_t<U, V>;
-			const absolute<R> a = lhs.template to<absolute<R>>();
-			const absolute<R> b = rhs.template to<absolute<R>>();
-			return a > b ? a : b;
+			using R = units::detail::absolute_result_unit_t<U, V>;
+			return units::detail::less_in_common_unit(wrap_detail::unwrap(rhs), wrap_detail::unwrap(lhs)) ? lhs.template to<absolute<R>>()
+																			: rhs.template to<absolute<R>>();
 		}
 
 		/// Clamp a point into `[lo, hi]`, kept in the value's LHS unit.

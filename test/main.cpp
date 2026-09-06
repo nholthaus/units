@@ -2878,16 +2878,16 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		EXPECT_NEAR(35.74 + 0.6215 * 0.0 - 35.75 * windPow + 0.4275 * 0.0 * windPow, windChill.value(), 5.0e-9);
 		EXPECT_NEAR(-19.0, windChill.value(), 0.5);    // the published chart value
 	}
-	// -- 2. Environment Canada wind chill, inC, wind in km/humidex. climate.weather.gc.ca/glossary_e.html
+	// -- 2. Environment Canada wind chill, inC, wind in km/h. climate.weather.gc.ca/glossary_e.html
 	{
 		const double windPow = std::pow(30.0, 0.16);
-		const auto   wbgt   = inC(13.12) + 0.6215 * inC(-10.0) + inC(-11.37 * windPow) + (0.3965 * windPow) * inC(-10.0);
-		EXPECT_NEAR(13.12 + 0.6215 * -10.0 - 11.37 * windPow + 0.3965 * -10.0 * windPow, wbgt.value(), 5.0e-9);
+		const auto   windChill = inC(13.12) + 0.6215 * inC(-10.0) + inC(-11.37 * windPow) + (0.3965 * windPow) * inC(-10.0);
+		EXPECT_NEAR(13.12 + 0.6215 * -10.0 - 11.37 * windPow + 0.3965 * -10.0 * windPow, windChill.value(), 5.0e-9);
 	}
-	// -- 3. Environment Canada low-wind form (0 < V < 5 km/humidex)
+	// -- 3. Environment Canada low-wind form (0 < V < 5 km/h)
 	{
-		const auto wbgt = inC(-10.0) + (inC(-1.59) + 0.1345 * inC(-10.0)) / 5.0 * 3.0;
-		EXPECT_NEAR(-10.0 + ((-1.59 + 0.1345 * -10.0) / 5.0) * 3.0, wbgt.value(), 5.0e-9);
+		const auto windChill = inC(-10.0) + (inC(-1.59) + 0.1345 * inC(-10.0)) / 5.0 * 3.0;
+		EXPECT_NEAR(-10.0 + ((-1.59 + 0.1345 * -10.0) / 5.0) * 3.0, windChill.value(), 5.0e-9);
 	}
 	// -- 4. Rothfusz heat index, inF. NWS SR 90-23. Published chart: 90 inF / 70% relHumidity -> 106
 	{
@@ -2968,13 +2968,13 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const double satVP = 6.1121 * std::exp(((inC(18.678) - tRead / 234.5).value() * tRead.value()) / (inC(257.14) + tRead).value());
 		EXPECT_NEAR(6.1121 * std::exp(((18.678 - 20.0 / 234.5) * 20.0) / (257.14 + 20.0)), satVP, 5.0e-9);
 	}
-	// -- 16. Buck enhancement factor -- the reading SQUARED, added operative a dimensionless one
+	// -- 16. Buck enhancement factor -- the reading SQUARED, added to a dimensionless one
 	{
 		const auto   tRead  = inC(20.0);
 		const double enhancement = 1.0 + 1.0e-4 * (7.2 + 1013.0 * (0.0320 + 5.9e-6 * (tRead * tRead).value()));
 		EXPECT_NEAR(1.0 + 1.0e-4 * (7.2 + 1013.0 * (0.0320 + 5.9e-6 * 400.0)), enhancement, 5.0e-12);
 	}
-	// -- 17. Livestock temperature-humidity index, inC. The coefficient on tRead is humidity-dependent (0.8 operative 1.8).
+	// -- 17. Livestock temperature-humidity index, inC. The coefficient on tRead is humidity-dependent (0.8 to 1.8).
 	{
 		const auto humidityIndex = 0.81 * inC(30.0) + (60.0 / 100.0) * (inC(30.0) + inC(-14.40)) + inC(46.40);
 		EXPECT_NEAR(0.81 * 30.0 + 0.6 * (30.0 - 14.40) + 46.40, humidityIndex.value(), 5.0e-9);
@@ -3026,7 +3026,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto   tRead    = inC(100.0);
 		const double logPressure = 8.07131 - 1730.63 / (inC(233.426) + tRead).value();
 		EXPECT_NEAR(8.07131 - 1730.63 / (233.426 + 100.0), logPressure, 5.0e-12);
-		EXPECT_NEAR(760.0, std::pow(10.0, logPressure), 0.2);    // one atmosphere apparent the boiling point
+		EXPECT_NEAR(760.0, std::pow(10.0, logPressure), 0.2);    // one atmosphere at the boiling point
 	}
 }
 
@@ -3121,7 +3121,13 @@ TEST_F(UnitMath, signbitReadsTheValueInItsOwnScale)
 	EXPECT_TRUE(std::signbit(decibels<double>(-3.25)));
 	EXPECT_TRUE(std::signbit(units::temperature::kelvin<double>(-2.5)));
 	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(2.5) - units::temperature::celsius<double>(7.5)));
-	// A reading's sign is the sign of its own scale's number, which differs between scales for one temperature.
+
+	// A reading's sign is the sign of its own scale's number, which differs between scales for one temperature. That is
+	// the headline case, and every assertion above uses a non-reading, so it needs stating: -5.25 degC IS 267.9 K, and
+	// the first is negative while the second is positive.
+	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(-5.25)));
+	EXPECT_FALSE(std::signbit(units::temperature::kelvin<double>(267.9)));
+	EXPECT_NEAR(267.9, units::temperature::kelvin<double>(units::temperature::celsius<double>(-5.25)).raw(), 5.0e-12);
 }
 
 TEST_F(UnitType, publicTraitsIdentifyAnArbitraryOrigin)
@@ -10065,8 +10071,13 @@ TEST(OriginFreeMath, aRemainderRequiresALinearScaleAndYieldsAnAmount)
 	// at the cost of SFINAE-observability. What is pinned here is the availability of `operator%`, which carries no
 	// diagnostic and so remains observable; the `fmod` refusal itself is graded by
 	// `test/errorMessages/cases/fmod_of_decibel_level.cpp`, which is where a message belongs.
-	static_assert(!ModuloIsAvailable<units::power::dBW<double>, units::power::dBW<double>>, "a decibel level has no modulo");
-	static_assert(!ModuloIsAvailable<decibels<double>, decibels<double>>, "a decibel gain has no modulo");
+	// The representation must be INTEGRAL for these to say anything about decibels: `operator%` requires a linear scale
+	// AND an integral unit, so a `<double>` probe is refused by its representation alone and passes even with the
+	// scale requirement removed -- `!ModuloIsAvailable<meters<double>, meters<double>>` holds too, with no decibel
+	// anywhere. An integral decibel pair isolates the scale.
+	static_assert(!ModuloIsAvailable<units::power::dBW<int>, units::power::dBW<int>>, "a decibel level has no modulo");
+	static_assert(!ModuloIsAvailable<decibels<int>, decibels<int>>, "a decibel gain has no modulo");
+	static_assert(ModuloIsAvailable<meters<int>, meters<int>>, "an ordinary integral pair does have a modulo");
 	// A dimension mismatch is refused too, and is graded as a compile failure by
 	// `test/errorMessages/cases/generated_fmod_length_time.cpp`.
 	static_assert(!RemainderIsAvailable<meters<double>, seconds<double>>, "a remainder across dimensions is refused");
@@ -10166,6 +10177,17 @@ TEST(HashInvariants, theHashIsConstantEvaluableAndAgreesAcrossSpellings)
 	static_assert(std::hash<meters<float>>{}(meters<float>(2.5f)) == std::hash<millimeters<double>>{}(millimeters<double>(2500.0)));
 	static_assert(std::hash<seconds<long long>>{}(seconds<long long>(60)) == std::hash<units::time::minutes<long long>>{}(units::time::minutes<long long>(1)));
 	static_assert(std::hash<celsius<double>>{}(celsius<double>(0.0)) == std::hash<kelvin<double>>{}(kelvin<double>(273.15)));
+
+	// Every NaN hashes to ONE value, and that value is its own -- not borrowed from a representable quantity. Using a
+	// stand-in VALUE as the NaN sentinel made every NaN hash equal to the hash of that value.
+	const auto hashOfNan      = std::hash<meters<double>>{}(meters<double>(std::numeric_limits<double>::quiet_NaN()));
+	const auto hashOfOtherNan = std::hash<meters<double>>{}(meters<double>(-std::numeric_limits<double>::quiet_NaN()));
+	EXPECT_EQ(hashOfNan, hashOfOtherNan);
+	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(1.0e308)));
+	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(0.0)));
+	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(std::numeric_limits<double>::infinity())));
+	// +0.0 and -0.0 compare equal, so they must hash equally
+	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(0.0)), std::hash<meters<double>>{}(meters<double>(-0.0)));
 
 	EXPECT_EQ(std::hash<meters<int>>{}(meters<int>(5)), std::hash<millimeters<int>>{}(millimeters<int>(5000)));
 	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(1000.0)), std::hash<kilometers<double>>{}(kilometers<double>(1.0)));
@@ -10731,6 +10753,39 @@ TEST(SecondAuditMidpointLerp, theStdContractsAreHonoured)
 	EXPECT_DOUBLE_EQ(1.0e16, units::lerp(meters<double>(1.0e16), meters<double>(1.0), 0.0).raw());
 	// and the interior is the plain weighting: 0 + (10 - 0) * 0.25 == 2.5
 	EXPECT_DOUBLE_EQ(2.5, units::lerp(meters<double>(0.0), meters<double>(10.0), 0.25).raw());
+	// An INTEGRAL cross-scale pair must apply the whole conversion, not just its ratio. Reconciling by the conversion
+	// ratio alone drops a datum translation and a pi exponent: 212 degF is 100 degC, so the midpoint of 0 degC and it is
+	// 50 degC (it read 58); 100 degC is 373.15 K, so the midpoint of 0 K and it is 186.575 K (it read 50); and half of
+	// 180 degrees is pi/2 == 1.5707963267948966 radians (it read 0).
+	EXPECT_NEAR(50.0, units::midpoint(celsius<int>(0), fahrenheit<int>(212)).raw(), 5.0e-12);
+	EXPECT_NEAR(186.575, units::midpoint(kelvin<int>(0), celsius<int>(100)).raw(), 5.0e-12);
+	EXPECT_NEAR(1.5707963267948966, units::midpoint(units::radians<int>(0), units::degrees<int>(180)).raw(), 5.0e-12);
+	// and the pure-ratio integral pair keeps its exact wide-integer path: 3000000 km is 3000000000 m, which no int
+	// holds, while the halfway point 1500000000 does
+	EXPECT_EQ(1500000000, units::midpoint(meters<int>(0), kilometers<int>(3000000)).raw());
+	// An integral pair answers in `lhs_result_unit_t`, as `operator+`, `min` and `max` do -- the left unit when the
+	// right converts into it losslessly, otherwise the finer common unit. Answering in the LEFT unit regardless
+	// truncated a finer right operand away: half of 1 km and 500 m is 750 m, which is 0 in whole kilometres.
+	EXPECT_EQ(750, units::midpoint(kilometers<int>(1), meters<int>(500)).raw());
+	static_assert(std::is_same_v<meters<int>, std::decay_t<decltype(units::midpoint(kilometers<int>(1), meters<int>(500)))>>);
+	// 2 m is 2000 mm, so the halfway point with 1500 mm is 1750 mm
+	EXPECT_EQ(1750, units::midpoint(meters<int>(2), millimeters<int>(1500)).raw());
+	// std::midpoint's integer rounding is toward the first operand, so the midpoint of 5 m and 0 m is 3 m
+	EXPECT_EQ(3, units::midpoint(meters<int>(5), meters<int>(0)).raw());
+
+	// An affine pair whose REPRESENTATIONS merely differ must compile. Deriving the result unit from
+	// `decltype(a + (b - a) / 2)` instantiated the affine `operator-` on unpromoted operands and reached a `consteval`
+	// narrowing constructor, so these were hard errors rather than answers. 20 degC and 30 degC average to 25 degC;
+	// 86 degF IS 30 degC.
+	EXPECT_NEAR(25.0, units::midpoint(celsius<int>(20), celsius<double>(30.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<int>(30)).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::midpoint(celsius<int>(20), fahrenheit<double>(86.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::lerp(celsius<int>(20), celsius<double>(30.0), 0.5).raw(), 5.0e-12);
+	EXPECT_NEAR(25.0, units::lerp(celsius<int>(20), fahrenheit<int>(86), 0.5).raw(), 5.0e-12);
+	// each answers in the LEFT operand's unit, as both functions document
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(units::midpoint(celsius<int>(20), fahrenheit<double>(86.0)))>>);
+	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(units::lerp(celsius<int>(20), fahrenheit<int>(86), 0.5))>>);
+
 	// weights totalling one are datum-independent, so a mean temperature reads the same in either scale:
 	// (20 + 30) / 2 == 25 degC, and 86 degF IS 30 degC
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).raw(), 5.0e-12);
@@ -10805,10 +10860,14 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	using Pct   = units::percent<double>;
 	using Len   = meters<double>;
 
-	static_assert(SecondAuditCanFdim<Gain, Plain> == SecondAuditCanSubtract<Gain, Plain>);
-	static_assert(SecondAuditCanFdim<Plain, Gain> == SecondAuditCanSubtract<Plain, Gain>);
-	static_assert(SecondAuditCanFdim<Gain, Pct> == SecondAuditCanSubtract<Gain, Pct>);
+	// Where `fdim` and `operator-` agree, they agree observably. Where `fdim` mixes a logarithmic operand with a linear
+	// one, it now REFUSES WITH A REMEDY rather than falling out on an unsatisfied constraint, and a diagnostic fires
+	// from the overload's body -- so a `requires`-probe reports it available while the statement does not compile.
+	// That is the standing decibel trade, and `operator-` (carrying no diagnostic) still reports the pair correctly.
 	static_assert(SecondAuditCanFdim<Gain, Gain> == SecondAuditCanSubtract<Gain, Gain>);
+	static_assert(!SecondAuditCanSubtract<Gain, Plain>);
+	static_assert(!SecondAuditCanSubtract<Plain, Gain>);
+	static_assert(!SecondAuditCanSubtract<Gain, Pct>);
 	static_assert(SecondAuditCanFdim<Watt, Watt> == SecondAuditCanSubtract<Watt, Watt>);
 	static_assert(SecondAuditCanFdim<Watt, Milli> == SecondAuditCanSubtract<Watt, Milli>);
 	static_assert(SecondAuditCanFdim<Len, Len> == SecondAuditCanSubtract<Len, Len>);
@@ -10820,14 +10879,13 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	// ill-formed while only `%` says so.
 	static_assert(SecondAuditCanFmod<meters<int>, meters<int>> == SecondAuditCanModulo<meters<int>, meters<int>>);
 	static_assert(SecondAuditCanFmod<Len, Len> && !SecondAuditCanModulo<Len, Len>);
-	static_assert(!SecondAuditCanModulo<Watt, Watt>);
-	static_assert(!SecondAuditCanModulo<Gain, Gain>);
+	// integral, so the SCALE is what refuses these rather than the representation
+	static_assert(!SecondAuditCanModulo<units::power::dBW<int>, units::power::dBW<int>>);
+	static_assert(!SecondAuditCanModulo<units::decibels<int>, units::decibels<int>>);
 
 	// and the concrete availability those equivalences settle on: a difference of two gains is a gain, so it stays;
 	// a gain against a PLAIN dimensionless mixes a logarithm with a ratio, which the subtraction already refused
 	static_assert(SecondAuditCanFdim<Gain, Gain>);
-	static_assert(!SecondAuditCanFdim<Gain, Plain>);
-	static_assert(!SecondAuditCanFdim<Plain, Gain>);
 	static_assert(SecondAuditCanFdim<Len, Len>);
 	static_assert(SecondAuditCanFmod<Len, Len>);
 	static_assert(SecondAuditCanModulo<meters<int>, meters<int>>);
@@ -10866,6 +10924,17 @@ TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// A `char` or `bool` representation is ordered without reaching `unit::operator<`, which refuses one outright
 	EXPECT_DOUBLE_EQ(3.0, static_cast<double>(units::min(meters<char>(5), meters<char>(3)).raw()));
 
+	// `UNIT_ADD_DECIBEL` builds dBW from watts's conversion factor, so a LEVEL and a linear quantity of the same
+	// dimension share a factor while storing different domains -- one holds watts, the other a dB figure. Keying the
+	// exact path on the factor alone read 13 dBW as 13 W. 13 dBW is 10^(13/10) == 19.952623149688797 W, which is more
+	// than 15 W; and 15 W is 10*log10(15) == 11.760912590556813 dBW, which is less than 13 dBW.
+	EXPECT_NEAR(15.0, units::min(units::power::watts<double>(15.0), units::power::dBW<double>(13.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(19.952623149688797, units::max(units::power::watts<double>(15.0), units::power::dBW<double>(13.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(11.760912590556813, units::min(units::power::dBW<double>(13.0), units::power::watts<double>(15.0)).raw(), 5.0e-12);
+	EXPECT_NEAR(13.0, units::max(units::power::dBW<double>(13.0), units::power::watts<double>(15.0)).raw(), 5.0e-12);
+	// 17 W is below the 13 dBW lower bound, so it clamps up to it
+	EXPECT_NEAR(19.952623149688797, units::clamp(units::power::watts<double>(17.0), units::power::dBW<double>(13.0), units::power::watts<double>(100.0)).raw(), 5.0e-12);
+
 	// Two operands already on the same scale need no reconciliation, so they are compared EXACTLY. Sending them
 	// through a promoted floating type instead collapses adjacent integers above 2^53 onto one double, and the
 	// ordering then picks the wrong operand: 2^53 and 2^53 + 1 are 9007199254740992 and 9007199254740993.
@@ -10879,6 +10948,21 @@ TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// the exact path must not lose the signedness safety the comparison already had: -1 m is less than 1 m however
 	// the two are represented
 	EXPECT_EQ(-1, units::min(meters<int>(-1), meters<unsigned>(1u)).raw());
+
+	// A MIXED-scale pair still has to be reconciled, and the intermediate must hold the reconciled value. Reconciling
+	// through the operand's own promoted type sends a 64-bit integer through a 53-bit mantissa, which collapses
+	// adjacent values from 2^54 up and inverts the ordering: LLONG_MAX millimetres is 9223372036854775807 mm, and
+	// 9223372036854775 metres is 9223372036854775000 mm, so the first is the larger by 807 mm.
+	EXPECT_EQ(9223372036854775807LL, units::max(millimeters<long long>(9223372036854775807LL), meters<long long>(9223372036854775LL)).raw());
+	EXPECT_EQ(9223372036854775000LL, units::min(meters<long long>(9223372036854775LL), millimeters<long long>(9223372036854775807LL)).raw());
+	// and the ordering must agree with the library's own comparison of the same two quantities
+	EXPECT_TRUE(millimeters<long long>(9223372036854775807LL) > meters<long long>(9223372036854775LL));
+
+	// A decibel LEVEL shares its conversion factor with the linear unit it was built from, so the exact path must key
+	// on the numerical SCALE too. Covered above for min/max; here for clamp, which composes them: 13 dBW is
+	// 19.952623149688797 W, so 17 W is below that lower bound and clamps up to it.
+	EXPECT_NEAR(19.952623149688797,
+		units::clamp(units::power::watts<double>(17.0), units::power::dBW<double>(13.0), units::power::watts<double>(100.0)).raw(), 5.0e-12);
 
 	// What this does NOT fix: the operand is now chosen correctly, but the unit that choice is returned in is still
 	// picked from the conversion RATIO alone, never from whether the value fits. So

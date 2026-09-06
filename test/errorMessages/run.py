@@ -193,8 +193,9 @@ def do_check_doc(args):
         print(f"{len(drift)} committed page(s) no longer match what the compiler emits:")
         for n in drift:
             print(f"  [DRIFT] {n}")
-        print(f"  regenerate with: python3 test/errorMessages/run.py --emit-doc --compiler-slug {args.compiler_slug or 'gcc13'} "
-              f"--compiler-label \"$({args.cc} --version | head -1)\" --include include")
+        print(f"  regenerate with: python3 test/errorMessages/run.py --emit-doc --cc {args.cc} "
+              f"--compiler-slug {args.compiler_slug or 'gcc13'} --compiler-label \"{args.compiler_label}\" --include include")
+        print("  (--cc matters: a different GCC formats its diagnostics differently, and --emit-doc's default is plain `g++`)")
         return 1
     if missing:
         return 1
@@ -340,7 +341,9 @@ def do_emit_doc(args):
 # pattern across a whole header instead makes it backtrack catastrophically -- with `\s` able to match a newline, the
 # unbounded `[^"\\%{}]*` runs can straddle the gap between two literals, and core.h did not finish in an hour.
 PROSE_SHAPE   = re.compile(r'[^"\\%{}]*[a-z]{3,}[^"\\%{}]*\s[^"\\%{}]*\s[^"\\%{}]{8,}')
-STRING_LITERAL = re.compile(r'"([^"\\\n]*)"')
+# The body may contain ESCAPED characters. Excluding the backslash outright skips any literal carrying a `\"` -- and
+# three of kind.h's diagnostics do, so the cases grading them were silently exempt from the anti-self-grading check.
+STRING_LITERAL = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
 
 
 def prose_literals(text):

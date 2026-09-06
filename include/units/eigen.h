@@ -91,14 +91,14 @@ namespace Eigen
 	/**
 	 * @brief		Result-type trait for scaling a unit scalar by a plain arithmetic scalar (unit * scalar).
 	 * @details		Scaling preserves the dimension, so `meters<double> * 2.0` is `meters<double>`. This lets an
-	 *				Eigen expression such as `v * 2.0` compile for a vector of units. A linear scale is required, so
-	 *				that a matrix scales exactly where a scalar of the same unit does: an affine reading scales in its
-	 *				own scale, while a decibel value has no scalar `*` at all.
+	 *				Eigen expression such as `v * 2.0` compile for a vector of units. No numerical-scale constraint is
+	 *				imposed here: the SCALAR `operator*` already refuses a decibel value, and refusing it here as well
+	 *				only replaces that one-sentence diagnostic with a wall of Eigen internals -- 84 lines against 21,
+	 *				with the library's own remedy text lost.
 	 * @tparam		U a units type (`units::UnitType`).
 	 * @tparam		X the plain arithmetic scalar type.
 	 */
 	template<units::UnitType U, class X>
-		requires(units::traits::has_linear_scale_v<U>)
 	struct ScalarBinaryOpTraits<U, X, internal::scalar_product_op<U, X>>
 	{
 		using ReturnType = U; ///< scaling preserves the unit's dimension
@@ -110,7 +110,6 @@ namespace Eigen
 	 * @tparam		U a units type (`units::UnitType`).
 	 */
 	template<class X, units::UnitType U>
-		requires(units::traits::has_linear_scale_v<U>)
 	struct ScalarBinaryOpTraits<X, U, internal::scalar_product_op<X, U>>
 	{
 		using ReturnType = U; ///< scaling preserves the unit's dimension
@@ -126,7 +125,6 @@ namespace Eigen
 	 * @tparam		X the plain arithmetic scalar type.
 	 */
 	template<units::UnitType U, class X>
-		requires(units::traits::has_linear_scale_v<U>)
 	struct ScalarBinaryOpTraits<U, X, internal::scalar_quotient_op<U, X>>
 	{
 		using ReturnType = U; ///< dividing by a dimensionless factor preserves the unit's dimension

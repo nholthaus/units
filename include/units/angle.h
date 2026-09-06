@@ -301,6 +301,13 @@ namespace units
 	// `units/core.h`: each reads a quantity's VALUE, which on a logarithmic scale is the decibel figure and not the
 	// ratio it denotes, so `atan(decibels(3.25))` reading 3.25 gives 1.2723 rad where the ratio 2.113 gives 1.1288.
 
+	// `sin`, `cos` and `tan` take an ANGLE, so a dimensionless decibel value never reaches the library's own overload
+	// and `::sin` claims the call through the conversion to `double` -- answering from the dB FIGURE.
+	// sin(decibels(3.25)) read -0.108195, the sine of 3.25, where the ratio it denotes is 2.113489 and its sine is
+	// 0.856321. `radians` is not a dimensionless unit, so these cannot shadow the angle overloads.
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(sin)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(cos)
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(tan)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(acos)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(asin)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(atan)

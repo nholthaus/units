@@ -661,6 +661,11 @@ TEST(EigenSecondAudit, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
 
 // Constraining only the FIRST operand's coefficient made callability depend on operand order, so one spelling of a
 // two-matrix helper compiled and the other did not.
+template<class A, class B> concept EigenCanDot        = requires(A a, B b) { units::unit_dot(a, b); };
+template<class A, class B> concept EigenCanCross      = requires(A a, B b) { units::unit_cross(a, b); };
+template<class A>          concept EigenCanNorm       = requires(A a) { units::unit_norm(a); };
+template<class A>          concept EigenCanSquaredNorm = requires(A a) { units::unit_squared_norm(a); };
+
 TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
 {
 	Eigen::Matrix<double, 3, 1> plainDouble;
@@ -676,6 +681,24 @@ TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
 	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_dot(q, p); });
 	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(p, q); });
 	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(q, p); });
+
+	// Those four cannot detect a one-sided gate: a plain `double` coefficient and a `meters` one BOTH satisfy it, so
+	// constraining one operand or two is indistinguishable for that pair. A coefficient the gate REJECTS is what probes
+	// the symmetry, and a decibel level is one -- it must be refused in EITHER position. The probes go through NAMED
+	// concepts because a `requires`-expression written on concrete types outside a template is a hard error rather than
+	// `false`, and each negative is paired with a positive control on the same concept so it cannot pass by an
+	// unrelated ill-formedness.
+	using LevelVector = Eigen::Matrix<units::power::dBW<double>, 3, 1>;
+	static_assert(!EigenCanDot<LevelVector, Vector3m>);
+	static_assert(!EigenCanDot<Vector3m, LevelVector>);
+	static_assert(!EigenCanCross<LevelVector, Vector3m>);
+	static_assert(!EigenCanCross<Vector3m, LevelVector>);
+	static_assert(!EigenCanNorm<LevelVector>);
+	static_assert(!EigenCanSquaredNorm<LevelVector>);
+	static_assert(EigenCanDot<Vector3m, Vector3m>);
+	static_assert(EigenCanCross<Vector3m, Vector3m>);
+	static_assert(EigenCanNorm<Vector3m>);
+	static_assert(EigenCanSquaredNorm<Vector3m>);
 }
 
 #endif // UNITS_HAVE_EIGEN

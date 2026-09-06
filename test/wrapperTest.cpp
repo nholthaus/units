@@ -1403,11 +1403,10 @@ TEST(WrapperConvert, pointMinMaxClampCrossScaleKeepsLhsUnitAndDatum)
 	EXPECT_DOUBLE_EQ(37.5, affine::clamp(A<celsius<double>>(37.5), lo, hi).value()); // in-range fractional passes through
 }
 
-// The wrapper is the REMEDY the bare-unit diagnostics name, so it has to actually work for an affine unit. A plain
-// affine reading refuses to scale (a datum-relative value has no meaningful multiple), which means a wrapper cannot
-// implement its own scaling by delegating to the wrapped unit's `operator*` -- it holds a MAGNITUDE, so it scales its
-// own value and rebuilds the unit. These pin that, since a regression here silently turns the documented remedy into
-// a library-internal compile error.
+// A `delta` is an AMOUNT whatever it wraps, so it scales its own value and rebuilds the unit rather than delegating to
+// the wrapped unit's `operator*`. For a `delta` of an affine unit both routes reach the same number -- a plain affine
+// reading scales too, in its own scale, and the assertions below depend on that -- so what these pin is the VALUE and
+// the TYPE of the result, not which of the two mechanisms produced it.
 TEST(WrapperDelta, anAffineDeltaScalesItsOwnMagnitude)
 {
 	using units::temperature::celsius;
@@ -1768,4 +1767,47 @@ TEST(WrapperKindDelegation, taggedArithmeticMatchesTheWrappedUnitExactly)
 	EXPECT_DOUBLE_EQ(-5.0, (-celsius<double>(5.0)).value());
 	EXPECT_DOUBLE_EQ(-5.0, static_cast<double>((-units::kind<"t", celsius<double>>(5.0)).raw()));
 	static_assert(std::is_same_v<units::kind<"t", celsius<double>>, std::decay_t<decltype(-units::kind<"t", celsius<double>>(5.0))>>);
+}
+
+//======================================================================================================================
+//	FOURTH-AUDIT REGRESSION GUARDS
+//======================================================================================================================
+
+// The wrapper extremum overloads converted each operand into the result unit and THEN compared, so a narrow
+// representation wrapped during that conversion and the ordering came back inverted -- exactly the defect the plain
+// `min`/`max` were fixed for, in a family the fix had not reached. They now order by the same helper.
+TEST(WrapperExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
+{
+	// 3 kg is 3000 g, so the smaller of a 5 g amount and a 3 kg amount is the 5 g one. (It read -72 g.)
+	EXPECT_DOUBLE_EQ(5.0, static_cast<double>(units::min(delta<units::grams<signed char>>(units::grams<signed char>(5)),
+		delta<units::kilograms<signed char>>(units::kilograms<signed char>(3))).value()));
+	// and the ordering of two points, where the coarse operand also cannot be held by the narrow representation
+	EXPECT_DOUBLE_EQ(5.0, static_cast<double>(units::min(absolute<units::grams<signed char>>(units::grams<signed char>(5)),
+		absolute<units::kilograms<signed char>>(units::kilograms<signed char>(3))).value()));
+
+	// ordinary wrapper operands are untouched: the smaller of a 5 m amount and a 3 m amount is 3 m
+	EXPECT_DOUBLE_EQ(3.0, static_cast<double>(units::min(delta<meters<double>>(meters<double>(5.0)), delta<meters<double>>(meters<double>(3.0))).value()));
+	EXPECT_DOUBLE_EQ(5.0, static_cast<double>(units::max(delta<meters<double>>(meters<double>(5.0)), delta<meters<double>>(meters<double>(3.0))).value()));
+	// 1 km is 1000 m, so the larger of a 1 km amount and a 500 m amount is the 1 km one
+	EXPECT_DOUBLE_EQ(1000.0, static_cast<double>(units::max(delta<meters<double>>(meters<double>(500.0)),
+		delta<units::kilometers<double>>(units::kilometers<double>(1.0))).value()));
+}
+
+// `has_arbitrary_origin_v` is documented as the query generic code should use, so it has to answer for a WRAPPED
+// quantity too. The primary trait is constrained on `UnitType`, which no wrapper is, so all three read `false` --
+// including a point wrapping a reading, which is a datum-carrying quantity if anything is.
+TEST(WrapperTraits, hasArbitraryOriginSeesThroughTheWrappers)
+{
+	// a POINT carries whatever origin the unit it wraps carries
+	static_assert(units::traits::has_arbitrary_origin_v<celsius<double>>);
+	static_assert(units::traits::has_arbitrary_origin_v<absolute<celsius<double>>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<absolute<meters<double>>>);
+	// a DELTA is an amount, so it carries none whatever it wraps -- the distinction the two wrappers exist to draw
+	static_assert(!units::traits::has_arbitrary_origin_v<delta<celsius<double>>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<delta<meters<double>>>);
+	// a TAG changes nothing about the quantity
+	static_assert(units::traits::has_arbitrary_origin_v<units::kind<"t", celsius<double>>>);
+	static_assert(!units::traits::has_arbitrary_origin_v<units::kind<"t", meters<double>>>);
+	// and it still answers for a type that is not a unit at all
+	static_assert(!units::traits::has_arbitrary_origin_v<double>);
 }

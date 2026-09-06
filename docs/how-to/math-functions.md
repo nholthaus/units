@@ -88,10 +88,22 @@ positive difference of two readings is an amount and of two decibel levels a gai
 
 A transcendental function reads the number a quantity stores, which on a decibel scale is the decibel figure and
 not the ratio it denotes — `log10(decibels(3.25))` reading 3.25 gives 0.512 where the ratio 2.113 gives 0.325.
-Rather than pick one reading, the whole family requires a **linear** scale and names the conversion:
+Rather than pick one reading, the whole family refuses a **logarithmic** operand and names the conversion:
 
 `exp` · `log` · `log10` · `log2` · `exp2` · `expm1` · `log1p` · `asin` · `acos` · `atan` · `atan2` ·
-`sinh` · `cosh` · `tanh` · `asinh` · `acosh` · `atanh`
+`sinh` · `cosh` · `tanh` · `asinh` · `acosh` · `atanh` · `sin` · `cos` · `tan` · `sqrt` · `hypot` ·
+`modf` · `fmod` · `fdim`
+
+`sin`, `cos` and `tan` are in that list for a subtler reason than the rest: they take an *angle*, so a dimensionless
+decibel value never reached the library's own overload at all and the C library answered from the dB figure —
+`sin(decibels(3.25))` read −0.108195, the sine of 3.25, where the ratio's sine is 0.856321. `sqrt` and `hypot` read the
+logarithm the same way. `fmod` names the linear domain in its message rather than the conversion, and `fdim` refuses
+only when a logarithmic operand is MIXED with a linear one — the difference of two decibel levels is a gain, so that
+stays.
+
+Most of these ask whether the operand is provably *linear*; `atan2` asks whether it is *logarithmic*. The distinction
+matters for a wrapper: `has_linear_scale_v` is false for anything it cannot classify, `kind<>`, `delta<>` and
+`absolute<>` included, so requiring provable linearity would withdraw the function from every wrapped quantity.
 
 ```cpp
 // units::log10(units::decibels<double>(3.25));                     // ill-formed: "cannot apply log10 to a decibel value"

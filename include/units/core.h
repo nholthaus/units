@@ -3856,25 +3856,25 @@ namespace units
 		 *				which is precisely the failure the `if constexpr` above exists to avoid.
 		 * @tparam		U	the type to test; need not be a unit.
 		 */
-		/**
-		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
-		 * @details		The guards on the transcendental functions ask this rather than `has_linear_scale_v`, because
-		 *				that trait is false for anything it cannot classify -- including every `kind`, `delta` and
-		 *				`absolute` WRAPPER, whose scale it does not see through. Requiring provable linearity therefore
-		 *				withdrew `atan2` from 37 wrapper types that had always accepted it, while refusing what is
-		 *				provably logarithmic leaves them alone and still refuses the decibel operands it is there for.
-		 *				Any type answers, a non-unit included.
-		 * @tparam		U	the type(s) to test.
-		 */
-		template<class... U>
-		inline constexpr bool no_logarithmic_scale_v = !(has_decibel_scale_v<U> || ...);
-
 		template<class U>
 		inline constexpr bool has_arbitrary_origin_v = false;
 		/** @cond */ // DOXYGEN IGNORE: the constrained specialization of the trait documented above.
 		template<UnitType U>
 		inline constexpr bool has_arbitrary_origin_v<U> = is_affine_unit_v<U> || is_decibel_level_v<U>;
 		/** @endcond */
+
+		/**
+		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
+		 * @details		`atan2`'s guard asks this rather than `has_linear_scale_v`, because that trait is false for
+		 *				anything it cannot classify -- including every `kind`, `delta` and `absolute` WRAPPER, whose
+		 *				scale it does not see through. Requiring provable linearity therefore withdrew `atan2` from
+		 *				every wrapper type, which had always accepted it, while refusing what is provably logarithmic
+		 *				leaves them alone and still refuses the decibel operands the guard is there for. Any type
+		 *				answers, a non-unit included.
+		 * @tparam		U	the type(s) to test.
+		 */
+		template<class... U>
+		inline constexpr bool no_logarithmic_scale_v = !(has_decibel_scale_v<U> || ...);
 	} // namespace traits
 
 	//----------------------------------
@@ -4000,7 +4000,7 @@ namespace units
 		 * @brief		Re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying NO datum.
 		 * @tparam		UnitTypeLhs	the left operand's unit type.
 		 * @tparam		UnitTypeRhs	the right operand's unit type.
-		 * @returns		the computed result, in the left operand's unit.
+		 @returns		that magnitude expressed in the lhs unit's scale.
 		 */
 		template<class UnitTypeLhs, class UnitTypeRhs>
 		constexpr typename UnitTypeLhs::underlying_type affine_delta_in_lhs_scale(typename UnitTypeRhs::underlying_type rawRhs) noexcept
@@ -5327,7 +5327,7 @@ namespace units
 	 * @tparam		T	the arithmetic operand's type.
 	 * @param[in]	lhs	the left operand.
 	 * @param[in]	rhs	the right operand.
-	 * @returns		the computed result, in the left operand's unit.
+	 @returns		the computed result, in the right operand's unit.
 	 */
 	template<DimensionedUnitType UnitTypeRhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeRhs>)
@@ -5577,8 +5577,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		Mirror.
-	 * @details		Of the above with the operands written the other way round. Returns a value so the body is
+	 *		@brief		Mirror of the above with the operands written the other way round.
+	 *		@details		Of the above with the operands written the other way round. Returns a value so the body is
 	 *				instantiated and the message fires on every compiler.
 	 * @tparam		T	the arithmetic operand's type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5594,8 +5594,8 @@ namespace units
 		return rhs;
 	}
 	/**
-	 * @brief		Implementation detail.
-	 * @details		Decibel value scaled by an ordinary quantity. Returns a value so the body is instantiated and the
+	 *		@brief		Decibel value scaled by an ordinary quantity.
+	 *		@details		Decibel value scaled by an ordinary quantity. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5628,8 +5628,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		An.
-	 * @details		Ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a
+	 *		@brief		Diagnostic for an ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a.
+	 *		@details		Ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a
 	 *				ratio. Returns a value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5697,8 +5697,8 @@ namespace units
 		return rhs;
 	}
 	/**
-	 * @brief		Implementation detail.
-	 * @details		Decibel value divided by an ordinary quantity. Returns a value so the body is instantiated and the
+	 *		@brief		Decibel value divided by an ordinary quantity.
+	 *		@details		Decibel value divided by an ordinary quantity. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5714,8 +5714,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		An.
-	 * @details		Ordinary quantity divided by a decibel GAIN. Returns a value so the body is instantiated and the
+	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel GAIN.
+	 *		@details		Ordinary quantity divided by a decibel GAIN. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		D	the dimensionless operand's unit type.
@@ -5731,8 +5731,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		An.
-	 * @details		Ordinary quantity divided by a decibel LEVEL. Returns a value so the body is instantiated and the
+	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel LEVEL.
+	 *		@details		Ordinary quantity divided by a decibel LEVEL. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -6227,7 +6227,7 @@ namespace units
 	 *				value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
-	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @param[in]	lhs	the left operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
@@ -6239,7 +6239,7 @@ namespace units
 	 * @details		The mirror of the `operator+` above, on the same terms.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
-	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @param[in]	lhs	the left operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<DimensionedUnitType UnitTypeLhs, DimensionedUnitType UnitTypeRhs>
@@ -6252,7 +6252,7 @@ namespace units
 	 *				types, which do add a bare number, are untouched.
 	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
 	 * @tparam		T	the arithmetic right operand's type.
-	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @param[in]	lhs	the left operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
@@ -6263,7 +6263,7 @@ namespace units
 	 * @details		The operand-reversed form of the `operator+` above.
 	 * @tparam		T	the arithmetic left operand's type.
 	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
-	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @param[in]	rhs	the right operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
@@ -6274,7 +6274,7 @@ namespace units
 	 * @details		The `operator-` mirror of the bare-number `operator+` above.
 	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
 	 * @tparam		T	the arithmetic right operand's type.
-	 * @param[in]	lhs	the left operand, returned unchanged so the expression has a type.
+	 * @param[in]	lhs	the left operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<DimensionedUnitType UnitTypeLhs, ArithmeticType T>
@@ -6285,7 +6285,7 @@ namespace units
 	 * @details		The operand-reversed form of the `operator-` above.
 	 * @tparam		T	the arithmetic left operand's type.
 	 * @tparam		UnitTypeRhs	the dimensioned right operand's unit type.
-	 * @param[in]	rhs	the right operand, returned unchanged so the expression has a type.
+	 * @param[in]	rhs	the right operand.
 	 * @returns		nothing: the overload is deleted, so a `requires`-expression observes the refusal.
 	 */
 	template<ArithmeticType T, DimensionedUnitType UnitTypeRhs>
@@ -6335,6 +6335,54 @@ namespace units
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(exp2)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(expm1)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log1p)
+
+	/// A root of a logarithm is not the root of the ratio it denotes either: sqrt(decibels(3.25)) read 1.802776, the
+	/// square root of 3.25, where the ratio is 2.113489 and its root is 1.453441.
+	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(sqrt)
+
+	/// Mixing a logarithmic operand with a linear one of the same dimension is the one decibel refusal that arrived as
+	/// a bare unsatisfied constraint with no remedy named: `fdim(decibels(3), dimensionless(2))` answered 0 before, a
+	/// difference `decibels(3) - dimensionless(2)` itself refuses. Two logarithmic operands are fine -- their
+	/// difference is a gain -- so only the MIXED case is named here.
+	/**
+	 * @brief		Diagnostic for an ill-formed `fdim` mixing a logarithmic operand with a linear one.
+	 * @tparam		UnitTypeLhs	the left operand's unit type.
+	 * @tparam		UnitTypeRhs	the right operand's unit type.
+	 * @param[in]	x			the left operand.
+	 * @param[in]	y			the right operand.
+	 * @returns		`x`, never reached: the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+			(traits::no_logarithmic_scale_v<UnitTypeLhs> != traits::no_logarithmic_scale_v<UnitTypeRhs>))
+	constexpr UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	{
+		static_cast<void>(y);
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot take the positive difference of a decibel value and a linear one; one number is a logarithm "
+			"and the other a ratio. Convert the decibel operand first (e.g. dimensionless(gain)).");
+		return x;
+	}
+
+	/// `hypot` takes two operands, so the family macro cannot declare its diagnostic.
+	/**
+	 * @brief		Diagnostic for an ill-formed `hypot` of a decibel value.
+	 * @tparam		UnitTypeLhs	the first operand's unit type.
+	 * @tparam		UnitTypeRhs	the second operand's unit type.
+	 * @param[in]	x			the first operand.
+	 * @param[in]	y			the second operand.
+	 * @returns		`x`, never reached: the body's `static_assert` always fires.
+	 */
+	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !traits::no_logarithmic_scale_v<UnitTypeLhs, UnitTypeRhs>)
+	constexpr UnitTypeLhs hypot(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
+	{
+		static_cast<void>(y);
+		static_assert(detail::dependent_false<UnitTypeLhs, UnitTypeRhs>,
+			"units: cannot take the hypotenuse of a decibel value; its number is a logarithm. Convert each operand to "
+			"the linear ratio it denotes first (e.g. dimensionless(gain)).");
+		return x;
+	}
 
 	/// `modf` and `fmod` take an argument the family macro cannot describe -- a pointer and a second operand -- so each
 	/// declares its own diagnostic. Both were the only refusals in the decibel set reported as a bare
@@ -6410,11 +6458,18 @@ namespace units
 		// name carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
 		// `a + (b - a) * t` -- has none of them: at t == 1 it loses `b` entirely once the operands differ by more
 		// than the representation's precision, so lerp(1e16 m, 1 m, 1.0) read 0 rather than 1.
-		using Result = std::decay_t<decltype(a + (b - a) * t)>;
-		using Under  = typename Result::underlying_type;
+		// The unit is taken from `lhs_result_unit_t`, NOT from `decltype(a + (b - a) * t)`: that spelling instantiates
+		// the affine `operator-` on UNPROMOTED operands and reaches a `consteval` narrowing constructor a run-time
+		// value cannot satisfy, so an affine pair whose representations merely differed failed to compile.
+		using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+		using Result = detail::floating_point_promotion_t<UnitTypeLhs>;
+		using Under  = typename Common::underlying_type;
 		using Weight = detail::floating_point_promotion_t<std::common_type_t<Under, T>>;
-		return Result(static_cast<Under>(
-			std::lerp(static_cast<Weight>(Result(a).raw()), static_cast<Weight>(Result(b).raw()), static_cast<Weight>(t))));
+
+		const auto inCommonLhs = Common(detail::floating_point_promotion_t<UnitTypeLhs>(a)).raw();
+		const auto inCommonRhs = Common(detail::floating_point_promotion_t<UnitTypeRhs>(b)).raw();
+		return Result(Common(static_cast<Under>(std::lerp(
+			static_cast<Weight>(inCommonLhs), static_cast<Weight>(inCommonRhs), static_cast<Weight>(t)))));
 	}
 
 	/**
@@ -6427,7 +6482,9 @@ namespace units
 	 *				cannot overflow.
 	 * @param[in]	a	the first quantity.
 	 * @param[in]	b	the second quantity.
-	 * @return		the midpoint, in `a`'s unit.
+	 * @return		the midpoint. A floating-point pair answers in `a`'s unit; an integral pair answers in `a`'s unit
+	 *				when the other converts into it losslessly and otherwise in the finer common unit, as `operator+`,
+	 *				`min` and `max` do, so a finer right operand is not truncated away.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
@@ -6437,29 +6494,69 @@ namespace units
 		// unit, so the halfway point cannot overflow: `a + (b - a) / 2` evaluates `b - a`, which for INT_MIN and
 		// INT_MAX is not representable. Converting `b` into the lhs unit applies its datum, which is what a midpoint
 		// of two READINGS requires.
-		if constexpr (std::is_integral_v<typename UnitTypeLhs::underlying_type> &&
+		// The exact-integer path reconciles the right operand by its CONVERSION RATIO alone, which is only the whole
+		// conversion when the two units share a pi exponent and a datum translation. Where they do not, that path
+		// silently dropped the rest of it: midpoint(celsius<int>(0), fahrenheit<int>(212)) read 58 rather than 50, and
+		// midpoint(radians<int>(0), degrees<int>(180)) read 0 rather than 1. Such a pair takes the general path, whose
+		// conversion is the library's own and therefore complete -- no integer reconciliation of a pi exponent is
+		// exact anyway.
+		using LhsFactor = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
+		using RhsFactor = typename traits::unit_traits<UnitTypeRhs>::conversion_factor;
+		constexpr bool pureRatioApart =
+			std::is_same_v<typename traits::conversion_factor_traits<LhsFactor>::pi_exponent_ratio,
+				typename traits::conversion_factor_traits<RhsFactor>::pi_exponent_ratio> &&
+			std::is_same_v<typename traits::conversion_factor_traits<LhsFactor>::translation_ratio,
+				typename traits::conversion_factor_traits<RhsFactor>::translation_ratio>;
+
+		if constexpr (pureRatioApart && std::is_integral_v<typename UnitTypeLhs::underlying_type> &&
 			std::is_integral_v<typename UnitTypeRhs::underlying_type>)
 		{
-			// The rhs is expressed in the lhs unit through a double-width intermediate, because converting it into the
-			// lhs's own representation first can overflow before the halfway point is taken: 3000000 km is 3000000000
-			// m, which no int holds, while the midpoint 1500000000 does.
-			using Wide       = detail::widest_signed_int;
-			const Wide inLhs = static_cast<Wide>(
-				static_cast<long double>(b.raw()) *
-				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::num) *
-					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::den)) /
-				(static_cast<long double>(traits::unit_traits<UnitTypeRhs>::conversion_factor::conversion_ratio::den) *
-					static_cast<long double>(traits::unit_traits<UnitTypeLhs>::conversion_factor::conversion_ratio::num)));
-			const Wide from = static_cast<Wide>(a.raw());
-			return UnitTypeLhs(static_cast<typename UnitTypeLhs::underlying_type>(from + (inLhs - from) / 2));
+			// The result unit is `lhs_result_unit_t`, as `operator+`, `min` and `max` all use for a pair of integral
+			// quantities: the left operand's unit when converting the right one into it is lossless, otherwise the finer
+			// common unit. Hard-coding the left unit truncated a finer right operand away entirely --
+			// midpoint(kilometers<int>(1), meters<int>(500)) answered 0 km rather than 750 m.
+			//
+			// BOTH operands are expressed in that unit through a double-width intermediate, because converting either
+			// into the result's own representation first can overflow before the halfway point is taken: 3000000 km is
+			// 3000000000 m, which no int holds, while the midpoint 1500000000 does.
+			using Wide   = detail::widest_signed_int;
+			using Result = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
+
+			const auto inResult = [](auto operand) {
+				using Operand   = decltype(operand);
+				using ResultCf  = typename traits::unit_traits<Result>::conversion_factor;
+				using OperandCf = typename traits::unit_traits<Operand>::conversion_factor;
+				return static_cast<Wide>(static_cast<long double>(operand.raw()) *
+					(static_cast<long double>(OperandCf::conversion_ratio::num) * static_cast<long double>(ResultCf::conversion_ratio::den)) /
+					(static_cast<long double>(OperandCf::conversion_ratio::den) * static_cast<long double>(ResultCf::conversion_ratio::num)));
+			};
+
+			const Wide from = inResult(a);
+			const Wide to   = inResult(b);
+			return Result(static_cast<typename Result::underlying_type>(from + (to - from) / 2));
 		}
 		else
 		{
-			// A floating-point pair is handed to `std::midpoint`, which is specified to stay within its operands and
-			// to survive an infinite one. Halving a difference does not: midpoint(inf m, 1 m) evaluates
-			// inf + (1 - inf) / 2, i.e. inf + -inf, and reads NaN.
-			using Result = std::decay_t<decltype(a + (b - a) / 2)>;
-			return Result(std::midpoint(Result(a).raw(), Result(b).raw()));
+			// Both operands are expressed in one promoted common unit and handed to `std::midpoint`, which is specified
+			// to stay within its operands and to survive an infinite one. Halving a difference does not:
+			// midpoint(inf m, 1 m) evaluates inf + (1 - inf) / 2, i.e. inf + -inf, and reads NaN.
+			//
+			// The unit is taken from `lhs_result_unit_t`, NOT from `decltype(a + (b - a) / 2)`. That spelling
+			// instantiates the affine `operator-` on UNPROMOTED operands and reaches a `consteval` narrowing
+			// constructor a run-time value cannot satisfy, so an affine pair whose representations merely differed --
+			// midpoint(celsius<int>(20), celsius<double>(30.0)) -- failed to compile at all. `fmod` and `fdim` route
+			// around the same hazard the same way. Converting each operand into the common unit reads an affine
+			// operand as the READING it is, which is what a midpoint of two readings requires.
+			// The halfway point is computed in the common unit and then expressed in the LEFT operand's unit, which is
+			// what this function documents and what the exact-integer path above already does. Answering in the common
+			// unit instead reports a mixed affine pair in an anonymous ninth-of-a-kelvin absolute unit -- physically
+			// the same quantity, but midpoint(celsius(0), fahrenheit(212)) reads 2908.35 rather than 50.
+			using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
+			using Result = detail::floating_point_promotion_t<UnitTypeLhs>;
+
+			const auto inCommonLhs = Common(detail::floating_point_promotion_t<UnitTypeLhs>(a)).raw();
+			const auto inCommonRhs = Common(detail::floating_point_promotion_t<UnitTypeRhs>(b)).raw();
+			return Result(Common(std::midpoint(inCommonLhs, inCommonRhs)));
 		}
 	}
 
@@ -6496,7 +6593,12 @@ namespace units
 			// is what that is for, but it asserts a STANDARD integer type, so it refuses a `char` or `bool`
 			// representation outright -- the same refusal that once withdrew `fdim` from them. Spelling the three
 			// cases out keeps every integral representation.
-			if constexpr (std::is_same_v<LhsFactor, RhsFactor>)
+			// The NUMERICAL SCALE has to match as well as the factor. `UNIT_ADD_DECIBEL` builds `dBW` from `watts`'s
+			// conversion factor, so a level and a linear quantity of the same dimension share a factor while storing
+			// different domains -- one holds watts, the other a dB figure -- and comparing their stored numbers
+			// directly reads 13 dBW as 13 W: min(watts(15), dBW(13)) answered the LARGER of the two.
+			if constexpr (std::is_same_v<LhsFactor, RhsFactor> &&
+				std::is_same_v<typename traits::unit_traits<Lhs>::numerical_scale_type, typename traits::unit_traits<Rhs>::numerical_scale_type>)
 			{
 				using L = typename Lhs::underlying_type;
 				using R = typename Rhs::underlying_type;
@@ -6511,8 +6613,17 @@ namespace units
 			}
 			else
 			{
-				using Common = floating_point_promotion_t<lhs_result_unit_t<Lhs, Rhs>>;
-				return Common(floating_point_promotion_t<Lhs>(lhs)).raw() < Common(floating_point_promotion_t<Rhs>(rhs)).raw();
+				// A mixed-scale pair has to be reconciled, and the intermediate must hold the reconciled value. The
+				// operand's own promoted type does not: `floating_point_promotion_t<long long>` is `double`, whose
+				// 53-bit mantissa collapses adjacent integers from 2^54 up, and the ordering then contradicts the
+				// library's own `operator>` -- max(millimeters<long long>(LLONG_MAX), meters<long long>(LLONG_MAX/1000))
+				// answered the smaller of the two. `long double` carries a 64-bit mantissa where the platform has one,
+				// so every 64-bit integer is exact; where it does not, this is what the promoted type already gave.
+				using Widest     = long double;
+				using CommonUnit = unit<typename lhs_result_unit_t<Lhs, Rhs>::conversion_factor, Widest,
+					typename traits::unit_traits<Lhs>::numerical_scale_type>;
+				return CommonUnit(traits::replace_underlying_t<Lhs, Widest>(lhs)).raw() <
+					CommonUnit(traits::replace_underlying_t<Rhs, Widest>(rhs)).raw();
 			}
 		}
 	} // namespace detail
@@ -6889,7 +7000,7 @@ namespace units
 		 * @tparam		From	the source unit type.
 		 * @param[in]	x	the operand.
 		 * @param[in]	mode	the caller's rounding intent.
-	 * @returns		the computed result, in the left operand's unit.
+	 @returns		the value expressed in `To`, rounded as the mode requests.
 	 */
 		template<class To, class From>
 		constexpr To rounded_unit_cast(const From& x, rounding_mode mode) noexcept
@@ -7269,9 +7380,11 @@ namespace units
 	 *				two compare equal: `celsius(0)` reaches 273.14999999999998 K while `fahrenheit(32)` reaches
 	 *				273.15000000000003, and `dBW(12.5)`/`dBm(42.5)` differ likewise. Equal-comparing quantities of the
 	 *				SAME spelling always hash alike; across spellings, only an exactly-representable conversion does.
-	 * @tparam		U	the unit type operated on.
-	 * @param[in]	x	the operand.
-	 * @returns		the computed result, in the left operand's unit.
+	 * @tparam		ConversionFactor	the quantity's conversion factor.
+	 * @tparam		T					the quantity's stored representation.
+	 * @tparam		NumericalScale		the quantity's numerical scale.
+	 * @param[in]	x	the quantity to hash.
+	 * @returns		the hash of its value in SI base units.
 	 */
 template<class ConversionFactor, typename T, class NumericalScale>
 struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
@@ -7334,7 +7447,7 @@ namespace std
 		/**
 		 * @brief		Builds a limit from a value already in the unit's STORED representation.
 		 * @param[in]	stored	the value in the unit's stored representation.
-		 * @returns		the computed result, in the left operand's unit.
+		 @returns		that quantity.
 		 */
 		static constexpr Q fromStored(T stored) noexcept
 		{
@@ -7346,8 +7459,8 @@ namespace std
 
 	public:
 		/**
-		 * @brief		Implementation detail.
-		 * @returns		the computed result, in the left operand's unit.
+		 *		@brief		The smallest positive normal quantity.
+		 @returns		that quantity.
 		 */
 		static constexpr Q min()
 		{
@@ -7355,11 +7468,11 @@ namespace std
 		}
 
 		/**
-		 * @brief		On.
-		 * @details		A non-linear scale the stored value is a ratio and is strictly positive, so the smallest
+		 *		@brief		On a non-linear scale the stored value is a ratio and is strictly positive, so the smallest.
+		 *		@details		A non-linear scale the stored value is a ratio and is strictly positive, so the smallest
 		 *				denormal ratio is the LOWEST representable quantity; `lowest()` must therefore agree with it
 		 *				rather than using `min()`.
-		 * @returns		the computed result, in the left operand's unit.
+		 @returns		that quantity.
 		 */
 		static constexpr Q denorm_min() noexcept
 		{
@@ -7367,8 +7480,8 @@ namespace std
 		}
 
 		/**
-		 * @brief		Implementation detail.
-		 * @returns		the computed result, in the left operand's unit.
+		 *		@brief		The largest finite quantity.
+		 @returns		that quantity.
 		 */
 		static constexpr Q max()
 		{
@@ -7376,11 +7489,11 @@ namespace std
 		}
 
 		/**
-		 * @brief		On.
-		 * @details		A non-linear scale the stored value is a ratio and is strictly positive, so the lowest
+		 *		@brief		On a non-linear scale the stored value is a ratio and is strictly positive, so the lowest.
+		 *		@details		A non-linear scale the stored value is a ratio and is strictly positive, so the lowest
 		 *				representable quantity is the smallest positive stored value (a very negative number of
 		 *				decibels), not `T`'s lowest.
-		 * @returns		the computed result, in the left operand's unit.
+		 @returns		that quantity.
 		 */
 		static constexpr Q lowest()
 		{
@@ -7396,7 +7509,7 @@ namespace std
 		 * @brief		The smallest distinguishable step.
 		 * @details		On a non-linear scale that is the quantity whose stored ratio differs from unity by one
 		 *				epsilon, which is a small non-zero number of decibels.
-		 * @returns		the computed result, in the left operand's unit.
+		 @returns		that quantity.
 		 */
 		static constexpr Q epsilon()
 		{
@@ -7407,8 +7520,8 @@ namespace std
 		}
 
 		/**
-		 * @brief		Implementation detail.
-		 * @returns		the computed result, in the left operand's unit.
+		 *		@brief		The maximum rounding error, in units of the stored representation.
+		 @returns		that quantity.
 		 */
 		static constexpr Q round_error()
 		{
@@ -7499,7 +7612,7 @@ namespace std
 	 *				decibel figure means attenuation, which is a real property of the ratio.
 	 * @tparam		U	the unit type operated on.
 	 * @param[in]	x	the operand.
-	 * @returns		the computed result, in the left operand's unit.
+	 @returns		`true` when that value is negative.
 	 */
 	template<units::UnitType U>
 	constexpr bool signbit(U x)
