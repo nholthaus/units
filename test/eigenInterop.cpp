@@ -661,10 +661,10 @@ TEST(EigenSecondAudit, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
 
 // Constraining only the FIRST operand's coefficient made callability depend on operand order, so one spelling of a
 // two-matrix helper compiled and the other did not.
-template<class A, class B> concept EigenCanDot        = requires(A a, B b) { units::unit_dot(a, b); };
-template<class A, class B> concept EigenCanCross      = requires(A a, B b) { units::unit_cross(a, b); };
-template<class A>          concept EigenCanNorm       = requires(A a) { units::unit_norm(a); };
-template<class A>          concept EigenCanSquaredNorm = requires(A a) { units::unit_squared_norm(a); };
+template<class A, class B> concept EigenCanDot         = requires(A lhs, B rhs) { units::unit_dot(lhs, rhs); };
+template<class A, class B> concept EigenCanCross       = requires(A lhs, B rhs) { units::unit_cross(lhs, rhs); };
+template<class A>          concept EigenCanNorm        = requires(A operand) { units::unit_norm(operand); };
+template<class A>          concept EigenCanSquaredNorm = requires(A operand) { units::unit_squared_norm(operand); };
 
 TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
 {

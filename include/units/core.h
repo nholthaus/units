@@ -6613,14 +6613,51 @@ namespace units
 			}
 			else
 			{
-				// A mixed-scale pair has to be reconciled, and the intermediate must hold the reconciled value. The
-				// operand's own promoted type does not: `floating_point_promotion_t<long long>` is `double`, whose
-				// 53-bit mantissa collapses adjacent integers from 2^54 up, and the ordering then contradicts the
-				// library's own `operator>` -- max(millimeters<long long>(LLONG_MAX), meters<long long>(LLONG_MAX/1000))
-				// answered the smaller of the two. `long double` carries a 64-bit mantissa where the platform has one,
-				// so every 64-bit integer is exact; where it does not, this is what the promoted type already gave.
+				using L = typename Lhs::underlying_type;
+				using R = typename Rhs::underlying_type;
+
+				// A mixed-scale INTEGRAL pair is reconciled in the widest integer, exactly. No floating intermediate
+				// can stand in: `double` collapses adjacent integers from 2^54 up, and `long double` only helps where
+				// the platform gives it a 64-bit mantissa -- on MSVC it IS `double`. Reconciling through one made the
+				// ordering contradict the library's own `operator>`:
+				// max(millimeters<long long>(LLONG_MAX), meters<long long>(LLONG_MAX/1000)) answered the smaller.
+				//
+				// Each operand is scaled into the common unit by a whole multiplier, so the comparison is a pair of
+				// exact products. The guard is there because a product can overflow even the widest integer; when it
+				// would, or when the multipliers are not whole, or when one operand's type cannot be represented
+				// alongside the other's, the floating comparison below takes over -- approximate, but never wrapped.
+				using Common      = lhs_result_unit_t<Lhs, Rhs>;
+				using CommonRatio = typename traits::unit_traits<Common>::conversion_factor::conversion_ratio;
+				using LhsScale    = std::ratio_divide<typename LhsFactor::conversion_ratio, CommonRatio>;
+				using RhsScale    = std::ratio_divide<typename RhsFactor::conversion_ratio, CommonRatio>;
+
+				if constexpr (std::is_integral_v<L> && std::is_integral_v<R> && LhsScale::den == 1 && RhsScale::den == 1 &&
+					(std::is_signed_v<L> == std::is_signed_v<R> ||
+						(sizeof(widest_signed_int) > sizeof(L) && sizeof(widest_signed_int) > sizeof(R))))
+				{
+					using Wide = std::conditional_t<std::is_unsigned_v<L> && std::is_unsigned_v<R>, widest_unsigned_int, widest_signed_int>;
+
+					constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
+					constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
+					constexpr Wide cap           = std::numeric_limits<Wide>::max();
+
+					const Wide lhsRaw = static_cast<Wide>(lhs.raw());
+					const Wide rhsRaw = static_cast<Wide>(rhs.raw());
+
+					const auto fits = [](Wide value, Wide multiplier) {
+						const Wide bound = cap / multiplier;
+						if constexpr (std::is_unsigned_v<Wide>)
+							return value <= bound;
+						else
+							return value <= bound && value >= -bound;
+					};
+
+					if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
+						return lhsRaw * lhsMultiplier < rhsRaw * rhsMultiplier;
+				}
+
 				using Widest     = long double;
-				using CommonUnit = unit<typename lhs_result_unit_t<Lhs, Rhs>::conversion_factor, Widest,
+				using CommonUnit = unit<typename Common::conversion_factor, Widest,
 					typename traits::unit_traits<Lhs>::numerical_scale_type>;
 				return CommonUnit(traits::replace_underlying_t<Lhs, Widest>(lhs)).raw() <
 					CommonUnit(traits::replace_underlying_t<Rhs, Widest>(rhs)).raw();
