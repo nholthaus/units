@@ -418,8 +418,8 @@ namespace
 
 // A quantity measured from an arbitrary origin -- an affine reading, or a decibel level -- breaks Eigen's assumption
 // that a coefficient-wise binary operation is `op(T,T) -> T`. The scalar difference of two readings is an offset-free
-// AMOUNT, so without naming that amount type in `ScalarBinaryOpTraits` Eigen assigns the difference back into the
-// reading coefficient and `(v - w).eval()` on two EQUAL readings reads -273.15 rather than 0.
+// amount, so without naming that amount type in `ScalarBinaryOpTraits` Eigen assigns the difference back into the
+// reading coefficient and `(v - w).eval()` on two equal readings reads -273.15 rather than 0.
 TEST_F(EigenInterop, affineMatrixDifferenceIsAnAmount)
 {
 	using units::temperature::celsius;
@@ -471,8 +471,8 @@ TEST_F(EigenInterop, theEigenSeamMatchesTheScalarRule)
 	EXPECT_NEAR(1964.0625, unit_squared_norm(reading).value(), 5.0e-9);        // 12.5^2 + 20.5^2 + 37.25^2
 	EXPECT_NEAR(44.31774475, unit_norm(reading).value(), 5.0e-8);
 
-	// NOT compilable for a matrix of decibel values: * 2.0, / 2.0, unit_dot, unit_norm, unit_squared_norm,
-	// unit_normalized -- the scalar operations do not exist either. A matrix of LEVELS does difference into gains.
+	// not compilable for a matrix of decibel values: * 2.0, / 2.0, unit_dot, unit_norm, unit_squared_norm,
+	// unit_normalized -- the scalar operations do not exist either. A matrix of levels does difference into gains.
 	Eigen::Matrix<dBW<double>, 2, 1> level, referenceLevel;
 	level << dBW<double>(20.0), dBW<double>(12.5);
 	referenceLevel << dBW<double>(10.0), dBW<double>(12.5);
@@ -492,9 +492,9 @@ TEST_F(EigenInterop, theEigenSeamMatchesTheScalarRule)
 }
 
 //======================================================================================================================
-//	THE HELPERS TAKE ANY EIGEN EXPRESSION, NOT ONLY A CONCRETE MATRIX
+//	the helpers take any eigen expression, not only A concrete matrix
 //
-//	Each helper's parameter is an `Eigen::MatrixBase<Derived>`, so a LAZY expression -- a sum, a difference, a scaled
+//	Each helper's parameter is an `Eigen::MatrixBase<Derived>`, so a lazy expression -- a sum, a difference, a scaled
 //	vector -- binds directly and no caller has to `.eval()` first. Every expected number is computed by hand at its
 //	own assertion from the two operands, which each test spells out for itself.
 //======================================================================================================================
@@ -594,7 +594,7 @@ TEST(EigenLazyExpression, aDimensionlessTransformOfALazySum)
 		"a dimensionless transform keeps the vector's unit");
 }
 
-// The lazy form reaches a matrix of AFFINE READINGS too, where the scalar trait names the difference's AMOUNT type:
+// The lazy form reaches a matrix of affine readings too, where the scalar trait names the difference's amount type:
 // (30, 20, 10) degC less (26, 17, 10) degC is (4, 3, 0) celsius-degrees, whose squared magnitude is 16 + 9 == 25,
 // whose magnitude is 5, and whose direction is (4, 3, 0) / 5 == (0.8, 0.6, 0). The amount carries no datum, so
 // nothing re-applies the 273.15 translation on the way out.
@@ -637,7 +637,7 @@ TEST(EigenLazyExpression, anIntegralScalarIsPromotedByTheMagnitude)
 //	REGRESSION GUARDS
 //======================================================================================================================
 
-// Requiring a LINEAR SCALE of the coefficient excluded a matrix of plain arithmetic scalars, because that trait is
+// Requiring a linear scale of the coefficient excluded a matrix of plain arithmetic scalars, because that trait is
 // false for a type that is not a unit at all -- so an ordinary `Eigen::Matrix<double, 3, 1>` stopped being accepted by
 // helpers that had always taken it. A plain scalar carries no numerical scale that could disagree with the operation.
 TEST(EigenCoefficientScale, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
@@ -659,7 +659,7 @@ TEST(EigenCoefficientScale, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
 	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(unit_cross(plainDouble, plainDouble)(0)));
 }
 
-// Constraining only the FIRST operand's coefficient made callability depend on operand order, so one spelling of a
+// Constraining only the first operand's coefficient made callability depend on operand order, so one spelling of a
 // two-matrix helper compiled and the other did not.
 template<class A, class B> concept EigenCanDot         = requires(A lhs, B rhs) { units::unit_dot(lhs, rhs); };
 template<class A, class B> concept EigenCanCross       = requires(A lhs, B rhs) { units::unit_cross(lhs, rhs); };
@@ -682,9 +682,9 @@ TEST(EigenCoefficientScale, callabilityDoesNotDependOnOperandOrder)
 	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(p, q); });
 	static_assert(requires(Eigen::Matrix<double, 3, 1> p, Vector3m q) { unit_cross(q, p); });
 
-	// Those four cannot detect a one-sided gate: a plain `double` coefficient and a `meters` one BOTH satisfy it, so
-	// constraining one operand or two is indistinguishable for that pair. A coefficient the gate REJECTS is what probes
-	// the symmetry, and a decibel level is one -- it must be refused in EITHER position. The probes go through NAMED
+	// Those four cannot detect a one-sided gate: a plain `double` coefficient and a `meters` one both satisfy it, so
+	// constraining one operand or two is indistinguishable for that pair. A coefficient the gate rejects is what probes
+	// the symmetry, and a decibel level is one -- it must be refused in either position. The probes go through named
 	// concepts because a `requires`-expression written on concrete types outside a template is a hard error rather than
 	// `false`, and each negative is paired with a positive control on the same concept so it cannot pass by an
 	// unrelated ill-formedness.

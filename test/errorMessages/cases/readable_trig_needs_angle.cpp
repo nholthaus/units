@@ -8,7 +8,7 @@
 //
 // grades: compiler
 // expect: fail
-// NOTE: do not grade on `sin` -- it appears in the echoed source line, so the case would grade itself.
+// note: do not grade on `sin` -- it appears in the echoed source line, so the case would grade itself.
 // expect-match: meters<
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<

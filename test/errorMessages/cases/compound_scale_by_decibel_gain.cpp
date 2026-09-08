@@ -1,4 +1,4 @@
-// Case: scaling an ordinary quantity BY a decibel gain. A gain is a logarithmic figure, not a plain factor to multiply by.
+// Case: scaling an ordinary quantity by a decibel gain. A gain is a logarithmic figure, not a plain factor to multiply by.
 //
 // expect: fail
 // expect-match: cannot scale by a decibel gain

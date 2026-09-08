@@ -92,7 +92,7 @@ namespace Eigen
 	 * @brief		Result-type trait for scaling a unit scalar by a plain arithmetic scalar (unit * scalar).
 	 * @details		Scaling preserves the dimension, so `meters<double> * 2.0` is `meters<double>`. This lets an
 	 *				Eigen expression such as `v * 2.0` compile for a vector of units. No numerical-scale constraint is
-	 *				imposed here: the SCALAR `operator*` already refuses a decibel value with a one-sentence remedy, and
+	 *				imposed here: the scalar `operator*` already refuses a decibel value with a one-sentence remedy, and
 	 *				a constraint at this seam would only bury that message under Eigen's own template internals.
 	 * @tparam		U a units type (`units::UnitType`).
 	 * @tparam		X the plain arithmetic scalar type.
@@ -131,10 +131,9 @@ namespace Eigen
 	/**
 	 * @brief		Result-type trait for the difference of two readings measured from an arbitrary origin.
 	 * @details		Eigen otherwise assumes `op(T,T) -> T` for a coefficient-wise binary operation, which is exactly
-	 *				what a point/amount model denies: the scalar difference of two readings is an offset-free AMOUNT,
-	 *				and assigning it back into the reading type re-applies the datum. `(v - w).eval()` on a matrix of
-	 *				equal celsius readings read -273.15 rather than 0 for that reason. Naming the amount type here
-	 *				makes the matrix difference agree with the scalar one.
+	 *				what a point/amount model denies: the scalar difference of two readings is an offset-free amount,
+	 *				and assigning it back into the reading type re-applies the datum. Naming the amount type here makes
+	 *				the matrix difference agree with the scalar one.
 	 * @tparam		U a units type measured from an arbitrary origin.
 	 */
 	template<units::UnitType U>

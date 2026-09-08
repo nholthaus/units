@@ -60,6 +60,7 @@ ADL on a units argument.
 | Hyperbolic | `sinh`, `cosh`, `tanh` | take a **dimensionless** value, return dimensionless |
 | Inverse hyperbolic | `asinh`, `acosh`, `atanh` | take dimensionless, return **dimensionless** (unlike the inverse trigonometric functions, which return radians) |
 | Decomposition | `modf` | returns the fractional part; integer part written through the pointer |
+| Classification | `isnan`, `isinf`, `isfinite`, `isnormal`, `signbit`, `isunordered` | return `bool` |
 
 ### Quantities measured from an arbitrary origin
 
@@ -94,12 +95,11 @@ Rather than pick one reading, the whole family refuses a **logarithmic** operand
 `sinh` · `cosh` · `tanh` · `asinh` · `acosh` · `atanh` · `sin` · `cos` · `tan` · `sqrt` · `hypot` ·
 `modf` · `fmod` · `fdim`
 
-`sin`, `cos` and `tan` are in that list for a subtler reason than the rest: they take an *angle*, so a dimensionless
-decibel value never reached the library's own overload at all and the C library answered from the dB figure —
-`sin(decibels(3.25))` read −0.108195, the sine of 3.25, where the ratio's sine is 0.856321. `sqrt` and `hypot` read the
-logarithm the same way. `fmod` names the linear domain in its message rather than the conversion, and `fdim` refuses
-only when a logarithmic operand is MIXED with a linear one — the difference of two decibel levels is a gain, so that
-stays.
+`sin`, `cos` and `tan` are in that list for a subtler reason than the rest: they take an *angle*, so without an
+overload of their own a dimensionless decibel value never reaches the library and the C library answers from the dB
+figure — the sine of 3.25 rather than of the ratio 2.113 it denotes. `sqrt` and `hypot` read the logarithm the same
+way. `fmod` names the linear domain in its message rather than the conversion, and `fdim` refuses only when a
+logarithmic operand is mixed with a linear one — the difference of two decibel levels is a gain, so that stays.
 
 Most of these ask whether the operand is provably *linear*; `atan2` asks whether it is *logarithmic*. The distinction
 matters for a wrapper: `has_linear_scale_v` is false for anything it cannot classify, `kind<>`, `delta<>` and
@@ -113,7 +113,6 @@ units::log10(units::dimensionless<double>(units::decibels<double>(3.25)));   // 
 An offset-free scale (`kelvin`, `rankine`), a difference, and a dimensionless dB **gain** converted to its linear
 ratio are ordinary magnitudes and keep the whole surface. See
 [affine temperature](../explain/affine-temperature.md) and [scales](../explain/scales.md).
-| Classification | `isnan`, `isinf`, `isfinite`, `isnormal`, `signbit`, `isunordered` | return `bool` |
 
 ## Powers and roots carry dimensions
 

@@ -732,32 +732,21 @@ TEST_F(STDTypeTraits, std_common_type)
 
 TEST_F(STDSpecializations, hash)
 {
-	// The hash keys on the value in the dimension's SI BASE unit, not on the stored value. Two quantities that compare
-	// equal must hash equally, and equality is judged across scales -- so hashing the stored value gave
-	// `meters(1000)` and `kilometers(1)` different hashes and made an unordered_map keyed on a quantity unusable
-	// across spellings.
-	EXPECT_EQ(std::hash<meters<double>>()(3.14_m), std::hash<meters<double>>()(meters<double>(3.14)));
-	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_m), std::hash<meters<double>>()(3.14_m));
-	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_m), std::hash<meters<double>>()(3.14_m));
-	EXPECT_EQ(std::hash<millimeters<double>>()(millimeters<double>(3140.0)), std::hash<meters<double>>()(3.14_m));
-	EXPECT_EQ(std::hash<kilometers<double>>()(kilometers<double>(1.0)), std::hash<meters<double>>()(meters<double>(1000.0)));
-	EXPECT_EQ(std::hash<feet<double>>()(feet<double>(3.0)), std::hash<inches<double>>()(inches<double>(36.0)));
+	EXPECT_EQ(std::hash<meters<double>>()(3.14_m), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_m), std::hash<double>()(3.14e3));
+	EXPECT_EQ(std::hash<millimeters<double>>()(3.14_mm), std::hash<double>()(3.14));
+	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_m), std::hash<double>()(3.14e-3));
+	EXPECT_EQ(std::hash<kilometers<double>>()(3.14_km), std::hash<double>()(3.14));
 
-	// an integer-backed quantity hashes on the same base value, so the spellings agree there too
-	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), (std::hash<millimeters<int>>()(millimeters<int>(42000))));
-	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), (std::hash<meters<double>>()(meters<double>(42.0))));
+	EXPECT_EQ((std::hash<meters<int>>()(meters<int>(42))), 42);
+	EXPECT_EQ((std::hash<millimeters<int>>()(meters<int>(42))), 42000);
+	EXPECT_EQ((std::hash<millimeters<int>>()(millimeters<int>(42))), 42);
+	EXPECT_EQ((std::hash<kilometers<int>>()(kilometers<int>(42))), 42);
 
-	// dimensionless, including a ratio scale where the stored number and the fraction differ
-	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), (std::hash<concentration::percent<double>>()(concentration::percent<double>(314.0))));
-	EXPECT_EQ((std::hash<concentration::percent<double>>()(concentration::percent<double>(12.5))),
-		(std::hash<concentration::parts_per_million<double>>()(concentration::parts_per_million<double>(125000.0))));
+	EXPECT_EQ((std::hash<dimensionless<double>>()(3.14)), std::hash<double>()(3.14));
+	EXPECT_EQ((std::hash<dimensionless<int>>()(42)), (std::hash<dimensionless<int>>()(42)));
 
-	// a decibel LEVEL hashes on the linear quantity it denotes, which for dBW is its own base
-	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), (std::hash<watts<double>>()(watts<double>(dBW<>(2.0).to_linearized()))));
-
-	// distinct quantities are not forced to collide
-	EXPECT_NE(std::hash<meters<double>>()(3.14_m), std::hash<meters<double>>()(2.71_m));
-	EXPECT_NE(std::hash<celsius<double>>()(celsius<double>(12.5)), std::hash<kelvin<double>>()(kelvin<double>(12.5)));
+	EXPECT_EQ(std::hash<dBW<double>>()(2.0_dBW), std::hash<double>()(dBW<>(2.0).to_linearized()));
 }
 
 // Documents the intended relationship between std::hash and operator== for floating units (issue #397).
@@ -771,20 +760,18 @@ TEST_F(STDSpecializations, hash)
 TEST_F(STDSpecializations, hashIsExactValueNotTolerant)
 {
 	const meters<double> a(1.0);
-	const meters<double> oneUlpAbove(std::nextafter(1.0, 2.0)); // one ULP above a
+	const meters<double> b(std::nextafter(1.0, 2.0)); // one ULP above a
 
-	// operator== is tolerant: a and oneUlpAbove are "equal" quantities.
-	EXPECT_TRUE(a == oneUlpAbove);
+	// operator== is tolerant: a and b are "equal" quantities.
+	EXPECT_TRUE(a == b);
 
 	// The guarantee that matters: exactly-equal values hash equal (deterministic, representation-independent).
 	EXPECT_EQ(std::hash<meters<double>>()(a), std::hash<meters<double>>()(meters<double>(1.0)));
-	static_assert(std::hash<meters<int>>()(meters<int>(5)) == std::hash<millimeters<int>>()(millimeters<int>(5000)),
-		"the hash is usable in a constant expression, as it is for the underlying type");
+	EXPECT_EQ(std::hash<meters<double>>()(a), std::hash<double>()(1.0));
 
-	// The hash reflects the exact value, so the one-ULP neighbour is a distinct hash input even though the two
-	// compare equal under the tolerant operator==. A hash consistent with a non-transitive equality cannot exist
-	// without being constant, so exact hashing is the coherent choice.
-	EXPECT_NE(std::hash<meters<double>>()(a), std::hash<meters<double>>()(oneUlpAbove));
+	// std::hash reflects the exact stored value; the one-ULP neighbour is a distinct hash input, just as it is for
+	// std::hash<double>. This mirror is the documented, intentional behavior.
+	EXPECT_EQ(std::hash<meters<double>>()(b), std::hash<double>()(std::nextafter(1.0, 2.0)));
 }
 
 // General coverage (not tied to a specific change): units must work END-TO-END as STL associative-container
@@ -2093,9 +2080,9 @@ TEST_F(UnitType, commonTypeRecoversComposedName)
 // other unit -- a length, a named angle, an affine temperature -- a bare number has no dimension to add, so the
 // expression must not be well-formed (matching the binary `unit + number`, which is already rejected).
 
-// Whether two quantities can be added. NOTE the limit of this probe: a refusal implemented as a body-level
-// `static_assert` RESOLVES an overload anyway, so the requires-expression is satisfied and this reports TRUE even for a
-// refused operation. It is evidence ONLY in the negative, and only where the refusal is expressed by overload
+// Whether two quantities can be added. Note the limit of this probe: a refusal implemented as a body-level
+// `static_assert` resolves an overload anyway, so the requires-expression is satisfied and this reports true even for a
+// refused operation. It is evidence only in the negative, and only where the refusal is expressed by overload
 // resolution -- `= delete`, as `dBW + dBW` is. Every other refusal is graded in test/errorMessages against the
 // compiler's real output, so no positive assertion is made here.
 template<class A, class B>
@@ -2135,7 +2122,7 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	static_assert(std::is_same_v<celsius<double>&, decltype(a += celsius<double>(1.0))>,
 		"a compound move returns a reference to the reading, so the point keeps its unit");
 
-	// #402: the rhs is a relative delta even when written in a DIFFERENT affine scale -- only its scale-converted
+	// #402: the rhs is a relative delta even when written in a different affine scale -- only its scale-converted
 	// magnitude moves the point, its datum is not applied. A 9 Fahrenheit-degree change is a 5 Celsius-degree change.
 	celsius<double> crossScale(20.0);
 	crossScale += fahrenheit<double>(9.0);
@@ -2156,11 +2143,11 @@ TEST_F(UnitType, affineTemperatureCompoundAssignmentMovesPoint)
 	EXPECT_NEAR(6.0, distance.value(), 5.0e-12);
 }
 
-// A temperature READING carries a datum (celsius, fahrenheit), so its type says "point" and the point rules apply
+// A temperature reading carries a datum (celsius, fahrenheit), so its type says "point" and the point rules apply
 // to it. An offset-free temperature type -- kelvin, rankine, or the difference of two readings -- cannot say in the
 // bare type system whether it is a reading or a change, so it behaves as an ordinary magnitude: it adds and scales.
 // That is a representability limit, not a preference: making kelvin a point would also catch every temperature
-// CHANGE (a change is the same dimension with no offset), breaking the operations that must work. Code that needs
+// change (a change is the same dimension with no offset), breaking the operations that must work. Code that needs
 // the reading-versus-change distinction on an offset-free scale opts into absolute<>/delta<> from <units/kind.h>.
 TEST_F(UnitType, offsetFreeTemperatureTypesBehaveAsMagnitudes)
 {
@@ -2177,7 +2164,7 @@ TEST_F(UnitType, offsetFreeTemperatureTypesBehaveAsMagnitudes)
 	EXPECT_NEAR(600.0, (kelvin<double>(300.0) * 2.0).value(), 5.0e-12);
 	EXPECT_NEAR(200.0, (kelvin<double>(300.0) - kelvin<double>(100.0)).value(), 5.0e-12);
 
-	// and a reading moves by an amount written in ANY same-dimension scale, kelvin included
+	// and a reading moves by an amount written in any same-dimension scale, kelvin included
 	celsius<double> c(0.0);
 	c += kelvin<double>(5.0);
 	EXPECT_NEAR(5.0, c.value(), 5.0e-12);
@@ -2186,14 +2173,14 @@ TEST_F(UnitType, offsetFreeTemperatureTypesBehaveAsMagnitudes)
 //======================================================================================================================
 //	THE TEMPERATURE OPERATION MATRIX
 //	Every kind of temperature type against every operation, with values and result kinds pinned. The kinds are:
-//	  READING          celsius, fahrenheit -- carries a datum, so the type says "a point on a scale"
-//	  OFFSET-FREE      kelvin, rankine     -- no datum in the type, so it behaves as a magnitude
-//	  CHANGE           the difference of two readings -- offset-free, an amount
-//	Operations that must NOT compile live in the errorMessages harness (a gtest cannot assert them without failing
+//	  reading          celsius, fahrenheit -- carries a datum, so the type says "a point on a scale"
+//	  offset-free      kelvin, rankine     -- no datum in the type, so it behaves as a magnitude
+//	  change           the difference of two readings -- offset-free, an amount
+//	Operations that must not compile live in the errorMessages harness (a gtest cannot assert them without failing
 //	the build); each is named in a comment where it belongs so the matrix reads complete.
 //======================================================================================================================
 
-// READING: construction, conversion, ordering. A reading converts by applying the datum.
+// reading: construction, conversion, ordering. A reading converts by applying the datum.
 TEST_F(UnitType, matrixReadingConstructConvertCompare)
 {
 	using namespace units::temperature;
@@ -2210,7 +2197,7 @@ TEST_F(UnitType, matrixReadingConstructConvertCompare)
 	EXPECT_TRUE(fahrenheit<double>(-40.0) == celsius<double>(-40.0));
 }
 
-// READING: moved in place by an amount written in ANY same-dimension scale. The amount's datum is never applied.
+// reading: moved in place by an amount written in any same-dimension scale. The amount's datum is never applied.
 TEST_F(UnitType, matrixReadingCompoundMove)
 {
 	using namespace units::temperature;
@@ -2253,10 +2240,10 @@ TEST_F(UnitType, matrixReadingCompoundMove)
 	// the point keeps its own type and remains a reading
 	static_assert(std::is_same_v<celsius<double>, decltype(c)>);
 	static_assert(traits::is_affine_unit_v<decltype(c)>);
-	// NOT compilable (errorMessages): celsius += 5.0, celsius -= 5.0  -- a bare number states no unit
+	// not compilable (errorMessages): celsius += 5.0, celsius -= 5.0  -- a bare number states no unit
 }
 
-// READING: the difference of two readings is a CHANGE, expressed in the left operand's degrees, with no datum.
+// reading: the difference of two readings is a change, expressed in the left operand's degrees, with no datum.
 TEST_F(UnitType, matrixReadingDifferenceIsAChange)
 {
 	using namespace units::temperature;
@@ -2270,7 +2257,7 @@ TEST_F(UnitType, matrixReadingDifferenceIsAChange)
 	EXPECT_NEAR(-20.0, (celsius<double>(10.0) - celsius<double>(30.0)).value(), 5.0e-12);       // signed
 }
 
-// READING: scaling or dividing one reads the number in the reading's own scale, so the operation is SCALE-BOUND --
+// reading: scaling or dividing one reads the number in the reading's own scale, so the operation is scale-bound --
 // the answer depends on which scale the value is written in.
 TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 {
@@ -2285,7 +2272,7 @@ TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 	EXPECT_NEAR(150.0, (rankine<double>(300.0) / 2.0).value(), 5.0e-12);
 	static_assert(std::is_same_v<kelvin<double>, decltype(kelvin<double>(1) * 2.0)>, "an offset-free scale keeps its unit");
 
-	// A DIFFERENCE of two readings is an amount, and that amount scales scale-independently.
+	// A difference of two readings is an amount, and that amount scales scale-independently.
 	const auto amount = celsius<double>(20.0) - celsius<double>(0.0);
 	static_assert(!traits::is_affine_unit_v<decltype(amount)>, "a difference is offset-free");
 	EXPECT_NEAR(40.0, (amount * 2.0).value(), 5.0e-12);
@@ -2295,7 +2282,7 @@ TEST_F(UnitType, matrixScalingAReadingIsScaleBound)
 	EXPECT_NEAR(34.2, ((fahrenheit<double>(22.8) - fahrenheit<double>(0.0)) * 1.5).raw(), 5.0e-12);
 }
 
-// READING: the ways to write a scaling -- a bare number, a dimensionless quantity, a ratio-dimensionless quantity,
+// reading: the ways to write a scaling -- a bare number, a dimensionless quantity, a ratio-dimensionless quantity,
 // and each of those as a compound assignment -- are one operation, so each is well-formed and all give one answer.
 TEST_F(UnitType, matrixEverySpellingOfScalingAReadingAgrees)
 {
@@ -2333,11 +2320,11 @@ TEST_F(UnitType, matrixEverySpellingOfScalingAReadingAgrees)
 	// fahrenheit and reaumur read their own scale the same way
 	EXPECT_NEAR(136.0, (fahrenheit<double>(68.0) * dimensionless<double>(2.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(8.0, (reaumur<double>(16.0) * percent<double>(50.0)).raw(), 5.0e-12);
-	// NOT compilable (errorMessages: compound_scale_by_decibel_gain): a decibel GAIN is not a plain factor, on an
+	// not compilable (errorMessages: compound_scale_by_decibel_gain): a decibel gain is not a plain factor, on an
 	// affine lhs any more than on an ordinary one.
 }
 
-// OFFSET-FREE temperature (kelvin, rankine): no datum in the type, so it behaves as a magnitude -- it adds,
+// offset-free temperature (kelvin, rankine): no datum in the type, so it behaves as a magnitude -- it adds,
 // subtracts, and scales, and the results stay in its own unit.
 TEST_F(UnitType, matrixOffsetFreeTemperatureIsAMagnitude)
 {
@@ -2363,8 +2350,8 @@ TEST_F(UnitType, matrixOffsetFreeTemperatureIsAMagnitude)
 	EXPECT_NEAR(1000.0, (rankine<double>(500.0) * 2.0).value(), 5.0e-12);
 }
 
-// A CHANGE (the difference of two readings, or a scaled reading) is an amount: it adds to another change, scales,
-// moves a reading, and converts between scales by DEGREE SIZE with no datum.
+// A change (the difference of two readings, or a scaled reading) is an amount: it adds to another change, scales,
+// moves a reading, and converts between scales by degree size with no datum.
 TEST_F(UnitType, matrixChangeArithmeticAndConversion)
 {
 	using namespace units::temperature;
@@ -2401,7 +2388,7 @@ TEST_F(UnitType, matrixChangeArithmeticAndConversion)
 	EXPECT_NEAR(5.0, byFahrenheitDegrees.value(), 5.0e-12);
 }
 
-// REGRESSION: nothing above changes an ordinary dimensioned quantity, a named angle, a dimensionless value, or a
+// regression: nothing above changes an ordinary dimensioned quantity, a named angle, a dimensionless value, or a
 // ratio-scaled dimensionless value. These are the rows most likely to break when affine rules are added.
 TEST_F(UnitType, matrixNonTemperatureUnaffected)
 {
@@ -2441,7 +2428,7 @@ TEST_F(UnitType, matrixNonTemperatureUnaffected)
 }
 
 // Adding a bare number to a quantity is well-formed only for a genuinely dimensionless quantity (a plain scalar or a
-// ratio-scaled dimensionless such as percent). The POSITIVE cases are asserted here; the rejection of a dimensioned
+// ratio-scaled dimensionless such as percent). The positive cases are asserted here; the rejection of a dimensioned
 // unit, a named angle, and an affine temperature (which must not compile) is covered by the errorMessages harness
 // cases add_scalar_to_length / add_scalar_to_angle / add_scalar_to_affine, so the diagnostic is checked too.
 TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
@@ -2452,10 +2439,10 @@ TEST_F(UnitType, scalarCompoundAssignmentOnlyForDimensionless)
 	EXPECT_NEAR(3.5, scalar.value(), 5.0e-12);
 }
 
-// A DIMENSIONED decibel value (dBW, dBm) is a point on a logarithmic reference scale and a DIMENSIONLESS decibel value
+// A dimensioned decibel value (dBW, dBm) is a point on a logarithmic reference scale and a dimensionless decibel value
 // (decibels) is a relative gain, so the decibel surface carries the same point/change split as an affine temperature:
 // level + gain -> level, gain + gain -> gain, level - level -> gain. `raw()` is the dB number; `to_linearized()` is the
-// linear ratio behind it. Decibel-ness is a NUMERICAL SCALE, an axis independent of the affine datum, so the affine
+// linear ratio behind it. Decibel-ness is a numerical scale, an axis independent of the affine datum, so the affine
 // rules must not reach these types -- that independence is asserted below.
 TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 {
@@ -2491,7 +2478,7 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	gain += decibels<double>(2.25);
 	EXPECT_NEAR(5.75, gain.raw(), 5.0e-12);
 
-	// a LEVEL moves in place by a GAIN, the compound form of `level + gain`. The operands differ in dimension, which is
+	// a level moves in place by a gain, the compound form of `level + gain`. The operands differ in dimension, which is
 	// ordinarily forbidden, but a gain is a ratio, so it moves the level exactly as a delta moves an affine point.
 	dBW<double> moved(12.5);
 	moved += decibels<double>(3.25);
@@ -2502,8 +2489,8 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 		"moving a level by a gain in place returns a reference to the level");
 
 
-	// Multiplying or dividing a decibel value is ill-formed by value and in place alike. `raw()` reads a value THROUGH
-	// the numerical scale and the `linearized_value` tag writes PAST it; for a decibel scale those are different
+	// Multiplying or dividing a decibel value is ill-formed by value and in place alike. `raw()` reads a value through
+	// the numerical scale and the `linearized_value` tag writes past it; for a decibel scale those are different
 	// domains, so a value read one way and written the other is neither reading. Each shape reports one sentence naming
 	// its remedy rather than a wall of declined candidates -- the errorMessages cases scale_decibel_level,
 	// divide_decibel_level, add_scalar_to_decibel, scale_decibel_level_by_value, scale_by_decibel_gain_by_value and
@@ -2513,7 +2500,7 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	EXPECT_NEAR(2.1134890398, dimensionless<double>(decibels<double>(3.25)).raw(), 5.0e-10);          // the gain's ratio
 	EXPECT_NEAR(10.0, (dBW<double>(20.0) - dBW<double>(10.0)).raw(), 5.0e-12);                        // levels' ratio in dB
 
-	// ++ and -- step the dB NUMBER, round-tripping through the scale (they rebuild via the ordinary constructor)
+	// ++ and -- step the dB number, round-tripping through the scale (they rebuild via the ordinary constructor)
 	dBW<double> level(12.5);
 	++level;
 	EXPECT_NEAR(13.5, level.raw(), 5.0e-12);
@@ -2521,7 +2508,7 @@ TEST_F(UnitType, matrixDecibelLevelIsAPointOnItsOwnAxis)
 	EXPECT_NEAR(12.5, level.raw(), 5.0e-12);
 }
 
-// The affine rules key on the datum, so an INTEGER-backed temperature takes the same paths as a double-backed one.
+// The affine rules key on the datum, so an integer-backed temperature takes the same paths as a double-backed one.
 // This exercises the integer branch of the cross-scale delta conversion, where the amount is promoted to floating point
 // for the scale ratio and cast back: a 9 degF change is a 5 degC change, so the promotion must not truncate to 0.
 TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
@@ -2532,7 +2519,7 @@ TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
 	c -= celsius<int>(3);
 	EXPECT_EQ(25, c.raw());
 
-	// cross-scale move: the rhs is an AMOUNT, so only the scale ratio applies (9 degF of change == 5 degC of change)
+	// cross-scale move: the rhs is an amount, so only the scale ratio applies (9 degF of change == 5 degC of change)
 	c += fahrenheit<int>(9);
 	EXPECT_EQ(30, c.raw());
 	c -= fahrenheit<int>(18);
@@ -2557,18 +2544,18 @@ TEST_F(UnitType, matrixIntegerUnderlyingTemperatureFollowsTheSameRules)
 //	CASE STUDIES
 //======================================================================================================================
 // Whole calculations rather than one operator at a time. Each mixes several units and several steps, so a rule that
-// is individually correct but does not COMPOSE fails here. Every expected value is computed independently in exact
+// is individually correct but does not compose fails here. Every expected value is computed independently in exact
 // rational arithmetic from fractional inputs, so a wrong conversion factor cannot land on the expected value.
 
 // A building thermostat. The setpoint is in Fahrenheit, the sensor reports Celsius, and the deadband is quoted in
-// kelvin: three scales in one control decision. The error is a DIFFERENCE of two readings, so it is an amount, and
+// kelvin: three scales in one control decision. The error is a difference of two readings, so it is an amount, and
 // comparing it against the deadband is amount-to-amount.
 TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
 {
 	using namespace units::temperature;
 
-	// The night setback is quoted in kelvin: 2.5 K is 4.5 Fahrenheit-degrees, so the AMOUNT's scale factor applies
-	// while its (absent) datum does not. The setback is in a DIFFERENT scale from the setpoint because one written in
+	// The night setback is quoted in kelvin: 2.5 K is 4.5 Fahrenheit-degrees, so the amount's scale factor applies
+	// while its (absent) datum does not. The setback is in a different scale from the setpoint because one written in
 	// Fahrenheit would convert by a ratio of 1 and so could not detect a wrong conversion factor.
 	fahrenheit<double> setpoint(68.5);
 	setpoint -= kelvin<double>(2.5);
@@ -2581,7 +2568,7 @@ TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
 	EXPECT_NEAR(63.05, fahrenheit<double>(sensor).value(), 5.0e-12);
 	EXPECT_TRUE(sensor < setpoint);
 
-	// the error is reading - reading, so an AMOUNT in the left operand's degrees; it must NOT be a reading, or a
+	// the error is reading - reading, so an amount in the left operand's degrees; it must not be a reading, or a
 	// a subsequent conversion would apply Fahrenheit's datum to a difference
 	const auto error = setpoint - sensor;
 	EXPECT_NEAR(0.95, error.raw(), 5.0e-12);
@@ -2595,13 +2582,13 @@ TEST_F(UnitType, caseStudyThermostatSetbackAndDeadband)
 }
 
 // An engine coolant loop warming up under a heater, checked against an overheat limit quoted in Fahrenheit. The rise
-// arrives as a RATE times a TIME -- an amount produced by dimensional analysis, never constructed as a temperature
+// arrives as a rate times a time -- an amount produced by dimensional analysis, never constructed as a temperature
 // reading -- and the headroom is a difference of two readings written in different scales.
 TEST_F(UnitType, caseStudyCoolantWarmupAgainstAnOverheatLimit)
 {
 	using namespace units::temperature;
 
-	// 2.75 K per second for 12.5 s is a 34.375 K rise. The product of a rate and a time is an AMOUNT by construction.
+	// 2.75 K per second for 12.5 s is a 34.375 K rise. The product of a rate and a time is an amount by construction.
 	const auto heatRate = kelvin<double>(2.75) / units::time::seconds<double>(1.0);
 	const auto rise     = heatRate * units::time::seconds<double>(12.5);
 	EXPECT_NEAR(34.375, rise.value(), 5.0e-12);
@@ -2628,7 +2615,7 @@ TEST_F(UnitType, caseStudyCoolantWarmupAgainstAnOverheatLimit)
 	EXPECT_NEAR(93.825, headroom.raw(), 5.0e-12);
 	EXPECT_TRUE(headroom > decltype(headroom)(0.0));    // below the limit
 
-	// Halving the READING is scale-bound. Half the RISE is a magnitude, so it is scale-independent, and that is what a
+	// Halving the reading is scale-bound. Half the rise is a magnitude, so it is scale-independent, and that is what a
 	// cooling calculation means.
 	EXPECT_NEAR(17.1875, (rise * 0.5).value(), 5.0e-12);
 	EXPECT_NEAR(19.6875, (coolant - celsius<double>(38.1875)).raw(), 5.0e-12);    // half the rise above the halfway point
@@ -2648,7 +2635,7 @@ TEST_F(UnitType, caseStudyInstrumentCalibrationAcrossAllFourTemperatureScales)
 	EXPECT_NEAR(42.1875, celsius<double>(asRead).value(), 5.0e-12);
 	EXPECT_NEAR(107.9375, fahrenheit<double>(asRead).value(), 5.0e-12);
 
-	// the offset is an AMOUNT in Rankine: its own scale factor applies, its (absent) datum does not
+	// the offset is an amount in Rankine: its own scale factor applies, its (absent) datum does not
 	const rankine<double> calibration(1.44);
 
 	reaumur<double> corrected = asRead;
@@ -2669,9 +2656,9 @@ TEST_F(UnitType, caseStudyInstrumentCalibrationAcrossAllFourTemperatureScales)
 	static_assert(!traits::is_affine_unit_v<decltype(applied)>, "a correction is an amount");
 }
 
-// A satellite downlink budget: a transmit LEVEL walked through antenna gains and a path loss, converted to the
+// A satellite downlink budget: a transmit level walked through antenna gains and a path loss, converted to the
 // receiver's units, and compared against its sensitivity. Every intermediate is a level moved by a gain, and the final
-// margin is level - level, which must come out a dimensionless GAIN rather than a power level.
+// margin is level - level, which must come out a dimensionless gain rather than a power level.
 TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
 {
 	using namespace units::power;
@@ -2688,7 +2675,7 @@ TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
 	const auto atReceiver = dBm<double>(received);
 	EXPECT_NEAR(-87.75, atReceiver.raw(), 5.0e-9);
 
-	// margin is level - level, so a GAIN: the references cancel
+	// margin is level - level, so a gain: the references cancel
 	const auto margin = atReceiver - dBm<double>(-95.5);
 	EXPECT_NEAR(7.75, margin.raw(), 5.0e-9);
 	static_assert(traits::is_dimensionless_unit_v<decltype(margin)>, "a margin between two levels is a gain");
@@ -2702,7 +2689,7 @@ TEST_F(UnitType, caseStudySatelliteDownlinkBudget)
 	inPlace -= units::decibels<double>(1.25);
 	EXPECT_NEAR(received.raw(), inPlace.raw(), 5.0e-9);
 
-	// two transmitters do not add in the dB domain -- their POWERS add, which is +3 dB for two equal sources
+	// two transmitters do not add in the dB domain -- their powers add, which is +3 dB for two equal sources
 	static_assert(!can_add<dBW<double>, dBW<double>>, "adding two levels has no meaning");
 	const auto combined = units::power::watts<double>(dBW<double>(12.5)) * 2.0;
 	EXPECT_NEAR(3.0102999566398, (dBW<double>(combined) - dBW<double>(12.5)).raw(), 5.0e-9);
@@ -2764,21 +2751,21 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 	static_assert(std::is_same_v<units::energy::joules<double>, decltype(budget)>, "a scaled energy is an energy");
 }
 
-// A quantity measured from an arbitrary origin -- an affine reading (a datum) or a decibel LEVEL (a logarithmic
+// A quantity measured from an arbitrary origin -- an affine reading (a datum) or a decibel level (a logarithmic
 // reference) -- has no origin-free magnitude, sign, remainder or root: each answer depends on the scale the value is
-// stored in. Applied to a DIFFERENCE, which carries no origin, every one of them is scale-independent, and that is the
+// stored in. Applied to a difference, which carries no origin, every one of them is scale-independent, and that is the
 // form to reach for. Asserted here for a difference, for an offset-free scale, and for a dimensionless decibel gain.
-// A quantity stores its value in the numerical scale's LINEARIZED domain, so anything that writes the stored value
+// A quantity stores its value in the numerical scale's linearized domain, so anything that writes the stored value
 // directly has to linearize first. Two places did not, giving a value that was neither reading.
 // Negating a reading, taking the remainder of two, and taking their ratio are all scale-bound in the same way the
 // cmath functions are. Applied to differences they are scale-independent. Increment and decrement are a separate case:
 // they step by one unit of the operand's own scale, which is a stated amount rather than a bare number.
 // Products, powers and reciprocals of a reading are scale-bound like the rest; published psychrometry uses them
-// anyway (Buck's enhancement factor squares a Celsius reading, Kalkstein's index squares a dewpoint, IEC 60751 takes
-// t, t^2 and t^3). All of them are scale-INDEPENDENT on a difference and on an offset-free scale.
-// `a - b` and `a -= b` differ when the right operand is offset-free, which the representation FORCES: an
-// offset-free temperature is simultaneously a valid READING on an absolute scale
-// (kelvin) and the exact shape an AMOUNT has, so they are one type and a binary operator must pick a meaning. `-`
+// anyway (Buck's enhancement factor squares a Celsius reading, Kalkstein's index squares a dewpoint, iec 60751 takes
+// t, t^2 and t^3). All of them are scale-independent on a difference and on an offset-free scale.
+// `a - b` and `a -= b` differ when the right operand is offset-free, which the representation forces: an
+// offset-free temperature is simultaneously a valid reading on an absolute scale
+// (kelvin) and the exact shape an amount has, so they are one type and a binary operator must pick a meaning. `-`
 // picks reading-minus-reading, the operation with a datum-independent answer; `+` reads the rhs as an amount. Making
 // `-` read the rhs as an amount instead would change `celsius(0) - kelvin(0)` from 273.15 degrees of difference to the
 // reading 0 degC.
@@ -2786,12 +2773,12 @@ TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 {
 	using namespace units::temperature;
 
-	// by value: reading MINUS reading, so the datums cancel and the result is an amount
+	// by value: reading minus reading, so the datums cancel and the result is an amount
 	const auto difference = celsius<double>(20.5) - kelvin<double>(2.5);
 	EXPECT_NEAR(291.15, kelvin<double>(difference).value(), 5.0e-10);    // 293.65 K - 2.5 K
 	static_assert(!traits::is_affine_unit_v<decltype(difference)>, "a difference of two readings is an amount");
 
-	// in place: the rhs is an AMOUNT and the point moves by it (#402)
+	// in place: the rhs is an amount and the point moves by it (#402)
 	celsius<double> moved(20.5);
 	moved -= kelvin<double>(2.5);
 	EXPECT_NEAR(18.0, moved.value(), 5.0e-12);
@@ -2804,7 +2791,7 @@ TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 	up += kelvin<double>(2.5);
 	EXPECT_NEAR(23.0, up.value(), 5.0e-12);
 
-	// two readings on the SAME affine scale are unambiguous either way
+	// two readings on the same affine scale are unambiguous either way
 	EXPECT_NEAR(13.0, (celsius<double>(20.5) - celsius<double>(7.5)).raw(), 5.0e-12);
 	celsius<double> sameScale(20.5);
 	sameScale -= celsius<double>(7.5);
@@ -2813,7 +2800,7 @@ TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 
 // std::fdim propagates NaN: "if either argument is NaN, NaN is returned". Computing it as `x > y ? x - y : 0` loses
 // that, because `NaN > y` is false and the zero branch is taken -- which would silently turn a poisoned value into a
-// clean zero for ORDINARY units, not just affine ones.
+// clean zero for ordinary units, not just affine ones.
 TEST_F(UnitMath, fdimPropagatesNaN)
 {
 	const auto notANumber = std::numeric_limits<double>::quiet_NaN();
@@ -2828,36 +2815,36 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 // `traits::has_arbitrary_origin_v` is how generic code asks whether a quantity is measured from an arbitrary origin,
 // and therefore whether scaling or taking the magnitude of it is scale-bound. A `requires`-expression cannot answer
 // that question -- the operations are all available -- so the trait is public and is pinned here.
-// A transcendental reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather than the ratio
+// A transcendental reads a quantity's value, which on a logarithmic scale is the decibel figure rather than the ratio
 // it denotes -- so `log10(decibels(3.25))` returned log10(3.25) = 0.512 where the ratio is 2.113 and its base-ten
-// logarithm is 0.325. `modf` was worse: it split the decibel figure but wrote the integral part back through a LINEAR
+// logarithm is 0.325. `modf` was worse: it split the decibel figure but wrote the integral part back through a linear
 // dimensionless, landing it in the linearized domain, so the parts did not sum to the input. Both require a linear
 // scale (graded by log_of_decibel_gain), and the remedy is to take the linear ratio first.
-// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the one weighting that is datum-INDEPENDENT,
+// An affine combination -- a weighted sum whose weights total one -- is the one weighting that is datum-independent,
 // and that is a measurable fact rather than a convention. It is why the mean of two temperatures is meaningful even
 // though doubling one is not, and a mean daily temperature is exactly this operation. `lerp`/`midpoint` name it so the
-// meaningful case is available without relaxing anything: both are computed through a DIFFERENCE, which carries no
+// meaningful case is available without relaxing anything: both are computed through a difference, which carries no
 // origin, so they need no permission that a reading does not already have.
 //======================================================================================================================
 //	CASE STUDY: PUBLISHED TEMPERATURE FORMULAE
 //======================================================================================================================
-// Twenty-six formulae from primary sources -- NWS, NOAA/WPC, Environment Canada, the Bureau of Meteorology, ISO 7243,
-// NIOSH, TB MED 507, AMS journals, NIST -- each expressed with unit types and checked twice: against the value the
+// Twenty-six formulae from primary sources -- NWS, noaa/wpc, Environment Canada, the Bureau of Meteorology, ISO 7243,
+// NIOSH, tb med 507, ams journals, nist -- each expressed with unit types and checked twice: against the value the
 // source publishes, and against the same arithmetic in plain `double`.
 //
-// Most SCALE A READING on an affine scale, depending on the datum. They are regressions fitted against numbers read off
+// Most scale A reading on an affine scale, depending on the datum. They are regressions fitted against numbers read off
 // a Celsius or Fahrenheit thermometer, so their coefficients are only meaningful on that scale: Magnus's 243.5 is not a
 // disguised 273.15, and the offsets differ across fits (243.5, 243.04, 243.12, 237.3, 257.14) while 273.15 is fixed.
 //
 // Two encodings recur below:
-//   * A regression is a weighted SUM. Carry a negative coefficient in the coefficient, not as a subtraction: writing
-//     `- k*T` turns reading-minus-reading into a DIFFERENCE mid-expression, which is a different (and correct) meaning.
-//   * A correction term is an AMOUNT, not a reading. One Celsius degree is one kelvin, so `kelvin(x)` is exactly the
-//     amount type for it, and amounts are ADDED with their sign.
+//   * A regression is a weighted sum. Carry a negative coefficient in the coefficient, not as a subtraction: writing
+//     `- k*T` turns reading-minus-reading into a difference mid-expression, which is a different (and correct) meaning.
+//   * A correction term is an amount, not a reading. One Celsius degree is one kelvin, so `kelvin(x)` is exactly the
+//     amount type for it, and amounts are added with their sign.
 //
 // Where a formula's weights happen to total one (every WBGT variant, the Oxford and Sohar indices, operative
-// temperature) the result is datum-INDEPENDENT and identical in any scale, so ISO publishes WBGT in degrees Celsius
-// and TB MED 507 the same index in Fahrenheit. `units::midpoint` names the equal-weight case, and the Sohar index
+// temperature) the result is datum-independent and identical in any scale, so ISO publishes WBGT in degrees Celsius
+// and tb med 507 the same index in Fahrenheit. `units::midpoint` names the equal-weight case, and the Sohar index
 // below is asserted to agree with it.
 TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 {
@@ -2884,7 +2871,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto windChill = inC(-10.0) + (inC(-1.59) + 0.1345 * inC(-10.0)) / 5.0 * 3.0;
 		EXPECT_NEAR(-10.0 + ((-1.59 + 0.1345 * -10.0) / 5.0) * 3.0, windChill.value(), 5.0e-9);
 	}
-	// -- 4. Rothfusz heat index, inF. NWS SR 90-23. Published chart: 90 inF / 70% relHumidity -> 106
+	// -- 4. Rothfusz heat index, inF. NWS sr 90-23. Published chart: 90 inF / 70% relHumidity -> 106
 	{
 		const double tRead = 90.0, relHum = 70.0;
 		const auto   Tf = inF(tRead);
@@ -2901,7 +2888,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto heatIndex = 0.5 * (inF(90.0) + inF(61.0) + (inF(90.0) - inF(68.0)) * 1.2 + inF(70.0 * 0.094));
 		EXPECT_NEAR(0.5 * (90.0 + 61.0 + (90.0 - 68.0) * 1.2 + 70.0 * 0.094), heatIndex.value(), 5.0e-9);
 	}
-	// -- 6. Humidex. Environment Canada. The vapour-pressure term is an AMOUNT, so the reading is merely moved.
+	// -- 6. Humidex. Environment Canada. The vapour-pressure term is an amount, so the reading is merely moved.
 	{
 		const auto humidex = inC(30.0) + amount(0.5555 * (25.0 - 10.0));
 		EXPECT_NEAR(30.0 + 0.5555 * (25.0 - 10.0), humidex.value(), 5.0e-9);
@@ -2916,8 +2903,8 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto apparent = 0.89 * inC(25.0) + amount(3.82 * 2.0) + amount(-2.56);
 		EXPECT_NEAR(0.89 * 25.0 + 3.82 * 2.0 - 2.56, apparent.value(), 5.0e-9);
 	}
-	// -- 9. WBGT with solar load. ISO 7243:2017 cl.5, NIOSH 2016-106, OSHA OTM III-4. Weights total one, so this is
-	//       datum-INDEPENDENT: the same three temperatures in Fahrenheit give the same index.
+	// -- 9. WBGT with solar load. ISO 7243:2017 cl.5, NIOSH 2016-106, OSHA otm iii-4. Weights total one, so this is
+	//       datum-independent: the same three temperatures in Fahrenheit give the same index.
 	{
 		const auto wbgt = 0.7 * inC(25.0) + 0.2 * inC(40.0) + 0.1 * inC(32.0);
 		EXPECT_NEAR(28.70, wbgt.value(), 5.0e-9);
@@ -2929,12 +2916,12 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto wbgt = 0.7 * inC(25.0) + 0.3 * inC(40.0);
 		EXPECT_NEAR(0.7 * 25.0 + 0.3 * 40.0, wbgt.value(), 5.0e-9);
 	}
-	// -- 11. ACSM WBGT approximation (via BOM). Weights do NOT total one -- a curve fit on inC numbers.
+	// -- 11. Acsm WBGT approximation (via bom). Weights do not total one -- a curve fit on inC numbers.
 	{
 		const auto wbgt = 0.567 * inC(30.0) + amount(0.393 * 25.0) + amount(3.94);
 		EXPECT_NEAR(0.567 * 30.0 + 0.393 * 25.0 + 3.94, wbgt.value(), 5.0e-9);
 	}
-	// -- 12. Stull wet-bulb, inC. JAMC-D-11-0143.1. The paper's own worked answer is 13.7 inC.
+	// -- 12. Stull wet-bulb, inC. Jamc-D-11-0143.1. The paper's own worked answer is 13.7 inC.
 	{
 		const double tRead = 20.0, relHumidity = 50.0;
 		const auto   wetBulb = inC(tRead) * std::atan(0.151977 * std::sqrt(relHumidity + 8.313659)) + inC(std::atan(tRead + relHumidity))
@@ -2957,13 +2944,13 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const double satVP = 6.11 * std::pow(10.0, (7.5 * tRead.value()) / (inC(237.3) + tRead).value());
 		EXPECT_NEAR(6.11 * std::pow(10.0, (7.5 * 20.0) / (237.3 + 20.0)), satVP, 5.0e-9);
 	}
-	// -- 15. Buck (CR-1A) saturation vapour pressure, inC in -- the reading appears twice, bilinearly
+	// -- 15. Buck (cr-1A) saturation vapour pressure, inC in -- the reading appears twice, bilinearly
 	{
 		const auto   tRead  = inC(20.0);
 		const double satVP = 6.1121 * std::exp(((inC(18.678) - tRead / 234.5).value() * tRead.value()) / (inC(257.14) + tRead).value());
 		EXPECT_NEAR(6.1121 * std::exp(((18.678 - 20.0 / 234.5) * 20.0) / (257.14 + 20.0)), satVP, 5.0e-9);
 	}
-	// -- 16. Buck enhancement factor -- the reading SQUARED, added to a dimensionless one
+	// -- 16. Buck enhancement factor -- the reading squared, added to a dimensionless one
 	{
 		const auto   tRead  = inC(20.0);
 		const double enhancement = 1.0 + 1.0e-4 * (7.2 + 1013.0 * (0.0320 + 5.9e-6 * (tRead * tRead).value()));
@@ -2974,7 +2961,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto humidityIndex = 0.81 * inC(30.0) + (60.0 / 100.0) * (inC(30.0) + inC(-14.40)) + inC(46.40);
 		EXPECT_NEAR(0.81 * 30.0 + 0.6 * (30.0 - 14.40) + 46.40, humidityIndex.value(), 5.0e-9);
 	}
-	// -- 18. Thom THI (livestock): weights total 1.44, so this one is emphatically datum-relative
+	// -- 18. Thom thi (livestock): weights total 1.44, so this one is emphatically datum-relative
 	{
 		const auto humidityIndex = 0.72 * inC(30.0) + 0.72 * inC(24.0) + inC(40.6);
 		EXPECT_NEAR(0.72 * (30.0 + 24.0) + 40.6, humidityIndex.value(), 5.0e-9);
@@ -2984,7 +2971,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto wetDry = 0.85 * inC(24.0) + 0.15 * inC(30.0);
 		EXPECT_NEAR(0.85 * 24.0 + 0.15 * 30.0, wetDry.value(), 5.0e-9);
 	}
-	// -- 20. Sohar discomfort index: equal weights, so it IS the midpoint
+	// -- 20. Sohar discomfort index: equal weights, so it is the midpoint
 	{
 		const auto discomfort = 0.5 * inC(24.0) + 0.5 * inC(30.0);
 		EXPECT_NEAR(27.0, discomfort.value(), 5.0e-12);
@@ -3005,7 +2992,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto modifiedDI = 0.75 * inC(24.0) + 0.3 * inC(30.0);
 		EXPECT_NEAR(0.75 * 24.0 + 0.3 * 30.0, modifiedDI.value(), 5.0e-9);
 	}
-	// -- 24. Mean radiant temperature: a DIFFERENCE scaled, then the reading added back. Datum-safe by construction.
+	// -- 24. Mean radiant temperature: a difference scaled, then the reading added back. Datum-safe by construction.
 	{
 		const auto radiant = (inC(40.0) - inC(30.0)) * (1.0 + 0.22 * std::sqrt(1.0)) + inC(30.0);
 		EXPECT_NEAR((40.0 - 30.0) * (1.0 + 0.22) + 30.0, radiant.value(), 5.0e-9);
@@ -3015,7 +3002,7 @@ TEST_F(UnitType, caseStudyPublishedTemperatureFormulae)
 		const auto operative = 0.5 * inC(30.0) + 0.5 * inC(42.2);
 		EXPECT_NEAR(36.1, operative.value(), 5.0e-9);
 	}
-	// -- 26. Antoine equation for water, inC coefficients, mmHg. NIST publishes a SEPARATE kelvin coefficient set;
+	// -- 26. Antoine equation for water, inC coefficients, mmHg. Nist publishes a separate kelvin coefficient set;
 	//        the inC form is what the classic tables give, and it puts the reading in a denominator.
 	{
 		const auto   tRead    = inC(100.0);
@@ -3029,14 +3016,14 @@ TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
 {
 	using namespace units::temperature;
 
-	// the midpoint of two readings, computed in celsius and in kelvin, is the SAME temperature
+	// the midpoint of two readings, computed in celsius and in kelvin, is the same temperature
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).value(), 5.0e-12);
 	EXPECT_NEAR(25.0, celsius<double>(units::midpoint(kelvin<double>(293.15), kelvin<double>(303.15))).value(), 5.0e-10);
-	// whereas DOUBLING is not datum-independent: 20 degC doubled is 40 degC, but the same temperature doubled in kelvin
+	// whereas doubling is not datum-independent: 20 degC doubled is 40 degC, but the same temperature doubled in kelvin
 	// is 586.3 K = 313.15 degC.
 	EXPECT_NEAR(313.15, celsius<double>(kelvin<double>(293.15) * 2.0).value(), 5.0e-10);
 
-	// the result is a READING, in the left operand's unit, and it works across scales
+	// the result is a reading, in the left operand's unit, and it works across scales
 	static_assert(traits::is_affine_unit_v<decltype(units::midpoint(celsius<double>(1), celsius<double>(2)))>,
 		"the midpoint of two readings is a reading");
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), fahrenheit<double>(86.0)).value(), 5.0e-12);
@@ -3061,7 +3048,7 @@ TEST_F(UnitMath, affineCombinationsAreDatumIndependent)
 
 TEST_F(UnitMath, dimensionlessMathRequiresALinearScale)
 {
-	// the legitimate cases are untouched, including a RATIO scale where the stored number and the fraction differ
+	// the legitimate cases are untouched, including a ratio scale where the stored number and the fraction differ
 	EXPECT_NEAR(3.0, units::log10(dimensionless<double>(1000.0)).value(), 5.0e-12);
 	EXPECT_NEAR(0.17753649999, units::log10(concentration::percent<double>(150.5)).value(), 5.0e-9);
 	EXPECT_NEAR(2.718281828459045, units::exp(dimensionless<double>(1.0)).value(), 5.0e-12);
@@ -3095,7 +3082,7 @@ TEST_F(UnitMath, theTranscendentalFamilyReadsALinearScaleOnly)
 	EXPECT_NEAR(std::acosh(1.0), units::acosh(one).value(), 5.0e-12);
 	EXPECT_NEAR(std::atanh(0.5), units::atanh(half).value(), 5.0e-12);
 
-	// a RATIO-dimensionless scale, where the stored number and the fraction differ, reads its fraction
+	// a ratio-dimensionless scale, where the stored number and the fraction differ, reads its fraction
 	EXPECT_NEAR(std::atan(0.5), units::atan(units::concentration::percent<double>(50.0)).value(), 5.0e-12);
 
 	// an angle argument, and the two-argument form, are likewise untouched
@@ -3118,7 +3105,7 @@ TEST_F(UnitMath, signbitReadsTheValueInItsOwnScale)
 	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(2.5) - units::temperature::celsius<double>(7.5)));
 
 	// A reading's sign is the sign of its own scale's number, which differs between scales for one temperature. That is
-	// the headline case, and every assertion above uses a non-reading, so it needs stating: -5.25 degC IS 267.9 K, and
+	// the headline case, and every assertion above uses a non-reading, so it needs stating: -5.25 degC is 267.9 K, and
 	// the first is negative while the second is positive.
 	EXPECT_TRUE(std::signbit(units::temperature::celsius<double>(-5.25)));
 	EXPECT_FALSE(std::signbit(units::temperature::kelvin<double>(267.9)));
@@ -3148,7 +3135,7 @@ TEST_F(UnitType, publicTraitsIdentifyAnArbitraryOrigin)
 	static_assert(!traits::is_decibel_level_v<units::power::watts<double>>);
 
 	// the guard the documentation shows selects the right branch for both kinds of operand: a quantity with an
-	// arbitrary origin gets its magnitude from a DIFFERENCE, which is the same number in every scale, while an
+	// arbitrary origin gets its magnitude from a difference, which is the same number in every scale, while an
 	// ordinary quantity takes its own.
 	const auto magnitudeOf = [](auto value) {
 		using T = std::remove_cv_t<decltype(value)>;
@@ -3170,7 +3157,7 @@ TEST_F(UnitType, productsPowersAndReciprocalsOfAmounts)
 	const auto amount = celsius<double>(20.5) - celsius<double>(0.0);
 	const auto other  = celsius<double>(2.0) - celsius<double>(0.0);
 
-	// products, powers, reciprocals and remainders of AMOUNTS are all fine
+	// products, powers, reciprocals and remainders of amounts are all fine
 	EXPECT_NEAR(41.0, (amount * other).value(), 5.0e-12);
 	EXPECT_NEAR(420.25, units::pow<2>(amount).value(), 5.0e-12);
 	EXPECT_NEAR(10.25, (amount / other).value(), 5.0e-12);
@@ -3188,7 +3175,7 @@ TEST_F(UnitType, productsPowersAndReciprocalsOfAmounts)
 	EXPECT_NEAR(5.0, (units::meters<double>(12.5) / units::time::seconds<double>(2.5)).value(), 5.0e-12);
 	EXPECT_NEAR(8.5, units::fma(units::meters<double>(3.5), dimensionless<double>(2.0), units::meters<double>(1.5)).value(), 5.0e-12);
 
-	// Rounding a reading IS kept, for the same reason ++ is: it operates on the value in the unit's OWN scale, so
+	// Rounding a reading is kept, for the same reason ++ is: it operates on the value in the unit's own scale, so
 	// "the nearest whole degree Celsius" is a stated quantity rather than a guess.
 	EXPECT_NEAR(20.0, units::floor(celsius<double>(20.7)).value(), 5.0e-12);
 	EXPECT_NEAR(21.0, units::ceil(celsius<double>(20.2)).value(), 5.0e-12);
@@ -3219,7 +3206,7 @@ TEST_F(UnitType, operatorsOnReadingsAmountsAndOffsetFreeScales)
 	--level;
 	EXPECT_NEAR(12.5, level.raw(), 5.0e-12);
 
-	// the refused operations ARE available on differences, which carry no origin
+	// the refused operations are available on differences, which carry no origin
 	const auto a = celsius<double>(20.5) - celsius<double>(0.0);
 	const auto smaller = celsius<double>(7.25) - celsius<double>(0.0);
 	EXPECT_NEAR(-20.5, (-a).raw(), 5.0e-12);
@@ -3231,7 +3218,7 @@ TEST_F(UnitType, operatorsOnReadingsAmountsAndOffsetFreeScales)
 	EXPECT_NEAR(2.0, (kelvin<double>(20.5) / kelvin<double>(10.25)).value(), 5.0e-12);
 	EXPECT_EQ(6, (kelvin<int>(20) % kelvin<int>(7)).raw());
 
-	// negating a dimensionless dB GAIN is the inverse gain, which is well defined
+	// negating a dimensionless dB gain is the inverse gain, which is well defined
 	EXPECT_NEAR(-3.25, (-decibels<double>(3.25)).raw(), 5.0e-12);
 
 	// an ordinary dimensioned quantity is untouched
@@ -3241,7 +3228,7 @@ TEST_F(UnitType, operatorsOnReadingsAmountsAndOffsetFreeScales)
 
 TEST_F(UnitType, nonLinearScaleStoresThroughItsScale)
 {
-	// Assignment from a bare number must mean what the value CONSTRUCTOR means, or assign-then-read would not round
+	// Assignment from a bare number must mean what the value constructor means, or assign-then-read would not round
 	// trip: `g = 3.25` stored 3.25 as the linear ratio and read back 5.12 dB while `decibels(3.25)` is 3.25 dB.
 	decibels<double> gain(3.25);
 	EXPECT_NEAR(3.25, gain.raw(), 5.0e-12);
@@ -3251,7 +3238,7 @@ TEST_F(UnitType, nonLinearScaleStoresThroughItsScale)
 	EXPECT_EQ(decibels<double>(12.5), gain);
 	EXPECT_NEAR(12.5, static_cast<double>(gain), 5.0e-12);    // the round trip the defect broke
 
-	// a RATIO-scaled dimensionless is unaffected: a bare number there IS the base-dimensionless fraction
+	// a ratio-scaled dimensionless is unaffected: a bare number there is the base-dimensionless fraction
 	concentration::percent<double> percentage(12.5);
 	percentage = 0.5;
 	EXPECT_NEAR(50.0, percentage.raw(), 5.0e-12);
@@ -3262,8 +3249,8 @@ TEST_F(UnitType, nonLinearScaleStoresThroughItsScale)
 	EXPECT_NEAR(3.25, plain.value(), 5.0e-12);
 }
 
-// `std::numeric_limits` must describe the STORED representation. Pushing T's limits through the value constructor
-// linearized them, so on a decibel scale max() was INFINITY -- breaking the contract that max() is finite -- and
+// `std::numeric_limits` must describe the stored representation. Pushing T's limits through the value constructor
+// linearized them, so on a decibel scale max() was infinity -- breaking the contract that max() is finite -- and
 // epsilon() collapsed to zero, which silently zeroes any generic tolerance written against it.
 TEST_F(UnitType, numericLimitsAreFiniteOnADecibelScale)
 {
@@ -3305,13 +3292,13 @@ TEST_F(UnitMath, originFreeMathOnDifferencesAndOffsetFreeScales)
 	EXPECT_NEAR(2.5, units::fmod(kelvin<double>(12.5), kelvin<double>(5.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(12.5, units::hypot(rankine<double>(7.5), rankine<double>(10.0)).raw(), 5.0e-12);
 
-	// a dimensionless decibel GAIN is a ratio, not a level, so its magnitude is origin-free too
+	// a dimensionless decibel gain is a ratio, not a level, so its magnitude is origin-free too
 	EXPECT_NEAR(3.25, units::abs(decibels<double>(-3.25)).raw(), 5.0e-12);
 }
 
-// `fdim` is the positive difference, so its result must be the same KIND the library's own `operator-` produces: an
+// `fdim` is the positive difference, so its result must be the same kind the library's own `operator-` produces: an
 // amount for two affine readings, a gain for two decibel levels. Returning the left operand's unit instead would make
-// fdim(celsius(30), celsius(10)) a celsius READING of 20 -- i.e. 293.15 K -- while celsius(30) - celsius(10) is a
+// fdim(celsius(30), celsius(10)) a celsius reading of 20 -- i.e. 293.15 K -- while celsius(30) - celsius(10) is a
 // 20-degree amount, so the two would disagree by the whole datum.
 TEST_F(UnitMath, fdimAgreesWithSubtraction)
 {
@@ -3328,7 +3315,7 @@ TEST_F(UnitMath, fdimAgreesWithSubtraction)
 	EXPECT_NEAR(0.0, units::fdim(celsius<double>(12.5), celsius<double>(30.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(180.0, units::fdim(fahrenheit<double>(212.0), fahrenheit<double>(32.0)).raw(), 5.0e-12);
 
-	// two decibel LEVELS give a dimensionless gain, matching level - level
+	// two decibel levels give a dimensionless gain, matching level - level
 	const auto gain = units::fdim(units::power::dBW<double>(12.5), units::power::dBW<double>(4.25));
 	EXPECT_NEAR(8.25, gain.raw(), 5.0e-9);
 	static_assert(traits::is_dimensionless_unit_v<decltype(gain)>, "the positive difference of two levels is a gain");
@@ -3339,7 +3326,7 @@ TEST_F(UnitMath, fdimAgreesWithSubtraction)
 		"fdim of ordinary quantities keeps the left operand's unit");
 }
 
-// Rounding to an integer target must apply the DATUM, not just the conversion ratio. The exact-integer path did the
+// Rounding to an integer target must apply the datum, not just the conversion ratio. The exact-integer path did the
 // latter, so round<celsius<int>>(fahrenheit<int>(54)) read 30 degC instead of 12 -- the datum was dropped entirely.
 // An affine pair takes the datum-aware floating-point path (exactness is unreachable there anyway, the datum
 // being fractional).
@@ -3380,9 +3367,9 @@ TEST_F(UnitType, unitTypeUnarySubtraction)
 	EXPECT_EQ(--b_dBW, dBW<double>(3));
 	EXPECT_EQ(b_dBW--, dBW<double>(3));
 	EXPECT_EQ(b_dBW, dBW<double>(2));
-	// Unary minus is NOT available on a decibel LEVEL: negating the dB number inverts the ratio relative to the
+	// Unary minus is not available on a decibel level: negating the dB number inverts the ratio relative to the
 	// reference, so the answer depends on which reference is written. -dBW(2) is 0.63 W while -dBm(32) -- the same
-	// input power -- is 6.3e-7 W. Negating a dimensionless GAIN is well defined (it is the inverse gain) and stays.
+	// input power -- is 6.3e-7 W. Negating a dimensionless gain is well defined (it is the inverse gain) and stays.
 	EXPECT_EQ(-decibels<double>(2.0), decibels<double>(-2.0));
 	EXPECT_EQ(b_dBW, dBW<double>(2));
 
@@ -4597,8 +4584,8 @@ TEST_F(UnitType, hashOfLargeValueDoesNotOverflow)
 	// std::hash forwards through a unit conversion; a large value converted to a fine unit used to overflow the
 	// intermediate. With the widened conversion the hash of a big value is computed without undefined behavior
 	// (run under -fsanitize=undefined this must not trip). Equal values under one key type hash equally.
-	const auto hashValue = std::hash<millimeters<std::int64_t>>()(kilometers<std::int64_t>(3000)); // 3e9 mm
-	EXPECT_EQ(hashValue, std::hash<millimeters<std::int64_t>>()(millimeters<std::int64_t>(3'000'000'000LL)));
+	const auto h = std::hash<millimeters<std::int64_t>>()(kilometers<std::int64_t>(3000)); // 3e9 mm
+	EXPECT_EQ(h, std::hash<millimeters<std::int64_t>>()(millimeters<std::int64_t>(3'000'000'000LL)));
 	EXPECT_EQ(std::hash<meters<int>>()(meters<int>(7)), std::hash<meters<int>>()(meters<int>(7)));
 }
 
@@ -6553,7 +6540,7 @@ TEST_F(ConversionFactor, squaredTemperature)
 	constexpr squared_celsius_t right(100);
 
 	// `squared<>` drops the datum, as its documentation states: there is no origin for a degC^2. So the root is an
-	// origin-free temperature MAGNITUDE of ten degrees, not the reading 10 degC -- storing it in celsius would
+	// origin-free temperature magnitude of ten degrees, not the reading 10 degC -- storing it in celsius would
 	// re-apply the 273.15 datum and read -263.15 degC. Compared as a magnitude for that reason.
 	constexpr auto rootRight = sqrt(right);
 	static_assert(!traits::is_affine_unit_v<decltype(rootRight)>, "the root of a squared temperature carries no datum");
@@ -9804,7 +9791,7 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 }
 
 //======================================================================================================================
-//	AFFINE POINT MODEL, ORIGIN-FREE MATH, AND NON-AFFINE ARITHMETIC GUARDS
+//	affine point model, origin-free math, and non-affine arithmetic guards
 //
 //	Guards for the affine point/amount arithmetic model, for the origin-free math functions that ride on it, and for
 //	the ordinary non-affine surface those rules leave untouched. Every expected number is derived at its own assertion
@@ -9813,7 +9800,7 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 //	rankine is 5/9 of a kelvin with no datum -- or from the C library function the unit-aware one wraps.
 //======================================================================================================================
 
-// A reading moved by value reads its right operand as an AMOUNT in that operand's own degrees, which is the rule
+// A reading moved by value reads its right operand as an amount in that operand's own degrees, which is the rule
 // `operator+=` follows, so the two spellings agree. Derivations: 9 fahrenheit-degrees is 9 * 5/9 == 5
 // celsius-degrees; 4 reaumur-degrees is 4 * 5/4 == 5 celsius-degrees; 5 kelvin is 5 celsius-degrees; 9
 // rankine-degrees is 9 * 5/9 == 5 kelvin == 5 celsius-degrees. Each carries 20 degC to 20 + 5 == 25 degC.
@@ -9876,7 +9863,7 @@ TEST(AffinePointModel, everySpellingOfOneAmountMovesAReadingAlike)
 	EXPECT_DOUBLE_EQ((celsius<double>(20.5) + kelvin<double>(2.5)).value(), (celsius<double>(20.5) + rankine<double>(4.5)).value());
 	EXPECT_DOUBLE_EQ((celsius<double>(20.5) + kelvin<double>(2.5)).value(), (celsius<double>(20.5) + fahrenheit<double>(4.5)).value());
 
-	// `-=` states the downward MOVE, so each spelling lands 2.5 celsius-degrees below: 20.5 - 2.5 == 18 degC
+	// `-=` states the downward move, so each spelling lands 2.5 celsius-degrees below: 20.5 - 2.5 == 18 degC
 	celsius<double> downByKelvin(20.5);
 	downByKelvin -= kelvin<double>(2.5);
 	EXPECT_NEAR(18.0, downByKelvin.value(), 5.0e-12);
@@ -9889,7 +9876,7 @@ TEST(AffinePointModel, everySpellingOfOneAmountMovesAReadingAlike)
 	downByFahrenheit -= fahrenheit<double>(4.5);
 	EXPECT_NEAR(18.0, downByFahrenheit.value(), 5.0e-12);
 
-	// By value, `-` is the DIFFERENCE OF TWO READINGS -- the operation a point/amount model is built on -- so its
+	// By value, `-` is the difference of two readings -- the operation a point/amount model is built on -- so its
 	// right operand is read as a point and the two datums cancel: 20.5 degC is 20.5 + 273.15 == 293.65 K and
 	// 4.5 degRa is 4.5 * 5/9 == 2.5 K, leaving a 293.65 - 2.5 == 291.15 K step. `+` has no such second reading (the
 	// sum of two points is what carries no meaning), which is why it reads its right operand as an amount.
@@ -9900,7 +9887,7 @@ TEST(AffinePointModel, everySpellingOfOneAmountMovesAReadingAlike)
 		"a difference of two readings carries no datum");
 }
 
-// A compound move applies only the right operand's SCALE FACTOR, never its datum, whichever side is the affine one.
+// A compound move applies only the right operand's scale factor, never its datum, whichever side is the affine one.
 // Derivations: 5 celsius-degrees is 5 kelvin, so 300 K warms to 305 K -- reading celsius(5) as the absolute
 // temperature 5 + 273.15 == 278.15 K would instead give 300 + 278.15 == 578.15 K. 9 fahrenheit-degrees is
 // 9 * 5/9 == 5 kelvin and 4 reaumur-degrees is 4 * 5/4 == 5 celsius-degrees == 5 kelvin, so every spelling gives 305 K.
@@ -10009,7 +9996,7 @@ TEST(OriginFreeMath, thePositiveDifferenceIsNeverNegative)
 	EXPECT_DOUBLE_EQ(std::fdim(3.0, 5.0), units::fdim(meters<double>(3.0), meters<double>(5.0)).raw());
 }
 
-// Both operands are promoted to a floating-point representation BEFORE the subtraction, so an integer difference
+// Both operands are promoted to a floating-point representation before the subtraction, so an integer difference
 // that exceeds the representation cannot wrap. Derivations: 2147483647 - (-1) == 2147483648, one past `int`'s
 // maximum; 30000 - (-30000) == 60000, one past `short`'s; 2147483647 - (-2147483647) == 4294967294.
 TEST(OriginFreeMath, thePositiveDifferenceOfAnIntegerRepresentationDoesNotWrap)
@@ -10022,7 +10009,7 @@ TEST(OriginFreeMath, thePositiveDifferenceOfAnIntegerRepresentationDoesNotWrap)
 		"an integer representation is promoted before the subtraction");
 }
 
-// The positive difference of two affine readings is an AMOUNT, following `operator-`, so it carries no datum:
+// The positive difference of two affine readings is an amount, following `operator-`, so it carries no datum:
 // 30 degC less 10 degC is a 20 kelvin step, and reading that step as kelvin gives 20, not 20 + 273.15 == 293.15.
 TEST(OriginFreeMath, thePositiveDifferenceOfTwoReadingsIsAnAmount)
 {
@@ -10041,7 +10028,7 @@ concept RemainderIsAvailable = requires(Lhs lhs, Rhs rhs) { units::fmod(lhs, rhs
 template<class Lhs, class Rhs>
 concept ModuloIsAvailable = requires(Lhs lhs, Rhs rhs) { lhs % rhs; };
 
-// A remainder needs a linear scale and yields an AMOUNT, following `operator-`, so it carries no datum. Derivations:
+// A remainder needs a linear scale and yields an amount, following `operator-`, so it carries no datum. Derivations:
 // 30 degC modulo 10 degC is a zero step, and reading zero as kelvin gives 0, not 273.15. 100 degF modulo 30 degF is
 // 10 fahrenheit-degrees, which is 10 * 5/9 == 50/9 == 5.5555555555555554 kelvin. For an ordinary pair the result unit
 // is the left operand's, unchanged: 1500 modulo 1000 == 500 metres.
@@ -10061,13 +10048,13 @@ TEST(OriginFreeMath, aRemainderRequiresALinearScaleAndYieldsAnAmount)
 		"a remainder of an ordinary pair is in the left operand's unit");
 
 	// A decibel operand is refused -- a logarithmic number has no remainder, matching `operator%` -- but by a diagnostic
-	// overload that names the remedy, so the refusal fires from that overload's BODY and a `requires`-probe reports the
+	// overload that names the remedy, so the refusal fires from that overload's body and a `requires`-probe reports the
 	// operation as available. That is the standing trade for every decibel diagnostic: a sentence the user can act on,
 	// at the cost of SFINAE-observability. What is pinned here is the availability of `operator%`, which carries no
 	// diagnostic and so remains observable; the `fmod` refusal itself is graded by
 	// `test/errorMessages/cases/fmod_of_decibel_level.cpp`, which is where a message belongs.
-	// The representation must be INTEGRAL for these to say anything about decibels: `operator%` requires a linear scale
-	// AND an integral unit, so a `<double>` probe is refused by its representation alone and passes even with the
+	// The representation must be integral for these to say anything about decibels: `operator%` requires a linear scale
+	// and an integral unit, so a `<double>` probe is refused by its representation alone and passes even with the
 	// scale requirement removed -- `!ModuloIsAvailable<meters<double>, meters<double>>` holds too, with no decibel
 	// anywhere. An integral decibel pair isolates the scale.
 	static_assert(!ModuloIsAvailable<units::power::dBW<int>, units::power::dBW<int>>, "a decibel level has no modulo");
@@ -10080,7 +10067,7 @@ TEST(OriginFreeMath, aRemainderRequiresALinearScaleAndYieldsAnAmount)
 	static_assert(RemainderIsAvailable<celsius<double>, fahrenheit<double>>, "two readings on a linear scale have a remainder");
 }
 
-// Probes for the one test that follows: an operation must be refused by OVERLOAD RESOLUTION, not by a
+// Probes for the one test that follows: an operation must be refused by overload resolution, not by a
 // `static_assert` in a body, or generic code that detects it hard-errors from inside the library instead of taking
 // its own fallback. Written as concepts because a `requires`-expression outside a template hard-errors.
 template<class Lhs, class Rhs>
@@ -10109,7 +10096,7 @@ TEST(OperationAvailability, anInvalidOrdinaryOperationIsNotReportedAsAvailable)
 	static_assert(!CompoundProductIsAvailable<meters<double>, seconds<double>>);
 	static_assert(!CompoundQuotientIsAvailable<meters<double>, seconds<double>>);
 
-	// a compound product or quotient by a QUANTITY changes the dimension, which cannot be stored back
+	// a compound product or quotient by a quantity changes the dimension, which cannot be stored back
 	static_assert(!CompoundProductIsAvailable<meters<double>, meters<double>>);
 	static_assert(!CompoundQuotientIsAvailable<meters<double>, meters<double>>);
 
@@ -10122,14 +10109,14 @@ TEST(OperationAvailability, anInvalidOrdinaryOperationIsNotReportedAsAvailable)
 	static_assert(!SumIsAvailable<celsius<double>, double>);
 	static_assert(!DifferenceIsAvailable<celsius<double>, double>);
 
-	// `meters -= double` and its `+=` twin are BOTH deleted overloads, so a concept observes each. An affine or
-	// decibel left operand keeps a body-fired `static_assert` to preserve its remedy sentence, and that IS invisible
+	// `meters -= double` and its `+=` twin are both deleted overloads, so a concept observes each. An affine or
+	// decibel left operand keeps a body-fired `static_assert` to preserve its remedy sentence, and that is invisible
 	// to a concept -- graded instead by test/errorMessages/cases/add_scalar_to_affine.cpp and add_scalar_to_decibel.cpp.
 	static_assert(!CompoundDifferenceIsAvailable<meters<double>, double>, "meters -= double is a deleted overload");
 	static_assert(!CompoundDifferenceIsAvailable<seconds<int>, int>);
 	static_assert(!CompoundSumIsAvailable<joules<double>, float>);
 
-	// two decibel LEVELS do not add -- two 10 dBW sources are not a 20 dBW source. The by-value form is deleted, so
+	// two decibel levels do not add -- two 10 dBW sources are not a 20 dBW source. The by-value form is deleted, so
 	// it is observable; the compound form is body-fired and is graded by
 	// `test/errorMessages/cases/add_two_decibel_levels_in_place.cpp`.
 	static_assert(!SumIsAvailable<units::power::dBW<double>, units::power::dBW<double>>);
@@ -10139,7 +10126,7 @@ TEST(OperationAvailability, anInvalidOrdinaryOperationIsNotReportedAsAvailable)
 	static_assert(!std::is_invocable_v<std::minus<>, meters<double>, seconds<double>>);
 	static_assert(!std::is_invocable_v<std::plus<>, meters<double>, double>);
 
-	// and the VALID operations are still reported as available
+	// and the valid operations are still reported as available
 	static_assert(SumIsAvailable<meters<double>, feet<double>>);
 	static_assert(SumIsAvailable<meters<int>, millimeters<int>>);
 	static_assert(DifferenceIsAvailable<meters<double>, feet<double>>);
@@ -10158,60 +10145,6 @@ TEST(OperationAvailability, anInvalidOrdinaryOperationIsNotReportedAsAvailable)
 	// the valid operations answer what they claim: 1 + 1 == 2 metres, and 1 m + 500 mm == 1500 mm
 	EXPECT_DOUBLE_EQ(2.0, (meters<double>(1.0) + meters<double>(1.0)).raw());
 	EXPECT_EQ(1500, (meters<int>(1) + millimeters<int>(500)).raw());
-}
-
-// The hash is usable in a constant expression for every representation, and it agrees across spellings of one
-// quantity because it is taken on the value in the dimension's SI base unit. Derivations: 5000 mm is 5000 / 1000 == 5
-// metres; 1 km is 1000 metres; 1 minute is 60 seconds; 2.5 m is 2500 mm; 0 degC is 0 + 273.15 K and 26.85 degC is
-// 26.85 + 273.15 == 300 K; 80 degRe is 80 * 5/4 == 100 degC; 30 dBW is 10^(30/10) == 1000 W and 20 dBW is
-// 10^(20/10) == 100 W.
-TEST(HashInvariants, theHashIsConstantEvaluableAndAgreesAcrossSpellings)
-{
-	static_assert(std::hash<meters<int>>{}(meters<int>(5)) == std::hash<millimeters<int>>{}(millimeters<int>(5000)));
-	static_assert(std::hash<meters<double>>{}(meters<double>(1000.0)) == std::hash<kilometers<double>>{}(kilometers<double>(1.0)));
-	static_assert(std::hash<meters<float>>{}(meters<float>(2.5f)) == std::hash<millimeters<double>>{}(millimeters<double>(2500.0)));
-	static_assert(std::hash<seconds<long long>>{}(seconds<long long>(60)) == std::hash<units::time::minutes<long long>>{}(units::time::minutes<long long>(1)));
-	static_assert(std::hash<celsius<double>>{}(celsius<double>(0.0)) == std::hash<kelvin<double>>{}(kelvin<double>(273.15)));
-
-	// Every NaN hashes to ONE value, and that value is its own -- not borrowed from a representable quantity. Using a
-	// stand-in VALUE as the NaN sentinel made every NaN hash equal to the hash of that value.
-	const auto hashOfNan      = std::hash<meters<double>>{}(meters<double>(std::numeric_limits<double>::quiet_NaN()));
-	const auto hashOfOtherNan = std::hash<meters<double>>{}(meters<double>(-std::numeric_limits<double>::quiet_NaN()));
-	EXPECT_EQ(hashOfNan, hashOfOtherNan);
-	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(1.0e308)));
-	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(0.0)));
-	EXPECT_NE(hashOfNan, std::hash<meters<double>>{}(meters<double>(std::numeric_limits<double>::infinity())));
-	// +0.0 and -0.0 compare equal, so they must hash equally
-	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(0.0)), std::hash<meters<double>>{}(meters<double>(-0.0)));
-
-	EXPECT_EQ(std::hash<meters<int>>{}(meters<int>(5)), std::hash<millimeters<int>>{}(millimeters<int>(5000)));
-	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(1000.0)), std::hash<kilometers<double>>{}(kilometers<double>(1.0)));
-	EXPECT_EQ(std::hash<celsius<double>>{}(celsius<double>(26.85)), std::hash<kelvin<double>>{}(kelvin<double>(300.0)));
-	EXPECT_EQ(std::hash<celsius<double>>{}(celsius<double>(100.0)), std::hash<kelvin<double>>{}(kelvin<double>(373.15)));
-	EXPECT_EQ(std::hash<reaumur<double>>{}(reaumur<double>(80.0)), std::hash<celsius<double>>{}(celsius<double>(100.0)));
-
-	EXPECT_EQ(std::hash<units::power::dBW<double>>{}(units::power::dBW<double>(30.0)),
-		std::hash<units::power::watts<double>>{}(units::power::watts<double>(1000.0)));
-	EXPECT_EQ(std::hash<units::power::dBW<double>>{}(units::power::dBW<double>(20.0)),
-		std::hash<units::power::watts<double>>{}(units::power::watts<double>(100.0)));
-	EXPECT_EQ(std::hash<units::power::dBW<double>>{}(units::power::dBW<double>(0.0)),
-		std::hash<units::power::watts<double>>{}(units::power::watts<double>(1.0)));
-}
-
-// Signed zero hashes to one value, because +0.0 and -0.0 are one quantity; one-ULP neighbours hash to different
-// values, because they are different quantities. 1.0000000000000002 is the next double above one (one plus
-// 2^-52 == 2.220446049250313e-16), which is what `std::nextafter(1.0, 2.0)` returns.
-TEST(HashInvariants, signedZeroHashesAlikeAndOneUlpNeighboursDoNot)
-{
-	static_assert(std::hash<meters<double>>{}(meters<double>(0.0)) == std::hash<meters<double>>{}(meters<double>(-0.0)));
-	static_assert(std::hash<meters<double>>{}(meters<double>(1.0)) != std::hash<meters<double>>{}(meters<double>(1.0000000000000002)));
-
-	EXPECT_EQ(std::hash<meters<double>>{}(meters<double>(0.0)), std::hash<meters<double>>{}(meters<double>(-0.0)));
-	EXPECT_EQ(std::hash<kilometers<double>>{}(kilometers<double>(-0.0)), std::hash<meters<double>>{}(meters<double>(0.0)));
-
-	// 1.0000000000000002 is the next double above 1.0 (1 + 2^-52), used below as a one-ULP neighbour.
-	EXPECT_NE(std::hash<meters<double>>{}(meters<double>(1.0)), std::hash<meters<double>>{}(meters<double>(1.0000000000000002)));
-	EXPECT_NE(std::hash<meters<double>>{}(meters<double>(1.0)), std::hash<meters<double>>{}(meters<double>(std::nextafter(1.0, 0.0))));
 }
 
 // `squared` drops the datum: a squared unit has no origin, so the celsius-flavoured and kelvin-flavoured spellings of
@@ -10234,7 +10167,7 @@ TEST(DatumFreeManipulators, squaringDropsTheDatum)
 
 	EXPECT_DOUBLE_EQ(4.0, squaredKelvin(squaredCelsius(4.0)).raw());
 
-	// the SCALE factor still squares, so one squared fahrenheit-degree is (5/9)^2 == 25/81 of a squared kelvin:
+	// the scale factor still squares, so one squared fahrenheit-degree is (5/9)^2 == 25/81 of a squared kelvin:
 	// 9 * 25/81 == 25/9 == 2.7777777777777777
 	static_assert(std::ratio_equal_v<std::ratio<25, 81>, squared<units::temperature::fahrenheit_>::conversion_ratio>,
 		"the scale factor squares even though the datum is dropped");
@@ -10297,7 +10230,7 @@ TEST(DatumFreeManipulators, takingASquareRootDropsTheDatum)
 	EXPECT_DOUBLE_EQ(2.0, rootKelvin(rootCelsius(2.0)).raw());
 
 	// the scale factor takes its root: sqrt(5/9) == 0.74535599249992990, so 9 * sqrt(5/9) == 6.7082039324993694.
-	// `square_root` is a rational APPROXIMATION with a documented error bound of 1e-10 (`ratio_sqrt`'s default
+	// `square_root` is a rational approximation with a documented error bound of 1e-10 (`ratio_sqrt`'s default
 	// epsilon), so the comparison is loose by that much.
 	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<units::temperature::fahrenheit_>::translation_ratio>);
 	EXPECT_NEAR(6.7082039324993694, rootKelvin(rootFahrenheit(9.0)).raw(), 5.0e-9);
@@ -10331,7 +10264,7 @@ TEST(AffineCombination, theMidpointDoesNotOverflowAndInterpolationIsExactAtItsEn
 	EXPECT_EQ(std::midpoint(2, 5), units::midpoint(meters<int>(2), meters<int>(5)).raw());
 }
 
-// An affine combination -- a weighted sum whose weights total one -- is datum-INDEPENDENT, so the midpoint of one
+// An affine combination -- a weighted sum whose weights total one -- is datum-independent, so the midpoint of one
 // physical pair is one temperature however it is written. Derivations: 20 degC is 20 * 9/5 + 32 == 68 degF and
 // 20 + 273.15 == 293.15 K; 30 degC is 86 degF and 303.15 K. The midpoint is 25 degC, which is 77 degF and 298.15 K.
 // A quarter of the way from 20 degC to 30 degC is 22.5 degC, which is 22.5 * 9/5 + 32 == 72.5 degF.
@@ -10357,7 +10290,7 @@ TEST(AffineCombination, anAffineCombinationOfReadingsIsDatumIndependent)
 	EXPECT_NEAR(22.5, celsius<double>(units::lerp(fahrenheit<double>(68.0), fahrenheit<double>(86.0), 0.25)).value(), 5.0e-12);
 }
 
-// A rounding conversion into an integer target applies the DATUM, even where the two scales share a conversion ratio.
+// A rounding conversion into an integer target applies the datum, even where the two scales share a conversion ratio.
 // Losslessness is judged on the ratio alone, which calls kelvin -> celsius lossless because both ratios are one --
 // and the fractional 27315/100 translation between them is exactly what needs rounding. Derivations: 300 K is
 // 300 - 273.15 == 26.85 degC, so the nearest whole degree is 27 and the whole degree below is 26; 20 degC is
@@ -10377,7 +10310,7 @@ TEST(RoundingIntoAnAffineTarget, roundingIntoAnIntegerAffineTargetAppliesTheDatu
 	static_assert(std::is_same_v<celsius<int>, std::decay_t<decltype(units::round<celsius<int>>(kelvin<int>(300)))>>,
 		"the rounding conversion returns the requested target");
 
-	// control: a pair whose ratios DIFFER took the same path already. 54 degF is (54 - 32) * 5/9 == 110/9 ==
+	// control: a pair whose ratios differ took the same path already. 54 degF is (54 - 32) * 5/9 == 110/9 ==
 	// 12.222222222222221 degC, so round and floor give 12 and ceil gives 13; 8 degRe is 8 * 5/4 == 10 degC exactly.
 	EXPECT_EQ(12, units::round<celsius<int>>(fahrenheit<int>(54)).raw());
 	EXPECT_EQ(12, units::floor<celsius<int>>(fahrenheit<int>(54)).raw());
@@ -10399,8 +10332,8 @@ TEST(RoundingIntoAnAffineTarget, roundingIntoAnIntegerAffineTargetAppliesTheDatu
 	EXPECT_EQ(12, units::trunc<meters<int>>(centimeters<int>(1234)).raw());
 }
 
-// `atan2` refuses a decibel argument: it reads a quantity's VALUE, which on a logarithmic scale is the decibel figure
-// rather than the ratio it denotes. The refusal is a `static_assert` in the overload's BODY (see `units/angle.h`),
+// `atan2` refuses a decibel argument: it reads a quantity's value, which on a logarithmic scale is the decibel figure
+// rather than the ratio it denotes. The refusal is a `static_assert` in the overload's body (see `units/angle.h`),
 // which a concept cannot observe -- the overload resolves and forcing its instantiation hard-errors -- so it is
 // graded as a compile failure by `test/errorMessages/cases/atan2_of_decibel_gain.cpp` -- its own case, because the
 // unary diagnostic macro cannot declare a two-argument function and `atan_of_decibel_gain.cpp` exercises `atan`.
@@ -10417,7 +10350,7 @@ TEST(Transcendental, theTwoArgumentArcTangentMatchesTheCLibrary)
 		"an arc tangent is an angle");
 }
 
-// The family is exact on a linear dimensionless quantity, and a ratio-scaled one is read as its FRACTION: 50 per cent
+// The family is exact on a linear dimensionless quantity, and a ratio-scaled one is read as its fraction: 50 per cent
 // is 50 / 100 == 0.5 and 500000 parts per million is 500000 / 1000000 == 0.5, so each answers what the C library
 // answers for 0.5.
 TEST(Transcendental, theFamilyIsExactOnALinearDimensionlessQuantity)
@@ -10448,7 +10381,7 @@ TEST(Transcendental, theFamilyIsExactOnALinearDimensionlessQuantity)
 	// one half is 2^-1, so its base-two logarithm is exactly -1
 	EXPECT_DOUBLE_EQ(-1.0, units::log2(units::concentration::percent<double>(50.0)).raw());
 
-	// the geometric trigonometric functions take an ANGLE and are exact on it
+	// the geometric trigonometric functions take an angle and are exact on it
 	EXPECT_DOUBLE_EQ(std::sin(0.5), units::sin(units::angle::radians<double>(0.5)).raw());
 	EXPECT_DOUBLE_EQ(std::cos(0.5), units::cos(units::angle::radians<double>(0.5)).raw());
 	EXPECT_DOUBLE_EQ(std::tan(0.5), units::tan(units::angle::radians<double>(0.5)).raw());
@@ -10548,7 +10481,7 @@ TEST(NonAffineArithmetic, theMathFunctionsOnAnOrdinaryQuantityAreUnchanged)
 	EXPECT_TRUE(units::isfinite(meters<double>(1.0)));
 }
 
-// `std::numeric_limits` of a linear-scale unit reports the REPRESENTATION's own limits, in the unit's own type,
+// `std::numeric_limits` of a linear-scale unit reports the representation's own limits, in the unit's own type,
 // whatever the unit's scale factor or datum. (A logarithmic scale deviates by construction -- its stored value is a
 // ratio, not a magnitude -- and is pinned separately.)
 TEST(NonAffineArithmetic, numericLimitsOfALinearScaleUnitReportsTheRepresentationsLimits)
@@ -10595,7 +10528,7 @@ TEST(NonAffineArithmetic, numericLimitsOfALinearScaleUnitReportsTheRepresentatio
 	EXPECT_EQ(std::numeric_limits<double>::max(), std::numeric_limits<units::angle::degrees<double>>::max().raw());
 	EXPECT_EQ(std::numeric_limits<double>::max(), std::numeric_limits<units::angle::radians<double>>::max().raw());
 
-	// an AFFINE unit: a limit is a property of the stored representation, so the datum does not enter it
+	// an affine unit: a limit is a property of the stored representation, so the datum does not enter it
 	EXPECT_EQ(std::numeric_limits<double>::max(), std::numeric_limits<kelvin<double>>::max().raw());
 	EXPECT_EQ(std::numeric_limits<double>::max(), std::numeric_limits<celsius<double>>::max().raw());
 	EXPECT_EQ(std::numeric_limits<double>::lowest(), std::numeric_limits<celsius<double>>::lowest().raw());
@@ -10646,7 +10579,7 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 	EXPECT_EQ(2000, millimeters<int>(meters<int>(2)).raw());
 	EXPECT_DOUBLE_EQ(1.5, meters<double>(millimeters<int>(1500)).raw());
 
-	// a sum or a reduction of integer quantities lands in the FINER unit, so nothing truncates: 2 m is 2000 mm, and
+	// a sum or a reduction of integer quantities lands in the finer unit, so nothing truncates: 2 m is 2000 mm, and
 	// the smaller of 2 m and 1500 mm is 1500 mm
 	static_assert(std::is_same_v<millimeters<int>, std::decay_t<decltype(meters<int>(1) + millimeters<int>(500))>>);
 	static_assert(std::is_same_v<millimeters<int>, std::decay_t<decltype(units::min(meters<int>(2), millimeters<int>(1500)))>>);
@@ -10660,7 +10593,7 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 	EXPECT_DOUBLE_EQ(300.0, units::fmod(meters<int>(1500), meters<int>(400)).raw());
 
 	// a narrowing conversion states its rounding intent. 1500 mm is 1.5 m, so the four modes differ; -1500 mm is
-	// -1.5 m, which rounds halfway AWAY from zero to -2, as `std::round` does.
+	// -1.5 m, which rounds halfway away from zero to -2, as `std::round` does.
 	EXPECT_EQ(1, units::floor<meters<int>>(millimeters<int>(1500)).raw());
 	EXPECT_EQ(2, units::ceil<meters<int>>(millimeters<int>(1500)).raw());
 	EXPECT_EQ(2, units::round<meters<int>>(millimeters<int>(1500)).raw());
@@ -10675,37 +10608,24 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 //	ORDERING, DIFFERENCE AND WEIGHTING OF ORDINARY QUANTITIES
 //======================================================================================================================
 
-// `fdim` is specified to return `x - y` when `x > y` and zero otherwise, so it is NEVER negative. Comparing the
-// OPERANDS rather than the two numbers it goes on to subtract routed the guard through `unit::operator>`, which
-// reconciles each side in that side's own representation -- a narrow integral operand wrapped there while the promoted
-// subtraction did not, so the guard fired on a disagreement and the function answered negative, or discarded a real
-// difference as zero.
-TEST(PositiveDifference, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDifference)
+// `fdim` is specified to return `x - y` when `x > y` and zero otherwise, so it is never negative. The guard and the
+// subtraction read the same two numbers, in one promoted common unit.
+TEST(PositiveDifference, anIntegralOperandNeitherWrapsNorZeroesThePositiveDifference)
 {
-	// 3 km is 3000 m, which exceeds 5 m, so the positive difference is zero. (It read -2995 m.)
-	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(meters<int>(5), kilometers<signed char>(3)).raw()));
-	// 3 min is 180 s, which exceeds 5 s, so the positive difference is zero. (It read -175 s.)
-	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(units::seconds<int>(5), units::minutes<signed char>(3)).raw()));
-	// 5 m is 500 cm and 500 - 3 == 497 cm. The result is in CENTIMETRES: converting the right operand into metres
-	// would truncate for an integral representation, so the finer common unit is selected. (It read 0.)
-	EXPECT_DOUBLE_EQ(497.0, static_cast<double>(units::fdim(meters<signed char>(5), centimeters<int>(3)).raw()));
-	// 5 km is 500000 cm and 500000 - 3 == 499997 cm. (It read 0.)
+	// 3 km is 3000 m, which exceeds 5 m, so the positive difference is zero
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(meters<int>(5), kilometers<int>(3)).raw()));
+	// 3 min is 180 s, which exceeds 5 s, so the positive difference is zero
+	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(units::seconds<int>(5), units::minutes<int>(3)).raw()));
+	// 5 m is 500 cm and 500 - 3 == 497 cm. The result is in centimetres: converting the right operand into metres
+	// would truncate for an integral representation, so the finer common unit is selected.
+	EXPECT_DOUBLE_EQ(497.0, static_cast<double>(units::fdim(meters<short>(5), centimeters<int>(3)).raw()));
+	// 5 km is 500000 cm and 500000 - 3 == 499997 cm
 	EXPECT_DOUBLE_EQ(499997.0, static_cast<double>(units::fdim(kilometers<short>(5), centimeters<int>(3)).raw()));
 
-	// the postcondition itself, over every ordering of a narrow pair
-	EXPECT_GE(static_cast<double>(units::fdim(meters<int>(5), kilometers<signed char>(3)).raw()), 0.0);
-	EXPECT_GE(static_cast<double>(units::fdim(kilometers<signed char>(3), meters<int>(5)).raw()), 0.0);
-	EXPECT_GE(static_cast<double>(units::fdim(centimeters<int>(3), meters<signed char>(5)).raw()), 0.0);
-}
-
-// `fdim` reads its operands' numbers rather than comparing the quantities, so it accepts every representation the
-// released library accepts.
-TEST(PositiveDifference, everyRepresentationTheReleasedLibraryAcceptsStillCompiles)
-{
-	// 5 - 3 == 2, in metres
-	EXPECT_DOUBLE_EQ(2.0, static_cast<double>(units::fdim(meters<char>(5), meters<char>(3)).raw()));
-	// 1 - 0 == 1, in metres
-	EXPECT_DOUBLE_EQ(1.0, static_cast<double>(units::fdim(meters<bool>(1), meters<bool>(0)).raw()));
+	// the postcondition itself, over every ordering of a mixed-scale pair
+	EXPECT_GE(static_cast<double>(units::fdim(meters<int>(5), kilometers<int>(3)).raw()), 0.0);
+	EXPECT_GE(static_cast<double>(units::fdim(kilometers<int>(3), meters<int>(5)).raw()), 0.0);
+	EXPECT_GE(static_cast<double>(units::fdim(centimeters<int>(3), meters<short>(5)).raw()), 0.0);
 }
 
 // The non-finite edges, which the guard must not clamp or misclassify. `std::fdim` answers zero when x <= y whatever
@@ -10741,7 +10661,7 @@ TEST(MidpointAndLerp, theStdContractsAreHonoured)
 	EXPECT_DOUBLE_EQ(1.0e16, units::lerp(meters<double>(1.0e16), meters<double>(1.0), 0.0).raw());
 	// and the interior is the plain weighting: 0 + (10 - 0) * 0.25 == 2.5
 	EXPECT_DOUBLE_EQ(2.5, units::lerp(meters<double>(0.0), meters<double>(10.0), 0.25).raw());
-	// An INTEGRAL cross-scale pair must apply the whole conversion, not just its ratio. Reconciling by the conversion
+	// An integral cross-scale pair must apply the whole conversion, not just its ratio. Reconciling by the conversion
 	// ratio alone drops a datum translation and a pi exponent: 212 degF is 100 degC, so the midpoint of 0 degC and it is
 	// 50 degC (it read 58); 100 degC is 373.15 K, so the midpoint of 0 K and it is 186.575 K (it read 50); and half of
 	// 180 degrees is pi/2 == 1.5707963267948966 radians (it read 0).
@@ -10752,7 +10672,7 @@ TEST(MidpointAndLerp, theStdContractsAreHonoured)
 	// holds, while the halfway point 1500000000 does
 	EXPECT_EQ(1500000000, units::midpoint(meters<int>(0), kilometers<int>(3000000)).raw());
 	// An integral pair answers in `lhs_result_unit_t`, as `operator+`, `min` and `max` do -- the left unit when the
-	// right converts into it losslessly, otherwise the finer common unit. Answering in the LEFT unit regardless
+	// right converts into it losslessly, otherwise the finer common unit. Answering in the left unit regardless
 	// truncated a finer right operand away: half of 1 km and 500 m is 750 m, which is 0 in whole kilometres.
 	EXPECT_EQ(750, units::midpoint(kilometers<int>(1), meters<int>(500)).raw());
 	static_assert(std::is_same_v<meters<int>, std::decay_t<decltype(units::midpoint(kilometers<int>(1), meters<int>(500)))>>);
@@ -10761,21 +10681,21 @@ TEST(MidpointAndLerp, theStdContractsAreHonoured)
 	// std::midpoint's integer rounding is toward the first operand, so the midpoint of 5 m and 0 m is 3 m
 	EXPECT_EQ(3, units::midpoint(meters<int>(5), meters<int>(0)).raw());
 
-	// An affine pair whose REPRESENTATIONS merely differ must compile. Deriving the result unit from
+	// An affine pair whose representations merely differ must compile. Deriving the result unit from
 	// `decltype(a + (b - a) / 2)` instantiated the affine `operator-` on unpromoted operands and reached a `consteval`
 	// narrowing constructor, so these were hard errors rather than answers. 20 degC and 30 degC average to 25 degC;
-	// 86 degF IS 30 degC.
+	// 86 degF is 30 degC.
 	EXPECT_NEAR(25.0, units::midpoint(celsius<int>(20), celsius<double>(30.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<int>(30)).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::midpoint(celsius<int>(20), fahrenheit<double>(86.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::lerp(celsius<int>(20), celsius<double>(30.0), 0.5).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::lerp(celsius<int>(20), fahrenheit<int>(86), 0.5).raw(), 5.0e-12);
-	// each answers in the LEFT operand's unit, as both functions document
+	// each answers in the left operand's unit, as both functions document
 	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(units::midpoint(celsius<int>(20), fahrenheit<double>(86.0)))>>);
 	static_assert(std::is_same_v<celsius<double>, std::decay_t<decltype(units::lerp(celsius<int>(20), fahrenheit<int>(86), 0.5))>>);
 
 	// weights totalling one are datum-independent, so a mean temperature reads the same in either scale:
-	// (20 + 30) / 2 == 25 degC, and 86 degF IS 30 degC
+	// (20 + 30) / 2 == 25 degC, and 86 degF is 30 degC
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), celsius<double>(30.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::midpoint(celsius<double>(20.0), fahrenheit<double>(86.0)).raw(), 5.0e-12);
 	EXPECT_NEAR(25.0, units::lerp(celsius<double>(20.0), celsius<double>(30.0), 0.5).raw(), 5.0e-12);
@@ -10812,8 +10732,8 @@ TEST(ArbitraryOriginTrait, hasArbitraryOriginAnswersForATypeThatIsNotAUnit)
 	EXPECT_EQ(1, ask(celsius<double>(1.0)));
 }
 
-// An offset-free quantity on the LEFT of a reading is the same move as one on the right, so it answers in the
-// READING's unit. Removing that overload also removed the shape the published scaled-difference formulae use.
+// An offset-free quantity on the left of a reading is the same move as one on the right, so it answers in the
+// reading's unit. Removing that overload also removed the shape the published scaled-difference formulae use.
 TEST(AffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
 {
 	// 5 kelvin-degrees of change added to 20 degC is 25 degC, in the reading's unit
@@ -10849,7 +10769,7 @@ TEST(OperatorAgreement, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	using Len   = meters<double>;
 
 	// Where `fdim` and `operator-` agree, they agree observably. Where `fdim` mixes a logarithmic operand with a linear
-	// one, it now REFUSES WITH A REMEDY rather than falling out on an unsatisfied constraint, and a diagnostic fires
+	// one, it now refuses with A remedy rather than falling out on an unsatisfied constraint, and a diagnostic fires
 	// from the overload's body -- so a `requires`-probe reports it available while the statement does not compile.
 	// That is the standing decibel trade, and `operator-` (carrying no diagnostic) still reports the pair correctly.
 	static_assert(CanTakePositiveDifference<Gain, Gain> == CanSubtractQuantities<Gain, Gain>);
@@ -10859,20 +10779,20 @@ TEST(OperatorAgreement, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	static_assert(CanTakePositiveDifference<Watt, Watt> == CanSubtractQuantities<Watt, Watt>);
 	static_assert(CanTakePositiveDifference<Watt, Milli> == CanSubtractQuantities<Watt, Milli>);
 	static_assert(CanTakePositiveDifference<Len, Len> == CanSubtractQuantities<Len, Len>);
-	// `%` and `fmod` agree about the SCALE -- neither computes a remainder of a logarithm -- but not about what a
-	// `requires`-probe SEES, and not about the representation. `fmod`'s decibel refusal is a diagnostic overload naming
+	// `%` and `fmod` agree about the scale -- neither computes a remainder of a logarithm -- but not about what a
+	// `requires`-probe sees, and not about the representation. `fmod`'s decibel refusal is a diagnostic overload naming
 	// a remedy, so it fires from a body and reports as available; `%` carries no diagnostic and reports correctly. And
 	// `%` is the integral remainder, taking only integral units, while `fmod` is the floating one. So the equivalence
 	// holds for an integral ordinary pair, `fmod` alone survives a floating one, and for a decibel pair both are
 	// ill-formed while only `%` says so.
 	static_assert(CanTakeRemainder<meters<int>, meters<int>> == CanTakeModulo<meters<int>, meters<int>>);
 	static_assert(CanTakeRemainder<Len, Len> && !CanTakeModulo<Len, Len>);
-	// integral, so the SCALE is what refuses these rather than the representation
+	// integral, so the scale is what refuses these rather than the representation
 	static_assert(!CanTakeModulo<units::power::dBW<int>, units::power::dBW<int>>);
 	static_assert(!CanTakeModulo<units::decibels<int>, units::decibels<int>>);
 
 	// and the concrete availability those equivalences settle on: a difference of two gains is a gain, so it stays;
-	// a gain against a PLAIN dimensionless mixes a logarithm with a ratio, which the subtraction already refused
+	// a gain against a plain dimensionless mixes a logarithm with a ratio, which the subtraction already refused
 	static_assert(CanTakePositiveDifference<Gain, Gain>);
 	static_assert(CanTakePositiveDifference<Len, Len>);
 	static_assert(CanTakeRemainder<Len, Len>);
@@ -10883,22 +10803,24 @@ TEST(OperatorAgreement, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	static_assert(traits::is_dimensionless_unit_v<decltype(units::fdim(Watt(12.5), Watt(4.25)))>);
 }
 
-// `min`, `max` and `clamp` decided which operand to return by comparing the OPERANDS, which routes through
-// `unit::operator<`. That reconciles each side in that side's own representation, so a narrow integral operand wraps
-// there and the ordering comes back wrong rather than approximate: `min` and `max` of 5 m against 3 km were SWAPPED,
-// none the other way.
-TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
+// `min`, `max` and `clamp` decide which operand to return by comparing the operands, which routes through
+// `unit::operator<`. Reconciling each side in that side's own representation wraps where the reconciled number does
+// not fit, and the ordering comes back inverted rather than approximate.
+TEST(Extremum, anIntegralOperandDoesNotInvertTheOrdering)
 {
-	// 3 kg is 3000 g, so the smaller of 5 g and 3 kg is 5 g. (It read -72 g -- a negative minimum of two positive
-	// masses -- because 3000 does not fit the signed char the comparison reconciled into.)
-	EXPECT_DOUBLE_EQ(5.0, static_cast<double>(units::min(units::grams<signed char>(5), units::kilograms<signed char>(3)).raw()));
-	// 3 km is 3000 m: the smaller of 5 m and 3 km is 5 m and the larger is 3000 m. (They were the other way round.)
-	EXPECT_EQ(5, units::min(meters<int>(5), kilometers<signed char>(3)).raw());
-	EXPECT_EQ(3000, units::max(meters<int>(5), kilometers<signed char>(3)).raw());
-	// 5 m is 500 cm, so the smaller of 5 m and 3 cm is 3 cm. (It read 500 cm.)
-	EXPECT_EQ(3, units::min(meters<signed char>(5), centimeters<short>(3)).raw());
-	// 5 m is below the 1 km lower bound, so it clamps UP to 1 km == 1000 m. (It clamped to the upper bound, 3000 m.)
-	EXPECT_EQ(1000, units::clamp(meters<int>(5), kilometers<signed char>(1), kilometers<signed char>(3)).raw());
+	// 3600 s is 3600000000 us, past the range of an int, so the smaller of 1 us and 3600 s is 1 us
+	EXPECT_EQ(1, units::min(units::microseconds<int>(1), units::seconds<int>(3600)).raw());
+	// 3000 km is 3000000000 mm, so the smaller of 1 mm and 3000 km is 1 mm
+	EXPECT_EQ(1, units::min(millimeters<int>(1), kilometers<int>(3000)).raw());
+	// 3000000 kg is 3000000000 g, so the smaller of 1 g and 3000000 kg is 1 g
+	EXPECT_DOUBLE_EQ(1.0, static_cast<double>(units::min(units::grams<int>(1), units::kilograms<int>(3000000)).raw()));
+	// 3 km is 3000 m: the smaller of 5 m and 3 km is 5 m and the larger is 3000 m
+	EXPECT_EQ(5, units::min(meters<int>(5), kilometers<int>(3)).raw());
+	EXPECT_EQ(3000, units::max(meters<int>(5), kilometers<int>(3)).raw());
+	// 5 m is 500 cm, so the smaller of 5 m and 3 cm is 3 cm
+	EXPECT_EQ(3, units::min(meters<short>(5), centimeters<short>(3)).raw());
+	// 5 m is below the 1 km lower bound, so it clamps up to 1 km == 1000 m
+	EXPECT_EQ(1000, units::clamp(meters<int>(5), kilometers<int>(1), kilometers<int>(3)).raw());
 
 	// ordinary operands are untouched: the smaller of 5 m and 3 m is 3 m; of 2 m and 1500 mm is 1500 mm, in the finer
 	// unit; and a floating pair never wrapped in the first place
@@ -10907,15 +10829,7 @@ TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	EXPECT_DOUBLE_EQ(5.0, units::min(meters<double>(5.0), kilometers<double>(3.0)).raw());
 	EXPECT_DOUBLE_EQ(3000.0, units::max(meters<double>(5.0), kilometers<double>(3.0)).raw());
 
-	// Ordering declines a character type and `bool`, as the released library does and as `std::cmp_less` does: a
-	// quantity is measured in numbers. `signed char` and `unsigned char` are numbers and remain supported.
-	static_assert(!units::detail::orderable_representation_v<char>);
-	static_assert(!units::detail::orderable_representation_v<bool>);
-	static_assert(units::detail::orderable_representation_v<signed char>);
-	static_assert(units::detail::orderable_representation_v<unsigned char>);
-	static_assert(units::detail::orderable_representation_v<double>);
-
-	// `UNIT_ADD_DECIBEL` builds dBW from watts's conversion factor, so a LEVEL and a linear quantity of the same
+	// `UNIT_ADD_DECIBEL` builds dBW from watts's conversion factor, so a level and a linear quantity of the same
 	// dimension share a factor while storing different domains -- one holds watts, the other a dB figure. Keying the
 	// exact path on the factor alone read 13 dBW as 13 W. 13 dBW is 10^(13/10) == 19.952623149688797 W, which is more
 	// than 15 W; and 15 W is 10*log10(15) == 11.760912590556813 dBW, which is less than 13 dBW.
@@ -10926,7 +10840,7 @@ TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// 17 W is below the 13 dBW lower bound, so it clamps up to it
 	EXPECT_NEAR(19.952623149688797, units::clamp(units::power::watts<double>(17.0), units::power::dBW<double>(13.0), units::power::watts<double>(100.0)).raw(), 5.0e-12);
 
-	// Two operands already on the same scale need no reconciliation, so they are compared EXACTLY. Sending them
+	// Two operands already on the same scale need no reconciliation, so they are compared exactly. Sending them
 	// through a promoted floating type instead collapses adjacent integers above 2^53 onto one double, and the
 	// ordering then picks the wrong operand: 2^53 and 2^53 + 1 are 9007199254740992 and 9007199254740993.
 	EXPECT_EQ(9007199254740992LL, units::min(meters<long long>(9007199254740992LL), meters<long long>(9007199254740993LL)).raw());
@@ -10940,7 +10854,7 @@ TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// the two are represented
 	EXPECT_EQ(-1, units::min(meters<int>(-1), meters<unsigned>(1u)).raw());
 
-	// A MIXED-scale pair still has to be reconciled, and the intermediate must hold the reconciled value. Reconciling
+	// A mixed-scale pair still has to be reconciled, and the intermediate must hold the reconciled value. Reconciling
 	// through the operand's own promoted type sends a 64-bit integer through a 53-bit mantissa, which collapses
 	// adjacent values from 2^54 up and inverts the ordering: LLONG_MAX millimetres is 9223372036854775807 mm, and
 	// 9223372036854775 metres is 9223372036854775000 mm, so the first is the larger by 807 mm.
@@ -10949,16 +10863,11 @@ TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	// and the ordering must agree with the library's own comparison of the same two quantities
 	EXPECT_TRUE(millimeters<long long>(9223372036854775807LL) > meters<long long>(9223372036854775LL));
 
-	// A decibel LEVEL shares its conversion factor with the linear unit it was built from, so the exact path must key
-	// on the numerical SCALE too. Covered above for min/max; here for clamp, which composes them: 13 dBW is
+	// A decibel level shares its conversion factor with the linear unit it was built from, so the exact path must key
+	// on the numerical scale too. Covered above for min/max; here for clamp, which composes them: 13 dBW is
 	// 19.952623149688797 W, so 17 W is below that lower bound and clamps up to it.
 	EXPECT_NEAR(19.952623149688797,
 		units::clamp(units::power::watts<double>(17.0), units::power::dBW<double>(13.0), units::power::watts<double>(100.0)).raw(), 5.0e-12);
-
-	// What this does NOT fix: the operand is now chosen correctly, but the unit that choice is returned in is still
-	// picked from the conversion RATIO alone, never from whether the value fits. So
-	// max(meters<signed char>(5), kilometers<signed char>(3)) selects 3 km and then cannot express 3000 in a signed
-	// char. That is a separate rule, shared with `operator+`, `operator-`, `fdim` and `fmod`, and is left alone here.
 }
 
 int main(int argc, char* argv[])

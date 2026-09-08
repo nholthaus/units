@@ -1,4 +1,4 @@
-// Case: the ratio of two same-dimension decibel values is their DIFFERENCE in dB -- 20 dBW over 10 dBW is a 10 dB
+// Case: the ratio of two same-dimension decibel values is their difference in dB -- 20 dBW over 10 dBW is a 10 dB
 // gain, not the 2 that dividing the dB numbers gives. This is the one shape of decibel division with a direct
 // remedy, so it has its own message naming `a - b` rather than the generic "use the linear values".
 //

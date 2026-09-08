@@ -1,7 +1,7 @@
 // Case: mixing a logarithmic operand with a linear one of the same dimension was the one decibel refusal that arrived
 // as a bare unsatisfied constraint with no remedy named. `fdim(decibels(3), percent(2))` answered 19.9897 before,
 // computing a difference that the subtraction of those two operands itself refuses. Two logarithmic operands are fine
-// -- their difference is a gain -- so only the MIXED pair is refused here. The linear operand is spelled `percent`
+// -- their difference is a gain -- so only the mixed pair is refused here. The linear operand is spelled `percent`
 // rather than `dimensionless` because the latter is an alias for a raw `unit<...>`, which the compiler prints in full.
 //
 // expect: fail

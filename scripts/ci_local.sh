@@ -70,19 +70,19 @@ if command -v doxygen > /dev/null; then
 	# Doxygen NEVER deletes stale output, and this dir is reused warm -- so a run that emits almost nothing still
 	# leaves the previous run's pages behind and the completeness check below passes over a total loss. Clear it.
 	rm -rf build-docs/docs/html
-	# FAIL_ON_WARNINGS is substituted into the generated Doxyfile, so it takes effect only on the configure. A warm
-	# build-docs configured without it silently has WARN_AS_ERROR=NO, which is how a real loss can pass -- so the
-	# variable is exported for the build too, and the cache is refreshed when it is absent.
+	# FAIL_ON_WARNINGS is substituted into the generated Doxyfile, so it takes effect only on the configure. The gate is
+	# therefore the generated Doxyfile, not the cache: a build-docs configured without the variable carries
+	# WARN_AS_ERROR=NO and reports a warning-emitting build as clean, and its cache being present says nothing about
+	# that. Re-configure whenever the Doxyfile does not already carry the setting.
 	export DOXYGEN_WARN_AS_ERROR=FAIL_ON_WARNINGS
-	[ -f build-docs/CMakeCache.txt ] || cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
+	grep -q 'WARN_AS_ERROR *= *FAIL_ON_WARNINGS' build-docs/Doxyfile 2> /dev/null || cmake -B build-docs -DUNITS_BUILD_DOCS=ON \
 		-DUNITS_BUILD_TESTS=OFF -DUNITS_BUILD_EXAMPLES=OFF > /tmp/ci_docs_cfg.log 2>&1 || { echo "DOCS CONFIGURE FAILED"; cat /tmp/ci_docs_cfg.log; fail=1; }
 	cmake --build build-docs --target doc > /tmp/ci_docs.log 2>&1 && echo "doxygen clean" || { echo "DOXYGEN FAILED:"; grep -E ": (error|warning):" /tmp/ci_docs.log | head -20; fail=1; }
 
-	# A warning-free run does NOT mean the reference was generated: an unbalanced `@cond`/`@endcond` swallows every
-	# declaration after it. One such mistake removed `units::unit` and 12 of the 13 public concepts while this leg
-	# reported clean. The floors sit just under the real counts -- a generous floor tolerated losing the three classes
-	# this branch exists to add -- and the sentinels name a class from EACH header, since a core.h sentinel survives a
-	# total kind.h loss.
+	# A warning-free run does not mean the reference was generated: an unbalanced `@cond`/`@endcond` swallows every
+	# declaration after it, which removes whole classes and concepts while this leg reports clean. The floors catch a
+	# wholesale loss; the sentinels catch the loss of one header, and so name a class from each of them, since a core.h
+	# sentinel survives a total kind.h loss.
 	classes=$(ls build-docs/docs/html/class*.html 2>/dev/null | wc -l)
 	concepts=$(ls build-docs/docs/html/concept*.html 2>/dev/null | wc -l)
 	structs=$(ls build-docs/docs/html/struct*.html 2>/dev/null | wc -l)

@@ -25,12 +25,14 @@ auto bad = 1.0_m + 1.0_s;   // length + time
 ```
 
 ```text
-readable_add_incompatible.cpp:9:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘units::time::seconds<double>’)
-    9 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
-      |            ~~~~~ ^ ~~~~~
-      |            |       |
-      |            |       units::time::seconds<double>
-      |            units::length::meters<double>
+readable_add_incompatible.cpp:26:20: error: use of deleted function ‘constexpr UnitTypeLhs units::operator+(const UnitTypeLhs&, const UnitTypeRhs&) [with UnitTypeLhs = length::meters<double>; UnitTypeRhs = time::seconds<double>]’
+   26 | auto bad = 1.0_m + 1.0_s; // ill-formed: cannot add length and time
+      |                    ^~~~~
+In file included from include/units/length.h:LINE,
+                 from readable_add_incompatible.cpp:23:
+include/units/core.h:LINE: note: declared here
+ LINE |         constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const UnitTypeRhs&) noexcept = delete;
+      |                               ^~~~~~~~
 ```
 
 ---
@@ -45,8 +47,8 @@ units::length::meters<double> a = 1.0_m * 1.0_m;   // m * m is an area, not a le
 ```
 
 ```text
-readable_wrong_result_type.cpp:10:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
-   10 | units::length::meters<double> a = 1.0_m * 1.0_m; // ill-formed: m*m is an area, not a length
+readable_wrong_result_type.cpp:21:41: error: conversion from ‘units::detail::rewrap_to_named_t<units::unit<units::area::square_meters_, double, units::linear_scale> >’ {aka ‘units::area::square_meters<double>’} to non-scalar type ‘units::length::meters<double>’ requested
+   21 | units::length::meters<double> a = 1.0_m * 1.0_m; // ill-formed: m*m is an area, not a length
       |                                   ~~~~~~^~~~~~~
 ```
 
@@ -64,9 +66,10 @@ units::length::meters<int> a = 1.0_ft;   // lossy: would truncate
 ```
 
 ```text
-readable_narrowing_to_int.cpp:10:32: error: conversion from ‘units::length::feet<double>’ to non-scalar type ‘units::length::meters<int>’ requested
-   10 | units::length::meters<int> a = 1.0_ft; // ill-formed: narrowing/lossy into an integer underlying
-      |                                ^~~~~~
+readable_narrowing_to_int.cpp:26:32:   in ‘constexpr’ expansion of ‘units::length::meters<int>(units::literals::operator""_ft(1.0e+0l).units::length::feet<double>::<anonymous>)’
+include/units/core.h:LINE: error: expression ‘<throw-expression>’ is not a constant expression
+ LINE |                                 throw "a floating-point unit converts to an integral unit only when its value is a whole number in range";
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 Implicit conversions are allowed only when they are lossless. See
@@ -85,12 +88,14 @@ auto bad = 1.0_m + 5.0;   // a length plus a plain number
 ```
 
 ```text
-readable_scalar_plus_unit.cpp:8:18: error: no match for ‘operator+’ (operand types are ‘units::length::meters<double>’ and ‘double’)
-    8 | auto bad = 1.0_m + 5.0; // ill-formed: cannot add a raw scalar to a length
-      |            ~~~~~ ^ ~~~
-      |            |       |
-      |            |       double
-      |            units::length::meters<double>
+readable_scalar_plus_unit.cpp:23:20: error: use of deleted function ‘constexpr UnitTypeLhs units::operator+(const UnitTypeLhs&, const T&) [with UnitTypeLhs = length::meters<double>; T = double]’
+   23 | auto bad = 1.0_m + 5.0; // ill-formed: cannot add a raw scalar to a length
+      |                    ^~~
+In file included from include/units/length.h:LINE,
+                 from readable_scalar_plus_unit.cpp:20:
+include/units/core.h:LINE: note: declared here
+ LINE |         constexpr UnitTypeLhs operator+(const UnitTypeLhs& lhs, const T&) noexcept = delete;
+      |                               ^~~~~~~~
 ```
 
 ---
@@ -107,11 +112,14 @@ auto bad = sin(1.0_m);   // sin needs an angle, not a length
 ```
 
 ```text
-readable_trig_needs_angle.cpp:8:16: error: cannot convert ‘units::length::meters<double>’ to ‘double’
-    8 | auto bad = sin(1.0_m); // ill-formed: sin expects an angle, not a length
+readable_trig_needs_angle.cpp:18:16: error: cannot convert ‘units::length::meters<double>’ to ‘double’
+   18 | auto bad = sin(1.0_m); // ill-formed
       |                ^~~~~
       |                |
       |                units::length::meters<double>
+In file included from /usr/include/math.h:443,
+                 from /usr/include/c++/13/cmath:47,
+                 from include/units/core.h:LINE,
 ```
 
 ---

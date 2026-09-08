@@ -243,7 +243,7 @@ namespace units
  * @param       ... - the conversion factor definition for the unit type. Taken as variadic
  *              arguments because they contain commas in the macro definition. The complete __VA_ARGS__
  *              represents the full conversion factor type. e.g. `meters<>`.
-		 */
+ */
 #define UNIT_ADD_UNIT_DEFINITION(namespaceName, namePlural, /*conversionFactor*/...)                                                                                                                   \
 	inline namespace namespaceName                                                                                                                                                                     \
 	{                                                                                                                                                                                                  \
@@ -264,7 +264,7 @@ namespace units
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
-		 */
+ */
 #define UNIT_ADD_SCALED_UNIT_DEFINITION(unitName, scale, /*conversionFactor*/...)                                                                                                                      \
 	/** A named unit is a CLASS deriving from its `unit<...>` (not an alias) so a diagnostic prints the friendly */    \
 	/** name (`meters<double>`) instead of `unit<strong, Underlying, scale>` cruft, keeping the `unitName<>` spelling. */\
@@ -345,7 +345,7 @@ namespace units
  *				are placed in the `units::literals` namespace.
  * @param		namePlural - plural version of the unit name, e.g. 'meters'
  * @param		abbreviation - abbreviated unit name, e.g. 'm'
-	 */
+ */
 #define UNIT_ADD_NAME(namespaceName, namePlural, abbrev)                                                                                                                                               \
 	template<class Underlying>                                                                                                                                                                         \
 	struct unit_name<namespaceName::namePlural<Underlying>>                                                                                                                                            \
@@ -493,7 +493,7 @@ namespace units
  *				argument rather than derived from `unitdimension`.
  * @param		unitdimension	The name of the dimension of unit, e.g. length or mass.
  * @param		ConceptName		The PascalCase name of the emitted concept, e.g. Length or Mass.
-		 */
+ */
 
 #define UNIT_ADD_DIMENSION_TRAIT(unitdimension, ConceptName)                                                                                                                                           \
 	/** @ingroup	TypeTraits*/                                                                                                                                                                   \
@@ -535,7 +535,7 @@ namespace units
  * @note		a variadic template is used for the definition to allow templates with
  *				commas to be easily expanded. All the variadic 'arguments' should together
  *				comprise the unit definition.
-	 */
+ */
 #define UNIT_ADD_WITH_METRIC_PREFIXES(namespaceName, namePlural, abbreviation, /*conversionFactor*/...)                                                                                                \
 	UNIT_ADD(namespaceName, namePlural, abbreviation, __VA_ARGS__)                                                                                                                                     \
 	UNIT_ADD(namespaceName, femto##namePlural, f##abbreviation, femto<namePlural<>>)                                                                                                                   \
@@ -684,7 +684,7 @@ namespace units
 		 * @details		Simplifies the implementation of traits and other metaprogramming use-cases.
 		 *				The result is shorter and more expressive code.
 		 * @sa			https://wg21.link/N4502, http://wg21.link/N4758#meta.detect
-	 */
+		 */
 		template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
 		struct detector
 		{
@@ -735,6 +735,7 @@ namespace units
 		inline constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
+
 	//------------------------------
 	//	RATIO TRAITS
 	//------------------------------
@@ -847,6 +848,7 @@ namespace units
 	} // namespace detail
 
 	/** @endcond */ // END DOXYGEN IGNORE
+
 	namespace traits
 	{
 		/**
@@ -854,7 +856,7 @@ namespace units
 		 * @brief		`UnaryTypeTrait` for querying whether `T` represents a conversion factor.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`.
 +		 *				Use `is_conversion_factor_v<T>` to test whether `T` represents a conversion factor.
-	 */
+		 */
 		template<class T>
 		using is_conversion_factor = typename std::is_base_of<units::detail::_conversion_factor, T>::type;
 
@@ -873,7 +875,7 @@ namespace units
 		/**
 		 * @brief		helper type to identify units.
 		 * @details		A non-templated base class for `unit` which enables compile-time testing.
-	 */
+		 */
 		struct _unit
 		{
 		};
@@ -1409,6 +1411,7 @@ namespace units
 	};
 
 	/** @endcond */ // END DOXYGEN IGNORE
+
 	/** @cond */    // DOXYGEN IGNORE
 	namespace detail
 	{
@@ -1426,7 +1429,7 @@ namespace units
 		 * @details		recursively seeks dimension type of conversion factor.
 		 *				Since their `dimension_type` typedef may be another conversion factor,
 		 *				it may not represent a dimension type.
-	 */
+		 */
 		template<class ConversionFactor>
 		struct dimension_of_impl : dimension_of_impl<conversion_factor_base_t<ConversionFactor>>
 		{
@@ -1450,13 +1453,14 @@ namespace units
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
+
 	namespace traits
 	{
 		/**
 		 * @brief		Names the `dimension_t` of a `conversion_factor`.
 		 * @details		Since `conversion_factor`s nest,
 		 *				their `dimension_type` typedef will not always be a `dimension_t` (or unit dimension).
-	 */
+		 */
 		template<class U>
 		using dimension_of_t = typename units::detail::dimension_of_impl<U>::type;
 	} // namespace traits
@@ -1501,7 +1505,7 @@ namespace units
 		 *				`Underlying`. Otherwise, there is no `type` member.
 		 * @param		Unit The unit type whose underlying type is to be replaced.
 		 * @param		Underlying The underlying type to replace that of `Unit`.
-	 */
+		 */
 		template<class, class>
 		struct replace_underlying
 		{
@@ -1588,7 +1592,7 @@ namespace units
 		 * @details		multiplies two units. The dimension becomes the dimensions of each with their exponents
 		 *				added. The conversion factors of each are multiplied. Pi exponent ratios
 		 *				are added, and datum translations are removed.
-	 */
+		 */
 		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
 		struct unit_multiply_impl
 		{
@@ -1684,7 +1688,7 @@ namespace units
 		 * @brief		implementation of `cubed`
 		 * @details		Cubes the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
-	 */
+		 */
 		template<ConversionFactorType Cf>
 		struct cubed_impl
 		{
@@ -1885,7 +1889,7 @@ namespace units
 		 * @brief		implementation of `sqrt`
 		 * @details		square roots the conversion ratio, `dimension` exponents, pi exponents, and removes
 		 *				datum translation ratios.
-	 */
+		 */
 		template<ConversionFactorType Unit, std::intmax_t Eps>
 		struct sqrt_impl
 		{
@@ -1931,7 +1935,7 @@ namespace units
 		 * @brief		implementation of compound_unit
 		 * @details		multiplies a variadic list of units together, and is inherited from the resulting
 		 *				type.
-	 */
+		 */
 		template<ConversionFactorType Cf, ConversionFactorType... Cfs>
 		struct compound_impl;
 
@@ -1972,7 +1976,7 @@ namespace units
 		/**
 		 * @brief		prefix applicator.
 		 * @details		creates a conversion factor from a prefix and a conversion factor
-	 */
+		 */
 		template<RatioType Ratio, ConversionFactorType ConversionFactor>
 		struct prefix
 		{
@@ -2066,7 +2070,6 @@ namespace units
 		 */
 		template<ConversionFactorType Cf>
 		inline constexpr bool is_affine_conversion_factor_v = !std::ratio_equal_v<typename conversion_factor_traits<Cf>::translation_ratio, std::ratio<0>>;
-
 	} // namespace traits
 
 	//------------------------------
@@ -2081,7 +2084,7 @@ namespace units
 		 * @details		Simulates the promotion undergone by integers when calling the standard cmath functions
 		 *				overloaded on `float`, `double` and `long double`. Works for both arithmetic types and
 		 *				unit types.
-	 */
+		 */
 		template<typename T>
 		struct floating_point_promotion : std::conditional<std::is_floating_point_v<T>, T, double>
 		{
@@ -2477,7 +2480,7 @@ namespace units
 		 * @brief		SFINAE helper to prevent warnings in Clang 6 when `From` or `To` is a `conversion_factor`.
 		 * @details		`typename T::conversion_factor` is interpreted as a constructor when `T` is a
 		 *				`conversion_factor` (-Winjected-class-name).
-	 */
+		 */
 		template<UnitType UnitFrom, UnitType UnitTo>
 		struct delayed_is_same_dimension_conversion_factor : std::false_type
 		{
@@ -2615,7 +2618,7 @@ namespace units
 
 		/**
 		 * @brief		SFINAE helper to test if an arithmetic conversion is lossless.
-	 */
+		 */
 		template<class From, class To>
 		inline constexpr bool is_losslessly_convertible = std::is_arithmetic_v<From> && (std::is_floating_point_v<To> || !std::is_floating_point_v<From>);
 
@@ -2742,7 +2745,7 @@ namespace units
 					 *				- \ref densityContainers "density units"
 					 *				- \ref concentrationContainers "concentration units"
 					 *				- \ref constantContainers "constant units"
-	 */
+					 */
 #ifdef _WIN32
 	// Microsoft compiler requires explicit activation of empty base class optimization
 	// so that sizeof(unit<..., double, ...>) == sizeof(double)
@@ -2894,9 +2897,8 @@ namespace units
 			requires traits::is_dimensionless_unit<Cf>::value
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
-			// Tested POSITIVELY against `linear_scale` so that any other scale takes the linearizing branch rather
-			// than silently inheriting the linear one. (`has_linear_scale_v` is not declared this early in the header,
-			// hence the direct comparison; `linear_scale` is declared above.)
+			// A linear scale stores the number it is given; every other scale linearizes it through the value
+			// constructor. (`has_linear_scale_v` is declared later in this header, hence the direct comparison.)
 			if constexpr (std::is_same_v<NumericalScale, linear_scale>)
 			{
 				unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
@@ -3192,7 +3194,7 @@ namespace units
 					"units: ordering reads a quantity's NUMBER, so its representation must be a floating-point type or "
 					"a standard integer. A character type or `bool` is neither.");
 
-				// Each side is scaled into the common unit by a WHOLE multiplier, in the widest integer the platform
+				// Each side is scaled into the common unit by a whole multiplier, in the widest integer the platform
 				// has, so the comparison is a pair of exact products. Scaling in the operand's own representation
 				// instead cannot hold the reconciled value: converting 3 kg into grams needs 3000, which a
 				// `signed char` does not have, and the ordering comes back inverted rather than approximate.
@@ -3659,7 +3661,7 @@ namespace units
 	{
 		/**
 		 * @brief		greatest common divisor of two ratios.
-	 */
+		 */
 		template<RatioType Ratio1, RatioType Ratio2>
 		using ratio_gcd = std::ratio<std::gcd(Ratio1::num, Ratio2::num), std::lcm(Ratio1::den, Ratio2::den)>;
 
@@ -3864,8 +3866,8 @@ namespace units
 
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Whether a unit is a decibel LEVEL: a DIMENSIONED quantity on a logarithmic reference scale
-		 *				(`dBW`, `dBm`). A DIMENSIONLESS decibel value is a GAIN -- a relative ratio -- and the two obey
+		 * @brief		Whether a unit is a decibel level: a dimensioned quantity on a logarithmic reference scale
+		 *				(`dBW`, `dBm`). A dimensionless decibel value is a gain -- a relative ratio -- and the two obey
 		 *				different rules, so every decibel rule in the library keys on this rather than on decibel-ness
 		 *				alone.
 		 * @tparam		U	the unit type to test.
@@ -3875,25 +3877,25 @@ namespace units
 
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		Whether a quantity is measured from an ARBITRARY ORIGIN: an affine reading (it carries a datum,
-		 *				like `celsius`) or a decibel LEVEL (it carries a logarithmic reference, like `dBW`).
-		 * @details		Such a value has no SCALE-INDEPENDENT magnitude, sign, remainder, root, power or ratio: an
+		 * @brief		Whether a quantity is measured from an arbitrary origin: an affine reading (it carries a datum,
+		 *				like `celsius`) or a decibel level (it carries a logarithmic reference, like `dBW`).
+		 * @details		Such a value has no scale-independent magnitude, sign, remainder, root, power or ratio: an
 		 *				operation that reads its number reads it in the scale that number was written in, so
 		 *				`abs(celsius(-5.25))` is 5.25 degC while the identical temperature as `kelvin(267.9)` is
-		 *				267.9 K. A DIFFERENCE of two such values, a decibel GAIN, an offset-free scale (`kelvin`,
+		 *				267.9 K. A difference of two such values, a decibel gain, an offset-free scale (`kelvin`,
 		 *				`rankine`) and every ordinary quantity carry no origin, so those operations are
 		 *				scale-independent for them.
 		 *
 		 *				This trait is the supported way for generic code to ask the question, because it cannot be
 		 *				asked with a `requires`-expression: the operations the library does refuse are diagnostics
-		 *				that fire from an overload BODY, so the overload resolves anyway and the `requires` reports
+		 *				that fire from an overload body, so the overload resolves anyway and the `requires` reports
 		 *				the operation as available -- meaning a `requires`-guarded `if constexpr` hard-errors instead
 		 *				of taking its fallback.
 		 *				@code
 		 *				if constexpr (units::traits::has_arbitrary_origin_v<T>) { useADifference(v); }
 		 *				@endcode
 		 *
-		 *				Generic code reaches this trait with whatever type it happens to hold, so ANY type answers it: a
+		 *				Generic code reaches this trait with whatever type it happens to hold, so any type answers it: a
 		 *				type that is not a unit at all reads `false` rather than failing to compile. That is why it is a
 		 *				primary template plus a constrained specialization rather than a disjunction over
 		 *				`is_affine_unit_v`, which names `U::conversion_factor` -- both operands of a `&&` or `||` in a
@@ -3908,18 +3910,6 @@ namespace units
 		inline constexpr bool has_arbitrary_origin_v<U> = is_affine_unit_v<U> || is_decibel_level_v<U>;
 		/** @endcond */
 
-		/**
-		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
-		 * @details		`atan2`'s guard asks this rather than `has_linear_scale_v`, because that trait is false for
-		 *				anything it cannot classify -- including every `kind`, `delta` and `absolute` WRAPPER, whose
-		 *				scale it does not see through. Requiring provable linearity would therefore withdraw `atan2`
-		 *				from every wrapped quantity, while refusing what is provably logarithmic leaves those alone and
-		 *				still refuses the decibel operands the guard is there for. Any type answers, a non-unit
-		 *				included.
-		 * @tparam		U	the type(s) to test.
-		 */
-		template<class... U>
-		inline constexpr bool no_logarithmic_scale_v = !(has_decibel_scale_v<U> || ...);
 	} // namespace traits
 
 	//----------------------------------
@@ -4001,7 +3991,7 @@ namespace units
 	{
 		/**
 		 * @brief		Helper to make the use of a template parameter a non-deduced context.
-	 */
+		 */
 		template<class T>
 		struct type_identity
 		{
@@ -4011,14 +4001,14 @@ namespace units
 		template<class T>
 		using type_identity_t = typename type_identity<T>::type;
 
-		/// A `false` that DEPENDS on a template parameter, so a `static_assert(dependent_false<T>, "...")` inside a
+		/// A `false` that depends on a template parameter, so a `static_assert(dependent_false<T>, "...")` inside a
 		/// template body fires only when that body is actually instantiated -- the way a misuse diagnostic replaces an
 		/// overload-resolution candidate wall with one readable sentence.
 		template<class...>
 		inline constexpr bool dependent_false = false;
 
 		/// The offset-free counterpart of a unit: same dimension, scale, and pi factor, with the datum translation
-		/// stripped. This is the type of a CHANGE on an affine scale -- the difference of two points, or a point
+		/// stripped. This is the type of a change on an affine scale -- the difference of two points, or a point
 		/// scaled -- so it never re-applies a datum, and converting between two of them is scale-only (a temperature
 		/// difference converts by degree size, not as an absolute reading).
 		template<class U>
@@ -4028,9 +4018,9 @@ namespace units
 			typename traits::unit_traits<U>::underlying_type, typename traits::unit_traits<U>::numerical_scale_type>;
 
 		//------------------------------------------------------------------------------------------------------------------
-		//      FUNCTION: affine_delta_in_lhs_scale [static]
+		//      function: affine_delta_in_lhs_scale [static]
 		//------------------------------------------------------------------------------------------------------------------
-		/// @brief      re-expresses the RHS's magnitude as a change in the LHS unit's scale, applying NO datum
+		/// @brief      re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying no datum
 		/// @details	A relative change is scale-only: a value in the rhs scale becomes the same change in the lhs
 		///				scale by the pure ratio of their scale factors (rhs_ratio / lhs_ratio), never through the
 		///				base linearization (which would re-introduce the affine offset). A nine-Fahrenheit-degree
@@ -4042,7 +4032,7 @@ namespace units
 		/// @return     the change expressed in the lhs unit's scale
 		//------------------------------------------------------------------------------------------------------------------
 		/**
-		 * @brief		Re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying NO datum.
+		 * @brief		Re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying no datum.
 		 * @tparam		UnitTypeLhs	the left operand's unit type.
 		 * @tparam		UnitTypeRhs	the right operand's unit type.
 		 @returns		that magnitude expressed in the lhs unit's scale.
@@ -4057,19 +4047,15 @@ namespace units
 			return static_cast<typename UnitTypeLhs::underlying_type>(scaled);
 		}
 
-		/// The detail spelling of `traits::is_decibel_level_v`, which is the public name.
-		template<class U>
-		inline constexpr bool is_decibel_level_v = traits::is_decibel_level_v<U>;
+		/// True when any of the operands is written on a logarithmic scale. Any type answers, a non-unit included.
+		template<class... U>
+		inline constexpr bool any_decibel_scale_v = (traits::has_decibel_scale_v<U> || ...);
 
-		/// True when the operand pair is a decibel LEVEL and a decibel GAIN. This is the one cross-DIMENSION compound
+		/// True when the operand pair is a decibel level and a decibel gain. This is the one cross-dimension compound
 		/// pairing that is well-defined, because `level + gain -> level` and `level - gain -> level` are defined by value.
 		template<class UnitTypeLhs, class UnitTypeRhs>
 		inline constexpr bool is_decibel_level_and_gain_v =
-			is_decibel_level_v<UnitTypeLhs> && DimensionlessUnitType<UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeRhs>;
-
-		/// The detail spelling of `traits::has_arbitrary_origin_v`, which is the public name.
-		template<class U>
-		inline constexpr bool has_arbitrary_origin_v = traits::has_arbitrary_origin_v<U>;
+			traits::is_decibel_level_v<UnitTypeLhs> && DimensionlessUnitType<UnitTypeRhs> && traits::has_decibel_scale_v<UnitTypeRhs>;
 
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -4082,7 +4068,7 @@ namespace units
 	 * @returns		a reference to the left operand, so the expression can be chained.
 	 */
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs + rhs;
@@ -4090,11 +4076,11 @@ namespace units
 	}
 
 	/**
-	 * @brief		Compound move of an OFFSET-FREE quantity by an amount written on an affine scale.
-	 * @details		The mirror of the affine-lhs overload below. The rhs of a compound move is a relative AMOUNT, so
+	 * @brief		Compound move of an offset-free quantity by an amount written on an affine scale.
+	 * @details		The mirror of the affine-lhs overload below. The rhs of a compound move is a relative amount, so
 	 *				only its scale factor applies and its datum never does: `kelvin(300) += celsius(5)` warms by five
 	 *				Celsius-degrees, which is five kelvin, giving 305 K. Without this overload the rhs converts into
-	 *				the lhs unit as an absolute READING and carries its datum in, so the answer would depend on which
+	 *				the lhs unit as an absolute reading and carries its datum in, so the answer would depend on which
 	 *				side of the move happens to be the affine one.
 	 * @tparam		UnitTypeLhs	the offset-free unit being moved.
 	 * @tparam		UnitTypeRhs	the affine unit the amount is written in; only its scale factor is read.
@@ -4124,13 +4110,13 @@ namespace units
 		return lhs;
 	}
 
-	/// Compound addition of an affine point and a same-dimension affine value written in a DIFFERENT scale. The rhs
-	/// is a RELATIVE delta, so only its scale-converted magnitude moves the point — its datum is stripped, never
+	/// Compound addition of an affine point and a same-dimension affine value written in a different scale. The rhs
+	/// is a relative delta, so only its scale-converted magnitude moves the point — its datum is stripped, never
 	/// applied. celsius(20) += fahrenheit(9) warms by nine Fahrenheit-degrees (five Celsius-degrees) to celsius(25);
-	/// it does NOT reinterpret fahrenheit(9) as the absolute point −12.78 degC. A different-dimension rhs does not
+	/// it does not reinterpret fahrenheit(9) as the absolute point −12.78 degC. A different-dimension rhs does not
 	/// match (the same_dimension constraint). For an explicit point/delta calculus, use `absolute<>`/`delta<>`.
 	/**
-	 * @brief		Compound move of an affine point by a same-dimension value written in a DIFFERENT scale.
+	 * @brief		Compound move of an affine point by a same-dimension value written in a different scale.
 	 * @param[in]	lhs	the left operand.
 	 * @param[in]	rhs	the right operand.
 	 * @returns		a reference to the left operand, so the expression can be chained.
@@ -4145,7 +4131,7 @@ namespace units
 	}
 
 	/**
-	 * @brief		Compound move of a decibel LEVEL by a dimensionless decibel GAIN.
+	 * @brief		Compound move of a decibel level by a dimensionless decibel gain.
 	 * @details		The in-place form of `level + gain -> level` (dBW(12.5) += decibels(3.25) -> dBW(15.75)). The
 	 *				operands differ in dimension, which is ordinarily forbidden, but a gain is a ratio rather than a
 	 *				quantity of its own dimension, so it moves the level exactly as a delta moves an affine point.
@@ -4165,7 +4151,7 @@ namespace units
 	}
 
 	/**
-	 * @brief		Compound move of a decibel LEVEL down by a dimensionless decibel GAIN.
+	 * @brief		Compound move of a decibel level down by a dimensionless decibel gain.
 	 * @details		The in-place form of `level - gain`.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -4181,13 +4167,9 @@ namespace units
 		return lhs;
 	}
 
-	// A bare number may be compound-added only to a genuinely dimensionless quantity (a plain scalar): a number has
-	// no dimension, so adding one to a length, a named angle, or an affine point is meaningless -- and the binary
-	// `unit + number` already rejects it. Constraining to a plain dimensionless unit keeps `+=`/`+` consistent and
-	// turns what was a body-level failure for any other unit into a clean overload-resolution rejection. (Ratio-
-	// scaled dimensionless units -- percent, parts-per-million -- have their own scalar overload below.) A LOGARITHMIC
-	// dimensionless unit (a dB gain) is excluded too: a bare number states no ratio, and `unit + number` has no decibel
-	// overload, so without the scale constraint this body failed inside the library instead of at the call site.
+	// A bare number may be compound-added only to a plain dimensionless quantity: a number carries no dimension and
+	// states no ratio. Ratio-scaled dimensionless units (percent, parts-per-million) have their own scalar overload
+	// below; a logarithmic one is excluded, as `unit + number` has no decibel overload.
 	/**
 	 * @brief		Compound addition of a bare number to a dimensionless quantity.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -4269,7 +4251,7 @@ namespace units
 	 * @returns		a reference to the left operand, so the expression can be chained.
 	 */
 	template<UnitType UnitTypeLhs>
-		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !detail::is_decibel_level_v<UnitTypeLhs>)
+		requires(!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_decibel_level_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const detail::type_identity_t<UnitTypeLhs>& rhs) noexcept
 	{
 		lhs = lhs - rhs;
@@ -4290,7 +4272,7 @@ namespace units
 	}
 
 	/**
-	 * @brief		Compound move of an OFFSET-FREE quantity DOWN by an amount written on an affine scale.
+	 * @brief		Compound move of an offset-free quantity down by an amount written on an affine scale.
 	 * @details		The `operator-=` mirror of the overload above, on the same terms: only the rhs's scale factor
 	 *				applies, so `kelvin(300) -= celsius(5)` cools by five kelvin to 295 K.
 	 * @tparam		UnitTypeLhs	the offset-free unit being moved.
@@ -4308,11 +4290,11 @@ namespace units
 		return lhs;
 	}
 
-	/// Mirror of the cross-scale affine `+=`: subtract a same-dimension affine value in a DIFFERENT scale as a
-	/// RELATIVE delta (datum stripped). celsius(20) -= fahrenheit(9) cools by nine Fahrenheit-degrees (five
+	/// Mirror of the cross-scale affine `+=`: subtract a same-dimension affine value in a different scale as a
+	/// relative delta (datum stripped). celsius(20) -= fahrenheit(9) cools by nine Fahrenheit-degrees (five
 	/// Celsius-degrees) to celsius(15). A different-dimension rhs does not match.
 	/**
-	 * @brief		Compound move of an affine point by a same-dimension value written in a DIFFERENT scale.
+	 * @brief		Compound move of an affine point by a same-dimension value written in a different scale.
 	 * @param[in]	lhs	the left operand.
 	 * @param[in]	rhs	the right operand.
 	 * @returns		a reference to the left operand, so the expression can be chained.
@@ -4353,16 +4335,9 @@ namespace units
 		return (lhs -= rhs.value());
 	}
 
-	// Scaling by a scalar is meaningful for a magnitude (a length, a duration) but NOT for an affine point: a
-	// point's value is relative to an arbitrary datum, so `celsius(20) *= 2` would depend on the zero (40 degC is
-	// 313 K, yet the same temperature in kelvin doubled is a different point), and the only coordinate-free reading
-	// -- scaling a CHANGE -- yields a delta, which cannot be stored back in the point type. So an affine point is
-	// excluded here; scale a temperature change via `delta<celsius>` (delta * scalar = delta, well-defined).
-	//
-	// A NON-LINEAR (decibel) scale is excluded as well, matching the by-value `operator*`. The body below reads the
-	// value THROUGH the scale (`raw()` returns the dB number) and writes it back PAST the scale (the
-	// `linearized_value` tag stores it unlinearized). Those two are the same operation only for a linear scale; for a
-	// decibel scale they are different domains, so scaling one silently produced a value that was neither reading.
+	// A non-linear (decibel) scale is excluded, matching the by-value `operator*`: the body below reads the value
+	// through the scale (`raw()` returns the dB number) and writes it back past the scale (the `linearized_value` tag
+	// stores it unlinearized), and those are the same operation only for a linear scale.
 	/**
 	 * @brief		Scaling a quantity in place by a bare number.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -4531,7 +4506,7 @@ namespace units
 
 	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
 	//----------------------------------
-	//	COMPOUND-ASSIGNMENT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//	compound-assignment misuse diagnostics (readable, not a candidate wall)
 	//----------------------------------
 	// Each of these is ill-formed. Without them the compiler prints only "no match for operator+=" and a list of
 	// declined candidates, which does not name what to write instead. Each returns a value so the body is
@@ -4562,7 +4537,7 @@ namespace units
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const T&) = delete;
 
 	/**
-	 * @brief		Compound add across DIFFERENT dimensions, which dimensional analysis forbids.
+	 * @brief		Compound add across different dimensions, which dimensional analysis forbids.
 	 * @details		A decibel level moved by a dimensionless decibel gain is the one well-defined cross-dimension
 	 *				pairing and is handled above. Deleted rather than diagnosed from a body, so generic code probing
 	 *				`requires { a += b; }` observes the refusal.
@@ -4575,7 +4550,7 @@ namespace units
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
 
 	/**
-	 * @brief		Compound subtract across DIFFERENT dimensions.
+	 * @brief		Compound subtract across different dimensions.
 	 * @details		The `operator-=` mirror of the overload above, deleted on the same terms.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type, of a different dimension.
@@ -4586,7 +4561,7 @@ namespace units
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
 
 	/**
-	 * @brief		Compound multiply or divide by another QUANTITY.
+	 * @brief		Compound multiply or divide by another quantity.
 	 * @details		The product or quotient has a different dimension, which cannot be stored back in the left
 	 *				operand's type; compute it by value (`auto p = a * b;`). Deleted rather than diagnosed from a
 	 *				body, so generic code probing `requires { a *= b; }` observes the refusal.
@@ -4601,11 +4576,11 @@ namespace units
 		requires(!DimensionlessUnitType<UnitTypeRhs>)
 	constexpr UnitTypeLhs& operator/=(UnitTypeLhs& lhs, const UnitTypeRhs&) = delete;
 
-	// Scaling in place by a dimensionless QUANTITY where no valid overload applies. The two diagnostics above are
-	// keyed on a NON-dimensionless rhs (that is the different-dimension case), and the valid dimensionless-rhs
-	// overloads require a linear scale on BOTH operands -- so a decibel scale on either side has no candidate at all
+	// Scaling in place by a dimensionless quantity where no valid overload applies. The two diagnostics above are
+	// keyed on a non-dimensionless rhs (that is the different-dimension case), and the valid dimensionless-rhs
+	// overloads require a linear scale on both operands -- so a decibel scale on either side has no candidate at all
 	// and prints a wall. These cover it, split by which side is logarithmic: a decibel value does not scale, and a
-	// decibel GAIN is not a plain factor to scale by.
+	// decibel gain is not a plain factor to scale by.
 	/**
 	 * @brief		Scaling a decibel value by a dimensionless quantity.
 	 * @details		The dB number and the ratio behind it do not scale alike. Returns a value so the body is
@@ -4641,7 +4616,7 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		Scaling by a decibel GAIN.
+	 * @brief		Scaling by a decibel gain.
 	 * @details		A gain is a logarithmic figure, not a plain factor to multiply by. Returns a value so the body is
 	 *				instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -4658,7 +4633,7 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		Dividing by a decibel GAIN.
+	 * @brief		Dividing by a decibel gain.
 	 * @details		Same reason as scaling by one. Returns a value so the body is instantiated and the message fires
 	 *				on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -4678,9 +4653,9 @@ namespace units
 	/** @endcond */ // END DOXYGEN IGNORE
 	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
 	//----------------------------------
-	//	AFFINE MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//	affine misuse diagnostics (readable, not a candidate wall)
 	//----------------------------------
-	// An affine quantity is a POINT on a scale, so scaling it, adding two of them, or moving it by a bare number is
+	// An affine quantity is a point on a scale, so scaling it, adding two of them, or moving it by a bare number is
 	// ill-formed. Without these overloads the compiler reports only "no match for operator*=" followed by a wall of
 	// declined candidates, which does not name what to write instead. Each catch-all below is selected for the misuse
 	// and its body fires one sentence naming the problem and the remedy -- the `absolute<>`/`delta<>` wrappers of
@@ -4690,7 +4665,7 @@ namespace units
 
 
 	/**
-	 * @brief		Moving an affine POINT by a bare number.
+	 * @brief		Moving an affine point by a bare number.
 	 * @details		A number carries no unit, so the amount of change is unstated. Returns a value so the body is
 	 *				instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -4770,8 +4745,8 @@ namespace units
 		return lhs;
 	}
 
-	/// Adding or subtracting two decibel LEVELS in place. `level + level` is deleted (two 10 dBW sources are not a
-	/// 20 dBW source) and `level - level` yields a GAIN, which cannot be stored back in the level's own type -- so
+	/// Adding or subtracting two decibel levels in place. `level + level` is deleted (two 10 dBW sources are not a
+	/// 20 dBW source) and `level - level` yields a gain, which cannot be stored back in the level's own type -- so
 	/// both compound forms are ill-formed. Without these the failure was reported from inside the library, at the
 	/// assignment that could not hold the gain.
 	/**
@@ -4781,7 +4756,7 @@ namespace units
 	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(detail::is_decibel_level_v<UnitTypeLhs> && detail::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+		requires(traits::is_decibel_level_v<UnitTypeLhs> && traits::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator+=(UnitTypeLhs& lhs, const UnitTypeRhs&)
 	{
@@ -4789,7 +4764,7 @@ namespace units
 			"units: cannot add two decibel levels; combine them in the linear domain.");
 		return lhs;
 	}
-	/// Subtracting two decibel LEVELS in place: their difference is a GAIN, which the level's type cannot hold.
+	/// Subtracting two decibel levels in place: their difference is a gain, which the level's type cannot hold.
 	/**
 	 * @brief		Diagnostic for an ill-formed use of `operator-=`.
 	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
@@ -4797,7 +4772,7 @@ namespace units
 	 * @returns		the operand, unchanged; never reached, as the body's `static_assert` always fires.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(detail::is_decibel_level_v<UnitTypeLhs> && detail::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
+		requires(traits::is_decibel_level_v<UnitTypeLhs> && traits::is_decibel_level_v<UnitTypeRhs> && same_dimension<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs>)
 	constexpr UnitTypeLhs& operator-=(UnitTypeLhs& lhs, const UnitTypeRhs&)
 	{
@@ -4842,7 +4817,7 @@ namespace units
 	}
 	/** @endcond */ // END DOXYGEN IGNORE
 
-	/// A reading moved by an AMOUNT, by value: the amount is any same-dimension quantity that is not itself a
+	/// A reading moved by an amount, by value: the amount is any same-dimension quantity that is not itself a
 	/// reading (a difference of two readings, a scaled reading, or an offset-free scale), so its magnitude is added to
 	/// the reading in the reading's own degrees and the result is a reading. This is the by-value counterpart of
 	/// `+=`, and it is commutative -- an amount plus a reading is the same reading.
@@ -4859,8 +4834,8 @@ namespace units
 	{
 		return UnitTypeLhs(lhs.raw() + detail::affine_delta_in_lhs_scale<UnitTypeLhs, UnitTypeRhs>(rhs.raw()));
 	}
-	/// A reading moved by an AMOUNT written on the LEFT: the same move, so it answers in the READING's unit rather
-	/// than the amount's. Published formulae reach it through a scaled DIFFERENCE added back to a reading -- mean
+	/// A reading moved by an amount written on the left: the same move, so it answers in the reading's unit rather
+	/// than the amount's. Published formulae reach it through a scaled difference added back to a reading -- mean
 	/// radiant temperature is `(Tg - Ta) * (1 + 0.22 * sqrt(v)) + Ta`, whose left operand is offset-free.
 	/**
 	 * @brief		Moves an affine reading by an amount written on the left.
@@ -4878,8 +4853,8 @@ namespace units
 
 	/// The sum of two readings, in the left operand's unit. The result is datum-relative, as any weighted sum of
 	/// readings is. Published formulae use the form: every WBGT variant (`0.7*Tnw + 0.2*Tg + 0.1*Ta`, ISO 7243 /
-	/// NIOSH / OSHA / TB MED 507), the Thom, Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`), FITS
-	/// and MDI. Where the weights total one the result is datum-INDEPENDENT and exact in any scale, so WBGT reads the
+	/// NIOSH / OSHA / tb med 507), the Thom, Oxford and Sohar comfort indices, Weiss's humiture (`Ta + Td - 18`), FITS
+	/// and MDI. Where the weights total one the result is datum-independent and exact in any scale, so WBGT reads the
 	/// same published in degC and in degF; `units::midpoint` and `units::lerp` name that case. Where the weights do
 	/// not total one, the sum is a curve fit's arithmetic on the numbers a thermometer read, in the scale its
 	/// coefficients were fitted to.
@@ -5046,8 +5021,8 @@ namespace units
 		return u;
 	}
 
-	// Increment and decrement ARE defined on a quantity measured from an arbitrary origin, unlike `+= 1.0`. A bare
-	// number is refused because it states no unit, whereas `++` unambiguously steps by ONE unit of the operand's own
+	// Increment and decrement are defined on a quantity measured from an arbitrary origin, unlike `+= 1.0`. A bare
+	// number is refused because it states no unit, whereas `++` unambiguously steps by one unit of the operand's own
 	// scale -- `++celsius(20)` is `celsius(20) += celsius(1)`, a move by a stated amount, and `++dBW(12.5)` is a
 	// one-decibel gain. The amount is implied by the type, so nothing is guessed.
 	// prefix increment: ++T
@@ -5195,8 +5170,8 @@ namespace units
 	///				the true 273.15 K delta). Both operands are reconciled to their common affine unit, their
 	///				raw values subtracted (the offsets cancel exactly), and the result returned in the
 	///				offset-stripped counterpart of that common unit so it never re-applies a datum.
-	/// NOTE the asymmetry with `-=`, which the representation forces. An offset-free temperature is simultaneously a
-	/// valid READING on an absolute scale (kelvin) and the exact shape an AMOUNT has, so the two are one type and a
+	/// note the asymmetry with `-=`, which the representation forces. An offset-free temperature is simultaneously a
+	/// valid reading on an absolute scale (kelvin) and the exact shape an amount has, so the two are one type and a
 	/// binary operator must pick one meaning. `-` picks reading minus reading, the operation with a
 	/// datum-independent answer
 	/// (`celsius(0) - kelvin(0)` is 273.15 degrees of difference). `+` cannot pick that -- reading plus reading is
@@ -5348,7 +5323,7 @@ namespace units
 
 	/**
 	 * @brief		Multiplication by an arithmetic type for dimensioned unit types with a linear scale.
-	 * @details		An affine quantity is excluded: scaling a point yields a CHANGE, handled by the affine overload
+	 * @details		An affine quantity is excluded: scaling a point yields a change, handled by the affine overload
 	 *				below.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		T	the arithmetic operand's type.
@@ -5592,14 +5567,14 @@ namespace units
 
 	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
 	//----------------------------------
-	//	LOGARITHMIC-SCALE MULTIPLY/DIVIDE DIAGNOSTICS (readable, not a candidate wall)
+	//	logarithmic-scale multiply/divide diagnostics (readable, not a candidate wall)
 	//----------------------------------
 	// Every valid `*` and `/` above requires a linear scale on both operands, so an operand on a decibel scale has no
 	// the compound `dBW *= 2.0` reports one sentence. These overloads give the by-value forms the same sentence their
 	// compound twins already carry, split by which operand is logarithmic. Each returns a value so its body is
 	// instantiated and the message fires on every compiler.
 	//
-	// A decibel value's number is a LOGARITHM: multiplying or dividing it operates on the exponent, not on the
+	// A decibel value's number is a logarithm: multiplying or dividing it operates on the exponent, not on the
 	// quantity, so there is no reading of the result to return. The remedy is always to name the linear value first --
 	// `watts(level)` for a dimensioned level, `dimensionless(gain)` for a dimensionless one.
 
@@ -5655,7 +5630,7 @@ namespace units
 		return lhs;
 	}
 	/**
-	 * @brief		An ordinary quantity scaled by a decibel GAIN.
+	 * @brief		An ordinary quantity scaled by a decibel gain.
 	 * @details		A gain is a logarithmic figure, not a plain factor. Returns a value so the body is instantiated
 	 *				and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -5672,8 +5647,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a.
-	 *		@details		Ordinary quantity multiplied by a decibel LEVEL, whose remedy names a quantity rather than a
+	 *		@brief		Diagnostic for an ordinary quantity multiplied by a decibel level, whose remedy names a quantity rather than a.
+	 *		@details		Ordinary quantity multiplied by a decibel level, whose remedy names a quantity rather than a
 	 *				ratio. Returns a value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5758,8 +5733,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel GAIN.
-	 *		@details		Ordinary quantity divided by a decibel GAIN. Returns a value so the body is instantiated and the
+	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel gain.
+	 *		@details		Ordinary quantity divided by a decibel gain. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		D	the dimensionless operand's unit type.
@@ -5775,8 +5750,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel LEVEL.
-	 *		@details		Ordinary quantity divided by a decibel LEVEL. Returns a value so the body is instantiated and the
+	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel level.
+	 *		@details		Ordinary quantity divided by a decibel level. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -5791,7 +5766,7 @@ namespace units
 			"units: cannot divide by a decibel level; use its linear quantity (e.g. watts(level)).");
 		return lhs;
 	}
-	/// Two decibel values of DIFFERENT dimensions divided. The same-dimension shape has its own remedy below, and the
+	/// Two decibel values of different dimensions divided. The same-dimension shape has its own remedy below, and the
 	/// two are made disjoint on `same_dimension` rather than left to constraint subsumption, which does not order them.
 	/**
 	 * @brief		Diagnostic for an ill-formed use of `operator/`.
@@ -5808,8 +5783,8 @@ namespace units
 			"units: cannot divide two decibel values; divide their linear values (e.g. watts(level), dimensionless(gain)).");
 		return lhs;
 	}
-	/// Two decibel values of the SAME dimension divided -- the one shape with a direct remedy, since the ratio of two
-	/// levels (or of two gains) IS their difference in dB.
+	/// Two decibel values of the same dimension divided -- the one shape with a direct remedy, since the ratio of two
+	/// levels (or of two gains) is their difference in dB.
 	/**
 	 * @brief		Diagnostic for an ill-formed use of `operator/`.
 	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
@@ -6169,7 +6144,7 @@ namespace units
 	//------------------------------
 
 	/**
-	 * @brief		Addition of two absolute decibel LEVELS is ill-formed.
+	 * @brief		Addition of two absolute decibel levels is ill-formed.
 	 * @details		A dimensioned decibel value is an absolute point on a logarithmic reference scale, exactly like an
 	 *				affine temperature, so `dBW + dBW` is a point plus a point: two 10 dBW sources are not a 20 dBW
 	 *				source. The defined operations are `level + gain -> level` (adding a dimensionless dB gain),
@@ -6188,7 +6163,7 @@ namespace units
 	auto operator+(const LevelLhs& lhs, const LevelRhs& rhs) noexcept = delete;
 
 	/**
-	 * @brief		Addition of two dimensionless decibel GAINS (`dB + dB`).
+	 * @brief		Addition of two dimensionless decibel gains (`dB + dB`).
 	 * @details		Both operands are relative ratios, so their dB numbers add, which is a multiplication of the
 	 *				linear ratios: 3 dB + 3 dB is 6 dB.
 	 * @tparam		GainLhs	the left gain's unit type.
@@ -6258,7 +6233,7 @@ namespace units
 
 	/** @cond */ // DOXYGEN IGNORE: selected only for an ill-formed expression, so not callable API.
 	//----------------------------------
-	//	BY-VALUE ADD/SUBTRACT MISUSE DIAGNOSTICS (readable, not a candidate wall)
+	//	by-value add/subtract misuse diagnostics (readable, not a candidate wall)
 	//----------------------------------
 	// The by-value counterparts of the compound diagnostics above. Without them a dimensional mistake reports the
 	// more once the affine by-value forms exist. A selected overload replaces the whole list with one sentence, and
@@ -6291,7 +6266,7 @@ namespace units
 
 	/**
 	 * @brief		Diagnostic for adding a bare number to a dimensioned quantity by value.
-	 * @details		A number carries no dimension. Only a DIMENSIONED left operand is matched, so the dimensionless
+	 * @details		A number carries no dimension. Only a dimensioned left operand is matched, so the dimensionless
 	 *				types, which do add a bare number, are untouched.
 	 * @tparam		UnitTypeLhs	the dimensioned left operand's unit type.
 	 * @tparam		T	the arithmetic right operand's type.
@@ -6339,7 +6314,7 @@ namespace units
 	//----------------------------------
 	//	LOGARITHMIC-SCALE MATH DIAGNOSTICS
 	//----------------------------------
-	// A transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
+	// A transcendental function reads a quantity's value, which on a logarithmic scale is the decibel figure rather
 	// than the ratio it denotes: `log10(decibels(3.25))` reading 3.25 gives 0.512 where the ratio is 2.113 and its
 	// base-ten logarithm is 0.325. Rather than pick one reading, the family refuses a logarithmic operand, and one of
 	// these overloads names the conversion in place of a wall of declined candidates. Each returns a value so its body
@@ -6355,7 +6330,7 @@ namespace units
  *				into the message, so each member of the family names itself -- which is why this is a macro and not a
  *				template: a `static_assert` message must be a literal.
  *
- *				INTERNAL. It exists for the library's own headers -- the exponential and logarithmic functions here,
+ *				internal. It exists for the library's own headers -- the exponential and logarithmic functions here,
  *				the inverse trigonometric and hyperbolic ones in `units/angle.h` -- and is not part of the public
  *				interface. Like every other `UNIT_ADD_*` macro it remains defined after inclusion, because `angle.h`
  *				consumes it after `core.h` has been read.
@@ -6379,14 +6354,11 @@ namespace units
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(expm1)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log1p)
 
-	/// A root of a logarithm is not the root of the ratio it denotes either: sqrt(decibels(3.25)) read 1.802776, the
-	/// square root of 3.25, where the ratio is 2.113489 and its root is 1.453441.
+	/// A root of a logarithm is not the root of the ratio it denotes either.
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(sqrt)
 
-	/// Mixing a logarithmic operand with a linear one of the same dimension is the one decibel refusal that arrived as
-	/// a bare unsatisfied constraint with no remedy named: `fdim(decibels(3), dimensionless(2))` answered 0 before, a
-	/// difference `decibels(3) - dimensionless(2)` itself refuses. Two logarithmic operands are fine -- their
-	/// difference is a gain -- so only the MIXED case is named here.
+	/// Mixing a logarithmic operand with a linear one of the same dimension, which the underlying difference refuses.
+	/// Two logarithmic operands are fine -- their difference is a gain -- so only the mixed case is named here.
 	/**
 	 * @brief		Diagnostic for an ill-formed `fdim` mixing a logarithmic operand with a linear one.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
@@ -6397,7 +6369,7 @@ namespace units
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> &&
-			(traits::no_logarithmic_scale_v<UnitTypeLhs> != traits::no_logarithmic_scale_v<UnitTypeRhs>))
+			(detail::any_decibel_scale_v<UnitTypeLhs> != detail::any_decibel_scale_v<UnitTypeRhs>))
 	constexpr UnitTypeLhs fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		static_cast<void>(y);
@@ -6417,7 +6389,7 @@ namespace units
 	 * @returns		`x`, never reached: the body's `static_assert` always fires.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !traits::no_logarithmic_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && detail::any_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs hypot(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
 		static_cast<void>(y);
@@ -6438,7 +6410,7 @@ namespace units
 	 * @returns		`x`, never reached: the body's `static_assert` always fires.
 	 */
 	template<DimensionlessUnitType UnitType>
-		requires(!traits::no_logarithmic_scale_v<UnitType>)
+		requires(detail::any_decibel_scale_v<UnitType>)
 	constexpr UnitType modf(const UnitType x, UnitType* intpart) noexcept
 	{
 		static_cast<void>(intpart);
@@ -6457,7 +6429,7 @@ namespace units
 	 * @returns		`numer`, never reached: the body's `static_assert` always fires.
 	 */
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
-		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && !traits::no_logarithmic_scale_v<UnitTypeLhs, UnitTypeRhs>)
+		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && detail::any_decibel_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr UnitTypeLhs fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		static_cast<void>(denom);
@@ -6472,12 +6444,12 @@ namespace units
 	//----------------------------------
 	//	AFFINE COMBINATIONS
 	//----------------------------------
-	// An AFFINE COMBINATION -- a weighted sum whose weights total one -- is the only weighting on a scale with an
-	// arbitrary zero that is datum-INDEPENDENT: the midpoint of 20 degC and 30 degC is 25 degC, and the midpoint of
-	// the same two temperatures written as 293.15 K and 303.15 K is 298.15 K, which IS 25 degC. Doubling is not:
+	// An affine combination -- a weighted sum whose weights total one -- is the only weighting on a scale with an
+	// arbitrary zero that is datum-independent: the midpoint of 20 degC and 30 degC is 25 degC, and the midpoint of
+	// the same two temperatures written as 293.15 K and 303.15 K is 298.15 K, which is 25 degC. Doubling is not:
 	// 20 degC doubled is 40 degC, while the same temperature doubled in kelvin is 313.15 degC.
 	//
-	// The mean of two readings -- a mean daily temperature -- is expressible entirely through a DIFFERENCE, which
+	// The mean of two readings -- a mean daily temperature -- is expressible entirely through a difference, which
 	// carries no datum. These two functions name that weighting, and delegate the arithmetic to their `std`
 	// counterparts so they inherit the guarantees those names carry.
 
@@ -6498,12 +6470,7 @@ namespace units
 	constexpr auto lerp(const UnitTypeLhs& a, const UnitTypeRhs& b, T t) noexcept
 	{
 		// Both operands are expressed in the result unit and handed to `std::lerp`, which owns every guarantee the name
-		// carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
-		// `a + (b - a) * t` -- has none of them; at t == 1 it loses `b` entirely once the operands differ by more than
-		// the representation's precision.
-		// The unit is taken from `lhs_result_unit_t`, NOT from `decltype(a + (b - a) * t)`: that spelling instantiates
-		// the affine `operator-` on UNPROMOTED operands and reaches a `consteval` narrowing constructor a run-time
-		// value cannot satisfy, so an affine pair whose representations merely differed failed to compile.
+		// carries: exactness at the endpoints, monotonicity, and no overflow. The unit is taken from `lhs_result_unit_t`.
 		using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 		using Result = detail::floating_point_promotion_t<UnitTypeLhs>;
 		using Under  = typename Common::underlying_type;
@@ -6533,14 +6500,9 @@ namespace units
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto midpoint(const UnitTypeLhs& a, const UnitTypeRhs& b) noexcept
 	{
-		// An integer representation goes through `std::midpoint` on the two numbers expressed in the left operand's
-		// unit, so the halfway point cannot overflow: `a + (b - a) / 2` evaluates `b - a`, which for INT_MIN and
-		// INT_MAX is not representable. Converting `b` into the lhs unit applies its datum, which is what a midpoint
-		// of two READINGS requires.
-		// The exact-integer path reconciles by CONVERSION RATIO alone, which is the whole conversion only when the two
-		// units share a pi exponent and a datum translation. A pair that does not takes the general path, whose
-		// conversion is the library's own and therefore complete -- no integer reconciliation of a pi exponent is
-		// exact anyway.
+		// The exact-integer path below reconciles by conversion ratio alone, which is the whole conversion only when the
+		// two units share a pi exponent and a datum translation. Any other pair takes the general path, whose conversion
+		// is the library's own.
 		using LhsFactor = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
 		using RhsFactor = typename traits::unit_traits<UnitTypeRhs>::conversion_factor;
 		constexpr bool pureRatioApart =
@@ -6554,21 +6516,19 @@ namespace units
 		{
 			// The result unit is `lhs_result_unit_t`, as `operator+`, `min` and `max` all use for a pair of integral
 			// quantities: the left operand's unit when converting the right one into it is lossless, otherwise the finer
-			// common unit. Fixing it to the left unit would truncate a finer right operand away entirely.
-			//
-			// BOTH operands are expressed in that unit through a double-width intermediate, because converting either
-			// into the result's own representation first can overflow before the halfway point is taken: 3000000 km is
-			// 3000000000 m, which no int holds, while the midpoint 1500000000 does.
+			// common unit. Both operands are expressed in that unit in a double-width intermediate, since converting
+			// either into the result's own representation first can overflow before the halfway point is taken.
 			using Wide   = detail::widest_signed_int;
 			using Result = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
 
+			// Reconciled by an exact integer multiply-divide: a floating intermediate carries a 53-bit mantissa wherever
+			// `long double` is `double`, which no longer holds every 64-bit value.
 			const auto inResult = [](auto operand) {
 				using Operand   = decltype(operand);
 				using ResultCf  = typename traits::unit_traits<Result>::conversion_factor;
 				using OperandCf = typename traits::unit_traits<Operand>::conversion_factor;
-				return static_cast<Wide>(static_cast<long double>(operand.raw()) *
-					(static_cast<long double>(OperandCf::conversion_ratio::num) * static_cast<long double>(ResultCf::conversion_ratio::den)) /
-					(static_cast<long double>(OperandCf::conversion_ratio::den) * static_cast<long double>(ResultCf::conversion_ratio::num)));
+				using Scale     = std::ratio_divide<typename OperandCf::conversion_ratio, typename ResultCf::conversion_ratio>;
+				return detail::widening_mul_div(static_cast<Wide>(operand.raw()), Scale::num, Scale::den);
 			};
 
 			const Wide from = inResult(a);
@@ -6578,19 +6538,10 @@ namespace units
 		else
 		{
 			// Both operands are expressed in one promoted common unit and handed to `std::midpoint`, which is specified
-			// to stay within its operands and to survive an infinite one. Halving a difference does not:
-			// midpoint(inf m, 1 m) evaluates inf + (1 - inf) / 2, i.e. inf + -inf, and reads NaN.
-			//
-			// The unit is taken from `lhs_result_unit_t`, NOT from `decltype(a + (b - a) / 2)`. That spelling
-			// instantiates the affine `operator-` on UNPROMOTED operands and reaches a `consteval` narrowing
-			// constructor a run-time value cannot satisfy, so an affine pair whose representations merely differed --
-			// midpoint(celsius<int>(20), celsius<double>(30.0)) -- failed to compile at all. `fmod` and `fdim` route
-			// around the same hazard the same way. Converting each operand into the common unit reads an affine
-			// operand as the READING it is, which is what a midpoint of two readings requires.
-			// The halfway point is computed in the common unit and then expressed in the LEFT operand's unit, which is
-			// what this function documents and what the exact-integer path above already does. Answering in the common
-			// unit instead reports a mixed affine pair in an anonymous ninth-of-a-kelvin absolute unit -- physically
-			// the same quantity, but midpoint(celsius(0), fahrenheit(212)) reads 2908.35 rather than 50.
+			// to stay within its operands and to survive an infinite one. The unit is taken from `lhs_result_unit_t`,
+			// as `fmod` and `fdim` take theirs; converting each operand into it reads an affine operand as the reading
+			// it is. The halfway point is then expressed in the left operand's unit, as the exact-integer path above
+			// expresses its own.
 			using Common = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
 			using Result = detail::floating_point_promotion_t<UnitTypeLhs>;
 
@@ -6608,9 +6559,6 @@ namespace units
 	//	MIN/MAX FUNCTIONS
 	//----------------------------------
 
-	namespace detail
-	{
-	} // namespace detail
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs>)
@@ -6876,11 +6824,11 @@ namespace units
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
-		// The working unit is decided from `lhs_result_unit_t` on the UNPROMOTED pair, which is where a lossy
+		// The working unit is decided from `lhs_result_unit_t` on the unpromoted pair, which is where a lossy
 		// rhs-to-lhs conversion selects the finer of the two units, and only then promoted. Deciding it after promotion
 		// would hand the choice to the floating types, where the left operand's unit simply wins, re-homing the answer.
-		// The RESULT KIND follows `operator-`: a remainder of two affine readings is an AMOUNT, not another reading,
-		// so the datum is stripped. It is NOT taken from `decltype(numer - denom)`, because for an affine pair that
+		// The result kind follows `operator-`: a remainder of two affine readings is an amount, not another reading,
+		// so the datum is stripped. It is not taken from `decltype(numer - denom)`, because for an affine pair that
 		// instantiates the affine `operator-`'s body on unpromoted operands and reaches a `consteval` narrowing
 		// constructor a run-time value cannot satisfy -- and because that operator returns `auto`, the failure escapes
 		// its body as a hard error rather than a substitution failure, defeating even a `requires` probe.
@@ -6975,7 +6923,7 @@ namespace units
 		 *
 		 *				An
 		 *				affine source or target takes the floating-point path even when both are integral. The
-		 *				exact-integer path applies only the conversion RATIO, and a datum lives in the conversion
+		 *				exact-integer path applies only the conversion ratio, and a datum lives in the conversion
 		 *				factor's translation, so an affine conversion through it drops the datum entirely. Exactness
 		 *				is unreachable for such a conversion in any case, the translation being fractional.
 		 * @tparam		To	the target unit type.
@@ -7027,8 +6975,8 @@ namespace units
 		/// target, and a source not already losslessly convertible into the target (a lossless conversion needs no
 		/// rounding and the ordinary converting constructor serves it). Gating the target-unit rounding overloads on
 		/// this keeps them from shadowing the deduced-argument `round`/`floor`/`ceil`/`trunc` math functions.
-		/// An affine pair whose DATUMS DIFFER always qualifies, whatever `is_losslessly_convertible_unit` says. That
-		/// trait judges losslessness on the conversion RATIO alone, so it calls kelvin -> celsius lossless because
+		/// An affine pair whose datums differ always qualifies, whatever `is_losslessly_convertible_unit` says. That
+		/// trait judges losslessness on the conversion ratio alone, so it calls kelvin -> celsius lossless because
 		/// both ratios are 1 -- and the fractional 273.15 between them is exactly what needs rounding. Without this
 		/// term `round<celsius<int>>(kelvin<int>(300))` fell through to the deduced-argument `round`, which acts on an
 		/// already-truncated integer and answered 26 for 26.85 degC.
@@ -7156,26 +7104,17 @@ namespace units
 			requires(detail::floating_point_promotion_t<UnitTypeLhs> a, detail::floating_point_promotion_t<UnitTypeRhs> b) { a - b; })
 	constexpr auto fdim(const UnitTypeLhs x, const UnitTypeRhs y) noexcept
 	{
-		// Computed from the library's own difference, so the RESULT KIND follows the same rules: the positive
-		// difference of two affine readings is an AMOUNT and of two decibel levels a GAIN, never another reading or
-		// level. Returning `lhs_result_unit_t` made `fdim(celsius(30), celsius(10))` a celsius READING of 20, i.e.
-		// 293.15 K, while `celsius(30) - celsius(10)` correctly gave a 20 K amount -- the two disagreed by the datum.
-		// The guard and the subtraction read THE SAME TWO NUMBERS: both operands are converted into one promoted common
-		// unit, and the guard compares those. Comparing the quantities themselves routes through `unit::operator>`,
-		// which reconciles each side in that side's own representation, so a narrow integral operand wraps there while
-		// the promoted subtraction does not and the two disagree. Reading the numbers directly also accepts every
-		// representation the released library accepts, which `unit::operator>` does not.
+		// Computed from the library's own difference, so the result kind follows the same rules: the positive
+		// difference of two affine readings is an amount and of two decibel levels a gain, never another reading or
+		// level.
+		// The guard and the subtraction read the same two numbers: both operands are converted into one promoted common
+		// unit, and the guard compares those.
 		//
-		// Promoting before subtracting is what keeps an integer representation from overflowing:
-		// fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648. The NaN test reads the underlying values rather
-		// than comparing the difference with itself, because `unit::operator==` compares with a tolerance under which
-		// `-inf == -inf` is false.
-		// The result UNIT is decided from `lhs_result_unit_t` on the UNPROMOTED pair, then promoted. Deciding it after
-		// promotion would move the choice from the integral types, where a lossy rhs-to-lhs conversion selects the
-		// finer common unit, to the floating ones, where the lhs unit wins -- re-homing the answer. It is NOT taken from
-		// `decltype(x - y)`, because for an affine pair that instantiates the affine `operator-`'s body on unpromoted
-		// operands and reaches a `consteval` narrowing constructor a run-time value cannot satisfy. The datum is
-		// stripped here instead, which is what that operator would have done: a positive difference is an amount.
+		// The operands are promoted before subtracting, so an integer representation cannot overflow. The NaN test reads
+		// the underlying values, because `unit::operator==` compares with a tolerance under which `-inf == -inf` is false.
+		// The result unit is decided from `lhs_result_unit_t` on the unpromoted pair and then promoted: for integral
+		// operands a lossy rhs-to-lhs conversion selects the finer common unit, and for floating ones the lhs unit wins.
+		// The datum is stripped below, since a positive difference is an amount.
 		using PromotedLhs = detail::floating_point_promotion_t<UnitTypeLhs>;
 		using PromotedRhs = detail::floating_point_promotion_t<UnitTypeRhs>;
 		using CommonUnit  = detail::floating_point_promotion_t<detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>>;
@@ -7185,7 +7124,7 @@ namespace units
 		const Under rhs = CommonUnit(PromotedRhs(y)).raw();
 
 		// A quantity measured from an arbitrary origin does not answer with another one of its own kind: the positive
-		// difference of two affine readings is an AMOUNT and of two decibel LEVELS a GAIN. There the library's own
+		// difference of two affine readings is an amount and of two decibel levels a gain. There the library's own
 		// `operator-` both names the type and computes the value, because a decibel's stored number is a logarithm
 		// whose difference is not the difference of the two stored numbers.
 		if constexpr (traits::has_arbitrary_origin_v<CommonUnit>)
@@ -7343,57 +7282,20 @@ namespace units
 //	std::hash
 //------------------------------
 
-	/**
-	 * @brief		Hashes the quantity's value in its dimension's SI BASE unit, not its stored value.
-	 * @details		Two quantities that compare equal should hash equally, and equality is judged across scales:
-	 *				`meters(1000) == kilometers(1)` is true while the stored values differ, so hashing the stored value
-	 *				gives them different hashes and an `unordered_map` keyed on a quantity cannot be used across
-	 *				spellings of one value. Converting to the base first removes that, as `std::hash<units::any_unit>`
-	 *				also does. The value is mixed from its bit pattern rather than handed to `std::hash`, which is not
-	 *				`constexpr`, so an integer-backed quantity is hashable in a constant expression.
-	 *
-	 *				Two divergences from `operator==` remain, and neither is fixable here. `operator==` is relatively
-	 *				tolerant and non-transitive, so two values within tolerance compare equal while hashing
-	 *				differently -- a hash consistent with a non-transitive equality cannot exist without being
-	 *				constant. And a pair whose base conversions land one ULP apart hashes differently even though the
-	 *				two compare equal: `celsius(0)` reaches 273.14999999999998 K while `fahrenheit(32)` reaches
-	 *				273.15000000000003, and `dBW(12.5)`/`dBm(42.5)` differ likewise. Equal-comparing quantities of the
-	 *				SAME spelling always hash alike; across spellings, only an exactly-representable conversion does.
-	 * @tparam		ConversionFactor	the quantity's conversion factor.
-	 * @tparam		T					the quantity's stored representation.
-	 * @tparam		NumericalScale		the quantity's numerical scale.
-	 * @param[in]	x	the quantity to hash.
-	 * @returns		the hash of its value in SI base units.
-	 */
 template<class ConversionFactor, typename T, class NumericalScale>
 struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 {
 	template<typename U = T>
 	constexpr std::size_t operator()(const units::unit<ConversionFactor, T, NumericalScale>& x) const noexcept
 	{
-		using Base = units::unit<units::conversion_factor<std::ratio<1>, typename units::traits::conversion_factor_traits<ConversionFactor>::dimension_type>,
-			units::detail::floating_point_promotion_t<T>, units::linear_scale>;
-		using Promoted = units::detail::floating_point_promotion_t<T>;
-
-		const Promoted inBase = Base(x).to_linearized();
-
-		// Mixed from the bit pattern rather than handed to `std::hash`, which is not `constexpr`: an integer-backed
-		// quantity is hashable in a constant expression, as it is for the underlying type. Zero is normalised so
-		// +0.0 and -0.0 hash alike (they compare equal), and every NaN is mapped to one value.
-		// A NaN is given its own bits rather than a stand-in VALUE, which would make every NaN hash equal to the hash
-		// of whichever quantity holds that value.
-		using Bits          = std::uint64_t;
-		const bool isNaN    = (inBase != inBase);
-		const double asBits = (isNaN || inBase == Promoted(0)) ? 0.0 : static_cast<double>(inBase);
-		Bits mixed          = std::bit_cast<Bits>(asBits);
-		if (isNaN)
-			mixed ^= 0x9e3779b97f4a7c15ULL;
-		mixed ^= mixed >> 33;
-		mixed *= 0xff51afd7ed558ccdULL;
-		mixed ^= mixed >> 33;
-		mixed *= 0xc4ceb9fe1a85ec53ULL;
-		mixed ^= mixed >> 33;
-		return static_cast<std::size_t>(mixed);
+		if constexpr (std::is_integral_v<U>)
+		{
+			return static_cast<std::size_t>(x.to_linearized());
+		}
+		else
+		{
+			return static_cast<std::size_t>(hash<T>()(x.to_linearized()));
+		}
 	}
 };
 
@@ -7418,13 +7320,11 @@ namespace std
 	private:
 		using Q = units::unit<ConversionFactor, T, NonLinearScale>;
 
-		// A limit is a property of the STORED representation, so on a non-linear scale it must be built from the
-		// stored value rather than pushed through the value constructor, which linearizes. `Q(max())` on a decibel
-		// scale evaluated pow(10, DBL_MAX/10) and returned INFINITY -- violating the contract that max() is finite --
-		// and epsilon() collapsed to 0, silently zeroing any generic tolerance. Built from the stored value, the
-		// limits read as finite decibel figures. For a linear scale the two forms are identical.
+		// A limit is a property of the stored representation, so on a non-linear scale it is built from the stored value
+		// and not pushed through the value constructor, which linearizes: `max()` is finite and `epsilon()` non-zero.
+		// For a linear scale the two forms are identical.
 		/**
-		 * @brief		Builds a limit from a value already in the unit's STORED representation.
+		 * @brief		Builds a limit from a value already in the unit's stored representation.
 		 * @param[in]	stored	the value in the unit's stored representation.
 		 @returns		that quantity.
 		 */
@@ -7449,7 +7349,7 @@ namespace std
 		/**
 		 *		@brief		On a non-linear scale the stored value is a ratio and is strictly positive, so the smallest.
 		 *		@details		A non-linear scale the stored value is a ratio and is strictly positive, so the smallest
-		 *				denormal ratio is the LOWEST representable quantity; `lowest()` must therefore agree with it
+		 *				denormal ratio is the lowest representable quantity; `lowest()` must therefore agree with it
 		 *				rather than using `min()`.
 		 @returns		that quantity.
 		 */
@@ -7479,7 +7379,7 @@ namespace std
 			if constexpr (units::traits::has_linear_scale_v<Q>)
 				return Q(std::numeric_limits<T>::lowest());
 			else
-				// The smallest DENORMAL stored ratio, not the smallest normal one: `lowest()` must be no greater than
+				// The smallest denormal stored ratio, not the smallest normal one: `lowest()` must be no greater than
 				// `denorm_min()`, and on a logarithmic scale the denormal maps to a more negative figure.
 				return fromStored(std::numeric_limits<T>::denorm_min());
 		}
@@ -7587,7 +7487,7 @@ namespace std
 	/**
 	 * @brief		A quantity measured from an arbitrary origin has no origin-free sign.
 	 * @details		`signbit(celsius(-5.25))` is true while the identical temperature as `kelvin(267.9)` is false --
-	 *				which is the same property `units::copysign` refuses for. A decibel GAIN keeps it: a negative
+	 *				which is the same property `units::copysign` refuses for. A decibel gain keeps it: a negative
 	 *				decibel figure means attenuation, which is a real property of the ratio.
 	 * @tparam		U	the unit type operated on.
 	 * @param[in]	x	the operand.

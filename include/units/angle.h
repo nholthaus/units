@@ -180,7 +180,7 @@ namespace units
 	 */
 	template<class Y, class X,
 		std::enable_if_t<traits::is_dimensionless_unit_v<decltype(std::declval<Y>() / std::declval<X>())> &&
-				traits::no_logarithmic_scale_v<Y, X>,
+				!detail::any_decibel_scale_v<Y, X>,
 			int> = 0>
 	radians<detail::floating_point_promotion_t<std::common_type_t<typename X::underlying_type, typename Y::underlying_type>>> atan2(
 		const Y y, const X x) noexcept
@@ -298,13 +298,12 @@ namespace units
 	//	LOGARITHMIC-SCALE MATH DIAGNOSTICS
 	//----------------------------------
 	// The rest of the transcendental family, on the same terms as the exponential and logarithmic functions in
-	// `units/core.h`: each reads a quantity's VALUE, which on a logarithmic scale is the decibel figure and not the
-	// ratio it denotes, so `atan(decibels(3.25))` reading 3.25 gives 1.2723 rad where the ratio 2.113 gives 1.1288.
+	// `units/core.h`: each reads a quantity's value, which on a logarithmic scale is the decibel figure and not the
+	// ratio it denotes.
 
-	// `sin`, `cos` and `tan` take an ANGLE, so a dimensionless decibel value never reaches the library's own overload
-	// and `::sin` claims the call through the conversion to `double` -- answering from the dB FIGURE.
-	// sin(decibels(3.25)) read -0.108195, the sine of 3.25, where the ratio it denotes is 2.113489 and its sine is
-	// 0.856321. `radians` is not a dimensionless unit, so these cannot shadow the angle overloads.
+	// `sin`, `cos` and `tan` take an angle, so without an overload here a dimensionless decibel value never reaches the
+	// library's own and `::sin` claims the call through the conversion to `double`. `radians` is not a dimensionless
+	// unit, so these cannot shadow the angle overloads.
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(sin)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(cos)
 	UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(tan)
@@ -323,7 +322,7 @@ namespace units
 	 * @details		`atan2` is the one member of the family that takes two arguments, so the unary macro above cannot
 	 *				declare it. Without this overload the constrained `atan2` withdraws itself and the C library's
 	 *				`::atan2` claims the call through a dimensionless quantity's conversion to `double`, answering with
-	 *				the decibel FIGURES: `atan2(decibels(3), decibels(2))` gives 0.9828 rad where the ratios 1.995 and
+	 *				the decibel figures: `atan2(decibels(3), decibels(2))` gives 0.9828 rad where the ratios 1.995 and
 	 *				1.585 give 0.8995.
 	 * @tparam		Y	the numerator's unit type.
 	 * @tparam		X	the denominator's unit type.
@@ -332,7 +331,7 @@ namespace units
 	 */
 	template<class Y, class X>
 		requires(::units::DimensionlessUnitType<Y> && ::units::DimensionlessUnitType<X> &&
-			!::units::traits::no_logarithmic_scale_v<Y, X>)
+			::units::detail::any_decibel_scale_v<Y, X>)
 	constexpr Y atan2(const Y y, const X) noexcept
 	{
 		static_assert(::units::detail::dependent_false<Y, X>,

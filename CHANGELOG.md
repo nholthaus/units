@@ -22,19 +22,19 @@ ratio it denotes.
   25 °C — a reading and an amount commute, and the answer is in the reading's unit. `reading + reading` reads its right
   operand as an amount on the same terms, so `0.7*Tnw + 0.2*Tg + 0.1*Ta` and mean radiant temperature's
   `(Tg - Ta) * (1 + 0.22*sqrt(v)) + Ta` compile and give the published answers. Two readings do not commute: the result
-  takes the LEFT operand's unit and reads the right one in that unit's degrees, so `celsius(20) + fahrenheit(9)` is
+  takes the left operand's unit and reads the right one in that unit's degrees, so `celsius(20) + fahrenheit(9)` is
   25 °C while `fahrenheit(9) + celsius(20)` is 45 °F. Write the operand whose scale you want the answer in on the left.
 - **`units::lerp(a, b, t)` and `units::midpoint(a, b)`** for any two same-dimension quantities on a linear or affine
   scale. For readings these are the datum-independent weighting: a weighted sum is scale-independent exactly when its
   weights total one, so `midpoint(celsius(20), celsius(30))` is 25 °C and the same two temperatures in kelvin give the
-  same physical answer. Both delegate to their `std` counterparts, so they inherit exactness at the endpoints,
-  monotonicity, and freedom from overflow: `midpoint(meters<int>(INT_MIN), meters<int>(INT_MAX))` is −1 and
-  `midpoint(meters<double>(inf), meters<double>(1))` is `inf`.
-- **Three traits so generic code can ask rather than carry a unit list**: `units::traits::has_arbitrary_origin_v<U>` (an
-  affine reading or a decibel level), `units::traits::is_decibel_level_v<U>`, and
-  `units::traits::no_logarithmic_scale_v<U...>`. All three answer for any type, a non-unit included, and
-  `has_arbitrary_origin_v` sees through the wrappers: `absolute<celsius>` is `true`, `delta<celsius>` is `false` because
-  a delta is an amount, and `kind<Tag, U>` reads as `U` does.
+  same physical answer. A floating-point pair goes to `std::lerp`/`std::midpoint`, inheriting exactness at the
+  endpoints, monotonicity and freedom from overflow, and an integral pair is halved in a double-width intermediate:
+  `midpoint(meters<int>(INT_MIN), meters<int>(INT_MAX))` is −1 and `midpoint(meters<double>(inf), meters<double>(1))`
+  is `inf`.
+- **Two traits so generic code can ask rather than carry a unit list**: `units::traits::has_arbitrary_origin_v<U>` (an
+  affine reading or a decibel level) and `units::traits::is_decibel_level_v<U>`. Both answer for any type, a non-unit
+  included, and `has_arbitrary_origin_v` sees through the wrappers: `absolute<celsius>` is `true`, `delta<celsius>` is
+  `false` because a delta is an amount, and `kind<Tag, U>` reads as `U` does.
 - **A sentence naming the remedy in place of a wall of declined overloads**, for a bare number moved into a quantity, an
   in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse. On GCC a
   dimensional mismatch goes from 119 lines and 11 declined candidates to 11 lines and none. Each message is graded by a
@@ -56,16 +56,11 @@ ratio it denotes.
 - **Compound assignment moves a reading by an amount.** `celsius(20) += fahrenheit(9)` is 25 °C and
   `kelvin(300) += celsius(5)` is 305 K: the right operand of a compound move is a relative amount, so only its scale
   factor applies. `dBW += decibels(3.25)` works for the same reason — a gain moves a level as an amount moves a reading.
-- **`std::hash` hashes the value in SI base units**, so it agrees with `operator==` across spellings: `meters(1000)` and
-  `kilometers(1)` hash alike, as do `feet(1)`/`inches(12)`, `hours(1)`/`seconds(3600)` and
-  `dimensionless(0.5)`/`percent(50)`. It is usable in a constant expression. Every hash value changes; nothing in the
-  library persists one.
 - **`std::numeric_limits` of a decibel-scale unit reads as finite decibel figures**, built from the stored
   representation rather than pushed through the linearizing value constructor: `max()` 3082.547, `epsilon()` 9.643e-16,
   `min()` −3076.527, `denorm_min()` −3233.062, `round_error()` 1.761, `lowest()` −3233.062.
-- **`min`, `max` and `clamp` order by magnitude.** They reconcile their operands before comparing, so
-  `min(grams<signed char>(5), kilograms<signed char>(3))` is 5 g; 244 of 3,528 measured cells change to the right
-  answer. The same holds for a `delta<>`, `absolute<>` or `kind<>`.
+- **`min`, `max` and `clamp` order by magnitude** for a `delta<>`, `absolute<>` or `kind<>` as they do for a plain
+  quantity, by comparing the quantities the wrapper holds.
 - **`kind<>` delegates its arithmetic to the wrapped unit**, so a tagged quantity answers with the same unit, the same
   representation and the same value the plain quantity does. **`delta<>` scales its own magnitude**, so `delta * scalar`
   and `delta / scalar` agree and a ratio-scaled delta keeps its own unit.
@@ -74,9 +69,9 @@ ratio it denotes.
 - **The Eigen seam matches the scalar rule.** A coefficient-wise difference of readings is an amount, named by a
   `ScalarBinaryOpTraits` specialization, so `(v - w).eval()` on a matrix of equal `celsius` readings is 0. A matrix
   operation is available where the same scalar operation is, and a matrix of plain arithmetic scalars keeps working.
-  Assigning a matrix of reading DIFFERENCES back into the reading type is refused, since storing an amount as a reading
+  Assigning a matrix of reading differences back into the reading type is refused, since storing an amount as a reading
   re-applies the datum.
-- **A refusal ordinary generic code can encounter is expressed by DELETING the overload**, so a `requires`-expression
+- **A refusal ordinary generic code can encounter is expressed by deleting the overload**, so a `requires`-expression
   observes it and a SFINAE fallback still works: `requires(meters<double> m){ m += 5.0; }` now reports correctly. The
   decibel diagnostics instead keep their remedy sentence, which fires from an overload body — so a `requires`-probe
   reports ten decibel operations as available, and generic code that branches on such a probe should ask
@@ -86,7 +81,7 @@ ratio it denotes.
 - **The transcendental family refuses a logarithmic operand and names the conversion** (`dimensionless(gain)`): `exp`,
   `log`, `log10`, `log2`, `exp2`, `expm1`, `log1p`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`,
   `acosh`, `atanh`, `sin`, `cos`, `tan`, `sqrt`, `hypot`, `modf` and `fmod`. `sin`, `cos` and `tan` are in that list
-  because they take an ANGLE, so a dimensionless decibel reached the C library instead and answered from the dB figure.
+  because they take an angle, so a dimensionless decibel reached the C library instead and answered from the dB figure.
 
 ### Removed
 

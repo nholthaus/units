@@ -1,4 +1,4 @@
-// Case: the `delta<>` half of the same rule. A decibel GAIN is already the change of a LEVEL, so wrapping either in
+// Case: the `delta<>` half of the same rule. A decibel gain is already the change of a level, so wrapping either in
 // `delta<>` states nothing the type did not, and the wrapper's own magnitude arithmetic has no single reading of a
 // logarithm to work from.
 //

@@ -1,5 +1,5 @@
 // Case: mirror of add_scalar_to_decibel -- a bare number states neither a reference nor a ratio, so it cannot be
-// subtracted from a decibel gain. Must be refused at the CALL SITE, naming a decibels(...) gain.
+// subtracted from a decibel gain. Must be refused at the call site, naming a decibels(...) gain.
 //
 // expect: fail
 // expect-match: cannot subtract a bare number from a decibel value

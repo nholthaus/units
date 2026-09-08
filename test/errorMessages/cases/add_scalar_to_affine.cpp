@@ -1,5 +1,5 @@
-// Case: a bare number added to an affine POINT in place is meaningless (a Celsius reading is datum-relative, so
-// "+ 5.0" of what?), so `celsius += double` must be ill-formed. The diagnostic is the library's own message, graded on a phrase only it can emit — the FRIENDLY `celsius<` type AND the failing
+// Case: a bare number added to an affine point in place is meaningless (a Celsius reading is datum-relative, so
+// "+ 5.0" of what?), so `celsius += double` must be ill-formed. The diagnostic is the library's own message, graded on a phrase only it can emit — the friendly `celsius<` type and the failing
 // operator context — plus the anti-soup guards. To move the point by a relative amount, add a `delta`:
 // `c += delta<celsius<double>>(5.0)`.
 //

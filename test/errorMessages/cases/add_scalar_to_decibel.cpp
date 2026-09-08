@@ -1,5 +1,5 @@
-// Case: a bare number added to a decibel GAIN states neither a reference nor a ratio, so `decibels += double` must be
-// ill-formed and must say so at the CALL SITE. A dimensionless dB gain is an ordinary dimensionless unit, so it
+// Case: a bare number added to a decibel gain states neither a reference nor a ratio, so `decibels += double` must be
+// ill-formed and must say so at the call site. A dimensionless dB gain is an ordinary dimensionless unit, so it
 // would otherwise reach the plain-scalar overload and fail inside the library ("no match for operator+"). Add a
 // `decibels(...)` gain.
 //

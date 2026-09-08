@@ -9,4 +9,5 @@ include/units/core.h:LINE: note: in expansion of macro ‘UNIT_ADD_LOGARITHMIC_S
  LINE |         UNIT_ADD_LOGARITHMIC_SCALE_DIAGNOSTIC(log10)
       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 include/units/core.h:LINE: note: ‘units::detail::dependent_false<units::decibels<double> >’ evaluates to false
+ LINE |                 static_assert(::units::detail::dependent_false<UnitType>,                                                                                                                                       \
 ```

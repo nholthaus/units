@@ -1,4 +1,4 @@
-// Case: a transcendental function reads a quantity's VALUE, which on a logarithmic scale is the decibel figure rather
+// Case: a transcendental function reads a quantity's value, which on a logarithmic scale is the decibel figure rather
 // than the ratio it denotes. `log10(decibels(3.25))` reading 3.25 gives 0.512, where the ratio is 2.113 and its
 // base-ten logarithm is 0.325 -- a tenth of the decibel figure, as the definition requires. Rather than pick one
 // reading, the whole family requires a linear scale, and the diagnostic names the function and the conversion.

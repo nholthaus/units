@@ -1,5 +1,5 @@
-// Case: `absolute<>` marks a quantity as a POINT so that a point and an amount cannot be confused. A decibel type
-// already carries that distinction in its dimension -- a LEVEL (dBW, dBm) is dimensioned and a GAIN (decibels) is
+// Case: `absolute<>` marks a quantity as a point so that a point and an amount cannot be confused. A decibel type
+// already carries that distinction in its dimension -- a level (dBW, dBm) is dimensioned and a gain (decibels) is
 // dimensionless -- so the wrapper adds no information, and its scaling and magnitude operations have no single
 // reading of a logarithm to work from. Refused with the plain types named as the remedy.
 //

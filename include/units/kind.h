@@ -166,7 +166,7 @@ namespace units
 			template<fixed_string...>
 			inline constexpr bool dependent_false = false;
 
-			/// The TYPE-keyed form is defined once in core.h; this is the wrapper layer's spelling of it, not a second
+			/// The type-keyed form is defined once in core.h; this is the wrapper layer's spelling of it, not a second
 			/// definition. Only the tag-keyed form above is unique to this header.
 			template<class... T>
 			inline constexpr bool dependent_false_t = ::units::detail::dependent_false<T...>;
@@ -272,7 +272,7 @@ namespace units
 		 *				which is a reading measured from a datum if anything is. `core.h` cannot state them, since the
 		 *				wrappers are declared here.
 		 *
-		 *				A POINT carries whatever origin the unit it wraps carries. A DELTA is an amount, so it carries
+		 *				A point carries whatever origin the unit it wraps carries. A delta is an amount, so it carries
 		 *				none whatever it wraps -- that is the distinction the two wrappers exist to draw. A tag changes
 		 *				nothing about the quantity, so a `kind` answers as the wrapped unit does.
 		 */
@@ -320,12 +320,10 @@ namespace units
 		template<UnitType U>
 		class absolute
 		{
-			// These wrappers add a point-versus-amount distinction that a bare type lacks. A DECIBEL scale already
-			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- so
-			// wrapping one adds nothing and gets it wrong: the wrapper's arithmetic works on the value it stores,
-			// which for a decibel scale is the dB NUMBER, so `delta<dBW>(10) * 2.0` computed 20 dBW (100 W) where
-			// twice ten watts is 20 W. Use the plain `dBW`/`dBm`/`decibels` types, which implement the level/gain
-			// algebra directly.
+			// These wrappers add a point-versus-amount distinction that a bare type lacks. A decibel scale already
+			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- and its
+			// stored value is a logarithm, which the wrapper's arithmetic would scale as a number. The plain
+			// `dBW`/`dBm`/`decibels` types implement the level/gain algebra directly.
 			static_assert(traits::has_linear_scale_v<U>,
 				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
 
@@ -390,12 +388,10 @@ namespace units
 		template<UnitType U>
 		class delta
 		{
-			// These wrappers add a point-versus-amount distinction that a bare type lacks. A DECIBEL scale already
-			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- so
-			// wrapping one adds nothing and gets it wrong: the wrapper's arithmetic works on the value it stores,
-			// which for a decibel scale is the dB NUMBER, so `delta<dBW>(10) * 2.0` computed 20 dBW (100 W) where
-			// twice ten watts is 20 W. Use the plain `dBW`/`dBm`/`decibels` types, which implement the level/gain
-			// algebra directly.
+			// These wrappers add a point-versus-amount distinction that a bare type lacks. A decibel scale already
+			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- and its
+			// stored value is a logarithm, which the wrapper's arithmetic would scale as a number. The plain
+			// `dBW`/`dBm`/`decibels` types implement the level/gain algebra directly.
 			static_assert(traits::has_linear_scale_v<U>,
 				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
 
@@ -662,7 +658,7 @@ namespace units
 			return delta<U>(U(-wrap_detail::unwrap(d).raw()));
 		}
 
-		/// delta scaled by a bare number -> delta. A delta holds a MAGNITUDE, so its own number is scaled and the
+		/// delta scaled by a bare number -> delta. A delta holds a magnitude, so its own number is scaled and the
 		/// wrapped unit is rebuilt from it, rather than routed through the wrapped unit's `operator*`, whose result is
 		/// the wrapped unit's own scale-bound reading. The underlying type promotes as the plain unit's `operator*`
 		/// does, so scaling an integer delta by a floating factor yields a floating delta and the wrapper is never
@@ -843,7 +839,7 @@ namespace units
 			return delta<R>(units::abs(R(wrap_detail::unwrap(d))));
 		}
 
-		/// The operands are ordered by comparing the quantities they WRAP, which reconciles them exactly. Converting each
+		/// The operands are ordered by comparing the quantities they wrap, which reconciles them exactly. Converting each
 		/// into the result unit first and comparing after lets a narrow representation wrap during that conversion.
 		/// The smaller of two deltas, kept in the LHS unit (scale-only reconciliation of the rhs).
 		template<UnitType U, UnitType V>
@@ -1001,7 +997,7 @@ namespace units
 		}
 
 		/// kind - kind (same tag) -> kind. Delegates to the wrapped units' `operator-`, so a difference of two tagged
-		/// readings is a tagged AMOUNT, as it is for the plain units.
+		/// readings is a tagged amount, as it is for the plain units.
 		template<fixed_string Tag, UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto operator-(const basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
@@ -1018,8 +1014,8 @@ namespace units
 			return basic_kind<Tag, U>(-wrap_detail::unwrap(k));
 		}
 
-		/// kind scaled by a bare number -> kind (same tag). A kind is the SAME quantity as the unit it wraps, only
-		/// tagged, so its arithmetic DELEGATES to that unit's operator and inherits that unit's rules. A kind over an
+		/// kind scaled by a bare number -> kind (same tag). A kind is the same quantity as the unit it wraps, only
+		/// tagged, so its arithmetic delegates to that unit's operator and inherits that unit's rules. A kind over an
 		/// affine reading therefore scales in the reading's own scale, exactly as the reading does. (`delta` differs:
 		/// it is an amount whatever it wraps, so it scales its own magnitude rather than delegating.)
 		template<fixed_string Tag, UnitType U, ArithmeticType T>
@@ -1070,9 +1066,8 @@ namespace units
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr basic_kind<Tag, U>& operator+=(basic_kind<Tag, U>& lhs, const basic_kind<Tag, V>& rhs) noexcept
 		{
-			// Delegates to the wrapped units, as the rest of a kind's arithmetic does. Reconciling the rhs into `U`
-			// first and then adding the raw values applied the rhs's DATUM: a tagged reading moved by a tagged amount
-			// read 20.5 + (2.5 - 273.15) instead of 23.
+			// Delegates to the wrapped units, as the rest of a kind's arithmetic does, so an affine operand carries its
+			// datum through the wrapped `operator+=` rather than through a reconciliation of raw values.
 			U value = wrap_detail::unwrap(lhs);
 			value += wrap_detail::unwrap(rhs);
 			lhs = basic_kind<Tag, U>(value);

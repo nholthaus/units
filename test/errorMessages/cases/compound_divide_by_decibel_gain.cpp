@@ -1,4 +1,4 @@
-// Case: dividing an ordinary quantity BY a decibel gain.
+// Case: dividing an ordinary quantity by a decibel gain.
 //
 // expect: fail
 // expect-match: cannot divide by a decibel gain
