@@ -3,6 +3,11 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- Mixed-unit integer comparisons, and `min`/`max`/`clamp`, order by value.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

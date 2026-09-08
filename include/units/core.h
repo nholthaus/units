@@ -3169,10 +3169,39 @@ namespace units
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
 			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
 			{
-				// Reconcile each side to the common unit's scale in its OWN (sign-preserving) underlying type, then
-				// compare with std::cmp_* so a mixed-signedness pair orders by value, not by unsigned wraparound.
-				const T   lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
-				const Ty  rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
+				// Each side is scaled into the common unit by a whole multiplier, in the widest integer the platform has.
+				using Wide = std::conditional_t<std::is_unsigned_v<T> && std::is_unsigned_v<Ty>,
+					detail::widest_unsigned_int, detail::widest_signed_int>;
+				using CommonRatio = typename traits::conversion_factor_traits<typename CommonUnit::conversion_factor>::conversion_ratio;
+				using LhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactor>::conversion_ratio, CommonRatio>;
+				using RhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactorRhs>::conversion_ratio, CommonRatio>;
+
+				if constexpr (LhsScale::den == 1 && RhsScale::den == 1 &&
+					(std::is_signed_v<T> == std::is_signed_v<Ty> ||
+						(sizeof(detail::widest_signed_int) > sizeof(T) && sizeof(detail::widest_signed_int) > sizeof(Ty))))
+				{
+					constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
+					constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
+					constexpr Wide cap           = std::numeric_limits<Wide>::max();
+
+					const Wide lhsRaw = static_cast<Wide>(_linearized_value);
+					const Wide rhsRaw = static_cast<Wide>(rhs._linearized_value);
+
+					// A product can exceed even the widest integer; where it would, the reconciliation below stands in.
+					const auto fits = [](Wide value, Wide multiplier) {
+						const Wide bound = cap / multiplier;
+						if constexpr (std::is_unsigned_v<Wide>)
+							return value <= bound;
+						else
+							return value <= bound && value >= -bound;
+					};
+
+					if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
+						return lhsRaw * lhsMultiplier <=> rhsRaw * rhsMultiplier;
+				}
+
+				const T  lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
+				const Ty rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
 				if (std::cmp_less(lhsCommon, rhsCommon))
 					return std::strong_ordering::less;
 				if (std::cmp_greater(lhsCommon, rhsCommon))

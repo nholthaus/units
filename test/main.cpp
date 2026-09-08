@@ -7159,7 +7159,9 @@ TEST_F(Serialization, errorPaths)
 		const auto r = units::deserialize(m);
 		EXPECT_FALSE(r);
 		if (!r)
+		{
 			EXPECT_EQ(units::deserialize_error::malformed, r.error());
+		}
 	}
 	// #398: a huge term count must be rejected before reserving, not throw std::length_error out of deserialize.
 	{
@@ -8528,6 +8530,58 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 
 	const units::meters<double> md(3.5);
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
+}
+
+// Ordering reconciles its operands in an intermediate wide enough to hold the reconciled value. Scaling each side in
+// its own representation cannot: an hour is 3600000000 microseconds, past the range of an `int`.
+TEST(UnitComparison, aNarrowIntegralOperandOrdersByValue)
+{
+	// 3600 s is 3600000000 us, so 1 us is the smaller
+	EXPECT_TRUE(units::microseconds<int>(1) < units::seconds<int>(3600));
+	EXPECT_FALSE(units::seconds<int>(3600) < units::microseconds<int>(1));
+	// 3000 km is 3000000000 mm, so 1 mm is the smaller
+	EXPECT_TRUE(millimeters<int>(1) < kilometers<int>(3000));
+	EXPECT_FALSE(kilometers<int>(3000) < millimeters<int>(1));
+	// 1000 h is 3600000000 ms, so 1 ms is the smaller
+	EXPECT_TRUE(units::milliseconds<int>(1) < units::hours<int>(1000));
+	// 3000000 kg is 3000000000 g, so 1 g is the smaller
+	EXPECT_TRUE(grams<int>(1) < kilograms<int>(3000000));
+	// 3000000 h is 10800000000000000 ns, so 1 ns is the smaller
+	EXPECT_TRUE(units::nanoseconds<long long>(1) < units::hours<long long>(3000000));
+	// 1 km is 1e12 nm, so 1 nm is the smaller
+	EXPECT_TRUE(nanometers<short>(1) < kilometers<short>(1));
+
+	// min and max follow, so the smaller of 1 us and 3600 s is 1 us
+	EXPECT_EQ(1, units::min(units::microseconds<int>(1), units::seconds<int>(3600)).raw());
+	EXPECT_EQ(1, units::min(millimeters<int>(1), kilometers<int>(3000)).raw());
+	// 3 km is 3000 m, so the larger of 5 m and 3 km is 3000 m
+	EXPECT_EQ(3000, units::max(meters<int>(5), kilometers<int>(3)).raw());
+	// 5 m is below the 1 km lower bound, so it clamps up to 1000 m
+	EXPECT_EQ(1000, units::clamp(meters<int>(5), kilometers<int>(1), kilometers<int>(3)).raw());
+}
+
+// The reconciliation stays in integers, so it is exact for every 64-bit value. A floating intermediate is not: two
+// adjacent integers above 2^53 share one `double`, and `long double` carries a 64-bit mantissa only where the platform
+// gives it one.
+TEST(UnitComparison, aWideIntegralOperandOrdersExactly)
+{
+	// 2^53 and 2^53 + 1 are 9007199254740992 and 9007199254740993
+	EXPECT_TRUE(meters<long long>(9007199254740992LL) < meters<long long>(9007199254740993LL));
+	// the top of the unsigned range
+	EXPECT_TRUE(meters<unsigned long long>(18446744073709551614ULL) < meters<unsigned long long>(18446744073709551615ULL));
+	// LLONG_MAX millimetres is 9223372036854775807 mm; 9223372036854775 metres is 9223372036854775000 mm
+	EXPECT_TRUE(millimeters<long long>(9223372036854775807LL) > meters<long long>(9223372036854775LL));
+	EXPECT_EQ(9223372036854775807LL, units::max(millimeters<long long>(9223372036854775807LL), meters<long long>(9223372036854775LL)).raw());
+
+	// a mixed-signedness pair orders by value, not by unsigned wraparound
+	EXPECT_TRUE(meters<int>(-1) < meters<unsigned>(1u));
+	EXPECT_EQ(-1, units::min(meters<int>(-1), meters<unsigned>(1u)).raw());
+
+	// ordinary operands are untouched
+	EXPECT_TRUE(meters<int>(3) < meters<int>(5));
+	EXPECT_FALSE(meters<int>(2) < millimeters<int>(1500));
+	EXPECT_TRUE(meters<double>(5.0) < kilometers<double>(3.0));
+	EXPECT_TRUE(meters<int>(1000) == kilometers<int>(1));
 }
 
 int main(int argc, char* argv[])
