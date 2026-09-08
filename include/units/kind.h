@@ -835,19 +835,12 @@ namespace units
 		// magnitude is not — but two points still order, so min/max of points ARE meaningful). Each forwards to
 		// the wrapped unit's own cmath analog, so the result underlying promotes exactly as the plain unit does.
 
-		/// Absolute magnitude of a delta (|amount|), promoting as the plain unit's `units::abs` does. The magnitude is
-		/// taken from the delta's OWN value rather than by calling `units::abs` on the wrapped unit: for a wrapped
-		/// affine unit that call reads the magnitude of the READING in its own scale, while the delta around it is an
-		/// amount whose magnitude is scale-independent. It goes through `std::abs`, the same mechanism `units::abs`
-		/// uses, so the two agree on a signed zero and on a negative NaN -- an ordering test cannot clear either
-		/// sign, since `-0.0 < 0.0` is false and every comparison against a NaN is.
+		/// Absolute magnitude of a delta (|amount|), promoting as the plain unit's `units::abs` does.
 		template<UnitType U>
 		constexpr auto abs(const delta<U>& d) noexcept
 		{
 			using R = detail::floating_point_promotion_t<U>;
-			using Under = typename R::underlying_type;
-			const Under raw = static_cast<Under>(wrap_detail::unwrap(d).raw());
-			return delta<R>(R(std::abs(raw)));
+			return delta<R>(units::abs(R(wrap_detail::unwrap(d))));
 		}
 
 		/// The operands are ordered by comparing the quantities they WRAP, which reconciles them exactly. Converting each

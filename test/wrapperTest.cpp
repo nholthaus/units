@@ -1712,7 +1712,7 @@ TEST(WrapperDatumFreeShape, aDeltaOfASquaredAffineUnitCarriesNoDatum)
 }
 
 //======================================================================================================================
-//	SECOND-AUDIT REGRESSION GUARD
+//	REGRESSION GUARDS
 //======================================================================================================================
 
 // A delta takes its magnitude from its OWN value, but it must clear a sign the same way `units::abs` does. Choosing
@@ -1770,7 +1770,7 @@ TEST(WrapperKindDelegation, taggedArithmeticMatchesTheWrappedUnitExactly)
 }
 
 //======================================================================================================================
-//	FOURTH-AUDIT REGRESSION GUARDS
+//	REGRESSION GUARDS
 //======================================================================================================================
 
 // The wrapper extremum overloads converted each operand into the result unit and THEN compared, so a narrow

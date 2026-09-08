@@ -634,13 +634,13 @@ TEST(EigenLazyExpression, anIntegralScalarIsPromotedByTheMagnitude)
 }
 
 //======================================================================================================================
-//	SECOND-AUDIT REGRESSION GUARDS
+//	REGRESSION GUARDS
 //======================================================================================================================
 
 // Requiring a LINEAR SCALE of the coefficient excluded a matrix of plain arithmetic scalars, because that trait is
 // false for a type that is not a unit at all -- so an ordinary `Eigen::Matrix<double, 3, 1>` stopped being accepted by
 // helpers that had always taken it. A plain scalar carries no numerical scale that could disagree with the operation.
-TEST(EigenSecondAudit, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
+TEST(EigenCoefficientScale, aMatrixOfPlainArithmeticScalarsIsStillAccepted)
 {
 	Eigen::Matrix<double, 3, 1> plainDouble;
 	plainDouble << 1.0, 2.0, 3.0;
@@ -666,7 +666,7 @@ template<class A, class B> concept EigenCanCross       = requires(A lhs, B rhs) 
 template<class A>          concept EigenCanNorm        = requires(A operand) { units::unit_norm(operand); };
 template<class A>          concept EigenCanSquaredNorm = requires(A operand) { units::unit_squared_norm(operand); };
 
-TEST(EigenSecondAudit, callabilityDoesNotDependOnOperandOrder)
+TEST(EigenCoefficientScale, callabilityDoesNotDependOnOperandOrder)
 {
 	Eigen::Matrix<double, 3, 1> plainDouble;
 	plainDouble << 1.0, 2.0, 3.0;

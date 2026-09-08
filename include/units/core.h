@@ -5595,7 +5595,6 @@ namespace units
 	//	LOGARITHMIC-SCALE MULTIPLY/DIVIDE DIAGNOSTICS (readable, not a candidate wall)
 	//----------------------------------
 	// Every valid `*` and `/` above requires a linear scale on both operands, so an operand on a decibel scale has no
-	// candidate at all and the compiler prints a wall -- 149 lines and 12 declined candidates for `dBW * 2.0`, where
 	// the compound `dBW *= 2.0` reports one sentence. These overloads give the by-value forms the same sentence their
 	// compound twins already carry, split by which operand is logarithmic. Each returns a value so its body is
 	// instantiated and the message fires on every compiler.
@@ -6262,7 +6261,6 @@ namespace units
 	//	BY-VALUE ADD/SUBTRACT MISUSE DIAGNOSTICS (readable, not a candidate wall)
 	//----------------------------------
 	// The by-value counterparts of the compound diagnostics above. Without them a dimensional mistake reports the
-	// compiler's own candidate list, which grows with every overload the library declares -- 116 lines on 3.6.1 and
 	// more once the affine by-value forms exist. A selected overload replaces the whole list with one sentence, and
 	// the `dependent_false<L, R>` note still names both operand types.
 

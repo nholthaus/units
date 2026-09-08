@@ -2779,10 +2779,9 @@ TEST_F(UnitType, caseStudyLaunchEnergyAndAveragePower)
 // `a - b` and `a -= b` differ when the right operand is offset-free, which the representation FORCES: an
 // offset-free temperature is simultaneously a valid READING on an absolute scale
 // (kelvin) and the exact shape an AMOUNT has, so they are one type and a binary operator must pick a meaning. `-`
-// picks reading-minus-reading, the operation with a datum-independent answer; `+` cannot (reading plus reading is
-// meaningless) so it reads the rhs as an amount. Pinned here so the asymmetry is not "fixed" into a wrong answer --
-// making `-` treat the rhs as an amount would silently change `celsius(0) - kelvin(0)` from 273.15 degrees of
-// difference to the reading 0 degC.
+// picks reading-minus-reading, the operation with a datum-independent answer; `+` reads the rhs as an amount. Making
+// `-` read the rhs as an amount instead would change `celsius(0) - kelvin(0)` from 273.15 degrees of difference to the
+// reading 0 degC.
 TEST_F(UnitType, subtractionAndCompoundSubtractionDifferForAnOffsetFreeRhs)
 {
 	using namespace units::temperature;
@@ -2842,17 +2841,13 @@ TEST_F(UnitMath, fdimPropagatesNaN)
 //======================================================================================================================
 //	CASE STUDY: PUBLISHED TEMPERATURE FORMULAE
 //======================================================================================================================
-// The north star: ordinary physics has to work for ordinary people. These are twenty-six formulae taken from primary
-// sources -- NWS, NOAA/WPC, Environment Canada, the Bureau of Meteorology, ISO 7243, NIOSH, TB MED 507, AMS journals,
-// NIST -- and every one of them is expressed here with unit types and checked twice: against the value the source
-// publishes, and against the same arithmetic in plain `double`, so the library provably adds no distortion.
+// Twenty-six formulae from primary sources -- NWS, NOAA/WPC, Environment Canada, the Bureau of Meteorology, ISO 7243,
+// NIOSH, TB MED 507, AMS journals, NIST -- each expressed with unit types and checked twice: against the value the
+// source publishes, and against the same arithmetic in plain `double`.
 //
-// Most of them SCALE A READING on an affine scale, and they do it in a way that depends on the datum. That is not an
-// accident or an abuse to be prevented: they are regressions, fitted numerically against numbers read off a Celsius or
-// Fahrenheit thermometer, so their coefficients are only meaningful on that scale. Magnus's 243.5 is not a disguised
-// 273.15 -- the offsets differ across fits (243.5, 243.04, 243.12, 237.3, 257.14) while 273.15 is fixed -- so there is
-// no absolute-scale form to fall back on. A library that cannot write these cannot be used for weather, HVAC,
-// psychrometrics, agriculture, or occupational heat safety.
+// Most SCALE A READING on an affine scale, depending on the datum. They are regressions fitted against numbers read off
+// a Celsius or Fahrenheit thermometer, so their coefficients are only meaningful on that scale: Magnus's 243.5 is not a
+// disguised 273.15, and the offsets differ across fits (243.5, 243.04, 243.12, 237.3, 257.14) while 273.15 is fixed.
 //
 // Two encodings recur below:
 //   * A regression is a weighted SUM. Carry a negative coefficient in the coefficient, not as a subtraction: writing
@@ -10677,11 +10672,7 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 }
 
 //======================================================================================================================
-//	SECOND-AUDIT REGRESSION GUARDS
-//
-//	Each of these pins a defect a second adversarial pass measured on this branch, in ORDINARY (non-affine)
-//	behaviour, against the value the released library answers. Every expected number below is derived by hand in
-//	the comment above it and written out at the assertion, never copied from the library's own output.
+//	ORDERING, DIFFERENCE AND WEIGHTING OF ORDINARY QUANTITIES
 //======================================================================================================================
 
 // `fdim` is specified to return `x - y` when `x > y` and zero otherwise, so it is NEVER negative. Comparing the
@@ -10689,7 +10680,7 @@ TEST(NonAffineArithmetic, theIntegerConversionSurfaceIsUnchanged)
 // reconciles each side in that side's own representation -- a narrow integral operand wrapped there while the promoted
 // subtraction did not, so the guard fired on a disagreement and the function answered negative, or discarded a real
 // difference as zero.
-TEST(SecondAuditFdim, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDifference)
+TEST(PositiveDifference, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDifference)
 {
 	// 3 km is 3000 m, which exceeds 5 m, so the positive difference is zero. (It read -2995 m.)
 	EXPECT_DOUBLE_EQ(0.0, static_cast<double>(units::fdim(meters<int>(5), kilometers<signed char>(3)).raw()));
@@ -10708,8 +10699,8 @@ TEST(SecondAuditFdim, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDiff
 }
 
 // `fdim` reads its operands' numbers rather than comparing the quantities, so it accepts every representation the
-// released library accepts. These pin that parity; they do not argue that such a representation is a good idea.
-TEST(SecondAuditFdim, everyRepresentationTheReleasedLibraryAcceptsStillCompiles)
+// released library accepts.
+TEST(PositiveDifference, everyRepresentationTheReleasedLibraryAcceptsStillCompiles)
 {
 	// 5 - 3 == 2, in metres
 	EXPECT_DOUBLE_EQ(2.0, static_cast<double>(units::fdim(meters<char>(5), meters<char>(3)).raw()));
@@ -10719,7 +10710,7 @@ TEST(SecondAuditFdim, everyRepresentationTheReleasedLibraryAcceptsStillCompiles)
 
 // The non-finite edges, which the guard must not clamp or misclassify. `std::fdim` answers zero when x <= y whatever
 // the magnitudes, and propagates a NaN operand.
-TEST(SecondAuditFdim, theNonFiniteEdgesFollowStdFdim)
+TEST(PositiveDifference, theNonFiniteEdgesFollowStdFdim)
 {
 	EXPECT_DOUBLE_EQ(0.0, units::fdim(meters<double>(1.0), meters<double>(std::numeric_limits<double>::infinity())).raw());
 	EXPECT_TRUE(std::isinf(units::fdim(meters<double>(std::numeric_limits<double>::infinity()), meters<double>(1.0)).raw()));
@@ -10735,7 +10726,7 @@ TEST(SecondAuditFdim, theNonFiniteEdgesFollowStdFdim)
 // `midpoint` and `lerp` take their names from `<numeric>` and `<cmath>`, so they must keep those contracts: the
 // midpoint stays within its operands and survives an infinite one, and interpolation is exact at both endpoints.
 // Halving a difference has neither property.
-TEST(SecondAuditMidpointLerp, theStdContractsAreHonoured)
+TEST(MidpointAndLerp, theStdContractsAreHonoured)
 {
 	// std::midpoint(INT_MIN, INT_MAX) is INT_MIN + (INT_MAX - INT_MIN) / 2 == -2147483648 + 2147483647 == -1
 	EXPECT_EQ(-1, units::midpoint(meters<int>(std::numeric_limits<int>::min()), meters<int>(std::numeric_limits<int>::max())).raw());
@@ -10794,7 +10785,7 @@ TEST(SecondAuditMidpointLerp, theStdContractsAreHonoured)
 // type that code happens to hold. Written as a plain disjunction over `is_affine_unit_v` it named
 // `U::conversion_factor` and both operands of a `||` in a variable template's initializer are instantiated, so a
 // non-unit was a hard error inside the library -- the exact failure the trait exists to let callers avoid.
-TEST(SecondAuditTraits, hasArbitraryOriginAnswersForATypeThatIsNotAUnit)
+TEST(ArbitraryOriginTrait, hasArbitraryOriginAnswersForATypeThatIsNotAUnit)
 {
 	struct NotAUnit
 	{
@@ -10823,7 +10814,7 @@ TEST(SecondAuditTraits, hasArbitraryOriginAnswersForATypeThatIsNotAUnit)
 
 // An offset-free quantity on the LEFT of a reading is the same move as one on the right, so it answers in the
 // READING's unit. Removing that overload also removed the shape the published scaled-difference formulae use.
-TEST(SecondAuditAffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
+TEST(AffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
 {
 	// 5 kelvin-degrees of change added to 20 degC is 25 degC, in the reading's unit
 	EXPECT_NEAR(25.0, (kelvin<double>(5.0) + celsius<double>(20.0)).raw(), 5.0e-12);
@@ -10843,12 +10834,12 @@ TEST(SecondAuditAffineMove, anAmountOnTheLeftMovesTheReadingAndKeepsItsUnit)
 // Neither held before: `fdim(decibels(3), dimensionless(2))` answered 0 while `decibels(3) - dimensionless(2)` was
 // ill-formed, and `fmod(dBW, dBW)` computed on the dB figures while `dBW % dBW` was refused. Stating it as an
 // equivalence rather than a list is what keeps a future overload from drifting out of line on one side only.
-template<class A, class B> concept SecondAuditCanSubtract = requires(A lhs, B rhs) { lhs - rhs; };
-template<class A, class B> concept SecondAuditCanFdim     = requires(A lhs, B rhs) { units::fdim(lhs, rhs); };
-template<class A, class B> concept SecondAuditCanModulo   = requires(A lhs, B rhs) { lhs % rhs; };
-template<class A, class B> concept SecondAuditCanFmod     = requires(A lhs, B rhs) { units::fmod(lhs, rhs); };
+template<class A, class B> concept CanSubtractQuantities = requires(A lhs, B rhs) { lhs - rhs; };
+template<class A, class B> concept CanTakePositiveDifference     = requires(A lhs, B rhs) { units::fdim(lhs, rhs); };
+template<class A, class B> concept CanTakeModulo   = requires(A lhs, B rhs) { lhs % rhs; };
+template<class A, class B> concept CanTakeRemainder     = requires(A lhs, B rhs) { units::fmod(lhs, rhs); };
 
-TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
+TEST(OperatorAgreement, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 {
 	using Gain  = units::decibels<double>;
 	using Watt  = units::power::dBW<double>;
@@ -10861,31 +10852,31 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 	// one, it now REFUSES WITH A REMEDY rather than falling out on an unsatisfied constraint, and a diagnostic fires
 	// from the overload's body -- so a `requires`-probe reports it available while the statement does not compile.
 	// That is the standing decibel trade, and `operator-` (carrying no diagnostic) still reports the pair correctly.
-	static_assert(SecondAuditCanFdim<Gain, Gain> == SecondAuditCanSubtract<Gain, Gain>);
-	static_assert(!SecondAuditCanSubtract<Gain, Plain>);
-	static_assert(!SecondAuditCanSubtract<Plain, Gain>);
-	static_assert(!SecondAuditCanSubtract<Gain, Pct>);
-	static_assert(SecondAuditCanFdim<Watt, Watt> == SecondAuditCanSubtract<Watt, Watt>);
-	static_assert(SecondAuditCanFdim<Watt, Milli> == SecondAuditCanSubtract<Watt, Milli>);
-	static_assert(SecondAuditCanFdim<Len, Len> == SecondAuditCanSubtract<Len, Len>);
+	static_assert(CanTakePositiveDifference<Gain, Gain> == CanSubtractQuantities<Gain, Gain>);
+	static_assert(!CanSubtractQuantities<Gain, Plain>);
+	static_assert(!CanSubtractQuantities<Plain, Gain>);
+	static_assert(!CanSubtractQuantities<Gain, Pct>);
+	static_assert(CanTakePositiveDifference<Watt, Watt> == CanSubtractQuantities<Watt, Watt>);
+	static_assert(CanTakePositiveDifference<Watt, Milli> == CanSubtractQuantities<Watt, Milli>);
+	static_assert(CanTakePositiveDifference<Len, Len> == CanSubtractQuantities<Len, Len>);
 	// `%` and `fmod` agree about the SCALE -- neither computes a remainder of a logarithm -- but not about what a
 	// `requires`-probe SEES, and not about the representation. `fmod`'s decibel refusal is a diagnostic overload naming
 	// a remedy, so it fires from a body and reports as available; `%` carries no diagnostic and reports correctly. And
 	// `%` is the integral remainder, taking only integral units, while `fmod` is the floating one. So the equivalence
 	// holds for an integral ordinary pair, `fmod` alone survives a floating one, and for a decibel pair both are
 	// ill-formed while only `%` says so.
-	static_assert(SecondAuditCanFmod<meters<int>, meters<int>> == SecondAuditCanModulo<meters<int>, meters<int>>);
-	static_assert(SecondAuditCanFmod<Len, Len> && !SecondAuditCanModulo<Len, Len>);
+	static_assert(CanTakeRemainder<meters<int>, meters<int>> == CanTakeModulo<meters<int>, meters<int>>);
+	static_assert(CanTakeRemainder<Len, Len> && !CanTakeModulo<Len, Len>);
 	// integral, so the SCALE is what refuses these rather than the representation
-	static_assert(!SecondAuditCanModulo<units::power::dBW<int>, units::power::dBW<int>>);
-	static_assert(!SecondAuditCanModulo<units::decibels<int>, units::decibels<int>>);
+	static_assert(!CanTakeModulo<units::power::dBW<int>, units::power::dBW<int>>);
+	static_assert(!CanTakeModulo<units::decibels<int>, units::decibels<int>>);
 
 	// and the concrete availability those equivalences settle on: a difference of two gains is a gain, so it stays;
 	// a gain against a PLAIN dimensionless mixes a logarithm with a ratio, which the subtraction already refused
-	static_assert(SecondAuditCanFdim<Gain, Gain>);
-	static_assert(SecondAuditCanFdim<Len, Len>);
-	static_assert(SecondAuditCanFmod<Len, Len>);
-	static_assert(SecondAuditCanModulo<meters<int>, meters<int>>);
+	static_assert(CanTakePositiveDifference<Gain, Gain>);
+	static_assert(CanTakePositiveDifference<Len, Len>);
+	static_assert(CanTakeRemainder<Len, Len>);
+	static_assert(CanTakeModulo<meters<int>, meters<int>>);
 
 	// the surviving decibel difference: 12.5 dBW - 4.25 dBW is an 8.25 dB gain
 	EXPECT_NEAR(8.25, units::fdim(Watt(12.5), Watt(4.25)).raw(), 5.0e-9);
@@ -10895,10 +10886,8 @@ TEST(SecondAuditConsistency, fdimAndFmodAreAvailableExactlyWhereTheirOperatorIs)
 // `min`, `max` and `clamp` decided which operand to return by comparing the OPERANDS, which routes through
 // `unit::operator<`. That reconciles each side in that side's own representation, so a narrow integral operand wraps
 // there and the ordering comes back wrong rather than approximate: `min` and `max` of 5 m against 3 km were SWAPPED,
-// and the minimum of two positive masses could be negative. Scored against the same call on `double` representations,
-// where nothing can wrap, ordering in one promoted common unit moves 244 of 3,528 grid cells from wrong to right and
 // none the other way.
-TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
+TEST(Extremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 {
 	// 3 kg is 3000 g, so the smaller of 5 g and 3 kg is 5 g. (It read -72 g -- a negative minimum of two positive
 	// masses -- because 3000 does not fit the signed char the comparison reconciled into.)
