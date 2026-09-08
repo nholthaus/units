@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- A coefficient-wise Eigen difference of two readings measured from an arbitrary origin is an offset-free amount, as
+  the scalar difference is, so `(v - w).eval()` on a matrix of equal `celsius` readings is 0. An ordinary quantity
+  keeps Eigen's own result type.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

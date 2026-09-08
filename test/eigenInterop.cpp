@@ -413,6 +413,44 @@ namespace
 		EXPECT_NEAR(std::sqrt(2.0), n.value(), 1e-12);
 		static_assert(std::is_floating_point_v<decltype(n)::underlying_type>);
 	}
+
+	// A coefficient-wise difference of two readings measured from an arbitrary origin is an offset-free amount, as the
+	// scalar difference is. Eigen otherwise assumes op(T,T) -> T and assigns the amount back into the reading type,
+	// which applies the datum: the difference of two equal celsius readings then reads -273.15 rather than 0.
+	TEST_F(EigenInterop, coefficientWiseDifferenceOfReadingsIsAnAmount)
+	{
+		using celsius = units::temperature::celsius<double>;
+		Eigen::Matrix<celsius, 3, 1> v, w;
+		v << celsius(20.0), celsius(21.0), celsius(22.0);
+		w << celsius(20.0), celsius(21.0), celsius(22.0);
+
+		const auto same = (v - w).eval();
+		EXPECT_DOUBLE_EQ(0.0, same[0].raw());
+		EXPECT_DOUBLE_EQ(0.0, same[1].raw());
+		EXPECT_DOUBLE_EQ(0.0, same[2].raw());
+		static_assert(!units::traits::is_affine_unit_v<std::decay_t<decltype(same[0])>>,
+			"the difference of two readings carries no datum");
+
+		// and it agrees with the scalar difference, coefficient by coefficient
+		Eigen::Matrix<celsius, 2, 1> warmer, cooler;
+		warmer << celsius(30.0), celsius(25.0);
+		cooler << celsius(10.0), celsius(20.0);
+		const auto change = (warmer - cooler).eval();
+		EXPECT_DOUBLE_EQ((celsius(30.0) - celsius(10.0)).raw(), change[0].raw());
+		EXPECT_DOUBLE_EQ((celsius(25.0) - celsius(20.0)).raw(), change[1].raw());
+		EXPECT_DOUBLE_EQ(20.0, change[0].raw());
+		EXPECT_DOUBLE_EQ(5.0, change[1].raw());
+
+		// an ordinary quantity keeps Eigen's own result type: a length difference is a length
+		Vector3m a, b;
+		a << 3.0_m, 4.0_m, 0.0_m;
+		b << 1.0_m, 1.0_m, 0.0_m;
+		const auto span = (a - b).eval();
+		static_assert(std::is_same_v<std::decay_t<decltype(span[0])>, meters<double>>);
+		EXPECT_DOUBLE_EQ(2.0, span[0].value());
+		EXPECT_DOUBLE_EQ(3.0, span[1].value());
+	}
+
 }
 
 #endif // UNITS_HAVE_EIGEN

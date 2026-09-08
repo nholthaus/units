@@ -126,6 +126,22 @@ namespace Eigen
 	{
 		using ReturnType = U; ///< dividing by a dimensionless factor preserves the unit's dimension
 	};
+
+	/**
+	 * @brief		Result-type trait for a coefficient-wise difference whose result is not the operand type.
+	 * @details		Eigen otherwise assumes `op(T,T) -> T` for a coefficient-wise binary operation. For a quantity
+	 *				measured from an arbitrary origin the scalar difference of two readings is an offset-free amount,
+	 *				and assigning it back into the reading type re-applies the datum. Naming the amount type here makes
+	 *				the matrix difference agree with the scalar one. Specialized only where the two types differ, so an
+	 *				ordinary quantity keeps Eigen's own result type.
+	 * @tparam		U a units type whose difference with itself is a different type.
+	 */
+	template<units::UnitType U>
+		requires(!std::is_same_v<U, decltype(std::declval<U>() - std::declval<U>())>)
+	struct ScalarBinaryOpTraits<U, U, internal::scalar_difference_op<U, U>>
+	{
+		using ReturnType = decltype(std::declval<U>() - std::declval<U>()); ///< a difference of readings is an amount
+	};
 } // namespace Eigen
 
 namespace units
