@@ -313,6 +313,15 @@ namespace units
 	{
 		//	----------------------------------------------------------------------------
 		//	CLASS		absolute
+		// Both wrappers add a point-versus-amount distinction that a bare type lacks. A decibel scale already carries
+		// that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- and its stored value is
+		// a logarithm, which a wrapper's arithmetic would scale as a number. The plain `dBW`/`dBm`/`decibels` types
+		// implement the level/gain algebra directly. `static_assert` takes a string literal, so the sentence both
+		// wrappers use is spelled once here and undefined after them.
+		/** @cond */ // DOXYGEN IGNORE
+#define UNITS_CANNOT_WRAP_DECIBEL "units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain."
+		/** @endcond */
+
 		//  ----------------------------------------------------------------------------
 		///	@brief		A point on a (possibly affine) scale — carries the unit's datum.
 		///	@tparam		U	the wrapped unit type.
@@ -320,12 +329,7 @@ namespace units
 		template<UnitType U>
 		class absolute
 		{
-			// These wrappers add a point-versus-amount distinction that a bare type lacks. A decibel scale already
-			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- and its
-			// stored value is a logarithm, which the wrapper's arithmetic would scale as a number. The plain
-			// `dBW`/`dBm`/`decibels` types implement the level/gain algebra directly.
-			static_assert(traits::has_linear_scale_v<U>,
-				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
+			static_assert(traits::has_linear_scale_v<U>, UNITS_CANNOT_WRAP_DECIBEL);
 
 		public:
 			using unit_type       = U;                                               ///< the wrapped unit type
@@ -388,12 +392,7 @@ namespace units
 		template<UnitType U>
 		class delta
 		{
-			// These wrappers add a point-versus-amount distinction that a bare type lacks. A decibel scale already
-			// carries that distinction -- a dimensioned decibel is a level, a dimensionless one is a gain -- and its
-			// stored value is a logarithm, which the wrapper's arithmetic would scale as a number. The plain
-			// `dBW`/`dBm`/`decibels` types implement the level/gain algebra directly.
-			static_assert(traits::has_linear_scale_v<U>,
-				"units: a decibel quantity cannot be wrapped; use the plain dBW/dBm/decibels types, whose dimension already distinguishes a level from a gain.");
+			static_assert(traits::has_linear_scale_v<U>, UNITS_CANNOT_WRAP_DECIBEL);
 
 		public:
 			using unit_type       = U;                                               ///< the wrapped unit type
@@ -464,6 +463,8 @@ namespace units
 				return V(there.raw());
 			}
 		};
+
+#undef UNITS_CANNOT_WRAP_DECIBEL
 
 		//	----------------------------------------------------------------------------
 		//	CLASS		fixed_string

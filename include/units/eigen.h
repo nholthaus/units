@@ -153,6 +153,9 @@ namespace units
 		/// scale that could disagree with the operation, or a unit written on a linear one. `has_linear_scale_v` alone
 		/// would not do, being false for a type that is not a unit at all -- an ordinary `Eigen::Matrix<double, 3, 1>`
 		/// included.
+		///
+		/// Gating the helpers on this is what makes the refusal observable to a `requires`-expression, so generic code
+		/// with a fallback takes it instead of hard-erroring inside Eigen's own templates.
 		template<class T>
 		inline constexpr bool coefficient_has_linear_scale_v = !units::UnitType<T> || units::traits::has_linear_scale_v<T>;
 	} // namespace detail
