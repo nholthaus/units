@@ -92,9 +92,8 @@ namespace Eigen
 	 * @brief		Result-type trait for scaling a unit scalar by a plain arithmetic scalar (unit * scalar).
 	 * @details		Scaling preserves the dimension, so `meters<double> * 2.0` is `meters<double>`. This lets an
 	 *				Eigen expression such as `v * 2.0` compile for a vector of units. No numerical-scale constraint is
-	 *				imposed here: the SCALAR `operator*` already refuses a decibel value, and refusing it here as well
-	 *				only replaces that one-sentence diagnostic with a wall of Eigen internals -- 84 lines against 21,
-	 *				with the library's own remedy text lost.
+	 *				imposed here: the SCALAR `operator*` already refuses a decibel value with a one-sentence remedy, and
+	 *				a constraint at this seam would only bury that message under Eigen's own template internals.
 	 * @tparam		U a units type (`units::UnitType`).
 	 * @tparam		X the plain arithmetic scalar type.
 	 */
@@ -152,9 +151,9 @@ namespace units
 	namespace detail
 	{
 		/// A matrix coefficient the unit-aware helpers accept: a plain arithmetic scalar, which carries no numerical
-		/// scale that could disagree with the operation, or a unit written on a linear one. Gating on
-		/// `has_linear_scale_v` alone also excluded an ordinary `Eigen::Matrix<double, 3, 1>`, because that trait is
-		/// false for a type that is not a unit at all.
+		/// scale that could disagree with the operation, or a unit written on a linear one. `has_linear_scale_v` alone
+		/// would not do, being false for a type that is not a unit at all -- an ordinary `Eigen::Matrix<double, 3, 1>`
+		/// included.
 		template<class T>
 		inline constexpr bool coefficient_has_linear_scale_v = !units::UnitType<T> || units::traits::has_linear_scale_v<T>;
 	} // namespace detail

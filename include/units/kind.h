@@ -267,11 +267,10 @@ namespace units
 		/**
 		 * @ingroup		TypeTraits
 		 * @brief		`has_arbitrary_origin_v` seen through the wrappers.
-		 * @details		The primary trait in `core.h` is constrained on `UnitType`, and none of these wrappers is one,
-		 *				so all three answered `false` -- including `absolute<celsius<double>>`, which is a reading
-		 *				measured from a datum if anything is. Generic code following the trait's own documented
-		 *				`if constexpr` then took the wrong branch for exactly the types the wrappers exist to mark.
-		 *				`core.h` cannot state these, since the wrappers are declared here.
+		 * @details		The primary trait in `core.h` is constrained on `UnitType`, and none of these wrappers is one, so
+		 *				without these a wrapped quantity would read `false` -- including `absolute<celsius<double>>`,
+		 *				which is a reading measured from a datum if anything is. `core.h` cannot state them, since the
+		 *				wrappers are declared here.
 		 *
 		 *				A POINT carries whatever origin the unit it wraps carries. A DELTA is an amount, so it carries
 		 *				none whatever it wraps -- that is the distinction the two wrappers exist to draw. A tag changes
@@ -851,17 +850,15 @@ namespace units
 			return delta<R>(R(std::abs(raw)));
 		}
 
-		/// The operands are ordered by `units::detail::less_in_common_unit` on the quantities they wrap, which reconciles
-		/// them in one intermediate wide enough to hold the result. Converting each into the result unit FIRST and then
-		/// comparing lets a narrow representation wrap during that conversion, and the ordering comes back inverted:
-		/// min of a 5 g delta and a 3 kg delta answered -72 g, a negative minimum of two positive amounts.
+		/// The operands are ordered by comparing the quantities they WRAP, which reconciles them exactly. Converting each
+		/// into the result unit first and comparing after lets a narrow representation wrap during that conversion.
 		/// The smaller of two deltas, kept in the LHS unit (scale-only reconciliation of the rhs).
 		template<UnitType U, UnitType V>
 			requires traits::is_same_dimension_unit_v<U, V>
 		constexpr auto min(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
 			using R = units::detail::delta_result_unit_t<U, V>;
-			return units::detail::less_in_common_unit(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs)) ? lhs.template to<delta<R>>()
+			return wrap_detail::unwrap(lhs) < wrap_detail::unwrap(rhs) ? lhs.template to<delta<R>>()
 																			: rhs.template to<delta<R>>();
 		}
 
@@ -871,7 +868,7 @@ namespace units
 		constexpr auto max(const delta<U>& lhs, const delta<V>& rhs) noexcept
 		{
 			using R = units::detail::delta_result_unit_t<U, V>;
-			return units::detail::less_in_common_unit(wrap_detail::unwrap(rhs), wrap_detail::unwrap(lhs)) ? lhs.template to<delta<R>>()
+			return wrap_detail::unwrap(rhs) < wrap_detail::unwrap(lhs) ? lhs.template to<delta<R>>()
 																			: rhs.template to<delta<R>>();
 		}
 
@@ -889,7 +886,7 @@ namespace units
 		constexpr auto min(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
 			using R = units::detail::absolute_result_unit_t<U, V>;
-			return units::detail::less_in_common_unit(wrap_detail::unwrap(lhs), wrap_detail::unwrap(rhs)) ? lhs.template to<absolute<R>>()
+			return wrap_detail::unwrap(lhs) < wrap_detail::unwrap(rhs) ? lhs.template to<absolute<R>>()
 																			: rhs.template to<absolute<R>>();
 		}
 
@@ -899,7 +896,7 @@ namespace units
 		constexpr auto max(const absolute<U>& lhs, const absolute<V>& rhs) noexcept
 		{
 			using R = units::detail::absolute_result_unit_t<U, V>;
-			return units::detail::less_in_common_unit(wrap_detail::unwrap(rhs), wrap_detail::unwrap(lhs)) ? lhs.template to<absolute<R>>()
+			return wrap_detail::unwrap(rhs) < wrap_detail::unwrap(lhs) ? lhs.template to<absolute<R>>()
 																			: rhs.template to<absolute<R>>();
 		}
 

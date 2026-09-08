@@ -10707,9 +10707,9 @@ TEST(SecondAuditFdim, aNarrowIntegralOperandNeitherWrapsNorZeroesThePositiveDiff
 	EXPECT_GE(static_cast<double>(units::fdim(centimeters<int>(3), meters<signed char>(5)).raw()), 0.0);
 }
 
-// The same comparison also refused a `char` or `bool` representation outright, because `unit::operator>` asserts a
-// standard integer type. Reading the two numbers directly keeps the function available for them.
-TEST(SecondAuditFdim, aCharOrBoolRepresentationIsStillAccepted)
+// `fdim` reads its operands' numbers rather than comparing the quantities, so it accepts every representation the
+// released library accepts. These pin that parity; they do not argue that such a representation is a good idea.
+TEST(SecondAuditFdim, everyRepresentationTheReleasedLibraryAcceptsStillCompiles)
 {
 	// 5 - 3 == 2, in metres
 	EXPECT_DOUBLE_EQ(2.0, static_cast<double>(units::fdim(meters<char>(5), meters<char>(3)).raw()));
@@ -10744,9 +10744,6 @@ TEST(SecondAuditMidpointLerp, theStdContractsAreHonoured)
 	// an infinite operand: the midpoint of infinity and 1 is infinity, not a NaN (a + (b - a) / 2 is inf + -inf)
 	EXPECT_TRUE(std::isinf(units::midpoint(meters<double>(std::numeric_limits<double>::infinity()), meters<double>(1.0)).raw()));
 	EXPECT_TRUE(std::isinf(units::midpoint(meters<double>(1.0), meters<double>(std::numeric_limits<double>::infinity())).raw()));
-	// a bool representation is still accepted: the halfway point of 1 and 0 truncates to 1, as std::midpoint rounds
-	// toward the first operand
-	EXPECT_DOUBLE_EQ(1.0, static_cast<double>(units::midpoint(meters<bool>(1), meters<bool>(0)).raw()));
 
 	// exact at t == 1 and t == 0 however far apart the operands are: 1e16 + (1 - 1e16) * 1.0 loses the 1 entirely
 	EXPECT_DOUBLE_EQ(1.0, units::lerp(meters<double>(1.0e16), meters<double>(1.0), 1.0).raw());
@@ -10921,8 +10918,13 @@ TEST(SecondAuditExtremum, aNarrowIntegralOperandNoLongerInvertsTheOrdering)
 	EXPECT_DOUBLE_EQ(5.0, units::min(meters<double>(5.0), kilometers<double>(3.0)).raw());
 	EXPECT_DOUBLE_EQ(3000.0, units::max(meters<double>(5.0), kilometers<double>(3.0)).raw());
 
-	// A `char` or `bool` representation is ordered without reaching `unit::operator<`, which refuses one outright
-	EXPECT_DOUBLE_EQ(3.0, static_cast<double>(units::min(meters<char>(5), meters<char>(3)).raw()));
+	// Ordering declines a character type and `bool`, as the released library does and as `std::cmp_less` does: a
+	// quantity is measured in numbers. `signed char` and `unsigned char` are numbers and remain supported.
+	static_assert(!units::detail::orderable_representation_v<char>);
+	static_assert(!units::detail::orderable_representation_v<bool>);
+	static_assert(units::detail::orderable_representation_v<signed char>);
+	static_assert(units::detail::orderable_representation_v<unsigned char>);
+	static_assert(units::detail::orderable_representation_v<double>);
 
 	// `UNIT_ADD_DECIBEL` builds dBW from watts's conversion factor, so a LEVEL and a linear quantity of the same
 	// dimension share a factor while storing different domains -- one holds watts, the other a dB figure. Keying the

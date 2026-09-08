@@ -2249,6 +2249,15 @@ namespace units
 		inline constexpr bool has_builtin_int128 = false;
 #endif
 
+		/// A representation the ordering supports: a floating-point type, or a standard integer. A character type and
+		/// `bool` are neither -- a quantity is measured in numbers, and what a character or a truth value orders as is
+		/// not this library's question to answer. `std::cmp_less` declines them for the same reason.
+		template<class T>
+		inline constexpr bool orderable_representation_v = std::is_floating_point_v<T> ||
+			(std::is_integral_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool> && !std::is_same_v<std::remove_cv_t<T>, char> &&
+				!std::is_same_v<std::remove_cv_t<T>, wchar_t> && !std::is_same_v<std::remove_cv_t<T>, char8_t> &&
+				!std::is_same_v<std::remove_cv_t<T>, char16_t> && !std::is_same_v<std::remove_cv_t<T>, char32_t>);
+
 		/// Compute `value * num / den` for an integral `value` without overflowing the intermediate product, in a
 		/// double-width intermediate. On a compiler with `__int128` the whole expression rides in 128 bits; without
 		/// it, an unsigned 64x64->high/low long multiplication followed by a 128/64 division keeps the product from
@@ -3179,10 +3188,46 @@ namespace units
 			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
 			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
 			{
-				// Reconcile each side to the common unit's scale in its OWN (sign-preserving) underlying type, then
-				// compare with std::cmp_* so a mixed-signedness pair orders by value, not by unsigned wraparound.
-				const T   lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
-				const Ty  rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
+				static_assert(detail::orderable_representation_v<T> && detail::orderable_representation_v<Ty>,
+					"units: ordering reads a quantity's NUMBER, so its representation must be a floating-point type or "
+					"a standard integer. A character type or `bool` is neither.");
+
+				// Each side is scaled into the common unit by a WHOLE multiplier, in the widest integer the platform
+				// has, so the comparison is a pair of exact products. Scaling in the operand's own representation
+				// instead cannot hold the reconciled value: converting 3 kg into grams needs 3000, which a
+				// `signed char` does not have, and the ordering comes back inverted rather than approximate.
+				using Wide = std::conditional_t<std::is_unsigned_v<T> && std::is_unsigned_v<Ty>,
+					detail::widest_unsigned_int, detail::widest_signed_int>;
+				using CommonRatio = typename traits::conversion_factor_traits<typename CommonUnit::conversion_factor>::conversion_ratio;
+				using LhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactor>::conversion_ratio, CommonRatio>;
+				using RhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactorRhs>::conversion_ratio, CommonRatio>;
+
+				if constexpr (LhsScale::den == 1 && RhsScale::den == 1 &&
+					(std::is_signed_v<T> == std::is_signed_v<Ty> ||
+						(sizeof(detail::widest_signed_int) > sizeof(T) && sizeof(detail::widest_signed_int) > sizeof(Ty))))
+				{
+					constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
+					constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
+					constexpr Wide cap           = std::numeric_limits<Wide>::max();
+
+					const Wide lhsRaw = static_cast<Wide>(_linearized_value);
+					const Wide rhsRaw = static_cast<Wide>(rhs._linearized_value);
+
+					// A product can exceed even the widest integer; where it would, the reconciliation below stands in.
+					const auto fits = [](Wide value, Wide multiplier) {
+						const Wide bound = cap / multiplier;
+						if constexpr (std::is_unsigned_v<Wide>)
+							return value <= bound;
+						else
+							return value <= bound && value >= -bound;
+					};
+
+					if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
+						return lhsRaw * lhsMultiplier <=> rhsRaw * rhsMultiplier;
+				}
+
+				const T  lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
+				const Ty rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
 				if (std::cmp_less(lhsCommon, rhsCommon))
 					return std::strong_ordering::less;
 				if (std::cmp_greater(lhsCommon, rhsCommon))
@@ -3848,12 +3893,12 @@ namespace units
 		 *				if constexpr (units::traits::has_arbitrary_origin_v<T>) { useADifference(v); }
 		 *				@endcode
 		 *
-		 *				Generic code reaches this trait with whatever type it happens to hold, so ANY type answers it:
-		 *				a type that is not a unit at all reads `false` rather than failing to compile. Writing it as a
-		 *				plain disjunction over `is_affine_unit_v` does not do that, because that trait names
-		 *				`U::conversion_factor` and both operands of a `&&` or `||` in a variable template's initializer
-		 *				are instantiated -- so `has_arbitrary_origin_v<double>` was a hard error inside the library,
-		 *				which is precisely the failure the `if constexpr` above exists to avoid.
+		 *				Generic code reaches this trait with whatever type it happens to hold, so ANY type answers it: a
+		 *				type that is not a unit at all reads `false` rather than failing to compile. That is why it is a
+		 *				primary template plus a constrained specialization rather than a disjunction over
+		 *				`is_affine_unit_v`, which names `U::conversion_factor` -- both operands of a `&&` or `||` in a
+		 *				variable template's initializer are instantiated, so a non-unit would fail to compile inside the
+		 *				library, which is precisely what the `if constexpr` above exists to avoid.
 		 * @tparam		U	the type to test; need not be a unit.
 		 */
 		template<class U>
@@ -3867,10 +3912,10 @@ namespace units
 		 * @brief		Whether an operand is NOT written on a logarithmic scale, for every operand named.
 		 * @details		`atan2`'s guard asks this rather than `has_linear_scale_v`, because that trait is false for
 		 *				anything it cannot classify -- including every `kind`, `delta` and `absolute` WRAPPER, whose
-		 *				scale it does not see through. Requiring provable linearity therefore withdrew `atan2` from
-		 *				every wrapper type, which had always accepted it, while refusing what is provably logarithmic
-		 *				leaves them alone and still refuses the decibel operands the guard is there for. Any type
-		 *				answers, a non-unit included.
+		 *				scale it does not see through. Requiring provable linearity would therefore withdraw `atan2`
+		 *				from every wrapped quantity, while refusing what is provably logarithmic leaves those alone and
+		 *				still refuses the decibel operands the guard is there for. Any type answers, a non-unit
+		 *				included.
 		 * @tparam		U	the type(s) to test.
 		 */
 		template<class... U>
@@ -6454,10 +6499,10 @@ namespace units
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs>)
 	constexpr auto lerp(const UnitTypeLhs& a, const UnitTypeRhs& b, T t) noexcept
 	{
-		// Both operands are expressed in the result unit and handed to `std::lerp`, which owns every guarantee the
-		// name carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
-		// `a + (b - a) * t` -- has none of them: at t == 1 it loses `b` entirely once the operands differ by more
-		// than the representation's precision, so lerp(1e16 m, 1 m, 1.0) read 0 rather than 1.
+		// Both operands are expressed in the result unit and handed to `std::lerp`, which owns every guarantee the name
+		// carries: exactness at the endpoints, monotonicity, and no overflow. Interpolating in units --
+		// `a + (b - a) * t` -- has none of them; at t == 1 it loses `b` entirely once the operands differ by more than
+		// the representation's precision.
 		// The unit is taken from `lhs_result_unit_t`, NOT from `decltype(a + (b - a) * t)`: that spelling instantiates
 		// the affine `operator-` on UNPROMOTED operands and reaches a `consteval` narrowing constructor a run-time
 		// value cannot satisfy, so an affine pair whose representations merely differed failed to compile.
@@ -6494,10 +6539,8 @@ namespace units
 		// unit, so the halfway point cannot overflow: `a + (b - a) / 2` evaluates `b - a`, which for INT_MIN and
 		// INT_MAX is not representable. Converting `b` into the lhs unit applies its datum, which is what a midpoint
 		// of two READINGS requires.
-		// The exact-integer path reconciles the right operand by its CONVERSION RATIO alone, which is only the whole
-		// conversion when the two units share a pi exponent and a datum translation. Where they do not, that path
-		// silently dropped the rest of it: midpoint(celsius<int>(0), fahrenheit<int>(212)) read 58 rather than 50, and
-		// midpoint(radians<int>(0), degrees<int>(180)) read 0 rather than 1. Such a pair takes the general path, whose
+		// The exact-integer path reconciles by CONVERSION RATIO alone, which is the whole conversion only when the two
+		// units share a pi exponent and a datum translation. A pair that does not takes the general path, whose
 		// conversion is the library's own and therefore complete -- no integer reconciliation of a pi exponent is
 		// exact anyway.
 		using LhsFactor = typename traits::unit_traits<UnitTypeLhs>::conversion_factor;
@@ -6513,8 +6556,7 @@ namespace units
 		{
 			// The result unit is `lhs_result_unit_t`, as `operator+`, `min` and `max` all use for a pair of integral
 			// quantities: the left operand's unit when converting the right one into it is lossless, otherwise the finer
-			// common unit. Hard-coding the left unit truncated a finer right operand away entirely --
-			// midpoint(kilometers<int>(1), meters<int>(500)) answered 0 km rather than 750 m.
+			// common unit. Fixing it to the left unit would truncate a finer right operand away entirely.
 			//
 			// BOTH operands are expressed in that unit through a double-width intermediate, because converting either
 			// into the result's own representation first can overflow before the halfway point is taken: 3000000 km is
@@ -6570,99 +6612,6 @@ namespace units
 
 	namespace detail
 	{
-		/// Orders two same-dimension quantities by their magnitudes: directly when they share a scale, otherwise
-		/// reconciled in ONE promoted common unit. Comparing
-		/// the quantities themselves routes through `unit::operator<`, which reconciles each side in that side's own
-		/// representation: a narrow integral operand wraps there, so the ordering comes back wrong rather than
-		/// approximate -- `min(grams<signed char>(5), kilograms<signed char>(3))` answered -72 g, a negative minimum of
-		/// two positive masses, and `min`/`max` of 5 m against 3 km were swapped. It also refuses a `char` or `bool`
-		/// representation outright, which this does not.
-		template<UnitType Lhs, UnitType Rhs>
-			requires(same_dimension<Lhs, Rhs>)
-		constexpr bool less_in_common_unit(const Lhs& lhs, const Rhs& rhs) noexcept
-		{
-			using LhsFactor = typename traits::unit_traits<Lhs>::conversion_factor;
-			using RhsFactor = typename traits::unit_traits<Rhs>::conversion_factor;
-
-			// Operands already on the same scale need no reconciliation at all, so their stored numbers are compared
-			// directly and EXACTLY. Sending them through a promoted floating type instead loses an integral value
-			// above 2^53, where two adjacent numbers share one double: min(meters<long long>(2^53), (2^53 + 1))
-			// answered the LARGER of the two, and the top of the unsigned range collapsed entirely.
-			//
-			// A mixed-signedness integral pair is ordered by VALUE rather than by unsigned wraparound. `std::cmp_less`
-			// is what that is for, but it asserts a STANDARD integer type, so it refuses a `char` or `bool`
-			// representation outright -- the same refusal that once withdrew `fdim` from them. Spelling the three
-			// cases out keeps every integral representation.
-			// The NUMERICAL SCALE has to match as well as the factor. `UNIT_ADD_DECIBEL` builds `dBW` from `watts`'s
-			// conversion factor, so a level and a linear quantity of the same dimension share a factor while storing
-			// different domains -- one holds watts, the other a dB figure -- and comparing their stored numbers
-			// directly reads 13 dBW as 13 W: min(watts(15), dBW(13)) answered the LARGER of the two.
-			if constexpr (std::is_same_v<LhsFactor, RhsFactor> &&
-				std::is_same_v<typename traits::unit_traits<Lhs>::numerical_scale_type, typename traits::unit_traits<Rhs>::numerical_scale_type>)
-			{
-				using L = typename Lhs::underlying_type;
-				using R = typename Rhs::underlying_type;
-				if constexpr (!std::is_integral_v<L> || !std::is_integral_v<R>)
-					return lhs.raw() < rhs.raw();
-				else if constexpr (std::is_signed_v<L> == std::is_signed_v<R>)
-					return lhs.raw() < rhs.raw();
-				else if constexpr (std::is_signed_v<L>)
-					return lhs.raw() < L{} ? true : static_cast<std::make_unsigned_t<L>>(lhs.raw()) < rhs.raw();
-				else
-					return rhs.raw() < R{} ? false : lhs.raw() < static_cast<std::make_unsigned_t<R>>(rhs.raw());
-			}
-			else
-			{
-				using L = typename Lhs::underlying_type;
-				using R = typename Rhs::underlying_type;
-
-				// A mixed-scale INTEGRAL pair is reconciled in the widest integer, exactly. No floating intermediate
-				// can stand in: `double` collapses adjacent integers from 2^54 up, and `long double` only helps where
-				// the platform gives it a 64-bit mantissa -- on MSVC it IS `double`. Reconciling through one made the
-				// ordering contradict the library's own `operator>`:
-				// max(millimeters<long long>(LLONG_MAX), meters<long long>(LLONG_MAX/1000)) answered the smaller.
-				//
-				// Each operand is scaled into the common unit by a whole multiplier, so the comparison is a pair of
-				// exact products. The guard is there because a product can overflow even the widest integer; when it
-				// would, or when the multipliers are not whole, or when one operand's type cannot be represented
-				// alongside the other's, the floating comparison below takes over -- approximate, but never wrapped.
-				using Common      = lhs_result_unit_t<Lhs, Rhs>;
-				using CommonRatio = typename traits::unit_traits<Common>::conversion_factor::conversion_ratio;
-				using LhsScale    = std::ratio_divide<typename LhsFactor::conversion_ratio, CommonRatio>;
-				using RhsScale    = std::ratio_divide<typename RhsFactor::conversion_ratio, CommonRatio>;
-
-				if constexpr (std::is_integral_v<L> && std::is_integral_v<R> && LhsScale::den == 1 && RhsScale::den == 1 &&
-					(std::is_signed_v<L> == std::is_signed_v<R> ||
-						(sizeof(widest_signed_int) > sizeof(L) && sizeof(widest_signed_int) > sizeof(R))))
-				{
-					using Wide = std::conditional_t<std::is_unsigned_v<L> && std::is_unsigned_v<R>, widest_unsigned_int, widest_signed_int>;
-
-					constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
-					constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
-					constexpr Wide cap           = std::numeric_limits<Wide>::max();
-
-					const Wide lhsRaw = static_cast<Wide>(lhs.raw());
-					const Wide rhsRaw = static_cast<Wide>(rhs.raw());
-
-					const auto fits = [](Wide value, Wide multiplier) {
-						const Wide bound = cap / multiplier;
-						if constexpr (std::is_unsigned_v<Wide>)
-							return value <= bound;
-						else
-							return value <= bound && value >= -bound;
-					};
-
-					if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
-						return lhsRaw * lhsMultiplier < rhsRaw * rhsMultiplier;
-				}
-
-				using Widest     = long double;
-				using CommonUnit = unit<typename Common::conversion_factor, Widest,
-					typename traits::unit_traits<Lhs>::numerical_scale_type>;
-				return CommonUnit(traits::replace_underlying_t<Lhs, Widest>(lhs)).raw() <
-					CommonUnit(traits::replace_underlying_t<Rhs, Widest>(rhs)).raw();
-			}
-		}
 	} // namespace detail
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
@@ -6674,7 +6623,7 @@ namespace units
 		// for otherwise-representable operands. Computed in the body so the trait is not instantiated for a non-unit
 		// the constraint already rejects. min/max select an operand, so the underlying is NOT floating-point promoted.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (detail::less_in_common_unit(lhs, rhs) ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (lhs < rhs ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
@@ -6682,7 +6631,7 @@ namespace units
 	constexpr auto max(const UnitTypeLhs& lhs, const UnitTypeRhs& rhs)
 	{
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeLhs, UnitTypeRhs>;
-		return (detail::less_in_common_unit(rhs, lhs) ? ResultUnit(lhs) : ResultUnit(rhs));
+		return (lhs > rhs ? ResultUnit(lhs) : ResultUnit(rhs));
 	}
 
 	/// Clamps a value to the range [lo, hi], in the value's own unit when that is lossless (matching min/max), else
@@ -6694,8 +6643,7 @@ namespace units
 		// Reconcile to the common unit of all three operands for a correct comparison, then express the result in the
 		// value's unit when lossless (as min/max do), never an anonymous unit for representable operands.
 		using ResultUnit = detail::lhs_result_unit_t<UnitTypeValue, std::common_type_t<UnitTypeLo, UnitTypeHi>>;
-		return (detail::less_in_common_unit(value, lo) ? ResultUnit(lo)
-													  : (detail::less_in_common_unit(hi, value) ? ResultUnit(hi) : ResultUnit(value)));
+		return (value < lo ? ResultUnit(lo) : (hi < value ? ResultUnit(hi) : ResultUnit(value)));
 	}
 
 	//----------------------------------
@@ -6931,9 +6879,8 @@ namespace units
 	constexpr auto fmod(const UnitTypeLhs numer, const UnitTypeRhs denom) noexcept
 	{
 		// The working unit is decided from `lhs_result_unit_t` on the UNPROMOTED pair, which is where a lossy
-		// rhs-to-lhs conversion selects the finer of the two units, and only then promoted. Deciding it after
-		// promotion hands the choice to the floating types, where the left operand's unit simply wins, and silently
-		// re-homes the answer: fmod(feet<int>(10), inches<int>(1)) reported feet rather than inches.
+		// rhs-to-lhs conversion selects the finer of the two units, and only then promoted. Deciding it after promotion
+		// would hand the choice to the floating types, where the left operand's unit simply wins, re-homing the answer.
 		// The RESULT KIND follows `operator-`: a remainder of two affine readings is an AMOUNT, not another reading,
 		// so the datum is stripped. It is NOT taken from `decltype(numer - denom)`, because for an affine pair that
 		// instantiates the affine `operator-`'s body on unpromoted operands and reaches a `consteval` narrowing
@@ -7215,22 +7162,19 @@ namespace units
 		// difference of two affine readings is an AMOUNT and of two decibel levels a GAIN, never another reading or
 		// level. Returning `lhs_result_unit_t` made `fdim(celsius(30), celsius(10))` a celsius READING of 20, i.e.
 		// 293.15 K, while `celsius(30) - celsius(10)` correctly gave a 20 K amount -- the two disagreed by the datum.
-		// The comparison and the subtraction read THE SAME TWO NUMBERS: both operands are converted into one promoted
-		// common unit, and the guard compares those. Comparing the operands themselves instead routes through
-		// `unit::operator>`, which reconciles the two sides in each operand's OWN representation -- so a narrow
-		// integral operand wraps there while the promoted subtraction does not, and the two disagree:
-		// fdim(meters<int>(5), kilometers<signed char>(3)) answered -2995 m, negative in violation of the function's
-		// own postcondition, and fdim(meters<signed char>(5), centimeters<int>(3)) discarded a real 4.97 m difference
-		// as zero. Reading the numbers directly also keeps the function available for a `char` or `bool`
-		// representation, which `unit::operator>` refuses outright.
+		// The guard and the subtraction read THE SAME TWO NUMBERS: both operands are converted into one promoted common
+		// unit, and the guard compares those. Comparing the quantities themselves routes through `unit::operator>`,
+		// which reconciles each side in that side's own representation, so a narrow integral operand wraps there while
+		// the promoted subtraction does not and the two disagree. Reading the numbers directly also accepts every
+		// representation the released library accepts, which `unit::operator>` does not.
+		//
 		// Promoting before subtracting is what keeps an integer representation from overflowing:
-		// fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648, not a wrapped negative. The NaN test reads the
-		// underlying values rather than comparing the difference with itself, because `unit::operator==` compares with
-		// a tolerance under which `-inf == -inf` is false.
-		// The result UNIT is decided from `lhs_result_unit_t` on the UNPROMOTED pair, then promoted: deciding it after
-		// promotion moves the choice from the integral types, where a lossy rhs-to-lhs conversion selects the finer
-		// common unit, to the floating ones, where the lhs unit wins -- which silently re-homed the answer, so
-		// fdim(feet<int>(10), inches<int>(1)) read 9.9166.. ft rather than 119 in exactly. It is NOT taken from
+		// fdim(meters<int>(INT_MAX), meters<int>(-1)) is 2147483648. The NaN test reads the underlying values rather
+		// than comparing the difference with itself, because `unit::operator==` compares with a tolerance under which
+		// `-inf == -inf` is false.
+		// The result UNIT is decided from `lhs_result_unit_t` on the UNPROMOTED pair, then promoted. Deciding it after
+		// promotion would move the choice from the integral types, where a lossy rhs-to-lhs conversion selects the
+		// finer common unit, to the floating ones, where the lhs unit wins -- re-homing the answer. It is NOT taken from
 		// `decltype(x - y)`, because for an affine pair that instantiates the affine `operator-`'s body on unpromoted
 		// operands and reaches a `consteval` narrowing constructor a run-time value cannot satisfy. The datum is
 		// stripped here instead, which is what that operator would have done: a positive difference is an amount.
@@ -7438,8 +7382,8 @@ struct std::hash<units::unit<ConversionFactor, T, NumericalScale>>
 		// Mixed from the bit pattern rather than handed to `std::hash`, which is not `constexpr`: an integer-backed
 		// quantity is hashable in a constant expression, as it is for the underlying type. Zero is normalised so
 		// +0.0 and -0.0 hash alike (they compare equal), and every NaN is mapped to one value.
-		// A NaN is given its own bits rather than a stand-in VALUE: substituting 1.0e308 made every NaN hash equal to
-		// the hash of 1.0e308 itself.
+		// A NaN is given its own bits rather than a stand-in VALUE, which would make every NaN hash equal to the hash
+		// of whichever quantity holds that value.
 		using Bits          = std::uint64_t;
 		const bool isNaN    = (inBase != inBase);
 		const double asBits = (isNaN || inBase == Promoted(0)) ? 0.0 : static_cast<double>(inBase);
