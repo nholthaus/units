@@ -13,7 +13,10 @@ jobs:
     # Each leg names its image explicitly. `windows-latest` follows the runner image, which carries whichever
     # Visual Studio that image ships; MSVC changes overload resolution, concept evaluation and template
     # instantiation order between toolsets. `windows-2022` is the declared support floor and `windows-2025` carries
-    # Visual Studio 2026. Both gate a merge.
+    # Visual Studio 2026.
+    #
+    # The 2022 leg's name is the required status check on main, so it is spelled exactly as branch protection lists
+    # it. Adding the 2026 leg to that list is a repository setting, not a change here.
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.image }}
     strategy:
@@ -21,9 +24,9 @@ jobs:
       matrix:
         include:
           - image: windows-2022
-            label: Visual Studio 2022 (the declared support floor)
+            label: Build on Windows with Visual Studio 2022
           - image: windows-2025
-            label: Visual Studio 2026 (forward compatibility)
+            label: Build on Windows with Visual Studio 2026
 
     steps:
       - name: Checkout Repository
