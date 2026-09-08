@@ -3891,9 +3891,9 @@ namespace units
 		 *				that fire from an overload body, so the overload resolves anyway and the `requires` reports
 		 *				the operation as available -- meaning a `requires`-guarded `if constexpr` hard-errors instead
 		 *				of taking its fallback.
-		 *				@code
+		 * @code
 		 *				if constexpr (units::traits::has_arbitrary_origin_v<T>) { useADifference(v); }
-		 *				@endcode
+		 * @endcode
 		 *
 		 *				Generic code reaches this trait with whatever type it happens to hold, so any type answers it: a
 		 *				type that is not a unit at all reads `false` rather than failing to compile. That is why it is a
@@ -4019,23 +4019,16 @@ namespace units
 
 		//------------------------------------------------------------------------------------------------------------------
 		//      function: affine_delta_in_lhs_scale [static]
-		//------------------------------------------------------------------------------------------------------------------
-		/// @brief      re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying no datum
-		/// @details	A relative change is scale-only: a value in the rhs scale becomes the same change in the lhs
-		///				scale by the pure ratio of their scale factors (rhs_ratio / lhs_ratio), never through the
-		///				base linearization (which would re-introduce the affine offset). A nine-Fahrenheit-degree
-		///				change is nine times 5/9 = five Celsius-degrees; a five-kelvin change is five Celsius-degrees.
-		/// @tparam     UnitTypeLhs  the point unit being moved (supplies the target scale and underlying type)
-		/// @tparam     UnitTypeRhs  the unit the change was written in -- affine or not; only its scale factor is
-		///                          read, so an offset-free rhs (kelvin, or a difference) takes the same path
-		/// @param[in]  rawRhs  the rhs value in its own scale (`rhs.raw()`)
-		/// @return     the change expressed in the lhs unit's scale
-		//------------------------------------------------------------------------------------------------------------------
 		/**
 		 * @brief		Re-expresses the rhs's magnitude as a change in the lhs unit's scale, applying no datum.
-		 * @tparam		UnitTypeLhs	the left operand's unit type.
-		 * @tparam		UnitTypeRhs	the right operand's unit type.
-		 @returns		that magnitude expressed in the lhs unit's scale.
+		 * @details		A relative change is scale-only: a value in the rhs scale becomes the same change in the lhs
+		 *				scale by the ratio of their scale factors, and not through the base linearization, which
+		 *				carries the affine offset. Only the rhs's scale factor is read, so an offset-free rhs takes
+		 *				the same path.
+		 * @tparam		UnitTypeLhs	the unit being moved, which supplies the target scale and underlying type.
+		 * @tparam		UnitTypeRhs	the unit the change was written in.
+		 * @param[in]	rawRhs	the rhs value in its own scale.
+		 * @returns		that magnitude expressed in the lhs unit's scale.
 		 */
 		template<class UnitTypeLhs, class UnitTypeRhs>
 		constexpr typename UnitTypeLhs::underlying_type affine_delta_in_lhs_scale(typename UnitTypeRhs::underlying_type rawRhs) noexcept
@@ -5347,7 +5340,7 @@ namespace units
 	 * @tparam		T	the arithmetic operand's type.
 	 * @param[in]	lhs	the left operand.
 	 * @param[in]	rhs	the right operand.
-	 @returns		the computed result, in the right operand's unit.
+	 * @returns		the computed result, in the right operand's unit.
 	 */
 	template<DimensionedUnitType UnitTypeRhs, ArithmeticType T>
 		requires(traits::has_linear_scale_v<UnitTypeRhs>)
@@ -5596,9 +5589,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Mirror of the above with the operands written the other way round.
-	 *		@details		Of the above with the operands written the other way round. Returns a value so the body is
-	 *				instantiated and the message fires on every compiler.
+	 * @brief		Mirror of the above with the operands written the other way round.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		T	the arithmetic operand's type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
 	 * @param[in]	rhs	the right operand.
@@ -5613,9 +5605,8 @@ namespace units
 		return rhs;
 	}
 	/**
-	 *		@brief		Decibel value scaled by an ordinary quantity.
-	 *		@details		Decibel value scaled by an ordinary quantity. Returns a value so the body is instantiated and the
-	 *				message fires on every compiler.
+	 * @brief		Decibel value scaled by an ordinary quantity.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
 	 * @param[in]	lhs	the left operand.
@@ -5647,9 +5638,9 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity multiplied by a decibel level, whose remedy names a quantity rather than a.
-	 *		@details		Ordinary quantity multiplied by a decibel level, whose remedy names a quantity rather than a
-	 *				ratio. Returns a value so the body is instantiated and the message fires on every compiler.
+	 * @brief		Diagnostic for an ordinary quantity multiplied by a decibel level.
+	 * @details		The remedy names a quantity rather than a ratio. Returns a value so the body is instantiated and
+	 *				the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
 	 * @param[in]	lhs	the left operand.
@@ -5716,9 +5707,8 @@ namespace units
 		return rhs;
 	}
 	/**
-	 *		@brief		Decibel value divided by an ordinary quantity.
-	 *		@details		Decibel value divided by an ordinary quantity. Returns a value so the body is instantiated and the
-	 *				message fires on every compiler.
+	 * @brief		Decibel value divided by an ordinary quantity.
+	 * @details		Returns a value so the body is instantiated and the message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
 	 * @param[in]	lhs	the left operand.
@@ -5733,8 +5723,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel gain.
-	 *		@details		Ordinary quantity divided by a decibel gain. Returns a value so the body is instantiated and the
+	 * @brief		Diagnostic for an ordinary quantity divided by a decibel gain.
+	 * @details		Ordinary quantity divided by a decibel gain. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		D	the dimensionless operand's unit type.
@@ -5750,8 +5740,8 @@ namespace units
 		return lhs;
 	}
 	/**
-	 *		@brief		Diagnostic for an ordinary quantity divided by a decibel level.
-	 *		@details		Ordinary quantity divided by a decibel level. Returns a value so the body is instantiated and the
+	 * @brief		Diagnostic for an ordinary quantity divided by a decibel level.
+	 * @details		Ordinary quantity divided by a decibel level. Returns a value so the body is instantiated and the
 	 *				message fires on every compiler.
 	 * @tparam		UnitTypeLhs	the left operand's unit type.
 	 * @tparam		UnitTypeRhs	the right operand's unit type.
@@ -6930,7 +6920,7 @@ namespace units
 		 * @tparam		From	the source unit type.
 		 * @param[in]	x	the operand.
 		 * @param[in]	mode	the caller's rounding intent.
-	 @returns		the value expressed in `To`, rounded as the mode requests.
+	 * @returns		the value expressed in `To`, rounded as the mode requests.
 	 */
 		template<class To, class From>
 		constexpr To rounded_unit_cast(const From& x, rounding_mode mode) noexcept
@@ -7326,7 +7316,7 @@ namespace std
 		/**
 		 * @brief		Builds a limit from a value already in the unit's stored representation.
 		 * @param[in]	stored	the value in the unit's stored representation.
-		 @returns		that quantity.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q fromStored(T stored) noexcept
 		{
@@ -7338,8 +7328,8 @@ namespace std
 
 	public:
 		/**
-		 *		@brief		The smallest positive normal quantity.
-		 @returns		that quantity.
+		 * @brief		The smallest positive normal quantity.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q min()
 		{
@@ -7347,11 +7337,11 @@ namespace std
 		}
 
 		/**
-		 *		@brief		On a non-linear scale the stored value is a ratio and is strictly positive, so the smallest.
-		 *		@details		A non-linear scale the stored value is a ratio and is strictly positive, so the smallest
-		 *				denormal ratio is the lowest representable quantity; `lowest()` must therefore agree with it
-		 *				rather than using `min()`.
-		 @returns		that quantity.
+		 * @brief		The smallest positive denormal quantity.
+		 * @details		On a non-linear scale the stored value is a ratio and is strictly positive, so the smallest
+		 *				denormal ratio is also the lowest representable quantity, and `lowest()` agrees with this
+		 *				rather than with `min()`.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q denorm_min() noexcept
 		{
@@ -7359,8 +7349,8 @@ namespace std
 		}
 
 		/**
-		 *		@brief		The largest finite quantity.
-		 @returns		that quantity.
+		 * @brief		The largest finite quantity.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q max()
 		{
@@ -7368,11 +7358,11 @@ namespace std
 		}
 
 		/**
-		 *		@brief		On a non-linear scale the stored value is a ratio and is strictly positive, so the lowest.
-		 *		@details		A non-linear scale the stored value is a ratio and is strictly positive, so the lowest
-		 *				representable quantity is the smallest positive stored value (a very negative number of
-		 *				decibels), not `T`'s lowest.
-		 @returns		that quantity.
+		 * @brief		The lowest representable quantity.
+		 * @details		On a non-linear scale the stored value is a ratio and is strictly positive, so the lowest
+		 *				representable quantity is the smallest positive stored value, a very negative number of
+		 *				decibels, and not `T`'s lowest.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q lowest()
 		{
@@ -7388,7 +7378,7 @@ namespace std
 		 * @brief		The smallest distinguishable step.
 		 * @details		On a non-linear scale that is the quantity whose stored ratio differs from unity by one
 		 *				epsilon, which is a small non-zero number of decibels.
-		 @returns		that quantity.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q epsilon()
 		{
@@ -7399,8 +7389,8 @@ namespace std
 		}
 
 		/**
-		 *		@brief		The maximum rounding error, in units of the stored representation.
-		 @returns		that quantity.
+		 * @brief		The maximum rounding error, in units of the stored representation.
+		 * @returns		that quantity.
 		 */
 		static constexpr Q round_error()
 		{
@@ -7491,7 +7481,7 @@ namespace std
 	 *				decibel figure means attenuation, which is a real property of the ratio.
 	 * @tparam		U	the unit type operated on.
 	 * @param[in]	x	the operand.
-	 @returns		`true` when that value is negative.
+	 * @returns		`true` when that value is negative.
 	 */
 	template<units::UnitType U>
 	constexpr bool signbit(U x)
