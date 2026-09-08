@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- `squared`, `cubed` and `square_root` drop the datum, as their documentation states.
+
+  A squared unit has no origin, so the celsius- and kelvin-flavoured spellings of one squared temperature are the same
+  type and a value carries between them unchanged. The scale factor is still raised or rooted. The root of a squared
+  temperature is an origin-free magnitude, so code that stored it in an affine unit needs a datum-free one.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

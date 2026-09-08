@@ -1659,15 +1659,16 @@ namespace units
 	{
 		/**
 		 * @brief		implementation of `squared`
-		 * @details		Squares the conversion ratio, `dimension_t` exponents, pi exponents, and removes
-		 *				datum translation ratios.
+		 * @details		Squares the conversion ratio, `dimension_t` exponents and pi exponents, and sets the datum
+		 *				translation to zero. A squared unit has no origin, and a translation carried into one makes
+		 *				the result compare as affine and re-apply that translation on the way back out.
 		 */
 		template<ConversionFactorType Cf>
 		struct squared_impl
 		{
 			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, Conversion>, dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<2>>,
-					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, typename Cf::translation_ratio>;
+					  std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1694,7 +1695,7 @@ namespace units
 		{
 			using Conversion = typename Cf::conversion_ratio;
 			using type       = conversion_factor<std::ratio_multiply<Conversion, std::ratio_multiply<Conversion, Conversion>>,
-					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, typename Cf::translation_ratio>;
+					  dimension_pow<traits::dimension_of_t<typename Cf::dimension_type>, std::ratio<3>>, std::ratio_multiply<typename Cf::pi_exponent_ratio, std::ratio<3>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
@@ -1895,7 +1896,7 @@ namespace units
 		{
 			using Conversion = typename Unit::conversion_ratio;
 			using type       = conversion_factor<ratio_sqrt<Conversion, Eps>, dimension_root<traits::dimension_of_t<typename Unit::dimension_type>, std::ratio<2>>,
-					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, typename Unit::translation_ratio>;
+					  std::ratio_divide<typename Unit::pi_exponent_ratio, std::ratio<2>>, std::ratio<0>>;
 		};
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE

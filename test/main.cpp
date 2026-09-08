@@ -5292,8 +5292,13 @@ TEST_F(ConversionFactor, squaredTemperature)
 	using squared_celsius   = compound_conversion_factor<squared<celsius<double>>>;
 	using squared_celsius_t = unit<squared_celsius>;
 	constexpr squared_celsius_t right(100);
-	constexpr celsius           rootRight = sqrt(right);
-	EXPECT_EQ(celsius<double>(10), rootRight);
+
+	// `squared<>` drops the datum: there is no origin for a degC^2. The root is therefore an origin-free temperature
+	// magnitude of ten degrees, and storing it in celsius would apply the 273.15 datum.
+	constexpr auto rootRight = sqrt(right);
+	static_assert(!traits::is_affine_unit_v<decltype(rootRight)>, "the root of a squared temperature carries no datum");
+	EXPECT_DOUBLE_EQ(10.0, rootRight.value());
+	EXPECT_EQ(kelvin<double>(10), rootRight);
 }
 
 TEST_F(ConversionFactor, unitsAddedIn3_4_2)
@@ -8529,6 +8534,86 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 	const units::meters<double> md(3.5);
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
 }
+
+// A squared unit has no origin, so the celsius-flavoured and kelvin-flavoured spellings of one squared temperature
+// are the same type and a value carries between them unchanged.
+TEST(DatumFreeManipulators, squaringDropsTheDatum)
+{
+	using squaredCelsius    = unit<squared<units::temperature::celsius_>, double>;
+	using squaredKelvin     = unit<squared<units::temperature::kelvin_>, double>;
+	using squaredFahrenheit = unit<squared<units::temperature::fahrenheit_>, double>;
+
+	static_assert(std::ratio_equal_v<std::ratio<0>, squared<units::temperature::celsius_>::translation_ratio>,
+		"a squared unit has no origin");
+	static_assert(std::is_same_v<squaredCelsius, squaredKelvin>,
+		"the two spellings of one squared temperature are one type");
+	static_assert(!traits::is_affine_unit_v<squaredCelsius>);
+
+	EXPECT_DOUBLE_EQ(4.0, squaredKelvin(squaredCelsius(4.0)).raw());
+
+	// the scale factor still squares, so one squared fahrenheit-degree is (5/9)^2 == 25/81 of a squared kelvin:
+	// 9 * 25/81 == 25/9 == 2.7777777777777777
+	static_assert(std::ratio_equal_v<std::ratio<25, 81>, squared<units::temperature::fahrenheit_>::conversion_ratio>,
+		"the scale factor squares even though the datum is dropped");
+	static_assert(std::ratio_equal_v<std::ratio<0>, squared<units::temperature::fahrenheit_>::translation_ratio>);
+	EXPECT_DOUBLE_EQ(2.7777777777777777, squaredKelvin(squaredFahrenheit(9.0)).raw());
+
+	// the product of two readings is that datum-free squared unit, not another reading: 3 * 3 == 9
+	static_assert(!traits::is_affine_unit_v<std::decay_t<decltype(celsius<double>(3.0) * celsius<double>(3.0))>>,
+		"the product of two readings has no origin");
+	static_assert(std::is_same_v<squaredKelvin, std::decay_t<decltype(celsius<double>(3.0) * celsius<double>(3.0))>>);
+	EXPECT_DOUBLE_EQ(9.0, (celsius<double>(3.0) * celsius<double>(3.0)).raw());
+}
+
+// `cubed` drops the datum on the same terms as `squared`, and independently of it.
+TEST(DatumFreeManipulators, cubingDropsTheDatum)
+{
+	using cubedCelsius    = unit<cubed<units::temperature::celsius_>, double>;
+	using cubedKelvin     = unit<cubed<units::temperature::kelvin_>, double>;
+	using cubedFahrenheit = unit<cubed<units::temperature::fahrenheit_>, double>;
+
+	static_assert(std::ratio_equal_v<std::ratio<0>, cubed<units::temperature::celsius_>::translation_ratio>,
+		"a cubed unit has no origin");
+	static_assert(std::is_same_v<cubedCelsius, cubedKelvin>,
+		"the two spellings of one cubed temperature are one type");
+	static_assert(!traits::is_affine_unit_v<cubedCelsius>);
+
+	EXPECT_DOUBLE_EQ(8.0, cubedKelvin(cubedCelsius(8.0)).raw());
+
+	// the scale factor cubes: (5/9)^3 == 125/729, so 27 * 125/729 == 125/27 == 4.6296296296296298
+	static_assert(std::ratio_equal_v<std::ratio<125, 729>, cubed<units::temperature::fahrenheit_>::conversion_ratio>,
+		"the scale factor cubes even though the datum is dropped");
+	static_assert(std::ratio_equal_v<std::ratio<0>, cubed<units::temperature::fahrenheit_>::translation_ratio>);
+	EXPECT_DOUBLE_EQ(4.6296296296296298, cubedKelvin(cubedFahrenheit(27.0)).raw());
+
+	// the cube of a reading is that datum-free cubed unit: 2 * 2 * 2 == 8
+	static_assert(!traits::is_affine_unit_v<std::decay_t<decltype(celsius<double>(2.0) * celsius<double>(2.0) * celsius<double>(2.0))>>,
+		"the cube of a reading has no origin");
+	EXPECT_DOUBLE_EQ(8.0, (celsius<double>(2.0) * celsius<double>(2.0) * celsius<double>(2.0)).raw());
+}
+
+// `square_root` drops the datum on the same terms, and independently of the other two.
+TEST(DatumFreeManipulators, takingASquareRootDropsTheDatum)
+{
+	using rootCelsius    = unit<square_root<units::temperature::celsius_>, double>;
+	using rootKelvin     = unit<square_root<units::temperature::kelvin_>, double>;
+	using rootFahrenheit = unit<square_root<units::temperature::fahrenheit_>, double>;
+
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<units::temperature::celsius_>::translation_ratio>,
+		"a square-rooted unit has no origin");
+	static_assert(std::is_same_v<rootCelsius, rootKelvin>,
+		"the two spellings of one square-rooted temperature are one type");
+	static_assert(!traits::is_affine_unit_v<rootCelsius>);
+
+	EXPECT_DOUBLE_EQ(2.0, rootKelvin(rootCelsius(2.0)).raw());
+
+	// the scale factor takes its root: sqrt(5/9) == 0.74535599249992990, so 9 * sqrt(5/9) == 6.7082039324993694.
+	// `square_root` is a rational approximation with a documented error bound of 1e-10 (`ratio_sqrt`'s default
+	// epsilon), so the comparison is loose by that much.
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<units::temperature::fahrenheit_>::translation_ratio>);
+	EXPECT_NEAR(6.7082039324993694, rootKelvin(rootFahrenheit(9.0)).raw(), 5.0e-9);
+}
+
 
 int main(int argc, char* argv[])
 {
