@@ -5908,34 +5908,97 @@ namespace std
 	template<units::ConversionFactorType ConversionFactor, units::ArithmeticType T, units::NumericalScaleType<T> NonLinearScale>
 	struct numeric_limits<units::unit<ConversionFactor, T, NonLinearScale>>
 	{
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> min()
+	private:
+		using Q = units::unit<ConversionFactor, T, NonLinearScale>;
+
+		// A limit is a property of the stored representation, so on a non-linear scale it is built from the stored
+		// value and not pushed through the value constructor, which linearizes. For a linear scale the two are
+		// identical.
+		/**
+		 * @brief		Builds a limit from a value already in the unit's stored representation.
+		 * @param[in]	stored	the value in the unit's stored representation.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q fromStored(T stored) noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::min());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(stored);
+			else
+				return Q(stored, units::linearized_value);
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> denorm_min() noexcept
+	public:
+		/**
+		 * @brief		The smallest positive normal quantity.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q min()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::denorm_min());
+			return fromStored(std::numeric_limits<T>::min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> max()
+		/**
+		 * @brief		The smallest positive denormal quantity.
+		 * @details		On a non-linear scale the stored value is a ratio and is strictly positive, so the smallest
+		 *				denormal ratio is also the lowest representable quantity, and `lowest()` agrees with this
+		 *				rather than with `min()`.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q denorm_min() noexcept
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::max());
+			return fromStored(std::numeric_limits<T>::denorm_min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> lowest()
+		/**
+		 * @brief		The largest finite quantity.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q max()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::lowest());
+			return fromStored(std::numeric_limits<T>::max());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> epsilon()
+		/**
+		 * @brief		The lowest representable quantity.
+		 * @details		On a non-linear scale the stored value is a ratio and is strictly positive, so the lowest
+		 *				representable quantity is the smallest positive stored value, a very negative number of
+		 *				decibels, and not `T`'s lowest.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q lowest()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::epsilon());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::lowest());
+			else
+				// The smallest denormal stored ratio, not the smallest normal one: `lowest()` is no greater than
+				// `denorm_min()`, and on a logarithmic scale the denormal maps to a more negative figure.
+				return fromStored(std::numeric_limits<T>::denorm_min());
 		}
 
-		static constexpr units::unit<ConversionFactor, T, NonLinearScale> round_error()
+		/**
+		 * @brief		The smallest distinguishable step.
+		 * @details		On a non-linear scale that is the quantity whose stored ratio differs from unity by one
+		 *				epsilon, which is a small non-zero number of decibels.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q epsilon()
 		{
-			return units::unit<ConversionFactor, T, NonLinearScale>(std::numeric_limits<T>::round_error());
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::epsilon());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::epsilon()));
+		}
+
+		/**
+		 * @brief		The maximum rounding error, in units of the stored representation.
+		 * @returns		that quantity.
+		 */
+		static constexpr Q round_error()
+		{
+			if constexpr (units::traits::has_linear_scale_v<Q>)
+				return Q(std::numeric_limits<T>::round_error());
+			else
+				return fromStored(static_cast<T>(T{1} + std::numeric_limits<T>::round_error()));
 		}
 
 		static constexpr units::unit<ConversionFactor, T, NonLinearScale> infinity()

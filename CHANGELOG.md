@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- `std::numeric_limits` of a decibel-scale unit reads as finite decibel figures, built from the stored representation:
+  `max()` 3082.547, `epsilon()` 9.643e-16, `min()` -3076.527, `denorm_min()` -3233.062, `round_error()` 1.761,
+  `lowest()` -3233.062. A linear scale is unchanged.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

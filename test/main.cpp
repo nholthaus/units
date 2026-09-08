@@ -8530,6 +8530,38 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
 }
 
+// `std::numeric_limits` describes the stored representation, so on a decibel scale the limits read as finite decibel
+// figures: `max()` is finite, as its contract requires, and `epsilon()` is non-zero, so a generic tolerance written
+// against it is not silently zero.
+TEST_F(UnitType, numericLimitsAreFiniteOnADecibelScale)
+{
+	using Level = std::numeric_limits<units::power::dBW<double>>;
+	EXPECT_TRUE(std::isfinite(Level::max().raw()));
+	EXPECT_TRUE(std::isfinite(Level::lowest().raw()));
+	EXPECT_GT(Level::max().raw(), 0.0);
+	EXPECT_LT(Level::lowest().raw(), 0.0);
+	EXPECT_LT(Level::lowest().raw(), Level::max().raw());
+	EXPECT_LE(Level::lowest().raw(), Level::denorm_min().raw());
+	EXPECT_NE(0.0, Level::epsilon().raw());
+	EXPECT_GT(Level::epsilon().raw(), 0.0);
+	EXPECT_TRUE(std::isinf(Level::infinity().raw()));    // an infinite ratio is infinite decibels
+
+	using Gain = std::numeric_limits<decibels<double>>;
+	EXPECT_TRUE(std::isfinite(Gain::max().raw()));
+	EXPECT_NE(0.0, Gain::epsilon().raw());
+
+	// a linear scale is unchanged
+	using Linear = std::numeric_limits<units::power::watts<double>>;
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::max(), Linear::max().raw());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::lowest(), Linear::lowest().raw());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::epsilon(), Linear::epsilon().raw());
+	EXPECT_DOUBLE_EQ(std::numeric_limits<double>::round_error(), Linear::round_error().raw());
+	using LinearInt = std::numeric_limits<units::meters<int>>;
+	EXPECT_EQ(std::numeric_limits<int>::max(), LinearInt::max().raw());
+	EXPECT_EQ(std::numeric_limits<int>::lowest(), LinearInt::lowest().raw());
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
