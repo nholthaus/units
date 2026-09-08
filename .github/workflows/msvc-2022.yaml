@@ -1,5 +1,4 @@
-# The file name is load-bearing: README.md's Windows badge points at this path. The workflow name and the job names
-# below are free to describe what actually runs.
+# README.md's Windows badge points at this path, so the file name is load-bearing.
 name: msvc
 
 on:
@@ -11,13 +10,10 @@ on:
 
 jobs:
   build-windows:
-    # PIN THE IMAGE, never `windows-latest`. That label migrated to Windows Server 2025 with Visual Studio 2026
-    # (VS 18, toolset 14.51), so a job asserting VS 2022 support was compiling with a toolchain three years newer
-    # than the one it claimed. MSVC changes overload resolution, concept evaluation and template instantiation order
-    # between toolsets, so the declared support floor has to be built by the compiler that defines it.
-    #
-    # Both legs gate. VS 2026 is what a user on a current toolchain gets, and it passes today, so a forward
-    # compatibility break should be a red build rather than a surprise at the next release.
+    # Each leg names its image explicitly. `windows-latest` follows the runner image, which carries whichever
+    # Visual Studio that image ships; MSVC changes overload resolution, concept evaluation and template
+    # instantiation order between toolsets. `windows-2022` is the declared support floor and `windows-2025` carries
+    # Visual Studio 2026. Both gate a merge.
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.image }}
     strategy:
@@ -33,43 +29,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # Set up the MSVC command-line environment FIRST (puts cl.exe on PATH). The "Visual Studio 17 2022"
-      # generator's own VS discovery has been unreliable on recent images ("could not find any instance of Visual
-      # Studio"); configuring with Ninja against the dev-cmd-provided cl is robust and also provides cl for the
-      # error-message harness below.
+      # Puts cl.exe on PATH, for both the Ninja configure below and the error-message harness. The
+      # "Visual Studio 17 2022" generator's own discovery fails on some images with "could not find any instance of
+      # Visual Studio".
       - name: Set up MSVC command-line environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
-      # Record the toolset in every log. The image rolling forward under a `-latest` label is exactly how this job
-      # came to build VS 2026 while claiming VS 2022, and the only reason it was caught was an unrelated link
-      # failure that happened to print the compiler path.
+      # Records the toolset in the log, so a log states which compiler built the job.
       - name: Report the compiler under test
         run: |
           cl 2>&1 | Select-Object -First 1
           Write-Host "image: ${{ matrix.image }}"
 
-      # Eigen enables the units/eigen.h interoperability tests (which self-guard on __has_include, so this is
-      # additive). The Windows images ship vcpkg at VCPKG_INSTALLATION_ROOT.
+      # Eigen enables the units/eigen.h interoperability tests, which self-guard on __has_include. The Windows
+      # images ship vcpkg at VCPKG_INSTALLATION_ROOT.
       - name: Install Eigen (vcpkg)
         shell: bash
         run: vcpkg install eigen3:x64-windows
 
-      # VCPKG_APPLOCAL_DEPS=OFF is required, not a preference. The vcpkg toolchain otherwise appends a
-      # `vcpkg z-applocal` post-link step to EVERY executable, copying vcpkg's DLLs next to each one. Several
-      # executables in one directory link within milliseconds of each other, so those steps contend for the same
-      # destination files and one fails with "Access is denied" or "being used by another process" -- after link.exe
-      # has already succeeded. The only vcpkg dependency here is Eigen, which is header-only and has no DLL to copy,
-      # so the step has nothing to do and is pure risk.
+      # VCPKG_APPLOCAL_DEPS=OFF. The vcpkg toolchain otherwise appends a `vcpkg z-applocal` post-link step to every
+      # executable, copying vcpkg's DLLs beside it; executables in one directory link within milliseconds of each
+      # other and those steps contend for the same destination files, failing with "Access is denied" after link.exe
+      # has succeeded. The only vcpkg dependency here is Eigen, which is header-only.
       - name: Configure CMake
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_APPLOCAL_DEPS=OFF -DX_VCPKG_APPLOCAL_DEPS_INSTALL=OFF
 
       - name: Build
         # Two passes: the heavy test binary alone, then everything else. ctest covers the examples and the lean
-        # (iostream/format/string-disabled) configurations, so all targets must exist or those cases report
-        # "Not Run" -- a red that says nothing about the code.
+        # (iostream/format/string-disabled) configurations, so every target has to exist for those cases to run.
         run: |
           cmake --build build --parallel --target unitLibTest
           cmake --build build --parallel
