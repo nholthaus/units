@@ -8530,6 +8530,30 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
 }
 
+// Assignment from a bare number means what the value constructor means, so an assign-then-read round trip holds on a
+// logarithmic scale: `g = 12.5` is 12.5 dB, as `decibels(12.5)` is.
+TEST_F(UnitType, nonLinearScaleStoresThroughItsScale)
+{
+	decibels<double> gain(3.25);
+	EXPECT_NEAR(3.25, gain.raw(), 5.0e-12);
+	EXPECT_NEAR(2.113489039, gain.to_linearized(), 5.0e-9);
+	gain = 12.5;
+	EXPECT_NEAR(12.5, gain.raw(), 5.0e-12);
+	EXPECT_EQ(decibels<double>(12.5), gain);
+	EXPECT_NEAR(12.5, static_cast<double>(gain), 5.0e-12);
+
+	// a ratio-scaled dimensionless is unaffected: a bare number there is the base-dimensionless fraction
+	concentration::percent<double> percentage(12.5);
+	percentage = 0.5;
+	EXPECT_NEAR(50.0, percentage.raw(), 5.0e-12);
+	EXPECT_NEAR(0.5, percentage.value(), 5.0e-12);
+	// and so is a plain dimensionless
+	dimensionless<double> plain(1.0);
+	plain = 3.25;
+	EXPECT_NEAR(3.25, plain.value(), 5.0e-12);
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- Assignment of a bare number to a decibel-scale quantity means decibels, as its value constructor does, so an
+  assign-then-read round trip holds. This reaches `units::decibels` and `dBi`.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed

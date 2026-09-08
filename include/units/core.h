@@ -2888,8 +2888,18 @@ namespace units
 			requires traits::is_dimensionless_unit<Cf>::value
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
-			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
-			_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			// A linear scale stores the number it is given; every other scale linearizes it through the value
+			// constructor, so the number means what it means there. (`has_linear_scale_v` is declared later in this
+			// header, hence the direct comparison.)
+			if constexpr (std::is_same_v<NumericalScale, linear_scale>)
+			{
+				unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
+				_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
+			}
+			else
+			{
+				_linearized_value = unit(rhs)._linearized_value;
+			}
 			return *this;
 		}
 
