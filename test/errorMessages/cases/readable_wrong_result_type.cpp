@@ -8,6 +8,7 @@
 // macro note legitimately echoes `conversion_factor<std::ratio<1>, dimension::length>`, so forbidding it would be a
 // false regression signal. The `dimension_t<` dimensionless-soup marker IS forbidden (absent on GCC-15 and clang-19).
 //
+// grades: compiler
 // expect: fail
 // expect-match: square_meters<
 // expect-match: meters<

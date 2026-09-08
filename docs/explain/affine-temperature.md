@@ -33,8 +33,7 @@ Reading these:
   `27315/100 = 273.15` — the kelvin value of the ice point. So `0 °C` is `273.15 K`.
 - **fahrenheit** is defined relative to celsius: a degree Fahrenheit is `5/9` of a degree Celsius, plus
   its own datum offset. Its zero and step differ from both other scales.
-- **reaumur** and **rankine** are *pure ratios* of celsius and kelvin respectively — no offset — and so
-  behave like ordinary multiplicative units. Rankine is the absolute scale sized in Fahrenheit degrees.
+- **rankine** is a *pure ratio* of kelvin — no offset — and so behaves like an ordinary multiplicative unit. **reaumur** does not: it is defined against celsius and inherits its datum, so it is affine exactly as celsius and fahrenheit are (`traits::is_affine_unit_v<reaumur<double>>` is `true`, and `kelvin(reaumur(0))` is 273.15, not 0). The library has three affine units, not two. Rankine is the absolute scale sized in Fahrenheit degrees.
 
 The presence of a non-zero translation ratio is exactly what makes a scale affine rather than linear.
 
@@ -76,8 +75,9 @@ This is the one caveat the datum offset forces.
 > quantities that happen to share a unit name. `20 °C` is an absolute point on the Celsius scale; a `1 °C`
 > *rise* is an interval. Converting an absolute point applies the datum offset (`20 °C → 293.15 K`);
 > converting an interval does **not** (`a 1 °C step is a 1 K step`, but a `1 °F` step is a `5/9 K` step).
-> The unit types in this library model **absolute temperatures** — every stored value is a point on the
-> scale — so their conversions always carry the offset.
+> An affine unit type in this library models an absolute temperature — a point on the scale — so *its* conversions
+> always carry the offset. A **difference** of two such points is a distinct, offset-free type whose conversions do
+> not, which is how the two operations stay separate without a wrapper.
 
 A concrete illustration of why absolute and difference cannot be the same operation: the Celsius and
 Fahrenheit scales cross at `−40`, where a single number reads the same on both scales even though the
@@ -96,11 +96,22 @@ int main()
 }
 ```
 
-Because the type stores an absolute point, the practical rule is: **do not reach for an affine
-temperature type to represent a difference.** If you need to add or scale temperature *intervals* freely,
-work in the absolute (offset-free) scales — kelvin or rankine — where a value and an interval coincide
-numerically, or keep intervals as plain dimensionless factors and apply them explicitly. Rankine's
-purely multiplicative definition (no offset) is why `1 K` maps cleanly to `1.8 Ra`:
+Because an affine type stores an absolute point, the practical rule is: **let a difference be a difference.**
+Subtracting two readings gives an offset-free amount, and that amount is what adds and scales freely:
+
+```cpp
+using namespace units::temperature;
+celsius<double> reading(18.5);
+const auto rise = celsius<double>(20.0) - celsius<double>(0.0);   // an amount, not a reading
+reading += rise * 2.0;                                            // 58.5 degC
+```
+
+Reading the number of a point reads it in that point's own scale, which is scale-bound rather than wrong; the
+section [Scaling a temperature reading](#scaling-a-temperature-reading) below sets out when that is what a formula
+wants. The one operation refused outright is moving a reading by a bare number, which states no amount of change.
+Working in kelvin or rankine also remains available —
+they carry no offset, so a value and an interval coincide numerically there. Rankine's purely multiplicative
+definition is why `1 K` maps cleanly to `1.8 Ra`:
 
 ```cpp
 #include <units/temperature.h>
@@ -113,6 +124,38 @@ int main()
     return 0;
 }
 ```
+
+## Scaling a temperature reading
+
+Multiplying a reading on an affine scale is not datum-independent. One temperature, written four ways and multiplied by
+two, yields three different physical results:
+
+| written as | × 2 | the same result in kelvin |
+|---|---|---|
+| `celsius(20)` | 40 °C | 313.15 K |
+| `fahrenheit(68)` | 136 °F | 330.93 K |
+| `reaumur(16)` | 32 °Ré | 313.15 K |
+| `kelvin(293.15)` | 586.3 K | 586.30 K |
+
+The general rule is exact. A weighted sum of readings is datum-independent **if and only if its weights total one**;
+such a sum is an *affine combination*, and [`midpoint` and `lerp`](../how-to/math-functions.md) compute it. Every
+other weighting — scaling among them — depends on where the scale's zero was placed.
+
+The library permits the other weightings. Published formulae use them: NWS wind chill and the Rothfusz heat index
+are regressions on Fahrenheit readings; the Magnus, Buck and NWS vapour-pressure correlations are regressions on
+Celsius readings. Their coefficients were fitted to the numbers a thermometer reads on one named scale, so each formula
+is scale-bound by construction. Magnus admits no absolute-scale form: its offset varies between fits (243.5, 243.04,
+237.3, 257.14) where 273.15 is fixed.
+
+Refusing the operation does not make such code correct; it moves it outside the type system, onto `raw()` values,
+which forfeits dimensional checking on every other operand the formula takes — the pressures, wind speeds and
+humidities. The arithmetic is therefore available, and supplying the scale the coefficients expect is the caller's
+responsibility.
+
+Two consequences follow. A scale-bound expression must be given the scale its coefficients were fitted to; supplying
+Rothfusz a Celsius reading produces a number with no meaning, which no type system can detect. And generic code that
+scales a temperature behaves differently for `celsius` than for `fahrenheit`; where the intent is a mean or an
+interpolation, `midpoint` and `lerp` are datum-independent.
 
 ## Why "not a reversible linear transform"
 

@@ -30,7 +30,7 @@ matrices with no special syntax:
 | Construction / storage | `Eigen::Matrix<meters<double>, 3, 1> v;` | a vector of `meters` |
 | Element access | `v(0)`, `v.x()` | a `meters<double>` |
 | Addition / subtraction | `a + b`, `a - b` | a vector of `meters` |
-| Scale by a plain scalar | `v * 2.0`, `2.0 * v`, `v / 2.0` | a vector of `meters` |
+| Scale by a plain scalar | `v * 2.0`, `2.0 * v`, `v / 2.0` | a vector of `meters`. Available wherever the same operation on one coefficient is, so a vector of `celsius` scales in its coefficients' own scale, while a vector of `dBW` does not scale at all — the scalar `dBW * 2.0` does not exist either |
 | Reductions that keep the dimension | `v.sum()` | a `meters<double>` |
 | Block / segment views | `v.head<2>()` | a vector of `meters` |
 | `Map` over unit storage | `Eigen::Map<Vector3m>(ptr)` | a view of `meters` |
@@ -123,7 +123,7 @@ auto moment = unit_cross(arm, force);   // a vector in newton_meters
 
 The header specializes two Eigen traits for any type satisfying the `units::UnitType` concept:
 `Eigen::NumTraits` (so Eigen knows the scalar's numeric properties, forwarded from the underlying arithmetic
-type) and `Eigen::ScalarBinaryOpTraits` for the product and quotient with a plain scalar (so scaling a unit by a
+type) and `Eigen::ScalarBinaryOpTraits` for the product and quotient with a plain scalar (so scaling an ordinary unit by a
 scalar yields the same unit). Because a named unit such as `meters<double>` is a class derived from
 `units::unit`, the specializations are written against the concept, not a structural `unit<...>` pattern. The
 dimension-changing operations cannot be expressed through Eigen's scalar-preserving assumption, which is why they

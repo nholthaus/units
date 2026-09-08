@@ -1,17 +1,22 @@
 // Case: adding a bare double to a dimensioned quantity must FAIL readably, naming the unit type.
 //
-// COMPILER-CONTROLLED text: the diagnostic is the compiler's own no-matching-`operator+` / invalid-operands wording,
-// not a library sentence, so it is graded by tight readable tokens — the FRIENDLY `meters<` type AND the failing
-// operator context — plus anti-soup guards. g++/clang spell the operator tight (`operator+`), MSVC inserts a space
-// (`operator +`), so the operator token is per-compiler. The anti-soup markers are confirmed absent on GCC-15,
-// clang-19, and MSVC.
+// Without a diagnostic the compiler
+// reports its own no-matching-`operator+` wording followed by every declined overload -- 116 lines and 11 candidates
+// on 3.6.1. A dimensionless quantity does add a bare number, so only a dimensioned left operand is matched. Graded
+// on: the sentence, the type name, and the failing operator context (g++/clang `operator+`, MSVC `operator +`), plus
+// the anti-soup and candidate guards.
+//
+// Deletion, not a body `static_assert`, and a per-compiler line bound: see README.md "Deleted overloads".
 //
 // expect: fail
+// expect-match: deleted
 // expect-match: meters<
 // expect-match-gcc: operator+
 // expect-match-msvc: operator +
 // forbid-match: conversion_factor<std::ratio
 // forbid-match: dimension_t<
+// expect-max-lines: 25
+// expect-max-lines-clang: 115
 #include <units/length.h>
 using namespace units;
 using namespace units::literals;

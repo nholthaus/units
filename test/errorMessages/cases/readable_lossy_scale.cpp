@@ -8,14 +8,14 @@
 // flags: -Wconversion -Wfloat-conversion
 // flags-msvc: /W4
 // expect-match: meters<
-// expect-match: int
+// expect-match: meters<int>
 // forbid-match: conversion_factor<std::ratio
 #include <units/length.h>
 using namespace units::literals;
 void scale()
 {
 	units::length::meters<int> m(3);
-	m *= 1.5; // lossy: warns (float -> int), does not fail
+	m *= 1.5; // compiles; the diagnostic under test is a WARNING, not an error
 }
 int main()
 {

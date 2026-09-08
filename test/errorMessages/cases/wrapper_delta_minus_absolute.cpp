@@ -4,6 +4,7 @@
 // Compiler-controlled rejection (no viable operator-), graded by the friendly wrapper/unit type tokens and an
 // anti-soup guard.
 //
+// grades: compiler
 // expect: fail
 // expect-match: celsius
 // forbid-match: conversion_factor<std::ratio

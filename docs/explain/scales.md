@@ -90,8 +90,11 @@ quantities: `10·log₁₀(a) + 10·log₁₀(b) = 10·log₁₀(a·b)`. The lib
 for decibel-scaled units accordingly (the `operator+`/`operator-` overloads constrained on `has_decibel_scale_v` in `include/units/core.h`): it multiplies (for `+`) or divides (for `-`)
 the *linearized* operands, then re-wraps the result in a decibel-scaled unit.
 
-Because multiplying two power ratios produces a *squared* dimension, adding two dimensioned decibel
-quantities yields a squared-dimension result; subtracting them yields a dimensionless dB ratio:
+A dimensioned decibel value (`dBW`, `dBm`) is a **level** — a point on a logarithmic reference scale — and a
+dimensionless one (`decibels`) is a **gain**, a relative ratio. That distinction decides which additions are
+defined. A gain multiplies a level's linear quantity, so `level + gain` is a level and `gain + gain` is a gain;
+`level + level` has no meaning (two 10 dBW sources are not a 20 dBW source) and is deleted. Subtracting two levels
+cancels the reference and yields a gain:
 
 ```cpp
 #include <units/power.h>
@@ -102,21 +105,23 @@ int main()
     units::power::dBW<double> a(3.0);
     units::power::dBW<double> b(3.0);
 
-    auto sum  = a + b;               // linear: 1.995 * 1.995 -> 6 dB (dimension squared)
-    auto diff = a - b;               // linear: 1.995 / 1.995 -> 0 dB (dimensionless)
+    auto gain = a - b;                             // reference cancels: 1.995 / 1.995 -> 0 dB (a gain)
+    auto up   = a + units::decibels<double>(3.0);  // linear x1.995 -> 6 dBW (still a level)
+ // auto bad  = a + b;                             // ill-formed: adding two levels has no meaning
 
-    std::cout << sum.to<double>()  << " (dB, squared dimension)\n";  // 6
-    std::cout << diff.to<double>() << " dB (dimensionless)\n";       // 0
+    std::cout << gain.to<double>() << " dB (a gain, dimensionless)\n";  // 0
+    std::cout << up.to<double>()   << " dBW (a level)\n";               // 6
     return 0;
 }
 ```
 
-> **Design rationale:** decibel `+`/`-` do not simply add or subtract the presented dB numbers. Adding
-> `3 dBW` and `3 dBW` in the *physical* sense means combining two equal powers, i.e. doubling — which is
-> `+3 dB`, giving the magnitude `6`. The multiply-in-linear-space rule reproduces exactly that behavior,
-> and it falls out of storing the linearized ratio rather than the dB figure. A dimensioned decibel unit
-> may also be combined with a dimensionless dB ratio (`dBi`), scaling the quantity without changing its
-> dimension (the mixed dimensioned/dimensionless decibel `operator+`/`operator-` overloads in `include/units/core.h`).
+> **Design rationale:** decibel `+`/`-` operate on the linearized ratio, not on the presented dB numbers, which
+> is why storing the linearized value rather than the dB figure is the right representation. It is also why
+> `level + level` is deleted rather than defined as "add the numbers": combining two equal powers *doubles* them,
+> which is `+3.01 dB`, whereas adding two `3 dBW` numbers would give `6 dBW` — a ratio of four, not two. To combine
+> two independent levels, convert them to the linear unit, add there, and convert back. A level may, however, be
+> combined with a dimensionless dB gain (`dBi`), which scales the quantity without changing its dimension (the mixed
+> dimensioned/dimensionless decibel `operator+`/`operator-` overloads in `include/units/core.h`).
 
 ## Detecting a unit's scale
 
