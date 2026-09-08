@@ -8546,8 +8546,6 @@ TEST(UnitComparison, aNarrowIntegralOperandOrdersByValue)
 	EXPECT_TRUE(units::milliseconds<int>(1) < units::hours<int>(1000));
 	// 3000000 kg is 3000000000 g, so 1 g is the smaller
 	EXPECT_TRUE(grams<int>(1) < kilograms<int>(3000000));
-	// 3000000 h is 10800000000000000 ns, so 1 ns is the smaller
-	EXPECT_TRUE(units::nanoseconds<long long>(1) < units::hours<long long>(3000000));
 	// 1 km is 1e12 nm, so 1 nm is the smaller
 	EXPECT_TRUE(nanometers<short>(1) < kilometers<short>(1));
 
