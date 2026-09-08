@@ -8530,6 +8530,45 @@ TEST(Format, throwsOnMismatchedValueTypeSpec)
 	EXPECT_THROW((void)std::vformat("{:x}", std::make_format_args(md)), std::format_error);
 }
 
+// A rounding conversion into an integral affine target expresses the source in the target unit, which applies the
+// datum: 300 K is 26.85 degC.
+TEST(RoundingIntoAnAffineTarget, roundingIntoAnIntegerAffineTargetAppliesTheDatum)
+{
+	EXPECT_EQ(27, units::round<celsius<int>>(kelvin<int>(300)).raw());
+	EXPECT_EQ(294, units::ceil<kelvin<int>>(celsius<int>(20)).raw());
+	EXPECT_EQ(530, units::round<rankine<int>>(fahrenheit<int>(70)).raw());
+
+	// the whole family agrees on the same fractional value, 26.85 degC
+	EXPECT_EQ(26, units::floor<celsius<int>>(kelvin<int>(300)).raw());
+	EXPECT_EQ(27, units::ceil<celsius<int>>(kelvin<int>(300)).raw());
+	EXPECT_EQ(26, units::trunc<celsius<int>>(kelvin<int>(300)).raw());
+	EXPECT_EQ(293, units::floor<kelvin<int>>(celsius<int>(20)).raw());
+	static_assert(std::is_same_v<celsius<int>, std::decay_t<decltype(units::round<celsius<int>>(kelvin<int>(300)))>>,
+		"the rounding conversion returns the requested target");
+
+	// a pair whose ratios differ: 54 degF is (54 - 32) * 5/9 == 110/9 == 12.222222222222221 degC, so round and floor
+	// give 12 and ceil gives 13; 8 degRe is 8 * 5/4 == 10 degC exactly
+	EXPECT_EQ(12, units::round<celsius<int>>(fahrenheit<int>(54)).raw());
+	EXPECT_EQ(12, units::floor<celsius<int>>(fahrenheit<int>(54)).raw());
+	EXPECT_EQ(13, units::ceil<celsius<int>>(fahrenheit<int>(54)).raw());
+	EXPECT_EQ(10, units::round<celsius<int>>(reaumur<int>(8)).raw());
+
+	// a floating-point source reaches the same answers, and the deduced-argument `round` rounds the reading in its own
+	// scale rather than converting: 300.4 K rounds to 300 K, and 26.85 degC to 27 degC
+	EXPECT_EQ(27, units::round<celsius<int>>(kelvin<double>(300.0)).raw());
+	EXPECT_EQ(294, units::ceil<kelvin<int>>(celsius<double>(20.0)).raw());
+	EXPECT_EQ(530, units::round<rankine<int>>(fahrenheit<double>(70.0)).raw());
+	EXPECT_DOUBLE_EQ(300.0, units::round(kelvin<double>(300.4)).raw());
+	EXPECT_DOUBLE_EQ(27.0, units::round(celsius<double>(26.85)).raw());
+
+	// an ordinary (datum-free) narrowing is untouched: 1234 cm is 1234 / 100 == 12.34 m
+	EXPECT_EQ(12, units::round<meters<int>>(centimeters<int>(1234)).raw());
+	EXPECT_EQ(12, units::floor<meters<int>>(centimeters<int>(1234)).raw());
+	EXPECT_EQ(13, units::ceil<meters<int>>(centimeters<int>(1234)).raw());
+	EXPECT_EQ(12, units::trunc<meters<int>>(centimeters<int>(1234)).raw());
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

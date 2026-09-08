@@ -5576,7 +5576,7 @@ namespace units
 			using ToRep   = typename To::underlying_type;
 			using FromRep = typename From::underlying_type;
 
-			if constexpr (std::is_integral_v<FromRep>)
+			if constexpr (std::is_integral_v<FromRep> && !traits::is_affine_unit_v<From> && !traits::is_affine_unit_v<To>)
 			{
 				// Exact integer path: value (in From units) * num / den, rounded on the integer remainder. The
 				// intermediate is the widest UNSIGNED integer when both source and target are unsigned, so an unsigned
@@ -5597,7 +5597,8 @@ namespace units
 			}
 			else
 			{
-				// A floating-point source: express in the target unit and apply the matching std:: rounding.
+				// A floating-point source, or any affine conversion: express in the target unit, which is a full
+				// conversion and so applies the datum, and apply the matching std:: rounding.
 				using Promoted = unit<typename To::conversion_factor, floating_point_promotion_t<ToRep>, typename To::numerical_scale_type>;
 				const auto inTarget = Promoted(x).to_linearized();
 				const auto rounded  = mode == rounding_mode::toward_neg_infinity ? std::floor(inTarget)
@@ -5608,14 +5609,24 @@ namespace units
 			}
 		}
 
+		/// Whether the source and target carry different datums. `is_losslessly_convertible_unit` judges losslessness
+		/// on the conversion ratio alone, so it calls kelvin -> celsius lossless because both ratios are 1, and the
+		/// fractional 273.15 between them is what needs rounding.
+		template<class To, class From>
+		inline constexpr bool differing_datum_v =
+			!std::ratio_equal_v<typename traits::unit_traits<From>::conversion_factor::translation_ratio,
+				typename traits::unit_traits<To>::conversion_factor::translation_ratio>;
+
 		/// Whether a run-time rounding conversion from `From` to `To` is meaningful: same dimension, an integral
 		/// target, and a source not already losslessly convertible into the target (a lossless conversion needs no
-		/// rounding and the ordinary converting constructor serves it). Gating the target-unit rounding overloads on
-		/// this keeps them from shadowing the deduced-argument `round`/`floor`/`ceil`/`trunc` math functions.
+		/// rounding and the ordinary converting constructor serves it), or an affine pair whose datums differ.
+		/// Gating the target-unit rounding overloads on this keeps them from shadowing the deduced-argument
+		/// `round`/`floor`/`ceil`/`trunc` math functions.
 		template<class To, class From>
 		inline constexpr bool is_roundable_unit_conversion =
 			traits::is_unit_v<To> && traits::is_unit_v<From> && same_dimension<From, To> &&
-			std::is_integral_v<typename To::underlying_type> && !is_losslessly_convertible_unit<From, To>;
+			std::is_integral_v<typename To::underlying_type> &&
+			(!is_losslessly_convertible_unit<From, To> || differing_datum_v<To, From>);
 	} // namespace detail
 	/** @endcond */ // END DOXYGEN IGNORE
 

@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- A rounding conversion into an integral affine target applies the datum: `round<celsius<int>>(kelvin<int>(300))` is 27
+  and `ceil<kelvin<int>>(celsius<int>(20))` is 294. An ordinary datum-free narrowing is unchanged.
+
 ## [3.6.1] - 2026-08-18
 
 ### Fixed
