@@ -1,4 +1,5 @@
-name: msvc-2022
+# README.md's Windows badge points at this path, so the file name is load-bearing.
+name: msvc
 
 on:
   push:
@@ -9,38 +10,59 @@ on:
 
 jobs:
   build-windows:
-    name: Build on Windows with Visual Studio 2022
-    runs-on: windows-latest
+    # Each leg names its image explicitly. `windows-latest` follows the runner image, which carries whichever
+    # Visual Studio that image ships; MSVC changes overload resolution, concept evaluation and template
+    # instantiation order between toolsets. `windows-2022` is the declared support floor and `windows-2025` carries
+    # Visual Studio 2026.
+    #
+    # The 2022 leg's name is the required status check on main, so it is spelled exactly as branch protection lists
+    # it. Adding the 2026 leg to that list is a repository setting, not a change here.
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: windows-2022
+            label: Build on Windows with Visual Studio 2022
+          - image: windows-2025
+            label: Build on Windows with Visual Studio 2026
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # Set up the MSVC command-line environment FIRST (puts cl.exe on PATH). The "Visual Studio 17 2022"
-      # generator's own VS discovery has been unreliable on recent windows-latest images ("could not find any
-      # instance of Visual Studio"); configuring with Ninja against the dev-cmd-provided cl is robust and also
-      # provides cl for the error-message harness below.
+      # Puts cl.exe on PATH, for both the Ninja configure below and the error-message harness. The
+      # "Visual Studio 17 2022" generator's own discovery fails on some images with "could not find any instance of
+      # Visual Studio".
       - name: Set up MSVC command-line environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
-      # Eigen enables the units/eigen.h interoperability tests (which self-guard on __has_include, so this is
-      # additive). windows-latest ships vcpkg at VCPKG_INSTALLATION_ROOT.
+      # Records the toolset in the log, so a log states which compiler built the job.
+      - name: Report the compiler under test
+        run: |
+          cl 2>&1 | Select-Object -First 1
+          Write-Host "image: ${{ matrix.image }}"
+
+      # Eigen enables the units/eigen.h interoperability tests, which self-guard on __has_include. The Windows
+      # images ship vcpkg at VCPKG_INSTALLATION_ROOT.
       - name: Install Eigen (vcpkg)
         shell: bash
         run: vcpkg install eigen3:x64-windows
 
+      # VCPKG_APPLOCAL_DEPS=OFF. The vcpkg toolchain otherwise appends a `vcpkg z-applocal` post-link step to every
+      # executable, copying vcpkg's DLLs beside it; executables in one directory link within milliseconds of each
+      # other and those steps contend for the same destination files, failing with "Access is denied" after link.exe
+      # has succeeded. The only vcpkg dependency here is Eigen, which is header-only.
       - name: Configure CMake
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_APPLOCAL_DEPS=OFF -DX_VCPKG_APPLOCAL_DEPS_INSTALL=OFF
 
       - name: Build
-        # Build the main test binary first, then the rest. The vcpkg toolchain runs a `z-applocal` post-link step
-        # on every executable, copying the same vcpkg DLLs into build/test/; under a single fully-parallel build
-        # those applocal steps race on the shared DLL files ("cannot access the file because it is being used by
-        # another process"). Staggering the heavy target (unitLibTest) into its own pass keeps the compile parallel
-        # while the applocal steps no longer collide.
+        # Two passes: the heavy test binary alone, then everything else. ctest covers the examples and the lean
+        # (iostream/format/string-disabled) configurations, so every target has to exist for those cases to run.
         run: |
           cmake --build build --parallel --target unitLibTest
           cmake --build build --parallel

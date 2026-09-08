@@ -106,11 +106,12 @@ stays small and the code stays legible.
 
 `units` requires a **C++23** compiler. It is continuously tested on:
 
-| Compiler            | Version | Platform        |
-|---------------------|---------|-----------------|
-| GCC (`g++`)         | 13      | Ubuntu (latest) |
-| Clang (`clang++`)   | 19      | Ubuntu (latest) |
-| MSVC (Visual Studio)| 2022    | Windows (latest)|
+| Compiler            | Version   | Platform                    |
+|---------------------|-----------|-----------------------------|
+| GCC (`g++`)         | 13        | Ubuntu (latest)             |
+| Clang (`clang++`)   | 19        | Ubuntu (latest)             |
+| MSVC (Visual Studio)| 2022      | Windows Server 2022         |
+| MSVC (Visual Studio)| 2026      | Windows Server 2025         |
 
 Older toolchains are not supported by the 3.x line. The last release for the C++14 era is the 2.x
 series (see [Migrating from 2.x](docs/meta/migrate-v2-to-v3.md)).
