@@ -5,16 +5,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-Affine temperatures and decibel scales become first-class: the arithmetic real formulae need now compiles and answers
-correctly, and the operations that cannot mean anything say so in one sentence naming the remedy.
+Affine temperatures and decibel scales become first-class: the arithmetic real formulae need compiles, and the
+operations that cannot mean anything say so in one sentence naming the remedy.
 
 The rule is that an operation reads a quantity's number **in the scale that number is written in**, and is available
 wherever that reading is well defined. `celsius(20) * 2.0` is 40 °C, `abs(celsius(-5.25))` is 5.25 °C, and a weighted sum
 of readings works — which is what published temperature formulae are made of. Sixteen of the twenty-six collected in
 `test/main.cpp::caseStudyPublishedTemperatureFormulae` scale a °C or °F reading directly, and Magnus's has no
-absolute-scale form at all. What is refused is an operation with no single reading: a bare number moved into a quantity,
-and a transcendental function or a product of a **decibel** value, whose stored number is a logarithm rather than the
-ratio it denotes.
+absolute-scale form at all. Refused is an operation with no single reading: a bare number moved into a quantity, and a
+transcendental function or a product of a **decibel** value, whose stored number is a logarithm and not the ratio it
+denotes.
 
 ### Added
 
@@ -37,7 +37,7 @@ ratio it denotes.
   `false` because a delta is an amount, and `kind<Tag, U>` reads as `U` does.
 - **A sentence naming the remedy in place of a wall of declined overloads**, for a bare number moved into a quantity, an
   in-place multiply or divide by a quantity, a cross-dimension compound move, and every decibel misuse. On GCC a
-  dimensional mismatch goes from 119 lines and 11 declined candidates to 11 lines and none. Each message is graded by a
+  dimensional mismatch is 11 lines and names no declined candidates. Each message is graded by a
   case in `test/errorMessages/`, and the verbatim pages under `docs/diagnostics/` are captured from the compiler and
   re-diffed by `run.py --check-doc`.
 - **`scripts/ci_local_msvc.cmd`**, a local mirror of the MSVC CI leg (build + ctest, and `harness` for the
@@ -47,32 +47,31 @@ ratio it denotes.
 ### Changed
 
 - **`fdim` and `fmod` answer with an amount.** The positive difference of two readings is an amount and of two decibel
-  levels a gain, never another reading or level, so `fdim(celsius(30), celsius(10))` is 20 K rather than a celsius
-  reading of 20. Each is available exactly where the operator it stands for is: `fdim` where `operator-` is and the
-  operands share a dimension, `fmod` where `operator%`'s linear scale is.
+  levels a gain, never another reading or level: `fdim(celsius(30), celsius(10))` is 20 K. Each is available exactly
+  where the operator it stands for is: `fdim` where `operator-` is and the operands share a dimension, `fmod` where
+  `operator%`'s linear scale is.
 - **Rounding into an integer affine target applies the datum.** `round<celsius<int>>(fahrenheit<int>(54))` is 12 °C and
-  `round<celsius<int>>(kelvin<int>(300))` is 27; fifty-four of the hundred ordered pairs across the five temperature
-  scales answer differently, some by hundreds of degrees, and the result carries the target's own representation.
+  `round<celsius<int>>(kelvin<int>(300))` is 27, and the result carries the target's own representation.
 - **Compound assignment moves a reading by an amount.** `celsius(20) += fahrenheit(9)` is 25 °C and
   `kelvin(300) += celsius(5)` is 305 K: the right operand of a compound move is a relative amount, so only its scale
   factor applies. `dBW += decibels(3.25)` works for the same reason — a gain moves a level as an amount moves a reading.
 - **`std::numeric_limits` of a decibel-scale unit reads as finite decibel figures**, built from the stored
-  representation rather than pushed through the linearizing value constructor: `max()` 3082.547, `epsilon()` 9.643e-16,
-  `min()` −3076.527, `denorm_min()` −3233.062, `round_error()` 1.761, `lowest()` −3233.062.
+  representation: `max()` 3082.547, `epsilon()` 9.643e-16, `min()` −3076.527, `denorm_min()` −3233.062,
+  `round_error()` 1.761, `lowest()` −3233.062.
 - **`min`, `max` and `clamp` order by magnitude** for a `delta<>`, `absolute<>` or `kind<>` as they do for a plain
   quantity, by comparing the quantities the wrapper holds.
 - **`kind<>` delegates its arithmetic to the wrapped unit**, so a tagged quantity answers with the same unit, the same
   representation and the same value the plain quantity does. **`delta<>` scales its own magnitude**, so `delta * scalar`
   and `delta / scalar` agree and a ratio-scaled delta keeps its own unit.
 - **`squared`, `cubed` and `square_root` drop the datum**, as their documentation states, so a `sqrt` of a squared
-  temperature is a scale-bound magnitude rather than a reading.
+  temperature is a scale-bound magnitude.
 - **The Eigen seam matches the scalar rule.** A coefficient-wise difference of readings is an amount, named by a
   `ScalarBinaryOpTraits` specialization, so `(v - w).eval()` on a matrix of equal `celsius` readings is 0. A matrix
   operation is available where the same scalar operation is, and a matrix of plain arithmetic scalars keeps working.
   Assigning a matrix of reading differences back into the reading type is refused, since storing an amount as a reading
   re-applies the datum.
 - **A refusal ordinary generic code can encounter is expressed by deleting the overload**, so a `requires`-expression
-  observes it and a SFINAE fallback still works: `requires(meters<double> m){ m += 5.0; }` now reports correctly. The
+  observes it and a SFINAE fallback still works: `requires(meters<double> m){ m += 5.0; }` reports `false`. The
   decibel diagnostics instead keep their remedy sentence, which fires from an overload body — so a `requires`-probe
   reports ten decibel operations as available, and generic code that branches on such a probe should ask
   `has_arbitrary_origin_v` or `has_linear_scale_v` instead.
@@ -81,28 +80,28 @@ ratio it denotes.
 - **The transcendental family refuses a logarithmic operand and names the conversion** (`dimensionless(gain)`): `exp`,
   `log`, `log10`, `log2`, `exp2`, `expm1`, `log1p`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`,
   `acosh`, `atanh`, `sin`, `cos`, `tan`, `sqrt`, `hypot`, `modf` and `fmod`. `sin`, `cos` and `tan` are in that list
-  because they take an angle, so a dimensionless decibel reached the C library instead and answered from the dB figure.
+  because they take an angle, which is how a dimensionless decibel would otherwise reach the C library through `double`.
 
 ### Removed
 
 - **`absolute<>` and `delta<>` around a decibel quantity.** The plain `dBW`/`dBm`/`decibels` types already distinguish a
   level from a gain by dimension, so the wrapper adds nothing and its scaling and magnitude have no single reading.
 - **Scaling or dividing a decibel value by a number**, and the transcendental family, `fmod` and `modf` of one. A dB
-  figure is a logarithm: scale the linear quantity it denotes instead, which the message names. The compound and
-  by-value forms now agree.
+  figure is a logarithm: scale the linear quantity it denotes, which the message names. The compound and by-value
+  forms agree.
 
 ### Migration
 
-Everything that stops compiling is decibel, except the Eigen assignment above. Against 3.6.1:
+Everything that stops compiling is decibel, except the Eigen assignment above. Each diagnostic names its remedy:
 
-| stops compiling | 3.6.1 computed |
+| stops compiling | write instead |
 |---|---|
-| `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | 13.9794 dBW, 7.9588 dBW, 7.7815 dB |
-| `quantity *= decibels(3.0)`, `quantity /= decibels(3.0)` | `meters<double>(3) *= decibels(3.0)` → 9 m |
-| a transcendental function, `sqrt` or `hypot` of a decibel value | `log10(decibels(3.25))` → 0.5119; `sin(decibels(3.25))` → −0.108195, the sine of the dB figure where the ratio's sine is 0.856321 |
-| `fmod` of two same-dimension decibel operands, `modf` of one | `fmod(dBW(12.5), dBW(4.25))` → 4, on the dB figures |
-| `fdim` mixing a decibel operand with a linear one | `fdim(decibels(3), percent(2))` → 1.975262 |
-| `absolute<dBW<double>>`, `delta<dBW<double>>` | both were valid types |
+| `dBW *= 2.0`, `dBW /= 2.0`, `decibels *= 2.0` | scale the linear quantity: `watts(level) * 2.0` |
+| `quantity *= decibels(3.0)`, `quantity /= decibels(3.0)` | `quantity *= dimensionless(gain)` |
+| a transcendental function, `sqrt` or `hypot` of a decibel value | convert first: `log10(dimensionless(gain))` |
+| `fmod` of two same-dimension decibel operands, `modf` of one | `fmod(dimensionless(a), dimensionless(b))` |
+| `fdim` mixing a decibel operand with a linear one | give both operands one scale |
+| `absolute<dBW<double>>`, `delta<dBW<double>>` | plain `dBW` for a level, `decibels` for a gain |
 | `Eigen::Matrix<celsius<double>,3,1> d = v - w;` | −273.15 for equal readings |
 
 These answer differently with no diagnostic, so they are the ones to read:
