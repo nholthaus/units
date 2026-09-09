@@ -57,7 +57,6 @@
 
 #include "core.h"
 #include <chrono>
-#include <bit>
 #include <cmath>
 #include <concepts>
 #include <cstddef>
