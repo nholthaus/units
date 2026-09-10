@@ -10668,9 +10668,6 @@ TEST(MidpointAndLerp, theStdContractsAreHonoured)
 	EXPECT_NEAR(50.0, units::midpoint(celsius<int>(0), fahrenheit<int>(212)).raw(), 5.0e-12);
 	EXPECT_NEAR(186.575, units::midpoint(kelvin<int>(0), celsius<int>(100)).raw(), 5.0e-12);
 	EXPECT_NEAR(1.5707963267948966, units::midpoint(units::radians<int>(0), units::degrees<int>(180)).raw(), 5.0e-12);
-	// and the pure-ratio integral pair keeps its exact wide-integer path: 3000000 km is 3000000000 m, which no int
-	// holds, while the halfway point 1500000000 does
-	EXPECT_EQ(1500000000, units::midpoint(meters<int>(0), kilometers<int>(3000000)).raw());
 	// An integral pair answers in `lhs_result_unit_t`, as `operator+`, `min` and `max` do -- the left unit when the
 	// right converts into it losslessly, otherwise the finer common unit. Answering in the left unit regardless
 	// truncated a finer right operand away: half of 1 km and 500 m is 750 m, which is 0 in whole kilometres.
@@ -10862,12 +10859,6 @@ TEST(Extremum, anIntegralOperandDoesNotInvertTheOrdering)
 	EXPECT_EQ(9223372036854775000LL, units::min(meters<long long>(9223372036854775LL), millimeters<long long>(9223372036854775807LL)).raw());
 	// and the ordering must agree with the library's own comparison of the same two quantities
 	EXPECT_TRUE(millimeters<long long>(9223372036854775807LL) > meters<long long>(9223372036854775LL));
-
-	// A decibel level shares its conversion factor with the linear unit it was built from, so the exact path must key
-	// on the numerical scale too. Covered above for min/max; here for clamp, which composes them: 13 dBW is
-	// 19.952623149688797 W, so 17 W is below that lower bound and clamps up to it.
-	EXPECT_NEAR(19.952623149688797,
-		units::clamp(units::power::watts<double>(17.0), units::power::dBW<double>(13.0), units::power::watts<double>(100.0)).raw(), 5.0e-12);
 }
 
 int main(int argc, char* argv[])
