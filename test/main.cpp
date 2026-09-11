@@ -8781,6 +8781,27 @@ TEST(UnitComparison, aWideIntegralOperandOrdersExactly)
 	EXPECT_TRUE(meters<double>(5.0) < kilometers<double>(3.0));
 	EXPECT_TRUE(meters<int>(1000) == kilometers<int>(1));
 }
+// The type algebra closes at the level a caller writes: `detail::rewrap_to_named_t` puts an operation's result back
+// into the named unit, so a product of two lengths IS `square_meters<double>` and the root of it IS `meters<double>`.
+// The round trip is an identity of type as well as value, and needs no annotation to store.
+TEST(DatumFreeManipulators, theRoundTripIsAnIdentityAtTheCallSite)
+{
+	static_assert(std::is_same_v<units::area::square_meters<double>,
+					  std::decay_t<decltype(meters<double>(2.0) * meters<double>(3.0))>>,
+		"a product of two lengths is the named area unit");
+	static_assert(std::is_same_v<meters<double>, decltype(units::sqrt(meters<double>(2.0) * meters<double>(2.0)))>,
+		"the root of a squared length is the named length unit");
+
+	EXPECT_DOUBLE_EQ(6.0, (meters<double>(2.0) * meters<double>(3.0)).value());
+	EXPECT_DOUBLE_EQ(2.0, units::sqrt(meters<double>(2.0) * meters<double>(2.0)).value());
+	EXPECT_EQ(meters<double>(2.0), units::sqrt(meters<double>(2.0) * meters<double>(2.0)));
+
+	// a unit whose ratio is not one, and one carrying a pi exponent, round-trip by value and comparison
+	EXPECT_DOUBLE_EQ(3.0, units::sqrt(feet<double>(3.0) * feet<double>(3.0)).value());
+	EXPECT_EQ(feet<double>(3.0), units::sqrt(feet<double>(3.0) * feet<double>(3.0)));
+	EXPECT_DOUBLE_EQ(90.0, units::sqrt(units::angle::degrees<double>(90.0) * units::angle::degrees<double>(90.0)).value());
+}
+
 
 int main(int argc, char* argv[])
 {
