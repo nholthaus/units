@@ -8624,15 +8624,27 @@ TEST(DatumFreeManipulators, theRootOfASquareReturnsToTheUnitItCameFrom)
 	using rootFeet   = unit<square_root<squared<units::length::feet_>>, double>;
 	using rootKelvin = unit<square_root<squared<units::temperature::kelvin_>>, double>;
 
-	// the ratio survives both operations exactly: a foot is 381/1250 == 0.3048 of a metre
+	// Every part of the conversion factor survives both operations: the ratio, the dimension, the pi exponent and the
+	// datum. A metre's ratio is 1; a foot's is 381/1250 == 0.3048; a degree's is 1/180 with a pi exponent of one, which
+	// squaring doubles and the root halves back.
+	using degreeRoot = square_root<squared<units::angle::degrees_>>;
 	static_assert(std::ratio_equal_v<std::ratio<1>, square_root<squared<units::length::meters_>>::conversion_ratio>);
 	static_assert(std::ratio_equal_v<std::ratio<381, 1250>, square_root<squared<units::length::feet_>>::conversion_ratio>);
 	static_assert(std::ratio_equal_v<std::ratio<1>, square_root<squared<units::temperature::kelvin_>>::conversion_ratio>);
+	static_assert(std::ratio_equal_v<std::ratio<1, 180>, degreeRoot::conversion_ratio>);
+	static_assert(std::ratio_equal_v<std::ratio<1>, degreeRoot::pi_exponent_ratio>, "the pi exponent returns");
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<squared<units::length::meters_>>::pi_exponent_ratio>);
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<squared<units::length::meters_>>::translation_ratio>);
+	static_assert(std::is_same_v<traits::dimension_of_t<units::length::meters_>,
+					  traits::dimension_of_t<square_root<squared<units::length::meters_>>>>,
+		"the dimension returns");
+	static_assert(std::is_same_v<traits::dimension_of_t<units::angle::degrees_>, traits::dimension_of_t<degreeRoot>>);
 
-	// and it is implicitly convertible back to the unit it came from
+	// so the round trip is interchangeable with the unit it came from, whether or not it is spelled as the named type
 	static_assert(std::is_convertible_v<rootMeters, meters<double>>);
 	static_assert(std::is_convertible_v<rootFeet, feet<double>>);
 	static_assert(std::is_convertible_v<rootKelvin, kelvin<double>>);
+	static_assert(std::is_convertible_v<unit<degreeRoot, double>, units::angle::degrees<double>>);
 
 	// so a caller may store the root in the unit it started with, and it holds the value it started with
 	const meters<double> metre(3.0);
@@ -8644,6 +8656,12 @@ TEST(DatumFreeManipulators, theRootOfASquareReturnsToTheUnitItCameFrom)
 	const feet<double> backToFeet = units::sqrt(foot * foot);
 	EXPECT_DOUBLE_EQ(3.0, backToFeet.value());
 	EXPECT_EQ(foot, units::sqrt(foot * foot));
+
+	// a degree carries a pi exponent, so it is the round trip most at risk of not returning
+	const units::angle::degrees<double> degree(90.0);
+	const units::angle::degrees<double> backToDegrees = units::sqrt(degree * degree);
+	EXPECT_DOUBLE_EQ(90.0, backToDegrees.value());
+	EXPECT_EQ(degree, units::sqrt(degree * degree));
 
 	const kelvin<double> kelvins(10.0);
 	const kelvin<double> backToKelvin = units::sqrt(kelvins * kelvins);
