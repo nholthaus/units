@@ -8782,6 +8782,76 @@ TEST(UnitComparison, aWideIntegralOperandOrdersExactly)
 	EXPECT_TRUE(meters<int>(1000) == kilometers<int>(1));
 }
 
+// `traits::is_same_unit` is the library's own definition of two types being one unit, which `std::is_same_v` does not
+// answer: a named unit is a class deriving from its `unit<...>`, and a conversion factor has a named spelling and a
+// structural one, so `std::is_same_v` reports one unit written two ways as two types.
+TEST(SameUnit, oneUnitWrittenTwoWaysIsOneUnit)
+{
+	// the same unit spelled by name and through the plain template
+	static_assert(traits::is_same_unit_v<meters<double>, unit<units::length::meters_, double>>);
+	static_assert(!std::is_same_v<meters<double>, unit<units::length::meters_, double>>,
+		"which std::is_same_v does not see, a named unit being a class deriving from its unit<...>");
+
+	// the representation is not part of a unit's identity
+	static_assert(traits::is_same_unit_v<meters<double>, meters<int>>);
+	static_assert(traits::is_same_unit_v<meters<float>, meters<long double>>);
+
+	// a product and the manipulator spelling of it are one unit
+	static_assert(traits::is_same_unit_v<std::decay_t<decltype(meters<double>(2.0) * meters<double>(3.0))>,
+		unit<squared<units::length::meters_>, double>>);
+	static_assert(traits::is_same_unit_v<units::area::square_meters<double>, unit<squared<units::length::meters_>, double>>);
+
+	// and the round trip through squared and back is the unit it started from, for every unit -- which is the
+	// contract, whether or not the result is spelled as the named type
+	static_assert(traits::is_same_unit_v<meters<double>, unit<square_root<squared<units::length::meters_>>, double>>);
+	static_assert(traits::is_same_unit_v<feet<double>, unit<square_root<squared<units::length::feet_>>, double>>);
+	static_assert(traits::is_same_unit_v<units::angle::degrees<double>,
+		unit<square_root<squared<units::angle::degrees_>>, double>>);
+	static_assert(traits::is_same_unit_v<kelvin<double>, unit<square_root<squared<units::temperature::kelvin_>>, double>>);
+}
+
+// What it must answer no to. Each of the four parts of a conversion factor, and the numerical scale, is part of a
+// unit's identity.
+TEST(SameUnit, aDifferenceInAnyPartIsADifferentUnit)
+{
+	// a different dimension
+	static_assert(!traits::is_same_unit_v<meters<double>, units::time::seconds<double>>);
+	// a different conversion ratio
+	static_assert(!traits::is_same_unit_v<meters<double>, feet<double>>);
+	static_assert(!traits::is_same_unit_v<meters<double>, kilometers<double>>);
+	// a different pi exponent: a degree carries one, a radian does not
+	static_assert(!traits::is_same_unit_v<units::angle::degrees<double>, units::angle::radians<double>>);
+	// a different datum: celsius and kelvin share a ratio and differ only by 273.15
+	static_assert(!traits::is_same_unit_v<celsius<double>, kelvin<double>>);
+	static_assert(traits::is_same_dimension_unit_v<celsius<double>, kelvin<double>>,
+		"the same dimension, which is why the dimension test alone is not enough");
+	// a different numerical scale: dBW is built from watts's conversion factor and is not the same unit
+	static_assert(traits::is_same_conversion_factor_v<units::power::dBW<double>::conversion_factor,
+					  units::power::watts<double>::conversion_factor>,
+		"dBW and watts share every part of the conversion factor");
+	static_assert(!traits::is_same_unit_v<units::power::dBW<double>, units::power::watts<double>>,
+		"and are still not the same unit, because the numerical scale differs");
+}
+
+// The concept form, for constraining generic code.
+TEST(SameUnit, theConceptConstrainsOnTheSameContract)
+{
+	static_assert(same_unit<meters<double>, unit<units::length::meters_, double>>);
+	static_assert(same_unit<meters<double>, meters<int>>);
+	static_assert(!same_unit<meters<double>, feet<double>>);
+	static_assert(!same_unit<celsius<double>, kelvin<double>>);
+	static_assert(!same_unit<units::power::dBW<double>, units::power::watts<double>>);
+
+	// and it agrees with what conversion actually does: a value crosses between two same units unchanged
+	using plainMetre = unit<units::length::meters_, double>;
+	using rootMetre  = unit<square_root<squared<units::length::meters_>>, double>;
+	using rootFoot   = unit<square_root<squared<units::length::feet_>>, double>;
+	EXPECT_DOUBLE_EQ(2.0, plainMetre(meters<double>(2.0)).value());
+	EXPECT_DOUBLE_EQ(2.0, rootMetre(meters<double>(2.0)).value());
+	EXPECT_DOUBLE_EQ(3.0, rootFoot(feet<double>(3.0)).value());
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);

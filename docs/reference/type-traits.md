@@ -40,6 +40,8 @@ Predicates on a unit's *dimension* — which physical quantity it measures, and 
 | Trait (`_v` form) | Meaning |
 |---|---|
 | `is_same_dimension_unit<U1, U2>` / `is_same_dimension_unit_v<U1, U2>` | `U1` and `U2` are units of the same dimension (mutually convertible). (`is_same_dimension_unit` in `include/units/core.h`) |
+| `is_same_conversion_factor<Cf1, Cf2>` / `is_same_conversion_factor_v<Cf1, Cf2>` | `Cf1` and `Cf2` are the same conversion factor: the same dimension, conversion ratio, pi exponent and datum. (`is_same_conversion_factor` in `include/units/core.h`) |
+| `is_same_unit<U1, U2>` / `is_same_unit_v<U1, U2>` | `U1` and `U2` are the same unit: the same conversion factor and the same numerical scale, so a value converts between them unchanged. The representation is not part of a unit's identity. (`is_same_unit` in `include/units/core.h`) |
 | `is_dimensionless_unit<T>` / `is_dimensionless_unit_v<T>` | `T` is a dimensionless unit (`dimensionless`, `percent`, an angle ratio, …). |
 | `is_<dimension>_unit<T>` / `is_<dimension>_unit_v<T>` | `T` is a unit of the named dimension — one member of a generated family (see below). (`UNIT_ADD_DIMENSION_TRAIT` in `include/units/core.h`) |
 
