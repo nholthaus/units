@@ -22,6 +22,7 @@ using namespace units;
 | `DimensionedUnitType<T>` | a unit that **has** a dimension (excludes dimensionless) | `is_unit_v && !is_dimensionless_unit` (`DimensionedUnitType` in `include/units/core.h`) |
 | `DimensionlessUnitType<T>` | a **dimensionless** unit (`dimensionless`, `percent`, angle ratios, …) | `is_unit_v && is_dimensionless_unit` (`DimensionlessUnitType` in `include/units/core.h`) |
 | `same_dimension<UnitTo, UnitFrom>` | two units of the **same dimension** (mutually convertible, e.g. `meters` and `feet`) | `traits::is_same_dimension_unit` (`same_dimension` in `include/units/core.h`) |
+| `same_unit<UnitTo, UnitFrom>` | two types which are the **same unit** — the same conversion factor and numerical scale, so a value converts between them unchanged | `traits::is_same_unit` (`same_unit` in `include/units/core.h`) |
 | `RatioDimensionlessUnitType<U>` | a dimensionless unit whose conversion ratio is **not** 1 — `percent`, `ppm`, `ppb`, … | `traits::is_ratio_dimensionless_cf_v` (`RatioDimensionlessUnitType` in `include/units/core.h`) |
 | `OrdinaryDimensionlessUnitType<U>` | a dimensionless unit whose ratio **is** 1 — plain `dimensionless` (the complement of `RatioDimensionlessUnitType`) | (`OrdinaryDimensionlessUnitType` in `include/units/core.h`) |
 

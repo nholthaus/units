@@ -5,6 +5,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `units::traits::is_same_unit`, `units::traits::is_same_conversion_factor` and the `units::same_unit` concept, which
+  ask whether two types are one unit by the library's definition -- the same conversion factor and numerical scale --
+  where `std::is_same_v` reports a named unit and the `unit<...>` an operation builds for it as different types.
+
 ### Fixed
 - `squared`, `cubed` and `square_root` drop the datum, as their documentation states and as `operator*` already did, so
   the manipulator spelling and the product of two readings are one type and a value carries between the two spellings of

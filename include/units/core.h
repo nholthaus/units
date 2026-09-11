@@ -1049,6 +1049,9 @@ namespace units
 		// forward declaration
 		template<UnitType U1, UnitType U2>
 		struct is_same_dimension_unit;
+
+		template<UnitType U1, UnitType U2>
+		struct is_same_unit;
 	} // namespace traits
 
 	/**
@@ -1057,6 +1060,14 @@ namespace units
 	 */
 	template<typename UnitTo, typename UnitFrom>
 	concept same_dimension = traits::is_same_dimension_unit<UnitFrom, UnitTo>::value;
+
+	/**
+	 * @ingroup		Concepts
+	 * @brief		Concept for two types which are the same unit -- the same conversion factor and the same
+	 *				numerical scale, so a value converts between them unchanged. See `traits::is_same_unit`.
+	 */
+	template<typename UnitTo, typename UnitFrom>
+	concept same_unit = traits::is_same_unit<UnitFrom, UnitTo>::value;
 
 	//------------------------------
 	//	STRONG UNIT TYPES
@@ -2063,6 +2074,34 @@ namespace units
 		inline constexpr bool is_same_dimension_conversion_factor_v = is_same_dimension_conversion_factor<Cf1, Cf2>::value;
 
 		/**
+		 * @ingroup		TypeTraits
+		 * @brief		`BinaryTypeTrait` for querying whether `Cf1` and `Cf2` are the same conversion factor.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`. Two
+		 *				conversion factors are the same when they agree on all four parts a conversion is built
+		 *				from -- the dimension, the conversion ratio, the pi exponent and the datum translation --
+		 *				so a value expressed through either reads the same number.
+		 *
+		 *				This is the library's definition of sameness, and it is what generic code and tests should
+		 *				ask, not `std::is_same_v`. A conversion factor has a named spelling and a structural one --
+		 *				`units::area::square_meters_` and the factor `squared<units::length::meters_>` builds are
+		 *				one conversion factor written two ways -- and `std::is_same_v` reports those as different.
+		 * @tparam		Cf1 Conversion factor to query.
+		 * @tparam		Cf2 Conversion factor to query.
+		 * @sa			is_same_unit
+		 */
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
+		struct is_same_conversion_factor
+		  : std::bool_constant<is_same_dimension_conversion_factor<Cf1, Cf2>::value &&
+				std::ratio_equal_v<typename conversion_factor_traits<Cf1>::conversion_ratio, typename conversion_factor_traits<Cf2>::conversion_ratio> &&
+				std::ratio_equal_v<typename conversion_factor_traits<Cf1>::pi_exponent_ratio, typename conversion_factor_traits<Cf2>::pi_exponent_ratio> &&
+				std::ratio_equal_v<typename conversion_factor_traits<Cf1>::translation_ratio, typename conversion_factor_traits<Cf2>::translation_ratio>>
+		{
+		};
+
+		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
+		inline constexpr bool is_same_conversion_factor_v = is_same_conversion_factor<Cf1, Cf2>::value;
+
+		/**
 		 * @brief		`true` when a conversion factor carries a non-zero datum offset — i.e. it is AFFINE, not
 		 *				a pure scale (the archetype is temperature: degrees Celsius/Fahrenheit have an offset to
 		 *				the Kelvin datum). Absolute affine quantities do not add meaningfully, and their
@@ -2591,6 +2630,36 @@ namespace units
 
 		template<UnitType U1, UnitType U2>
 		inline constexpr bool is_same_dimension_unit_v = is_same_dimension_unit<U1, U2>::value;
+
+		/**
+		 * @ingroup		TypeTraits
+		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are the same unit.
+		 * @details		The base characteristic is a specialization of the template `std::bool_constant`. Two units
+		 *				are the same when their conversion factors are the same (`is_same_conversion_factor`) and
+		 *				they carry the same numerical scale, so a value converts between them unchanged in both
+		 *				directions.
+		 *
+		 *				The numerical scale is part of a unit's identity: `UNIT_ADD_DECIBEL` builds `dBW` from
+		 *				`watts`'s conversion factor, so the two share every part of that factor and are still not
+		 *				the same unit -- three of one is not three of the other.
+		 *
+		 *				The REPRESENTATION is not part of a unit's identity, so `meters<double>` and `meters<int>`
+		 *				are the same unit. Nor is the spelling: a named unit is a class deriving from its
+		 *				`unit<...>`, so `std::is_same_v` reports a named unit and the `unit<...>` an operation
+		 *				builds for it as different types where this reports them the same.
+		 * @tparam		U1 Unit to query.
+		 * @tparam		U2 Unit to query.
+		 * @sa			is_same_conversion_factor
+		 */
+		template<UnitType U1, UnitType U2>
+		struct is_same_unit
+		  : std::bool_constant<is_same_conversion_factor<typename unit_traits<U1>::conversion_factor, typename unit_traits<U2>::conversion_factor>::value &&
+				std::is_same_v<typename unit_traits<U1>::numerical_scale_type, typename unit_traits<U2>::numerical_scale_type>>
+		{
+		};
+
+		template<UnitType U1, UnitType U2>
+		inline constexpr bool is_same_unit_v = is_same_unit<U1, U2>::value;
 	} // namespace traits
 
 	//----------------------------------
