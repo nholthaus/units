@@ -6,9 +6,9 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Fixed
-- `squared`, `cubed` and `square_root` drop the datum, as their documentation states: the two spellings of one squared
-  temperature are one type, a value carries between them unchanged, and the root of a squared temperature is an
-  origin-free magnitude.
+- `squared`, `cubed` and `square_root` drop the datum, as their documentation states and as `operator*` already did, so
+  the manipulator spelling and the product of two readings are one type and a value carries between the two spellings of
+  one squared temperature unchanged.
 
 ## [3.6.1] - 2026-08-18
 

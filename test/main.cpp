@@ -8704,6 +8704,32 @@ TEST(DatumFreeManipulators, theRootOfASquaredReadingIsAnOffsetFreeMagnitude)
 }
 
 
+// `operator*` composes conversion factors without a datum: `detail::unit_multiply_impl` builds its result from the
+// conversion ratio, the dimension and the pi exponent, and passes no translation, so the product of two readings has
+// always been offset-free. `squared<>` now agrees with it, which makes the manipulator spelling and the product one
+// type and the root of a squared temperature the same type however the square was written.
+TEST(DatumFreeManipulators, squaringAgreesWithMultiplication)
+{
+	using product = std::decay_t<decltype(celsius<double>(3.0) * celsius<double>(3.0))>;
+	static_assert(std::ratio_equal_v<std::ratio<0>, product::conversion_factor::translation_ratio>,
+		"multiplication composes without a datum");
+	static_assert(std::is_same_v<product, unit<squared<units::temperature::celsius_>, double>>,
+		"the manipulator spelling and the product are one type");
+
+	// so the root is the same type whichever way the square was spelled, and holds the same value
+	using rootOfProduct     = std::decay_t<decltype(units::sqrt(celsius<double>(3.0) * celsius<double>(3.0)))>;
+	using rootOfManipulator = std::decay_t<decltype(units::sqrt(unit<squared<units::temperature::celsius_>, double>(9.0)))>;
+	static_assert(std::is_same_v<rootOfProduct, rootOfManipulator>);
+	EXPECT_DOUBLE_EQ(3.0, units::sqrt(celsius<double>(3.0) * celsius<double>(3.0)).value());
+	EXPECT_DOUBLE_EQ(3.0, units::sqrt(unit<squared<units::temperature::celsius_>, double>(9.0)).value());
+
+	// the same holds for the cube, which `operator*` composes the same way
+	using cube = std::decay_t<decltype(celsius<double>(2.0) * celsius<double>(2.0) * celsius<double>(2.0))>;
+	static_assert(std::ratio_equal_v<std::ratio<0>, cube::conversion_factor::translation_ratio>);
+	static_assert(std::is_same_v<cube, unit<cubed<units::temperature::celsius_>, double>>);
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
