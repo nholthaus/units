@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows
 - `squared`, `cubed` and `square_root` drop the datum, as their documentation states and as `operator*` already did, so
   the manipulator spelling and the product of two readings are one type and a value carries between the two spellings of
   one squared temperature unchanged.
+- Mixed-unit integer comparisons, and `min`/`max`/`clamp`, order by value.
 
 ## [3.6.1] - 2026-08-18
 
