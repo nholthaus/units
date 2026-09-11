@@ -8615,6 +8615,77 @@ TEST(DatumFreeManipulators, takingASquareRootDropsTheDatum)
 }
 
 
+// The round trip through `squared` and back. `square_root<squared<U>>` is not the same TYPE as `U` -- it is an
+// anonymous conversion factor rather than the named one -- but for a unit carrying no datum it is implicitly
+// convertible to `U`, compares equal to it, and carries the same conversion ratio, so a caller may store it in `U`.
+TEST(DatumFreeManipulators, theRootOfASquareReturnsToTheUnitItCameFrom)
+{
+	using rootMeters = unit<square_root<squared<units::length::meters_>>, double>;
+	using rootFeet   = unit<square_root<squared<units::length::feet_>>, double>;
+	using rootKelvin = unit<square_root<squared<units::temperature::kelvin_>>, double>;
+
+	// the ratio survives both operations exactly: a foot is 381/1250 == 0.3048 of a metre
+	static_assert(std::ratio_equal_v<std::ratio<1>, square_root<squared<units::length::meters_>>::conversion_ratio>);
+	static_assert(std::ratio_equal_v<std::ratio<381, 1250>, square_root<squared<units::length::feet_>>::conversion_ratio>);
+	static_assert(std::ratio_equal_v<std::ratio<1>, square_root<squared<units::temperature::kelvin_>>::conversion_ratio>);
+
+	// and it is implicitly convertible back to the unit it came from
+	static_assert(std::is_convertible_v<rootMeters, meters<double>>);
+	static_assert(std::is_convertible_v<rootFeet, feet<double>>);
+	static_assert(std::is_convertible_v<rootKelvin, kelvin<double>>);
+
+	// so a caller may store the root in the unit it started with, and it holds the value it started with
+	const meters<double> metre(3.0);
+	const meters<double> backToMetres = units::sqrt(metre * metre);
+	EXPECT_DOUBLE_EQ(3.0, backToMetres.value());
+	EXPECT_EQ(metre, units::sqrt(metre * metre));
+
+	const feet<double> foot(3.0);
+	const feet<double> backToFeet = units::sqrt(foot * foot);
+	EXPECT_DOUBLE_EQ(3.0, backToFeet.value());
+	EXPECT_EQ(foot, units::sqrt(foot * foot));
+
+	const kelvin<double> kelvins(10.0);
+	const kelvin<double> backToKelvin = units::sqrt(kelvins * kelvins);
+	EXPECT_DOUBLE_EQ(10.0, backToKelvin.value());
+	EXPECT_EQ(kelvins, units::sqrt(kelvins * kelvins));
+}
+
+// For a unit that DOES carry a datum the round trip cannot return a reading, because squaring is not an affine
+// operation: (T + 273.15)^2 is T^2 + 2(273.15)T + 273.15^2, whose middle term a squared quantity no longer carries.
+// The root is therefore the offset-free unit of the same degree size -- a celsius-degree is a kelvin, and a
+// fahrenheit-degree is a rankine -- and the value is unchanged.
+TEST(DatumFreeManipulators, theRootOfASquaredReadingIsAnOffsetFreeMagnitude)
+{
+	using rootCelsius    = unit<square_root<squared<units::temperature::celsius_>>, double>;
+	using rootFahrenheit = unit<square_root<squared<units::temperature::fahrenheit_>>, double>;
+
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<squared<units::temperature::celsius_>>::translation_ratio>,
+		"the root of a squared temperature carries no datum");
+	static_assert(std::ratio_equal_v<std::ratio<0>, square_root<squared<units::temperature::fahrenheit_>>::translation_ratio>);
+	static_assert(!traits::is_affine_unit_v<rootCelsius>);
+	static_assert(!traits::is_affine_unit_v<rootFahrenheit>);
+
+	// a celsius-degree is a kelvin, so the root of a squared celsius converts to a kelvin and holds the same number.
+	// Convertibility is the contract; whether the root is spelled as the named `kelvin` is not.
+	static_assert(std::is_convertible_v<rootCelsius, kelvin<double>>);
+	static_assert(std::is_convertible_v<rootFahrenheit, rankine<double>>);
+	EXPECT_DOUBLE_EQ(10.0, units::sqrt(celsius<double>(10.0) * celsius<double>(10.0)).value());
+	EXPECT_EQ(kelvin<double>(10.0), units::sqrt(celsius<double>(10.0) * celsius<double>(10.0)));
+
+	// a fahrenheit-degree is a rankine (5/9 of a kelvin), so the root of a squared fahrenheit is a rankine
+	static_assert(std::ratio_equal_v<std::ratio<5, 9>, square_root<squared<units::temperature::fahrenheit_>>::conversion_ratio>);
+	EXPECT_DOUBLE_EQ(10.0, units::sqrt(fahrenheit<double>(10.0) * fahrenheit<double>(10.0)).value());
+	EXPECT_EQ(rankine<double>(10.0), units::sqrt(fahrenheit<double>(10.0) * fahrenheit<double>(10.0)));
+
+	// which is what an rms deviation needs: a spread of ten degrees is ten kelvin, whatever scale it was written in
+	const unit<squared<units::temperature::celsius_>, double> variance(100.0);
+	const auto deviation = units::sqrt(variance);
+	EXPECT_DOUBLE_EQ(10.0, deviation.value());
+	EXPECT_DOUBLE_EQ(10.0, kelvin<double>(deviation).value());
+}
+
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
