@@ -1051,7 +1051,7 @@ namespace units
 		struct is_same_dimension_unit;
 
 		template<UnitType U1, UnitType U2>
-		struct is_same_unit;
+		struct is_equivalent_unit;
 	} // namespace traits
 
 	/**
@@ -1063,11 +1063,11 @@ namespace units
 
 	/**
 	 * @ingroup		Concepts
-	 * @brief		Concept for two types which are the same unit -- the same conversion factor and the same
-	 *				numerical scale, so a value converts between them unchanged. See `traits::is_same_unit`.
+	 * @brief		Concept for two types which are equivalent units -- equivalent conversion factors and the same
+	 *				numerical scale, so a value converts between them unchanged. See `traits::is_equivalent_unit`.
 	 */
 	template<typename UnitTo, typename UnitFrom>
-	concept same_unit = traits::is_same_unit<UnitFrom, UnitTo>::value;
+	concept equivalent_unit = traits::is_equivalent_unit<UnitFrom, UnitTo>::value;
 
 	//------------------------------
 	//	STRONG UNIT TYPES
@@ -2075,22 +2075,27 @@ namespace units
 
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		`BinaryTypeTrait` for querying whether `Cf1` and `Cf2` are the same conversion factor.
+		 * @brief		`BinaryTypeTrait` for querying whether `Cf1` and `Cf2` are equivalent conversion factors.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`. Two
-		 *				conversion factors are the same when they agree on all four parts a conversion is built
+		 *				conversion factors are equivalent when they agree on all four parts a conversion is built
 		 *				from -- the dimension, the conversion ratio, the pi exponent and the datum translation --
 		 *				so a value expressed through either reads the same number.
 		 *
-		 *				This is the library's definition of sameness, and it is what generic code and tests should
-		 *				ask, not `std::is_same_v`. A conversion factor has a named spelling and a structural one --
-		 *				`units::area::square_meters_` and the factor `squared<units::length::meters_>` builds are
-		 *				one conversion factor written two ways -- and `std::is_same_v` reports those as different.
+		 *				This is what generic code and tests should ask, not `std::is_same_v`. A conversion factor has
+		 *				a named spelling and a structural one -- `units::area::square_meters_` and the factor
+		 *				`squared<units::length::meters_>` builds are one conversion factor written two ways -- and
+		 *				`std::is_same_v` reports those as different.
+		 *
+		 *				How the factor was COMPOSED is not part of the comparison: a metre-hertz and a
+		 *				metre-per-second are both a length over a time with a ratio of one, so they are equivalent.
+		 *				The DATUM is part of it: celsius and kelvin agree on every other part and are not
+		 *				equivalent, differing by 273.15.
 		 * @tparam		Cf1 Conversion factor to query.
 		 * @tparam		Cf2 Conversion factor to query.
-		 * @sa			is_same_unit
+		 * @sa			is_equivalent_unit
 		 */
 		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
-		struct is_same_conversion_factor
+		struct is_equivalent_conversion_factor
 		  : std::bool_constant<is_same_dimension_conversion_factor<Cf1, Cf2>::value &&
 				std::ratio_equal_v<typename conversion_factor_traits<Cf1>::conversion_ratio, typename conversion_factor_traits<Cf2>::conversion_ratio> &&
 				std::ratio_equal_v<typename conversion_factor_traits<Cf1>::pi_exponent_ratio, typename conversion_factor_traits<Cf2>::pi_exponent_ratio> &&
@@ -2099,7 +2104,7 @@ namespace units
 		};
 
 		template<ConversionFactorType Cf1, ConversionFactorType Cf2>
-		inline constexpr bool is_same_conversion_factor_v = is_same_conversion_factor<Cf1, Cf2>::value;
+		inline constexpr bool is_equivalent_conversion_factor_v = is_equivalent_conversion_factor<Cf1, Cf2>::value;
 
 		/**
 		 * @brief		`true` when a conversion factor carries a non-zero datum offset — i.e. it is AFFINE, not
@@ -2633,11 +2638,16 @@ namespace units
 
 		/**
 		 * @ingroup		TypeTraits
-		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are the same unit.
+		 * @brief		`BinaryTypeTrait` for querying whether `U1` and `U2` are equivalent units.
 		 * @details		The base characteristic is a specialization of the template `std::bool_constant`. Two units
-		 *				are the same when their conversion factors are the same (`is_same_conversion_factor`) and
-		 *				they carry the same numerical scale, so a value converts between them unchanged in both
-		 *				directions.
+		 *				are equivalent when their conversion factors are equivalent
+		 *				(`is_equivalent_conversion_factor`) and they carry the same numerical scale, so a value
+		 *				converts between them unchanged in both directions.
+		 *
+		 *				A reading and its amount are not equivalent -- celsius against kelvin -- but the DIFFERENCE
+		 *				of two celsius readings is equivalent to a kelvin, a celsius-degree and a kelvin being the
+		 *				same size. Which of the two a caller holds is carried by the type, so this one trait answers
+		 *				for either.
 		 *
 		 *				The numerical scale is part of a unit's identity: `UNIT_ADD_DECIBEL` builds `dBW` from
 		 *				`watts`'s conversion factor, so the two share every part of that factor and are still not
@@ -2649,17 +2659,17 @@ namespace units
 		 *				builds for it as different types where this reports them the same.
 		 * @tparam		U1 Unit to query.
 		 * @tparam		U2 Unit to query.
-		 * @sa			is_same_conversion_factor
+		 * @sa			is_equivalent_conversion_factor
 		 */
 		template<UnitType U1, UnitType U2>
-		struct is_same_unit
-		  : std::bool_constant<is_same_conversion_factor<typename unit_traits<U1>::conversion_factor, typename unit_traits<U2>::conversion_factor>::value &&
+		struct is_equivalent_unit
+		  : std::bool_constant<is_equivalent_conversion_factor<typename unit_traits<U1>::conversion_factor, typename unit_traits<U2>::conversion_factor>::value &&
 				std::is_same_v<typename unit_traits<U1>::numerical_scale_type, typename unit_traits<U2>::numerical_scale_type>>
 		{
 		};
 
 		template<UnitType U1, UnitType U2>
-		inline constexpr bool is_same_unit_v = is_same_unit<U1, U2>::value;
+		inline constexpr bool is_equivalent_unit_v = is_equivalent_unit<U1, U2>::value;
 	} // namespace traits
 
 	//----------------------------------

@@ -110,12 +110,10 @@ namespace
 	};
 
 	// Tests that two units have the same conversion ratio to the same dimension.
+	// The library's own equivalence, so these assertions test the whole conversion factor and the numerical scale
+	// rather than the dimension and the ratio alone.
 	constexpr auto has_equivalent_conversion_factor = []<typename T0, typename T1>(const T0&, const T1&)
-	{
-		using T = std::decay_t<T0>;
-		using U = std::decay_t<T1>;
-		return units::traits::is_same_dimension_unit_v<T, U> && std::ratio_equal_v<typename T::conversion_factor::conversion_ratio, typename U::conversion_factor::conversion_ratio>;
-	};
+	{ return units::traits::is_equivalent_unit_v<std::decay_t<T0>, std::decay_t<T1>>; };
 } // namespace
 
 TEST_F(TypeTraits, sizeOf)
@@ -672,8 +670,13 @@ TEST_F(STDTypeTraits, std_common_type)
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>, std::common_type_t<third_a_second, half_a_second>>);
 	static_assert(std::is_same_v<std::common_type_t<half_a_second, third_a_second>::underlying_type, int>);
 
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, celsius{}));
-	static_assert(has_equivalent_conversion_factor(std::common_type_t<celsius<double>, kelvin<double>>{}, celsius{}));
+	// The common type of an offset-free unit and an affine one carries no datum -- `detail::common_baggage_ratio`
+	// keeps a translation only where both agree on it -- so it is equivalent to the kelvin, not to the celsius. The
+	// weaker check this assertion used to make compared the dimension and the ratio only, which kelvin and celsius
+	// share, and so passed against either.
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, kelvin{}));
+	static_assert(has_equivalent_conversion_factor(std::common_type_t<celsius<double>, kelvin<double>>{}, kelvin{}));
+	static_assert(!has_equivalent_conversion_factor(std::common_type_t<kelvin<double>, celsius<double>>{}, celsius{}));
 	static_assert(std::is_same_v<std::common_type_t<kelvin<double>, celsius<double>>, std::common_type_t<celsius<double>, kelvin<double>>>);
 
 	using half_a_kelvin  = unit<conversion_factor<std::ratio<1, 2>, kelvin<double>>, double>;
@@ -8782,54 +8785,54 @@ TEST(UnitComparison, aWideIntegralOperandOrdersExactly)
 	EXPECT_TRUE(meters<int>(1000) == kilometers<int>(1));
 }
 
-// `traits::is_same_unit` is the library's own definition of two types being one unit, which `std::is_same_v` does not
+// `traits::is_equivalent_unit` is the library's own definition of two types being one unit, which `std::is_same_v` does not
 // answer: a named unit is a class deriving from its `unit<...>`, and a conversion factor has a named spelling and a
 // structural one, so `std::is_same_v` reports one unit written two ways as two types.
-TEST(SameUnit, oneUnitWrittenTwoWaysIsOneUnit)
+TEST(EquivalentUnit, oneUnitWrittenTwoWaysIsEquivalent)
 {
 	// the same unit spelled by name and through the plain template
-	static_assert(traits::is_same_unit_v<meters<double>, unit<units::length::meters_, double>>);
+	static_assert(traits::is_equivalent_unit_v<meters<double>, unit<units::length::meters_, double>>);
 	static_assert(!std::is_same_v<meters<double>, unit<units::length::meters_, double>>,
 		"which std::is_same_v does not see, a named unit being a class deriving from its unit<...>");
 
 	// the representation is not part of a unit's identity
-	static_assert(traits::is_same_unit_v<meters<double>, meters<int>>);
-	static_assert(traits::is_same_unit_v<meters<float>, meters<long double>>);
+	static_assert(traits::is_equivalent_unit_v<meters<double>, meters<int>>);
+	static_assert(traits::is_equivalent_unit_v<meters<float>, meters<long double>>);
 
 	// a product and the manipulator spelling of it are one unit
-	static_assert(traits::is_same_unit_v<std::decay_t<decltype(meters<double>(2.0) * meters<double>(3.0))>,
+	static_assert(traits::is_equivalent_unit_v<std::decay_t<decltype(meters<double>(2.0) * meters<double>(3.0))>,
 		unit<squared<units::length::meters_>, double>>);
-	static_assert(traits::is_same_unit_v<units::area::square_meters<double>, unit<squared<units::length::meters_>, double>>);
+	static_assert(traits::is_equivalent_unit_v<units::area::square_meters<double>, unit<squared<units::length::meters_>, double>>);
 
 	// and the round trip through squared and back is the unit it started from, for every unit -- which is the
 	// contract, whether or not the result is spelled as the named type
-	static_assert(traits::is_same_unit_v<meters<double>, unit<square_root<squared<units::length::meters_>>, double>>);
-	static_assert(traits::is_same_unit_v<feet<double>, unit<square_root<squared<units::length::feet_>>, double>>);
-	static_assert(traits::is_same_unit_v<units::angle::degrees<double>,
+	static_assert(traits::is_equivalent_unit_v<meters<double>, unit<square_root<squared<units::length::meters_>>, double>>);
+	static_assert(traits::is_equivalent_unit_v<feet<double>, unit<square_root<squared<units::length::feet_>>, double>>);
+	static_assert(traits::is_equivalent_unit_v<units::angle::degrees<double>,
 		unit<square_root<squared<units::angle::degrees_>>, double>>);
-	static_assert(traits::is_same_unit_v<kelvin<double>, unit<square_root<squared<units::temperature::kelvin_>>, double>>);
+	static_assert(traits::is_equivalent_unit_v<kelvin<double>, unit<square_root<squared<units::temperature::kelvin_>>, double>>);
 }
 
 // What it must answer no to. Each of the four parts of a conversion factor, and the numerical scale, is part of a
 // unit's identity.
-TEST(SameUnit, aDifferenceInAnyPartIsADifferentUnit)
+TEST(EquivalentUnit, aDifferenceInAnyPartIsNotEquivalent)
 {
 	// a different dimension
-	static_assert(!traits::is_same_unit_v<meters<double>, units::time::seconds<double>>);
+	static_assert(!traits::is_equivalent_unit_v<meters<double>, units::time::seconds<double>>);
 	// a different conversion ratio
-	static_assert(!traits::is_same_unit_v<meters<double>, feet<double>>);
-	static_assert(!traits::is_same_unit_v<meters<double>, kilometers<double>>);
+	static_assert(!traits::is_equivalent_unit_v<meters<double>, feet<double>>);
+	static_assert(!traits::is_equivalent_unit_v<meters<double>, kilometers<double>>);
 	// a different pi exponent: a degree carries one, a radian does not
-	static_assert(!traits::is_same_unit_v<units::angle::degrees<double>, units::angle::radians<double>>);
+	static_assert(!traits::is_equivalent_unit_v<units::angle::degrees<double>, units::angle::radians<double>>);
 	// a different datum: celsius and kelvin share a ratio and differ only by 273.15
-	static_assert(!traits::is_same_unit_v<celsius<double>, kelvin<double>>);
+	static_assert(!traits::is_equivalent_unit_v<celsius<double>, kelvin<double>>);
 	static_assert(traits::is_same_dimension_unit_v<celsius<double>, kelvin<double>>,
 		"the same dimension, which is why the dimension test alone is not enough");
 	// a different numerical scale: dBW is built from watts's conversion factor and is not the same unit
-	static_assert(traits::is_same_conversion_factor_v<units::power::dBW<double>::conversion_factor,
+	static_assert(traits::is_equivalent_conversion_factor_v<units::power::dBW<double>::conversion_factor,
 					  units::power::watts<double>::conversion_factor>,
 		"dBW and watts share every part of the conversion factor");
-	static_assert(!traits::is_same_unit_v<units::power::dBW<double>, units::power::watts<double>>,
+	static_assert(!traits::is_equivalent_unit_v<units::power::dBW<double>, units::power::watts<double>>,
 		"and are still not the same unit, because the numerical scale differs");
 }
 
@@ -8841,40 +8844,40 @@ TEST(SameUnit, aDifferenceInAnyPartIsADifferentUnit)
 //
 // A reading and its offset-free counterpart are NOT the same unit -- celsius against kelvin -- but the DIFFERENCE of
 // two celsius readings is the same unit as a kelvin, because a celsius-degree and a kelvin are the same size. That is
-// the point-versus-amount distinction, and `is_same_unit` answers it on whichever of the two it is handed.
-TEST(SameUnit, aDifferentCompositionIsTheSameUnitAndAReadingIsNotItsAmount)
+// the point-versus-amount distinction, and `is_equivalent_unit` answers it on whichever of the two it is handed.
+TEST(EquivalentUnit, aDifferentCompositionIsTheSameUnitAndAReadingIsNotItsAmount)
 {
 	using meterHertz = unit<compound_conversion_factor<units::length::meters_, units::frequency::hertz_>, double>;
 	using mps        = units::velocity::meters_per_second<double>;
-	static_assert(traits::is_same_unit_v<meterHertz, mps>, "a metre-hertz is a metre per second");
+	static_assert(traits::is_equivalent_unit_v<meterHertz, mps>, "a metre-hertz is a metre per second");
 	static_assert(!std::is_same_v<meterHertz, mps>, "which a structural comparison does not see");
 	EXPECT_DOUBLE_EQ(3.0, mps(meterHertz(3.0)).value());
 
 	// a reading is not its own amount
-	static_assert(!traits::is_same_unit_v<celsius<double>, kelvin<double>>);
+	static_assert(!traits::is_equivalent_unit_v<celsius<double>, kelvin<double>>);
 	// but the difference of two readings is: a celsius-degree is a kelvin
 	using celsiusDifference = std::decay_t<decltype(celsius<double>(30.0) - celsius<double>(10.0))>;
-	static_assert(traits::is_same_unit_v<celsiusDifference, kelvin<double>>,
+	static_assert(traits::is_equivalent_unit_v<celsiusDifference, kelvin<double>>,
 		"the difference of two celsius readings is a kelvin");
 	EXPECT_DOUBLE_EQ(20.0, (celsius<double>(30.0) - celsius<double>(10.0)).value());
 	EXPECT_DOUBLE_EQ(20.0, kelvin<double>(celsius<double>(30.0) - celsius<double>(10.0)).value());
 
 	// and a fahrenheit-degree is not, being five ninths of one -- it is a rankine
 	using fahrenheitDifference = std::decay_t<decltype(fahrenheit<double>(90.0) - fahrenheit<double>(50.0))>;
-	static_assert(!traits::is_same_unit_v<fahrenheitDifference, kelvin<double>>);
-	static_assert(traits::is_same_unit_v<fahrenheitDifference, rankine<double>>,
+	static_assert(!traits::is_equivalent_unit_v<fahrenheitDifference, kelvin<double>>);
+	static_assert(traits::is_equivalent_unit_v<fahrenheitDifference, rankine<double>>,
 		"the difference of two fahrenheit readings is a rankine");
 	EXPECT_DOUBLE_EQ(40.0, (fahrenheit<double>(90.0) - fahrenheit<double>(50.0)).value());
 }
 
 // The concept form, for constraining generic code.
-TEST(SameUnit, theConceptConstrainsOnTheSameContract)
+TEST(EquivalentUnit, theConceptConstrainsOnTheSameContract)
 {
-	static_assert(same_unit<meters<double>, unit<units::length::meters_, double>>);
-	static_assert(same_unit<meters<double>, meters<int>>);
-	static_assert(!same_unit<meters<double>, feet<double>>);
-	static_assert(!same_unit<celsius<double>, kelvin<double>>);
-	static_assert(!same_unit<units::power::dBW<double>, units::power::watts<double>>);
+	static_assert(equivalent_unit<meters<double>, unit<units::length::meters_, double>>);
+	static_assert(equivalent_unit<meters<double>, meters<int>>);
+	static_assert(!equivalent_unit<meters<double>, feet<double>>);
+	static_assert(!equivalent_unit<celsius<double>, kelvin<double>>);
+	static_assert(!equivalent_unit<units::power::dBW<double>, units::power::watts<double>>);
 
 	// and it agrees with what conversion actually does: a value crosses between two same units unchanged
 	using plainMetre = unit<units::length::meters_, double>;
