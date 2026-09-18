@@ -8833,6 +8833,40 @@ TEST(SameUnit, aDifferenceInAnyPartIsADifferentUnit)
 		"and are still not the same unit, because the numerical scale differs");
 }
 
+// Two cases worth naming, because they are where a structural comparison and this one part company (raised by
+// @chiphogg from Au's experience).
+//
+// A unit composed a different way is the same unit: metre-hertz and metres-per-second are both a length over a time
+// with a ratio of one, so a value crosses between them unchanged.
+//
+// A reading and its offset-free counterpart are NOT the same unit -- celsius against kelvin -- but the DIFFERENCE of
+// two celsius readings is the same unit as a kelvin, because a celsius-degree and a kelvin are the same size. That is
+// the point-versus-amount distinction, and `is_same_unit` answers it on whichever of the two it is handed.
+TEST(SameUnit, aDifferentCompositionIsTheSameUnitAndAReadingIsNotItsAmount)
+{
+	using meterHertz = unit<compound_conversion_factor<units::length::meters_, units::frequency::hertz_>, double>;
+	using mps        = units::velocity::meters_per_second<double>;
+	static_assert(traits::is_same_unit_v<meterHertz, mps>, "a metre-hertz is a metre per second");
+	static_assert(!std::is_same_v<meterHertz, mps>, "which a structural comparison does not see");
+	EXPECT_DOUBLE_EQ(3.0, mps(meterHertz(3.0)).value());
+
+	// a reading is not its own amount
+	static_assert(!traits::is_same_unit_v<celsius<double>, kelvin<double>>);
+	// but the difference of two readings is: a celsius-degree is a kelvin
+	using celsiusDifference = std::decay_t<decltype(celsius<double>(30.0) - celsius<double>(10.0))>;
+	static_assert(traits::is_same_unit_v<celsiusDifference, kelvin<double>>,
+		"the difference of two celsius readings is a kelvin");
+	EXPECT_DOUBLE_EQ(20.0, (celsius<double>(30.0) - celsius<double>(10.0)).value());
+	EXPECT_DOUBLE_EQ(20.0, kelvin<double>(celsius<double>(30.0) - celsius<double>(10.0)).value());
+
+	// and a fahrenheit-degree is not, being five ninths of one -- it is a rankine
+	using fahrenheitDifference = std::decay_t<decltype(fahrenheit<double>(90.0) - fahrenheit<double>(50.0))>;
+	static_assert(!traits::is_same_unit_v<fahrenheitDifference, kelvin<double>>);
+	static_assert(traits::is_same_unit_v<fahrenheitDifference, rankine<double>>,
+		"the difference of two fahrenheit readings is a rankine");
+	EXPECT_DOUBLE_EQ(40.0, (fahrenheit<double>(90.0) - fahrenheit<double>(50.0)).value());
+}
+
 // The concept form, for constraining generic code.
 TEST(SameUnit, theConceptConstrainsOnTheSameContract)
 {
