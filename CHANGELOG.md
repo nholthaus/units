@@ -5,6 +5,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `units::traits::is_equivalent_unit`, `units::traits::is_equivalent_conversion_factor` and the
+  `units::equivalent_unit` concept, which ask whether two types are one unit by the library's definition -- equivalent
+  conversion factors and the same numerical scale -- where `std::is_same_v` reports a named unit and the `unit<...>` an
+  operation builds for it as different types.
+
 ### Fixed
 - Scalar assignment to a decibel gain interprets the number as decibels, matching scalar construction and comparison.
   Use `dimensionless<double>(ratio)` to assign a linear ratio; percent normalization is unchanged.
