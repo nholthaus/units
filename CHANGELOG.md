@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Fixed
+- Scalar assignment to a decibel gain interprets the number as decibels, matching scalar construction and comparison.
+  Use `dimensionless<double>(ratio)` to assign a linear ratio; percent normalization is unchanged.
 - `squared`, `cubed` and `square_root` drop the datum, as their documentation states and as `operator*` already did, so
   the manipulator spelling and the product of two readings are one type and a value carries between the two spellings of
   one squared temperature unchanged.
