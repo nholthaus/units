@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Fixed
+- Integral comparisons preserve rational scales and fractional temperature datums exactly, including
+  at integer limits. Shared powers of pi cancel exactly when the datums agree. (#448)
 - Scalar assignment to a decibel gain interprets the number as decibels, matching scalar construction and comparison.
   Use `dimensionless<double>(ratio)` to assign a linear ratio; percent normalization is unchanged.
 - `squared`, `cubed` and `square_root` drop the datum, as their documentation states and as `operator*` already did, so

@@ -70,6 +70,8 @@ function(units_add_lean_config name)
 	add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
+units_add_lean_config(integerDefaultComparison       UNIT_LIB_DEFAULT_TYPE=int UNIT_LIB_TEST_INTEGRAL_DEFAULT)
+
 units_add_lean_config(leanDisableIostream            UNIT_LIB_DISABLE_IOSTREAM)
 units_add_lean_config(leanDisableFormat              UNIT_LIB_DISABLE_FORMAT)
 units_add_lean_config(leanDisableString              UNIT_LIB_DISABLE_STRING)

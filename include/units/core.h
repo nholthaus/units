@@ -2642,8 +2642,7 @@ namespace units
 		/// controls the result unit by operand order and reads the value in the unit they wrote — whenever that is
 		/// lossless: either the right operand converts into the left as-is, or both operands are floating point (a
 		/// floating result in either unit loses nothing). When neither holds — an integral left operand that cannot
-		/// hold the right without truncation — it falls back to the symmetric common (finest, lossless) unit, the
-		/// same exact reconciliation integer comparisons use.
+		/// hold the right without truncation — it falls back to the symmetric common (finest, lossless) unit.
 		template<class L, class R>
 		using lhs_result_unit_t = std::conditional_t<is_losslessly_convertible_unit<R, L> || both_floating_v<L, R>, L, std::common_type_t<L, R>>;
 
@@ -2671,6 +2670,95 @@ namespace units
 		};
 		template<class Source, class StrongCf, class Scale>
 		using deduced_named_underlying_t = typename deduced_named_underlying<Source, StrongCf, Scale>::type;
+
+		// Magnitude is unsigned; unary promotion keeps bool/char out of make_unsigned's unsupported bool case.
+		template<class I>
+		constexpr auto comparison_magnitude(I value) noexcept
+		{
+			using U = std::make_unsigned_t<decltype(+value)>;
+			const U bits = static_cast<U>(value);
+			if constexpr (std::is_signed_v<I>)
+				return value < 0 ? U(0) - bits : bits;
+			else
+				return bits;
+		}
+
+		template<std::size_t N>
+		struct comparison_magnitude_words
+		{
+			std::uint32_t words[N]{};
+
+			template<class U>
+			constexpr explicit comparison_magnitude_words(U value) noexcept
+			{
+				for (auto& word : words)
+				{
+					word = static_cast<std::uint32_t>(value);
+					if constexpr (sizeof(U) > sizeof(std::uint32_t)) value >>= 32;
+					else value = 0;
+				}
+			}
+
+			constexpr void multiply(std::uint64_t factor) noexcept
+			{
+				std::uint64_t carry = 0;
+				for (auto& word : words)
+				{
+					const auto low = std::uint64_t(word) * std::uint32_t(factor) + std::uint32_t(carry);
+					const auto high = std::uint64_t(word) * (factor >> 32) + (low >> 32) + (carry >> 32);
+					word = static_cast<std::uint32_t>(low);
+					carry = high;
+				}
+			}
+
+			constexpr void add(const comparison_magnitude_words& rhs) noexcept
+			{
+				std::uint64_t carry = 0;
+				for (std::size_t i = 0; i < N; ++i)
+				{
+					const auto sum = std::uint64_t(words[i]) + rhs.words[i] + carry;
+					words[i] = static_cast<std::uint32_t>(sum);
+					carry = sum >> 32;
+				}
+			}
+
+			constexpr std::strong_ordering operator<=>(const comparison_magnitude_words& rhs) const noexcept
+			{
+				for (std::size_t i = N; i-- > 0;)
+					if (words[i] != rhs.words[i]) return words[i] <=> rhs.words[i];
+				return std::strong_ordering::equal;
+			}
+		};
+
+		template<class CfL, class CfR, class L, class R>
+		constexpr std::strong_ordering compare_rational_coordinates(L lhs, R rhs) noexcept
+		{
+			// Clear the original denominators in (lhs*LR + LD) - (rhs*RR + RD). Keeping positive and
+			// negative terms separate avoids signed overflow and std::ratio cross-product overflow.
+			// A term needs rawBits + 4*intmaxDigits bits; two more bits cover the sum of four terms.
+			static_assert(std::numeric_limits<std::uintmax_t>::digits <= 64);
+			constexpr auto rawBits = (sizeof(L) > sizeof(R) ? sizeof(L) : sizeof(R)) * std::numeric_limits<unsigned char>::digits;
+			constexpr auto bits = rawBits + 4 * std::numeric_limits<std::intmax_t>::digits + 2;
+			using Magnitude = comparison_magnitude_words<(bits + 31) / 32>;
+			using LR = typename CfL::conversion_ratio;
+			using RR = typename CfR::conversion_ratio;
+			using LD = typename CfL::translation_ratio;
+			using RD = typename CfR::translation_ratio;
+			Magnitude positive(0u), negative(0u);
+			const auto term = [&](bool subtract, auto value, auto... factors) constexpr {
+				if (value == 0) return;
+				if constexpr (std::is_signed_v<decltype(value)>) subtract ^= value < 0;
+				((subtract ^= factors < 0), ...); // factors are signed intmax_t ratio members
+				Magnitude magnitude(comparison_magnitude(value));
+				(magnitude.multiply(comparison_magnitude(factors)), ...);
+				(subtract ? negative : positive).add(magnitude);
+			};
+			term(false, lhs, LR::num, RR::den, LD::den, RD::den);
+			term(false, LD::num, LR::den, RR::den, RD::den);
+			term(true, rhs, RR::num, LR::den, LD::den, RD::den);
+			term(true, RD::num, LR::den, RR::den, LD::den);
+			return positive <=> negative;
+		}
 
 		template<RatioType Ratio>
 		using time_conversion_factor = conversion_factor<Ratio, dimension::time>;
@@ -3160,60 +3248,83 @@ namespace units
 		friend class unit;
 
 	private:
-		/// Order this against `rhs` by MATHEMATICAL VALUE, reconciled to the finer common unit. When both underlying
-		/// types are integral, the comparison is signedness-safe (`std::cmp_*`): a signed and an unsigned
-		/// representation of the same dimension compare by their true values, so `meters<int>(-1) < meters<unsigned>(1u)`
-		/// is `true` rather than wrapping `-1` to a huge unsigned. Floating-point comparison is unchanged.
+		// Compare rational integral coordinates exactly before narrowing. A shared pi factor cancels
+		// when datums agree; other comparisons retain the common-unit reconciliation.
 		template<ConversionFactorType ConversionFactorRhs, ArithmeticType Ty, NumericalScaleType<Ty> NsRhs>
+			requires traits::is_same_dimension_conversion_factor_v<ConversionFactor, ConversionFactorRhs>
 		constexpr auto value_compare(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
+			using L = ConversionFactor;
+			using R = ConversionFactorRhs;
+			constexpr bool samePi = std::ratio_equal_v<typename L::pi_exponent_ratio, typename R::pi_exponent_ratio>;
+			constexpr bool sameDatum = std::ratio_equal_v<typename L::translation_ratio, typename R::translation_ratio>;
+			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty> &&
+				((L::pi_exponent_ratio::num == 0 && R::pi_exponent_ratio::num == 0) || (samePi && sameDatum)))
 			{
-				// Each side is scaled into the common unit by a whole multiplier, in the widest integer the platform has.
-				using Wide = std::conditional_t<std::is_unsigned_v<T> && std::is_unsigned_v<Ty>,
-					detail::widest_unsigned_int, detail::widest_signed_int>;
-				using CommonRatio = typename traits::conversion_factor_traits<typename CommonUnit::conversion_factor>::conversion_ratio;
-				using LhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactor>::conversion_ratio, CommonRatio>;
-				using RhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactorRhs>::conversion_ratio, CommonRatio>;
-
-				if constexpr (LhsScale::den == 1 && RhsScale::den == 1 &&
-					(std::is_signed_v<T> == std::is_signed_v<Ty> ||
-						(sizeof(detail::widest_signed_int) > sizeof(T) && sizeof(detail::widest_signed_int) > sizeof(Ty))))
+				if constexpr (samePi && sameDatum && std::ratio_equal_v<typename L::conversion_ratio, typename R::conversion_ratio>)
 				{
-					constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
-					constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
-					constexpr Wide cap           = std::numeric_limits<Wide>::max();
-
-					const Wide lhsRaw = static_cast<Wide>(_linearized_value);
-					const Wide rhsRaw = static_cast<Wide>(rhs._linearized_value);
-
-					// A product can exceed even the widest integer; where it would, the reconciliation below stands in.
-					const auto fits = [](Wide value, Wide multiplier) {
-						const Wide bound = cap / multiplier;
-						if constexpr (std::is_unsigned_v<Wide>)
-							return value <= bound;
-						else
-							return value <= bound && value >= -bound;
+					const auto compare = [](auto left, auto right) constexpr {
+						if (std::cmp_less(+left, +right)) return std::strong_ordering::less;
+						if (std::cmp_greater(+left, +right)) return std::strong_ordering::greater;
+						return std::strong_ordering::equal;
 					};
-
-					if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
-						return lhsRaw * lhsMultiplier <=> rhsRaw * rhsMultiplier;
+					if constexpr (L::conversion_ratio::num < 0) return compare(rhs._linearized_value, _linearized_value);
+					else if constexpr (L::conversion_ratio::num == 0) return std::strong_ordering::equal;
+					else return compare(_linearized_value, rhs._linearized_value);
 				}
-
-				const T  lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
-				const Ty rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
-				if (std::cmp_less(lhsCommon, rhsCommon))
-					return std::strong_ordering::less;
-				if (std::cmp_greater(lhsCommon, rhsCommon))
-					return std::strong_ordering::greater;
-				return std::strong_ordering::equal;
+				else
+					return detail::compare_rational_coordinates<L, R>(_linearized_value, rhs._linearized_value);
 			}
 			else
 			{
-				const auto lhsCommon = CommonUnit(*this)._linearized_value;
-				const auto rhsCommon = CommonUnit(rhs)._linearized_value;
-				return lhsCommon <=> rhsCommon;
+				using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
+				if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
+				{
+					// Each side is scaled into the common unit by a whole multiplier, in the widest integer the platform has.
+					using Wide = std::conditional_t<std::is_unsigned_v<T> && std::is_unsigned_v<Ty>,
+						detail::widest_unsigned_int, detail::widest_signed_int>;
+					using CommonRatio = typename traits::conversion_factor_traits<typename CommonUnit::conversion_factor>::conversion_ratio;
+					using LhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactor>::conversion_ratio, CommonRatio>;
+					using RhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactorRhs>::conversion_ratio, CommonRatio>;
+
+					if constexpr (LhsScale::den == 1 && RhsScale::den == 1 &&
+						(std::is_signed_v<T> == std::is_signed_v<Ty> ||
+							(sizeof(detail::widest_signed_int) > sizeof(T) && sizeof(detail::widest_signed_int) > sizeof(Ty))))
+					{
+						constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
+						constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
+						constexpr Wide cap           = std::numeric_limits<Wide>::max();
+
+						const Wide lhsRaw = static_cast<Wide>(_linearized_value);
+						const Wide rhsRaw = static_cast<Wide>(rhs._linearized_value);
+
+						// A product can exceed even the widest integer; where it would, the reconciliation below stands in.
+						const auto fits = [](Wide value, Wide multiplier) {
+							const Wide bound = cap / multiplier;
+							if constexpr (std::is_unsigned_v<Wide>)
+								return value <= bound;
+							else
+								return value <= bound && value >= -bound;
+						};
+
+						if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
+							return lhsRaw * lhsMultiplier <=> rhsRaw * rhsMultiplier;
+					}
+
+					const T  lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
+					const Ty rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
+					if (std::cmp_less(lhsCommon, rhsCommon))
+						return std::strong_ordering::less;
+					if (std::cmp_greater(lhsCommon, rhsCommon))
+						return std::strong_ordering::greater;
+					return std::strong_ordering::equal;
+				}
+				else
+				{
+					const auto lhsCommon = CommonUnit(*this)._linearized_value;
+					const auto rhsCommon = CommonUnit(rhs)._linearized_value;
+					return lhsCommon <=> rhsCommon;
+				}
 			}
 		}
 
@@ -3643,7 +3754,7 @@ namespace units
 		/// (celsius vs kelvin) — the common unit takes the CLEAN, offset-free value: a sane user reconciling degrees
 		/// Celsius with kelvin expects kelvin, not a hybrid scale carrying an arbitrary zero. Applied only to the
 		/// translation ratio; the conversion and pi ratios keep their greatest common measure so magnitudes stay
-		/// lossless (that is what integer comparisons rely on).
+		/// lossless.
 		template<RatioType Ratio1, RatioType Ratio2>
 		using common_baggage_ratio = std::conditional_t<std::ratio_equal_v<Ratio1, Ratio2>, Ratio1, std::ratio<0>>;
 	} // namespace detail
@@ -4385,7 +4496,7 @@ namespace units
 	///			operand order (`meters + feet` is meters, `feet + meters` is feet) and the value reads in the unit
 	///			they named. The underlying is widened only when the left operand's is integral and the right cannot
 	///			convert into it without truncation, in which case the result reconciles to the common (finest,
-	///			lossless) unit — the same exact behavior integer comparisons rely on.
+	///			lossless) unit.
 	template<UnitType UnitTypeLhs, UnitType UnitTypeRhs>
 		requires(same_dimension<UnitTypeLhs, UnitTypeRhs> && traits::has_linear_scale_v<UnitTypeLhs, UnitTypeRhs> &&
 			!traits::is_affine_unit_v<UnitTypeLhs> && !traits::is_affine_unit_v<UnitTypeRhs>)
