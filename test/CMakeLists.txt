@@ -7,7 +7,6 @@ SET(SOURCE_CODE
 		${headers}
 		main.cpp
 		lossyCompoundAssign.cpp
-		comparisonTest.cpp
 		eigenInterop.cpp
 		wrapperTest.cpp
 )
@@ -57,12 +56,6 @@ ENDIF ()
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
-# A separate executable keeps the integral default-type configuration out of other test translation units.
-add_executable(integerDefaultComparison comparisonTest.cpp)
-target_link_libraries(integerDefaultComparison units gtest_main)
-target_compile_definitions(integerDefaultComparison PRIVATE UNIT_LIB_DEFAULT_TYPE=int)
-add_test(NAME integerDefaultComparison COMMAND integerDefaultComparison)
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Lean-configuration compile-and-run guards.
 #
@@ -76,6 +69,8 @@ function(units_add_lean_config name)
 	target_compile_definitions(${name} PRIVATE ${ARGN})
 	add_test(NAME ${name} COMMAND ${name})
 endfunction()
+
+units_add_lean_config(integerDefaultComparison       UNIT_LIB_DEFAULT_TYPE=int UNIT_LIB_TEST_INTEGRAL_DEFAULT)
 
 units_add_lean_config(leanDisableIostream            UNIT_LIB_DISABLE_IOSTREAM)
 units_add_lean_config(leanDisableFormat              UNIT_LIB_DISABLE_FORMAT)

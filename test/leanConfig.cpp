@@ -37,7 +37,14 @@
 //
 //--------------------------------------------------------------------------------------------------
 
+// The umbrella header declares floating physical constants; integral defaults use component headers.
+#if defined(UNIT_LIB_TEST_INTEGRAL_DEFAULT)
+#include <units/length.h>
+#include <units/temperature.h>
+#include <units/time.h>
+#else
 #include <units.h>
+#endif
 
 #if defined(UNIT_LIB_ENABLE_FORMAT_EXPECTED)
 #include <format>
@@ -45,6 +52,11 @@
 #endif
 
 using namespace units::literals;
+
+// A positive irrational scale preserves the sign without requiring a runtime power calculation.
+using RootPiLength = units::unit<units::conversion_factor<std::ratio<1>, units::dimension::length, std::ratio<1, 2>>, int>;
+static_assert(RootPiLength(1) > units::meters<int>(0));
+static_assert(RootPiLength(-1) < units::meters<int>(0));
 
 int main()
 {
@@ -60,6 +72,10 @@ int main()
 	const std::string s = std::format("{:.2f}", 3.5_m);
 	ok                  = ok && (s == "3.50 m");
 #endif
+
+	// Rational integral comparisons preserve the datum without truncating fractional offsets.
+	ok = ok && (units::celsius<int>(0) == units::fahrenheit<int>(32));
+	ok = ok && (units::celsius<int>(0) > units::kelvin<int>(273));
 
 	return ok ? 0 : 1;
 }

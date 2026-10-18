@@ -64,7 +64,6 @@
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <numbers>
 #include <ratio>
 #include <type_traits>
 #include <utility>
@@ -2723,22 +2722,6 @@ namespace units
 				}
 			}
 
-			// The caller supplies the smaller magnitude. Subtract before rounding so common terms cancel exactly.
-			constexpr long double difference(const comparison_magnitude_words& rhs) const noexcept
-			{
-				std::uint64_t borrow = 0;
-				long double result = 0, place = 1;
-				for (std::size_t i = 0; i < N; ++i)
-				{
-					const auto subtrahend = std::uint64_t(rhs.words[i]) + borrow;
-					const auto digit = static_cast<std::uint32_t>(std::uint64_t(words[i]) - subtrahend);
-					borrow = words[i] < subtrahend;
-					result += digit * place;
-					place *= 4294967296.0L;
-				}
-				return result;
-			}
-
 			constexpr std::strong_ordering operator<=>(const comparison_magnitude_words& rhs) const noexcept
 			{
 				for (std::size_t i = N; i-- > 0;)
@@ -2748,7 +2731,7 @@ namespace units
 		};
 
 		template<class CfL, class CfR, class L, class R>
-		constexpr std::strong_ordering compare_rational_coordinates(L lhs, R rhs, long double* difference = nullptr) noexcept
+		constexpr std::strong_ordering compare_rational_coordinates(L lhs, R rhs) noexcept
 		{
 			// Clear the original denominators in (lhs*LR + LD) - (rhs*RR + RD). Keeping positive and
 			// negative terms separate avoids signed overflow and std::ratio cross-product overflow.
@@ -2774,30 +2757,7 @@ namespace units
 			term(false, LD::num, LR::den, RR::den, RD::den);
 			term(true, rhs, RR::num, LR::den, LD::den, RD::den);
 			term(true, RD::num, LR::den, RR::den, LD::den);
-			const auto order = positive <=> negative;
-			if (difference)
-			{
-				const auto magnitude = order < 0 ? negative.difference(positive) : positive.difference(negative);
-				*difference = (order < 0 ? -magnitude : magnitude) / LR::den / RR::den / LD::den / RD::den;
-			}
-			return order;
-		}
-
-		template<class Cf, class I>
-		constexpr long double integral_comparison_coordinate(I value) noexcept
-		{
-			using RatioOnly = conversion_factor<typename Cf::conversion_ratio, typename Cf::dimension_type>;
-			using Canonical = conversion_factor<std::ratio<1>, typename Cf::dimension_type>;
-			using Pi = typename Cf::pi_exponent_ratio;
-			using Datum = typename Cf::translation_ratio;
-			const auto datum = static_cast<long double>(Datum::num) / Datum::den;
-			long double result = units::convert<RatioOnly, Canonical, long double>(value);
-			if (result == 0) return datum;
-			if constexpr (Pi::den == 1)
-				result *= units::pow<Pi::num>(std::numbers::pi_v<long double>);
-			else
-				result *= std::pow(std::numbers::pi_v<long double>, static_cast<long double>(Pi::num) / Pi::den);
-			return result + datum;
+			return positive <=> negative;
 		}
 
 		template<RatioType Ratio>
@@ -3288,18 +3248,19 @@ namespace units
 		friend class unit;
 
 	private:
-		// Compare integral coordinates before any narrowing. Rational scales and datums are exact;
-		// genuinely pi-dependent differences use long double. Floating operands retain their existing path.
+		// Compare rational integral coordinates exactly before narrowing. A shared pi factor cancels
+		// when datums agree; other comparisons retain the common-unit reconciliation.
 		template<ConversionFactorType ConversionFactorRhs, ArithmeticType Ty, NumericalScaleType<Ty> NsRhs>
 			requires traits::is_same_dimension_conversion_factor_v<ConversionFactor, ConversionFactorRhs>
-		constexpr std::partial_ordering value_compare(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
+		constexpr auto value_compare(const unit<ConversionFactorRhs, Ty, NsRhs>& rhs) const noexcept
 		{
-			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
+			using L = ConversionFactor;
+			using R = ConversionFactorRhs;
+			constexpr bool samePi = std::ratio_equal_v<typename L::pi_exponent_ratio, typename R::pi_exponent_ratio>;
+			constexpr bool sameDatum = std::ratio_equal_v<typename L::translation_ratio, typename R::translation_ratio>;
+			if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty> &&
+				((L::pi_exponent_ratio::num == 0 && R::pi_exponent_ratio::num == 0) || (samePi && sameDatum)))
 			{
-				using L = ConversionFactor;
-				using R = ConversionFactorRhs;
-				constexpr bool samePi = std::ratio_equal_v<typename L::pi_exponent_ratio, typename R::pi_exponent_ratio>;
-				constexpr bool sameDatum = std::ratio_equal_v<typename L::translation_ratio, typename R::translation_ratio>;
 				if constexpr (samePi && sameDatum && std::ratio_equal_v<typename L::conversion_ratio, typename R::conversion_ratio>)
 				{
 					const auto compare = [](auto left, auto right) constexpr {
@@ -3311,39 +3272,59 @@ namespace units
 					else if constexpr (L::conversion_ratio::num == 0) return std::strong_ordering::equal;
 					else return compare(_linearized_value, rhs._linearized_value);
 				}
-				else if constexpr ((samePi && sameDatum) || (L::pi_exponent_ratio::num == 0 && R::pi_exponent_ratio::num == 0))
-					return detail::compare_rational_coordinates<L, R>(_linearized_value, rhs._linearized_value);
 				else
-				{
-					long double datumDifference = 0;
-					const auto datumOrder = detail::compare_rational_coordinates<L, R>(0, 0, &datumDifference);
-					if constexpr (samePi)
-					{
-						using LCoefficient = units::conversion_factor<typename L::conversion_ratio, typename L::dimension_type>;
-						using RCoefficient = units::conversion_factor<typename R::conversion_ratio, typename R::dimension_type>;
-						using Pi = units::conversion_factor<std::ratio<1>, typename L::dimension_type, typename L::pi_exponent_ratio>;
-						long double coefficientDifference = 0;
-						const auto coefficientOrder = detail::compare_rational_coordinates<LCoefficient, RCoefficient>(
-							_linearized_value, rhs._linearized_value, &coefficientDifference);
-						if (coefficientOrder == 0) return datumOrder;
-						if (coefficientOrder == datumOrder) return coefficientOrder;
-						return (detail::integral_comparison_coordinate<Pi>(coefficientDifference) + datumDifference) <=> 0.0L;
-					}
-					else
-					{
-						using LUnshifted = units::conversion_factor<typename L::conversion_ratio, typename L::dimension_type, typename L::pi_exponent_ratio>;
-						using RUnshifted = units::conversion_factor<typename R::conversion_ratio, typename R::dimension_type, typename R::pi_exponent_ratio>;
-						return (detail::integral_comparison_coordinate<LUnshifted>(_linearized_value) -
-							detail::integral_comparison_coordinate<RUnshifted>(rhs._linearized_value) + datumDifference) <=> 0.0L;
-					}
-				}
+					return detail::compare_rational_coordinates<L, R>(_linearized_value, rhs._linearized_value);
 			}
 			else
 			{
 				using CommonUnit = std::common_type_t<unit, unit<ConversionFactorRhs, Ty, NsRhs>>;
-				const auto lhsCommon = CommonUnit(*this)._linearized_value;
-				const auto rhsCommon = CommonUnit(rhs)._linearized_value;
-				return lhsCommon <=> rhsCommon;
+				if constexpr (std::is_integral_v<T> && std::is_integral_v<Ty>)
+				{
+					// Each side is scaled into the common unit by a whole multiplier, in the widest integer the platform has.
+					using Wide = std::conditional_t<std::is_unsigned_v<T> && std::is_unsigned_v<Ty>,
+						detail::widest_unsigned_int, detail::widest_signed_int>;
+					using CommonRatio = typename traits::conversion_factor_traits<typename CommonUnit::conversion_factor>::conversion_ratio;
+					using LhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactor>::conversion_ratio, CommonRatio>;
+					using RhsScale    = std::ratio_divide<typename traits::conversion_factor_traits<ConversionFactorRhs>::conversion_ratio, CommonRatio>;
+
+					if constexpr (LhsScale::den == 1 && RhsScale::den == 1 &&
+						(std::is_signed_v<T> == std::is_signed_v<Ty> ||
+							(sizeof(detail::widest_signed_int) > sizeof(T) && sizeof(detail::widest_signed_int) > sizeof(Ty))))
+					{
+						constexpr Wide lhsMultiplier = static_cast<Wide>(LhsScale::num);
+						constexpr Wide rhsMultiplier = static_cast<Wide>(RhsScale::num);
+						constexpr Wide cap           = std::numeric_limits<Wide>::max();
+
+						const Wide lhsRaw = static_cast<Wide>(_linearized_value);
+						const Wide rhsRaw = static_cast<Wide>(rhs._linearized_value);
+
+						// A product can exceed even the widest integer; where it would, the reconciliation below stands in.
+						const auto fits = [](Wide value, Wide multiplier) {
+							const Wide bound = cap / multiplier;
+							if constexpr (std::is_unsigned_v<Wide>)
+								return value <= bound;
+							else
+								return value <= bound && value >= -bound;
+						};
+
+						if (fits(lhsRaw, lhsMultiplier) && fits(rhsRaw, rhsMultiplier))
+							return lhsRaw * lhsMultiplier <=> rhsRaw * rhsMultiplier;
+					}
+
+					const T  lhsCommon = unit<typename CommonUnit::conversion_factor, T, NumericalScale>(*this)._linearized_value;
+					const Ty rhsCommon = unit<typename CommonUnit::conversion_factor, Ty, NsRhs>(rhs)._linearized_value;
+					if (std::cmp_less(lhsCommon, rhsCommon))
+						return std::strong_ordering::less;
+					if (std::cmp_greater(lhsCommon, rhsCommon))
+						return std::strong_ordering::greater;
+					return std::strong_ordering::equal;
+				}
+				else
+				{
+					const auto lhsCommon = CommonUnit(*this)._linearized_value;
+					const auto rhsCommon = CommonUnit(rhs)._linearized_value;
+					return lhsCommon <=> rhsCommon;
+				}
 			}
 		}
 

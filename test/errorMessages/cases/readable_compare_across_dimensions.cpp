@@ -1,6 +1,6 @@
 // Case: comparing a length with a mass must FAIL readably. The relational-operator diagnostic reports the
 // operands through their conversion-factor tag inside the `unit<...>` base (e.g. `unit<units::meters_>`), so
-// it does not spell the friendly `meters<double>` form on any compiler. The readability signal asserted here
+// it does not spell the friendly `meters<int>` form on any compiler. The readability signal asserted here
 // is the failing operator name. Its SPELLING differs by compiler — g++/clang write it tight (`operator<`),
 // MSVC inserts a space (`operator <`) — so it is asserted per-compiler. A bare `meters` stem is rejected: it
 // would silently match the `meters_` tag in the base, defeating the check. Readability is verified two-sided:
@@ -15,8 +15,8 @@
 #include <units/length.h>
 #include <units/mass.h>
 using namespace units;
-using namespace units::literals;
-bool bad = (1.0_m < 1.0_kg); // ill-formed: incomparable dimensions
+// Integral comparisons reject differing dimensions without constructing a common unit.
+bool bad = (meters<int>(1) < kilograms<int>(1)); // ill-formed: incomparable dimensions
 int main()
 {
 	(void)bad;
