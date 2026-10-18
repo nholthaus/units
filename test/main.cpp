@@ -1181,6 +1181,37 @@ TEST_F(UnitType, assignmentFromArithmeticType)
 	EXPECT_DOUBLE_EQ(100, p_dim.raw());
 }
 
+TEST_F(UnitType, assignmentFromArithmeticPreservesNumericalScale)
+{
+	for (double value : {-12.5, 0.0, 12.5})
+	{
+		decibels<double> gain;
+		gain = value;
+		EXPECT_EQ(decibels<double>(value), gain);
+		EXPECT_NEAR(value, gain.value(), 1.0e-12);
+	}
+
+	decibels<double> gain;
+	gain = dimensionless<double>(100.0);
+	EXPECT_DOUBLE_EQ(20.0, gain.raw());
+	EXPECT_DOUBLE_EQ(100.0, gain.to_linearized());
+}
+
+TEST_F(UnitType, assignmentNormalizesCustomDimensionlessScales)
+{
+	using logarithmic_percent = unit<concentration::percent_, double, decibel_scale>;
+	logarithmic_percent gain;
+	gain = 0.0;
+	EXPECT_DOUBLE_EQ(20.0, gain.raw());
+	EXPECT_DOUBLE_EQ(0.0, gain.value());
+
+	struct inherited_linear_scale : linear_scale {};
+	unit<concentration::percent_, double, inherited_linear_scale> percentage;
+	percentage = 0.5;
+	EXPECT_DOUBLE_EQ(50.0, percentage.raw());
+	EXPECT_DOUBLE_EQ(0.5, percentage.value());
+}
+
 TEST_F(UnitType, assignmentFromUnitType)
 {
 	meters<int> a_m(1);

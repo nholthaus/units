@@ -2889,7 +2889,7 @@ namespace units
 			requires traits::is_dimensionless_unit<Cf>::value
 		constexpr unit& operator=(const underlying_type& rhs) noexcept
 		{
-			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, linear_scale> dimensionlessRhs(rhs);
+			unit<units::conversion_factor<std::ratio<1>, units::dimension::dimensionless>, underlying_type, NumericalScale> dimensionlessRhs(rhs);
 			_linearized_value = units::convert<unit>(dimensionlessRhs)._linearized_value;
 			return *this;
 		}
